@@ -14,7 +14,114 @@
 
 {% block extrahead %}
 
-    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+ {% endblock %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+<!-- Sidebar -->
+	{{ context_launcher | safe }}
+<!-- /#sidebar-wrapper -->
+{% endblock %}
+
+
+{% block formbtns %}
+	<div class="btn-group" role="group" aria-label="...">
+		<button id="savebutton" type="submit" class="btn btn-success" value="Save">
+                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
+                </button>
+                <a href="" class="btn btn-danger">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
+                </a>
+	</div>
+{% endblock %}	
+
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        {{ block.super }}
+        <div class="row">
+            <div class="col-md-10">
+
+             <div class="panel panel-info">
+               <div class="panel-heading">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
+                    <div class="panel-body">
+                        <div class="row">
+                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
+                            <button onclick="load_index(this);">Load this index and family</button>
+                            <button onclick="add_patient(this);">Add looked up patient to family</button>
+                        </div>
+                    </div>
+
+                </div>
+
+               <div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Index Patient</div>
+
+                            <div class="panel-body">
+                                <div id="indexpatient" >
+                                    <table class="table table-bordered droppable">
+                                        <tbody>
+
+
+                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="panel panel-default">
+                                <div class="panel panel-heading">Relatives</div>
+                                <div class="panel panel-body">
+                                     <div id="relatives">
+                                        <table class="table table-bordered table-striped">
+                                        <tbody>
+
+
+                                        <tr>
+                                            <th>Given Names</th>
+                                            <th>Family Name</th>
+                                            <th>Relationship</th>
+                                            <th>Link</th>
+                                        </tr>
+                                        </tbody>
+                                        </table>
+
+                                     </div>
+                                </div>
+                        </div>
+
+
+            </div>
+
+            </div>
+
+
+             <div class="col-md-2">
+
+            <div data-spy="affix" style="width: 150px;">
+                      </div>
+
+
+
+
+    </div>
+
+
+
+    {% else %}
+        <div class="alert alert-info">Please log in to access the registry.</div>
+    {% endif %}
+{% endblock %}
+
+{% block pagejavascript %}
+	   <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script>
         var initial_index = '{{ initial_index }}';
         var relationships = [];
@@ -337,108 +444,6 @@
 
         })(jQuery);
     </script>
-{% endblock %}
-
-{% block formlinks %}
-{% endblock %}
-
-{% block sidebar %}
-<!-- Sidebar -->
-	{{ context_launcher | safe }}
-<!-- /#sidebar-wrapper -->
-{% endblock %}
 
 
-{% block formbtns %}
-	<div class="btn-group" role="group" aria-label="...">
-		<button id="savebutton" type="submit" class="btn btn-success" value="Save">
-                    <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Save
-                </button>
-                <a href="" class="btn btn-danger">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
-                </a>
-	</div>
 {% endblock %}	
-
-
-{% block content %}
-    {% if request.user.is_authenticated %}
-        {{ block.super }}
-        <div class="row">
-            <div class="col-md-10">
-
-             <div class="panel panel-info">
-               <div class="panel-heading">Index Lookup <i>Type name to find an index. Drag and drop rows to reassign</i></div>
-                    <div class="panel-body">
-                        <div class="row">
-                            Lookup Index: <input id="index_lookup" name="index_lookup" value=""/>
-                            <button onclick="load_index(this);">Load this index and family</button>
-                            <button onclick="add_patient(this);">Add looked up patient to family</button>
-                        </div>
-                    </div>
-
-                </div>
-
-               <div>
-                        <div class="panel panel-default">
-                            <div class="panel-heading">Index Patient</div>
-
-                            <div class="panel-body">
-                                <div id="indexpatient" >
-                                    <table class="table table-bordered droppable">
-                                        <tbody>
-
-
-                                        <tr><th class="col-md-2">Given Names</th><th class="col-md-2">Family Name</th><th class="col-md-2">Patient</th></tr>
-                                        </tbody>
-                                    </table>
-
-                                </div>
-                            </div>
-
-                        </div>
-
-
-                        <div class="panel panel-default">
-                                <div class="panel panel-heading">Relatives</div>
-                                <div class="panel panel-body">
-                                     <div id="relatives">
-                                        <table class="table table-bordered table-striped">
-                                        <tbody>
-
-
-                                        <tr>
-                                            <th>Given Names</th>
-                                            <th>Family Name</th>
-                                            <th>Relationship</th>
-                                            <th>Link</th>
-                                        </tr>
-                                        </tbody>
-                                        </table>
-
-                                     </div>
-                                </div>
-                        </div>
-
-
-            </div>
-
-            </div>
-
-
-             <div class="col-md-2">
-
-            <div data-spy="affix" style="width: 150px;">
-                      </div>
-
-
-
-
-    </div>
-
-
-
-    {% else %}
-        <div class="alert alert-info">Please log in to access the registry.</div>
-    {% endif %}
-{% endblock %}

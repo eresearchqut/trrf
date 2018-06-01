@@ -1,14 +1,17 @@
-{% load static from staticfiles %}
+{% load static %}
 {% load admin_urls %}
+{% load i18n %}
 {% load get_form %}
 {% load get_forms %}
+{% load get_form_object %}
 {% load get_elements %}
-{% load i18n %}
 {% load project_logo %}
 {% load project_stylesheet %}
 {% load project_title %}
 {% load project_title_link %}
 {% load translate %}
+{% load lookup %}
+
 {%  block htmltype %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -26,24 +29,6 @@
             <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
       {% endif %}
 
-      <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
-      <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-
-      {% if request.LANGUAGE_CODE.lower != "en" %}
-        {% static "" as baseUrl %}
-        <script src = "{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
-      {% endif %}
-
-      <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
-      <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
-      <script type="text/javascript" src="{% static 'js/date_validation.js' %}">/<script>
-      <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
-      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-      <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
-      <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-      <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
       {% block extrastyle %}
         <style>
             body {
@@ -57,30 +42,14 @@
       {% endblock %}
       {% block extrahead %}{% endblock %}
 
-	  <script>
-		$(document).ready(function() {
-		  addExtraValidationMethods();
-
-		  $("#submit-btn").click(function() {
-			  $("#main-form").submit();
-		  });
-
-          hide_empty_menu(); // Hide the menu dropdown option if there are no elements
-
-          $('[data-toggle="popover"]').popover({
-              container: 'body'
-          });
-
-		});
-	  </script>
-  </head>
+	   </head>
 <body>
 
 
 <div id="wrap">
 
   {% block sidebar %}
-    {% endblock %}
+  {% endblock %}
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -214,5 +183,46 @@
 
 {% include 'rdrf_cdes/footer.html' %}
 
+{% block  vendorjavascript %}
+      <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+      <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+      <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+      <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
+      {% if request.LANGUAGE_CODE.lower != "en" %}
+        {% static "" as baseUrl %}
+        <script src = "{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
+      {% endif %}
+      <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
+{% endblock %}
+
+{% block rdrfjavascript %}
+      <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+      <script type="text/javascript" src="{% static 'js/date_validation.js' %}">/<script>
+      <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
+      <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+      <script>
+	$(document).ready(function() {
+		  addExtraValidationMethods();
+
+		  $("#submit-btn").click(function() {
+			  $("#main-form").submit();
+		  });
+
+          hide_empty_menu(); // Hide the menu dropdown option if there are no elements
+
+          $('[data-toggle="popover"]').popover({
+              container: 'body'
+          });
+
+		});
+      </script>
+
+{% endblock %}
+
+{% block pagejavascript %}
+{% endblock %}
 </body>
 </html>

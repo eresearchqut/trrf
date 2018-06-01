@@ -1,42 +1,31 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
+{% load static %}
+{% load admin_urls %}
+{% load admin_static %}
+{% load admin_modify %}
+{% load i18n %}
+{% load get_form %}
+{% load get_forms %}
+{% load get_form_object %}
+{% load get_elements %}
+{% load project_logo %}
+{% load project_stylesheet %}
+{% load project_title %}
+{% load project_title_link %}
+{% load translate %}
+{% load lookup %}
+
 {% load get_display_name %}
 {% load get_cde_name %}
 {% load get_section_id %}
 {% load is_formset %}
 {% load get_management_form %}
-{% load lookup %}
-{% load get_forms %}
-{% load get_form %}
-{% load get_form_object %}
-{% load static %}
-{% load i18n admin_urls admin_static admin_modify %}
-{% load translate %}
-
 
 {% block extrastyle %}
     {{ block.super }}
-    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/moment.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/Chart.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/adsafe-min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
-
+    
     <style>
         .modal .modal-dialog { width: 60%;
                                max-height: 600px;
@@ -47,15 +36,7 @@
             background-color: lightgray;
         }
     </style>
-
-    <script type="text/javascript">
-        window.IMAGES_URL = "{% static 'images/' %}";
-    </script>
-
-        // show bootstrap tooltips
-        $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
-        });
+   
     <style>
         .ui-autocomplete {
             max-height: 100px;
@@ -92,143 +73,7 @@
         }
     </style>
 
-    <script>
-        function goBack() {
-            var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
 
-    <script>
-    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
-    // clicking the today button
-    $.datepicker._gotoToday = function(id) {
-        var target = $(id);
-        var inst = this._getInst(target[0]);
-        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
-                inst.selectedDay = inst.currentDay;
-                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
-                inst.drawYear = inst.selectedYear = inst.currentYear;
-        }
-        else {
-                var date = new Date();
-                inst.selectedDay = date.getDate();
-                inst.drawMonth = inst.selectedMonth = date.getMonth();
-                inst.drawYear = inst.selectedYear = date.getFullYear();
-                // the below two lines are new
-                this._setDateDatepicker(target, date);
-                this._selectDate(id, this._getDateDatepicker(target));
-        }
-        this._notifyChange(inst);
-        this._adjustDate(target);
-    }
-
-    {% if user.is_superuser and has_form_progress %}
-        $(function() {
-            $( "#form-progress" ).progressbar({
-                value: {{form_progress}}
-            });
-        });
-    {% endif %}
-
-    $(document).ready(function(){
-        $("#form-progress-cdes").hide();
-
-        $("#show-cdes-btn").click(function() {
-            $("#form-progress-cdes").toggle("fast");
-        });
-
-        $(document).find( ".datepicker" ).each(function() {
-            $(this).on("mouseover", function() {
-                $(this).datepicker({
-                    changeMonth: true,
-                    changeYear: true,
-                    dateFormat: 'dd-mm-yy',
-                    yearRange: '-100:+0',
-                    buttonImage: "{% static 'images/calendar.gif' %}",
-                    buttonImageOnly: true,
-                    "dayNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNamesShort,
-                    "dayNames": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNames,
-                    "monthNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}'].monthNamesShort,
-                    "monthNames": $.datepicker.regional[ '{{request.LANGUAGE_CODE.lower}}' ].monthNames
-                });
-            });
-        });
-
-        function serialized_form() {
-            // don't serialize the readonly elements for change detection
-            // this way we avoid calculated fields as being falsely detected as changed
-            return $($($('#main-form')[0].elements).not('[readonly]')).serialize();
-        }
-
-        $('#main-form').data('serialize', serialized_form());
-
-        $(window).bind('beforeunload', function(e){
-            if (serialized_form() != $('#main-form').data('serialize')) {
-                return "You have unsaved changes!";
-            } else {
-                e = null;
-            }
-        });
-
-        $("#main-form").submit(function() {
-            $(window).unbind("beforeunload");
-        });
-		rdrfSetupFileUploads();
-		$('.next').hover(
-			function() {
-				$("#next-form-label").toggle("fast");
-			},
-			function() {
-				$("#next-form-label").toggle("fast");
-			}
-		);
-    });
-
-    function add_form(prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var empty_form = $("#empty_" + prefix);
-        var forms = $("#forms_" + prefix);
-
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-
-        var new_form = empty_form.clone(true, true);
-
-        new_form.find(":input").each(function() {
-            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-
-            if ($(this).hasClass("datepicker")) {
-                $(this).datepicker({
-                    changeMonth: true,
-                    changeYear: true,
-                    dateFormat: 'dd-mm-yy',
-                    yearRange: '-100:+0',
-                    buttonImage: "{% static 'images/calendar.gif' %}",
-                    buttonImageOnly: true,
-                });
-            }
-        });
-
-        var total_forms_inc = parseInt(total_forms.val()) + 1;
-        total_forms.attr("value", total_forms_inc);
-
-        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-        new_form.appendTo(forms).show("fast");
-    }
-
-    function delete_form(form_div, prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-        var total_forms_dec = parseInt(total_forms.val()) - 1;
-        total_forms.attr("value", total_forms_dec);
-
-        $(form_div).parent().parent().parent().remove();
-    }
-
-    </script>
 {% endblock %}
 
 
@@ -441,14 +286,6 @@
  </div>
 
 
-<script>
-    $(document).ready(function () {
-        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-        $("textarea").addClass("form-control");
-        $("select").addClass("form-control");
-        $("label[for*='-clear']").removeClass();
-    });
-</script>
 
 {% if form.errors %}
     {% for field in form %}
@@ -467,3 +304,172 @@
 {% endif %}
 
 {% endblock %}
+
+{% block pagejavascript %}
+<script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
+<!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+	<![endif]-->
+
+<script>
+        function goBack() {
+            var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
+            if (warning == true) {
+                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+            }
+        }
+</script>
+
+<script>
+    // The following "corrects" the behaviour of the "today" button in the jquery datepicker
+    // clicking the today button
+    $.datepicker._gotoToday = function(id) {
+        var target = $(id);
+        var inst = this._getInst(target[0]);
+        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+                inst.selectedDay = inst.currentDay;
+                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+                inst.drawYear = inst.selectedYear = inst.currentYear;
+        }
+        else {
+                var date = new Date();
+                inst.selectedDay = date.getDate();
+                inst.drawMonth = inst.selectedMonth = date.getMonth();
+                inst.drawYear = inst.selectedYear = date.getFullYear();
+                // the below two lines are new
+                this._setDateDatepicker(target, date);
+                this._selectDate(id, this._getDateDatepicker(target));
+        }
+        this._notifyChange(inst);
+        this._adjustDate(target);
+    }
+
+    {% if user.is_superuser and has_form_progress %}
+        $(function() {
+            $( "#form-progress" ).progressbar({
+                value: {{form_progress}}
+            });
+        });
+    {% endif %}
+
+    $(document).ready(function(){
+        $("#form-progress-cdes").hide();
+
+        $("#show-cdes-btn").click(function() {
+            $("#form-progress-cdes").toggle("fast");
+        });
+
+        $(document).find( ".datepicker" ).each(function() {
+            $(this).on("mouseover", function() {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
+                    "dayNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNamesShort,
+                    "dayNames": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}' ].dayNames,
+                    "monthNamesShort": $.datepicker.regional['{{request.LANGUAGE_CODE.lower}}'].monthNamesShort,
+                    "monthNames": $.datepicker.regional[ '{{request.LANGUAGE_CODE.lower}}' ].monthNames
+                });
+            });
+        });
+
+        function serialized_form() {
+            // don't serialize the readonly elements for change detection
+            // this way we avoid calculated fields as being falsely detected as changed
+            return $($($('#main-form')[0].elements).not('[readonly]')).serialize();
+        }
+
+        $('#main-form').data('serialize', serialized_form());
+
+        $(window).bind('beforeunload', function(e){
+            if (serialized_form() != $('#main-form').data('serialize')) {
+                return "You have unsaved changes!";
+            } else {
+                e = null;
+            }
+        });
+
+        $("#main-form").submit(function() {
+            $(window).unbind("beforeunload");
+        });
+		rdrfSetupFileUploads();
+		$('.next').hover(
+			function() {
+				$("#next-form-label").toggle("fast");
+			},
+			function() {
+				$("#next-form-label").toggle("fast");
+			}
+		);
+    });
+
+    function add_form(prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var empty_form = $("#empty_" + prefix);
+        var forms = $("#forms_" + prefix);
+
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+
+        var new_form = empty_form.clone(true, true);
+
+        new_form.find(":input").each(function() {
+            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+
+            if ($(this).hasClass("datepicker")) {
+                $(this).datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    yearRange: '-100:+0',
+                    buttonImage: "{% static 'images/calendar.gif' %}",
+                    buttonImageOnly: true,
+                });
+            }
+        });
+
+        var total_forms_inc = parseInt(total_forms.val()) + 1;
+        total_forms.attr("value", total_forms_inc);
+
+        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+        new_form.appendTo(forms).show("fast");
+    }
+
+    function delete_form(form_div, prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+        var total_forms_dec = parseInt(total_forms.val()) - 1;
+        total_forms.attr("value", total_forms_dec);
+
+        $(form_div).parent().parent().parent().remove();
+    }
+
+</script>
+
+<script>
+    // show bootstrap tooltips
+    $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+    });
+    
+    $(document).ready(function () {
+        window.IMAGES_URL = "{% static 'images/' %}";
+        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+        $("textarea").addClass("form-control");
+        $("select").addClass("form-control");
+        $("label[for*='-clear']").removeClass();
+    });
+</script>
+
+{% endblock %}	
