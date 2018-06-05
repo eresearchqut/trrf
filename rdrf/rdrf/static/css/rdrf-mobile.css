@@ -33,21 +33,17 @@ body {
     position: fixed;
     width: 100%;
     z-index: 99;
-    background-color: #eeeeee;
+    background-color: #blue;
     padding-bottom: 20px;
     top: 51px;
-    box-shadow: 0px 2px 30px #888888;
-    /* -moz-box-shadow: 0px 2px 30px #888888;
-    -webkit-box-shadow: 0px 2px 30px #888888;  */
 }
 
 
-@media (max-width: 991px) {
-  .btn-group.my-btn-group-responsive > .btn {
+.btn-group > .btn {
     display: block;
     width: 100%;
-  }
-  
+}
+
   /* making the border-radius correct */
   .btn-group.my-btn-group-responsive > .btn:first-child {
     border-radius: 6px 6px 0 0;
