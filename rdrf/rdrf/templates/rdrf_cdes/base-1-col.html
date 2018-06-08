@@ -19,9 +19,7 @@
       <link rel="stylesheet" href="{% static 'bootstrap-3.1.1/css/bootstrap.min.css' %}">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="(min-width: 900px)">
       <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf-mobile.css' %}" media="(max-width: 600px)">
-
       <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
-
 
       {% project_stylesheet as PSS %}
       {% if PSS %}
@@ -72,7 +70,13 @@
         <div class="row">
           <div class="col-md-12">
             <div class="navbar-header">
-                <div class="col_project_header">
+	        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                   <span class="sr-only">Toggle navigation</span>
+                   <span class="icon-bar"></span>
+                   <span class="icon-bar"></span>
+                   <span class="icon-bar"></span>
+                </button>
+                <div class="col_project_header"> 
                     {% project_logo as PL %}
                     {% if PL %}
                             {% static "" as baseUrl %}
