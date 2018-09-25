@@ -165,7 +165,9 @@ class ReportingTableGenerator(object):
         self.columns = []
         self._create_sql_columns(sql_metadata)
         self._create_must_exist_columns()
+        raise Exception(mongo_metadata)
         self.col_map = self._create_clinical_columns(mongo_metadata)
+
 
     def _create_clinical_columns(self, mongo_metadata):
         # FH-22 ...
@@ -182,6 +184,9 @@ class ReportingTableGenerator(object):
         # If ITEM_MAX is too small we could miss out some data ; we could calculate it but that's another query ..
         # so for now we have a constant
         column_map = mongo_metadata["multisection_column_map"]
+        if len(column_map.keys()) == 0:
+            return {}
+            
 
         class ColumnOp(object):
             """

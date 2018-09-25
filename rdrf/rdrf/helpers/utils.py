@@ -725,4 +725,47 @@ def get_full_path(registry_model, cde_code):
 
     return triples[0]
                     
-    
+
+
+def make_new_forms_structure(forms_list):
+    """
+    Take an existing forms list from a ClinicalData object and 
+    return a dictionary of dictionaries that can be looked up more quickly
+    for reporting
+    """
+    d = {}
+    for form_dict in forms_list:
+        form_name = form_dict["name"]
+        d[form_name] = {}
+        d[form_name]["sections"] = {}
+        for section_dict in form_dict["sections"]:
+            section_code = section_dict["code"]
+            allow_multiple = section_dict["allow_multiple"]
+            d[form_name]["sections"][section_code] = {}
+            d[form_name]["sections"][section_code]["cdes"] = {}
+            d[form_name]["sections"][section_code]["allow_multiple"] = allow_multiple
+            if not allow_multiple:
+                for cde_dict in section_dict["cdes"]:
+                    code = cde_dict["code"]
+                    value = cde_dict["value"]
+                    d[form_name]["sections"][section_code]["cdes"][code] = [value]
+            else:
+                for item in section_dict["cdes"]:
+                    for cde_dict in item:
+                        code = cde_dict["code"]
+                        value = cde_dict["value"]
+                        if code in d[form_name]["sections"][section_code]["cdes"]:
+                            d[form_name]["sections"][section_code]["cdes"][code].append(value)
+                        else:
+                            d[form_name]["sections"][section_code]["cdes"][code] = [value]
+    return d
+
+
+def get_report_value(form_name, section_code, cde_code, index, forms_dict):
+    """
+    retrieve a value for a report from new forms structure
+    """
+    try:
+        forms_dict[form_name]["sections"][section_code]["cdes"][cde_code][index]
+    except KeyError:
+        return None

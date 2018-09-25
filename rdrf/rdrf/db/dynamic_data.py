@@ -9,6 +9,7 @@ from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
 from rdrf.models.definition.models import Registry, ClinicalData
 from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
+from rdrf.helpers.utils import make_new_forms_structure
 
 logger = logging.getLogger(__name__)
 
@@ -728,6 +729,7 @@ class DynamicDataWrapper(object):
             self.rdrf_context_id = context_id
 
         record.data.update(nested_data)
+        record.data["forms2"] = make_new_forms_structure(record.data["forms"])
         record.save()
 
     def _save_longitudinal_snapshot(self, registry_code, record, form_name=None, form_user=None):

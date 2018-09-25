@@ -8,6 +8,7 @@ from django.db import connection
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.helpers.utils import cached
+from rdrf.helpers.utils import get_report_value
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData
 
@@ -331,6 +332,48 @@ class DatabaseUtils(object):
             for mongo_document in records:
                 yield self._get_result_map2(mongo_document, max_items=max_items)
 
+    def _get_result_map3(self, mongo_document, is_snapshot=False, max_items=3):
+        result = {}
+        if is_snapshot:
+            # snapshots copy entire patient record into record field
+            record = mongo_document["record"]
+        else:
+            record = mongo_document
+        result["context_id"] = record.get("context_id", None)
+
+        # timestamp from top level in for current and snapshot
+        result['timestamp'] = mongo_document.get("timestamp", None)
+
+        forms_structure = mongo_document["forms2"]
+
+        for key, column_name in self.col_map.items():
+            if isinstance(key, tuple):
+                if len(key) == 4:
+                    # NB section index is 1 based in report
+                    form_model, section_model, cde_model, section_index = key
+                else:
+                    raise Exception("report key error: %s" % key)
+
+            else:
+                continue
+            try:
+                if section_index is None:
+                    index = 0
+                else:
+                    index = section_index - 1
+                    
+                value = get_report_value(form_model.name,
+                                         section_model.code,
+                                         cde_model.code,
+                                         index,
+                                         forms_structure)
+
+                result[column_name] = self._get_sensible_value_from_cde2(cde_model.code, value)
+            except KeyError:
+                pass
+
+        return result
+
     def _get_result_map(self, mongo_document, is_snapshot=False, max_items=3):
         result = {}
         if is_snapshot:
@@ -390,7 +433,7 @@ class DatabaseUtils(object):
         # timestamp from top level in for current and snapshot
         result['timestamp'] = mongo_document.get("timestamp", None)
 
-        for form_name, section_code, is_multi, item_index, cde_code, value in self._yield_data(mongo_document):
+        for form_name, section_code, is_multi, item_index, cde_code, value in self._yield_data(record):
             key = (form_name, section_code, cde_code, item_index)
             column_name = self.name_map.get(key, None)
             if column_name is not None:
