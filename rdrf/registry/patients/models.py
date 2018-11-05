@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
 import pycountry
+import reversion
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 _6MONTHS_IN_DAYS = 183
 
-
+@reversion.register()
 class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
@@ -56,7 +57,7 @@ class Family(object):
                      if pr.relative_patient]
         return wgs
 
-
+@reversion.register()
 class Doctor(models.Model):
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
@@ -93,7 +94,7 @@ class Doctor(models.Model):
     def __str__(self):
         return "%s %s (%s)" % (self.family_name.upper(), self.given_names, self.surgery_name)
 
-
+@reversion.register()
 class NextOfKinRelationship(models.Model):
     relationship = models.CharField(max_length=100, verbose_name=_("Relationship"))
 
@@ -139,7 +140,7 @@ class PatientManager(models.Manager):
     def inactive(self):
         return self.really_all().filter(active=False)
 
-
+@reversion.register()
 class Patient(models.Model):
 
     SEX_CHOICES = (("1", _("Male")), ("2", _("Female")), ("3", _("Indeterminate")))
@@ -803,16 +804,17 @@ class Patient(models.Model):
             return "%s %s (Archived)" % (self.family_name, self.given_names)
 
     def save(self, *args, **kwargs):
-        if hasattr(self, 'family_name'):
-            self.family_name = stripspaces(self.family_name).upper()
+        with reversion.create_revision():
+            if hasattr(self, 'family_name'):
+                self.family_name = stripspaces(self.family_name).upper()
 
-        if hasattr(self, 'given_names'):
-            self.given_names = stripspaces(self.given_names)
+            if hasattr(self, 'given_names'):
+                self.given_names = stripspaces(self.given_names)
 
-        if not self.pk:
-            self.active = True
+            if not self.pk:
+                self.active = True
 
-        super(Patient, self).save(*args, **kwargs)
+            super(Patient, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """
@@ -1097,7 +1099,7 @@ class Patient(models.Model):
     def family(self):
         return Family(self)
 
-
+@reversion.register()
 class ClinicianOther(models.Model):
     use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True)
@@ -1178,6 +1180,7 @@ def selected_clinician_notification(sender, instance, **kwargs):
         # we only allow one per clinician selection event
         delattr(instance, "clinician_flag")
 
+@reversion.register()
 class ParentGuardian(models.Model):
     GENDER_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
 
@@ -1234,7 +1237,7 @@ class AddressTypeManager(models.Manager):
     def get_by_natural_key(self, type):
         return self.get(type=type)
 
-
+@reversion.register()
 class AddressType(models.Model):
     objects = AddressTypeManager()
 
@@ -1247,7 +1250,7 @@ class AddressType(models.Model):
     def __str__(self):
         return "%s" % (self.type)
 
-
+@reversion.register()
 class PatientAddress(models.Model):
     patient = models.ForeignKey(Patient)
     address_type = models.ForeignKey(AddressType, default=1, verbose_name=_("Address type"))
@@ -1277,7 +1280,7 @@ class PatientConsentStorage(DefaultStorage):
             return reverse("registry:consent-form-download", kwargs=rev)
         return None
 
-
+@reversion.register()
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient)
     form = models.FileField(
@@ -1288,7 +1291,7 @@ class PatientConsent(models.Model):
         null=True)
     filename = models.CharField(max_length=255)
 
-
+@reversion.register()
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient)
     doctor = models.ForeignKey(Doctor)
@@ -1303,7 +1306,7 @@ def get_countries():
     return [(c.alpha2, c.name)
             for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
-
+@reversion.register()
 class PatientRelative(models.Model):
 
     RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
@@ -1465,6 +1468,7 @@ def registry_changed_on_patient(sender, **kwargs):
         create_rdrf_default_contexts(instance, registry_ids)
 
 
+@reversion.register()
 class ConsentValue(models.Model):
     patient = models.ForeignKey(Patient, related_name="consents")
     consent_question = models.ForeignKey(ConsentQuestion)

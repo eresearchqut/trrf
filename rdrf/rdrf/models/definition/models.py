@@ -22,6 +22,9 @@ from rdrf.events.events import EventType
 
 from rdrf.forms.fields.jsonb import DataField
 
+import reversion
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +50,7 @@ class SectionManager(models.Manager):
         return self.get(code=code)
 
 
+@reversion.register()
 class Section(models.Model):
     objects = SectionManager()
 
@@ -111,7 +115,7 @@ class RegistryType:
     HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
     HAS_CONTEXT_GROUPS = 3  # registry has context form groups defined
 
-
+@reversion.register()
 class Registry(models.Model):
     objects = RegistryManager()
 
@@ -636,7 +640,7 @@ def get_owner_choices():
 
     return [("UNUSED", "UNUSED"), ("USED", "USED")]
 
-
+@reversion.register()
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
@@ -675,7 +679,7 @@ class CDEPermittedValueGroup(models.Model):
     def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
 
-
+@reversion.register()
 class CDEPermittedValue(models.Model):
     id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=30)
@@ -714,7 +718,7 @@ class CDEPermittedValue(models.Model):
     def __str__(self):
         return "Member of %s" % self.pv_group.code
 
-
+@reversion.register()
 class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
@@ -844,7 +848,7 @@ class CommonDataElement(models.Model):
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
 
-
+@reversion.register()
 class CdePolicy(models.Model):
     registry = models.ForeignKey(Registry)
     cde = models.ForeignKey(CommonDataElement)
@@ -883,7 +887,7 @@ class RegistryFormManager(models.Manager):
     def get_by_registry(self, registry):
         return self.model.objects.filter(registry__id__in=registry)
 
-
+@reversion.register()
 class RegistryForm(models.Model):
     """
     A representation of a form ( a bunch of sections)
@@ -1090,7 +1094,7 @@ class RegistryForm(models.Model):
 
         return is_applicable
 
-
+@reversion.register()
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
     forms = models.TextField(help_text="A comma-separated list of forms")
@@ -1109,7 +1113,7 @@ class Wizard(models.Model):
     #
     rules = models.TextField(help_text="Rules")
 
-
+@reversion.register()
 class QuestionnaireResponse(models.Model):
     registry = models.ForeignKey(Registry)
     date_submitted = models.DateTimeField(auto_now_add=True)
@@ -1186,7 +1190,7 @@ def appears_in(cde, registry, registry_form, section):
 class MissingData(object):
     pass
 
-
+@reversion.register()
 class Notification(models.Model):
     from_username = models.CharField(max_length=80)
     to_username = models.CharField(max_length=80)
@@ -1201,7 +1205,7 @@ class ConsentSectionManager(models.Manager):
     def get_by_natural_key(self, registry_code, code):
         return self.get(registry__code=registry_code, code=code)
 
-
+@reversion.register()
 class ConsentSection(models.Model):
     objects = ConsentSectionManager()
 
@@ -1321,7 +1325,7 @@ class ConsentQuestionManager(models.Manager):
     def get_by_natural_key(self, section_code, code):
         return self.get(section__code=section_code, code=code)
 
-
+@reversion.register()
 class ConsentQuestion(models.Model):
     objects = ConsentQuestionManager()
 
@@ -1360,7 +1364,7 @@ class ConsentQuestion(models.Model):
     def __str__(self):
         return "%s" % self.question_label
 
-
+@reversion.register()
 class ConsentRule(models.Model):
     # restrictions on what a user can do with a patient
     # based on patient consent
@@ -1373,7 +1377,7 @@ class ConsentRule(models.Model):
     consent_question = models.ForeignKey(ConsentQuestion)
     enabled = models.BooleanField(default=True)
 
-
+@reversion.register()
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
 
@@ -1386,7 +1390,7 @@ class DemographicFields(models.Model):
     class Meta:
         verbose_name_plural = "Demographic Fields"
 
-
+@reversion.register()
 class EmailTemplate(models.Model):
     language = models.CharField(max_length=2, choices=settings.ALL_LANGUAGES)
     description = models.TextField()
@@ -1396,7 +1400,7 @@ class EmailTemplate(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
 
-
+@reversion.register()
 class EmailNotification(models.Model):
     EMAIL_NOTIFICATIONS = (
         (EventType.ACCOUNT_LOCKED, "Account Locked"),
@@ -1420,7 +1424,7 @@ class EmailNotification(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
 
-
+@reversion.register()
 class EmailNotificationHistory(models.Model):
     date_stamp = models.DateTimeField(auto_now_add=True)
     language = models.CharField(max_length=10)
@@ -1431,7 +1435,7 @@ class EmailNotificationHistory(models.Model):
 class RDRFContextError(Exception):
     pass
 
-
+@reversion.register()
 class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry)
     content_type = models.ForeignKey(ContentType)
@@ -1471,7 +1475,7 @@ class RDRFContext(models.Model):
                                                        context_id=self.pk)
         return cde_value
 
-
+@reversion.register()
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F", "Fixed"), ("M", "Multiple")]
     NAMING_SCHEMES = [("D", "Automatic - Date"),
@@ -1679,7 +1683,7 @@ class ContextFormGroup(models.Model):
         return sorted([item.registry_form for item in self.items.all()],
                       key=lambda f: f.position)
 
-
+@reversion.register()
 class ContextFormGroupItem(models.Model):
     context_form_group = models.ForeignKey(ContextFormGroup, related_name="items")
     registry_form = models.ForeignKey(RegistryForm)
@@ -1705,9 +1709,10 @@ class ClinicalDataQuerySet(models.QuerySet):
         return self.values_list("data", flat=True)
 
 
+@reversion.register()
 class ClinicalData(models.Model):
     """
-    MongoDB collections in Django.
+    Clinical Data stored as a json field
     """
     COLLECTIONS = (
         ("cdes", "cdes"),
@@ -1799,7 +1804,7 @@ def file_upload_to(instance, filename):
         instance.section_code or "_",
         instance.cde_code, filename]))
 
-
+@reversion.register()
 class CDEFile(models.Model):
     """
     A file record which is referenced by id within the patient's
@@ -1825,7 +1830,7 @@ class CDEFile(models.Model):
 def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)
 
-
+@reversion.register()
 class FileStorage(models.Model):
     """
     This model is used only when the database file storage backend is

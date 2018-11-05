@@ -17,6 +17,7 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
 from registry.patients.models import ConsentValue
+from reversion.admin import VersionAdmin
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class RegistryFilter(admin.SimpleListFilter):
         return queryset
 
 
-class PatientAdmin(admin.ModelAdmin):
+class PatientAdmin(VersionAdmin):
 
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
