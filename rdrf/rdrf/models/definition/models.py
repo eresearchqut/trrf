@@ -53,6 +53,9 @@ class Section(models.Model):
     """
     A group of fields that appear on a form as a unit
     """
+    STYLES = (("N", "Normal"),
+              ("M", "Matrix"))
+    
     code = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=200)
     questionnaire_display_name = models.CharField(max_length=200, blank=True)
@@ -62,6 +65,7 @@ class Section(models.Model):
     extra = models.IntegerField(
         blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
     questionnaire_help = models.TextField(blank=True)
+    style = models.CharField(max_length=1, choices=STYLES, default="N")
 
     def natural_key(self):
         return (self.code, )
@@ -84,6 +88,8 @@ class Section(models.Model):
         codes = set(self.get_elements())
         qs = CommonDataElement.objects.filter(code__in=codes)
         missing = sorted(codes - set(qs.values_list("code", flat=True)))
+        if self.style == 'matrix':
+            self._check_matrix(qs)
 
         if missing:
             errors["elements"] = [
@@ -98,6 +104,18 @@ class Section(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def _check_matrix(self, my_cdes):
+        # we can only be in matrix mode if it makes sense
+        # i.e. each cde is a range and each pvg is the same
+        types = set([cde.datatype for cde in my_cdes])
+        if len(types) != 1:
+            raise ValidationError("Matrix section requires cdes to be all ranges")
+        if types[0] != 'range':
+            raise ValidationError("Matrix section requires cdes to be all ranges")
+        pvg_ids = set([cde.pv_group.id for cde in my_cdes])
+        if len(pvg_ids) != 1:
+            raise ValidationError("Matrix section requires cdes to be all ranges with same permissible value group")
 
 
 class RegistryManager(models.Manager):
