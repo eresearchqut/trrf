@@ -222,6 +222,70 @@ class PromsProcessor:
         survey_request.state = SurveyRequestStates.RECEIVED
         survey_request.response = json.dumps(survey_data)
         survey_request.save()
+        logger.debug("updated survey_request state to receiv
+    
+    
+    def _update_proms_fields(self, survey_request, survey_data):
+        from rdrf.models.definition.models import RDRFContext
+        from rdrf.models.definition.models import ContextFormGroup
+        # pokes downloaded proms into correct fields inside clinical system
+        logger.debug("updating downloaded proms for survey request %s" % survey_request.pk)
+        patient_model = survey_request.patient
+        metadata = self.registry_model.metadata
+        consent_exists = False
+        if "consents" in metadata:
+            consent_dict = metadata["consents"]    
+            logger.debug("Consent Codes %s" % consent_dict)
+            consent_exists = True
+        else:
+            logger.warning("No Consent metadata exists")
+
+        is_followup = survey_request.survey.is_followup
+
+        if is_followup:
+            context_form_group = ContextFormGroup.objects.get(registry=self.registry_model, name="Followup")
+            context_model = RDRFContext(registry=self.registry_model, context_form_group=context_form_group,
+                                  content_object=patient_model, display_name="Follow Up")
+            context_model.save()
+
+        cde_dict = {}
+
+        for cde_code, value in survey_data.items():
+            try:
+                cde_model = CommonDataElement.objects.get(code=cde_code)
+            except CommonDataElement.DoesNotExist:
+                logger.error("could not find cde %s" % cde_code)
+                continue
+
+            # NB. this assumes cde  is unique across reg ...
+            is_consent = False
+            if consent_exists:
+                consent_question_code = consent_dict.get(cde_code, None)
+                if consent_question_code is not None:
+                    self._update_consentvalue(patient_model, consent_question_code, value)
+                    is_consent = True
+            
+            if not is_consent:
+                cde_dict[cde_code] = value
+
+        model_dict = self._locate_model_from_cde(cde_dict)
+
+        try:
+            if is_followup:
+                patient_model.set_proms_form_value(self.registry_model.code,
+                                                    model_dict,
+                                                    cde_dict,
+                                                    context_model)
+            else:
+                patient_model.set_proms_form_value(self.registry_model.code,
+                                                     model_dict,
+                                                     cde_dict)
+        except Exception as ex:
+                logger.error("Error updating proms field %s" % str(ex))
+
+        survey_request.state = SurveyRequestStates.RECEIVED
+        survey_request.response = json.dumps(survey_data)
+        survey_request.save()
         logger.debug("updated survey_request state to received")
 
     def _update_consentvalue(self, patient_model, consent_code, answer):
@@ -229,6 +293,16 @@ class PromsProcessor:
         logger.debug("Answer to save %s" % answer)
         consent_question_model = ConsentQuestion.objects.get(code=consent_code)
         patient_model.set_consent(consent_question_model, answer)
+    
+    def _locate_model_from_cde(self, cde_dict):
+        model_dict = {}
+        for form_model in self.registry_model.forms:
+            for section_model in form_model.section_models:
+                if not section_model.allow_multiple:
+                    for cde_model in section_model.cde_models:
+                        if cde_model.code in cde_dict:
+                            model_dict[cde_model.code] = (form_model.name, section_model.code)
+        return model_dict
 
     def _locate_cde(self, target_cde_model):
         # retrieve first available..
