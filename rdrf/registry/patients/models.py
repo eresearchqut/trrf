@@ -644,6 +644,68 @@ class Patient(models.Model):
                 form_name=form_model.name,
                 form_user=user.username)
 
+    def set_proms_form_value(
+            self,
+            registry_code,
+            model_dict,
+            cde_dict,
+            context_model=None,
+            save_snapshot=False,
+            user=None):
+        from rdrf.db.dynamic_data import DynamicDataWrapper
+        from rdrf.helpers.utils import mongo_key
+        from rdrf.forms.progress.form_progress import FormProgress
+        from rdrf.models.definition.models import RegistryForm, Registry
+
+        # iterate over model_dict
+        for data_element_code, value in cde_dict.items():
+            registry_model = Registry.objects.get(code=registry_code)
+            if registry_model.has_feature("contexts") and context_model is None:
+                raise Exception("No context model set")
+            elif not registry_model.has_feature("contexts") and context_model is not None:
+                raise Exception("context model should not be explicit for non-supporting registry")
+            elif not registry_model.has_feature("contexts") and context_model is None:
+                # the usual case
+                from rdrf.db.contexts_api import RDRFContextManager
+                rdrf_context_manager = RDRFContextManager(registry_model)
+                context_model = rdrf_context_manager.get_or_create_default_context(self)
+
+            form_name = model_dict[data_element_code][0]
+            section_code = model_dict[data_element_code][1]
+            form_model = RegistryForm(name=form_name, registry=registry_model)
+            wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+            if user:
+                wrapper.user = user
+
+            wrapper.current_form_model = form_model
+
+            mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+            key = mongo_key(form_name, section_code, data_element_code)
+            timestamp = "%s_timestamp" % form_name
+            t = datetime.datetime.now()
+
+            if mongo_data is None:
+                # No dynamic data has been persisted yet
+                wrapper.save_dynamic_data(registry_code, "cdes", {key: value, timestamp: t})
+                logger.debug("CDE Value %s" % value)
+            else:
+                mongo_data[key] = value
+                mongo_data[timestamp] = t
+                wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+                logger.debug("CDE Value condition 2 %s" % value)
+
+            # update form progress
+            registry_model = Registry.objects.get(code=registry_code)
+            form_progress_calculator = FormProgress(registry_model)
+            form_progress_calculator.save_for_patient(self, context_model)
+
+            if save_snapshot and user is not None:
+                wrapper.save_snapshot(
+                    registry_code,
+                    "cdes",
+                    form_name=form_model.name,
+                    form_user=user.username)
+
     def in_registry(self, reg_code):
         """
         returns True if patient belongs to the registry with reg code provided
@@ -1009,6 +1071,7 @@ class Patient(models.Model):
                     if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
 
         return sorted(contexts, key=key_func, reverse=True)
+
 
     def get_forms_by_group(self, context_form_group):
         """
