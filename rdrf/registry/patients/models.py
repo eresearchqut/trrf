@@ -644,11 +644,11 @@ class Patient(models.Model):
                 form_name=form_model.name,
                 form_user=user.username)
 
-    def set_proms_form_value(
+    def set_proms_form_values(
             self,
             registry_code,
-            model_dict,
-            cde_dict,
+            data_dict,
+            cdes_dict,
             context_model=None,
             save_snapshot=False,
             user=None):
@@ -657,54 +657,48 @@ class Patient(models.Model):
         from rdrf.forms.progress.form_progress import FormProgress
         from rdrf.models.definition.models import RegistryForm, Registry
 
-        # iterate over model_dict
-        for data_element_code, value in cde_dict.items():
-            registry_model = Registry.objects.get(code=registry_code)
-            if registry_model.has_feature("contexts") and context_model is None:
-                raise Exception("No context model set")
-            elif not registry_model.has_feature("contexts") and context_model is not None:
-                raise Exception("context model should not be explicit for non-supporting registry")
-            elif not registry_model.has_feature("contexts") and context_model is None:
-                # the usual case
-                from rdrf.db.contexts_api import RDRFContextManager
-                rdrf_context_manager = RDRFContextManager(registry_model)
-                context_model = rdrf_context_manager.get_or_create_default_context(self)
+        registry_model = Registry.objects.get(code=registry_code)
+        if registry_model.has_feature("contexts") and context_model is None:
+            raise Exception("No context model set")
+        elif not registry_model.has_feature("contexts") and context_model is not None:
+            raise Exception("context model should not be explicit for non-supporting registry")
+        elif not registry_model.has_feature("contexts") and context_model is None:
+            # the usual case
+            from rdrf.db.contexts_api import RDRFContextManager
+            rdrf_context_manager = RDRFContextManager(registry_model)
+            context_model = rdrf_context_manager.get_or_create_default_context(self)
 
-            form_name = model_dict[data_element_code][0]
-            section_code = model_dict[data_element_code][1]
-            form_model = RegistryForm(name=form_name, registry=registry_model)
-            wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
-            if user:
-                wrapper.user = user
+        wrapper = DynamicDataWrapper(self, rdrf_context_id=context_model.pk)
+        if user:
+            wrapper.user = user
+        dynamic_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        logger.debug("Dynamic Data")
+        logger.debug(dynamic_data)
 
-            wrapper.current_form_model = form_model
 
-            mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
-            key = mongo_key(form_name, section_code, data_element_code)
-            timestamp = "%s_timestamp" % form_name
+        def create_data_dict(data_dict, cdes_dict):
             t = datetime.datetime.now()
+            d = {}
+            d["timestamp"] = t
+            for cde_code, value in cdes_dict.items():
+                timestamp = "timestamp"
+                form_name = data_dict[cde_code][0]
+                section_code = data_dict[cde_code][1]
+                t = datetime.datetime.now()
+                key = mongo_key(form_name, section_code, cde_code)
+                d[key] = value
+                d[timestamp] = t
+            
+            return d
 
-            if mongo_data is None:
-                # No dynamic data has been persisted yet
-                wrapper.save_dynamic_data(registry_code, "cdes", {key: value, timestamp: t})
-                logger.debug("CDE Value %s" % value)
-            else:
-                mongo_data[key] = value
-                mongo_data[timestamp] = t
-                wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
-                logger.debug("CDE Value condition 2 %s" % value)
+        dynamic_data_dict = create_data_dict(data_dict, cdes_dict)
+        logger.debug("Data dictionary")
+        logger.debug(dynamic_data_dict)
 
-            # update form progress
-            registry_model = Registry.objects.get(code=registry_code)
-            form_progress_calculator = FormProgress(registry_model)
-            form_progress_calculator.save_for_patient(self, context_model)
-
-            if save_snapshot and user is not None:
-                wrapper.save_snapshot(
-                    registry_code,
-                    "cdes",
-                    form_name=form_model.name,
-                    form_user=user.username)
+        # form_model = RegistryForm.objects.get(name='QualityOfLifeQuestionnaireCancer', registry=registry_model)
+        form_model = RegistryForm(name='QualityOfLifeQuestionnaireCancer', registry=registry_model)
+        wrapper.current_form_model = form_model
+        wrapper.save_dynamic_data(registry_code, "cdes", dynamic_data_dict)
 
     def in_registry(self, reg_code):
         """
