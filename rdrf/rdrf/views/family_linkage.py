@@ -171,6 +171,8 @@ class FamilyLinkageManager(object):
 
                 new_patient_relative = PatientRelative()
                 new_patient_relative.date_of_birth = patient.date_of_birth
+                new_patient_relative.sex = patient.sex
+                new_patient_relative.living_status = patient.living_status
                 new_patient_relative.patient = new_index_patient
                 new_patient_relative.relative_patient = patient
                 new_patient_relative.given_names = relative_dict["given_names"]
