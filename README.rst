@@ -1,34 +1,25 @@
-RDRF
+TRRF
 ====
-
-.. image:: https://travis-ci.org/muccg/rdrf.svg?branch=master
-    :target: https://travis-ci.org/muccg/rdrf
 
 About
 -----
 
-The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the `Centre for Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia.
+The Trial Ready Registry Framework (or TRRF) has been forked from the Rare Disease Registry Framework (or RDRF) by Queensland University of Technology's eResearch team in order to produce a trial ready framework that is fit for purpose across all diseases, with easy deployment, availability and efficient use.
 
+RDRF has been developed at the `Centre for Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia.
+
+The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at runtime. This means that registries can be created and modified without changes to the source code.
 
 Contact
 -------
 
 Hosted on GitHub:
- 
-https://muccg.github.io/rdrf/
 
-Demo Site:
-
-https://rdrf.ccgapps.com.au/demo/
+https://github.com/eresearchqut/trrf
 
 Email:
 
-rdrf@ccg.murdoch.edu.au
-
-Documentation:
-
-https://muccg.github.io/rdrf/docs/
-
+matthew.bellgard@qut.edu.au
 
 Publications
 ------------
@@ -41,47 +32,3 @@ Rodrigues M, Hammond-Tooke G, Kidd A, Love D, Patel R, Dawkins H, Bellgard M, Ro
 
 Bellgard MI, Macgregor A, Janon F, Harvey A, O'leary P, Hunter A and Dawkins H, A modular approach to disease registry design: successful adoption of an internet-based rare disease registry. Hum Mutat 33: E2356-2366.
 
-
-For developers
---------------
-
-We do our Python 3 development using Docker_ containers and docker-compose_.
-You will have to set up Docker and docker-compose on your development machine.
-
-All the development tasks can be done by using docker-compose, a helper shell script (``develop.sh``) is also provided in this directory.
-Please run it without any arguments for help on its usage.
-
-A typical usage is::
-
-    ./develop.sh build base
-    ./develop.sh build builder
-    ./develop.sh build dev
-    ./develop.sh up
-
-This will start up all the docker containers needed for dev. 
-You can access the RDRF application on http://localhost:8000
-(replace localhost with ``$ boot2docker ip`` if using boot2docker) after this.
-You can login with one of the default users *admin/admin*.
-
-.. _Docker: https://www.docker.com/
-.. _docker-compose: https://docs.docker.com/compose/
-
-Contributing
-------------
-
-1. Fork ``next_release`` branch
-2. Make changes on a feature branch
-3. Submit pull request
-
-Updating the Documentation
---------------------------
-
-Documentation for the Rare Disease Registry Framework is maintained 
-within this git repository, on the ``gh-pages`` branch.
-
-Update the documentation by editing the reStructured Text source
-files as needed. You can then regenerate the HTML version of the
-documentation by running ``build.sh`` within the ``rst/`` directory.
-
-When you are done, commit the result and make a pull-request into
-the ``gh-pages`` branch.
