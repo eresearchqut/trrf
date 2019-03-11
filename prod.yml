@@ -1,0 +1,66 @@
+version: '3.7'
+
+volumes:
+  production_postgres_data: {}
+  production_data: {}
+
+services:
+  db:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  dbclinical:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  dbreporting:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  cache:
+    image: memcached:1.4
+
+  uwsgi:
+    image: eresearchqut/trrf:1.0.0
+    command: uwsgi
+    environment:
+      - PRODUCTION=0
+      - DEBUG=0
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_REPORTING_DB=1
+      - WAIT_FOR_CACHE=1
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      - CSRF_TRUSTED_ORIGINS=localhost
+      - CACHESERVER=cache
+      - DBSERVER=db
+      - CLINICAL_DBSERVER=dbclinical
+      - REPORTING_DBSERVER=dbreporting
+      # TODO think about more about these env variables. Probably use .env files
+      # currently just making the PROD stack working on my local machine
+      - DBNAME=webapp
+      - DBUSER=webapp
+      - DBPASS=webapp
+
+      - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
+      - SESSION_COOKIE_SECURE=0
+      - CSRF_COOKIE_SECURE=0
+
+    ports:
+      - "9000:9000"
