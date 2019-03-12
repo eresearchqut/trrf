@@ -1,59 +1,45 @@
-version: '2'
+version: '3.7'
+
+volumes:
+  production_postgres_data: {}
+  production_data: {}
+
 services:
-
-  # note: the host aliases are to alow the prod stack to be used as a test stack
-
-  dbprod:
-    extends:
-      file: docker-compose-common.yml
-      service: db
-    networks:
-      default:
-        aliases:
-          - dbtest
-
-  dbclinicalprod:
-    extends:
-      file: docker-compose-common.yml
-      service: db
-    networks:
-      default:
-        aliases:
-          - dbclinicaltest
-  
-  dbreportingprod:
-    extends:
-      file: docker-compose-common.yml
-      service: db
-    networks:
-      default:
-        aliases:
-          - dbreportingtest
-
-  cacheprod:
-    extends:
-      file: docker-compose-common.yml
-      service: cache
-    networks:
-      default:
-        aliases:
-          - cachetest
-
-  nginxprod:
-    extends:
-      file: docker-compose-common.yml
-      service: nginx
-    depends_on:
-      - uwsgiprod
-    networks:
-      default:
-        aliases:
-          - nginxtest
-
-  uwsgiprod:
-    image: muccg/rdrf:${BUILD_VERSION}
-    command: uwsgi_local
+  db:
+    image: postgres:9.4
     environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  dbclinical:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  dbreporting:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    volumes:
+      - production_postgres_data:/var/lib/postgreql/data
+      - production_data:/data
+
+  cache:
+    image: memcached:1.4
+
+  uwsgi:
+    image: eresearchqut/trrf:${TRRF_VERSION:trrf_version_unset}
+    command: uwsgi
+    environment:
+      - PRODUCTION=0
       - DEBUG=0
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
@@ -61,25 +47,20 @@ services:
       - WAIT_FOR_CACHE=1
       - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
-      - CSRF_TRUSTED_ORIGINS=localhost nginxtest
-      - CACHESERVER=cacheprod
-      - DBSERVER=dbprod
-      - CLINICAL_DBSERVER=dbclinicalprod
-      - REPORTING_DBSERVER=dbreportingprod
-    volumes:
-        - uwsgi-prod-data:/data
-    depends_on:
-      - dbprod
-      - dbclinicalprod
-      - dbreportingprod
-      - cacheprod
+      - CSRF_TRUSTED_ORIGINS=localhost
+      - CACHESERVER=cache
+      - DBSERVER=db
+      - CLINICAL_DBSERVER=dbclinical
+      - REPORTING_DBSERVER=dbreporting
+      # TODO think about more about these env variables. Probably use .env files
+      # currently just making the PROD stack working on my local machine
+      - DBNAME=webapp
+      - DBUSER=webapp
+      - DBPASS=webapp
+
+      - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
+      - SESSION_COOKIE_SECURE=0
+      - CSRF_COOKIE_SECURE=0
+
     ports:
       - "9000:9000"
-    networks:
-      default:
-        aliases:
-          - uwsgitest
-          - uwsgi
-
-volumes:
-  uwsgi-prod-data:

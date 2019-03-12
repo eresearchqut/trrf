@@ -1,59 +1,56 @@
-version: '2'
+version: '3.7'
+
+volumes:
+  local_postgres_data: {}
+
 services:
-
-  # data only container pattern
-  datadev:
-    extends:
-      file: docker-compose-common.yml
-      service: datadev
-
   db:
-    extends:
-      file: docker-compose-common.yml
-      service: db
+    # TODO time to upgrade?
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
 
   clinicaldb:
-    extends:
-      file: docker-compose-common.yml
-      service: db
-  
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
+
   reportingdb:
-    extends:
-      file: docker-compose-common.yml
-      service: db
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
 
   cache:
-    extends:
-      file: docker-compose-common.yml
-      service: cache
-
-  nginx:
-    extends:
-      file: docker-compose-common.yml
-      service: nginx
-    depends_on:
-      - uwsgi
-
-  node:
-    image: muccg/rdrf-node
-    command: "watch"
-    working_dir: /app/rdrf/rdrf/frontend
-    environment:
-        YARN_CACHE_FOLDER: /opt/yarn_cache
-    volumes:
-      - ./yarn_cache:/opt/yarn_cache
-    volumes_from:
-      - datadev
+    # TODO time to upgrade?
+    image: memcached:1.4
 
   runserver:
-    extends:
-      file: docker-compose-common.yml
-      service: runserver
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: eresearchqut/trrf
     environment:
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - PRODUCTION=0
+      - WAIT_FOR_REPORTING_DB=1
+      - WAIT_FOR_CACHE=1
+      - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
       - DJANGO_FIXTURES=dev
-      - DESIGN_MODE=0
-    volumes_from:
-      - datadev
+      - DESIGN_MODE=1
+      - PROMS_SYSTEM_URL=http://test.com
+    volumes:
+      - .:/app
+      - ./data/dev/:/data
     ports:
       - "8000:8000"
     depends_on:
@@ -61,19 +58,18 @@ services:
       - clinicaldb
       - reportingdb
       - cache
-    networks:
-      default:
-        aliases:
-          - web
 
-  uwsgi:
-    extends:
-      file: docker-compose-common.yml
-      service: uwsgi
-    volumes_from:
-      - datadev
-    depends_on:
-      - db
-      - clinicaldb
-      - reportingdb
-      - cache
+  node:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile-node
+    stop_signal: SIGKILL
+    image: eresearchqut/trrf-node
+    command: watch
+    working_dir: /app/rdrf/rdrf/frontend
+    environment:
+        YARN_CACHE_FOLDER: /opt/yarn_cache
+    volumes:
+      - .:/app
+      - ./data/dev/:/data
+      - ./yarn_cache:/opt/yarn_cache

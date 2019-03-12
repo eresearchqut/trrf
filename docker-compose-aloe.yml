@@ -1,53 +1,43 @@
-version: '2'
+version: '3.7'
+
+x-common-env-variables: &common-env-variables
+  DEBUG: 0
+  TEST_WAIT: 10
+  TEST_BROWSER: chrome
+
+  TEST_APP_HOST: serverundertest
+
+  DBSERVER: dbtest
+  CLINICAL_DBSERVER: dbclinicaltest
+  REPORTING_DBSERVER: dbreportingtest
+  CACHESERVER: cachetest
+
 services:
-
-  datadevselenium:
-    extends:
-      file: docker-compose-common.yml
-      service: datadevselenium
-
-  dataprodselenium:
-    extends:
-      file: docker-compose-common.yml
-      service: dataprodselenium
-
-  # runs the aloe tests against docker-compose-teststack.yml
-  teststack:
-    image: muccg/rdrf-dev
+  aloe_dev:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: eresearchqut/trrf
     command: aloe
     environment:
-      - WAIT_FOR_RUNSERVER=1
-      - WAIT_FOR_DB=1
-      - WAIT_FOR_CLINICAL_DB=1
-      - TEST_WAIT=10
-      - TEST_BROWSER=chrome
-      - DEBUG=0
-      - RUNSERVER=runservertest
-      - CLINICAL_DBSERVER=dbclinicaltest
-      - DBSERVER=dbtest
-      - CACHESERVER=cachetest
-    volumes_from:
-      - datadevselenium
+      <<: *common-env-variables
+      WAIT_FOR_RUNSERVER: 1
+      RUNSERVER: serverundertest
+    volumes:
+      - .:/app
+      - ./data/aloe/dev:/data
 
-  # runs the aloe tests against docker-compose-prod.yml
-  prod:
-    image: muccg/rdrf-dev
+  aloe_prod:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: eresearchqut/trrf
     command: aloe
     environment:
-      - WAIT_FOR_UWSGI=1
-      - WAIT_FOR_DB=1
-      - WAIT_FOR_CLINICAL_DB=1
-      - TEST_APP_HOST=nginxtest
-      - TEST_APP_PORT=443
-      - TEST_APP_SCHEME=https
-      - TEST_APP_PATH=/app/
-      - TEST_WAIT=10
-      - TEST_BROWSER=chrome
-      - DEBUG=0
-      - RUNSERVER=runservertest
-      - CLINICAL_DBSERVER=dbclinicaltest
-      - DBSERVER=dbtest
-      - CACHESERVER=cachetest
-      - UWSGISERVER=uwsgitest
-    volumes_from:
-      - dataprodselenium
+      <<: *common-env-variables
+      WAIT_FOR_UWSGI: 1
+      UWSGISERVER: serverundertest
+      TEST_APP_PORT: 9000
+    volumes:
+      - .:/app
+      - ./data/aloe/prod:/data
