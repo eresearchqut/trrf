@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  serverundertest:
+    image: eresearchqut/trrf:${TRRF_VERSION?trrf_version_unset}
+    environment:
+      - PRODUCTION=1
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - WAIT_FOR_REPORTING_DB=1
+      - WAIT_FOR_CACHE=1
+      - CACHESERVER=cachetest
+      - DBSERVER=dbtest
+      - CLINICAL_DBSERVER=dbclinicaltest
+      - REPORTING_DBSERVER=dbreportingtest
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      # - PROMS_SYSTEM_URL=http://test.com
+
+      - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
+      - SESSION_COOKIE_SECURE=0
+      - CSRF_COOKIE_SECURE=0
+    volumes:
+      - .:/app
+      - ./data/test/:/data
+    ports:
+      - 9000
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbreportingtest
+      - cachetest

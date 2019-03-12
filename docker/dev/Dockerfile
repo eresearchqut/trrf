@@ -46,6 +46,11 @@ FROM python:3.6-slim
 
 ENV PYTHONPATH="/app/rdrf/:${PYTHONPATH}"
 ENV DJANGO_SETTINGS_MODULE rdrf.settings
+ENV STATIC_ROOT="/data/static"
+ENV WRITABLE_DIRECTORY="/data/scratch"
+ENV LOCALE_PATHS="/data/translations/locale"
+ENV LOG_DIRECTORY="/data/log"
+ENV MEDIA_ROOT="/data/static/media"
 
 # RUN apt-get update && apt-get install -y --no-install-recommends \
 #    libxml2 \
@@ -80,10 +85,9 @@ RUN chmod +x /docker-entrypoint.sh
 VOLUME ["/app", "/data"]
 
 ENV HOME /data
+WORKDIR /data
 
 EXPOSE 8000
-
-WORKDIR /app
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["runserver_plus"]

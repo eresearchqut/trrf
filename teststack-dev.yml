@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  serverundertest:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: eresearchqut/trrf
+    working_dir: /data
+    environment:
+      - WAIT_FOR_DB=1
+      - WAIT_FOR_CLINICAL_DB=1
+      - PRODUCTION=0
+      - WAIT_FOR_REPORTING_DB=1
+      - WAIT_FOR_CACHE=1
+      - CACHESERVER=cachetest
+      - DBSERVER=dbtest
+      - CLINICAL_DBSERVER=dbclinicaltest
+      - REPORTING_DBSERVER=dbreportingtest
+      - DJANGO_FIXTURES=test
+      - ALLOWED_HOSTS=*
+      # - PROMS_SYSTEM_URL=http://test.com
+    volumes:
+      - .:/app
+      - ./data/test/:/data
+    ports:
+      - 8000
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbreportingtest
+      - cachetest

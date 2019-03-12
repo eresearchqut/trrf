@@ -114,7 +114,7 @@ COPY --chown=django:django . /app
 # COPY --from=nodebuilder /app/root/.cache /root/.cache
 
 USER django
-WORKDIR /app
+WORKDIR /data
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["uwsgi"]

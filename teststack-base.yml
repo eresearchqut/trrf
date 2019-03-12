@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  dbtest:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
+
+  dbclinicaltest:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
+
+  dbreportingtest:
+    image: postgres:9.4
+    environment:
+      - POSTGRES_USER=webapp
+      - POSTGRES_PASSWORD=webapp
+    ports:
+      - "5432"
+
+  cachetest:
+    # TODO time to upgrade?
+    image: memcached:1.4
+
