@@ -36,7 +36,7 @@ services:
     image: memcached:1.4
 
   uwsgi:
-    image: eresearchqut/trrf:1.0.0
+    image: eresearchqut/trrf:${TRRF_VERSION:trrf_version_unset}
     command: uwsgi
     environment:
       - PRODUCTION=0
