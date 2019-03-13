@@ -1,8 +1,9 @@
 version: '3.7'
 
 volumes:
-  production_postgres_data: {}
-  production_data: {}
+  prod_db_data:
+  prod_clinicaldb_data:
+  prod_reportingdb_data:
 
 services:
   db:
@@ -11,8 +12,7 @@ services:
       - POSTGRES_USER=webapp
       - POSTGRES_PASSWORD=webapp
     volumes:
-      - production_postgres_data:/var/lib/postgreql/data
-      - production_data:/data
+      - prod_db_data:/var/lib/postgreql/data
 
   dbclinical:
     image: postgres:9.4
@@ -20,8 +20,7 @@ services:
       - POSTGRES_USER=webapp
       - POSTGRES_PASSWORD=webapp
     volumes:
-      - production_postgres_data:/var/lib/postgreql/data
-      - production_data:/data
+      - prod_clinicaldb_data:/var/lib/postgreql/data
 
   dbreporting:
     image: postgres:9.4
@@ -29,8 +28,7 @@ services:
       - POSTGRES_USER=webapp
       - POSTGRES_PASSWORD=webapp
     volumes:
-      - production_postgres_data:/var/lib/postgreql/data
-      - production_data:/data
+      - prod_reportingdb_data:/var/lib/postgreql/data
 
   cache:
     image: memcached:1.4
@@ -39,7 +37,7 @@ services:
     image: eresearchqut/trrf:${TRRF_VERSION:trrf_version_unset}
     command: uwsgi
     environment:
-      - PRODUCTION=0
+      - PRODUCTION=1
       - DEBUG=0
       - WAIT_FOR_DB=1
       - WAIT_FOR_CLINICAL_DB=1
@@ -61,6 +59,7 @@ services:
       - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
       - SESSION_COOKIE_SECURE=0
       - CSRF_COOKIE_SECURE=0
-
+    volumes:
+      - ./data/prod/:/data
     ports:
       - "9000:9000"

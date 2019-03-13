@@ -3,29 +3,24 @@ version: '3.7'
 services:
   dbtest:
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres  # Using same db settings as dev for now
     ports:
       - "5432"
 
   dbclinicaltest:
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres
     ports:
       - "5432"
 
   dbreportingtest:
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres
     ports:
       - "5432"
 
   cachetest:
-    # TODO time to upgrade?
     image: memcached:1.4
-

@@ -15,20 +15,29 @@ set -e
 # ./develop.sh build builder
 # ./develop.sh build node
 # ./develop.sh build dev
-docker-compose -f dev.yml build
+
+# Build the images
+docker-compose build
 
 # ./develop.sh check-migrations
-docker-compose -f dev.yml run --rm runserver django-admin makemigrations --dry-run --noinput --check
+scripts/check-migrations.sh
 
 #./develop.sh run-unittests
-docker-compose -f test.yml run runservertest runtests
-
+scripts/unit-tests.sh
 
 #./develop.sh aloe teststack
-./run-aloe.sh
+scripts/end2end-tests.sh
 
 #./develop.sh run build lint
-docker run --rm --volume $(pwd):/apps alpine/flake8 .
 #./develop.sh run "" node lint
-docker-compose -f dev.yml run --rm node lint
+scripts/lint.sh
+
+
+# Notes for CD
+# export TRRF_VERSION=1.0.0
+# docker build -f docker/production/Dockerfile -t eresearchqut/trrf:${TRRF_VERSION} .
+# scripts/end2end-tests.sh prod
+
+# Then push to ECR etc.
+
 

@@ -1,31 +1,36 @@
 version: '3.7'
 
 volumes:
-  local_postgres_data: {}
+  dev_db_data:
+  dev_clinicaldb_data:
+  dev_reportingdb_data:
 
 services:
   db:
-    # TODO time to upgrade?
+    # TODO time to upgrade? (all postgres images)
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
     ports:
       - "5432"
 
   clinicaldb:
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - dev_clinicaldb_data:/var/lib/postgresql/data
     ports:
       - "5432"
 
   reportingdb:
     image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - dev_reportingdb_data:/var/lib/postgresql/data
     ports:
       - "5432"
 
@@ -38,16 +43,9 @@ services:
       context: .
       dockerfile: docker/dev/Dockerfile
     image: eresearchqut/trrf
-    environment:
-      - WAIT_FOR_DB=1
-      - WAIT_FOR_CLINICAL_DB=1
-      - PRODUCTION=0
-      - WAIT_FOR_REPORTING_DB=1
-      - WAIT_FOR_CACHE=1
-      - DJANGO_MAILGUN_API_KEY=${DJANGO_MAILGUN_API_KEY}
-      - DJANGO_FIXTURES=dev
-      - DESIGN_MODE=1
-      - PROMS_SYSTEM_URL=http://test.com
+    env_file:
+      - docker/dev/envs/postgres
+      - docker/dev/envs/runserver
     volumes:
       - .:/app
       - ./data/dev/:/data
