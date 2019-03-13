@@ -4,6 +4,7 @@ x-common-env-variables: &common-env-variables
   DEBUG: 0
   TEST_WAIT: 10
   TEST_BROWSER: chrome
+  ALLOWED_HOSTS: '*'
 
   TEST_APP_HOST: serverundertest
 

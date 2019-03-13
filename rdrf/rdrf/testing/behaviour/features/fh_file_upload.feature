@@ -43,10 +43,10 @@ Feature: User uploads files.
     Then I should see "Patient John SMITH saved successfully"
     Then I should be able to download "README.rst"
     
-    When I upload file "/app/develop.sh" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
+    When I upload file "/app/authors.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    Then I should be able to download "develop.sh"
+    Then I should be able to download "authors.txt"
     
 
 #  Scenario: Delete (check the 'clear' box and save) an existing file cde.
