@@ -19,6 +19,9 @@ set -e
 # Build the images
 docker-compose build
 
+# We're going to lint earlier from now because it is much less expensive then running tests
+scripts/lint.sh
+
 # ./develop.sh check-migrations
 scripts/check-migrations.sh
 
@@ -30,7 +33,8 @@ scripts/end2end-tests.sh
 
 #./develop.sh run build lint
 #./develop.sh run "" node lint
-scripts/lint.sh
+# Linting moved up
+# scripts/lint.sh
 
 
 # Notes for CD
