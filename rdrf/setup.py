@@ -3,54 +3,6 @@ from setuptools import setup, find_packages
 
 package_data = {}
 start_dir = os.getcwd()
-requirements = [
-    "ccg-django-utils==0.4.2",
-    "Django==2.1.5",
-    "django-ajax-selects==1.7.1",
-    "django-anymail==5.0",
-    "django-countries==5.3.2",
-    "django-extensions==2.1.4",
-    "django-iprestrict==1.7.0",
-    "django-messages-ui==2.0.2",
-    "django-nose==1.4.6",
-    "django-positions==0.6.0",
-    "django-registration-redux==2.5",
-    "djangorestframework==3.9.0",
-    "django-storages==1.7.1",
-    "django-templatetag-handlebars==1.3.1",
-    "django-templatetag-sugar==1.0",
-    "django-useraudit==1.7.0",
-    "django-uwsgi==0.2.2",
-    "geoip2==2.9.0",
-    "jsonschema==2.6.0",
-    "openpyxl==2.5.12",
-    "polib==1.1.0",
-    "psycopg2==2.7.6.1",
-    "pycountry==18.12.8",
-    "pyinotify==0.9.6",
-    "pyodbc==4.0.25",
-    "pyparsing==2.3.0",
-    "python-dateutil==2.7.5",
-    "python-memcached==1.59",
-    "pyyaml==4.2b1",
-    "setuptools",
-    "setuptools_scm==3.1.0",
-    "six==1.12.0",
-    "SQLAlchemy==1.2.15",
-    "uwsgi==2.0.17.1",
-    "django-formtools==2.1",
-    "django-otp==0.5.1",
-    "django-phonenumber-field==2.1.0",
-    "django-two-factor-auth==1.8.0",
-    "phonenumberslite==8.10.2",
-    "Pillow==5.3.0",
-    "qrcode==6.0",
-    "django-reversion==3.0.2",
-    "ua-parser==0.8.0",
-    "user-agents==1.1.0",
-    "django-user-agents==0.3.2",
-    "django-simple-history==2.6.0",
-]
 
 
 def add_file_for_package(package, subdir, f):
@@ -129,14 +81,12 @@ for package in ['rdrf', 'registry.common', 'registry.genetic',
     os.chdir(start_dir)
 
 
-setup(name='django-rdrf',
-      version="5.0.1",
+setup(name='trrf',
+      version='1.0.0',
       packages=find_packages(),
-      description='RDRF',
-      long_description='Rare Disease Registry Framework',
-      author='Centre for Comparative Genomics',
-      author_email='rdrf@ccg.murdoch.edu.au',
+      description='TRRF',
+      long_description='Trial Ready Registry Framework',
+      author='Queensland University of Technology - eResearch',
       package_data=package_data,
-      zip_safe=False,
-      install_requires=requirements
+      zip_safe=False
       )

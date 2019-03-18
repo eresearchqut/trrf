@@ -289,6 +289,11 @@ class Position:
                     self.intron_offset_unknown = None
             else:
                 # Well, presumably this is a simple position, then.
+                # Not in python 3.6! Underscores are valid in numbers there.
+                # An underscore in the input means a location not a python number
+                # delimited by underscores for better readability.
+                if '_' in input:
+                    raise ValueError('Underscore in input means Range')
                 self.position = int(input)
                 self.intron_offset = None
         except ValueError:

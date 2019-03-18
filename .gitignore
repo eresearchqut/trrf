@@ -53,6 +53,7 @@ rdrf/rdrf/static/js/*-bundle*.js
 rdrf/rdrf/static/proms/js/*-bundle*.js
 rdrf/rdrf/static/proms/js/main-bundle.js
 rdrf/rdrf/static/proms/js/runtime-bundle.js
+rdrf/rdrf/static/proms/js/vendors-bundle.min.js
 
 yarn_cache/
 yarn-error.log

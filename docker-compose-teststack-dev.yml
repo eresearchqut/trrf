@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  serverundertest:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: eresearchqut/trrf
+    working_dir: /data
+    env_file:
+      - docker/dev/envs/postgres
+      - docker/dev/envs/runserver
+      - docker/dev/envs/runservertest
+    volumes:
+      - .:/app
+      - ./data/test/:/data
+    ports:
+      - 8000
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbreportingtest
+      - cachetest

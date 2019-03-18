@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  serverundertest:
+    image: eresearchqut/trrf:${TRRF_VERSION?trrf_version_unset}
+    env_file:
+      - docker/dev/envs/postgres
+      - docker/dev/envs/runserver
+      - docker/dev/envs/runservertest
+    environment:
+      - PRODUCTION=1
+
+      - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
+      - SESSION_COOKIE_SECURE=0
+      - CSRF_COOKIE_SECURE=0
+    volumes:
+      - .:/app
+      - ./data/test/:/data
+    ports:
+      - 9000
+    depends_on:
+      - dbtest
+      - dbclinicaltest
+      - dbreportingtest
+      - cachetest
