@@ -1,6 +1,6 @@
-version: '2'
-services:
+version: '3.7'
 
+services:
   hub:
     image: selenium/hub:3.2
     environment:
@@ -35,3 +35,4 @@ services:
       - 5900:5900
     depends_on:
       - hub
+

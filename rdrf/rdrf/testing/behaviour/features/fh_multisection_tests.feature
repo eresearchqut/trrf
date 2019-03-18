@@ -26,17 +26,17 @@ Feature: User operates on multisection items.
     And I enter value "02-01-2017" for form "Imaging" multisection "Carotid Ultrasonography" cde "Date" in item 2
     And I enter value "3.0" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result (right)" in item 2
     And I enter value "item 2" for form "Imaging" multisection "Carotid Ultrasonography" cde "Result" in item 2
-    When I upload file "/app/develop.sh" for multisection "Carotid Ultrasonography" cde "Report" in item 2
+    When I upload file "/app/authors.txt" for multisection "Carotid Ultrasonography" cde "Report" in item 2
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I should be able to download "README.rst"
-    And I should be able to download "develop.sh"
+    And I should be able to download "authors.txt"
    
     # delete the first item of the multisection
     When I mark multisection "Carotid Ultrasonography" item 1 for deletion
     And I click the "Save" button
     Then I should not be able to download "README.rst"
-    And I should be able to download "develop.sh"
+    And I should be able to download "authors.txt"
     
     # check some values - we deleted the 1st item so what remains is the original 2nd item
     And the value of multisection "Carotid Ultrasonography" cde "Date" item 1 is "2-1-2017"
