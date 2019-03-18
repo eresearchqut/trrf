@@ -34,7 +34,7 @@ services:
     image: memcached:1.4
 
   uwsgi:
-    image: eresearchqut/trrf:${TRRF_VERSION:trrf_version_unset}
+    image: eresearchqut/trrf:${TRRF_VERSION}
     command: uwsgi
     environment:
       - PRODUCTION=1
@@ -61,5 +61,11 @@ services:
       - CSRF_COOKIE_SECURE=0
     volumes:
       - ./data/prod/:/data
+
+  nginx:
+    build:
+      context: ./docker/production/nginx/
+    # TODO build this image on the build server, push it to ECR and only refer to it here
+    image: trrf_production_nginx
     ports:
-      - "9000:9000"
+      - 443:443
