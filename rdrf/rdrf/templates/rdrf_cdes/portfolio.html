@@ -1,13 +1,14 @@
 {% load static from staticfiles %}
 {% load version_number %}
 {% load i18n %}
+{% load project_title %}
 
 <!DOCTYPE html>
 <html class="bg">
 <head>
 	<meta charset="UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
-	<title>{% trans "Rare Disease Registry Framework" %}</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<title>{% project_title %}</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 	<!-- stylesheets -->
@@ -61,7 +62,7 @@
 		<div class="container">
 			<div class="row header">
 				<div class="col-md-12">
-					<h3>{% trans 'Welcome to Rare Disease Registry Framework' %}!</h3>
+					<h3>{% trans 'Welcome to Trial Ready Registry Framework' %}!</h3>
 
                     <p>{% trans 'The following registries are defined on this site' %}</p>
 				</div>

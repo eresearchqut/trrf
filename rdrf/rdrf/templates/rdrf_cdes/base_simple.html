@@ -1,19 +1,20 @@
 {% load staticfiles %}
 {% load i18n %}
+{% load project_title %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
-        <title>{% trans "Rare Disease Registry Framework" %}</title>
-  
+        <title>{% project_title %}</title>
+
         <link rel="stylesheet" href="{% static 'bootstrap-3.3.6/css/bootstrap.min.css' %}">
-  
+
         <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
         <script type="text/javascript" src="{% static 'bootstrap-3.3.6/js/bootstrap.min.js' %}"></script>
-        
+
         {% block extrahead %}
         {% endblock %}
-    
+
     </head>
     <body>
 

@@ -10,10 +10,13 @@
     </div>
     <div class="col-md-4 disclaimer">
       <div>
-          <a href="http://www.murdoch.edu.au/copy/copy.html" target="_blank">{% trans "Disclaimer &amp; Copyright Notice</a>" %} &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
+          <a href="https://github.com/ereasearchqut/trrf/" target="_blank">{% trans "TRRF Project" %}</a>
+      </div>
+      <div>
+           {% trans "Copyright" %} &copy; 2013-<script>document.write(new Date().getFullYear())</script>
+           <a href="https://www.qut.edu.au" target="_blank">{% trans "Queensland University of Technology" %}</a><br>
+          {% trans "Copyright</a>" %} &copy; 2013-<script>document.write(new Date().getFullYear())</script> 
           <a href="http://www.murdoch.edu.au" target="_blank">{% trans "Murdoch University" %}</a><br>
-          <a href="https://muccg.github.io/rdrf/" target="_blank">{% trans "RDRF Project" %}</a> |
-          <a href="mailto:rdrf@ccg.murdoch.edu.au">{% trans "Email RDRF" %}</a>
       </div>
       {% if request.user.is_authenticated and cic_system_role %}
         <div>
@@ -21,10 +24,11 @@
         </div>
       {% endif %}
     </div>
-    
-    <div class="col-md-4 authorised">  
+
+    <div class="col-md-4 authorised">
       <div>
-          {% trans "Authorised by" %}: <a href="mailto:mbellgard@ccg.murdoch.edu.au"> Prof. Matthew Bellgard</a>;<br> {% trans 'Director' %}, <a href="http://ccg.murdoch.edu.au/">CCG</a><br>
+        {% trans "Authorised by" %}: <a href="mailto:matthew.bellgard@qut.edu.au">Prof. Matthew Bellgard</a>, {% trans "Director" %}, eResearch, Queensland University of Technology.
+                </div>
       </div>
     </div>
   </div>

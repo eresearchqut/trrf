@@ -1,4 +1,5 @@
 {% load static from staticfiles %}
+{% load project_title %}
 {% load version_number %}
 {% load i18n %}
 {% load translate %}
@@ -7,7 +8,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>{% trans "RDRF - Rare Disease Registry Framework" %} </title>
+    <title>{% project_title %} </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- stylesheets -->
@@ -35,15 +36,12 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                   </button>
-                  <a href="{% url 'landing' %}" class="navbar-brand">RDRF {% version_number %}</a>
+                  <a href="{% url 'landing' %}" class="navbar-brand">TRRF {% version_number %}</a>
             </div>
             <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
                   <ul class="nav navbar-nav navbar-right">
                     <li>
-                        <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
-                    </li>
-                    <li>
-                        <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
+                        <a href="https://github.com/eresearchqut/trrf">{% trans "Source code" %}</a>
                     </li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -68,12 +66,12 @@
     <div id="hero">
         <div class="container">
             <h1 class="hero-text animated fadeInDown">
-                {% trans "The Rare Disease Registry" %}<br>
+                {% trans "The Trial Ready Registry" %}<br>
                 {% trans "Framework" %}
 
             </h1>
             <p class="sub-text animated fadeInDown">
-                {% trans "Create a patient registry without software development" %}.
+                {% trans "Create your clinical trial ready registry without software development" %}.
             </p>
 
         </div>
@@ -83,19 +81,24 @@
         <div class="container">
             <div class="row header">
                 <div class="col-md-12">
-                    <h3>{% trans "Need a patient registry for your department, clinic or community?" %}</h3>
-                    <p>{% trans "RDRF allows for rapid creation of patient registries" %}.</p>
+                    <h3>{% trans "Need a clinical trial ready registry for your department, clinic or community?" %}</h3>
+                    <p>{% trans "TRRF allows for rapid creation of a clinical trial ready patient registries" %}.</p>
                 </div>
             </div>
             <div class="divider"></div>
             <div class="row header">
                 <div class="col-md-12">
-                    <h3>{% trans "What is the Rare Disease Registry Framework?" %}</h3>
-                    <p>{% blocktrans %}
-		      The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are
-                        based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at
-                      runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia in partnership with the Office of Population Health Genomics, Department of Health Western Australia.
-		      {% endblocktrans %}</p>
+                    <h3>{% trans "What is the Trial Ready Registry Framework?" %}</h3>
+                    <p>
+                    {% blocktrans %}
+                    The Trial Ready Registry Framework (or TRRF) has been forked from the Rare Disease Registry Framework (or RDRF) by Queensland University of Technology's eResearch team in order to produce a trial ready framework that is fit for purpose across all diseases, with easy deployment, availability and efficient use.
+                    {% endblocktrans %}
+                    </p>
+                    <p>
+                    {% blocktrans %}
+                    The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms and questionnaires are based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at runtime. This means that registries can be created and modified without changes to the source code. RDRF has been developed at the Centre for Comparative Genomics, Murdoch University, Western Australia.
+                    {% endblocktrans %}
+                    </p>
                 </div>
             </div>
             <div class="divider"></div>
@@ -106,7 +109,7 @@
 M.I. Bellgard, L. Render, M. Radochonski, and A. Hunter, Second generation registry framework, Source Code for Biology and Medicine, 9 (2014), 14.
                     </p>
 		    <p>
-M.I. Bellgard, K.R. Napier, A.H. Bittles, J. Szer, S. Fletcher, N. Zeps, A.A. Hunter and J. Goldblatt, Design of a framework for the deployment of collaborative independent rare disease-centric registries: Gaucher Disease Registry model, Blood Cells Molecules and Diseases, (in press).		
+M.I. Bellgard, K.R. Napier, A.H. Bittles, J. Szer, S. Fletcher, N. Zeps, A.A. Hunter and J. Goldblatt, Design of a framework for the deployment of collaborative independent rare disease-centric registries: Gaucher Disease Registry model, Blood Cells Molecules and Diseases, (in press).
                     </p>
 		    <p>
 K.R. Napier, J. Pang, L. Lamont, C.E. Walker, H.J.S. Dawkins, A.A. Hunter, F.M. van Bockxmeer, G.F. Watts, M.I. Bellgard, A web-based registry for familial hypercholesterolaemia Heart, Lung and Circulation, (in press).
@@ -135,43 +138,15 @@ M. Rodrigues, G. Hammond-Tooke, A. Kidd, D. Love, R. Patel, H. Dawkins, M. Bellg
     <div id="footer">
         <div class="container">
             <div class="row">
-                <div class="col-sm-12 menu">
-                    <ul>
-                        <li>
-                            <a href="mailto:rdrf@ccg.murdoch.edu.au">rdrf@ccg.murdoch.edu.au</a>
-                        </li>
-                        <li>
-                            <a href="http://ccg.murdoch.edu.au/">Centre for Comparative Genomics</a>
-                        </li>
-                        <li>
-                            <a href="http://www.genomics.health.wa.gov.au/">Office of Population Health Genomics</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
             <div class="row">
-                <div class="col-sm-12 menu">
-                    <ul>
-                        <li>
-                            <a href="https://muccg.github.io/rdrf/">{% trans "Project" %}</a>
-                        </li>
-                        <li>
-                            <a href="https://muccg.github.io/rdrf/docs/">{% trans "Documentation" %}</a>
-                        </li>
-                        <li>
-                            <a href="https://github.com/muccg/rdrf/">{% trans "Source code" %}</a>
-                        </li>
-                    </ul>
+                <div class="col-sm-12 copyright">
+                  {% trans "Authorised by" %}: <a href="mailto:matthew.bellgard@qut.edu.au">Prof. Matthew Bellgard</a>, {% trans "Director" %}, eResearch, Queensland University of Technology.
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-12 copyright">
-                    {% trans "Authorised by" %} Prof. Matthew Bellgard, {% trans "Director" %}, Centre for Comparative Genomics, Murdoch University.
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12 copyright">
-                    {% trans "Copyright" %} © 2015. Murdoch University. {% trans "Landing page" %} React {% trans "theme" %} {% trans "Copyright" %} © 2014
+                  {% trans "Copyright" %} © 2018-<script>document.write(new Date().getFullYear())</script>. Queensland Unversity of Technology.
+                  {% trans "Copyright" %} © 2015-<script>document.write(new Date().getFullYear())</script>. Murdoch University.
                 </div>
             </div>
 
