@@ -26,7 +26,9 @@ stop_all() {
 trap "stop_all; exit" SIGHUP SIGINT SIGTERM
 
 # start selenium in the background
-selenium restart
+selenium stop
+selenium rm --force
+selenium up -d
 
 # start the test stack in the background
 teststack stop
