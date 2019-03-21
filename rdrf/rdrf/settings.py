@@ -5,6 +5,7 @@ import os
 from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+import rdrf
 from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
@@ -523,4 +524,4 @@ PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us
 PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
 
-VERSION = env.get('app_version', 'DEV')
+VERSION = env.get('app_version', rdrf.VERSION)

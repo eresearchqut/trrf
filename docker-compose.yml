@@ -46,6 +46,7 @@ services:
     env_file:
       - docker/dev/envs/postgres
       - docker/dev/envs/runserver
+    restart: always
     volumes:
       - .:/app
       - ./data/dev/:/data
