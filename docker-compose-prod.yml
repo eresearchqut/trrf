@@ -37,6 +37,7 @@ services:
     image: eresearchqut/trrf:${TRRF_VERSION}
     command: uwsgi
     environment:
+      - APP_VERSION=${TRRF_VERSION}
       - PRODUCTION=1
       - DEBUG=0
       - WAIT_FOR_DB=1

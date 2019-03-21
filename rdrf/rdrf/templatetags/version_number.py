@@ -1,5 +1,5 @@
 from django import template
-from rdrf import VERSION
+from django.conf import settings
 
 register = template.Library()
 
@@ -7,4 +7,4 @@ register = template.Library()
 # settings value
 @register.simple_tag
 def version_number():
-    return VERSION
+    return settings.VERSION
