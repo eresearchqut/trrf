@@ -157,14 +157,6 @@ function _django_dev_fixtures {
 }
 
 
-function _rdrf_import_grdr {
-    info "importing grdr registry"
-    set -x
-    django-admin.py import_registry --file=/app/grdr.yaml
-    set +x
-}
-
-
 function _django_fixtures {
     if [ "${DJANGO_FIXTURES}" = 'test' ]; then
         _django_test_fixtures
@@ -216,19 +208,6 @@ if [ "$1" = 'uwsgi' ]; then
     exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
-# local and test uwsgi entrypoint
-if [ "$1" = 'uwsgi_local' ]; then
-    info "[Run] Starting local uwsgi"
-
-    _django_collectstatic
-    _django_migrate
-    _django_fixtures
-    _django_check_deploy
-
-    set -x
-    exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-fi
-
 # runserver entrypoint
 if [ "$1" = 'runserver' ]; then
     info "[Run] Starting runserver"
@@ -242,19 +221,6 @@ if [ "$1" = 'runserver_plus' ]; then
     _runserver
 fi
 
-# grdr entrypoint
-if [ "$1" = 'grdr' ]; then
-    info "[Run] Starting runserver_plus with GRDR data elements"
-
-    _django_collectstatic
-    _django_migrate
-    _django_fixtures
-    _rdrf_import_grdr
-
-    RUNSERVER_CMD=runserver_plus
-    _runserver
-fi
-
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     info "[Run] Starting tests"
@@ -264,10 +230,9 @@ if [ "$1" = 'runtests' ]; then
     single_test="$2"
 
     if [ "$single_test" != "" ]; then
-	exec django-admin.py test --noinput -v 3 "$single_test"
-
+        exec django-admin.py test --noinput -v 3 "$single_test"
     else
-	exec django-admin.py test --noinput -v 3 rdrf
+        exec django-admin.py test --noinput -v 3 rdrf
     fi
 fi
 

@@ -9,6 +9,7 @@ def production(request):
 def common_settings(request):
     return {
         'ACCOUNT_SELF_UNLOCK_ENABLED': settings.ACCOUNT_SELF_UNLOCK_ENABLED,
+        'HIGHLIGHT_FORM_CHANGES_ENABLED': settings.HIGHLIGHT_FORM_CHANGES,
     }
 
 

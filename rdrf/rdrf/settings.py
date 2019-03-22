@@ -525,3 +525,5 @@ PROMS_USERNAME = env.get("proms_username", "promsuser")
 PROMS_LOGO = env.get("proms_logo", "")
 
 VERSION = env.get('app_version', rdrf.VERSION)
+
+HIGHLIGHT_FORM_CHANGES = env.get('highlight_form_changes', True)
