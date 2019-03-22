@@ -15,7 +15,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-    <title>{% project_title %}</title>
+  <title>{% project_title %}</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -73,6 +73,9 @@
         });
     </script>
 
+    {% if HIGHLIGHT_FORM_CHANGES_ENABLED %}
+        <script type="text/javascript" src="{% static 'js/highlight_changes.js' %}"></script>
+    {% endif %}
 </head>
 
 <body>
