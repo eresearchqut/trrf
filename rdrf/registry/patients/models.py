@@ -1,6 +1,8 @@
 import json
 import datetime
+import logging
 from operator import attrgetter
+import pycountry
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
@@ -9,7 +11,6 @@ from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
-import pycountry
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
@@ -20,8 +21,8 @@ from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
 from django.utils.translation import ugettext_lazy as _
 
+from simple_history.models import HistoricalRecords
 
-import logging
 logger = logging.getLogger(__name__)
 
 _6MONTHS_IN_DAYS = 183
@@ -31,6 +32,8 @@ class State(models.Model):
     short_name = models.CharField(max_length=3, primary_key=True)
     name = models.CharField(max_length=30)
     country_code = models.CharField(max_length=30, blank=True, null=True)
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["name"]
@@ -87,6 +90,8 @@ class Doctor(models.Model):
 
     fax = models.CharField(max_length=30, blank=True, null=True)
 
+    history = HistoricalRecords()
+
     class Meta:
         ordering = ['family_name']
 
@@ -96,6 +101,8 @@ class Doctor(models.Model):
 
 class NextOfKinRelationship(models.Model):
     relationship = models.CharField(max_length=100, verbose_name=_("Relationship"))
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = _('Next of Kin Relationship')
@@ -306,6 +313,8 @@ class Patient(models.Model):
                                     blank=True,
                                     null=True,
                                     verbose_name=_("Patient Type"))
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["family_name", "given_names", "date_of_birth"]
@@ -1106,6 +1115,8 @@ class Speciality(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
 
+    history = HistoricalRecords()
+
     def __str__(self):
         return self.name
 
@@ -1122,6 +1133,8 @@ class ClinicianOther(models.Model):
     user = models.ForeignKey(CustomUser, blank=True, null=True, on_delete=models.SET_NULL)
     clinician_first_name = models.CharField(max_length=200, blank=True, null=True)
     clinician_last_name = models.CharField(max_length=200, blank=True, null=True)
+
+    history = HistoricalRecords()
 
     def synchronise_working_group(self):
         if not self.user:
@@ -1234,6 +1247,8 @@ class ParentGuardian(models.Model):
         related_name="parent_user_object",
         on_delete=models.SET_NULL)
 
+    history = HistoricalRecords()
+
     @property
     def children(self):
         if not self.self_patient:
@@ -1271,6 +1286,8 @@ class AddressType(models.Model):
     type = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
 
+    history = HistoricalRecords()
+
     def natural_key(self):
         return (self.type,)
 
@@ -1289,6 +1306,8 @@ class PatientAddress(models.Model):
     country = models.CharField(max_length=100, verbose_name=_("Country"))
     state = models.CharField(max_length=50, verbose_name=_("State"))
     postcode = models.CharField(max_length=50, verbose_name=_("Postcode"))
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name_plural = _("Patient Addresses")
@@ -1321,11 +1340,15 @@ class PatientConsent(models.Model):
         null=True)
     filename = models.CharField(max_length=255)
 
+    history = HistoricalRecords()
+
 
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     relationship = models.CharField(max_length=50)
+
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "medical professionals for patient"
@@ -1392,6 +1415,8 @@ class PatientRelative(models.Model):
         related_name="as_a_relative",
         verbose_name="Create Patient?",
         on_delete=models.CASCADE)
+
+    history = HistoricalRecords()
 
     def create_patient_from_myself(self, registry_model, working_groups):
         # Create the patient corresponding to this relative
@@ -1507,6 +1532,8 @@ class ConsentValue(models.Model):
     answer = models.BooleanField(default=False)
     first_save = models.DateField(null=True, blank=True)
     last_update = models.DateField(null=True, blank=True)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return "Consent Value for %s question %s is %s" % (
