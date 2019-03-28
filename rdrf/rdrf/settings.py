@@ -162,6 +162,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 )
 
 
@@ -195,6 +196,7 @@ INSTALLED_APPS = [
     'django_otp.plugins.otp_totp',
     'two_factor',
     'django_user_agents',
+    'simple_history',
 ]
 
 
