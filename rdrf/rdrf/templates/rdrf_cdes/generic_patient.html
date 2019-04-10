@@ -102,16 +102,25 @@
         $(document).ready(function(){
             setupPatientRelativeForm();
 
-          $("input[id*='date']").each(function () {
-                if( ! $(this).attr('id').match(/patient_relative-__prefix__-date_of_birth/)) {
-                    $(this).datepicker({
-                        "dateFormat": "dd-mm-yy",
-                        "yearRange": "-120:+0",
-                        "maxDate": 0,
-                        "changeMonth": true,
-                        "changeYear": true
-                    })
+            function setUpDatepickerOnField(field) {
+                $(field).datepicker({
+                    "dateFormat": "dd-mm-yy",
+                    "yearRange": "-120:+0",
+                    "maxDate": 0,
+                    "changeMonth": true,
+                    "changeYear": true
+                })
+            }
+
+            $("input[id*='date']").each(function () {
+                if ($(this).attr('id').match(/patient_relative-__prefix__-date_of_birth/)) {
+                    return
                 }
+                setUpDatepickerOnField(this);
+            });
+
+            $("input.datepicker").each(function () {
+                setUpDatepickerOnField(this);
             });
 
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");

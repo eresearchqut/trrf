@@ -1,17 +1,18 @@
 # Custom widgets / Complex controls required
-from django.forms import Textarea, Widget, MultiWidget, HiddenInput
-from django.forms import widgets
+import datetime
+import logging
+import re
+
+import pycountry
+from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.utils import flatatt
+from django.forms.widgets import ClearableFileInput
+from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.urls import reverse_lazy
-from django.forms.widgets import ClearableFileInput
 
-import re
-import logging
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
-import pycountry
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +195,6 @@ class DateWidget(widgets.TextInput):
 
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
-            import datetime
             if value:
                 if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
                     return "%s-%s-%s" % (value.day, value.month, value.year)
@@ -202,9 +202,9 @@ class DateWidget(widgets.TextInput):
                     return value
             else:
                 return value
-        return """
+        return mark_safe("""
             <input type="text" name="%s" id="id_%s" value="%s" class="datepicker">
-        """ % (name, name, just_date(value) or '')
+        """ % (name, name, just_date(value) or ''))
 
 
 class CountryWidget(widgets.Select):
