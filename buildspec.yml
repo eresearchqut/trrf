@@ -12,12 +12,14 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - docker-compose build
-      - echo Running tests...
+
       # CodePipeline loses the file permissions while copying artifacts
       # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
       - chmod +x scripts/*.sh
       - chmod +x docker/dev/*.sh
+
+      - docker-compose build
+      - echo Running tests...
       # Comment out if not needed
       # We could potentially use a flag within the commit message to skip tests
       - scripts/lint.sh
