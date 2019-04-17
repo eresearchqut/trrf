@@ -1,0 +1,46 @@
+version: 0.2 
+ 
+phases: 
+  pre_build: 
+    commands: 
+      #- echo Installing dependencies 
+      #- apt-get update 
+      #- apt-get install jq moreutils -y 
+      #- pip3 install yq 
+      - echo Logging in to Amazon ECR... 
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) 
+  build: 
+    commands: 
+      - echo Build started on `date` 
+      - docker-compose build 
+      - echo Running tests... 
+      # Comment out if not needed 
+      # We could potentially use a flag within the commit message to skip tests 
+      - scripts/lint.sh 
+      - scripts/check-migrations.sh 
+      - scripts/unit-tests.sh 
+      - scripts/end2end-tests.sh 
+      - echo Building and tagging the Docker image... 
+      - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION . 
+  post_build: 
+    commands: 
+      - echo Build completed on `date` 
+      - echo Pushing the Docker image... 
+      - docker push $IMAGE_REPO:$APPLICATION_VERSION 
+      #- echo Rewriting Docker Compose (not needed probably, use .env insteadsss) 
+      #- yq -y ".services.uwsgi.image=\"$IMAGE_REPO:$APPLICATION_VERSION\"" docker-compose-prod.yml | sponge docker-compose-prod.yml 
+
+      # TODO TS - This should be done by CodeDeploy, it is a deployment, not a build concern
+      # - echo Adding EnvVars, retrieving SSM Parameters 
+      # - echo DB_DATABASE=`aws ssm get-parameter --name "/app/$ENVIRONMENT_NAME/$APPLICATION_NAME/DBDatabase" | jq -r '.Parameter.Value'` >> .env 
+      # - echo DB_CLINICAL_DATABASE=`aws ssm get-parameter --name "/app/$ENVIRONMENT_NAME/$APPLICATION_NAME/DBClinicalDatabase" | jq -r '.Parameter.Value'` >> .env 
+      # - echo DB_REPORTING_DATABASE=`aws ssm get-parameter --name "/app/$ENVIRONMENT_NAME/$APPLICATION_NAME/DBReportingDatabase" | jq -r '.Parameter.Value'` >> .env 
+      # - echo DB_USERNAME=`aws ssm get-parameter --name "/app/$ENVIRONMENT_NAME/$APPLICATION_NAME/DBUsername" | jq -r '.Parameter.Value'` >> .env 
+      # - echo DB_PASSWORD=`aws ssm get-parameter --name "/app/$ENVIRONMENT_NAME/$APPLICATION_NAME/DBPassword" | jq -r '.Parameter.Value'` >> .env 
+      # - echo UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION >> .env 
+      # - echo TRRF_VERSION=1.0.0 >> .env 
+      # - echo DJANGO_FIXTURES=default >> .env 
+ 
+artifacts: 
+  files: 
+    - '**/*' 
