@@ -17,6 +17,7 @@ phases:
       # CodePipeline loses the file permissions while copying artifacts
       # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
       - chmod +x scripts/*.sh
+      - chmod +x docker/dev/*.sh
       # Comment out if not needed
       # We could potentially use a flag within the commit message to skip tests
       - scripts/lint.sh
@@ -25,8 +26,11 @@ phases:
       - scripts/end2end-tests.sh
       - echo Building and tagging the Docker image...
       - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
-  post_build:
-    commands:
+
+  # post_build is executed even on build failure
+  # We don' want the docker push if the build failed for any reason
+  # post_build:
+  #  commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
       - docker push $IMAGE_REPO:$APPLICATION_VERSION
