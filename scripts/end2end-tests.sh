@@ -17,13 +17,13 @@ alias selenium='docker-compose -f docker-compose-selenium.yml'
 alias teststack="docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-${STACK}.yml"
 
 stop_all() {
-    trap "echo 'Exiting'" SIGHUP SIGINT SIGTERM
+    trap "echo 'Exiting'" HUP INT TERM
     aloe stop
     selenium stop
     teststack stop
 }
 
-trap "stop_all; exit" SIGHUP SIGINT SIGTERM
+trap "stop_all; exit" HUP INT TERM
 
 # start selenium in the background
 selenium stop
