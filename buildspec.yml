@@ -17,6 +17,7 @@ phases:
       # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
       - chmod +x scripts/*.sh
       - chmod +x docker/dev/*.sh
+      - chmod +x rdrf/rdrf/scripts/check-calculation.js
 
       - docker-compose build
       - echo Running tests...
