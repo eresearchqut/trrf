@@ -19,12 +19,12 @@ phases:
       - chmod +x docker/dev/*.sh
       - chmod +x rdrf/rdrf/scripts/check-calculation.js
 
-      - docker-compose build
+      # - docker-compose build
       - echo Running tests...
       # Comment out if not needed
       # We could potentially use a flag within the commit message to skip tests
       # - scripts/lint.sh
-      - scripts/check-migrations.sh
+      # - scripts/check-migrations.sh
       # - scripts/unit-tests.sh
       # - scripts/end2end-tests.sh
       - echo Building and tagging the Docker image...
