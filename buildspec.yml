@@ -28,7 +28,7 @@ phases:
       # - scripts/unit-tests.sh
       # - scripts/end2end-tests.sh
       - echo Building and tagging the Docker image...
-      # - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
+      - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
 
   # post_build is executed even on build failure
   # We don' want the docker push if the build failed for any reason
@@ -36,7 +36,7 @@ phases:
   #  commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      # - docker push $IMAGE_REPO:$APPLICATION_VERSION
+      - docker push $IMAGE_REPO:$APPLICATION_VERSION
       #- echo Rewriting Docker Compose (not needed probably, use .env insteadsss)
       #- yq -y ".services.uwsgi.image=\"$IMAGE_REPO:$APPLICATION_VERSION\"" docker-compose-prod.yml | sponge docker-compose-prod.yml
 
