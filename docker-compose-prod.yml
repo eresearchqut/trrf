@@ -34,7 +34,8 @@ services:
     image: memcached:1.4
 
   uwsgi:
-    image: eresearchqut/trrf:${TRRF_VERSION}
+    # image: eresearchqut/trrf:${TRRF_VERSION}
+    image: ${UWSGI_IMAGE}
     command: uwsgi
     environment:
       - APP_VERSION=${TRRF_VERSION}
