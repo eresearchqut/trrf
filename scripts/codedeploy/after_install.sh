@@ -6,7 +6,8 @@ cd /home/ec2-user/efs/trrf
 source .env
 
 # TODO
-export UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION
+# export UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION
+export UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest
 export TRRF_VERSION=1.0.0
 export DJANGO_FIXTURES=default
 
