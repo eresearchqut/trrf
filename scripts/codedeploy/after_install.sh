@@ -10,7 +10,7 @@ echo "TRRF_VERSION=latest" >> .env
 
 echo "DJANGO_FIXTURES=default" >> .env
 echo "CSRF_TRUSTED_ORIGINS=.registryframework.net" >> .env
-echo "IPRESTRICT_IGNORE_PROXY_HEADERS=1" >> .env
+echo "IPRESTRICT_IGNORE_PROXY_HEADER=1" >> .env
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
