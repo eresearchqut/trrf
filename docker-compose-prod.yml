@@ -47,7 +47,6 @@ services:
       - WAIT_FOR_CACHE=1
       - DJANGO_FIXTURES=test
       - ALLOWED_HOSTS=*
-      - CSRF_TRUSTED_ORIGINS=localhost
       - CACHESERVER=cache
       - DBSERVER=db
       - CLINICAL_DBSERVER=dbclinical

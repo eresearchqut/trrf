@@ -5,26 +5,22 @@ chown -R ec2-user:ec2-user /home/ec2-user/efs/trrf
 cd /home/ec2-user/efs/trrf
 
 # TODO
-# export UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION
-env | sort
-
 # echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
 echo "TRRF_VERSION=latest" >> .env
-# echo "DJANGO_FIXTURES=default" >> .env
+
+echo "DJANGO_FIXTURES=default" >> .env
+echo "CSRF_TRUSTED_ORIGINS=.registryframework.net" >> .env
+echo "IPRESTRICT_IGNORE_PROXY_HEADERS=1" >> .env
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
 echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri' -r` >> .env
 
+export SSM_ENV_PATH=/app/${DEPLOYMENT_GROUP_NAME}/
+export SSM_APP_PATH=/app/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
 
-export SSM_PATH=/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
+aws ssm get-parameters-by-path --path ${SSM_ENV_PATH} --with-decryption | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_ENV_PATH\")), .Value] | join(\"=\")" -r >> .env
 
-aws ssm get-parameters-by-path --path ${SSM_PATH} --with-decryption | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_PATH\")), .Value] | join(\"=\")" -r
-
-# TODO update path and make it work based on the environment and project name
-#aws ssm get-parameters-by-path --path /app/eresearchqut/trrf --with-decryption | jq '.Parameters | .[] | [(.Name | ltrimstr("/app/eresearchqut/trrf/")), .Value] | join("=")' -r >> .env
-
-# source .env
-# source .env_from_ssm
+aws ssm get-parameters-by-path --path ${SSM_APP_PATH} --with-decryption | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_APP_PATH\")), .Value] | join(\"=\")" -r >> .env
 
 
