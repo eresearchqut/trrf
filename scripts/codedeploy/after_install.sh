@@ -14,7 +14,7 @@ echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
-echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri'` >> .env
+echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri'`:latest >> .env
 
 
 export SSM_PATH=/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
