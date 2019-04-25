@@ -8,13 +8,13 @@ cd /home/ec2-user/efs/trrf
 # export UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION
 env | sort
 
-echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
-# echo "TRRF_VERSION=1.0.0" >> .env
+# echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
+echo "TRRF_VERSION=latest" >> .env
 # echo "DJANGO_FIXTURES=default" >> .env
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
-echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri'`:latest >> .env
+echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri' -r` >> .env
 
 
 export SSM_PATH=/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
