@@ -6,6 +6,7 @@ cd /home/ec2-user/efs/trrf
 
 # TODO
 # export UWSGI_IMAGE=$IMAGE_REPO:$APPLICATION_VERSION
+env | sort
 
 echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
 # echo "TRRF_VERSION=1.0.0" >> .env
