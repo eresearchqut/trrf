@@ -12,12 +12,14 @@ echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut
 # echo "TRRF_VERSION=1.0.0" >> .env
 # echo "DJANGO_FIXTURES=default" >> .env
 
+export AWS_DEFAULT_REGION=ap-southeast-2
+
 echo UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri'` >> .env
 
 
 export SSM_PATH=/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
 
-aws ssm get-parameters-by-path --path ${SSM_PATH} --with-decryption --region ap-southeast-2 | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_PATH\")), .Value] | join(\"=\")" -r
+aws ssm get-parameters-by-path --path ${SSM_PATH} --with-decryption | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_PATH\")), .Value] | join(\"=\")" -r
 
 # TODO update path and make it work based on the environment and project name
 #aws ssm get-parameters-by-path --path /app/eresearchqut/trrf --with-decryption | jq '.Parameters | .[] | [(.Name | ltrimstr("/app/eresearchqut/trrf/")), .Value] | join("=")' -r >> .env
