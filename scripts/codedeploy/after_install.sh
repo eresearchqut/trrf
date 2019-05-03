@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -x
-mkdir -p /home/ec2-user/efs/trrf/data/log
+# mkdir -p /home/ec2-user/efs/trrf/data/log
+mkdir -p /home/ec2-user/efs/trrf/data/prod/log
 chown -R ec2-user:ec2-user /home/ec2-user/efs/trrf
 cd /home/ec2-user/efs/trrf
 
