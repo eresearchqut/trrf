@@ -4,16 +4,14 @@ mkdir -p /home/ec2-user/efs/trrf/data/prod/log
 chown -R ec2-user:ec2-user /home/ec2-user/efs/trrf
 cd /home/ec2-user/efs/trrf
 
-# TODO
+# TODO testing if these are needed
 # echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
-echo "TRRF_VERSION=latest" >> .env
-
-echo "DJANGO_FIXTURES=default" >> .env
-echo "CSRF_TRUSTED_ORIGINS=.registryframework.net" >> .env
-echo "IPRESTRICT_IGNORE_PROXY_HEADER=1" >> .env
+# echo "TRRF_VERSION=latest" >> .env
+# echo "DJANGO_FIXTURES=default" >> .env
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
+# TODO TRRF_VERSION should probably appended to this here
 export UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri' -r`
 echo "UWSGI_IMAGE=$UWSGI_IMAGE" >> .env
 
