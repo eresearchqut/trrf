@@ -171,7 +171,6 @@ function _django_fixtures {
 function _runserver() {
     : "${RUNSERVER_OPTS=${RUNSERVER_CMD} 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}}"
 
-    _django_collectstatic
     _django_migrate
     _django_fixtures
 
@@ -199,8 +198,6 @@ wait_for_services
 if [ "$1" = 'uwsgi' ]; then
     info "[Run] Starting prod uwsgi"
 
-    _django_collectstatic
-    _django_migrate
     _django_check_deploy
 
     set -x

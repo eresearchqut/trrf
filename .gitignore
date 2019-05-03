@@ -58,3 +58,4 @@ rdrf/rdrf/static/proms/js/vendors-bundle.min.js
 yarn_cache/
 yarn-error.log
 
+.vscode/settings.json

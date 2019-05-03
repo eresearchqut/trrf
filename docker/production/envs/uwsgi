@@ -1,0 +1,18 @@
+PRODUCTION=1
+DEBUG=0
+WAIT_FOR_DB=1
+WAIT_FOR_CLINICAL_DB=1
+WAIT_FOR_REPORTING_DB=1
+WAIT_FOR_CACHE=1
+
+CACHESERVER=cache
+DBSERVER=db
+CLINICAL_DBSERVER=clinicaldb
+REPORTING_DBSERVER=reportingdb
+
+# TODO
+ALLOWED_HOSTS=*
+
+# Without this http://localhost gets redirected to https://uwsgi:9000 and
+# in production it doesn't matter as we're not listening on port 80 anyways
+SECURE_SSL_REDIRECT=0

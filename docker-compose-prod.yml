@@ -14,7 +14,7 @@ services:
     volumes:
       - prod_db_data:/var/lib/postgreql/data
 
-  dbclinical:
+  clinicaldb:
     image: postgres:9.4
     environment:
       - POSTGRES_USER=webapp
@@ -22,7 +22,7 @@ services:
     volumes:
       - prod_clinicaldb_data:/var/lib/postgreql/data
 
-  dbreporting:
+  reportingdb:
     image: postgres:9.4
     environment:
       - POSTGRES_USER=webapp
@@ -38,32 +38,16 @@ services:
     image: ${UWSGI_IMAGE}
     command: uwsgi
     env_file:
+      - docker/production/envs/uwsgi
+      # TODO the .env file below is populated by CodeDeploy on the server with environment specific variables
       - .env
-    environment:
-      - APP_VERSION=${TRRF_VERSION}
-      - PRODUCTION=1
-      - DEBUG=0
-      - WAIT_FOR_DB=1
-      - WAIT_FOR_CLINICAL_DB=1
-      - WAIT_FOR_REPORTING_DB=1
-      - WAIT_FOR_CACHE=1
-      - DJANGO_FIXTURES=test
-      - ALLOWED_HOSTS=*
-      - CACHESERVER=cache
-      - DBSERVER=db
-      - CLINICAL_DBSERVER=dbclinical
-      - REPORTING_DBSERVER=dbreporting
-      # TODO think about more about these env variables. Probably use .env files
-      # currently just making the PROD stack working on my local machine
-      - DBNAME=webapp
-      - DBUSER=webapp
-      - DBPASS=webapp
-
-      - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
-      - SESSION_COOKIE_SECURE=0
-      - CSRF_COOKIE_SECURE=0
     volumes:
       - ./data/prod/:/data
+    depends_on:
+      - db
+      - clinicaldb
+      - reportingdb
+      - cache
 
   nginx:
     build:
@@ -72,3 +56,5 @@ services:
     image: trrf_production_nginx
     ports:
       - 443:443
+    depends_on:
+      - uwsgi
