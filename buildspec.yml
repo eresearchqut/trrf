@@ -40,4 +40,6 @@ phases:
 
 artifacts:
   files:
-    - '**/*'
+    - '*'
+    - 'docker/**/*'
+    - 'scripts/**/*'
