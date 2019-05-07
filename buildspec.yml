@@ -13,6 +13,10 @@ phases:
     commands:
       - echo Build started on `date`
 
+      # This isn't required in the base repo, but having it here makes it possible to just link the buildspec.yml
+      # in repositories that use trrf as a submodule (ie. angelman etc.)
+      - git submodule update --init
+
       # CodePipeline loses the file permissions while copying artifacts
       # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
       - chmod +x scripts/*.sh
