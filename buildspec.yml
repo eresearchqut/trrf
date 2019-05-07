@@ -44,8 +44,9 @@ phases:
       # Makes the following chmod work both in TRRF or when TRRF is a submodule at rdrf
       #- chmod +x rdrf/rdrf/scripts/check-calculation.js
       - |
-        [ -f rdrf/rdrf/scripts/check-calculation.js ] && chmod +x rdrf/rdrf/scripts/check-calculation.js
-        [ -f rdrf/rdrf/rdrf/scripts/check-calculation.js ] && chmod +x rdrf/rdrf/rdrf/scripts/check-calculation.js
+        [[ -f rdrf/rdrf/scripts/check-calculation.js ]] && chmod +x rdrf/rdrf/scripts/check-calculation.js
+      - |
+        [[ -f rdrf/rdrf/rdrf/scripts/check-calculation.js ]] && chmod +x rdrf/rdrf/rdrf/scripts/check-calculation.js
 
       - docker-compose build
       - echo Running tests...
