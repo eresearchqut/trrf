@@ -70,13 +70,13 @@ function defaults {
     : "${DBNAME:=${DBUSER}}"
     : "${DBPASS:=${DBUSER}}"
 
-    : "${CLINICAL_DBSERVER:=clinicaldb}"
+    : "${CLINICAL_DBSERVER:=${DBSERVER}}"
     : "${CLINICAL_DBPORT:=5432}"
     : "${CLINICAL_DBUSER:=webapp}"
     : "${CLINICAL_DBNAME:=${CLINICAL_DBUSER}}"
     : "${CLINICAL_DBPASS:=${CLINICAL_DBUSER}}"
 
-    : "${REPORTING_DBSERVER:=reportingdb}"
+    : "${REPORTING_DBSERVER:=${DBSERVER}}"
     : "${REPORTING_DBPORT:=5432}"
     : "${REPORTING_DBUSER:=webapp}"
     : "${REPORTING_DBNAME:=${REPORTING_DBUSER}}"
