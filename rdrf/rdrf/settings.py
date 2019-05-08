@@ -220,7 +220,7 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 
 # Email Notifications
 # NB. This initialises the email notification form
-DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@mg.ccgapps.com.au>')
+DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@registryframework.net>')
 SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
