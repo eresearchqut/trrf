@@ -19,6 +19,8 @@ aws ssm get-parameters-by-path --path ${SSM_ENV_PATH} --with-decryption | jq ".P
 
 aws ssm get-parameters-by-path --path ${SSM_APP_PATH} --with-decryption | jq ".Parameters | .[] | [(.Name | ltrimstr(\"$SSM_APP_PATH\")), .Value] | join(\"=\")" -r >> .env
 
+docker pull $UWSGI_IMAGE
+
 # TODO collecstatic should happen when the image is built after we switch to storing static files in S3
 docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin collectstatic --noinput
 docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin migrate --noinput
