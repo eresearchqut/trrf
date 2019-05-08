@@ -4,10 +4,7 @@ mkdir -p /home/ec2-user/efs/trrf/data/prod/log
 chown -R ec2-user:ec2-user /home/ec2-user/efs/trrf
 cd /home/ec2-user/efs/trrf
 
-# TODO testing if these are needed
-# echo "UWSGI_IMAGE=126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/eresearchqut/trrf2:latest" >> .env
-# echo "TRRF_VERSION=latest" >> .env
-# echo "DJANGO_FIXTURES=default" >> .env
+$(aws ecr get-login --no-include-email --region ap-southeast-2)
 
 export AWS_DEFAULT_REGION=ap-southeast-2
 
