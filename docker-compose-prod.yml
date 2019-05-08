@@ -1,35 +1,6 @@
 version: '3.7'
 
-volumes:
-  prod_db_data:
-  prod_clinicaldb_data:
-  prod_reportingdb_data:
-
 services:
-  db:
-    image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
-    volumes:
-      - prod_db_data:/var/lib/postgreql/data
-
-  clinicaldb:
-    image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
-    volumes:
-      - prod_clinicaldb_data:/var/lib/postgreql/data
-
-  reportingdb:
-    image: postgres:9.4
-    environment:
-      - POSTGRES_USER=webapp
-      - POSTGRES_PASSWORD=webapp
-    volumes:
-      - prod_reportingdb_data:/var/lib/postgreql/data
-
   cache:
     image: memcached:1.4
 
@@ -44,9 +15,6 @@ services:
     volumes:
       - ./data/prod/:/data
     depends_on:
-      - db
-      - clinicaldb
-      - reportingdb
       - cache
 
   nginx:
