@@ -103,7 +103,7 @@ function defaults {
     : "${TEST_WAIT:=30}"
     : "${TEST_SELENIUM_HUB:=http://hub:4444/wd/hub}"
 
-    : "${DJANGO_FIXTURES:=none}"
+    : "${DJANGO_FIXTURES:=""}"
 
     export DBSERVER DBPORT DBUSER DBNAME DBPASS MEMCACHE
     export CLINICAL_DBSERVER CLINICAL_DBPORT CLINICAL_DBUSER CLINICAL_DBNAME CLINICAL_DBPASS
@@ -139,32 +139,12 @@ function _django_collectstatic {
 }
 
 
-function _django_test_fixtures {
-    info 'loading test (iprestrict permissive) fixture'
-    set -x
-    django-admin.py init iprestrict_permissive
-    django-admin.py reload_rules
-    set +x
-}
-
-
-function _django_dev_fixtures {
-    info "loading DEV fixture"
-    set -x
-    django-admin.py init DEV
-    django-admin.py reload_rules
-    set +x
-}
-
-
 function _django_fixtures {
-    if [ "${DJANGO_FIXTURES}" = 'test' ]; then
-        _django_test_fixtures
-    fi
-
-    if [ "${DJANGO_FIXTURES}" = 'dev' ]; then
-        _django_dev_fixtures
-    fi
+    info "loading fixtures ${DJANGO_FIXTURES}"
+    set -x
+    django-admin.py init ${DJANGO_FIXTURES}
+    django-admin.py reload_rules
+    set +x
 }
 
 
@@ -240,7 +220,13 @@ if [ "$1" = 'aloe' ]; then
     _aloe "$@"
 fi
 
-warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|runserver_plus|uwsgi|uwsgi_local]"
+# aloe entrypoint
+if [ "$1" = 'db_init' ]; then
+    info "[Run] Initialising the DB with data"
+    _django_fixtures
+fi
+
+warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|runserver_plus|uwsgi|uwsgi_local|db_init]"
 info "[RUN]: $*"
 
 set -x
