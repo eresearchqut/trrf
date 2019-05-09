@@ -26,4 +26,4 @@ docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django
 docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin migrate --noinput
 
 # TODO this should happen in a DB init script that also creates the DBs if necessary
-docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin db_init 
+docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh db_init 
