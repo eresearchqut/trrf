@@ -220,10 +220,11 @@ if [ "$1" = 'aloe' ]; then
     _aloe "$@"
 fi
 
-# aloe entrypoint
+# db_init entrypoint
 if [ "$1" = 'db_init' ]; then
     info "[Run] Initialising the DB with data"
     _django_fixtures
+    exit
 fi
 
 warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|runserver_plus|uwsgi|uwsgi_local|db_init]"

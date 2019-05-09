@@ -59,13 +59,13 @@ phases:
       #- scripts/unit-tests.sh
       #- scripts/end2end-tests.sh
       #- echo Building and tagging the Docker image...
-      #- docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
+      - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
 
       # docker push used to be in post_build, but post_build is executed even on build failure.
       # We don't want to push the docker image if the build failed for any reason, so we can't do the docker push in post_build.
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      #- docker push $IMAGE_REPO:$APPLICATION_VERSION
+      - docker push $IMAGE_REPO:$APPLICATION_VERSION
 
 artifacts:
   files:
