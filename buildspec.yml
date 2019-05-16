@@ -54,7 +54,7 @@ phases:
 
       #- docker-compose build
       #- echo Running tests...
-      #- scripts/lint.sh
+      - scripts/lint.sh
       #- scripts/check-migrations.sh
       #- scripts/unit-tests.sh
       #- scripts/end2end-tests.sh
