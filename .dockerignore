@@ -12,6 +12,7 @@ data
 */log/*
 */scratch/*
 Dockerfile*
+docker-compose*
 develop.sh
 lib.sh
 *.mongo

@@ -10,7 +10,7 @@ services:
     command: uwsgi
     env_file:
       - docker/production/envs/uwsgi
-      # TODO the .env file below is populated by CodeDeploy on the server with environment specific variables
+      # the .env file below is appended to by CodeDeploy on the server with environment specific variables
       - .env
     volumes:
       - ./data/prod/:/data

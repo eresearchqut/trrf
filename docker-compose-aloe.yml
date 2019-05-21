@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: eresearchqut/trrf
+    image: ${APP_IMAGE_NAME}
     command: aloe
     environment:
       <<: *common-env-variables
@@ -32,7 +32,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: eresearchqut/trrf
+    image: ${APP_IMAGE_NAME}
     command: aloe
     environment:
       <<: *common-env-variables

@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   serverundertest:
-    image: eresearchqut/trrf:${TRRF_VERSION?trrf_version_unset}
+    image: ${APP_IMAGE_NAME}:${TRRF_VERSION?trrf_version_unset}
     env_file:
       - docker/dev/envs/postgres
       - docker/dev/envs/runserver
