@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: eresearchqut/trrf
+    image: ${APP_IMAGE_NAME}
     working_dir: /data
     env_file:
       - docker/dev/envs/postgres
