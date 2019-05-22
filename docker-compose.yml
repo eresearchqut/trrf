@@ -65,7 +65,8 @@ services:
     stop_signal: SIGKILL
     image: ${APP_IMAGE_NAME}-node
     command: watch
-    working_dir: /app/rdrf/rdrf/frontend
+    working_dir: ${TRRF_SOURCE_DIR:-/app}/rdrf/rdrf/frontend
+
     environment:
         YARN_CACHE_FOLDER: /opt/yarn_cache
     volumes:
