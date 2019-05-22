@@ -63,7 +63,7 @@ services:
       context: .
       dockerfile: docker/dev/Dockerfile-node
     stop_signal: SIGKILL
-    image: eresearchqut/trrf-node
+    image: ${APP_IMAGE_NAME}-node
     command: watch
     working_dir: /app/rdrf/rdrf/frontend
     environment:
