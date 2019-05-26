@@ -216,7 +216,10 @@ fi
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     info "[Run] Starting aloe"
-    cd /app/rdrf/rdrf/testing/behaviour || exit
+    # cd /app/rdrf/rdrf/testing/behaviour || exit
+    # Find the aloe tests directory dynamically, in order to also find them in projects
+    # including TRRF as a git submodule
+    cd `find /app -path '*/testing/behaviour'` || exit 1
     _aloe "$@"
 fi
 
