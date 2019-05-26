@@ -18,10 +18,8 @@ services:
       - cache
 
   nginx:
-    build:
-      context: ./docker/production/nginx/
-    # TODO build this image on the build server, push it to ECR and only refer to it here
-    image: trrf_production_nginx
+    # TODO hardcoded to the R4 account URL. Set env var instead?
+    image: 126579111836.dkr.ecr.ap-southeast-2.amazonaws.com/trrf_nginx_proxy:latest
     ports:
       - 443:443
     depends_on:
