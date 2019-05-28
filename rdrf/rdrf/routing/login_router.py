@@ -59,7 +59,7 @@ class RouterView(View):
                 if user.num_registries == 1:
                     registry_code = user.get_registries()[0].code
                     redirect_url = reverse(
-                        "parent_page" if user.is_parent else "patient_page",
+                        "registry:parent_page" if user.is_parent else "registry:patient_page",
                         args=[registry_code])
             else:
                 redirect_url = reverse(_PATIENTS_LISTING)

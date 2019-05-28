@@ -29,7 +29,7 @@
             {% if request.user.is_authenticated %}
                 {% if request.user.registry_code %}
                     {% if request.user.is_parent  %}
-                          <input type="hidden" name="redirect_url" value ="{% url 'parent_page' request.user.registry_code %}">
+                          <input type="hidden" name="redirect_url" value ="{% url 'registry:parent_page' request.user.registry_code %}">
                     {% elif request.user.is_patient %}
                           <input type="hidden" name="redirect_url" value ="{% url 'patient_page' request.user.registry_code %}">
                     {% else %}

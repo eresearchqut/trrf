@@ -4,7 +4,7 @@
 {% if request.user.is_authenticated %}
     {% if request.user.registry_code %}
         {% if request.user.is_parent  %}
-            <a href="{% url 'parent_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+            <a href="{% url 'registry:parent_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
         {% elif request.user.is_patient %}
             <a href="{% url 'patient_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
         {% else %}
