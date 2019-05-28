@@ -1,9 +1,13 @@
-from django.shortcuts import redirect
-from django.urls import reverse
-from django.db import transaction
-from registration.backends.default.views import RegistrationView
-from rdrf.workflows.registration import get_registration_workflow
 import logging
+
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+
+from registration.backends.default.views import RegistrationView
+
+from rdrf.workflows.registration import get_registration_workflow
+from rdrf.models.definition.models import Registry
 
 
 logger = logging.getLogger(__name__)
@@ -12,6 +16,10 @@ logger = logging.getLogger(__name__)
 class RdrfRegistrationView(RegistrationView):
 
     registry_code = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.registry_code = kwargs['registry_code']
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         logger.debug("RdrfRegistrationView get")
@@ -100,3 +108,7 @@ class RdrfRegistrationView(RegistrationView):
         else:
             logger.debug("RdrfRegistrationView post - redirecting to sucess url %s" % str(success_url))
             return redirect(to, *args, **kwargs)
+
+    def registration_allowed(self):
+        registry = get_object_or_404(Registry, code=self.registry_code)
+        return registry.has_feature('registration')
