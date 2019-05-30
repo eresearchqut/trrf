@@ -1,3 +1,7 @@
-<a href="{{ site }}{% url 'registration_activate' activation_key %}">Activate</a>
-<br>
-This link will expire in {{expiration_days}} days.
+{% load i18n %}
+
+{% trans 'Please visit the following page to activate your newly created account!' %}
+
+https://{{ site.domain }}{% url 'registration_activate' activation_key %}
+
+{% trans 'This link will expire in' %} {{expiration_days}} {% trans 'days' %}.

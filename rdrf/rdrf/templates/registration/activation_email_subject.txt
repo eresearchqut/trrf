@@ -1,1 +1,1 @@
-Welcome to RDRF Framework!
+Welcome to {{ site.name }}!
