@@ -218,7 +218,11 @@
         </div>
         {% endif %}
 
+        {% if location %}
         <div class="container" style="padding-top: 110px;">
+        {% else %}
+        <div class="container">
+        {% endif %}
             {% if messages %}
             <div class="header">
                 <div class="row">

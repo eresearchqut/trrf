@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+
+{% load i18n %}
+
+{% block content %}
+        <div class="alert alert-success" role="alert">
+            <h3>{% trans "Thank you for registration." %}</h3>
+            <p>
+                {% trans "We have sent you an email with the confirmation of your registration. Please check your email for activation instructions. If you can't see the message in your inbox, please check your spam inbox too." %}
+            </p>
+        </div>
+
+{% endblock %}

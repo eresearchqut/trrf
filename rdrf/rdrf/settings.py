@@ -495,10 +495,8 @@ SYSTEM_ROLE = SystemRoles.from_value(env.get("SYSTEM_ROLE", "NORMAL"))
 PROJECT_TITLE = env.get("project_title", "Trial Ready Registry Framework")
 PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE is SystemRoles.CIC_PROMS else "patientslisting"
 
-# project logo and link
 PROJECT_LOGO = env.get("project_logo", "")
 PROJECT_LOGO_LINK = env.get("project_logo_link", "")
-
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
@@ -542,3 +540,12 @@ AUTO_LOGOUT_ENABLED = env.get('auto_logout_enabled', False)
 AUTO_LOGOUT_WARN_AFTER_MS = env.get('auto_logout_warn_after_ms', 120 * 1000)
 # Log out the user if they have been warned but didn't react for this many milliseconds
 AUTO_LOGOUT_WARNED_USER_AFTER_MS = env.get('auto_logout_warned_user_after_ms', 30 * 1000)
+
+REGISTRATION_CLASS = "registry.groups.patient_registration.common.ParentRegistration"
+
+# In case you set up customised email templates for the "new-patient" notification, you should
+# set this to False, otherwise the default registration email will also be sent to the user.
+# SEND_ACTIVATION_EMAIL = False
+
+RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
+RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")

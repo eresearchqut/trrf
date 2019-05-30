@@ -1,1 +1,216 @@
-{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load project_title %}
+
+<html>
+
+<head>
+    <title>{% project_title %} | Registration</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+
+    <style>
+        body {
+            background-color: #edeff1;
+        }
+        .error {
+            color: red;
+            font-style: italic;
+            font-size: small;
+        }
+        .top-separator {
+            border-top: dotted 1px #bbb;
+            padding-top: 20px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#registration-submit").prop("disabled", true);
+
+            var registry_code = "{{registry_code}}"
+
+            var dateOptions = {
+                'dateFormat': 'yy-mm-dd',
+                'showAnim': 'blind',
+                'changeMonth': true,
+                'changeYear': true,
+                'minDate': '-100Y',
+                'maxDate': '0',
+                'yearRange': '-100:+0',
+                'defaultDate': '-30Y'
+            }
+
+            function setUpStateOnCountryChange(countrySelector, stateSelector) {
+                var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
+
+                $(countrySelector).change(function() {
+                    var states = $(stateSelector);
+                    states.empty();
+                    states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
+                    $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
+                        $.each( data, function( key, val ) {
+                            states.append($('<option>', { value : val.code }).text(val.name));
+                        });
+                    });
+                });
+            }
+
+            $("#registration-submit").click(function() {
+                var registration_form = $("#registration-form");
+                $("#id_email").val($("#id_username").val());
+                if (registration_form.valid()) {
+                    registration_form.submit();
+                } else {
+                    var msg = $("#form-invalid");
+                    msg.slideDown("slow", function() {
+                        setTimeout(function() {
+                            msg.slideUp("slow")
+                            }, 2000);
+                    });
+
+                    onValidationError();
+                }
+            });
+
+            $("#id_username").focusout(function() {
+                if (!$('#id_username').valid()) {
+                    // not a valid email address. Skip checking for existence.
+                    return;
+                };
+                var url = "{% url 'lookup_username' 'replace-me@domain.com' %}";
+                url = url.replace("replace-me@domain.com", $(this).val());
+
+                $.getJSON(url, function(data) {
+                    if (data.existing == true) {
+                        $("#username-error").show("fast");
+                    } else {
+                        $("#username-error").hide("fast");
+                    }
+                });
+            });
+
+            $.validator.addMethod("validDate", function (value) {
+                var m = value.match(/\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*/);
+                if (m == null) {
+                    return false;
+                }
+                var year = parseInt(m[1]);
+                var month = parseInt(m[2]);
+                var day = parseInt(m[3]);
+
+                function isLeapYear(year) {
+                    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
+                }
+
+                function daysInMonth(year, month) {
+                    return [31, isLeapYear(year) ? 29 :28 , 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+                }
+
+                return year >= 1900 && month >= 1 && month <= 12 && day >=1 && day <= daysInMonth(year, month);
+            }, gettext("Please enter a valid date in the format yyyy-mm-dd"));
+
+            $.validator.addMethod(
+                "dateCorrect",
+                function(value, element) {
+                    return Date.parse(value);
+                },
+                gettext("Date is not correct")
+            );
+
+            jQuery.validator.addMethod('selectcheck', function (value) {
+                return (value != '0');
+            }, gettext("This field is required."));
+
+            function addNeedsCharacterValidatorMethod(characterClass, pattern) {
+                // ex. "uppercase letter" -> "hasUppercaseLetter"
+                var methodName = $.camelCase(["has"].concat(characterClass.split(" ")).join("-"));
+                $.validator.addMethod(
+                    methodName,
+                    function(value, element) {
+                        return value.search(pattern) !== -1;
+                    },
+
+                    gettext("Must contain at least 1 " + characterClass + ".")
+                );
+            }
+            addNeedsCharacterValidatorMethod("uppercase letter", /[A-Z]/);
+            addNeedsCharacterValidatorMethod("lowercase letter", /[a-z]/);
+            addNeedsCharacterValidatorMethod("digit", /\d/);
+            addNeedsCharacterValidatorMethod("special character", /[!@#\$%\^&\*]/);
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            {% if not is_mobile %}
+                $("#the-form").accordion({
+                    heightStyle: "content",
+                    collapsible: true
+                });
+            {% endif %}
+
+            {% block extra_js_init %}
+            {% endblock %}
+
+        }); // $(document).ready ...
+
+        function reCaptchaCallback() {
+            r = grecaptcha.getResponse();
+            url = "{% url 'recaptcha_validator'%}";
+            $.post(url, {"response_value": r, "csrfmiddlewaretoken" : "{{csrf_token}}"}, function(data) {
+                json_result = $.parseJSON(data);
+                if (json_result.success) {
+                    $("#registration-submit").prop("disabled", false);
+                }
+            });
+        }
+
+        // Overwrite in specific template if needed.
+        // Custom code to be called if the validation fails (on the client-side)
+        function onValidationError() {}
+
+    </script>
+
+    {% block extrahead %}
+    {% endblock %}
+</head>
+
+<body>
+    <div class="container">
+        <br>
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {% for field in form %}
+                {% if field.errors %}
+                    <p><strong>{{field.label}}</strong>:
+                    <ul>
+                        {% for err in field.errors %}
+                            <li>{{ err|striptags }}</li>
+                        {% endfor %}
+                    </ul>
+                    </p>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+
+   </div>
+
+</body>
+
+</html>

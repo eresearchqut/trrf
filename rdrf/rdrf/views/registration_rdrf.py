@@ -95,9 +95,8 @@ class RdrfRegistrationView(RegistrationView):
                 logger.debug("RdrfRegistrationView form_valid - new_user registered")
                 username = new_user.username
                 success_url = self.get_success_url(new_user)
-            except Exception as ex:
-                logger.error("Unhandled error in registration for user %s: %s" % (username,
-                                                                                  ex))
+            except Exception:
+                logger.exception("Unhandled error in registration for user %s", username)
                 return redirect(failure_url)
 
         try:
