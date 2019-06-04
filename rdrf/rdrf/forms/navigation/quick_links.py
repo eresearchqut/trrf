@@ -77,7 +77,7 @@ class Links:
             _("User Login Attempts Log"))
         IPRestrictRangeGroup = QuickLink(
             reverse("admin:iprestrict_rangebasedipgroup_changelist"),
-            _("IP Restrict Ranges"))
+            _("IP Restrict Groups"))
         IPRestrictGeoGroup = QuickLink(reverse("admin:iprestrict_locationbasedipgroup_changelist"),
                                        _("IP Restrict Geolocations"))
         IPRestrictRule = QuickLink(

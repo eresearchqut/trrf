@@ -1434,6 +1434,9 @@ class EmailNotificationHistory(models.Model):
     email_notification = models.ForeignKey(EmailNotification, on_delete=models.CASCADE)
     template_data = models.TextField(null=True, blank=True)
 
+    class Meta:
+        verbose_name_plural = 'Email Notification History'
+
 
 class RDRFContextError(Exception):
     pass
