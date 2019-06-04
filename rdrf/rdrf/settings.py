@@ -167,6 +167,7 @@ MIDDLEWARE = (
 
 
 INSTALLED_APPS = [
+    'rdrf',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -183,7 +184,6 @@ INSTALLED_APPS = [
     'iprestrict',
     'rest_framework',
     'anymail',
-    'rdrf',
     'registry.groups',
     'registry.patients',
     'registry.common',
