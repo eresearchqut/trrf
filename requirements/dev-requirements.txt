@@ -1,4 +1,4 @@
 sphinx
-sphinxcontrib-fulltoc
+sphinxcontrib-fulltoc==1.2.0
 Werkzeug
 python-Levenshtein
