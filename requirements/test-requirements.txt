@@ -7,7 +7,7 @@ aloe_webdriver
 aloe_django
 pyvirtualdisplay
 selenium==3.3.1
-unittest-xml-reporting
+unittest-xml-reporting==2.5.1
 requests
 sqlalchemy-utils==0.33.1
 stellar
