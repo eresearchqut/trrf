@@ -4,7 +4,7 @@ nose
 nose-timer
 aloe
 aloe_webdriver
-aloe_django
+aloe_django==0.1.3
 pyvirtualdisplay
 selenium==3.3.1
 unittest-xml-reporting
