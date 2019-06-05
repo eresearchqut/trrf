@@ -1,4 +1,4 @@
-sure==1.2.12
+sure==1.4.11
 django-nose==1.4.6
 nose==1.3.7
 nose-timer==0.7.5
