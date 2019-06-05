@@ -26,7 +26,7 @@ search: True
 # default: empty
 # allowed: list
 requirements:
-  - requirements/requirements.txt
+  - requirements/requirements.txt:
       update: insecure
   - requirements/dev-requirements.txt:
       pin: False
