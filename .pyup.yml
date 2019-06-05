@@ -1,7 +1,7 @@
 # configure updates globally
 # default: all
 # allowed: all, insecure, False
-update: insecure
+update: False
 
 # configure dependency pinning globally
 # default: True
@@ -27,6 +27,7 @@ search: True
 # allowed: list
 requirements:
   - requirements/requirements.txt
+      update: insecure
   - requirements/dev-requirements.txt:
       pin: False
   - requirements/test-requirements.txt
