@@ -24,7 +24,7 @@ pycountry==18.12.8
 pyinotify==0.9.6
 pyodbc==4.0.25
 pyparsing==2.3.0
-python-dateutil==2.7.5
+python-dateutil==2.8.0
 python-memcached==1.59
 pyyaml==4.2b1
 setuptools
