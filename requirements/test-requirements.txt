@@ -3,7 +3,7 @@ django-nose
 nose
 nose-timer
 aloe
-aloe_webdriver
+aloe_webdriver==0.5.11
 aloe_django
 pyvirtualdisplay
 selenium==3.3.1
