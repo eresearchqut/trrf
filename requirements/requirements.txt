@@ -17,7 +17,7 @@ django-useraudit==1.7.0
 django-uwsgi==0.2.2
 geoip2==2.9.0
 jsonschema==2.6.0
-openpyxl==2.5.12
+openpyxl==2.6.2
 polib==1.1.0
 psycopg2==2.7.6.1
 pycountry==18.12.8
