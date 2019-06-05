@@ -34,7 +34,7 @@ SQLAlchemy==1.2.15
 uwsgi==2.0.17.1
 django-formtools==2.1
 django-otp==0.5.1
-django-phonenumber-field==2.1.0
+django-phonenumber-field==3.0.1
 django-two-factor-auth==1.8.0
 phonenumberslite==8.10.2
 Pillow==5.3.0
