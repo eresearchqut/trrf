@@ -1,7 +1,7 @@
 sure==1.2.12
 django-nose
 nose
-nose-timer
+nose-timer==0.7.5
 aloe
 aloe_webdriver
 aloe_django
