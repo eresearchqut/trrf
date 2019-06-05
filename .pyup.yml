@@ -30,7 +30,8 @@ requirements:
       update: insecure
   - requirements/dev-requirements.txt:
       pin: False
-  - requirements/test-requirements.txt
+  - requirements/test-requirements.txt:
+      update: False
 
 # add a label to pull requests, default is not set
 # requires private repo permissions, even on public repos
