@@ -10,4 +10,4 @@ selenium==3.3.1
 unittest-xml-reporting
 requests
 sqlalchemy-utils==0.33.1
-stellar
+stellar==0.4.5
