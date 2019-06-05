@@ -2,7 +2,7 @@ sure==1.2.12
 django-nose
 nose
 nose-timer
-aloe
+aloe==0.1.19
 aloe_webdriver
 aloe_django
 pyvirtualdisplay
