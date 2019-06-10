@@ -21,6 +21,7 @@ from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.events.events import EventType
 
+from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 
 logger = logging.getLogger(__name__)
@@ -917,6 +918,12 @@ class RegistryForm(models.Model):
     applicability_condition = models.TextField(blank=True,
                                                null=True,
                                                help_text="E.g. patient.deceased == True")
+    conditional_rendering_rules = models.TextField(
+        blank=True,
+        null=True,
+        help_text=f'''Use the conditional rendering DSL to add rules.
+                     Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
+    )
 
     def natural_key(self):
         return (self.registry.code, self.name)
@@ -1044,6 +1051,9 @@ class RegistryForm(models.Model):
 
         if self.pk:
             self._check_completion_cdes()
+
+        if self.conditional_rendering_rules:
+            DSLValidator(self.conditional_rendering_rules, self).check_rules()
 
         self._check_sections()
 

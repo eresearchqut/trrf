@@ -502,6 +502,9 @@ class Importer(object):
             if "applicability_condition" in frm_map:
                 f.applicability_condition = frm_map["applicability_condition"]
 
+            if "conditional_rendering_rules" in frm_map:
+                f.conditional_rendering_rules = frm_map["conditional_rendering_rules"]
+
             f.registry = r
             if 'position' in frm_map:
                 f.position = frm_map['position']
