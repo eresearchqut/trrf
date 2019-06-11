@@ -248,7 +248,8 @@
                 add_change_handler(el_name);
                 $("[name='" + el_name+"']").change();
             });
-
+        } else {
+            render_changes(visibility_handler());
         }
     }
 
