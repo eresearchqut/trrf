@@ -6,9 +6,10 @@
 {% block content %}
 <h2> {% trans "Conditional element rendering" %} </h2>
 <p>
-    {% trans "A DSL ( Domain Specific Language) was implemented to aid you in specifying rules for redering elements and sections" %}
+    {% trans "A DSL ( Domain Specific Language) was implemented to aid you in specifying rules for conditionally rendering form fields and sections." %}
     <br/>
-    {% trans "You can specify multiple rules, each one on a separate line" %}
+    {% trans "You can specify multiple rules, each one on a separate line." %}
+    <br/>
     <br/>
     {% trans "A rule has 3 parts:" %}
         <strong>{% trans "target" %}</strong>&nbsp;
@@ -27,12 +28,13 @@
         <li>enabled</li>
         <li>disabled</li>
     </ul>
-    {% trans "For sections only the first two are currently used" %}
+    <em>{% trans "For sections only the first two are currently used. ie. You can't disable a form section." %}</em>
     <br/>
     <br/>
-    <strong>{% trans "condition" %}</strong>&nbsp;{% trans "Specifies a condition on a CDE. You can have single or multiple conditions " %}
+    <strong>{% trans "condition" %}</strong>&nbsp;{% trans "Specifies a condition on a CDE. You can have single or multiple conditions." %}
     <br/>
-    A <strong>{% trans "single condition" %}</strong>&nbsp;{% trans "has the following format" %} <strong>&lt;target CDE &gt;</strong>&nbsp; <strong>&lt;operator&gt;</strong>&nbsp; <strong>&lt;value&gt;</strong>
+    <br/>
+    A <strong>{% trans "single condition" %}</strong>&nbsp;{% trans "has the following format" %} <strong>&lt;CDE &gt;</strong>&nbsp; <strong>&lt;operator&gt;</strong>&nbsp; <strong>&lt;value&gt;</strong>
     <br/>
     {% trans "The operator can have one for the following values:" %}
     <ul>
@@ -42,9 +44,15 @@
         <li>&lt;</li>
         <li>&gt;=</li>
         <li>&lt;=</li>
+        <li>is</li>
     </ul>
+
+    <em>{% trans "Note: When using" %}<code>is</code> {% trans "the only 2 values supported are" %}<code>set</code> {% trans "or" %}<code>unset</code>{% trans "(ie. is the CDE set to any value, respectively not set to any value.)" %}</em>
+
     <br/>
-    A <strong>{% trans "multiple condition" %}</strong>&nbsp;{% trans "has the following format" %} <strong>&lt;single condition&gt;</strong>&nbsp;<strong>&lt;boolean operator&gt;</strong>&nbsp;<strong>&lt;single_condition&gt;</strong>...
+    <br/>
+
+    A <strong>{% trans "multiple condition" %}</strong>&nbsp;{% trans "has the following format" %} {% trans "has the following format" %} <strong>&lt;single condition&gt;</strong>&nbsp;<strong>&lt;boolean operator&gt;</strong>&nbsp;<strong>&lt;single_condition&gt;</strong>...
     <br/>
     {% trans "The boolean operator can have one for the following values:" %}
     <ul>
