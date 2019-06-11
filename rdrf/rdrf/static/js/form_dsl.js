@@ -174,12 +174,12 @@ function visibility_map_update(visibility_map, name, action) {
         visibility_map[name] = action;
     } else {
         if (entry.formset && entry.formset.length > 0) {
-            for (idx = 0; idx < total_forms_count(entry.formset); idx ++) {
+            for (var idx = 0; idx < total_forms_count(entry.formset); idx ++) {
                 var full_name = get_cde_name(name, idx);
                 visibility_map[full_name] = action;
             }
         } else {
-            var full_name = get_cde_name(name, idx);
+            var full_name = get_cde_name(name);
             visibility_map[full_name] = action;
         }
     }

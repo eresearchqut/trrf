@@ -45,7 +45,7 @@ class ConditionGenerator:
     def generate_multi_section_condition(condition, action_assignments, inverse_action_assignments):
         cde_info = condition.cde.get_cde_info()
         return f'''
-            for (idx = 0; idx < total_forms_count("{cde_info.formset_prefix}"); idx ++) {{
+            for (var idx = 0; idx < total_forms_count("{cde_info.formset_prefix}"); idx ++) {{
                 var name = get_cde_name("{cde_info.name}", idx);
                 if (test_cde_value(name, '{cde_info.name}', '{condition.operator}', '{condition.actual_value}')) {{
                     {action_assignments}
@@ -131,7 +131,7 @@ class Instruction:
             multi_cde_info = [c for c in cde_infos if c.is_multi_section][0]
             return f'''
                 var result = true;
-                for (idx = 0; idx < total_forms_count("{multi_cde_info.formset_prefix}"); idx ++) {{
+                for (var idx = 0; idx < total_forms_count("{multi_cde_info.formset_prefix}"); idx ++) {{
                     {multi_section_handler(self.conditions, action_assignments, inverse_action_assignments)}
                 }}'''
         else:
