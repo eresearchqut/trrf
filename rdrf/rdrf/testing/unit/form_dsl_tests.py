@@ -33,6 +33,18 @@ class FormDSLValidationTestCase(FormTestCase):
         '''
         self.new_form.save()
 
+    def test_simple_dsl_multiple_CDEs(self):
+        self.new_form.conditional_rendering_rules = '''
+        CDEName DM1Fatigue visible if CDEAge == 10
+        '''
+        self.new_form.save()
+
+    def test_simple_dsl_multiple_sections(self):
+        self.new_form.conditional_rendering_rules = '''
+        section sectionD sectionE sectionF hidden if CDEAge == 10
+        '''
+        self.new_form.save()
+
     def test_invalid_cde(self):
         with self.assertRaises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''

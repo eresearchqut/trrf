@@ -1,16 +1,16 @@
 DSL_DEFINITION = '''
 start: instruction+
-instruction: (target action "if" condition (boolean_operator condition)*)
-condition: (VARIABLE OPERATOR ID_OR_CONSTANT)
+instruction: (target~1 action~1 "if" condition (boolean_operator~1 condition)*)
+condition.3: (VARIABLE OPERATOR ID_OR_CONSTANT)
 VARIABLE: /\\w+/
 ID_OR_CONSTANT: "unset" | "set" | /\\w+/ | /"[\\w\\s,-]+"/
 FORM_OR_SECTION: "form" | "section"
 CDE:/\\w+/
-target: (FORM_OR_SECTION)* CDE+
-boolean_operator: BOOLEAN_OPERATOR~1
+target.2: FORM_OR_SECTION? CDE+
+boolean_operator.4: BOOLEAN_OPERATOR~1
 BOOLEAN_OPERATOR: "and" | "or"
 OPERATOR: ">="| "<=" | "==" | "!=" | "<" | ">" | "is"
-action: ACTION~1
+action.1: ACTION~1
 ACTION: "visible" | "hidden" | "enabled" | "disabled"
 %import common.WS
 %ignore WS
