@@ -16,6 +16,7 @@
 {% block extrastyle %}
     {{ block.super }}
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/form_dsl.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
@@ -133,6 +134,14 @@
         });
     {% endif %}
 
+    {% autoescape off %}
+    {{ generated_declarations }}
+    {% endautoescape %}
+
+    {% autoescape off %}
+    {{ visibility_handler }}
+    {% endautoescape %}
+
     $(document).ready(function(){
         $("#form-progress-cdes").hide();
 
@@ -185,7 +194,22 @@
 				$("#next-form-label").toggle("fast");
 			}
 		);
+
+        {% autoescape off %}
+        {{ generated_code }}
+        {% endautoescape %}
     });
+
+
+    {% autoescape off %}
+    {{ change_targets }}
+    {% endautoescape %}
+
+    function total_forms_count(prefix) {
+        var mgmt_form = $("#mgmt_" + prefix);
+        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
+        return parseInt(total_forms.val());
+    }
 
     function add_form(prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
@@ -217,6 +241,15 @@
 
         $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
+        targets = change_handler_targets();
+        if (targets.hasOwnProperty(prefix)) {
+            targets[prefix].forEach( function (el) {
+                var el_name = prefix + "-" +  (total_forms_inc - 1) + "-" + cdeNamePrefix + el;
+                add_change_handler(el_name);
+                $("[name='" + el_name+"']").change();
+            });
+
+        }
     }
 
     function delete_form(form_div, prefix) {
@@ -312,9 +345,9 @@
 
                     <div class="panel-heading">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
-                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong>{{display_names|get_display_name:s|translate}}</strong></a>
+                            <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong data-name="{{s}}">{{display_names|get_display_name:s|translate}}</strong></a>
                         {% else %}
-                            <strong>{{display_names|get_display_name:s|translate}}</strong>
+                            <strong data-name="{{s}}">{{display_names|get_display_name:s|translate}}</strong>
                         {% endif %}
 
                         {% if forms|is_formset:s %}

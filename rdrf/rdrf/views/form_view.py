@@ -17,6 +17,7 @@ from registry.patients.models import Patient, ParentGuardian
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.http import Http404
+from rdrf.forms.dsl.code_generator import CodeGenerator
 from rdrf.forms.file_upload import wrap_fs_data_for_form
 from rdrf.forms.file_upload import wrap_file_cdes
 from rdrf.db import filestorage
@@ -366,7 +367,6 @@ class FormView(View):
             context["not_linked"] = not patient_model.is_linked
             context["archive_patient_url"] = patient_model.get_archive_url(
                 self.registry) if request.user.can_archive else ""
-
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
@@ -389,6 +389,12 @@ class FormView(View):
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
         context["context_id"] = rdrf_context_id
+
+        code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
+        context["generated_code"] = code_gen.generate_code() or ''
+        context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
+        context["change_targets"] = code_gen.generate_change_targets() or ''
+        context["generated_declarations"] = code_gen.generate_declarations() or ''
 
         return self._render_context(request, context)
 
@@ -721,6 +727,12 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
 
         if error_count == 0:
+            code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
+            context["generated_code"] = code_gen.generate_code() or ''
+            context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
+            context["change_targets"] = code_gen.generate_change_targets() or ''
+            context["generated_declarations"] = code_gen.generate_declarations() or ''
+
             success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
                 "patient_name": patient_name}
             messages.add_message(request,
@@ -1805,3 +1817,7 @@ class CustomConsentFormView(View):
             context["errors"] = True
 
             return render(request, "rdrf_cdes/custom_consent_form.html", context)
+
+
+class FormDSLHelpView(TemplateView):
+    template_name = "rdrf_cdes/form-dsl-help.html"
