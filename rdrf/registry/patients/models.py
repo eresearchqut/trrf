@@ -404,6 +404,13 @@ class Patient(models.Model):
     def working_groups_display(self):
         return ",".join([wg.display_name for wg in self.working_groups.all()])
 
+    @property
+    def home_address(self):
+        try:
+            return self.patientaddress_set.get(address_type__type='Home')
+        except PatientAddress.DoesNotExist:
+            return None
+
     def clinical_data_currency(self, days=365):
         """
         If some clinical form ( non genetic ) has been updated  in the window
