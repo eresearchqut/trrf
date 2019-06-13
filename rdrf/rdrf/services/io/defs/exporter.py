@@ -138,8 +138,13 @@ class Exporter(object):
     def _get_registry_version(self):
         return self.registry.version.strip()
 
-    def _create_section_map(self, section_code):
-        section_model = Section.objects.get(code=section_code)
+    def _create_section_map(self, section_code, optional=False):
+        try:
+            section_model = Section.objects.get(code=section_code)
+        except Section.DoesNotExist:
+            if optional:
+                return {}
+            raise
         section_map = {}
         section_map["display_name"] = section_model.display_name
         section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
@@ -211,9 +216,11 @@ class Exporter(object):
             data["desc"] = self.registry.desc
             data["splash_screen"] = self.registry.splash_screen
             data["forms"] = []
-            data["generic_sections"] = []
-            for section_code in self.registry.generic_sections:
-                data["generic_sections"].append(self._create_section_map(section_code))
+            generic_sections = [
+                self._create_section_map(section_code, optional=True)
+                for section_code in
+                self.registry.generic_sections]
+            data["generic_sections"] = [gs for gs in generic_sections if gs]
 
             for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
                 if frm.name == self.registry.generated_questionnaire_name:
@@ -374,8 +381,8 @@ class Exporter(object):
 
         return section_dicts
 
-    def _get_cdes_for_sections(self, section_codes):
-        cdes = set([])
+    def _get_cdes_for_sections(self, section_codes, sections_optional=False):
+        cdes = set()
         for section_code in section_codes:
             try:
                 section_model = Section.objects.get(code=section_code)
@@ -388,11 +395,12 @@ class Exporter(object):
                         logger.error("No CDE with code: %s" % cde_code)
 
             except Section.DoesNotExist:
-                logger.error("No Section with code: %s" % section_code)
+                if not sections_optional:
+                    logger.error("No Section with code: %s" % section_code)
         return cdes
 
     def _get_generic_cdes(self):
-        return self._get_cdes_for_sections(self.registry.generic_sections)
+        return self._get_cdes_for_sections(self.registry.generic_sections, sections_optional=True)
 
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
