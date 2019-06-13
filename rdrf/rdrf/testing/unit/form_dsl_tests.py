@@ -9,7 +9,7 @@ class FormDSLValidationTestCase(FormTestCase):
     def create_sections(self):
         super().create_sections()
         self.sectionD = self.create_section(
-            "sectionD", "Section D", ["DM1Fatigue", "DM1FatigueSittingReading"], False)
+            "sectionD", "Section D", ["DM1Fatigue", "DM1FatigueSittingReading", "CDEfhDrugs"], False)
         self.sectionE = self.create_section(
             "sectionE", "Section E", ["DM1AffectedStatus", "DM1Anxiety"], True)
         self.sectionF = self.create_section(
@@ -184,3 +184,31 @@ class FormDSLValidationTestCase(FormTestCase):
         error_messages = self.get_exception_msgs(exc_info)
         self.assertEqual(len(error_messages), 1)
         self.assertEqual(error_messages[0], 'Different condition with same target on line 2: DM1Apathy is unset')
+
+    def test_cde_includes_no_multiple_cde(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1BestMotorLevel visible if DM1Apathy includes "A, B"
+            '''
+            self.new_form.save()
+        error_messages = self.get_exception_msgs(exc_info)
+        self.assertEqual(len(error_messages), 1)
+        self.assertEqual(error_messages[0],
+                         'The inclusion/exclusion operators require a CDE with multiple values on line 1')
+
+    def test_cde_does_not_include_no_multiple_cde(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1AffectedStatus visible if DM1Anxiety does not include A
+            '''
+            self.new_form.save()
+        error_messages = self.get_exception_msgs(exc_info)
+        self.assertEqual(len(error_messages), 1)
+        self.assertEqual(error_messages[0],
+                         'The inclusion/exclusion operators require a CDE with multiple values on line 1')
+
+    def test_valid_cde_includes(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Fatigue visible if CDEfhDrugs includes Ezetimibe
+        '''
+        self.new_form.save()
