@@ -493,6 +493,8 @@ class Importer(object):
                 f.header = frm_map["header"]
             else:
                 f.header = ""
+            if "display_name" in frm_map:
+                f.display_name = frm_map["display_name"]
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
