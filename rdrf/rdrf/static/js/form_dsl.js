@@ -144,6 +144,14 @@ function test_cde_value(name, base_name, op, value) {
                 return equal_len && cde_values.find(function(value) { return !target_values.includes(value);}) === undefined;
             case "!=":
                 return !equal_len || cde_values.find(function(value) { return !target_values.includes(value);}) !== undefined;
+            case "includes":
+                return cde_values.some(function(el) {
+                    return target_values.includes(el);
+                 });
+            case "does not include":
+                return cde_values.every( function(el) {
+                    return !target_values.includes(el);
+                });
         }
     }
 }

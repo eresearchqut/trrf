@@ -45,9 +45,17 @@
         <li>&gt;=</li>
         <li>&lt;=</li>
         <li>is</li>
+        <li>includes</li>
+        <li>does not include</li>
     </ul>
 
-    <em>{% trans "Note: When using" %}<code>is</code> {% trans "the only 2 values supported are" %}<code>set</code> {% trans "or" %}<code>unset</code>{% trans "(ie. is the CDE set to any value, respectively not set to any value.)" %}</em>
+    <em>
+        {% trans "Note:" %}
+        <br/>
+        {% trans "When using" %}<code>is</code> {% trans "the only 2 values supported are" %}<code>set</code> {% trans "or" %}<code>unset</code>{% trans "(ie. is the CDE set to any value, respectively not set to any value.)" %}</em>
+        <br/>
+        {% trans "When using" %}<code>includes/does not include</code> {% trans "the CDE on which the operator is applied need to allow multiple values" %}
+    </em>
 
     <br/>
     <br/>
@@ -92,6 +100,17 @@
         {% trans "This rule states that" %} ANGAllergySpecify {%trans "CDE" %}  {% trans "should be hidden if " %} ANGAllergiesType {%trans "does not have any value set" %}
         <br/>
     </p>
+    <code>ANGAllergySpecify hidden if ANGAllergiesType includes Other</code>
+    <p>
+        {% trans "This rule states that" %} ANGAllergySpecify {%trans "CDE" %}  {% trans "should be hidden if " %} ANGAllergiesType {%trans "includes the value" %} Other
+        <br/>
+    </p>
+    <code>ANGAllergySpecify hidden if ANGAllergiesType does not include "Other, Food"</code>
+    <p>
+        {% trans "This rule states that" %} ANGAllergySpecify {%trans "CDE" %}  {% trans "should be hidden if " %} ANGAllergiesType {%trans "does not include the values" %} Other {%trans "or" %} Food
+        <br/>
+    </p>
+
 
 
 

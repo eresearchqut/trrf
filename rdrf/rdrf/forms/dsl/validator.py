@@ -4,6 +4,7 @@ from enum import Enum
 
 from django.core.exceptions import ValidationError
 
+from .constants import INCLUDE_OPERATORS
 from .parse_utils import CDEHelper, SectionHelper, is_iterable
 from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
 
@@ -18,6 +19,7 @@ class ConditionCheckResult(Enum):
     TARGET_AND_CONDITION_OVERLAP = 5
     INVALID_CONDITION = 6
     MULTI_SECTION_CDE_FAILURE = 7
+    MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES = 8
 
 
 class ConditionChecker:
@@ -138,6 +140,9 @@ class ConditionChecker:
                 expanded_cdes.append(cde.cde)
         return tuple(expanded_cdes)
 
+    def check_includes_cde(self, condition):
+        return condition.cde.get_cde_info().allow_multiple
+
     def check_condition(self, conditions, action, target):
         expanded_cdes = self.expand_cdes(target.target_cdes)
         multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
@@ -179,6 +184,14 @@ class ConditionChecker:
                     in_different_sections = cond_value[0] != target_value[0]
                     if both_cdes_in_allow_multiple_section and in_different_sections:
                         return ConditionCheckResult.MULTI_SECTION_CDE_FAILURE
+
+        conditions_with_inclusion_operators = [
+            c for c in conditions if isinstance(c, Condition) and c.operator in INCLUDE_OPERATORS
+        ]
+        if conditions_with_inclusion_operators:
+            valid_inclusion_conditions = all([self.check_includes_cde(c) for c in conditions_with_inclusion_operators])
+            if not valid_inclusion_conditions:
+                return ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES
 
         self.condition_dict[condition_key] = condition_target
         self.reverse_condition_dict[condition_target] = condition_key
@@ -223,7 +236,9 @@ class DSLValidator:
             ConditionCheckResult.INVALID_CONDITION:
                 lambda: f"The conditions repeat or contradict on line {idx}",
             ConditionCheckResult.MULTI_SECTION_CDE_FAILURE:
-                lambda: f"The condition and target CDEs must be within the same section on line {idx}"
+                lambda: f"The condition and target CDEs must be within the same section on line {idx}",
+            ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES:
+                lambda: f"The inclusion/exclusion operators require a CDE with multiple values on line {idx}"
         }
 
         check_result = checker.check_condition(condition_list, action, target)

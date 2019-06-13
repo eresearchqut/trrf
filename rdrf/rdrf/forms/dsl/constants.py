@@ -9,7 +9,7 @@ CDE:/\\w+/
 target.2: FORM_OR_SECTION? CDE+
 boolean_operator.4: BOOLEAN_OPERATOR~1
 BOOLEAN_OPERATOR: "and" | "or"
-OPERATOR: ">="| "<=" | "==" | "!=" | "<" | ">" | "is"
+OPERATOR: ">="| "<=" | "==" | "!=" | "<" | ">" | "is" | "includes" | "does not include"
 action.1: ACTION~1
 ACTION: "visible" | "hidden" | "enabled" | "disabled"
 %import common.WS
@@ -39,3 +39,5 @@ INVERSE_ACTION_MAP = {
 QUALIFIERS = ["section", "form"]
 
 PREDEFINED_VALUES = ["set", "unset"]
+
+INCLUDE_OPERATORS = ["includes", "does not include"]
