@@ -27,6 +27,23 @@ class FormDSLValidationTestCase(FormTestCase):
     def get_exception_msgs(exc_info):
         return exc_info.exception.message_dict['conditional_rendering_rules']
 
+    def check_error_messages(self, exc_info, expected_count, expected_messages, eq_comparison=True):
+        error_messages = self.get_exception_msgs(exc_info)
+        messages = error_messages
+        if expected_count > 1:
+            errors = error_messages[0].split("\n")
+            messages = errors
+            self.assertEqual(len(errors), expected_count)
+        else:
+            self.assertEqual(len(error_messages), expected_count)
+        idx = 0
+        for msg in messages:
+            if not eq_comparison:
+                self.assertTrue(msg.startswith(expected_messages[idx]))
+            else:
+                self.assertEqual(msg, expected_messages[idx])
+            idx += 1
+
     def test_simple_dsl(self):
         self.new_form.conditional_rendering_rules = '''
         CDEName visible if CDEAge == 10
@@ -51,9 +68,7 @@ class FormDSLValidationTestCase(FormTestCase):
             CDEName1 visible if CDEAge == 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'Invalid CDEs specified on line 1 : CDEName1')
+        self.check_error_messages(exc_info, 1, ['Invalid CDEs specified on line 1 : CDEName1'])
 
     def test_invalid_dsl(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -61,9 +76,7 @@ class FormDSLValidationTestCase(FormTestCase):
             CDEName visible CDEAge == 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertTrue(error_messages[0].startswith('DSL parsing error:'))
+        self.check_error_messages(exc_info, 1, ['DSL parsing error:'], eq_comparison=False)
 
     def test_duplicate_condition(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -72,9 +85,7 @@ class FormDSLValidationTestCase(FormTestCase):
             CDEName visible if CDEAge == 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'Duplicate condition on line 2: CDEAge == 10')
+        self.check_error_messages(exc_info, 1, ['Duplicate condition on line 2: CDEAge == 10'])
 
     def test_inverse_condition(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -83,9 +94,7 @@ class FormDSLValidationTestCase(FormTestCase):
             CDEName visible if CDEAge != 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'Opposite condition with same target on line 2: CDEAge != 10')
+        self.check_error_messages(exc_info, 1, ['Opposite condition with same target on line 2: CDEAge != 10'])
 
     def test_overlap_with_section(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -93,9 +102,7 @@ class FormDSLValidationTestCase(FormTestCase):
             section sectionA visible if CDEAge == 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'The target CDEs and conditions CDEs overlap on line 1')
+        self.check_error_messages(exc_info, 1, ['The target CDEs and conditions CDEs overlap on line 1'])
 
     def test_multiple_errors(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -104,11 +111,11 @@ class FormDSLValidationTestCase(FormTestCase):
             DM1Fatigue visible if DM1Fatigue == No
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        results = error_messages[0].split("\n")
-        self.assertEqual(results[0], 'Invalid CDEs specified on line 1 : CDEName1')
-        self.assertEqual(results[1], 'The target CDEs and conditions CDEs overlap on line 2')
+        self.check_error_messages(
+            exc_info,
+            2,
+            ['Invalid CDEs specified on line 1 : CDEName1', 'The target CDEs and conditions CDEs overlap on line 2']
+        )
 
     def test_invalid_cde_value(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -116,9 +123,7 @@ class FormDSLValidationTestCase(FormTestCase):
             section sectionA visible if DM1Fatigue == abc
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'Invalid value:abc for CDE: DM1Fatigue on line 1')
+        self.check_error_messages(exc_info, 1, ['Invalid value:abc for CDE: DM1Fatigue on line 1'])
 
     def test_valid_cde_value_text(self):
         self.new_form.conditional_rendering_rules = '''
@@ -139,11 +144,11 @@ class FormDSLValidationTestCase(FormTestCase):
             CDEName visible if CDEAge > 10 and CDEAge < 10
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        results = error_messages[0].split("\n")
-        self.assertEqual(results[0], 'The conditions repeat or contradict on line 1')
-        self.assertEqual(results[1], 'The conditions repeat or contradict on line 2')
+        self.check_error_messages(
+            exc_info,
+            2,
+            ['The conditions repeat or contradict on line 1', 'The conditions repeat or contradict on line 2']
+        )
 
     def test_multi_section_condition_and_targets_same_section(self):
         self.new_form.conditional_rendering_rules = '''
@@ -157,9 +162,11 @@ class FormDSLValidationTestCase(FormTestCase):
             DM1AffectedStatus visible if DM1Apathy == Yes
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'The condition and target CDEs must be within the same section on line 1')
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['The condition and target CDEs must be within the same section on line 1']
+        )
 
     def test_cde_is_set(self):
         self.new_form.conditional_rendering_rules = '''
@@ -181,9 +188,7 @@ class FormDSLValidationTestCase(FormTestCase):
             '''
             self.new_form.save()
 
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0], 'Different condition with same target on line 2: DM1Apathy is unset')
+        self.check_error_messages(exc_info, 1, ['Different condition with same target on line 2: DM1Apathy is unset'])
 
     def test_cde_includes_no_multiple_cde(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -191,10 +196,11 @@ class FormDSLValidationTestCase(FormTestCase):
             DM1BestMotorLevel visible if DM1Apathy includes "A, B"
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0],
-                         'The inclusion/exclusion operators require a CDE with multiple values on line 1')
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['The inclusion/exclusion operators require a CDE with multiple values on line 1']
+        )
 
     def test_cde_does_not_include_no_multiple_cde(self):
         with self.assertRaises(ValidationError) as exc_info:
@@ -202,10 +208,11 @@ class FormDSLValidationTestCase(FormTestCase):
             DM1AffectedStatus visible if DM1Anxiety does not include A
             '''
             self.new_form.save()
-        error_messages = self.get_exception_msgs(exc_info)
-        self.assertEqual(len(error_messages), 1)
-        self.assertEqual(error_messages[0],
-                         'The inclusion/exclusion operators require a CDE with multiple values on line 1')
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['The inclusion/exclusion operators require a CDE with multiple values on line 1']
+        )
 
     def test_valid_cde_includes(self):
         self.new_form.conditional_rendering_rules = '''
