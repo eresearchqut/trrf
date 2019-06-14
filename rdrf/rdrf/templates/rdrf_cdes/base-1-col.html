@@ -106,7 +106,7 @@
                                 <li><a href="{% url 'registry:parent_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
                                         {% trans "Home Page" %}</a></li>
                                 {% elif request.user.is_patient %}
-                                <li><a href="{% url 'patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
+                                <li><a href="{% url 'registry:patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
                                         {% trans "Home Page" %}</a></li>
                                 {% endif %}
                                 {% endif %}
