@@ -31,7 +31,7 @@
                     {% if request.user.is_parent  %}
                           <input type="hidden" name="redirect_url" value ="{% url 'registry:parent_page' request.user.registry_code %}">
                     {% elif request.user.is_patient %}
-                          <input type="hidden" name="redirect_url" value ="{% url 'patient_page' request.user.registry_code %}">
+                          <input type="hidden" name="redirect_url" value ="{% url 'registry:patient_page' request.user.registry_code %}">
                     {% else %}
                           <input type="hidden" name="redirect_url" value ="{% url 'patientslisting' %}">
                     {% endif %}

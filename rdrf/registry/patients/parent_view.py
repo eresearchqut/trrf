@@ -4,8 +4,6 @@ from django.views.generic.base import View
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
 from registry.groups.models import WorkingGroup
@@ -17,23 +15,16 @@ from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
 
+from .mixins import LoginRequiredMixin
 
 logger = logging.getLogger("registry_log")
-
-
-class LoginRequiredMixin(object):
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
 
 
 class RDRFContextSwitchError(Exception):
     pass
 
 
-class BaseParentView(View):
+class BaseParentView(View, LoginRequiredMixin):
 
     def __init__(self,):
         self.registry = None
@@ -44,10 +35,6 @@ class BaseParentView(View):
     _UNALLOCATED_GROUP = "Unallocated"
 
     _ADDRESS_TYPE = "Postal"
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
 
     def get_clinician_centre(self, request, registry):
 
