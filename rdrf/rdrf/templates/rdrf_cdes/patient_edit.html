@@ -6,6 +6,7 @@
 {% load has_feature %}
 {% load get_form_element %}
 {% load is_checkbox %}
+{% load is_radio %}
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
@@ -254,11 +255,11 @@
                                             </label>
                                             <div class="col-sm-9">
                                                 {{ element|safe }}
-						{% if not element.is_hidden %}
-                                                <small class="text-muted">
-                                                    {{ element.help_text|translate }}
-                                                </small>
-						{% endif %}
+						                        {% if not element.is_hidden %}
+                                                    <small class="text-muted">
+                                                        {{ element.help_text|translate }}
+                                                    </small>
+						                        {% endif %}
                                                 {% if element.errors %}
                                                     <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                 {% endif %}
@@ -305,24 +306,20 @@
                                                                         {% endif %}
                                                                     </label>
                                                                     <div class="col-sm-9">
-                                                                        {% if not element|is_checkbox %}
+                                                                        {% if not element|is_checkbox and not element|is_radio %}
                                                                             {% if element|is_patient_relative_widget %}
                                                                                 {{ element | add_attr:"class,form-control" | safe}}
                                                                             {% else %}
-
                                                                                 {{ element | add_attr:"class,form-control" }}
-
                                                                             {% endif %}
                                                                         {% else %}
-
                                                                             {{ element }}
-
                                                                         {% endif %}
-                                        {% if not element.is_hidden %}
-                                                                        <small class="text-muted">
-                                                                            {{ element.help_text }}
-                                                                        </small>
-                                        {% endif %}
+                                                                        {% if not element.is_hidden %}
+                                                                            <small class="text-muted">
+                                                                                {{ element.help_text }}
+                                                                            </small>
+                                                                        {% endif %}
                                                                         {% if element.errors %}
                                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                                         {% endif %}
@@ -390,19 +387,19 @@
                                                         </label>
                                                         <div class="col-sm-9">
                                                     {% endif %}
-                                                        {% if not element|is_checkbox %}
-                                                            {{ element | add_attr:"class,form-control" }}
-                                                        {% else %}
-                                                            {{ element }}
-                                                        {% endif %}
-                                {% if not element.is_hidden %}
-                                                        <small class="text-muted">
-                                                            {{ element.help_text|translate }}
-                                                        </small>
-                                {% endif %}
-                                                        {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                        {% endif %}
+                                                            {% if not element|is_checkbox and not element|is_radio %}
+                                                                {{ element | add_attr:"class,form-control" }}
+                                                            {% else %}
+                                                                {{ element }}
+                                                            {% endif %}
+                                                            {% if not element.is_hidden %}
+                                                                <small class="text-muted">
+                                                                    {{ element.help_text|translate }}
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if element.errors %}
+                                                                <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            {% endif %}
                                                     </div>
                                                 </div>
                                             {% endif %}

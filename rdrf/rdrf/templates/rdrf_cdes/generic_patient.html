@@ -6,6 +6,7 @@
 {% load has_feature %}
 {% load get_form_element %}
 {% load is_checkbox %}
+{% load is_radio %}
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
@@ -297,7 +298,7 @@
                                                                         {% endif %}
                                                                     </label>
                                                                     <div class="col-sm-9">
-                                                                        {% if not element|is_checkbox %}
+                                                                        {% if not element|is_checkbox and not element|is_radio %}
                                                                             {% if element|is_patient_relative_widget %}
                                                                                 {{ element | add_attr:"class,form-control" | safe}}
                                                                             {% else %}
@@ -374,7 +375,7 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                 {% endif %}
-                                                    {% if not element|is_checkbox %}
+                                                    {% if not element|is_checkbox and not element|is_radio%}
                                                         {{ element | add_attr:"class,form-control" }}
                                                     {% else %}
                                                         {{ element }}
