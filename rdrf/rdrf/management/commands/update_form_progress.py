@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import sys
 
@@ -30,7 +31,7 @@ class Command(BaseCommand):
         form_progress = FormProgress(self.registry_model)
 
         for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
-            if not self.registry_model.has_feature("contexts"):
+            if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
                 default_context = patient_model.default_context(
                     self.registry_model)
                 form_progress.save_for_patient(patient_model, default_context)

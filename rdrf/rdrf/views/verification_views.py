@@ -20,6 +20,8 @@ from rdrf.forms.dynamic.verification_form import make_verification_form
 from rdrf.forms.navigation.locators import PatientLocator
 from registry.patients.models import Patient
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class VerificationSecurityMixin:
     def security_check(self, user, registry_model, patient_model=None):
-        if not registry_model.has_feature("verification"):
+        if not registry_model.has_feature(RegistryFeatures.VERIFICATION):
             raise PermissionDenied()
 
         if not user.in_registry(registry_model):
@@ -36,7 +38,7 @@ class VerificationSecurityMixin:
         if not user.is_clinician:
             raise PermissionDenied()
 
-        if not registry_model.has_feature("clinicians_have_patients"):
+        if not registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
             raise PermissionDenied()
 
         if patient_model is not None:

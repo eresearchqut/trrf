@@ -8,6 +8,8 @@ Includes:
 from registry.patients.models import AddressType
 from registry.genetic.models import Technique
 
+deps = ['patient_stage']
+
 
 def load_data(**kwargs):
     load_address_types()

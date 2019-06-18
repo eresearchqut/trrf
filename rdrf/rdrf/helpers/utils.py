@@ -17,6 +17,8 @@ import os.path
 import subprocess
 import uuid
 
+from .registry_features import RegistryFeatures
+
 logger = logging.getLogger(__name__)
 
 
@@ -146,7 +148,7 @@ def get_site_url(request, path="/"):
 def location_name(registry_form, current_rdrf_context_model=None):
     form_display_name = registry_form.nice_name
     context_form_group = None
-    if registry_form.registry.has_feature("contexts"):
+    if registry_form.registry.has_feature(RegistryFeatures.CONTEXTS):
         if current_rdrf_context_model is not None:
             patient_model = current_rdrf_context_model.content_object
             context_form_group = current_rdrf_context_model.context_form_group

@@ -23,6 +23,7 @@ from rdrf.events.events import EventType
 
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
+from rdrf.helpers.registry_features import RegistryFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +165,7 @@ class Registry(models.Model):
 
     @property
     def registry_type(self):
-        if not self.has_feature("contexts"):
+        if not self.has_feature(RegistryFeatures.CONTEXTS):
             return RegistryType.NORMAL
         elif ContextFormGroup.objects.filter(registry=self).count() == 0:
             return RegistryType.HAS_CONTEXTS

@@ -10,10 +10,13 @@ from .models import (
     Registry,
     PatientRelative,
     ParentGuardian,
-    PatientDoctor)
+    PatientDoctor,
+    PatientStage
+)
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
+from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import ugettext as _
@@ -194,7 +197,7 @@ class PatientForm(forms.ModelForm):
         # clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
         if self.registry_model:
-            if not self.registry_model.has_feature("clinicians_have_patients"):
+            if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
                 self.fields["clinician"].widget = forms.HiddenInput()
 
         registries = Registry.objects.all()
@@ -241,6 +244,16 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].label = ""
                     if readonly and not hidden:
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+
+            if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
+                current_stage = self.initial['stage']
+                if current_stage:
+                    prev_stages_qs = PatientStage.objects.filter(allowed_prev_stages__id__in=[current_stage])
+                    next_stages_qs = PatientStage.objects.filter(allowed_next_stages__id__in=[current_stage])
+                    current_stage_qs = PatientStage.objects.filter(pk=current_stage)
+                    self.fields['stage'].queryset = prev_stages_qs | current_stage_qs | next_stages_qs
+                else:
+                    self.fields['stage'].queryset = PatientStage.objects.filter(allowed_prev_stages__isnull=True)
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()

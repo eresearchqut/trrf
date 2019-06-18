@@ -10,6 +10,7 @@ from django.db import transaction
 
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient, PatientRelative
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 
@@ -53,7 +54,7 @@ class FamilyLinkageManager(object):
         self.registry_model = registry_model
         self.packet = packet
 
-        if not registry_model.has_feature("family_linkage"):
+        if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             raise FamilyLinkageError("need family linkages feature to use FamilyManager")
 
         if packet is not None:
@@ -233,7 +234,7 @@ class FamilyLinkageView(View):
 
         try:
             registry_model = Registry.objects.get(code=registry_code)
-            if not registry_model.has_feature("family_linkage"):
+            if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
                 raise Http404("Registry does not support family linkage")
 
         except Registry.DoesNotExist:

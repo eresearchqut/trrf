@@ -2,6 +2,8 @@ from django.forms import widgets
 import logging
 from django.urls import reverse
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +49,6 @@ class PatientRelativeLinkWidget(widgets.Widget):
         from registry.patients.models import Patient
         patient_model = Patient.objects.get(pk=patient_id)
         family_linkage_regs = [
-            r for r in patient_model.rdrf_registry.all() if r.has_feature("family_linkage")]
+            r for r in patient_model.rdrf_registry.all() if r.has_feature(RegistryFeatures.FAMILY_LINKAGE)]
         if len(family_linkage_regs) == 1:
             return family_linkage_regs[0]

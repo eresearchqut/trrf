@@ -1,6 +1,7 @@
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
 from registry.patients.models import Patient
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 logger = logging.getLogger(__name__)
@@ -195,7 +196,7 @@ class VerifiableCDE:
 
 
 def get_verifiable_cdes(registry_model):
-    if registry_model.has_feature("verification"):
+    if registry_model.has_feature(RegistryFeatures.VERIFICATION):
         return filter(lambda v: v.valid,
                       [VerifiableCDE(registry_model, cde_dict, position=index)
                        for index, cde_dict in enumerate(registry_model.metadata.get("verification_cdes", []))])
@@ -254,7 +255,7 @@ def verifications_apply(user):
     if user.registry.count() != 1:
         return False
     registry_model = user.registry.first()
-    return registry_model.has_feature("verification")
+    return registry_model.has_feature(RegistryFeatures.VERIFICATION)
 
 
 def create_annotations(user, registry_model, patient_model, context_model, verified=[], corrected=[]):

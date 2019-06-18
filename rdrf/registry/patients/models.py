@@ -16,6 +16,8 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
@@ -314,6 +316,11 @@ class Patient(models.Model):
                                     null=True,
                                     verbose_name=_("Patient Type"))
 
+    stage = models.ForeignKey('patients.PatientStage',
+                              blank=True,
+                              null=True,
+                              on_delete=models.SET_NULL)
+
     history = HistoricalRecords()
 
     class Meta:
@@ -505,11 +512,11 @@ class Patient(models.Model):
     def update_field_expressions(self, registry_model, field_expressions, context_model=None):
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
-        if registry_model.has_feature("contexts") and context_model is None:
+        if registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is None:
             raise Exception("No context model set")
-        elif not registry_model.has_feature("contexts") and context_model is not None:
+        elif not registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is not None:
             raise Exception("context model should not be explicit for non-supporting registry")
-        elif not registry_model.has_feature("contexts") and context_model is None:
+        elif not registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is None:
             # the usual case
             from rdrf.db.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
@@ -617,11 +624,11 @@ class Patient(models.Model):
         from rdrf.forms.progress.form_progress import FormProgress
         from rdrf.models.definition.models import RegistryForm, Registry
         registry_model = Registry.objects.get(code=registry_code)
-        if registry_model.has_feature("contexts") and context_model is None:
+        if registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is None:
             raise Exception("No context model set")
-        elif not registry_model.has_feature("contexts") and context_model is not None:
+        elif not registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is not None:
             raise Exception("context model should not be explicit for non-supporting registry")
-        elif not registry_model.has_feature("contexts") and context_model is None:
+        elif not registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is None:
             # the usual case
             from rdrf.db.contexts_api import RDRFContextManager
             rdrf_context_manager = RDRFContextManager(registry_model)
@@ -670,7 +677,7 @@ class Patient(models.Model):
     @property
     def my_index(self):
         # This property is only applicable to FH
-        if self.has_feature("family_linkage"):
+        if self.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             # try to find patient relative object corresponding to this patient and
             # then locate that relative's index patient
             try:
@@ -687,7 +694,7 @@ class Patient(models.Model):
     def get_contexts_url(self, registry_model):
         # TODO - change so we don't need this
         return None
-        if not registry_model.has_feature("contexts"):
+        if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             return None
         else:
             base_url = reverse("contextslisting")
@@ -791,7 +798,7 @@ class Patient(models.Model):
         if not self.active:
             return False
 
-        if not self.has_feature("family_linkage"):
+        if not self.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             return False
         else:
             if not self.my_index:
@@ -1116,6 +1123,15 @@ class Patient(models.Model):
     @property
     def family(self):
         return Family(self)
+
+
+class PatientStage(models.Model):
+    name = models.CharField(max_length=200)
+    allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='next_stages')
+    allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='prev_stages')
+
+    def __str__(self):
+        return self.name
 
 
 class Speciality(models.Model):
@@ -1447,7 +1463,7 @@ class PatientRelative(models.Model):
         self.relative_patient = p
         self.save()
         # explicitly set relative cde
-        if registry_model.has_feature("family_linkage"):
+        if registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model)
             flm.set_as_relative(p)
@@ -1497,7 +1513,7 @@ def update_family_linkage_fields(sender, instance, **kwargs):
     logger.debug("updating family linkage fields")
     for registry_model in instance.rdrf_registry.all():
         logger.debug("checking %s" % registry_model)
-        if registry_model.has_feature("family_linkage"):
+        if registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             logger.debug("%s has family linkage" % registry_model)
             from rdrf.views.family_linkage import FamilyLinkageManager
             flm = FamilyLinkageManager(registry_model, None)

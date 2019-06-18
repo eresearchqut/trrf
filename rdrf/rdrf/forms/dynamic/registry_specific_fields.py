@@ -5,6 +5,8 @@ from django.forms.fields import MultipleChoiceField
 from rdrf.helpers.utils import is_uploaded_file
 from rdrf.db import filestorage
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -58,7 +60,7 @@ class RegistrySpecificFieldsHandler(object):
             self.mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
     def allowed_to_write_data(self):
-        if self.registry_model.has_feature("family_linkage"):
+        if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             return self.patient_model.is_index
         else:
             return True

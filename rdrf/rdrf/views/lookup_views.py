@@ -12,6 +12,8 @@ import requests
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class PatientLookup(View):
 
         try:
             registry_model = Registry.objects.get(code=reg_code)
-            if registry_model.has_feature("questionnaires"):
+            if registry_model.has_feature(RegistryFeatures.QUESTIONNAIRES):
                 term = request.GET.get("term", "")
                 if not request.user.is_superuser:
                     working_groups = [wg for wg in request.user.working_groups.all()]

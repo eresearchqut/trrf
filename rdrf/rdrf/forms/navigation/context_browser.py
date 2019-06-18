@@ -3,6 +3,8 @@ from rdrf.forms.navigation.context_menu import PatientContextMenu
 # todo this must be dead code - remove!
 from rdrf.rdrf import context_defnitions as definitions
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 
 class ContextBrowserError(Exception):
     pass
@@ -28,7 +30,7 @@ class ContextBrowser(object):
             "searchPhrase": self.search_phrase,
             "rows": objects,
             "total": total,
-            "show_add_patient": not self.registry_model.has_feature("no_add_patient_button")
+            "show_add_patient": not self.registry_model.has_feature(RegistryFeatures.NO_ADD_PATIENT_BUTTON)
         }
         return results
 

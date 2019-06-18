@@ -28,7 +28,9 @@ from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.models.definition.models import RDRFContext
 
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient
+
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
@@ -222,7 +224,7 @@ class FormView(View):
         self.rdrf_context = None
         try:
             if context_id is None:
-                if self.registry.has_feature("contexts"):
+                if self.registry.has_feature(RegistryFeatures.CONTEXTS):
                     raise RDRFContextError(
                         "Registry %s supports contexts but no context id  passed in url" %
                         self.registry)
@@ -260,7 +262,7 @@ class FormView(View):
         form_model = RegistryForm.objects.get(id=form_id)
         patient_model = Patient.objects.get(id=patient_id)
 
-        if not registry_model.has_feature("contexts"):
+        if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             raise Http404
 
         if not patient_model.in_registry(registry_model.code):
@@ -313,7 +315,7 @@ class FormView(View):
 
         self.registry = self._get_registry(registry_code)
 
-        if self.registry.has_feature("consent_checks"):
+        if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
             from rdrf.helpers.utils import consent_check
             if not consent_check(self.registry,
                                  self.user,
@@ -628,7 +630,7 @@ class FormView(View):
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
 
-            if registry.has_feature("rulesengine"):
+            if registry.has_feature(RegistryFeatures.RULES_ENGINE):
                 rules_block = registry.metadata.get("rules", {})
                 form_rules = rules_block.get(form_obj.name, [])
                 logger.debug("checking rules for %s" % form_obj.name)

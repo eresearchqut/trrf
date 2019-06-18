@@ -25,6 +25,7 @@ from rdrf.security.security_checks import security_check_user_patient
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 logger = logging.getLogger(__name__)
@@ -195,7 +196,7 @@ class ClinicianFormView(View):
         if not security_check_user_patient(self.user, self.patient_model):
             raise PermissionDenied
         self.registry_model = get_object_or_404(Registry, code=registry_code)
-        if not self.registry_model.has_feature("clinician_form"):
+        if not self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM):
             raise Http404
 
         self.patient_name = '%s %s' % (

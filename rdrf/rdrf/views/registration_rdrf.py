@@ -8,6 +8,7 @@ from registration.backends.default.views import RegistrationView
 
 from rdrf.workflows.registration import get_registration_workflow
 from rdrf.models.definition.models import Registry
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
 logger = logging.getLogger(__name__)
@@ -110,4 +111,4 @@ class RdrfRegistrationView(RegistrationView):
 
     def registration_allowed(self):
         registry = get_object_or_404(Registry, code=self.registry_code)
-        return registry.has_feature('registration')
+        return registry.has_feature(RegistryFeatures.REGISTRATION)

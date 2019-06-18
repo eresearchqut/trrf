@@ -6,7 +6,7 @@ from django.views.generic import CreateView
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, RegistryFeatures
 from rdrf.models.definition.models import CdePolicy
 from rdrf.helpers.utils import consent_status_for_patient
 
@@ -295,6 +295,10 @@ class PatientFormMixin(PatientMixin):
 
         patient_address_section = (_("Patient Address"), None)
 
+        patient_stage_section = (_("Patient Stage"), [
+            "stage"
+        ])
+
         form_sections = [
             (
                 patient_form,
@@ -313,8 +317,13 @@ class PatientFormMixin(PatientMixin):
                 (next_of_kin,)
             ),
         ]
+        if not user.is_patient and registry.has_feature(RegistryFeatures.STAGES):
+            form_sections.append((
+                patient_form,
+                (patient_stage_section, )
+            ))
 
-        if registry.has_feature("family_linkage"):
+        if registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             form_sections = form_sections[:-1]
 
         if registry.get_metadata_item("patient_form_doctors"):
@@ -336,7 +345,7 @@ class PatientFormMixin(PatientMixin):
             ))
 
         # PatientRelativeForm for FH (only)
-        if self.registry_model.has_feature('family_linkage'):
+        if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             if not patient_relative_form:
                 patient_relative_formset = inlineformset_factory(Patient,
                                                                  PatientRelative,
@@ -459,7 +468,7 @@ class PatientFormMixin(PatientMixin):
         return self.registry_model.get_metadata_item("patient_form_doctors")
 
     def _has_patient_relatives_form(self):
-        return self.registry_model.has_feature("family_linkage")
+        return self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE)
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -582,7 +591,7 @@ class PatientEditView(View):
 
         security_check_user_patient(request.user, patient)
 
-        if registry_model.has_feature("consent_checks"):
+        if registry_model.has_feature(RegistryFeatures.CONSENT_CHECKS):
             from rdrf.helpers.utils import consent_check
             if not consent_check(registry_model,
                                  request.user,
@@ -640,7 +649,7 @@ class PatientEditView(View):
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
     def _get_proms_link(self, registry_model, patient_model):
-        if not registry_model.has_feature("proms_clinical"):
+        if not registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
             return None
         return "todo"
 
@@ -834,7 +843,7 @@ class PatientEditView(View):
 
     def _is_linked(self, registry_model, patient_model):
         # is this patient linked to others?
-        if not registry_model.has_feature("family_linkage"):
+        if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             return False
 
         if not patient_model.is_index:
@@ -955,6 +964,10 @@ class PatientEditView(View):
 
         patient_address_section = (_("Patient Address"), None)
 
+        patient_stage_section = (_("Patient Stage"), [
+            "stage"
+        ])
+
         form_sections = [
             (
                 patient_form,
@@ -973,8 +986,13 @@ class PatientEditView(View):
                 (next_of_kin,)
             ),
         ]
+        if not user.is_patient and registry.has_feature(RegistryFeatures.STAGES):
+            form_sections.append((
+                patient_form,
+                (patient_stage_section, )
+            ))
 
-        if registry.has_feature("family_linkage"):
+        if registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             form_sections = form_sections[:-1]
 
         if registry.get_metadata_item("patient_form_doctors"):
