@@ -1,9 +1,11 @@
-from django import template
+from operator import attrgetter
 import pycountry
+
+from django import template
 
 register = template.Library()
 
 
 @register.simple_tag
 def countries():
-    return pycountry.countries
+    return sorted(pycountry.countries, key=attrgetter('name'))

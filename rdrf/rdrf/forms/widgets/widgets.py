@@ -1,6 +1,7 @@
 # Custom widgets / Complex controls required
 import datetime
 import logging
+from operator import attrgetter
 import re
 
 import pycountry
@@ -218,7 +219,8 @@ class CountryWidget(widgets.Select):
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
-        for country in pycountry.countries:
+        for country in sorted(pycountry.countries, attrgetter('name')):
+
             if value == country.alpha_2:
                 output.append("<option value='%s' selected>%s</option>" %
                               (country.alpha_2, country.name))

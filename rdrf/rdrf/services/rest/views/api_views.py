@@ -1,3 +1,4 @@
+from operator import attrgetter
 import pycountry
 
 from django.db.models import Q
@@ -145,7 +146,7 @@ class ListCountries(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, format=None):
-        countries = sorted(pycountry.countries, key=lambda c: c.name)
+        countries = sorted(pycountry.countries, attrgetter('name'))
 
         def to_dict(country):
             # wanted_fields = ('name', 'alpha_2', 'alpha_3', 'numeric', 'official_name')
@@ -171,7 +172,7 @@ class ListStates(APIView):
     def get(self, request, country_code, format=None):
         try:
             states = sorted(pycountry.subdivisions.get(
-                country_code=country_code), key=lambda x: x.name)
+                country_code=country_code), attrgetter('name'))
         except KeyError:
             # For now returning empty list because the old api view was doing the same
             # raise BadRequestError("Invalid country code '%s'" % country_code)
