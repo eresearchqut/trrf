@@ -17,6 +17,7 @@
 
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
 
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -122,10 +123,8 @@
                 setUpDatepickerOnField(this);
             });
 
-            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset], :input[type=file]').addClass("form-control");
-            $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
-            $(":input[type=file]").addClass("form-control-file");
+            setInputStyling();
+
             $('#main-form').data('serialize', $('#main-form').serialize());
 
             $(window).bind('beforeunload', function(e){
