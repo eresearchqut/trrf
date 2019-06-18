@@ -1,5 +1,4 @@
 from django import template
-from django.forms import CheckboxInput
 
 register = template.Library()
 
@@ -12,8 +11,6 @@ def is_checkbox(element):
     """
     if hasattr(element, "field"):
         field = element.field
+        return field.widget.input_type == 'checkbox'
 
-    if (field.widget.__class__.__name__ == CheckboxInput().__class__.__name__):
-
-        return True
     return False

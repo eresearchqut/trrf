@@ -5,7 +5,6 @@
 {% load get_patient %}
 {% load has_feature %}
 {% load get_form_element %}
-{% load is_checkbox %}
 {% load is_patient_relative_widget %}
 {% load is_formset_obj %}
 {% load get_information_link %}
@@ -18,7 +17,8 @@
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
 
-    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
 
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -120,9 +120,7 @@
                 }
             });
 
-            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-            $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
+            setInputStyling();
 
             $('#main-form').data('serialize', $('#main-form').serialize());
 
@@ -254,11 +252,11 @@
                                             </label>
                                             <div class="col-sm-9">
                                                 {{ element|safe }}
-						{% if not element.is_hidden %}
-                                                <small class="text-muted">
-                                                    {{ element.help_text|translate }}
-                                                </small>
-						{% endif %}
+						                        {% if not element.is_hidden %}
+                                                    <small class="text-muted">
+                                                        {{ element.help_text|translate }}
+                                                    </small>
+						                        {% endif %}
                                                 {% if element.errors %}
                                                     <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                 {% endif %}
@@ -305,24 +303,12 @@
                                                                         {% endif %}
                                                                     </label>
                                                                     <div class="col-sm-9">
-                                                                        {% if not element|is_checkbox %}
-                                                                            {% if element|is_patient_relative_widget %}
-                                                                                {{ element | add_attr:"class,form-control" | safe}}
-                                                                            {% else %}
-
-                                                                                {{ element | add_attr:"class,form-control" }}
-
-                                                                            {% endif %}
-                                                                        {% else %}
-
-                                                                            {{ element }}
-
+                                                                        {{ element }}
+                                                                        {% if not element.is_hidden %}
+                                                                            <small class="text-muted">
+                                                                                {{ element.help_text }}
+                                                                            </small>
                                                                         {% endif %}
-                                        {% if not element.is_hidden %}
-                                                                        <small class="text-muted">
-                                                                            {{ element.help_text }}
-                                                                        </small>
-                                        {% endif %}
                                                                         {% if element.errors %}
                                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                                         {% endif %}
@@ -390,19 +376,15 @@
                                                         </label>
                                                         <div class="col-sm-9">
                                                     {% endif %}
-                                                        {% if not element|is_checkbox %}
-                                                            {{ element | add_attr:"class,form-control" }}
-                                                        {% else %}
                                                             {{ element }}
-                                                        {% endif %}
-                                {% if not element.is_hidden %}
-                                                        <small class="text-muted">
-                                                            {{ element.help_text|translate }}
-                                                        </small>
-                                {% endif %}
-                                                        {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                        {% endif %}
+                                                            {% if not element.is_hidden %}
+                                                                <small class="text-muted">
+                                                                    {{ element.help_text|translate }}
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if element.errors %}
+                                                                <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            {% endif %}
                                                     </div>
                                                 </div>
                                             {% endif %}

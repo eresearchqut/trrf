@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.utils.datastructures import MultiValueDictKeyError
+from django.forms.fields import MultipleChoiceField
 from rdrf.helpers.utils import is_uploaded_file
 from rdrf.db import filestorage
 
@@ -27,7 +28,10 @@ class RegistrySpecificFieldsHandler(object):
             for cde_model, field_object in self.registry_model.patient_fields:
                 if not cde_model.datatype == "file":
                     try:
-                        field_value = request.POST[cde_model.code]
+                        if isinstance(field_object, MultipleChoiceField):
+                            field_value = request.POST.getlist(cde_model.code)
+                        else:
+                            field_value = request.POST[cde_model.code]
                         mongo_patient_data[self.registry_model.code][cde_model.code] = field_value
                     except MultiValueDictKeyError:
                         continue
