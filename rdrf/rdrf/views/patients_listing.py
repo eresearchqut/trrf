@@ -83,7 +83,7 @@ class PatientsListingView(View):
         }
 
     def get_columns(self):
-        return [
+        columns = [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
             ColumnCodeField(_("Code"), "patients.can_see_code_field"),
@@ -91,9 +91,15 @@ class PatientsListingView(View):
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
             ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
-            ColumnPatientStage(_("Stage"), "patients.can_see_data_modules"),
+        ]
+
+        if any(r.has_feature(RegistryFeatures.STAGES) for r in self._users_registries()):
+            columns.append(ColumnPatientStage(_("Stage"), "patients.can_see_data_modules"))
+
+        columns += [
             ColumnContextMenu(_("Modules"), "patients.can_see_data_modules"),
         ]
+        return columns
 
     def get_configure_columns(self):
         columns = self.get_columns()
@@ -116,14 +122,12 @@ class PatientsListingView(View):
             except Registry.DoesNotExist:
                 return HttpResponseRedirect("/")
 
+    def _users_registries(self):
+        return Registry.objects.all() if self.user.is_superuser else self.user.registry.all()
+
     def set_registries(self):
         if self.registry_model is None:
-            if self.user.is_superuser:
-                self.registries = [
-                    registry_model for registry_model in Registry.objects.all()]
-            else:
-                self.registries = [
-                    registry_model for registry_model in self.user.registry.all()]
+            self.registries = [r for r in self._users_registries()]
         else:
             self.registries = [self.registry_model]
 
