@@ -1,6 +1,8 @@
 from django.urls import reverse
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
+from rdrf.helpers.registry_features import RegistryFeatures
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,7 +38,7 @@ class NavigationWizard(object):
         self.current_form_model = current_form_model
         self.links = []
         self.current_index = None  # set by method below
-        self.has_clinician_form = self.registry_model.has_feature("clinician_form")
+        self.has_clinician_form = self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM)
 
         self._construct_links()
 

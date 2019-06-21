@@ -19,6 +19,7 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 
 from registry.patients.models import Patient
 from registry.groups.models import WorkingGroup
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 
@@ -41,7 +42,7 @@ class ContextFormGroupHelperMixin(object):
             return ContextFormGroup.objects.get(pk=form_group_id)
 
     def get_context_name(self, registry_model, context_form_group):
-        if not registry_model.has_feature("contexts"):
+        if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             raise Exception("Registry does not support contexts")
         else:
             if context_form_group is not None:
@@ -75,7 +76,7 @@ class ContextFormGroupHelperMixin(object):
         try:
             is_normal_user = not user.is_superuser
             registry_model = Registry.objects.get(code=registry_code)
-            if not registry_model.has_feature("contexts"):
+            if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
                 return False
             patient_model = Patient.objects.get(pk=patient_id)
             patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
@@ -98,7 +99,7 @@ class ContextFormGroupHelperMixin(object):
             return False
 
     def sanity_check(self, registry_model):
-        if not registry_model.has_feature("contexts"):
+        if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             return HttpResponseRedirect("/")
 
     def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):

@@ -4,8 +4,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.urls.exceptions import NoReverseMatch
 from django.conf import settings
 from rdrf.system_role import SystemRoles
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from registry.groups import GROUPS as RDRF_GROUPS
+
 
 import logging
 
@@ -38,6 +40,9 @@ class Links:
         ArchivedPatients = QuickLink(
             reverse("admin:patients_archivedpatient_changelist"),
             _("Archived Patients"))
+        PatientStages = QuickLink(
+            reverse("admin:patients_patientstage_changelist"),
+            _("Patient Stages"))
         Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
         Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
         Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
@@ -163,6 +168,7 @@ class Links:
                 DemographicsFields.text: DemographicsFields,
                 NextOfKinRelationship.text: NextOfKinRelationship,
                 ArchivedPatients.text: ArchivedPatients,
+                PatientStages.text: PatientStages,
                 ConsentRules.text: ConsentRules,
             }
         else:
@@ -451,13 +457,13 @@ class QuickLinks(object):
         # enable registration links if any registry uses registration
         for registry in self._registries:
             # don't provide per registry links to a registy that doesn't support feature
-            if registry.has_feature('registration'):
+            if registry.has_feature(RegistryFeatures.REGISTRATION):
                 Links.REGISTRATION = Links.ENABLED_REGISTRATION
                 break
 
     def _doctors_link(self):
         for registry in self._registries:
-            if registry.has_feature("doctors_list"):
+            if registry.has_feature(RegistryFeatures.DOCTORS_LIST):
                 Links.DOCTORS = Links.ENABLED_DOCTORS
                 break
 

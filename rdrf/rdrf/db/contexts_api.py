@@ -1,6 +1,7 @@
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 
@@ -33,7 +34,7 @@ class RDRFContextManager(object):
 
     def __init__(self, registry_model):
         self.registry_model = registry_model
-        self.supports_contexts = self.registry_model.has_feature("contexts")
+        self.supports_contexts = self.registry_model.has_feature(RegistryFeatures.CONTEXTS)
 
     def get_or_create_default_context(self, patient_model, new_patient=False):
         if not self.supports_contexts:

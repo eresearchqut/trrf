@@ -14,6 +14,7 @@ from rdrf.db.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from .mixins import LoginRequiredMixin
 
@@ -56,7 +57,7 @@ class BaseParentView(View, LoginRequiredMixin):
         self.rdrf_context = None
         try:
             if context_id is None:
-                if self.registry.has_feature("contexts"):
+                if self.registry.has_feature(RegistryFeatures.CONTEXTS):
                     raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
                                            self.registry)
                 else:

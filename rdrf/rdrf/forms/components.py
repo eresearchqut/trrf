@@ -7,6 +7,7 @@ from rdrf.helpers.utils import is_generated_form
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 
@@ -141,20 +142,20 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return data
 
     def _proms_adding_disabled(self):
-        if not self.registry_model.has_feature("proms_adding_disabled"):
+        if not self.registry_model.has_feature(RegistryFeatures.PROMS_ADDING_DISABLED):
             return False
         else:
             return True
 
     def _get_proms_link(self):
-        if not self.registry_model.has_feature("proms_clinical"):
+        if not self.registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
             return None
         return reverse("proms_clinical_view",
                        args=[self.registry_model.code,
                              self.patient_model.pk])
 
     def _get_clinician_form_link(self):
-        if not self.registry_model.has_feature("clinician_form"):
+        if not self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM):
             return None
 
         return reverse(
@@ -164,7 +165,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 self.patient_model.pk])
 
     def _is_consent_locked(self):
-        if self.registry_model.has_feature("consent_lock"):
+        if self.registry_model.has_feature(RegistryFeatures.CONSENT_LOCK):
             return not consent_status_for_patient(self.registry_model.code,
                                                   self.patient_model)
         else:
@@ -182,7 +183,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
     def _get_family_linkage_link(self):
         pk = None
-        if self.registry_model.has_feature("family_linkage"):
+        if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             if self.patient_model.is_index:
                 pk = self.patient_model.pk
             elif self.patient_model.my_index:
@@ -212,7 +213,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
         patients_listing_url = reverse("patientslisting")
-        if not self.registry_model.has_feature('contexts'):
+        if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
             return []
 
         def _form(context_form_group):
@@ -538,7 +539,7 @@ class FamilyLinkagePanel(RDRFComponent):
 
     def __init__(self, user, registry_model, patient_model):
         self.registry_model = registry_model
-        if not registry_model.has_feature("family_linkage"):
+        if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             self.patient_model = None
             self.link_allowed = self.is_index = None
             self.index_working_groups = None

@@ -2,6 +2,7 @@ from django.urls import reverse
 from django.template import loader, Context
 from django.utils.html import escape
 from rdrf.models.definition.models import RegistryForm
+from rdrf.helpers.registry_features import RegistryFeatures
 
 # NB "Context" is not the same as RDRF Context, it's just a "normal" context menu that pops up
 
@@ -39,10 +40,10 @@ class PatientContextMenu(object):
         self.context_model = context_model
         self.form_progress = form_progress
         self.context_name = self._get_context_name()
-        self.has_contexts = self.registry_model.has_feature("contexts")
+        self.has_contexts = self.registry_model.has_feature(RegistryFeatures.CONTEXTS)
 
     def _get_context_name(self):
-        if self.registry_model.has_feature("contexts"):
+        if self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
             try:
                 name = self.context_model.context_name
             except Exception:
@@ -87,7 +88,7 @@ class PatientContextMenu(object):
 
         popup_template = loader.get_template(popup_template)
         context = Context({"forms": forms,
-                           "supports_contexts": self.registry_model.has_feature("contexts"),
+                           "supports_contexts": self.registry_model.has_feature(RegistryFeatures.CONTEXTS),
                            "context_name": self.context_name,
                            "actions": actions,
                            "context": self.context_model,

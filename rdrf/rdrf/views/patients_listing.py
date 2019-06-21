@@ -19,6 +19,8 @@ from rdrf.helpers.utils import MinType
 from rdrf.helpers.utils import consent_check
 from django.utils.translation import ugettext as _
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -81,7 +83,7 @@ class PatientsListingView(View):
         }
 
     def get_columns(self):
-        return [
+        columns = [
             ColumnFullName(_("Patient"), "patients.can_see_full_name"),
             ColumnDateOfBirth(_("Date of Birth"), "patients.can_see_dob"),
             ColumnCodeField(_("Code"), "patients.can_see_code_field"),
@@ -89,8 +91,15 @@ class PatientsListingView(View):
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
             ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
+        ]
+
+        if any(r.has_feature(RegistryFeatures.STAGES) for r in self._users_registries()):
+            columns.append(ColumnPatientStage(_("Stage"), "patients.can_see_data_modules"))
+
+        columns += [
             ColumnContextMenu(_("Modules"), "patients.can_see_data_modules"),
         ]
+        return columns
 
     def get_configure_columns(self):
         columns = self.get_columns()
@@ -113,14 +122,12 @@ class PatientsListingView(View):
             except Registry.DoesNotExist:
                 return HttpResponseRedirect("/")
 
+    def _users_registries(self):
+        return Registry.objects.all() if self.user.is_superuser else self.user.registry.all()
+
     def set_registries(self):
         if self.registry_model is None:
-            if self.user.is_superuser:
-                self.registries = [
-                    registry_model for registry_model in Registry.objects.all()]
-            else:
-                self.registries = [
-                    registry_model for registry_model in self.user.registry.all()]
+            self.registries = [r for r in self._users_registries()]
         else:
             self.registries = [self.registry_model]
 
@@ -149,10 +156,9 @@ class PatientsListingView(View):
         self.registry_code = request.GET.get("registry_code")
         self.registry_model = get_object_or_404(Registry, code=self.registry_code)
 
-        self.clinicians_have_patients = self.registry_model.has_feature(
-            "clinicians_have_patients")
+        self.clinicians_have_patients = self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
         self.form_progress = FormProgress(self.registry_model)
-        self.supports_contexts = self.registry_model.has_feature("contexts")
+        self.supports_contexts = self.registry_model.has_feature(RegistryFeatures.CONTEXTS)
         self.rdrf_context_manager = RDRFContextManager(self.registry_model)
 
         def getint(param):
@@ -265,7 +271,7 @@ class PatientsListingView(View):
         return rows
 
     def append_rows(self, page_object, row_list_to_update):
-        if self.registry_model.has_feature("consent_checks"):
+        if self.registry_model.has_feature(RegistryFeatures.CONSENT_CHECKS):
             row_list_to_update.extend([self._get_row_dict(obj) for obj in page_object.object_list
                                        if consent_check(self.registry_model,
                                                         self.user,
@@ -296,8 +302,9 @@ class PatientsListingView(View):
 
     def apply_search_filter(self):
         if self.search_term:
-            self.patients = self.patients.filter(
-                Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term))
+            name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
+            stage_filter = Q(stage__name__istartswith=self.search_term)
+            self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -510,6 +517,16 @@ class ColumnGeneticDataMap(ColumnNonContexts):
 
     def fmt_non_contexts(self, has_genetic_data):
         return self.icon(has_genetic_data)
+
+
+class ColumnPatientStage(Column):
+    field = "stage"
+    sort_fields = ["stage__id"]
+
+    def fmt(self, val):
+        if self.registry and self.registry.has_feature(RegistryFeatures.STAGES):
+            return str(val)
+        return "N/A"
 
 
 class ColumnContextMenu(Column):

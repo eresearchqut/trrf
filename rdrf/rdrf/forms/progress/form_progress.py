@@ -2,6 +2,7 @@ from django.urls import reverse
 from django.templatetags.static import static
 from rdrf.helpers.utils import de_camelcase, parse_iso_datetime
 from rdrf.models.definition.models import ClinicalData
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import math
 import logging
@@ -55,7 +56,7 @@ class FormProgress(object):
         self.context_model = None
         # if the following is true, the "type" of patient affects what forms
         # are applicable/presented/counted:
-        self.uses_patient_types = self.registry_model.has_feature("patient_types")
+        self.uses_patient_types = self.registry_model.has_feature(RegistryFeatures.PATIENT_TYPES)
         if self.uses_patient_types:
             self.patient_type_form_map = self.registry_model.metadata["patient_types"]
         else:

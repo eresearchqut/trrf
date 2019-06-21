@@ -15,6 +15,7 @@ from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
 import logging
@@ -276,7 +277,7 @@ class LookupIndex(APIView):
             # raise BadRequestError("Required query parameter 'term' not received")
         registry = Registry.objects.get(code=registry_code)
 
-        if not registry.has_feature('family_linkage'):
+        if not registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             return Response([])
 
         query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
