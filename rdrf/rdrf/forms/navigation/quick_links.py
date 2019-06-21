@@ -40,6 +40,9 @@ class Links:
         ArchivedPatients = QuickLink(
             reverse("admin:patients_archivedpatient_changelist"),
             _("Archived Patients"))
+        PatientStages = QuickLink(
+            reverse("admin:patients_patientstage_changelist"),
+            _("Patient Stages"))
         Genes = QuickLink(reverse("admin:genetic_gene_changelist"), _("Genes"))
         Laboratories = QuickLink(reverse("admin:genetic_laboratory_changelist"), _("Laboratories"))
         Explorer = QuickLink(reverse("rdrf:explorer_main"), _("Explorer"))
@@ -165,6 +168,7 @@ class Links:
                 DemographicsFields.text: DemographicsFields,
                 NextOfKinRelationship.text: NextOfKinRelationship,
                 ArchivedPatients.text: ArchivedPatients,
+                PatientStages.text: PatientStages,
                 ConsentRules.text: ConsentRules,
             }
         else:

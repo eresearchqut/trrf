@@ -12,6 +12,7 @@ from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from .admin_forms import (
     PatientForm,
+    PatientStageForm,
     PatientAddressForm,
     PatientDoctorForm,
     PatientRelativeForm)
@@ -22,6 +23,7 @@ from .models import (
     Doctor,
     State,
     Patient,
+    PatientStage,
     PatientAddress,
     PatientDoctor,
     PatientRelative,
@@ -61,6 +63,12 @@ class PatientConsentAdmin(admin.TabularInline):
 class PatientAddressAdmin(admin.StackedInline):
     model = PatientAddress
     form = PatientAddressForm
+    extra = 0
+
+
+class PatientStageAdmin(admin.ModelAdmin):
+    model = PatientStage
+    form = PatientStageForm
     extra = 0
 
 
@@ -566,6 +574,7 @@ admin.site.register(NextOfKinRelationship, NextOfKinRelationshipAdmin)
 admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(Patient, PatientAdmin)
+admin.site.register(PatientStage, PatientStageAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
 admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)

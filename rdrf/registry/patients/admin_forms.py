@@ -150,6 +150,12 @@ class PatientConsentFileForm(forms.ModelForm):
         return super(PatientConsentFileForm, self).save(commit)
 
 
+class PatientStageForm(forms.ModelForm):
+    class Meta:
+        model = PatientStage
+        fields = "__all__"
+
+
 class PatientForm(forms.ModelForm):
 
     ADDRESS_ATTRS = {
