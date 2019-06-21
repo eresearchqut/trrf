@@ -1127,8 +1127,11 @@ class Patient(models.Model):
 
 class PatientStage(models.Model):
     name = models.CharField(max_length=200)
-    allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='next_stages', blank=True)
-    allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='prev_stages', blank=True)
+    allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
+    allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
+
+    class Meta:
+        ordering = ['pk']
 
     def __str__(self):
         return self.name

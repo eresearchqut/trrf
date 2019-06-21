@@ -1,3 +1,4 @@
+from itertools import chain
 import logging
 from django import forms
 from django.core.exceptions import ValidationError
@@ -252,12 +253,15 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
-                current_stage = self.initial['stage']
-                if current_stage:
-                    prev_stages_qs = PatientStage.objects.filter(allowed_prev_stages__id__in=[current_stage])
-                    next_stages_qs = PatientStage.objects.filter(allowed_next_stages__id__in=[current_stage])
-                    current_stage_qs = PatientStage.objects.filter(pk=current_stage)
-                    self.fields['stage'].queryset = prev_stages_qs | current_stage_qs | next_stages_qs
+                if self.initial['stage']:
+                    current_stage = PatientStage.objects.get(pk=self.initial['stage'])
+
+                    allowed_stages = chain(
+                        current_stage.allowed_prev_stages.all(),
+                        (current_stage, ),
+                        current_stage.allowed_next_stages.all())
+
+                    self.fields['stage'].queryset = PatientStage.objects.filter(pk__in=(s.pk for s in allowed_stages))
                 else:
                     self.fields['stage'].queryset = PatientStage.objects.filter(allowed_prev_stages__isnull=True)
 
