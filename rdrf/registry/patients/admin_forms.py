@@ -154,7 +154,19 @@ class PatientConsentFileForm(forms.ModelForm):
 class PatientStageForm(forms.ModelForm):
     class Meta:
         model = PatientStage
-        fields = "__all__"
+        fields = ["registry", "name", "allowed_prev_stages", "allowed_next_stages"]
+
+    def __init__(self, *args, **kwargs):
+        super(PatientStageForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['registry'].disabled = True
+        registry = self.instance.registry or None
+        stage_qs = (
+            PatientStage.objects.filter(registry=registry).exclude(pk=self.instance.pk) if registry
+            else PatientStage.objects.filter(registry__isnull=True).exclude(pk=self.instance.pk)
+        )
+        self.fields['allowed_prev_stages'].queryset = stage_qs
+        self.fields['allowed_next_stages'].queryset = stage_qs
 
 
 class PatientForm(forms.ModelForm):
