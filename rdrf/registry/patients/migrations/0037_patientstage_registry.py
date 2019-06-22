@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patientstage',
             name='registry',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='rdrf.Registry'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='rdrf.Registry'),
         ),
     ]

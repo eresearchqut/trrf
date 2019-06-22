@@ -161,10 +161,7 @@ class PatientStageForm(forms.ModelForm):
         if self.instance.pk:
             self.fields['registry'].disabled = True
         registry = self.instance.registry or None
-        stage_qs = (
-            PatientStage.objects.filter(registry=registry).exclude(pk=self.instance.pk) if registry
-            else PatientStage.objects.filter(registry__isnull=True).exclude(pk=self.instance.pk)
-        )
+        stage_qs = PatientStage.objects.filter(registry=registry).exclude(pk=self.instance.pk)
         self.fields['allowed_prev_stages'].queryset = stage_qs
         self.fields['allowed_next_stages'].queryset = stage_qs
 
