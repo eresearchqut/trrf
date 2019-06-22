@@ -1137,6 +1137,11 @@ class PatientStage(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def registry_name(self):
+        return self.registry.name if self.registry else 'All registries'
+
+
 
 class Speciality(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)

@@ -67,6 +67,7 @@ class PatientAddressAdmin(admin.StackedInline):
 
 
 class PatientStageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'registry_name')
     model = PatientStage
     form = PatientStageForm
     extra = 0
