@@ -233,7 +233,7 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.PatientEditView.as_view(), name='patient_edit'),
 
-    re_path(r"^(?P<registry_id>-?\d+)/patientstages/?$",
+    re_path(r"^patientstages/((?P<registry_id>-?\d+)/)?",
             patient_view.PatientStages.as_view(), name='registry_patient_stages'),
 
     re_path(r"^(?P<registry_code>\w+)/permissions/?$",
