@@ -271,7 +271,13 @@ class PatientForm(forms.ModelForm):
 
                     self.fields['stage'].queryset = PatientStage.objects.filter(pk__in=(s.pk for s in allowed_stages))
                 else:
-                    self.fields['stage'].queryset = PatientStage.objects.filter(allowed_prev_stages__isnull=True)
+                    qs = PatientStage.objects.filter(registry=None, allowed_prev_stages__isnull=True)
+                    if self.registry_model:
+                        registry_has_stages_qs = PatientStage.objects.filter(registry=self.registry_model)
+                        if registry_has_stages_qs.exists():
+                            qs = registry_has_stages_qs.filter(allowed_prev_stages__isnull=True)
+
+                    self.fields['stage'].queryset = qs
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()

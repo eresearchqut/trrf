@@ -1142,7 +1142,6 @@ class PatientStage(models.Model):
         return self.registry.name if self.registry else 'All registries'
 
 
-
 class Speciality(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
