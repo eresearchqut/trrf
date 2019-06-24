@@ -152,6 +152,14 @@ class PatientConsentFileForm(forms.ModelForm):
 
 
 class PatientStageForm(forms.ModelForm):
+
+    @staticmethod
+    def get_stages_qs(registry, instance):
+        qs = PatientStage.objects.filter(registry=registry)
+        if instance:
+            return qs.exclude(pk=instance.pk)
+        return qs
+
     class Meta:
         model = PatientStage
         fields = ["registry", "name", "allowed_prev_stages", "allowed_next_stages"]
@@ -160,7 +168,7 @@ class PatientStageForm(forms.ModelForm):
         super(PatientStageForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['registry'].disabled = True
-        stage_qs = PatientStage.objects.filter(registry=self.instance.registry).exclude(pk=self.instance.pk)
+        stage_qs = self.get_stages_qs(self.instance.registry, self.instance)
         self.fields['allowed_prev_stages'].queryset = stage_qs
         self.fields['allowed_next_stages'].queryset = stage_qs
 
@@ -261,7 +269,7 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
-                if self.initial['stage']:
+                if 'stage' in self.initial and self.initial['stage']:
                     current_stage = PatientStage.objects.get(pk=self.initial['stage'])
 
                     allowed_stages = chain(
