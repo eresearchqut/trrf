@@ -253,7 +253,7 @@ class PatientForm(forms.ModelForm):
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
-                if self.initial['stage']:
+                if 'stage' in self.initial and self.initial['stage']:
                     current_stage = PatientStage.objects.get(pk=self.initial['stage'])
 
                     allowed_stages = chain(
