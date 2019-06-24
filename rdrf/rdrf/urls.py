@@ -233,6 +233,9 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/patient/(?P<patient_id>\d+)/edit$",
             patient_view.PatientEditView.as_view(), name='patient_edit'),
 
+    re_path(r"^(?P<registry_id>-?\d+)/patientstages/?$",
+            patient_view.PatientStages.as_view(), name='registry_patient_stages'),
+
     re_path(r"^(?P<registry_code>\w+)/permissions/?$",
             PermissionMatrixView.as_view(), name='permission_matrix'),
 
@@ -251,7 +254,6 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
             consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
 
 
     # ---- Clinician related URLs -----------------

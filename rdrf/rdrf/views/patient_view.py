@@ -1,10 +1,11 @@
 from collections import OrderedDict
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+
 
 from rdrf.models.definition.models import Registry, RegistryFeatures
 from rdrf.models.definition.models import CdePolicy
@@ -18,6 +19,7 @@ from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
 from registry.patients.models import PatientDoctor
 from registry.patients.models import PatientRelative
+from registry.patients.models import PatientStage
 from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
@@ -1107,3 +1109,20 @@ class PatientEditView(View):
                                                          hidden=True)
 
         return (len(fieldlist) == hidden_fields.count())
+
+
+class PatientStages(View):
+
+    def get(self, request, registry_id):
+
+        def transform_stages(stages_qs):
+            return [{
+                'id': stage.id,
+                'name': stage.name
+            } for stage in stages_qs]
+
+        registry = Registry.objects.filter(pk=registry_id).first()
+        stages_qs = PatientStage.objects.filter(registry=registry)
+        return JsonResponse({
+            'stages': transform_stages(stages_qs)
+        })
