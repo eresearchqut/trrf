@@ -1,0 +1,106 @@
+{% extends "registration/registration_base.html" %}
+
+{% load i18n %}
+{% load countries %}
+{% load project_title %}
+{% load recaptcha_site_key %}
+
+{% block extra_js_init %}
+    $('#registration-form')
+        .validate({
+            ignore: ":disabled",
+            rules : {
+                username: {
+                    required: true,
+                    email: true
+                },
+                password1: {
+                    required: true,
+                    minlength: 8,
+                    hasUppercaseLetter: true,
+                    hasLowercaseLetter: true,
+                    hasDigit: true,
+                    hasSpecialCharacter: true
+                },
+                password2: {
+                    required: true,
+                    equalTo: "#id_password1"
+                }
+            }
+        });
+
+        function onValidationError() {
+            function hasErrors(form) {
+                return ($("#" + form + " .form-group").children(".form-control.error").length > 0);
+            }
+        }
+
+{% endblock %}
+
+{% block content %}
+
+    <h3>
+        <strong>{% project_title %} - {% trans "User Registration" %}</strong>
+    </h3>
+
+    <div class="alert alert-danger" style="display: none" id="username-error">
+        <p>
+            <b>{% trans "Username error:  This username already exists, please choose a different username." %}</b>
+        </p>
+        <p>
+            {% trans "If you have already registered and would like to update your data or add another patient, you don't have to register again. Just go to the login page and login with the e-mail address and password you previously registered with." %}
+        </p>
+        <p>
+            {% trans "If you have forgotten your password, please  click on 'forgotten your password?'" %}
+        </p>
+    </div>
+
+    <form id="registration-form" method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div id="login_details">
+                    <div class="form-group">
+                        <div class="alert alert-info">
+                            {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
+                        <input class="form-control" placeholder="{% trans 'Username' %}" id="id_username" maxlength="50" name="username" type="email" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Password' %}" id="id_password1" name="password1" type="password" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Repeat Password' %}" id="id_password2" name="password2" type="password" required />
+                    </div>
+
+                    {% if preferred_languages %}
+                    <div class="form-group">
+                        <select class="form-control" name="preferred_language" id="id_preferred_language" required>
+                            <option value=0>{% trans "Preferred language for communication" %}</option>
+                                {% for preferred_language in preferred_languages %}
+                                    <option value="{{ preferred_language.code }}">{% trans preferred_language.name %}</option>
+                                {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" name="registry_code" value="{{registry_code}}">
+        <input id="id_email" name="email" type="hidden" />
+    </form>
+
+{% endblock %}

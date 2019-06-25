@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from registration.backends.default.views import RegistrationView
 
-from rdrf.workflows.registration import get_registration_workflow
+from rdrf.workflows.registration import get_registration_workflow, get_default_registration_workflow
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
 
@@ -36,6 +36,9 @@ class RdrfRegistrationView(RegistrationView):
                 self.template_name = workflow.get_template()
             else:
                 logger.debug("no workflow")
+        else:
+            workflow = get_default_registration_workflow(request.user, request)
+            self.template_name = workflow.get_template()
 
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -51,7 +54,7 @@ class RdrfRegistrationView(RegistrationView):
     def post(self, request, *args, **kwargs):
         token = request.session.get("token", None)
         logger.debug("token = %s" % token)
-        workflow = get_registration_workflow(token)
+        workflow = get_registration_workflow(token) or get_default_registration_workflow(request.user, request)
         logger.debug("workflow = %s" % workflow)
         form_class = self.get_form_class()
         logger.debug("form class = %s" % form_class)

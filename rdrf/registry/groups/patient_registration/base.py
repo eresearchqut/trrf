@@ -39,6 +39,10 @@ class BaseRegistration(object):
     def process(self, ):
         return
 
+    @abc.abstractmethod
+    def get_registration_workflow(self):
+        return
+
     def _create_django_user(self, request, django_user, registry, is_parent, groups=[], is_clinician=False):
         user_groups = [self._get_group(g) for g in groups]
         if not user_groups:

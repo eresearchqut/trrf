@@ -45,6 +45,16 @@ class ClinicianSignupWorkflow(RegistrationWorkflow):
         return self.request_object.clinician_other.clinician_last_name
 
 
+class FormRegistrationWorkflow(RegistrationWorkflow):
+    def get_template(self):
+        return "registration/registration_form_simple.html"
+
+
+class PatientRegistrationWorkflow(RegistrationWorkflow):
+    def get_template(self):
+        return "registration/registration_form_patient.html"
+
+
 def get_registration_workflow(token):
     try:
         csr = ClinicianSignupRequest.objects.get(token=token,
@@ -52,3 +62,15 @@ def get_registration_workflow(token):
         return ClinicianSignupWorkflow(token, csr)
     except ClinicianSignupRequest.DoesNotExist:
         pass
+
+
+def get_default_registration_workflow(user, request):
+    from django.conf import settings
+
+    if hasattr(settings, "REGISTRATION_CLASS"):
+        from django.utils.module_loading import import_string
+        registration_class = import_string(settings.REGISTRATION_CLASS)
+        reg = registration_class(user, request)
+        return reg.get_registration_workflow()
+    else:
+        return FormRegistrationWorkflow(None, None)
