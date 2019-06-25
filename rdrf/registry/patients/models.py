@@ -185,11 +185,11 @@ class Patient(models.Model):
     rdrf_registry = models.ManyToManyField(
         Registry,
         related_name='patients',
-        verbose_name=_("Rdrf Registry"))
+        verbose_name=_("Registry"))
     working_groups = models.ManyToManyField(
         registry.groups.models.WorkingGroup,
         related_name="my_patients",
-        verbose_name=_("Centre"))
+        verbose_name=_("Working Group"))
     consent = models.BooleanField(
         null=False,
         blank=False,
