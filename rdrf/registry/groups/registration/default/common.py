@@ -3,7 +3,7 @@ import logging
 from registry.groups.models import WorkingGroup
 from rdrf.workflows.registration import FormRegistrationWorkflow
 
-from .base import BaseRegistration
+from ..base import BaseRegistration
 
 
 logger = logging.getLogger(__name__)
@@ -15,6 +15,14 @@ class DefaultUserRegistration(BaseRegistration):
         self.token = request.session.get("token", None)
         self.user = user
         self.request = request
+
+    def _create_django_user(self, request, django_user, registry, groups=[]):
+        user_groups = [self._get_group(g) for g in groups]
+        if user_groups:
+            django_user.groups.set([g.id for g in user_groups])
+        django_user.registry.set([registry, ] if registry else [])
+        django_user.is_staff = True
+        return django_user
 
     def process(self):
         registry_code = self.request.POST['registry_code']

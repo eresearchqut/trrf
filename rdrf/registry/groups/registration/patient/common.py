@@ -1,21 +1,34 @@
 import logging
 
+from django.utils.translation import get_language
+
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.models.workflow_models import ClinicianSignupRequest
 
 from registration.models import RegistrationProfile
-from registry.patients.models import ParentGuardian, Patient, PatientAddress
+from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
 from registry.groups.models import WorkingGroup
 from rdrf.workflows.registration import PatientRegistrationWorkflow
-
-from .base import BaseRegistration
+from ..base import BaseRegistration
 
 
 logger = logging.getLogger(__name__)
 
 
 class PatientRegistration(BaseRegistration):
+
+    _ADDRESS_TYPE = "Postal"
+    _GENDER_CODE = {
+        "M": 1,
+        "F": 2,
+        "I": 3
+    }
+
+    _TRUE_FALSE = {
+        'true': True,
+        'false': False
+    }
 
     def __init__(self, user, request):
         self.token = request.session.get("token", None)
@@ -156,3 +169,42 @@ class PatientRegistration(BaseRegistration):
             country=request.POST["parent_guardian_country"] if same_address else request.POST["country"]
         )
         return address
+
+    def _create_django_user(self, request, django_user, registry, is_parent, groups=[], is_clinician=False):
+        user_groups = [self._get_group(g) for g in groups]
+        if not user_groups:
+            if is_parent:
+                user_group = self._get_group("Parents")
+            elif is_clinician:
+                user_group = self._get_group("Clinical Staff")
+            else:
+                user_group = self._get_group("Patients")
+            django_user.groups.set([user_group.id, ] if user_group else [])
+        else:
+            django_user.groups.set([g.id for g in user_groups])
+
+        if is_parent:
+            django_user.first_name = request.POST['parent_guardian_first_name']
+            django_user.last_name = request.POST['parent_guardian_last_name']
+        elif is_clinician:
+            logger.debug("setting up clinician")
+            # clinician signup only exists on subclass ..
+            django_user.first_name = self.clinician_signup.clinician_other.clinician_first_name
+            django_user.last_name = self.clinician_signup.clinician_other.clinician_last_name
+        else:
+            django_user.first_name = request.POST['first_name']
+            django_user.last_name = request.POST['surname']
+        django_user.registry.set([registry, ] if registry else [])
+        django_user.is_staff = True
+        return django_user
+
+
+    @property
+    def language(self):
+        return get_language()
+
+    def get_address_type(self, address_type):
+        address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
+        return address_type_obj
+
+

@@ -25,14 +25,6 @@ class BaseRegistration(object):
     def get_registration_workflow(self):
         return
 
-    def _create_django_user(self, request, django_user, registry, groups=[]):
-        user_groups = [self._get_group(g) for g in groups]
-        if user_groups:
-            django_user.groups.set([g.id for g in user_groups])
-        django_user.registry.set([registry, ] if registry else [])
-        django_user.is_staff = True
-        return django_user
-
     def _get_registry_object(self, registry_name):
         try:
             registry = Registry.objects.get(code__iexact=registry_name)
@@ -46,4 +38,3 @@ class BaseRegistration(object):
             return group
         except Group.DoesNotExist:
             return None
-
