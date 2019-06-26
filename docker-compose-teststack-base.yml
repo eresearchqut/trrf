@@ -21,6 +21,3 @@ services:
       - docker/dev/envs/postgres
     ports:
       - "5432"
-
-  cachetest:
-    image: memcached:1.4

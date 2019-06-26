@@ -328,14 +328,13 @@ else:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'rdrf_cache',
+            'LOCATION': 'trrf_django_cache',
             'TIMEOUT': 3600,
             'MAX_ENTRIES': 600
         }
     }
 
-    SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-    SESSION_FILE_PATH = WRITABLE_DIRECTORY
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # #
 # # LOGGING
