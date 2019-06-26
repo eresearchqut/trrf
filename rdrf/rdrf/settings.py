@@ -540,7 +540,7 @@ AUTO_LOGOUT_WARN_AFTER_MS = env.get('auto_logout_warn_after_ms', 120 * 1000)
 # Log out the user if they have been warned but didn't react for this many milliseconds
 AUTO_LOGOUT_WARNED_USER_AFTER_MS = env.get('auto_logout_warned_user_after_ms', 30 * 1000)
 
-REGISTRATION_CLASS = "registry.groups.registration.default.common.DefaultUserRegistration"
+REGISTRATION_CLASS = "registry.groups.registration.patient.common.PatientRegistration"
 
 # In case you set up customised email templates for the "new-patient" notification, you should
 # set this to False, otherwise the default registration email will also be sent to the user.

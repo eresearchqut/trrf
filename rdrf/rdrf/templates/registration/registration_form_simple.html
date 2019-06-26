@@ -6,6 +6,10 @@
 {% load recaptcha_site_key %}
 
 {% block extra_js_init %}
+
+    $("#id_date_of_birth").datepicker(dateOptions);
+    setUpStateOnCountryChange("#id_country", "#id_state");
+
     $('#registration-form')
         .validate({
             ignore: ":disabled",
@@ -57,6 +61,8 @@
 
     <form id="registration-form" method="POST">
         {% csrf_token %}
+        <input type="hidden" name="registry_code" value="{{registry_code}}">
+        <input id="id_email" name="email" type="hidden" />
         <div class="row">
             <div class="col-md-6">
                 <div id="login_details">
@@ -65,7 +71,6 @@
                             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
                         </div>
                     </div>
-
                     <div class="form-group">
                         <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
                         <input class="form-control" placeholder="{% trans 'Username' %}" id="id_username" maxlength="50" name="username" type="email" required />
@@ -88,19 +93,77 @@
                     </div>
                     {% endif %}
                 </div>
-                <br>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
+            </div>
+            <div class="col-md-6" >
+                <div id="patient_form">
+                    <h3>{% trans "Patient Details" %}</h3>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Given Names' %}" id="id_first_name" maxlength="30" name="first_name" type="text" required />
                     </div>
-                    <div class="col-md-6">
-                        <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Surname' %}" id="id_surname" maxlength="30" name="surname" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Date of Birth' %}" id="id_date_of_birth" name="date_of_birth" type="text" required />
+                        <div class="text-muted">YYYY-MM-DD</div>
+                    </div>
+                    <div class="form-group">
+                        <fieldset data-toggle="tooltip" data-placement="left" data-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
+                        <p>
+                            <label>{% trans "Male" %}</label>
+                            <input type="radio" id="id_gender_male" name="gender" value="1" required />
+                        </p>
+
+                        <p>
+                            <label>{% trans "Female" %}</label>
+                            <input type="radio" id="id_gender_female" name="gender" value="2" />
+                        </p>
+
+                        <p>
+                            <label>{% trans "Indeterminate" %}</label>
+                            <input type="radio" id="id_gender_ind" name="gender" value="3" />
+                        </p>
+                    </fieldset>
+                </div>
+
+                <div id="patient-address-div">
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Address' %}" id="id_address" maxlength="100" name="address" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Suburb / Town' %}" id="id_suburb" maxlength="30" name="suburb" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" placeholder="{% trans 'Country' %}" id="id_country" name="country" required title="{% trans 'Country is required' %}">
+                            <option selected value="0">{% trans "Country" %}</option>
+                            {% countries as countries %}
+                            {% for con in countries %}
+                                <option value="{{con.alpha_2}}">{{con.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" placeholder="State / County / Province / Region" id="id_state" maxlength="30" name="state" >
+                            <option value="0">{% trans "State / County / Province / Region" %}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Zip / Postal Code' %}" id="id_postcode" maxlength="30" name="postcode" type="text" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" placeholder="{% trans 'Phone Number' %}" id="id_phone_number" name="phone_number" type="text" />
                     </div>
                 </div>
             </div>
-        </div>
-        <input type="hidden" name="registry_code" value="{{registry_code}}">
-        <input id="id_email" name="email" type="hidden" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+                </div>
+            </div>
     </form>
 
 {% endblock %}
