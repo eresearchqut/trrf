@@ -90,7 +90,11 @@ function defaults {
     : "${RUNSERVER_CMD:=runserver}"
     : "${CACHESERVER:=cache}"
     : "${CACHEPORT:=11211}"
-    : "${MEMCACHE:=${CACHESERVER}:${CACHEPORT}}"
+
+    MEMCACHE=""
+    if [[ "$WAIT_FOR_CACHESERVER" ]] ; then
+      : "${MEMCACHE:=${CACHESERVER}:${CACHEPORT}}"
+    fi
 
     # variables to control where tests will look for the app (aloe via selenium hub)
     : "${TEST_APP_SCHEME:=http}"

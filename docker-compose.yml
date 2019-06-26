@@ -34,10 +34,6 @@ services:
     ports:
       - "5432"
 
-  cache:
-    # TODO time to upgrade?
-    image: memcached:1.4
-
   runserver:
     build:
       context: .
@@ -56,7 +52,6 @@ services:
       - db
       - clinicaldb
       - reportingdb
-      - cache
 
   node:
     build:

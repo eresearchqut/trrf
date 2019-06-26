@@ -20,4 +20,3 @@ services:
       - dbtest
       - dbclinicaltest
       - dbreportingtest
-      - cachetest

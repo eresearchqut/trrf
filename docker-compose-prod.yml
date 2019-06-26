@@ -1,8 +1,6 @@
 version: '3.7'
 
 services:
-  cache:
-    image: memcached:1.4
 
   uwsgi:
     # image: eresearchqut/trrf:${TRRF_VERSION}
@@ -14,8 +12,6 @@ services:
       - .env
     volumes:
       - ./data/prod/:/data
-    depends_on:
-      - cache
 
   nginx:
     # TODO hardcoded to the R4 account URL. Set env var instead?
