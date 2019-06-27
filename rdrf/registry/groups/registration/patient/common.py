@@ -1,7 +1,7 @@
 import logging
 
 from registry.groups.models import WorkingGroup
-from rdrf.workflows.registration import FormRegistrationWorkflow
+from rdrf.workflows.registration import PatientRegistrationWorkflow
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
 from registration.models import RegistrationProfile
@@ -55,4 +55,4 @@ class PatientRegistration(BaseRegistration):
         logger.debug("Registration process - sent notification for NEW_PATIENT")
 
     def get_registration_workflow(self):
-        return FormRegistrationWorkflow(None, None)
+        return PatientRegistrationWorkflow(None, None)

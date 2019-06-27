@@ -45,14 +45,14 @@ class ClinicianSignupWorkflow(RegistrationWorkflow):
         return self.request_object.clinician_other.clinician_last_name
 
 
-class FormRegistrationWorkflow(RegistrationWorkflow):
-    def get_template(self):
-        return "registration/registration_form_simple.html"
-
-
 class PatientRegistrationWorkflow(RegistrationWorkflow):
     def get_template(self):
         return "registration/registration_form_patient.html"
+
+
+class PatientWithParentRegistrationWorkflow(RegistrationWorkflow):
+    def get_template(self):
+        return "registration/registration_form_patient_with_parent.html"
 
 
 def get_registration_workflow(token):
@@ -73,4 +73,4 @@ def get_default_registration_workflow(user, request):
         reg = registration_class(user, request)
         return reg.get_registration_workflow()
     else:
-        return FormRegistrationWorkflow(None, None)
+        return PatientRegistrationWorkflow(None, None)

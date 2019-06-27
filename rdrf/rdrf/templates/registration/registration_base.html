@@ -53,18 +53,29 @@
                 'defaultDate': '-30Y'
             }
 
-            function setUpStateOnCountryChange(countrySelector, stateSelector) {
+            function lookupStatesForCountry(country, stateSelector) {
                 var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
-
-                $(countrySelector).change(function() {
-                    var states = $(stateSelector);
-                    states.empty();
-                    states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
-                    $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
-                        $.each( data, function( key, val ) {
-                            states.append($('<option>', { value : val.code }).text(val.name));
-                        });
+                var states = $(stateSelector);
+                states.empty();
+                states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
+                $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
+                    $.each( data, function( key, val ) {
+                        states.append($('<option>', { value : val.code }).text(val.name));
                     });
+                });
+            }
+
+            function setStatesOnLoad(countrySelector) {
+                var country = $(countrySelector).val();
+                if (country !== "-1") {
+                    lookupStatesForCountry(country, "#id_state");
+                }
+            }
+
+
+            function setUpStateOnCountryChange(countrySelector, stateSelector) {
+                $(countrySelector).change(function() {
+                    lookupStatesForCountry(this.value, stateSelector)
                 });
             }
 
@@ -101,55 +112,6 @@
                     }
                 });
             });
-
-            $.validator.addMethod("validDate", function (value) {
-                var m = value.match(/\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*/);
-                if (m == null) {
-                    return false;
-                }
-                var year = parseInt(m[1]);
-                var month = parseInt(m[2]);
-                var day = parseInt(m[3]);
-
-                function isLeapYear(year) {
-                    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
-                }
-
-                function daysInMonth(year, month) {
-                    return [31, isLeapYear(year) ? 29 :28 , 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
-                }
-
-                return year >= 1900 && month >= 1 && month <= 12 && day >=1 && day <= daysInMonth(year, month);
-            }, gettext("Please enter a valid date in the format yyyy-mm-dd"));
-
-            $.validator.addMethod(
-                "dateCorrect",
-                function(value, element) {
-                    return Date.parse(value);
-                },
-                gettext("Date is not correct")
-            );
-
-            jQuery.validator.addMethod('selectcheck', function (value) {
-                return (value != '0');
-            }, gettext("This field is required."));
-
-            function addNeedsCharacterValidatorMethod(characterClass, pattern) {
-                // ex. "uppercase letter" -> "hasUppercaseLetter"
-                var methodName = $.camelCase(["has"].concat(characterClass.split(" ")).join("-"));
-                $.validator.addMethod(
-                    methodName,
-                    function(value, element) {
-                        return value.search(pattern) !== -1;
-                    },
-
-                    gettext("Must contain at least 1 " + characterClass + ".")
-                );
-            }
-            addNeedsCharacterValidatorMethod("uppercase letter", /[A-Z]/);
-            addNeedsCharacterValidatorMethod("lowercase letter", /[a-z]/);
-            addNeedsCharacterValidatorMethod("digit", /\d/);
-            addNeedsCharacterValidatorMethod("special character", /[!@#\$%\^&\*]/);
 
             $('[data-toggle="tooltip"]').tooltip();
 

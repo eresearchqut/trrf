@@ -9,7 +9,7 @@ from rdrf.models.workflow_models import ClinicianSignupRequest
 from registration.models import RegistrationProfile
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
 from registry.groups.models import WorkingGroup
-from rdrf.workflows.registration import PatientRegistrationWorkflow
+from rdrf.workflows.registration import PatientWithParentRegistrationWorkflow
 from ..base import BaseRegistration
 
 
@@ -112,7 +112,7 @@ class ParentWithPatientRegistration(BaseRegistration):
         logger.debug("Registration process - sent notification for NEW_PATIENT")
 
     def get_registration_workflow(self):
-        return PatientRegistrationWorkflow(None, None)
+        return PatientWithParentRegistrationWorkflow(None, None)
 
     def _create_parent(self, request):
         parent_guardian = ParentGuardian.objects.create(

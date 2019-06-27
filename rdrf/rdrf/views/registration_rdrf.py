@@ -9,7 +9,7 @@ from registration.backends.default.views import RegistrationView
 from rdrf.workflows.registration import get_registration_workflow, get_default_registration_workflow
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
-
+from rdrf.helpers.utils import get_preferred_languages
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,7 @@ class RdrfRegistrationView(RegistrationView):
         token = request.session.get("token", None)
         logger.debug("token = %s" % token)
         workflow = get_registration_workflow(token) or get_default_registration_workflow(request.user, request)
+        self.template_name = workflow.get_template()
         logger.debug("workflow = %s" % workflow)
         form_class = self.get_form_class()
         logger.debug("form class = %s" % form_class)
@@ -69,22 +70,8 @@ class RdrfRegistrationView(RegistrationView):
     def get_context_data(self, **kwargs):
         context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
-        context["preferred_languages"] = self._get_preferred_languages()
+        context["preferred_languages"] = get_preferred_languages()
         return context
-
-    def _get_preferred_languages(self):
-        # Registration allows choice of preferred language
-        # But we allow different sites to expose different values
-        # over time without code change via env --> settings
-
-        # The default list is english only which we don't bother to show
-        from rdrf.helpers.utils import get_supported_languages
-        languages = get_supported_languages()
-
-        if len(languages) == 1 and languages[0].code == "en":
-            return []
-        else:
-            return languages
 
     def form_valid(self, form):
         # this is only for user validation
