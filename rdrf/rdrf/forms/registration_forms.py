@@ -8,22 +8,22 @@ from registration.forms import RegistrationForm
 from rdrf.helpers.utils import get_preferred_languages
 
 
+def _tuple(code, name):
+    return code, _(name)
+
+
 def _countries():
     countries = sorted(pycountry.countries, key=attrgetter('name'))
-    result = [("-1", _("Country"))]
-    result.extend([(c.alpha_2, c.name) for c in countries])
-    return result
+    result = [_tuple("-1", "Country")]
+    return result + [_tuple(c.alpha_2, c.name) for c in countries]
 
 
 def _preferred_languages():
     languages = get_preferred_languages()
-    if languages:
-        return [(l.code, _(l.name)) for l in languages]
-    else:
-        return [('en', _('English'))]
+    return [_tuple(l.code, l.name) for l in languages] if languages else [_tuple('en', 'English')]
 
 
-class BaseRegistrationForm(RegistrationForm):
+class PatientRegistrationForm(RegistrationForm):
 
     placeholders = {
         'username': _("Username"),
@@ -45,7 +45,7 @@ class BaseRegistrationForm(RegistrationForm):
         ('3', _("Indeterminate"))
     ]
 
-    radio_field_names = ['gender']
+    no_placeholder_fields = ['gender']
 
     country_choices = _countries()
 
@@ -54,7 +54,7 @@ class BaseRegistrationForm(RegistrationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields:
-            if field not in self.radio_field_names:
+            if field not in self.no_placeholder_fields:
                 self.fields[field].widget.attrs['class'] = 'form-control'
                 self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field, _(''))
 
@@ -66,15 +66,15 @@ class BaseRegistrationForm(RegistrationForm):
     address = CharField(required=True, max_length=100)
     suburb = CharField(required=True, max_length=30)
     country = ChoiceField(required=True, widget=Select, choices=country_choices, initial="-1")
-    state = CharField(required=False,  widget=Select)
+    state = CharField(required=True, widget=Select)
     postcode = CharField(required=True, max_length=30)
     phone_number = CharField(required=True, max_length=30)
     registry_code = CharField(required=True)
 
 
-class PatientWithParentRegistrationForm(BaseRegistrationForm):
+class PatientWithParentRegistrationForm(PatientRegistrationForm):
 
-    BaseRegistrationForm.placeholders.update({
+    PatientRegistrationForm.placeholders.update({
         'parent_guardian_first_name': _("Parent/Guardian Given Names"),
         'parent_guardian_last_name': _("Parent/Guardian Surname"),
         'parent_guardian_date_of_birth': _("Parent/Guardian Date of Birth"),
@@ -86,12 +86,12 @@ class PatientWithParentRegistrationForm(BaseRegistrationForm):
         'parent_guardian_phone': _('Parent/Guardian Phone Number')
     })
 
-    BaseRegistrationForm.radio_field_names.extend(['parent_guardian_gender', 'same_address'])
+    PatientRegistrationForm.no_placeholder_fields.extend(['parent_guardian_gender', 'same_address'])
 
     tooltip_info = {
         'parent_guardian_address': _("Please enter an address through which we can contact you"),
-        'parent_guardian_phone':  _('''Please enter a phone number through which we can contact you, 
-                                       including the country code (e.g. +61 for Australia)''')
+        'parent_guardian_phone': _('''Please enter a phone number through which we can contact you,
+                                      including the country code (e.g. +61 for Australia)''')
     }
 
     def __init__(self, *args, **kwargs):
@@ -104,12 +104,12 @@ class PatientWithParentRegistrationForm(BaseRegistrationForm):
     parent_guardian_first_name = CharField(required=True)
     parent_guardian_last_name = CharField(required=True)
     parent_guardian_date_of_birth = DateField(required=True)
-    parent_guardian_gender = ChoiceField(choices=BaseRegistrationForm.gender_choices, widget=RadioSelect, required=True)
+    parent_guardian_gender = ChoiceField(choices=PatientRegistrationForm.gender_choices, widget=RadioSelect, required=True)
     parent_guardian_address = CharField(required=True, max_length=100)
     parent_guardian_suburb = CharField(required=True, max_length=30)
-    parent_guardian_country = ChoiceField(required=True, widget=Select, choices=BaseRegistrationForm.country_choices,
+    parent_guardian_country = ChoiceField(required=True, widget=Select, choices=PatientRegistrationForm.country_choices,
                                           initial="-1")
-    parent_guardian_state = CharField(required=False,  widget=Select, max_length=30)
+    parent_guardian_state = CharField(required=False, widget=Select, max_length=30)
     parent_guardian_postcode = CharField(required=True, max_length=30)
     parent_guardian_phone = CharField(required=True, max_length=30)
     same_address = BooleanField(required=False)

@@ -19,32 +19,28 @@ class BaseRegistration(object):
         self.request = request
         self.form = form
 
+    def set_user(self, user):
+        self.user = user
+
     @abc.abstractmethod
     def process(self, ):
-        return
+        raise NotImplementedError
 
     @abc.abstractmethod
     def get_registration_workflow(self):
-        return
+        raise NotImplementedError
 
     def _get_registry_object(self, registry_name):
-        try:
-            registry = Registry.objects.get(code__iexact=registry_name)
-            return registry
-        except Registry.DoesNotExist:
-            return None
+        return Registry.objects.filter(code__iexact=registry_name).first()
 
     def _get_group(self, group_name):
-        try:
-            group, created = Group.objects.get_or_create(name=group_name)
-            return group
-        except Group.DoesNotExist:
-            return None
+        group, created = Group.objects.get_or_create(name=group_name)
+        return group
 
     def _create_patient_address(self, patient, address_type="Postal"):
         form_data = self.form.cleaned_data
         same_address = form_data.get("same_address", False)
-        address = PatientAddress.objects.create(
+        return PatientAddress.objects.create(
             patient=patient,
             address_type=self.get_address_type(address_type),
             address=form_data["parent_guardian_address"] if same_address else form_data["address"],
@@ -53,7 +49,6 @@ class BaseRegistration(object):
             postcode=form_data["parent_guardian_postcode"] if same_address else form_data["postcode"],
             country=form_data["parent_guardian_country"] if same_address else form_data["country"]
         )
-        return address
 
     def _create_patient(self, registry, working_group, user, set_link_to_user=True):
 

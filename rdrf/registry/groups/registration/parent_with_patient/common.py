@@ -7,7 +7,7 @@ from rdrf.services.io.notifications.email_notification import process_notificati
 from rdrf.models.workflow_models import ClinicianSignupRequest
 
 from registration.models import RegistrationProfile
-from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
+from registry.patients.models import ParentGuardian, Patient
 from registry.groups.models import WorkingGroup
 
 from rdrf.workflows.registration import PatientWithParentRegistrationWorkflow
@@ -157,9 +157,6 @@ class ParentWithPatientRegistration(BaseRegistration):
         django_user.is_staff = True
         return django_user
 
-
     @property
     def language(self):
         return get_language()
-
-

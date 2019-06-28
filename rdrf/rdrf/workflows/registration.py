@@ -62,15 +62,3 @@ def get_registration_workflow(token):
         return ClinicianSignupWorkflow(token, csr)
     except ClinicianSignupRequest.DoesNotExist:
         pass
-
-
-def get_default_registration_workflow(user, request, form):
-    from django.conf import settings
-
-    if hasattr(settings, "REGISTRATION_CLASS"):
-        from django.utils.module_loading import import_string
-        registration_class = import_string(settings.REGISTRATION_CLASS)
-        reg = registration_class(user, request, form)
-        return reg.get_registration_workflow()
-    else:
-        return PatientRegistrationWorkflow(None, None)

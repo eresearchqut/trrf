@@ -8,7 +8,6 @@ from django.db import models
 from django.dispatch import receiver
 
 from registration.signals import user_activated
-from registration.signals import user_registered
 
 from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
