@@ -18,6 +18,14 @@ class RdrfRegistrationView(RegistrationView):
 
     registry_code = None
 
+    def load_registration_class(self, user, request, form):
+        from django.conf import settings
+        if hasattr(settings, "REGISTRATION_CLASS"):
+            from django.utils.module_loading import import_string
+            registration_class = import_string(settings.REGISTRATION_CLASS)
+            return registration_class(user, request, form)
+        return None
+
     def dispatch(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
         return super().dispatch(request, *args, **kwargs)
@@ -26,6 +34,8 @@ class RdrfRegistrationView(RegistrationView):
         logger.debug("RdrfRegistrationView get")
         self.registry_code = kwargs['registry_code']
         workflow = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
         token = request.GET.get("t", None)
         if token:
             logger.debug("token = %s" % token)
@@ -37,11 +47,9 @@ class RdrfRegistrationView(RegistrationView):
             else:
                 logger.debug("no workflow")
         else:
-            workflow = get_default_registration_workflow(request.user, request)
+            workflow = get_default_registration_workflow(request.user, request, form)
             self.template_name = workflow.get_template()
 
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
         context = self.get_context_data(form=form)
         context["is_mobile"] = request.user_agent.is_mobile
         if workflow:
@@ -54,13 +62,12 @@ class RdrfRegistrationView(RegistrationView):
     def post(self, request, *args, **kwargs):
         token = request.session.get("token", None)
         logger.debug("token = %s" % token)
-        workflow = get_registration_workflow(token) or get_default_registration_workflow(request.user, request)
-        self.template_name = workflow.get_template()
-        logger.debug("workflow = %s" % workflow)
         form_class = self.get_form_class()
         logger.debug("form class = %s" % form_class)
         form = self.get_form(form_class)
-
+        workflow = get_registration_workflow(token) or get_default_registration_workflow(request.user, request, form)
+        self.template_name = workflow.get_template()
+        logger.debug("workflow = %s" % workflow)
         if form.is_valid():
             logger.debug("RdrfRegistrationView post form valid")
             return self.form_valid(form)
@@ -84,6 +91,9 @@ class RdrfRegistrationView(RegistrationView):
             try:
                 new_user = self.register(form)
                 logger.debug("RdrfRegistrationView form_valid - new_user registered")
+                registration = self.load_registration_class(new_user, self.request, form)
+                if registration:
+                    registration.process()
                 username = new_user.username
                 success_url = self.get_success_url(new_user)
             except Exception:

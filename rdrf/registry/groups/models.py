@@ -254,20 +254,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return links
 
 
-@receiver(user_registered)
-def user_registered_callback(sender, user, request, **kwargs):
-    from django.conf import settings
-    logger.debug("user registered callback")
-
-    if hasattr(settings, "REGISTRATION_CLASS"):
-        logger.debug("user registered callback")
-
-        from django.utils.module_loading import import_string
-        registration_class = import_string(settings.REGISTRATION_CLASS)
-        reg = registration_class(user, request)
-        reg.process()
-
-
 @receiver(user_activated)
 def user_activated_callback(sender, user, request, **kwargs):
     from rdrf.services.io.notifications.email_notification import process_notification

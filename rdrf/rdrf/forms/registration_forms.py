@@ -69,6 +69,7 @@ class BaseRegistrationForm(RegistrationForm):
     state = CharField(required=False,  widget=Select)
     postcode = CharField(required=True, max_length=30)
     phone_number = CharField(required=True, max_length=30)
+    registry_code = CharField(required=True)
 
 
 class PatientWithParentRegistrationForm(BaseRegistrationForm):
@@ -112,3 +113,10 @@ class PatientWithParentRegistrationForm(BaseRegistrationForm):
     parent_guardian_postcode = CharField(required=True, max_length=30)
     parent_guardian_phone = CharField(required=True, max_length=30)
     same_address = BooleanField(required=False)
+
+    def _clean_fields(self):
+        base_required_fields = ['address', 'suburb', 'country', 'state', 'postcode', 'phone_number']
+        if self.data.get('same_address', False):
+            for f in base_required_fields:
+                self.fields[f].required = False
+        super()._clean_fields()

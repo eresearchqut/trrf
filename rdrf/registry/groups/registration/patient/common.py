@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 class PatientRegistration(BaseRegistration):
 
-    def __init__(self, user, request):
-        super().__init__(user, request)
+    def __init__(self, user, request, form):
+        super().__init__(user, request, form)
 
-    def _create_django_user(self, request, django_user, registry, groups=[]):
+    def _create_django_user(self, django_user, registry, groups=[]):
         user_groups = [self._get_group(g) for g in groups]
         if user_groups:
             django_user.groups.set([g.id for g in user_groups])
@@ -25,14 +25,15 @@ class PatientRegistration(BaseRegistration):
         django_user.is_staff = True
         user_group = self._get_group("Patients")
         django_user.groups.set([user_group.id, ] if user_group else [])
-        django_user.first_name = request.POST['first_name']
-        django_user.last_name = request.POST['surname']
+        form_data = self.form.cleaned_data
+        django_user.first_name = form_data['first_name']
+        django_user.last_name = form_data['surname']
         return django_user
 
     def process(self):
-        registry_code = self.request.POST['registry_code']
+        registry_code = self.form.cleaned_data['registry_code']
         registry = self._get_registry_object(registry_code)
-        user = self._create_django_user(self.request, self.user, registry)
+        user = self._create_django_user(self.user, registry)
         # Initially UNALLOCATED
         working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP,
                                                                    registry=registry)
@@ -42,7 +43,7 @@ class PatientRegistration(BaseRegistration):
         logger.debug("Registration process - created user")
         patient = self._create_patient(registry, working_group, user)
         logger.debug("Registration process - created patient")
-        address = self._create_patient_address(patient, self.request)
+        address = self._create_patient_address(patient)
         address.save()
         logger.debug("Registration process - created patient address")
 

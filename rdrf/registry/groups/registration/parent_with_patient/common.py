@@ -9,7 +9,9 @@ from rdrf.models.workflow_models import ClinicianSignupRequest
 from registration.models import RegistrationProfile
 from registry.patients.models import ParentGuardian, Patient, PatientAddress, AddressType
 from registry.groups.models import WorkingGroup
+
 from rdrf.workflows.registration import PatientWithParentRegistrationWorkflow
+
 from ..base import BaseRegistration
 
 
@@ -18,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 class ParentWithPatientRegistration(BaseRegistration):
 
-    def __init__(self, user, request):
-        super().__init__(user, request)
+    def __init__(self, user, request, form):
+        super().__init__(user, request, form)
         self.token = request.session.get("token", None)
         if self.token:
             try:
@@ -32,11 +34,7 @@ class ParentWithPatientRegistration(BaseRegistration):
 
     def _do_clinician_signup(self, registry_model):
         from rdrf.helpers.utils import get_site
-        user = self._create_django_user(self.request,
-                                        self.user,
-                                        registry_model,
-                                        is_parent=False,
-                                        is_clinician=True)
+        user = self._create_django_user(self.user, registry_model, is_parent=False, is_clinician=True)
 
         logger.debug("created django user for clinician")
 
@@ -70,15 +68,15 @@ class ParentWithPatientRegistration(BaseRegistration):
         logger.debug("Registration process - sent activation link for registered clinician")
 
     def process(self):
-        registry_code = self.request.POST['registry_code']
+        registry_code = self.form.cleaned_data['registry_code']
         registry = self._get_registry_object(registry_code)
-        preferred_language = self.request.POST.get("preferred_language", "en")
+        preferred_language = self.form.cleaned_data.get("preferred_language", "en")
         if self.clinician_signup:
             logger.debug("signing up clinician")
             self._do_clinician_signup(registry)
             return
 
-        user = self._create_django_user(self.request, self.user, registry, is_parent=True)
+        user = self._create_django_user(self.user, registry, is_parent=True)
         user.preferred_language = preferred_language
         # Initially UNALLOCATED
         working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP,
@@ -91,11 +89,11 @@ class ParentWithPatientRegistration(BaseRegistration):
         patient = self._create_patient(registry, working_group, user, set_link_to_user=False)
         logger.debug("Registration process - created patient")
 
-        address = self._create_patient_address(patient, self.request)
+        address = self._create_patient_address(patient)
         address.save()
         logger.debug("Registration process - created patient address")
 
-        parent_guardian = self._create_parent(self.request)
+        parent_guardian = self._create_parent()
 
         parent_guardian.patient.add(patient)
         parent_guardian.user = user
@@ -114,22 +112,23 @@ class ParentWithPatientRegistration(BaseRegistration):
     def get_registration_workflow(self):
         return PatientWithParentRegistrationWorkflow(None, None)
 
-    def _create_parent(self, request):
+    def _create_parent(self):
+        form_data = self.form.cleaned_data
         parent_guardian = ParentGuardian.objects.create(
-            first_name=request.POST["parent_guardian_first_name"],
-            last_name=request.POST["parent_guardian_last_name"],
-            date_of_birth=request.POST["parent_guardian_date_of_birth"],
-            gender=request.POST["parent_guardian_gender"],
-            address=request.POST["parent_guardian_address"],
-            suburb=request.POST["parent_guardian_suburb"],
-            state=request.POST["parent_guardian_state"],
-            postcode=request.POST["parent_guardian_postcode"],
-            country=request.POST["parent_guardian_country"],
-            phone=request.POST["parent_guardian_phone"],
+            first_name=form_data["parent_guardian_first_name"],
+            last_name=form_data["parent_guardian_last_name"],
+            date_of_birth=form_data["parent_guardian_date_of_birth"],
+            gender=form_data["parent_guardian_gender"],
+            address=form_data["parent_guardian_address"],
+            suburb=form_data["parent_guardian_suburb"],
+            state=form_data["parent_guardian_state"],
+            postcode=form_data["parent_guardian_postcode"],
+            country=form_data["parent_guardian_country"],
+            phone=form_data["parent_guardian_phone"],
         )
         return parent_guardian
 
-    def _create_django_user(self, request, django_user, registry, is_parent, groups=[], is_clinician=False):
+    def _create_django_user(self, django_user, registry, is_parent, groups=[], is_clinician=False):
         user_groups = [self._get_group(g) for g in groups]
         if not user_groups:
             if is_parent:
@@ -142,17 +141,18 @@ class ParentWithPatientRegistration(BaseRegistration):
         else:
             django_user.groups.set([g.id for g in user_groups])
 
+        form_data = self.form.cleaned_data
         if is_parent:
-            django_user.first_name = request.POST['parent_guardian_first_name']
-            django_user.last_name = request.POST['parent_guardian_last_name']
+            django_user.first_name = form_data['parent_guardian_first_name']
+            django_user.last_name = form_data['parent_guardian_last_name']
         elif is_clinician:
             logger.debug("setting up clinician")
             # clinician signup only exists on subclass ..
             django_user.first_name = self.clinician_signup.clinician_other.clinician_first_name
             django_user.last_name = self.clinician_signup.clinician_other.clinician_last_name
         else:
-            django_user.first_name = request.POST['first_name']
-            django_user.last_name = request.POST['surname']
+            django_user.first_name = form_data['first_name']
+            django_user.last_name = form_data['surname']
         django_user.registry.set([registry, ] if registry else [])
         django_user.is_staff = True
         return django_user

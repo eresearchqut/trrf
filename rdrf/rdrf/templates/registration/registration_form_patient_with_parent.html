@@ -14,7 +14,7 @@
     setStatesOnLoad("#id_parent_guardian_country");
     setUpStateOnCountryChange("#id_parent_guardian_country", "#id_parent_guardian_state");
 
-    $("#same_address").on("click", function() {
+    $("#id_same_address").on("click", function() {
         var self = this;
         $("#patient-address-div").slideToggle("fast", function() {
             var disabled = $(self).prop('checked');
