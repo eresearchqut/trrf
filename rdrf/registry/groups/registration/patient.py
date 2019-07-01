@@ -1,7 +1,6 @@
 import logging
 
 from registry.groups.models import WorkingGroup
-from rdrf.workflows.registration import PatientRegistrationWorkflow
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
 from registration.models import RegistrationProfile
@@ -48,5 +47,5 @@ class PatientRegistration(BaseRegistration):
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)
         logger.debug("Registration process - sent notification for NEW_PATIENT")
 
-    def get_registration_workflow(self):
-        return PatientRegistrationWorkflow(None, None)
+    def get_template_name(self):
+        return "registration/registration_form_patient.html"

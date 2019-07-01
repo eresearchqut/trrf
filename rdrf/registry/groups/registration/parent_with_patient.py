@@ -10,8 +10,6 @@ from registration.models import RegistrationProfile
 from registry.patients.models import ParentGuardian, Patient
 from registry.groups.models import WorkingGroup
 
-from rdrf.workflows.registration import PatientWithParentRegistrationWorkflow
-
 from .base import BaseRegistration
 
 
@@ -109,9 +107,6 @@ class ParentWithPatientRegistration(BaseRegistration):
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)
         logger.debug("Registration process - sent notification for NEW_PATIENT")
 
-    def get_registration_workflow(self):
-        return PatientWithParentRegistrationWorkflow(None, None)
-
     def _create_parent(self):
         form_data = self.form.cleaned_data
         parent_guardian = ParentGuardian.objects.create(
@@ -154,3 +149,6 @@ class ParentWithPatientRegistration(BaseRegistration):
     @property
     def language(self):
         return get_language()
+
+    def get_template_name(self):
+        return "registration/registration_form_patient_with_parent.html"

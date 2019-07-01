@@ -8,7 +8,6 @@ from django.utils.translation import gettext as _
 
 from registration.backends.default.views import RegistrationView
 
-from rdrf.workflows.registration import get_registration_workflow
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import get_preferred_languages
@@ -40,39 +39,17 @@ class RdrfRegistrationView(RegistrationView):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         self.load_registration_class(None, request, form)
-        token = request.GET.get("t", None)
-        if token:
-            logger.debug("token = %s" % token)
-            workflow = get_registration_workflow(token)
-            if workflow:
-                logger.debug("workflow found")
-                request.session["token"] = token
-                self.template_name = workflow.get_template()
-            else:
-                logger.debug("no workflow")
-        else:
-            workflow = self.registration_class.get_registration_workflow()
-            self.template_name = workflow.get_template()
-
+        self.template_name = self.registration_class.get_template_name()
         context = self.get_context_data(form=form)
         context["is_mobile"] = request.user_agent.is_mobile
-        if workflow:
-            context["username"] = workflow.username
-            context["first_name"] = workflow.first_name
-            context["last_name"] = workflow.last_name
-
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        token = request.session.get("token", None)
-        logger.debug("token = %s" % token)
         form_class = self.get_form_class()
         logger.debug("form class = %s" % form_class)
         form = self.get_form(form_class)
         self.load_registration_class(None, request, form)
-        workflow = get_registration_workflow(token) or self.registration_class.get_registration_workflow()
-        logger.debug("workflow = %s" % workflow)
-        self.template_name = workflow.get_template()
+        self.template_name = self.registration_class.get_template_name()
         response_value = request.POST['g-recaptcha-response']
         resp_json = json.loads(validate_recaptcha(response_value).content)
         if not resp_json.get('success', False):

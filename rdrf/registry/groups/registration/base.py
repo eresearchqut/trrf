@@ -23,11 +23,11 @@ class BaseRegistration(abc.ABC):
         self.user = user
 
     @abc.abstractmethod
-    def process(self, ):
+    def get_template_name(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_registration_workflow(self):
+    def process(self, ):
         raise NotImplementedError
 
     def _get_registry_object(self, registry_name):
