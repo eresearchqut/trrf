@@ -9,9 +9,9 @@
     $("#id_date_of_birth").datepicker(dateOptions);
     $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
 
-    setStatesOnLoad("#id_country");
+    setStatesOnLoad("#id_country", "#id_state", "#patient_state_value");
     setUpStateOnCountryChange("#id_country", "#id_state");
-    setStatesOnLoad("#id_parent_guardian_country");
+    setStatesOnLoad("#id_parent_guardian_country", "#id_parent_guardian_state", "#parent_state_value");
     setUpStateOnCountryChange("#id_parent_guardian_country", "#id_parent_guardian_state");
 
     $("#id_same_address").on("click", function() {
@@ -74,6 +74,8 @@
             <div class="col-md-6">
                 <input type="hidden" name="registry_code" value="{{registry_code}}">
                 <input id="id_email" name="email" type="hidden" />
+                <input type="hidden" id="parent_state_value" value="{{parent_state_value}}">
+                <input type="hidden" id="patient_state_value" value="{{patient_state_value}}">
 
                 <div id="the-form">
                     <h2>{% trans "Parent/Guardian Details" %}</h2>

@@ -8,7 +8,7 @@
 {% block extra_js_init %}
 
     $("#id_date_of_birth").datepicker(dateOptions);
-    setStatesOnLoad("#id_country");
+    setStatesOnLoad("#id_country", "#id_state", "#patient_state_value");
     setUpStateOnCountryChange("#id_country", "#id_state");
 
 {% endblock %}
@@ -35,6 +35,7 @@
         {% csrf_token %}
         <input type="hidden" name="registry_code" value="{{registry_code}}">
         <input id="id_email" name="email" type="hidden" />
+        <input type="hidden" id="patient_state_value" value="{{patient_state_value}}">
         <div class="row">
             <div class="col-md-6">
                 {% include "registration/registration_login_details.html" %}
