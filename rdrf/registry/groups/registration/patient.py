@@ -6,7 +6,7 @@ from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
 from registration.models import RegistrationProfile
 
-from ..base import BaseRegistration
+from .base import BaseRegistration
 
 
 logger = logging.getLogger(__name__)
@@ -17,23 +17,16 @@ class PatientRegistration(BaseRegistration):
     def __init__(self, user, request, form):
         super().__init__(user, request, form)
 
-    def _create_django_user(self, django_user, registry, groups=[]):
-        user_groups = [self._get_group(g) for g in groups]
-        if user_groups:
-            django_user.groups.set([g.id for g in user_groups])
-        django_user.registry.set([registry, ] if registry else [])
-        django_user.is_staff = True
+    def update_django_user(self, django_user, registry):
         user_group = self._get_group("Patients")
-        django_user.groups.set([user_group.id, ] if user_group else [])
+        groups = [user_group.id, ] if user_group else []
         form_data = self.form.cleaned_data
-        django_user.first_name = form_data['first_name']
-        django_user.last_name = form_data['surname']
-        return django_user
+        return self.setup_django_user(django_user, registry, groups, form_data['first_name'], form_data['surname'])
 
     def process(self):
         registry_code = self.form.cleaned_data['registry_code']
         registry = self._get_registry_object(registry_code)
-        user = self._create_django_user(self.user, registry)
+        user = self.update_django_user(self.user, registry)
         # Initially UNALLOCATED
         working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP,
                                                                    registry=registry)

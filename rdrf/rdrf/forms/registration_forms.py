@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 
 from registration.forms import RegistrationForm
 from rdrf.helpers.utils import get_preferred_languages
+from registry.patients.models import Patient
 
 
 def _tuple(code, name):
@@ -14,7 +15,7 @@ def _tuple(code, name):
 
 def _countries():
     countries = sorted(pycountry.countries, key=attrgetter('name'))
-    result = [_tuple("-1", "Country")]
+    result = [_tuple("", "Country")]
     return result + [_tuple(c.alpha_2, c.name) for c in countries]
 
 
@@ -39,17 +40,13 @@ class PatientRegistrationForm(RegistrationForm):
         'phone_number': _('Phone Number')
     }
 
-    gender_choices = [
-        ('1', _("Male")),
-        ('2', _("Female")),
-        ('3', _("Indeterminate"))
-    ]
-
     no_placeholder_fields = ['gender']
 
     country_choices = _countries()
 
     language_choices = _preferred_languages()
+
+    password_fields = ['password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,15 +54,17 @@ class PatientRegistrationForm(RegistrationForm):
             if field not in self.no_placeholder_fields:
                 self.fields[field].widget.attrs['class'] = 'form-control'
                 self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field, _(''))
+            if field in self.password_fields:
+                self.fields[field].widget.render_value = True
 
     preferred_languages = ChoiceField(required=False, choices=language_choices)
     first_name = CharField(required=True, max_length=30)
     surname = CharField(required=True, max_length=30)
     date_of_birth = DateField(required=True)
-    gender = ChoiceField(choices=gender_choices, widget=RadioSelect, required=True)
+    gender = ChoiceField(choices=Patient.SEX_CHOICES, widget=RadioSelect, required=True)
     address = CharField(required=True, max_length=100)
     suburb = CharField(required=True, max_length=30)
-    country = ChoiceField(required=True, widget=Select, choices=country_choices, initial="-1")
+    country = ChoiceField(required=True, widget=Select, choices=country_choices, initial="")
     state = CharField(required=True, widget=Select)
     postcode = CharField(required=True, max_length=30)
     phone_number = CharField(required=True, max_length=30)
@@ -104,7 +103,7 @@ class PatientWithParentRegistrationForm(PatientRegistrationForm):
     parent_guardian_first_name = CharField(required=True)
     parent_guardian_last_name = CharField(required=True)
     parent_guardian_date_of_birth = DateField(required=True)
-    parent_guardian_gender = ChoiceField(choices=PatientRegistrationForm.gender_choices, widget=RadioSelect, required=True)
+    parent_guardian_gender = ChoiceField(choices=Patient.SEX_CHOICES, widget=RadioSelect, required=True)
     parent_guardian_address = CharField(required=True, max_length=100)
     parent_guardian_suburb = CharField(required=True, max_length=30)
     parent_guardian_country = ChoiceField(required=True, widget=Select, choices=PatientRegistrationForm.country_choices,

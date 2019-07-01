@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseRegistration(object):
+class BaseRegistration(abc.ABC):
     _UNALLOCATED_GROUP = "Unallocated"
     user = None
     request = None
@@ -72,3 +72,11 @@ class BaseRegistration(object):
     def get_address_type(self, address_type):
         address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
         return address_type_obj
+
+    def setup_django_user(self, django_user, registry, groups, first_name, last_name):
+        django_user.registry.set([registry, ] if registry else [])
+        django_user.groups.set(groups)
+        django_user.is_staff = True
+        django_user.first_name = first_name
+        django_user.last_name = last_name
+        return django_user

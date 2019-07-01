@@ -57,7 +57,7 @@
                 var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
                 var states = $(stateSelector);
                 states.empty();
-                states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
+                states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
                 $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
@@ -67,7 +67,7 @@
 
             function setStatesOnLoad(countrySelector) {
                 var country = $(countrySelector).val();
-                if (country !== "-1") {
+                if (country !== "") {
                     lookupStatesForCountry(country, "#id_state");
                 }
             }

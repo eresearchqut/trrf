@@ -12,7 +12,7 @@ from registry.groups.models import WorkingGroup
 
 from rdrf.workflows.registration import PatientWithParentRegistrationWorkflow
 
-from ..base import BaseRegistration
+from .base import BaseRegistration
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class ParentWithPatientRegistration(BaseRegistration):
 
     def _do_clinician_signup(self, registry_model):
         from rdrf.helpers.utils import get_site
-        user = self._create_django_user(self.user, registry_model, is_parent=False, is_clinician=True)
+        user = self.update_django_user(self.user, registry_model, is_parent=False, is_clinician=True)
 
         logger.debug("created django user for clinician")
 
@@ -76,7 +76,7 @@ class ParentWithPatientRegistration(BaseRegistration):
             self._do_clinician_signup(registry)
             return
 
-        user = self._create_django_user(self.user, registry, is_parent=True)
+        user = self.update_django_user(self.user, registry, is_parent=True)
         user.preferred_language = preferred_language
         # Initially UNALLOCATED
         working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP,
@@ -128,34 +128,28 @@ class ParentWithPatientRegistration(BaseRegistration):
         )
         return parent_guardian
 
-    def _create_django_user(self, django_user, registry, is_parent, groups=[], is_clinician=False):
-        user_groups = [self._get_group(g) for g in groups]
-        if not user_groups:
-            if is_parent:
-                user_group = self._get_group("Parents")
-            elif is_clinician:
-                user_group = self._get_group("Clinical Staff")
-            else:
-                user_group = self._get_group("Patients")
-            django_user.groups.set([user_group.id, ] if user_group else [])
+    def update_django_user(self, django_user, registry, is_parent, is_clinician=False):
+        if is_parent:
+            user_group = self._get_group("Parents")
+        elif is_clinician:
+            user_group = self._get_group("Clinical Staff")
         else:
-            django_user.groups.set([g.id for g in user_groups])
-
+            user_group = self._get_group("Patients")
+        groups = [user_group.id, ] if user_group else []
         form_data = self.form.cleaned_data
         if is_parent:
-            django_user.first_name = form_data['parent_guardian_first_name']
-            django_user.last_name = form_data['parent_guardian_last_name']
+            first_name = form_data['parent_guardian_first_name']
+            last_name = form_data['parent_guardian_first_name']
         elif is_clinician:
             logger.debug("setting up clinician")
             # clinician signup only exists on subclass ..
-            django_user.first_name = self.clinician_signup.clinician_other.clinician_first_name
-            django_user.last_name = self.clinician_signup.clinician_other.clinician_last_name
+            first_name = self.clinician_signup.clinician_other.clinician_first_name
+            last_name = self.clinician_signup.clinician_other.clinician_last_name
         else:
-            django_user.first_name = form_data['first_name']
-            django_user.last_name = form_data['surname']
-        django_user.registry.set([registry, ] if registry else [])
-        django_user.is_staff = True
-        return django_user
+            first_name = form_data['first_name']
+            last_name = form_data['surname']
+
+        return self.setup_django_user(django_user, registry, groups, first_name, last_name)
 
     @property
     def language(self):

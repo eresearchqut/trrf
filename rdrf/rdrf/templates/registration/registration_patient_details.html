@@ -14,6 +14,10 @@
     </div>
     <div class="form-group">
         <fieldset data-toggle="tooltip" data-placement="left" data-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
-        {{form.gender}}
+        {% for choice in form.gender %}
+            <label>{{ choice.choice_label }}</label>
+            {{ choice.tag }}
+            <br/>
+        {% endfor %}
     </fieldset>
 </div>
