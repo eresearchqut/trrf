@@ -1,8 +1,10 @@
+import json
 import logging
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from registration.backends.default.views import RegistrationView
 
@@ -10,6 +12,8 @@ from rdrf.workflows.registration import get_registration_workflow
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import get_preferred_languages
+
+from .lookup_views import validate_recaptcha
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +71,14 @@ class RdrfRegistrationView(RegistrationView):
         form = self.get_form(form_class)
         self.load_registration_class(None, request, form)
         workflow = get_registration_workflow(token) or self.registration_class.get_registration_workflow()
-        self.template_name = workflow.get_template()
         logger.debug("workflow = %s" % workflow)
+        self.template_name = workflow.get_template()
+        response_value = request.POST['g-recaptcha-response']
+        resp_json = json.loads(validate_recaptcha(response_value).content)
+        if not resp_json.get('success', False):
+            form.add_error(None, _("Invalid re-captcha value !"))
+            return self.form_invalid(form)
+
         if form.is_valid():
             logger.debug("RdrfRegistrationView post form valid")
             return self.form_valid(form)
