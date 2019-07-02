@@ -1,41 +1,39 @@
 import abc
+import logging
+
+from django.contrib.auth.models import Group
 
 from rdrf.models.definition.models import Registry
-from django.contrib.auth.models import Group
+from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient, PatientAddress, AddressType
 
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class BaseRegistration(abc.ABC):
-    _UNALLOCATED_GROUP = "Unallocated"
-    user = None
-    request = None
 
-    def __init__(self, user, request, form):
-        self.user = user
+    def __init__(self, request, form):
         self.request = request
         self.form = form
-
-    def set_user(self, user):
-        self.user = user
 
     @abc.abstractmethod
     def get_template_name(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def process(self, ):
+    def process(self, user):
         raise NotImplementedError
 
     def _get_registry_object(self, registry_name):
         return Registry.objects.filter(code__iexact=registry_name).first()
 
     def _get_group(self, group_name):
-        group, created = Group.objects.get_or_create(name=group_name)
+        group, _ = Group.objects.get_or_create(name__iexact=group_name, defaults={'name': 'group_name'})
         return group
+
+    def _get_unallocated_working_group(self, registry):
+        return WorkingGroup.objects.get_unallocated(registry)
 
     def _create_patient_address(self, patient, address_type="Postal"):
         form_data = self.form.cleaned_data
@@ -73,9 +71,9 @@ class BaseRegistration(abc.ABC):
         address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
         return address_type_obj
 
-    def setup_django_user(self, django_user, registry, groups, first_name, last_name):
+    def setup_django_user(self, django_user, registry, group, first_name, last_name):
         django_user.registry.set([registry, ] if registry else [])
-        django_user.groups.set(groups)
+        django_user.groups.add(self._get_group(group))
         django_user.is_staff = True
         django_user.first_name = first_name
         django_user.last_name = last_name

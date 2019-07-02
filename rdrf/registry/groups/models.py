@@ -16,7 +16,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class WorkingGroupManager(models.Manager):
+    UNALLOCATED_GROUP_NAME = 'Unallocated'
+
+    def get_unallocated(self, registry):
+        wg, _ = WorkingGroup.objects.get_or_create(name=self.UNALLOCATED_GROUP_NAME, registry=registry)
+        return wg
+
+
 class WorkingGroup(models.Model):
+    objects = WorkingGroupManager()
+
     name = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 

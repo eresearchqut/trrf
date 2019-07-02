@@ -71,7 +71,7 @@ class PatientRegistrationForm(RegistrationForm):
     registry_code = CharField(required=True)
 
 
-class PatientWithParentRegistrationForm(PatientRegistrationForm):
+class ParentWithPatientRegistrationForm(PatientRegistrationForm):
 
     PatientRegistrationForm.placeholders.update({
         'parent_guardian_first_name': _("Parent/Guardian Given Names"),

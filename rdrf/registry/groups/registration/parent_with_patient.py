@@ -4,11 +4,11 @@ from django.utils.translation import get_language
 
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
-from rdrf.models.workflow_models import ClinicianSignupRequest
 
 from registration.models import RegistrationProfile
-from registry.patients.models import ParentGuardian, Patient
-from registry.groups.models import WorkingGroup
+from registry.patients.models import ParentGuardian
+from registry.groups import GROUPS
+
 
 from .base import BaseRegistration
 
@@ -18,72 +18,17 @@ logger = logging.getLogger(__name__)
 
 class ParentWithPatientRegistration(BaseRegistration):
 
-    def __init__(self, user, request, form):
-        super().__init__(user, request, form)
-        self.token = request.session.get("token", None)
-        if self.token:
-            try:
-                self.clinician_signup = ClinicianSignupRequest.objects.get(token=self.token,
-                                                                           state="emailed")
-            except ClinicianSignupRequest.DoesNotExist:
-                raise Exception("Clinician already signed up or unknown token")
-        else:
-            self.clinician_signup = None
-
-    def _do_clinician_signup(self, registry_model):
-        from rdrf.helpers.utils import get_site
-        user = self.update_django_user(self.user, registry_model, is_parent=False, is_clinician=True)
-
-        logger.debug("created django user for clinician")
-
-        # working group should be the working group of the patient
-        patient = Patient.objects.get(id=self.clinician_signup.patient_id)
-
-        user.working_groups.set([wg for wg in patient.working_groups.all()])
-        user.save()
-        logger.debug("set clinician working groups to patient's")
-        self.clinician_signup.clinician_other.user = user
-        self.clinician_signup.clinician_other.use_other = False
-        self.clinician_signup.clinician_other.save()
-        self.clinician_signup.state = "signed-up"   # at this stage the user is created but not active
-        self.clinician_signup.save()
-        patient.clinician = user
-        patient.save()
-        logger.debug("made this clinician the clinician of the patient")
-
-        site_url = get_site()
-
-        activation_template_data = {
-            "site_url": site_url,
-            "clinician_email": self.clinician_signup.clinician_email,
-            "clinician_lastname": self.clinician_signup.clinician_other.clinician_last_name,
-            "registration": RegistrationProfile.objects.get(user=user)
-        }
-
-        process_notification(registry_model.code,
-                             EventType.CLINICIAN_ACTIVATION,
-                             activation_template_data)
-        logger.debug("Registration process - sent activation link for registered clinician")
-
-    def process(self):
+    def process(self, user):
         registry_code = self.form.cleaned_data['registry_code']
         registry = self._get_registry_object(registry_code)
-        preferred_language = self.form.cleaned_data.get("preferred_language", "en")
-        if self.clinician_signup:
-            logger.debug("signing up clinician")
-            self._do_clinician_signup(registry)
-            return
 
-        user = self.update_django_user(self.user, registry, is_parent=True)
-        user.preferred_language = preferred_language
-        # Initially UNALLOCATED
-        working_group, status = WorkingGroup.objects.get_or_create(name=self._UNALLOCATED_GROUP,
-                                                                   registry=registry)
+        user = self.update_django_user(user, registry)
 
+        working_group = self._get_unallocated_working_group(registry)
         user.working_groups.set([working_group])
         user.save()
-        logger.debug("Registration process - created user")
 
+        logger.debug("Registration process - created user")
         patient = self._create_patient(registry, working_group, user, set_link_to_user=False)
         logger.debug("Registration process - created patient")
 
@@ -123,28 +68,15 @@ class ParentWithPatientRegistration(BaseRegistration):
         )
         return parent_guardian
 
-    def update_django_user(self, django_user, registry, is_parent, is_clinician=False):
-        if is_parent:
-            user_group = self._get_group("Parents")
-        elif is_clinician:
-            user_group = self._get_group("Clinical Staff")
-        else:
-            user_group = self._get_group("Patients")
-        groups = [user_group.id, ] if user_group else []
+    def update_django_user(self, django_user, registry):
         form_data = self.form.cleaned_data
-        if is_parent:
-            first_name = form_data['parent_guardian_first_name']
-            last_name = form_data['parent_guardian_first_name']
-        elif is_clinician:
-            logger.debug("setting up clinician")
-            # clinician signup only exists on subclass ..
-            first_name = self.clinician_signup.clinician_other.clinician_first_name
-            last_name = self.clinician_signup.clinician_other.clinician_last_name
-        else:
-            first_name = form_data['first_name']
-            last_name = form_data['surname']
+        first_name = form_data['parent_guardian_first_name']
+        last_name = form_data['parent_guardian_last_name']
 
-        return self.setup_django_user(django_user, registry, groups, first_name, last_name)
+        preferred_language = self.form.cleaned_data.get('preferred_language', 'en')
+        django_user.preferred_language = preferred_language
+
+        return self.setup_django_user(django_user, registry, GROUPS.PARENT, first_name, last_name)
 
     @property
     def language(self):
