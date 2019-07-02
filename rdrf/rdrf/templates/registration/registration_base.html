@@ -54,6 +54,7 @@
             }
 
             function lookupStatesForCountry(country, stateSelector, currentStateValueSelector) {
+                if (typeof currentStateValueSelector === 'undefined') { currentStateValueSelector = ''; }
                 var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
                 var states = $(stateSelector);
                 states.empty();
@@ -62,9 +63,9 @@
                     $.each( data, function( key, val ) {
                         states.append($('<option>', { value : val.code }).text(val.name));
                     });
-                    if (currentStateValueSelector) {
+                    if (currentStateValueSelector !== '') {
                         var current_state_value = $(currentStateValueSelector).val();
-                        if (current_state_value != '') {
+                        if (current_state_value !== '') {
                             $(stateSelector).val(current_state_value);
                         }
                     }
@@ -81,7 +82,7 @@
 
             function setUpStateOnCountryChange(countrySelector, stateSelector) {
                 $(countrySelector).change(function() {
-                    lookupStatesForCountry(this.value, stateSelector, '')
+                    lookupStatesForCountry(this.value, stateSelector)
                 });
             }
 

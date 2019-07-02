@@ -35,7 +35,7 @@
         {% csrf_token %}
         <input type="hidden" name="registry_code" value="{{registry_code}}">
         <input id="id_email" name="email" type="hidden" />
-        <input type="hidden" id="patient_state_value" value="{{patient_state_value}}">
+        <input type="hidden" id="patient_state_value" value="{{form.state.value}}">
         <div class="row">
             <div class="col-md-6">
                 {% include "registration/registration_login_details.html" %}

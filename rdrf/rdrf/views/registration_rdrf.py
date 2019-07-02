@@ -64,12 +64,8 @@ class RdrfRegistrationView(RegistrationView):
 
     def get_context_data(self, **kwargs):
         context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
         context['registry_code'] = self.registry_code
         context["preferred_languages"] = get_preferred_languages()
-        context['parent_state_value'] = form.data.get('parent_guardian_state', '') if form else ''
-        context['patient_state_value'] = form.data.get('state', '') if form else ''
         return context
 
     def form_valid(self, form):
