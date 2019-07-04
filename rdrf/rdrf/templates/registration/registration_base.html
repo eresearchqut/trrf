@@ -89,7 +89,10 @@
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
                 $("#id_email").val($("#id_username").val());
-                registration_form.find("h2").click(); // Expand accordions so form can be validated
+                $("#patient-form").accordion("option", "active" ,0);
+                if ($("#guardian-form").length > 0) {
+                    $("#guardian-form").accordion('option', 'active' ,0);
+                }
                 if (registration_form.valid()) {
                     registration_form.submit();
                 } else {
