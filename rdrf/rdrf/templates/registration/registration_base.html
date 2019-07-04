@@ -53,24 +53,46 @@
                 'defaultDate': '-30Y'
             }
 
-            function setUpStateOnCountryChange(countrySelector, stateSelector) {
+            function lookupStatesForCountry(country, stateSelector, currentStateValueSelector) {
+                if (typeof currentStateValueSelector === 'undefined') { currentStateValueSelector = ''; }
                 var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
-
-                $(countrySelector).change(function() {
-                    var states = $(stateSelector);
-                    states.empty();
-                    states.append($('<option>', { value : -1 }).text("State / County / Province / Region"));
-                    $.getJSON( state_lookup_url.replace('XX', this.value), function( data ) {
-                        $.each( data, function( key, val ) {
-                            states.append($('<option>', { value : val.code }).text(val.name));
-                        });
+                var states = $(stateSelector);
+                states.empty();
+                states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
+                $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
+                    $.each( data, function( key, val ) {
+                        states.append($('<option>', { value : val.code }).text(val.name));
                     });
+                    if (currentStateValueSelector !== '') {
+                        var current_state_value = $(currentStateValueSelector).val();
+                        if (current_state_value !== '') {
+                            $(stateSelector).val(current_state_value);
+                        }
+                    }
+                });
+            }
+
+            function setStatesOnLoad(countrySelector, stateSelector, currentStateValueSelector) {
+                var country = $(countrySelector).val();
+                if (country !== "") {
+                    lookupStatesForCountry(country, stateSelector, currentStateValueSelector);
+                }
+            }
+
+
+            function setUpStateOnCountryChange(countrySelector, stateSelector) {
+                $(countrySelector).change(function() {
+                    lookupStatesForCountry(this.value, stateSelector)
                 });
             }
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
                 $("#id_email").val($("#id_username").val());
+                $("#patient-form").accordion("option", "active" ,0);
+                if ($("#guardian-form").length > 0) {
+                    $("#guardian-form").accordion('option', 'active' ,0);
+                }
                 if (registration_form.valid()) {
                     registration_form.submit();
                 } else {
@@ -102,62 +124,20 @@
                 });
             });
 
-            $.validator.addMethod("validDate", function (value) {
-                var m = value.match(/\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*/);
-                if (m == null) {
-                    return false;
-                }
-                var year = parseInt(m[1]);
-                var month = parseInt(m[2]);
-                var day = parseInt(m[3]);
-
-                function isLeapYear(year) {
-                    return ((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0);
-                }
-
-                function daysInMonth(year, month) {
-                    return [31, isLeapYear(year) ? 29 :28 , 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
-                }
-
-                return year >= 1900 && month >= 1 && month <= 12 && day >=1 && day <= daysInMonth(year, month);
-            }, gettext("Please enter a valid date in the format yyyy-mm-dd"));
-
-            $.validator.addMethod(
-                "dateCorrect",
-                function(value, element) {
-                    return Date.parse(value);
-                },
-                gettext("Date is not correct")
-            );
-
-            jQuery.validator.addMethod('selectcheck', function (value) {
-                return (value != '0');
-            }, gettext("This field is required."));
-
-            function addNeedsCharacterValidatorMethod(characterClass, pattern) {
-                // ex. "uppercase letter" -> "hasUppercaseLetter"
-                var methodName = $.camelCase(["has"].concat(characterClass.split(" ")).join("-"));
-                $.validator.addMethod(
-                    methodName,
-                    function(value, element) {
-                        return value.search(pattern) !== -1;
-                    },
-
-                    gettext("Must contain at least 1 " + characterClass + ".")
-                );
-            }
-            addNeedsCharacterValidatorMethod("uppercase letter", /[A-Z]/);
-            addNeedsCharacterValidatorMethod("lowercase letter", /[a-z]/);
-            addNeedsCharacterValidatorMethod("digit", /\d/);
-            addNeedsCharacterValidatorMethod("special character", /[!@#\$%\^&\*]/);
-
             $('[data-toggle="tooltip"]').tooltip();
 
             {% if not is_mobile %}
-                $("#the-form").accordion({
+                $("#patient-form").accordion({
                     heightStyle: "content",
                     collapsible: true
                 });
+                if ($("#guardian-form").length > 0) {
+                    $("#guardian-form").accordion({
+                        heightStyle: "content",
+                        collapsible: true
+                    });
+                }
+
             {% endif %}
 
             {% block extra_js_init %}
@@ -176,6 +156,10 @@
             });
         }
 
+        function reCaptchaExpiredCallback() {
+            $("#registration-submit").prop("disabled", true);
+        }
+
         // Overwrite in specific template if needed.
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
@@ -190,20 +174,26 @@
     <div class="container">
         <br>
 
-        {% if form.errors %}
-        <div class="alert alert-danger">
-            {% for field in form %}
-                {% if field.errors %}
-                    <p><strong>{{field.label}}</strong>:
-                    <ul>
-                        {% for err in field.errors %}
-                            <li>{{ err|striptags }}</li>
-                        {% endfor %}
-                    </ul>
-                    </p>
-                {% endif %}
-            {% endfor %}
-        </div>
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for err in form.non_field_errors %}
+                    <p class="form-error">{{ err }}</p>
+                {% endfor %}
+            </div>
+        {% elif form.errors %}
+            <div class="alert alert-danger">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <p><strong>{{field.label}}</strong>:
+                        <ul>
+                            {% for err in field.errors %}
+                                <li>{{ err|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                        </p>
+                    {% endif %}
+                {% endfor %}
+            </div>
         {% endif %}
 
         {% block content %}

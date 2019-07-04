@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<h2>{% trans "Patient Details" %}</h2>
+<div id="patient_form">
+    <div class="form-group">
+        {{form.first_name}}
+    </div>
+    <div class="form-group">
+        {{form.surname}}
+    </div>
+    <div class="form-group">
+        {{form.date_of_birth}}
+        <div class="text-muted">YYYY-MM-DD</div>
+    </div>
+    <div class="form-group">
+        <fieldset data-toggle="tooltip" data-placement="left" data-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
+        {% for choice in form.gender %}
+            <label>{{ choice.choice_label }}</label>
+            {{ choice.tag }}
+            <br/>
+        {% endfor %}
+    </fieldset>
+</div>

@@ -750,3 +750,17 @@ def get_site(request=None):
 
         except Site.DoesNotExist:
             return "http://localhost:8000"
+
+
+def get_preferred_languages():
+    # Registration allows choice of preferred language
+    # But we allow different sites to expose different values
+    # over time without code change via env --> settings
+
+    # The default list is english only which we don't bother to show
+    languages = get_supported_languages()
+
+    if len(languages) == 1 and languages[0].code == "en":
+        return []
+    else:
+        return languages

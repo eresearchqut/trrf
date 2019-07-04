@@ -8,7 +8,6 @@ from django.db import models
 from django.dispatch import receiver
 
 from registration.signals import user_activated
-from registration.signals import user_registered
 
 from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
@@ -17,7 +16,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class WorkingGroupManager(models.Manager):
+    UNALLOCATED_GROUP_NAME = 'Unallocated'
+
+    def get_unallocated(self, registry):
+        wg, _ = WorkingGroup.objects.get_or_create(name=self.UNALLOCATED_GROUP_NAME, registry=registry)
+        return wg
+
+
 class WorkingGroup(models.Model):
+    objects = WorkingGroupManager()
+
     name = models.CharField(max_length=100)
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
@@ -252,20 +261,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             links = qlinks.admin_page_links()
 
         return links
-
-
-@receiver(user_registered)
-def user_registered_callback(sender, user, request, **kwargs):
-    from django.conf import settings
-    logger.debug("user registered callback")
-
-    if hasattr(settings, "REGISTRATION_CLASS"):
-        logger.debug("user registered callback")
-
-        from django.utils.module_loading import import_string
-        registration_class = import_string(settings.REGISTRATION_CLASS)
-        reg = registration_class(user, request)
-        reg.process()
 
 
 @receiver(user_activated)

@@ -155,11 +155,13 @@ class UsernameLookup(View):
         return HttpResponse(json.dumps(result))
 
 
+def validate_recaptcha(response_value):
+    payload = {"secret": settings.RECAPTCHA_SECRET_KEY, "response": response_value}
+    return requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
+
+
 class RecaptchaValidator(View):
 
     def post(self, request):
         response_value = request.POST['response_value']
-        secret_key = getattr(settings, "RECAPTCHA_SECRET_KEY", None)
-        payload = {"secret": secret_key, "response": response_value}
-        r = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
-        return HttpResponse(r)
+        return HttpResponse(validate_recaptcha(response_value))

@@ -1,15 +1,20 @@
+import json
 import logging
 
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.translation import gettext as _
+from django.utils.module_loading import import_string
 
 from registration.backends.default.views import RegistrationView
 
-from rdrf.workflows.registration import get_registration_workflow
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import get_preferred_languages
 
+from .lookup_views import validate_recaptcha
 
 logger = logging.getLogger(__name__)
 
@@ -17,83 +22,56 @@ logger = logging.getLogger(__name__)
 class RdrfRegistrationView(RegistrationView):
 
     registry_code = None
+    registration_class = None
+
+    def load_registration_class(self, request, form):
+        if hasattr(settings, "REGISTRATION_CLASS"):
+            registration_class = import_string(settings.REGISTRATION_CLASS)
+            return registration_class(request, form)
 
     def dispatch(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
+        form_class = self.get_form_class()
+        self.form = self.get_form(form_class)
+        self.registration_class = self.load_registration_class(request, self.form)
+        self.template_name = self.registration_class.get_template_name()
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
-        logger.debug("RdrfRegistrationView get")
-        self.registry_code = kwargs['registry_code']
-        workflow = None
-        token = request.GET.get("t", None)
-        if token:
-            logger.debug("token = %s" % token)
-            workflow = get_registration_workflow(token)
-            if workflow:
-                logger.debug("workflow found")
-                request.session["token"] = token
-                self.template_name = workflow.get_template()
-            else:
-                logger.debug("no workflow")
-
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        context = self.get_context_data(form=form)
-        context["is_mobile"] = request.user_agent.is_mobile
-        if workflow:
-            context["username"] = workflow.username
-            context["first_name"] = workflow.first_name
-            context["last_name"] = workflow.last_name
-
-        return self.render_to_response(context)
-
-    def post(self, request, *args, **kwargs):
-        token = request.session.get("token", None)
-        logger.debug("token = %s" % token)
-        workflow = get_registration_workflow(token)
-        logger.debug("workflow = %s" % workflow)
-        form_class = self.get_form_class()
-        logger.debug("form class = %s" % form_class)
-        form = self.get_form(form_class)
-
-        if form.is_valid():
-            logger.debug("RdrfRegistrationView post form valid")
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
     def get_context_data(self, **kwargs):
-        context = super(RdrfRegistrationView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
-        context["preferred_languages"] = self._get_preferred_languages()
+        context['preferred_languages'] = get_preferred_languages()
+        context['is_mobile'] = self.request.user_agent.is_mobile
         return context
 
-    def _get_preferred_languages(self):
-        # Registration allows choice of preferred language
-        # But we allow different sites to expose different values
-        # over time without code change via env --> settings
-
-        # The default list is english only which we don't bother to show
-        from rdrf.helpers.utils import get_supported_languages
-        languages = get_supported_languages()
-
-        if len(languages) == 1 and languages[0].code == "en":
-            return []
+    def post(self, request, *args, **kwargs):
+        if self.is_form_valid():
+            logger.debug("RdrfRegistrationView post form valid")
+            return self.form_valid(self.form)
         else:
-            return languages
+            return self.form_invalid(self.form)
+
+    def is_form_valid(self):
+        if not self.is_recaptcha_valid():
+            self.form.add_error(None, _("Invalid re-captcha value!"))
+            return False
+
+        return self.form.is_valid()
+
+    def is_recaptcha_valid(self):
+        response_value = self.request.POST['g-recaptcha-response']
+        resp_json = json.loads(validate_recaptcha(response_value).content)
+        return resp_json.get('success', False)
 
     def form_valid(self, form):
-        # this is only for user validation
-        # if any validation errors occur server side
-        # on related object creation in signal handler occur
-        # we roll back here
         failure_url = reverse("registration_failed")
         username = None
         with transaction.atomic():
             try:
                 new_user = self.register(form)
                 logger.debug("RdrfRegistrationView form_valid - new_user registered")
+                if self.registration_class:
+                    self.registration_class.process(new_user)
                 username = new_user.username
                 success_url = self.get_success_url(new_user)
             except Exception:
