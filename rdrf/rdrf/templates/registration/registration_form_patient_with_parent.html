@@ -14,7 +14,7 @@
     setStatesOnLoad("#id_parent_guardian_country", "#id_parent_guardian_state", "#parent_state_value");
     setUpStateOnCountryChange("#id_parent_guardian_country", "#id_parent_guardian_state");
 
-    $("#id_same_address").on("click", function() {
+    function onSameAddressChecked() {
         var self = this;
         $("#patient-address-div").slideToggle("fast", function() {
             var disabled = $(self).prop('checked');
@@ -24,7 +24,13 @@
             $("#id_state").prop("disabled", disabled);
             $("#id_postcode").prop("disabled", disabled);
         });
-    });
+    }
+
+    if ($('#id_same_address').prop('checked')) {
+        onSameAddressChecked();
+    }
+
+    $("#id_same_address").on("click", onSameAddressChecked);
 
 {% endblock %}
 
@@ -57,10 +63,6 @@
                 {% trans "Privacy Statement - All information we receive from you will be treated confidentially and will be encrypted and stored on a secure server. Only de-identified health information will be made accessible to qualified researchers who are granted permission by the Steering committee." %}
             </p>
         </small>
-    </div>
-
-    <div id="form-invalid" class="alert alert-danger" style="display: none">
-        {% trans "Please fill out all required fields" %}
     </div>
 
     <form id="registration-form" method="POST">
