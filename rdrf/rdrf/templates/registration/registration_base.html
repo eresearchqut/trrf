@@ -156,6 +156,10 @@
             });
         }
 
+        function reCaptchaExpiredCallback() {
+            $("#registration-submit").prop("disabled", true);
+        }
+
         // Overwrite in specific template if needed.
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
