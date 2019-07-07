@@ -33,6 +33,7 @@ phases:
       #- pip3 install yq
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - touch .env_local
   build:
     commands:
       - echo Build started on `date`
