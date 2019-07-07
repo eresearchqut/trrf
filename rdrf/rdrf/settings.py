@@ -250,9 +250,37 @@ STATIC_SERVER_PATH = STATIC_ROOT
 # a directory that will be writable by the webserver, for storing various files...
 WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
-# valid values django.core.files.storage.FileSystemStorage and
-# storages.backends.database.DatabaseStorage
-DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+#
+#       File Uploads
+
+# Use filesystem storage by default.
+# But the plan is to use "s3" on all servers deployed to AWS.
+if env.get("file_storage", "fs") == "s3":
+    DEFAULT_FILE_STORAGE = env.get("storage_backend", "storages.backends.s3boto3.S3Boto3Storage")
+else:
+    DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+
+# Configure different aspects of file uploads to S3
+
+# Never create buckets, create them from CloudFormation and pass them in
+AWS_AUTO_CREATE_BUCKET = False
+AWS_DEFAULT_ACL = None
+
+# To test locally set these values in your .env_local file
+# .env_local is in .gitignore so it can have your local settings without being checked in
+
+AWS_STORAGE_BUCKET_NAME = env.get("aws_storage_bucket_name", "")  # set to trrf-storage-dev in local dev
+
+# Set these to an IAM user's keys when testing locally.
+# On the servers EC2 roles will take care of this.
+AWS_ACCESS_KEY_ID = env.get("aws_storage_access_key_id", "")
+AWS_SECRET_ACCESS_KEY = env.get("aws_storage_secret_access_key", "")
+
+AWS_S3_REGION_NAME = env.get("aws_storage_region_name", "ap-southeast-2")
+AWS_LOCATION = env.get("aws_storage_location", "")  # set to "local/{YOUR_USERNAME}/" in local dev
+
+#
+#       END OF - File Uploads
 
 # settings used when FileSystemStorage is enabled
 MEDIA_ROOT = env.get('media_root', os.path.join(WEBAPP_ROOT, 'uploads'))

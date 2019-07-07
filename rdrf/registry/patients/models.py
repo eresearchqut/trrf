@@ -1356,10 +1356,14 @@ class PatientConsentStorage(DefaultStorage):
         return None
 
 
+def upload_patient_consent_to(instance, filename):
+    return 'consents/patient/{0}/{1}'.format(instance.patient.pk, filename)
+
+
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     form = models.FileField(
-        upload_to='consents',
+        upload_to=upload_patient_consent_to,
         storage=PatientConsentStorage(),
         verbose_name="Consent form",
         blank=True,
