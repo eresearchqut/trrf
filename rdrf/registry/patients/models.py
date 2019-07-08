@@ -1360,9 +1360,22 @@ def upload_patient_consent_to(instance, filename):
     return 'consents/patient/{0}/{1}'.format(instance.patient.pk, filename)
 
 
+class ConsentFileField(models.FileField):
+    """
+    Custom FileField that removes the storage from deconstruct.
+    Without this each time you change the Default Storage class in settings, Django
+    considers it a model change and wants you to create a migration.
+    """
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        if 'storage' in kwargs:
+            del kwargs['storage']
+        return name, path, args, kwargs
+
+
 class PatientConsent(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    form = models.FileField(
+    form = ConsentFileField(
         upload_to=upload_patient_consent_to,
         storage=PatientConsentStorage(),
         verbose_name="Consent form",
