@@ -175,7 +175,10 @@ function _aloe() {
 
 trap exit SIGHUP SIGINT SIGTERM
 defaults
-env | grep -iv PASS | sort
+
+# Display all env vars, but mask the values of sensitive ones (containing pass, key or secret in their name)
+env | sort | awk -F "=" '{ if($1 ~ /(KEY|PASS|SECRET)/) print $1 "=xxxxx"; else print }'
+
 wait_for_services
 
 # prod uwsgi entrypoint
