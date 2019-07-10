@@ -40,15 +40,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class PatientMixin(object):
-    model = Patient
-
-    def get_context_data(self, **kwargs):
-        kwargs.update({'object_name': 'Patient'})
-        return kwargs
-
-
-class PatientFormMixin(PatientMixin):
+class PatientFormMixin:
     original_form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
 
@@ -66,6 +58,7 @@ class PatientFormMixin(PatientMixin):
         self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
+
     def _get_registry_specific_fields(self, user, registry_model):
         """
         :param user:
@@ -115,14 +108,28 @@ class PatientFormMixin(PatientMixin):
     def _set_user(self, request):
         self.user = request.user
 
-    def _create_registry_specific_patient_form_class(self, user, form_class, registry_model):
+    def _create_registry_specific_patient_form_class(
+            self, user, form_class, registry_model, patient=None):
         additional_fields = OrderedDict()
         field_pairs = self._get_registry_specific_fields(user, registry_model)
-        if not field_pairs:
-            return form_class
 
         for cde, field_object in field_pairs:
-            additional_fields[cde.code] = field_object
+            try:
+                cde_policy = CdePolicy.objects.get(registry=registry_model, cde=cde)
+            except CdePolicy.DoesNotExist:
+                cde_policy = None
+
+            if cde_policy is None or patient is None:
+                additional_fields[cde.code] = field_object
+            else:
+                if user.is_superuser or cde_policy.is_allowed(user.groups.all(), patient):
+                    if patient and patient.is_index:
+                        additional_fields[cde.code] = field_object
+
+        if len(list(additional_fields.keys())) == 0:
+            additional_fields["HIDDEN"] = True
+        else:
+            additional_fields["HIDDEN"] = False
 
         new_form_class = type(form_class.__name__, (form_class,), additional_fields)
         return new_form_class
@@ -204,47 +211,8 @@ class PatientFormMixin(PatientMixin):
         else:
             return None
 
-    def _get_patient_and_forms_sections(self,
-                                        patient_id,
-                                        registry_code,
-                                        request,
-                                        patient_form=None,
-                                        patient_address_form=None,
-                                        patient_doctor_form=None,
-                                        patient_relative_form=None):
-
-        user = request.user
-        if patient_id is None:
-            patient = None
-        else:
-            patient = Patient.objects.get(id=patient_id)
-
-        registry = Registry.objects.get(code=registry_code)
-
-        if not patient_form:
-            if not registry.patient_fields:
-                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
-            else:
-                munged_patient_form_class = self._create_registry_specific_patient_form_class(
-                    user,
-                    PatientForm,
-                    registry)
-                patient_form = munged_patient_form_class(
-                    instance=patient, user=user, registry_model=registry)
-
-        patient_form.user = user
-
-        if not patient_address_form:
-            patient_address_formset = inlineformset_factory(Patient,
-                                                            PatientAddress,
-                                                            form=PatientAddressForm,
-                                                            extra=0,
-                                                            can_delete=True,
-                                                            fields="__all__")
-
-            patient_address_form = patient_address_formset(
-                instance=patient, prefix="patient_address")
-
+    def get_form_sections(self, user, patient, registry, registry_code, patient_form,
+                          patient_address_form, patient_doctor_form, patient_relative_form):
         personal_header = _('Patients Personal Details')
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
@@ -345,7 +313,11 @@ class PatientFormMixin(PatientMixin):
             ))
 
         # PatientRelativeForm for FH (only)
-        if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
+        has_family_linkage = registry.has_feature(RegistryFeatures.FAMILY_LINKAGE)
+        include_patient_relative_section = (
+            (has_family_linkage and not patient) or (has_family_linkage and patient and patient.is_index)
+        )
+        if include_patient_relative_section:
             if not patient_relative_form:
                 patient_relative_formset = inlineformset_factory(Patient,
                                                                  PatientRelative,
@@ -369,6 +341,53 @@ class PatientFormMixin(PatientMixin):
                 (patient_form, (registry_specific_section_fields,))
             )
 
+        return form_sections
+
+    def _get_patient_and_forms_sections(self,
+                                        patient_id,
+                                        registry_code,
+                                        request,
+                                        patient_form=None,
+                                        patient_address_form=None,
+                                        patient_doctor_form=None,
+                                        patient_relative_form=None):
+
+        user = request.user
+        if patient_id is None:
+            patient = None
+        else:
+            patient = Patient.objects.get(id=patient_id)
+
+        registry = Registry.objects.get(code=registry_code)
+
+        if not patient_form:
+            if not registry.patient_fields:
+                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
+            else:
+                munged_patient_form_class = self._create_registry_specific_patient_form_class(
+                    user, PatientForm, registry, patient
+                )
+                patient_form = munged_patient_form_class(
+                    instance=patient, user=user, registry_model=registry)
+
+        patient_form.user = user
+
+        if not patient_address_form:
+            patient_address_formset = inlineformset_factory(Patient,
+                                                            PatientAddress,
+                                                            form=PatientAddressForm,
+                                                            extra=0,
+                                                            can_delete=True,
+                                                            fields="__all__")
+
+            patient_address_form = patient_address_formset(
+                instance=patient, prefix="patient_address")
+
+        form_sections = self.get_form_sections(
+            user, patient, registry, registry_code, patient_form, patient_address_form,
+            patient_doctor_form, patient_relative_form
+        )
+
         return patient, form_sections
 
     def get_form_kwargs(self):
@@ -378,10 +397,11 @@ class PatientFormMixin(PatientMixin):
         kwargs["registry_model"] = self.registry_model
         return kwargs
 
-    def form_valid(self, form):
+    def all_forms_valid(self, forms):
         # called _after_ all form(s) validated
         # save patient
-        self.object = form.save()
+        patient_form = forms['patient_form']
+        self.object = patient_form.save()
         # if this patient was created from a patient relative, sync with it
         self.object.sync_patient_relative()
 
@@ -392,20 +412,23 @@ class PatientFormMixin(PatientMixin):
         registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
         # save addresses
-        if self.address_formset:
-            self.address_formset.instance = self.object
-            self.address_formset.save()
+        address_formset = forms.get('address_form')
+        if address_formset:
+            address_formset.instance = self.object
+            address_formset.save()
 
         # save doctors
         if self.registry_model.get_metadata_item("patient_form_doctors"):
-            if self.doctor_formset:
-                self.doctor_formset.instance = self.object
-                self.doctor_formset.save()
+            doctor_formset = forms.get('doctors_form')
+            if doctor_formset:
+                doctor_formset.instance = self.object
+                doctor_formset.save()
 
         # patient relatives
-        if self.patient_relative_formset:
-            self.patient_relative_formset.instance = self.object
-            patient_relative_models = self.patient_relative_formset.save()
+        patient_relative_formset = forms.get('patient_relatives_form')
+        if patient_relative_formset:
+            patient_relative_formset.instance = self.object
+            patient_relative_models = patient_relative_formset.save()
             for patient_relative_model in patient_relative_models:
                 patient_relative_model.patient = self.object
                 patient_relative_model.save()
@@ -413,7 +436,7 @@ class PatientFormMixin(PatientMixin):
                 tag = patient_relative_model.given_names + patient_relative_model.family_name
                 # The patient relative form has a checkbox to "create a patient from the
                 # relative"
-                for form in self.patient_relative_formset:
+                for form in patient_relative_formset:
                     if form.tag == tag:  # must be a better way to do this ...
                         if form.create_patient_flag:
                             patient_relative_model.create_patient_from_myself(
@@ -428,32 +451,31 @@ class PatientFormMixin(PatientMixin):
                 closure(patient_model, registry_ids)
             delattr(patient_model, 'add_registry_closures')
 
-    def form_invalid(self, patient_form,
-                     patient_address_formset,
-                     patient_doctor_formset,
-                     patient_relative_formset,
+    def form_invalid(self, forms,
                      errors):
         has_errors = len(errors) > 0
         return self.render_to_response(
             self.get_context_data(
-                form=patient_form,
+                form=forms['patient_form'],
                 all_errors=errors,
                 errors=has_errors,
-                patient_address_formset=patient_address_formset,
-                patient_doctor_formset=patient_doctor_formset,
-                patient_relative_formset=patient_relative_formset))
+                patient_address_formset=forms.get('address_form'),
+                patient_doctor_formset=forms.get('doctors_form'),
+                patient_relative_formset=forms.get('patient_relatives_form')
+            )
+        )
 
-    def _get_address_formset(self, request):
+    def _get_address_formset(self, request, instance=None):
         patient_address_form_set = inlineformset_factory(
             Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
-        return patient_address_form_set(request.POST, prefix="patient_address")
+        return patient_address_form_set(request.POST, instance=instance, prefix="patient_address")
 
-    def _get_doctor_formset(self, request):
+    def _get_doctor_formset(self, request, instance=None):
         patient_doctor_form_set = inlineformset_factory(
             Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
-        return patient_doctor_form_set(request.POST, prefix="patient_doctor")
+        return patient_doctor_form_set(request.POST, instance=instance, prefix="patient_doctor")
 
-    def _get_patient_relatives_formset(self, request):
+    def _get_patient_relatives_formset(self, request, instance=None):
         patient_relatives_formset = inlineformset_factory(Patient,
                                                           PatientRelative,
                                                           fk_name='patient',
@@ -462,13 +484,92 @@ class PatientFormMixin(PatientMixin):
                                                           can_delete=True,
                                                           fields="__all__")
 
-        return patient_relatives_formset(request.POST, prefix="patient_relative")
+        return patient_relatives_formset(request.POST, instance=instance, prefix="patient_relative")
 
     def _has_doctors_form(self):
         return self.registry_model.get_metadata_item("patient_form_doctors")
 
     def _has_patient_relatives_form(self):
         return self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE)
+
+    def get_forms(self, request, registry_model, user, instance=None):
+        forms = OrderedDict()
+        if not instance:
+            patient_form_class = self.get_form_class()
+            patient_form = self.get_form(patient_form_class)
+        else:
+            if registry_model.patient_fields:
+                patient_form_class = self._create_registry_specific_patient_form_class(
+                    user, PatientForm, registry_model, instance)
+            else:
+                patient_form_class = PatientForm
+
+            patient_form = patient_form_class(
+                request.POST,
+                request.FILES,
+                instance=instance,
+                user=request.user,
+                registry_model=registry_model)
+
+        country_code = request.POST.get('country_of_birth')
+        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
+
+        kin_country_code = request.POST.get('next_of_kin_country')
+        kin_state_code = request.POST.get('next_of_kin_state')
+        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
+        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
+
+        forms['patient_form'] = patient_form
+
+        address_formset = self._get_address_formset(request, instance)
+        index = 0
+        for f in address_formset.forms:
+            country_field_name = 'patient_address-' + str(index) + '-country'
+            patient_country_code = request.POST.get(country_field_name)
+            state_field_name = 'patient_address-' + str(index) + '-state'
+            patient_state_code = request.POST.get(state_field_name)
+            index += 1
+            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
+            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
+        forms['address_form'] = self.address_formset
+
+        if self._has_doctors_form():
+            doctor_formset = self._get_doctor_formset(request)
+            forms['doctors_form'] = doctor_formset
+
+        if self._has_patient_relatives_form():
+            patient_relative_formset = self._get_patient_relatives_formset(request)
+            forms['patient_relatives_form'] = patient_relative_formset
+
+        return forms
+
+    def _section_hidden(self, user, registry, fieldlist):
+        from rdrf.models.definition.models import DemographicFields
+        user_groups = [g.name for g in user.groups.all()]
+        hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
+                                                         registry=registry,
+                                                         group__name__in=user_groups,
+                                                         hidden=True)
+
+        return len(fieldlist) == hidden_fields.count()
+
+    def _check_for_hidden_section(self, user, registry, form_sections):
+        section_hiddenlist = []
+        for form, sections in form_sections:
+            for name, section in sections:
+                if section is not None:
+                    if self._section_hidden(user, registry, section):
+                        section_hiddenlist.append(name)
+        return section_hiddenlist
+
+    def _check_for_blacklisted_sections(self, registry_model):
+        if "section_blacklist" in registry_model.metadata:
+            section_blacklist = registry_model.metadata["section_blacklist"]
+            section_blacklist = [_(x) for x in section_blacklist]
+        else:
+            section_blacklist = []
+
+        return section_blacklist
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -490,91 +591,16 @@ class AddPatientView(PatientFormMixin, CreateView):
         self.request = request
         self._set_user(request)
         self._set_registry_model(registry_code)
-        forms = []
-        patient_form_class = self.get_form_class()
-        patient_form = self.get_form(patient_form_class)
+        forms = self.get_forms(request, self.registry_model, self.user)
 
-        country_code = request.POST.get('country_of_birth')
-        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
-
-        kin_country_code = request.POST.get('next_of_kin_country')
-        kin_state_code = request.POST.get('next_of_kin_state')
-        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
-        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
-
-        forms.append(patient_form)
-
-        self.address_formset = self._get_address_formset(request)
-        index = 0
-        for f in self.address_formset.forms:
-            country_field_name = 'patient_address-' + str(index) + '-country'
-            patient_country_code = request.POST.get(country_field_name)
-            state_field_name = 'patient_address-' + str(index) + '-state'
-            patient_state_code = request.POST.get(state_field_name)
-            index += 1
-            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
-            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
-
-        forms.append(self.address_formset)
-
-        if self._has_doctors_form():
-            self.doctor_formset = self._get_doctor_formset(request)
-            forms.append(self.doctor_formset)
-
-        if self._has_patient_relatives_form():
-            self.patient_relative_formset = self._get_patient_relatives_formset(request)
-            forms.append(self.patient_relative_formset)
-
-        if all([form.is_valid() for form in forms]):
-            return self.form_valid(patient_form)
+        if all([form.is_valid() for form in forms.values() if form]):
+            return self.all_forms_valid(forms)
         else:
-            errors = get_error_messages(forms)
-
-            return self.form_invalid(patient_form=patient_form,
-                                     patient_address_formset=self.address_formset,
-                                     patient_doctor_formset=self.doctor_formset,
-                                     patient_relative_formset=self.patient_relative_formset,
-                                     errors=errors)
-
-    def _check_for_blacklisted_sections(self, registry_model):
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_(x) for x in section_blacklist]
-        else:
-            section_blacklist = []
-
-        return section_blacklist
-
-    def _check_for_hidden_section(self, user, registry, form_sections):
-        section_hiddenlist = []
-        for form, sections in form_sections:
-            for name, section in sections:
-                if section is not None:
-                    if self._section_hidden(user, registry, section):
-                        section_hiddenlist.append(name)
-        return section_hiddenlist
-
-    def _section_hidden(self, user, registry, fieldlist):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
-        hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                         registry=registry,
-                                                         group__name__in=user_groups,
-                                                         hidden=True)
-
-        return (len(fieldlist) == hidden_fields.count())
+            errors = get_error_messages([form for form in forms.values() if form])
+            return self.form_invalid(forms, errors=errors)
 
 
-class PatientEditView(View):
-
-    def _check_for_blacklisted_sections(self, registry_model):
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_(x) for x in section_blacklist]
-        else:
-            section_blacklist = []
-
-        return section_blacklist
+class PatientEditView(PatientFormMixin, View):
 
     def get(self, request, registry_code, patient_id):
         if not request.user.is_authenticated:
@@ -656,81 +682,23 @@ class PatientEditView(View):
     def post(self, request, registry_code, patient_id):
         user = request.user
         patient = Patient.objects.get(id=patient_id)
-        patient_type = patient.patient_type
         security_check_user_patient(user, patient)
 
-        patient_relatives_forms = None
         actions = []
 
-        if patient.user:
-            patient_user = patient.user
-        else:
-            patient_user = None
-
         registry_model = Registry.objects.get(code=registry_code)
+        self.registry_model = registry_model
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient)
 
-        if registry_model.patient_fields:
-            patient_form_class = self._create_registry_specific_patient_form_class(
-                user, PatientForm, registry_model, patient)
-        else:
-            patient_form_class = PatientForm
-
-        patient_form = patient_form_class(
-            request.POST,
-            request.FILES,
-            instance=patient,
-            user=request.user,
-            registry_model=registry_model)
-
-        country_code = request.POST.get('country_of_birth')
-        patient_form.fields['country_of_birth'].choices = [(country_code, country_code)]
-
-        kin_country_code = request.POST.get('next_of_kin_country')
-        kin_state_code = request.POST.get('next_of_kin_state')
-        patient_form.fields['next_of_kin_country'].choices = [(kin_country_code, kin_country_code)]
-        patient_form.fields['next_of_kin_state'].choices = [(kin_state_code, kin_state_code)]
-
-        patient_address_form_set = inlineformset_factory(
-            Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
-        address_to_save = patient_address_form_set(
-            request.POST, instance=patient, prefix="patient_address")
-
-        index = 0
-        for f in address_to_save.forms:
-            country_field_name = 'patient_address-' + str(index) + '-country'
-            patient_country_code = request.POST.get(country_field_name)
-            state_field_name = 'patient_address-' + str(index) + '-state'
-            patient_state_code = request.POST.get(state_field_name)
-            index += 1
-            f.fields['country'].choices = [(patient_country_code, patient_country_code)]
-            f.fields['state'].choices = [(patient_state_code, patient_state_code)]
-
-        patient_relatives_forms = None
-
-        if patient.is_index and registry_model.get_metadata_item("family_linkage"):
-            patient_relatives_formset = inlineformset_factory(Patient,
-                                                              PatientRelative,
-                                                              fk_name='patient',
-                                                              form=PatientRelativeForm,
-                                                              extra=0,
-                                                              can_delete=True,
-                                                              fields="__all__")
-
-            patient_relatives_forms = patient_relatives_formset(
-                request.POST, instance=patient, prefix="patient_relative")
-
-            forms = [patient_form, address_to_save, patient_relatives_forms]
-        else:
-            forms = [patient_form, address_to_save]
+        forms = self.get_forms(request, registry_model, user, patient)
 
         valid_forms = []
         error_messages = []
 
-        for form in forms:
-            if not form.is_valid():
+        for form in forms.values():
+            if form and not form.is_valid():
                 valid_forms.append(False)
                 if isinstance(form.errors, list):
                     for error_dict in form.errors:
@@ -744,36 +712,14 @@ class PatientEditView(View):
                 valid_forms.append(True)
 
         if registry_model.get_metadata_item("patient_form_doctors"):
-            patient_doctor_form_set = inlineformset_factory(
-                Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
-            doctors_to_save = patient_doctor_form_set(
-                request.POST, instance=patient, prefix="patient_doctor")
+            doctors_to_save = self._get_doctor_formset(request, patient)
             valid_forms.append(doctors_to_save.is_valid())
 
+        patient_relatives_form = None
         if all(valid_forms):
-            if registry_model.get_metadata_item("patient_form_doctors"):
-                doctors_to_save.save()
-            address_to_save.save()
-            patient_instance = patient_form.save()
-            patient_instance.patient_type = patient_type
-            patient_instance.save()
-
-            patient_instance.sync_patient_relative()
-
-            if patient_user and not patient_instance.user:
-                patient_instance.user = patient_user
-                patient_instance.save()
-
-            registry_specific_fields_handler = RegistrySpecificFieldsHandler(
-                registry_model, patient_instance)
-            registry_specific_fields_handler.save_registry_specific_data_in_mongo(request)
-
+            self.all_forms_valid(forms)
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
-
-            if patient_relatives_forms:
-                self.create_patient_relatives(patient_relatives_forms, patient, registry_model)
-
             context = {
                 "forms": form_sections,
                 "patient": patient,
@@ -782,16 +728,16 @@ class PatientEditView(View):
                 "error_messages": [],
             }
         else:
-            error_messages = get_error_messages(forms)
+            error_messages = get_error_messages([form for form in forms.values() if form])
             if not registry_model.get_metadata_item("patient_form_doctors"):
                 doctors_to_save = None
             patient, form_sections = self._get_patient_and_forms_sections(patient_id,
                                                                           registry_code,
                                                                           request,
-                                                                          patient_form,
-                                                                          address_to_save,
+                                                                          forms.get('patient_form'),
+                                                                          forms.get('address_form'),
                                                                           doctors_to_save,
-                                                                          patient_relatives_forms=patient_relatives_forms)
+                                                                          patient_relatives_form)
 
             context = {
                 "forms": form_sections,
@@ -877,233 +823,3 @@ class PatientEditView(View):
                             patient_relative_model.create_patient_from_myself(
                                 registry_model,
                                 patient_model.working_groups.all())
-
-    def _get_patient_and_forms_sections(self,
-                                        patient_id,
-                                        registry_code,
-                                        request,
-                                        patient_form=None,
-                                        patient_address_form=None,
-                                        patient_doctor_form=None,
-                                        patient_relatives_forms=None):
-
-        user = request.user
-        hide_registry_specific_fields_section = False
-        if patient_id is None:
-            patient = None
-        else:
-            patient = Patient.objects.get(id=patient_id)
-
-        registry = Registry.objects.get(code=registry_code)
-
-        if not patient_form:
-            if not registry.patient_fields:
-                patient_form = PatientForm(instance=patient, user=user, registry_model=registry)
-            else:
-                munged_patient_form_class = self._create_registry_specific_patient_form_class(
-                    user,
-                    PatientForm,
-                    registry,
-                    patient)
-                if munged_patient_form_class.HIDDEN:
-                    hide_registry_specific_fields_section = True
-                patient_form = munged_patient_form_class(
-                    instance=patient, user=user, registry_model=registry)
-
-        if not patient_address_form:
-            patient_address_formset = inlineformset_factory(Patient,
-                                                            PatientAddress,
-                                                            form=PatientAddressForm,
-                                                            extra=0,
-                                                            can_delete=True,
-                                                            fields="__all__")
-
-            patient_address_form = patient_address_formset(
-                instance=patient, prefix="patient_address")
-
-        personal_details_fields = (_('Patients Personal Details'), [
-            "family_name",
-            "given_names",
-            "maiden_name",
-            "umrn",
-            "date_of_birth",
-            "date_of_death",
-            "place_of_birth",
-            "date_of_migration",
-            "country_of_birth",
-            "ethnic_origin",
-            "sex",
-            "home_phone",
-            "mobile_phone",
-            "work_phone",
-            "email",
-            "living_status",
-        ])
-
-        next_of_kin = (_("Next of Kin"), [
-            "next_of_kin_family_name",
-            "next_of_kin_given_names",
-            "next_of_kin_relationship",
-            "next_of_kin_address",
-            "next_of_kin_suburb",
-            "next_of_kin_country",
-            "next_of_kin_state",
-            "next_of_kin_postcode",
-            "next_of_kin_home_phone",
-            "next_of_kin_mobile_phone",
-            "next_of_kin_work_phone",
-            "next_of_kin_email",
-            "next_of_kin_parent_place_of_birth"
-        ])
-
-        rdrf_registry = (_("Registry"), [
-            "rdrf_registry",
-            "working_groups",
-            "clinician"
-        ])
-
-        patient_address_section = (_("Patient Address"), None)
-
-        patient_stage_section = (_("Patient Stage"), [
-            "stage"
-        ])
-
-        form_sections = [
-            (
-                patient_form,
-                (rdrf_registry,)
-            ),
-            (
-                patient_form,
-                (personal_details_fields,)
-            ),
-            (
-                patient_address_form,
-                (patient_address_section,)
-            ),
-            (
-                patient_form,
-                (next_of_kin,)
-            ),
-        ]
-        if not user.is_patient and registry.has_feature(RegistryFeatures.STAGES):
-            form_sections.append((
-                patient_form,
-                (patient_stage_section, )
-            ))
-
-        if registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
-            form_sections = form_sections[:-1]
-
-        if registry.get_metadata_item("patient_form_doctors"):
-            if not patient_doctor_form:
-                patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
-                                                               form=PatientDoctorForm,
-                                                               extra=0,
-                                                               can_delete=True,
-                                                               fields="__all__")
-
-                patient_doctor_form = patient_doctor_formset(
-                    instance=patient, prefix="patient_doctor")
-
-            patient_doctor_section = (_("Patient Doctor"), None)
-
-            form_sections.append((
-                patient_doctor_form,
-                (patient_doctor_section,)
-            ))
-
-        # PatientRelativeForm
-        if patient.is_index:
-            patient_relative_formset = inlineformset_factory(Patient,
-                                                             PatientRelative,
-                                                             fk_name='patient',
-                                                             form=PatientRelativeForm,
-                                                             extra=0,
-                                                             can_delete=True,
-                                                             fields="__all__")
-
-            if patient_relatives_forms is None:
-
-                patient_relative_form = patient_relative_formset(
-                    instance=patient, prefix="patient_relative")
-
-            else:
-                patient_relative_form = patient_relatives_forms
-
-            patient_relative_section = (_("Patient Relative"), None)
-
-            form_sections.append((patient_relative_form, (patient_relative_section,)))
-
-        if registry.patient_fields:
-            if not hide_registry_specific_fields_section:
-                registry_specific_section_fields = self._get_registry_specific_section_fields(
-                    user, registry)
-                form_sections.append(
-                    (patient_form, (registry_specific_section_fields,))
-                )
-
-        return patient, form_sections
-
-    def _get_registry_specific_fields(self, user, registry_model):
-        """
-        return: list of cde_model, field_object pairs
-        """
-        if user.is_superuser:
-            return registry_model.patient_fields
-        if registry_model not in user.registry.all():
-            return []
-        else:
-            return registry_model.patient_fields
-
-    def _create_registry_specific_patient_form_class(
-            self, user, form_class, registry_model, patient=None):
-        additional_fields = OrderedDict()
-        field_pairs = self._get_registry_specific_fields(user, registry_model)
-
-        for cde, field_object in field_pairs:
-            try:
-                cde_policy = CdePolicy.objects.get(registry=registry_model, cde=cde)
-            except CdePolicy.DoesNotExist:
-                cde_policy = None
-
-            if cde_policy is None:
-                additional_fields[cde.code] = field_object
-            else:
-
-                if user.is_superuser or cde_policy.is_allowed(user.groups.all(), patient):
-                    if patient.is_index:
-                        additional_fields[cde.code] = field_object
-
-        if len(list(additional_fields.keys())) == 0:
-            additional_fields["HIDDEN"] = True
-        else:
-            additional_fields["HIDDEN"] = False
-
-        new_form_class = type(form_class.__name__, (form_class,), additional_fields)
-        return new_form_class
-
-    def _get_registry_specific_section_fields(self, user, registry_model):
-        field_pairs = self._get_registry_specific_fields(user, registry_model)
-        fieldset_title = registry_model.specific_fields_section_title
-        field_list = [pair[0].code for pair in field_pairs]
-        return fieldset_title, field_list
-
-    def _check_for_hidden_section(self, user, registry, form_sections):
-        section_hiddenlist = []
-        for form, sections in form_sections:
-            for name, section in sections:
-                if section is not None:
-                    if self._section_hidden(user, registry, section):
-                        section_hiddenlist.append(name)
-        return section_hiddenlist
-
-    def _section_hidden(self, user, registry, fieldlist):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
-        hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                         registry=registry,
-                                                         group__name__in=user_groups,
-                                                         hidden=True)
-
-        return (len(fieldlist) == hidden_fields.count())
