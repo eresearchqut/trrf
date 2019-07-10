@@ -92,7 +92,7 @@ function defaults {
     : "${CACHEPORT:=11211}"
 
     MEMCACHE=""
-    if [[ "$WAIT_FOR_CACHESERVER" ]] ; then
+    if [[ "$WAIT_FOR_CACHE" ]] ; then
       : "${MEMCACHE:=${CACHESERVER}:${CACHEPORT}}"
     fi
 
