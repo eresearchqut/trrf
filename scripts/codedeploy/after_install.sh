@@ -10,7 +10,11 @@ export AWS_DEFAULT_REGION=ap-southeast-2
 
 # TODO TRRF_VERSION should probably appended to this here
 export UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION_NAME | jq '.repositories | .[0] | .repositoryUri' -r`
+
+echo "AWS_DEFAULT_REGION=ap-southeast-2" >> .env
 echo "UWSGI_IMAGE=$UWSGI_IMAGE" >> .env
+echo "ENVIRONMENT=${DEPLOYMENT_GROUP_NAME}"  >> .env
+echo "APPLICATION_NAME=${APPLICATION_NAME}"  >> .env
 
 export SSM_ENV_PATH=/app/${DEPLOYMENT_GROUP_NAME}/
 export SSM_APP_PATH=/app/${DEPLOYMENT_GROUP_NAME}/${APPLICATION_NAME}/
