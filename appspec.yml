@@ -17,7 +17,7 @@ hooks:
       runas: ec2-user
   AfterInstall:
     - location: scripts/codedeploy/after_install.sh
-      timeout: 120
+      timeout: 300
       runas: root
   ApplicationStart:
     - location: scripts/codedeploy/start_service.sh
