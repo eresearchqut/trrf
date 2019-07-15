@@ -211,7 +211,7 @@ class PatientFormMixin:
         else:
             return None
 
-    def get_form_sections(self, user, patient, registry, registry_code, patient_form,
+    def get_form_sections(self, user, request, patient, registry, registry_code, patient_form,
                           patient_address_form, patient_doctor_form, patient_relative_form):
         personal_header = _('Patients Personal Details')
         # shouldn't be hardcoding behaviour here plus the html formatting
@@ -384,7 +384,7 @@ class PatientFormMixin:
                 instance=patient, prefix="patient_address")
 
         form_sections = self.get_form_sections(
-            user, patient, registry, registry_code, patient_form, patient_address_form,
+            user, request, patient, registry, registry_code, patient_form, patient_address_form,
             patient_doctor_form, patient_relative_form
         )
 
