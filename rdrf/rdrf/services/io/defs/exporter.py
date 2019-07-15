@@ -1,14 +1,19 @@
-from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
-import logging
-import yaml
+from decimal import Decimal
 import json
+import logging
 from operator import attrgetter
+import yaml
+
+
+from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
+
 from rdrf import VERSION
 import datetime
 from rdrf.models.definition.models import DemographicFields, RegistryForm
+from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+
 from explorer.models import Query
-from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +37,7 @@ def cde_to_dict(cde):
 class ExportFormat:
     JSON = "JSON"
     YAML = "YAML"
+    VALIDATION = "VALIDATION"
 
 
 class ExportType:
@@ -99,6 +105,9 @@ class Exporter(object):
     def export_json(self):
         return self._export(ExportFormat.JSON)
 
+    def export_validation(self):
+        return self._export(ExportFormat.VALIDATION)
+
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             cdes = set([])
@@ -111,6 +120,13 @@ class Exporter(object):
 
         generic_cdes = self._get_generic_cdes()
         return self._sort_codes(cdes.union(generic_cdes))
+
+    def _check_model_validity(self, model):
+        try:
+            model.clean()
+        except ValidationError as verr:
+            raise ExportException(verr.message)
+
 
     @staticmethod
     def _sort_codes(items):
@@ -145,6 +161,8 @@ class Exporter(object):
             if optional:
                 return {}
             raise
+        if not optional:
+            self._check_model_validity(section_model)
         section_map = {}
         section_map["display_name"] = section_model.display_name
         section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
@@ -156,6 +174,7 @@ class Exporter(object):
         return section_map
 
     def _create_form_map(self, form_model):
+        self._check_model_validity(form_model)
         frm_map = {}
         frm_map["name"] = form_model.name
         frm_map["header"] = form_model.header
@@ -237,7 +256,7 @@ class Exporter(object):
                 export_data = None
         elif format == ExportFormat.JSON:
             export_data = json.dumps(data)
-        elif format is None:
+        elif format == ExportFormat.VALIDATION or format is None:
             export_data = data
         else:
             raise Exception("Unknown format: %s" % format)
@@ -391,6 +410,7 @@ class Exporter(object):
                 for cde_code in section_cde_codes:
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
+                        self._check_model_validity(cde)
                         cdes.add(cde)
                     except CommonDataElement.DoesNotExist:
                         logger.error("No CDE with code: %s" % cde_code)
