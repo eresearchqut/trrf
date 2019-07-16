@@ -294,7 +294,7 @@ class PatientFormMixin:
         if registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             form_sections = form_sections[:-1]
 
-        if registry.get_metadata_item("patient_form_doctors"):
+        if registry.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
             if not patient_doctor_form:
                 patient_doctor_formset = inlineformset_factory(Patient, Patient.doctors.through,
                                                                form=PatientDoctorForm,
@@ -418,7 +418,7 @@ class PatientFormMixin:
             address_formset.save()
 
         # save doctors
-        if self.registry_model.get_metadata_item("patient_form_doctors"):
+        if self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
             doctor_formset = forms.get('doctors_form')
             if doctor_formset:
                 doctor_formset.instance = self.object
@@ -487,7 +487,7 @@ class PatientFormMixin:
         return patient_relatives_formset(request.POST, instance=instance, prefix="patient_relative")
 
     def _has_doctors_form(self):
-        return self.registry_model.get_metadata_item("patient_form_doctors")
+        return self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS)
 
     def _has_patient_relatives_form(self):
         return self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE)
@@ -711,7 +711,7 @@ class PatientEditView(PatientFormMixin, View):
             else:
                 valid_forms.append(True)
 
-        if registry_model.get_metadata_item("patient_form_doctors"):
+        if registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
             doctors_to_save = self._get_doctor_formset(request, patient)
             valid_forms.append(doctors_to_save.is_valid())
 
@@ -729,7 +729,7 @@ class PatientEditView(PatientFormMixin, View):
             }
         else:
             error_messages = get_error_messages([form for form in forms.values() if form])
-            if not registry_model.get_metadata_item("patient_form_doctors"):
+            if not registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
                 doctors_to_save = None
             patient, form_sections = self._get_patient_and_forms_sections(patient_id,
                                                                           registry_code,
