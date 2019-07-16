@@ -321,9 +321,6 @@ def get_error_messages(forms):
             else:
                 for field in form._errors:
                     for error in form._errors[field]:
-                        if "This field is required" in error:
-                            # these errors are indicated next to the field
-                            continue
                         messages.append(display(form, field, error))
     results = list(map(strip_tags, messages))
     return results
