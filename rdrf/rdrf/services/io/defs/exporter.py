@@ -125,7 +125,7 @@ class Exporter(object):
         try:
             model.clean()
         except ValidationError as verr:
-            raise ExportException(verr.message)
+            raise ExportException("Model validity exception for model {} !".format(model), verr)
 
 
     @staticmethod
@@ -161,8 +161,7 @@ class Exporter(object):
             if optional:
                 return {}
             raise
-        if not optional:
-            self._check_model_validity(section_model)
+        self._check_model_validity(section_model)
         section_map = {}
         section_map["display_name"] = section_model.display_name
         section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
