@@ -37,7 +37,6 @@ def cde_to_dict(cde):
 class ExportFormat:
     JSON = "JSON"
     YAML = "YAML"
-    VALIDATION = "VALIDATION"
 
 
 class ExportType:
@@ -51,7 +50,7 @@ class ExportType:
     ALL_CDES = "ALL_CDES"                               # All CDEs in the site
 
 
-class Exporter(object):
+class Exporter:
 
     """
     Export a registry definition to yaml or json
@@ -60,7 +59,39 @@ class Exporter(object):
     def __init__(self, registry_model):
         self.registry = registry_model
 
-    def export_yaml(self, export_type=ExportType.REGISTRY_PLUS_CDES):
+    def _check_model_validity(self, model):
+        try:
+            model.clean()
+        except ValidationError as verr:
+            raise ExportException("Model validity exception for model {} !".format(model), verr)
+
+    def _validate_section(self, section_code):
+        try:
+            section_model = Section.objects.get(code=section_code)
+        except Section.DoesNotExist:
+            raise
+        self._check_model_validity(section_model)
+
+    def validate(self):
+        """"
+        Validates the CDES, sections and registry forms
+        Raises an ExporterException in case of error
+        """
+        cdes = self._get_cdes(ExportType.REGISTRY_PLUS_CDES)
+        for cde in cdes:
+            self._check_model_validity(cde)
+        if self.registry.patient_data_section:
+            self._validate_section(self.registry.patient_data_section.code)
+
+        for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
+            if frm.name == self.registry.generated_questionnaire_name:
+                # don't check the generated questionnaire
+                continue
+            self._check_model_validity(frm)
+            for section_code in frm.get_sections():
+                self._validate_section(section_code)
+
+    def export_yaml(self, export_type=ExportType, validate=True):
         """
         Example output:
         ----------------------------------------------------------------------
@@ -97,16 +128,17 @@ class Exporter(object):
         :return: a yaml file containing the definition of a registry
         """
         try:
+            if validate:
+                self.validate()
             export = self._export(ExportFormat.YAML, export_type)
             return export, []
         except Exception as ex:
             return None, [ex]
 
-    def export_json(self):
+    def export_json(self, validate=True):
+        if validate:
+            self.validate()
         return self._export(ExportFormat.JSON)
-
-    def export_validation(self):
-        return self._export(ExportFormat.VALIDATION)
 
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
@@ -120,13 +152,6 @@ class Exporter(object):
 
         generic_cdes = self._get_generic_cdes()
         return self._sort_codes(cdes.union(generic_cdes))
-
-    def _check_model_validity(self, model):
-        try:
-            model.clean()
-        except ValidationError as verr:
-            raise ExportException("Model validity exception for model {} !".format(model), verr)
-
 
     @staticmethod
     def _sort_codes(items):
@@ -161,7 +186,6 @@ class Exporter(object):
             if optional:
                 return {}
             raise
-        self._check_model_validity(section_model)
         section_map = {}
         section_map["display_name"] = section_model.display_name
         section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
@@ -173,7 +197,6 @@ class Exporter(object):
         return section_map
 
     def _create_form_map(self, form_model):
-        self._check_model_validity(form_model)
         frm_map = {}
         frm_map["name"] = form_model.name
         frm_map["header"] = form_model.header
@@ -255,7 +278,7 @@ class Exporter(object):
                 export_data = None
         elif format == ExportFormat.JSON:
             export_data = json.dumps(data)
-        elif format == ExportFormat.VALIDATION or format is None:
+        elif format is None:
             export_data = data
         else:
             raise Exception("Unknown format: %s" % format)
@@ -409,7 +432,6 @@ class Exporter(object):
                 for cde_code in section_cde_codes:
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
-                        self._check_model_validity(cde)
                         cdes.add(cde)
                     except CommonDataElement.DoesNotExist:
                         logger.error("No CDE with code: %s" % cde_code)
