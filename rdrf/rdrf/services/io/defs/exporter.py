@@ -91,7 +91,7 @@ class Exporter:
             for section_code in frm.get_sections():
                 self._validate_section(section_code)
 
-    def export_yaml(self, export_type=ExportType, validate=True):
+    def export_yaml(self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True):
         """
         Example output:
         ----------------------------------------------------------------------
@@ -133,6 +133,7 @@ class Exporter:
             export = self._export(ExportFormat.YAML, export_type)
             return export, []
         except Exception as ex:
+            logger.exception(ex)
             return None, [ex]
 
     def export_json(self, validate=True):
@@ -433,12 +434,14 @@ class Exporter:
                     try:
                         cde = CommonDataElement.objects.get(code=cde_code)
                         cdes.add(cde)
-                    except CommonDataElement.DoesNotExist:
+                    except CommonDataElement.DoesNotExist as dne:
                         logger.error("No CDE with code: %s" % cde_code)
+                        raise ExportException(f"CDE does not exist: {cde_code}", dne)
 
-            except Section.DoesNotExist:
+            except Section.DoesNotExist as sne:
                 if not sections_optional:
                     logger.error("No Section with code: %s" % section_code)
+                    raise ExportException(f"Section does not exist: {section_code}", sne)
         return cdes
 
     def _get_generic_cdes(self):
