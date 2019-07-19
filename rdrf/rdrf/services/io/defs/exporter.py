@@ -72,12 +72,12 @@ class Exporter:
             raise
         self._check_model_validity(section_model)
 
-    def validate(self):
+    def validate(self, export_type):
         """"
         Validates the CDES, sections and registry forms
         Raises an ExporterException in case of error
         """
-        cdes = self._get_cdes(ExportType.REGISTRY_PLUS_CDES)
+        cdes = self._get_cdes(export_type)
         for cde in cdes:
             self._check_model_validity(cde)
         if self.registry.patient_data_section:
@@ -129,17 +129,17 @@ class Exporter:
         """
         try:
             if validate:
-                self.validate()
+                self.validate(export_type)
             export = self._export(ExportFormat.YAML, export_type)
             return export, []
         except Exception as ex:
             logger.exception(ex)
             return None, [ex]
 
-    def export_json(self, validate=True):
+    def export_json(self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True):
         if validate:
-            self.validate()
-        return self._export(ExportFormat.JSON)
+            self.validate(export_type)
+        return self._export(ExportFormat.JSON, export_type)
 
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
