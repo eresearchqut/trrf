@@ -130,7 +130,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         yaml_export_filename = registry.name + ".yaml"
         yaml_data = export_registry(registry, request)
         if yaml_data is None:
-            return HttpResponseRedirect("")
+            return
 
         myfile = StringIO.StringIO()
         myfile.write(yaml_data)
@@ -150,7 +150,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         for registry in registrys:
             yaml_data = export_registry(registry, request)
             if yaml_data is None:
-                return HttpResponseRedirect("")
+                return
 
             zf.writestr(registry.code + '.yaml', yaml_data)
 
