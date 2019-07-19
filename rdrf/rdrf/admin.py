@@ -34,7 +34,7 @@ from reversion.admin import VersionAdmin
 import logging
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
-import io as StringIO
+import io
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.conf import settings
@@ -123,7 +123,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
             messages.error(request, "Custom Action Failed: %s" % ex)
             return None
 
-    registrys = [r for r in registry_models_selected]
+    registrys = list(registry_models_selected)
 
     if len(registrys) == 1:
         registry = registrys[0]
@@ -132,7 +132,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         if yaml_data is None:
             return
 
-        myfile = StringIO.StringIO()
+        myfile = io.StringIO()
         myfile.write(yaml_data)
         myfile.flush()
         myfile.seek(0)
@@ -144,7 +144,7 @@ def export_registry_action(modeladmin, request, registry_models_selected):
         return response
     else:
         import zipfile
-        zippedfile = StringIO.StringIO()
+        zippedfile = io.BytesIO()
         zf = zipfile.ZipFile(zippedfile, mode='w', compression=zipfile.ZIP_DEFLATED)
 
         for registry in registrys:
