@@ -50,6 +50,9 @@ class PatientRegistrationForm(RegistrationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setup_fields()
+
+    def setup_fields(self):
         for field in self.fields:
             if field not in self.no_placeholder_fields:
                 self.fields[field].widget.attrs['class'] = 'form-control'
