@@ -1,4 +1,7 @@
 import logging
+
+from rdrf.helpers.registry_features import RegistryFeatures
+
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -463,7 +466,16 @@ class Importer(object):
         if "metadata_json" in self.data:
             metadata_json = self.data["metadata_json"]
             if self._check_metadata_json(metadata_json):
-                r.metadata_json = self.data["metadata_json"]
+                as_json = json.loads(metadata_json)
+                if RegistryFeatures.PATIENT_FORM_DOCTORS in as_json:
+                    value = as_json.get(RegistryFeatures.PATIENT_FORM_DOCTORS, 0)
+                    del as_json[RegistryFeatures.PATIENT_FORM_DOCTORS]
+                    if value:
+                        features = as_json.setdefault("features", [])
+                        features.append(RegistryFeatures.PATIENT_FORM_DOCTORS)
+                    r.metadata_json = json.dumps(as_json)
+                else:
+                    r.metadata_json = metadata_json
             else:
                 raise DefinitionFileInvalid(
                     "Invalid JSON for registry metadata ( should be a json dictionary")
