@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpcre3 \
   libpq5 \
   mime-support \
-  nodejs-legacy \
+  nodejs \
   unixodbc \
   # Builder
   build-essential \
@@ -63,7 +63,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpcre3 \
   libpq5 \
   mime-support \
-  nodejs-legacy \
+  nodejs \
   unixodbc \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
