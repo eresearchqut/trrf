@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -x
-mkdir -p /home/ec2-user/efs/trrf/data/prod/log
-chown -R ec2-user:ec2-user /home/ec2-user/efs/trrf
-cd /home/ec2-user/efs/trrf
+mkdir -p /home/ec2-user/trrf/data/prod/log
+chown -R ec2-user:ec2-user /home/ec2-user/trrf
+cd /home/ec2-user/trrf
 
 $(aws ecr get-login --no-include-email --region ap-southeast-2)
 

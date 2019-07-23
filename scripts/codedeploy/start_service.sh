@@ -7,5 +7,5 @@ export UWSGI_IMAGE=`aws ecr describe-repositories --repository-name $APPLICATION
 
 docker pull $UWSGI_IMAGE
 
-cd /home/ec2-user/efs/trrf
+cd /home/ec2-user/trrf
 docker-compose -f docker-compose-prod.yml up -d
