@@ -50,11 +50,7 @@ class PatientFormMixin:
         self.registry_model = None
         self.patient_form = None  # created via get_form
         self.patient_model = None
-        self.address_formset = None
-        self.doctor_formset = None
-        self.patient_relative_formset = None
         self.object = None
-        self.patient_consent_file_formset = None
         self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
@@ -531,7 +527,7 @@ class PatientFormMixin:
             index += 1
             f.fields['country'].choices = [(patient_country_code, patient_country_code)]
             f.fields['state'].choices = [(patient_state_code, patient_state_code)]
-        forms['address_form'] = self.address_formset
+        forms['address_form'] = address_formset
 
         if self._has_doctors_form():
             doctor_formset = self._get_doctor_formset(request)
