@@ -20,6 +20,7 @@ import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
 import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
+from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
 from rdrf.views.registry_list_view import RegistryListView
 from rdrf.views.lookup_views import FamilyLookup
@@ -325,7 +326,9 @@ normalpatterns += [
             ActivationView.as_view(),
             name='registration_activate'),
 
-    re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None))
+    re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
+
+    re_path(r'^health-check/?$', health_check, name='health_check'),
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
