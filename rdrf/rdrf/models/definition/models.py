@@ -16,6 +16,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
+from django.utils.text import Truncator
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
@@ -48,6 +49,9 @@ class SectionManager(models.Manager):
 
     def get_by_natural_key(self, code):
         return self.get(code=code)
+
+    def get_by_comma_separated_codes(self, codes):
+        return self.filter(code__in=[s.strip() for s in codes.split(",")])
 
 
 class Section(models.Model):
@@ -967,7 +971,7 @@ class RegistryForm(models.Model):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
     def get_sections(self):
-        return list(map(str.strip, self.sections.split(",")))
+        return [s.strip() for s in self.sections.split(",")]
 
     @property
     def questionnaire_list(self):
@@ -979,14 +983,7 @@ class RegistryForm(models.Model):
 
     @property
     def section_models(self):
-        models = []
-        for section_code in self.get_sections():
-            try:
-                section_model = Section.objects.get(code=section_code)
-                models.append(section_model)
-            except Section.DoesNotExist:
-                pass
-        return models
+        return Section.objects.get_by_comma_separated_codes(self.sections)
 
     def in_questionnaire(self, section_code, cde_code):
         questionnaire_code = "%s.%s" % (section_code, cde_code)
@@ -1030,18 +1027,18 @@ class RegistryForm(models.Model):
                     patient_model.id,
                     context_model.id))
 
-    def _check_completion_cdes(self):
-        completion_cdes = set([cde.code for cde in self.complete_form_cdes.all()])
-        current_cdes = []
-        for section_model in self.section_models:
-            for cde_model in section_model.cde_models:
-                current_cdes.append(cde_model.code)
+    def _check_completion_cdes(self, complete_form_cdes, section_codes):
+        completion_cdes = set(cde.code for cde in complete_form_cdes)
+        section_models = Section.objects.get_by_comma_separated_codes(section_codes)
+        current_cdes = set(
+            cde_model.code
+            for section_model in section_models
+            for cde_model in section_model.cde_models)
 
-        current_cdes = set(current_cdes)
         extra = completion_cdes - current_cdes
 
         if len(extra) > 0:
-            msg = ",".join(extra)
+            msg = Truncator(", ".join(sorted(extra))).chars(250)
             raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
 
     def clean(self):
@@ -1051,7 +1048,9 @@ class RegistryForm(models.Model):
             raise ValidationError({'name': msg})
 
         if self.pk:
-            self._check_completion_cdes()
+            self._check_completion_cdes(
+                self.complete_form_cdes.all(),
+                self.sections)
 
         if self.conditional_rendering_rules:
             DSLValidator(self.conditional_rendering_rules, self).check_rules()

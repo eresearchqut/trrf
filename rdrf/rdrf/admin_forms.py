@@ -1,8 +1,9 @@
-from django.forms import ModelForm, SelectMultiple, ChoiceField
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
-from registry.patients.models import Patient
-from rdrf.models.definition.models import EmailTemplate
 from django.conf import settings
+from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
+
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
+from rdrf.models.definition.models import EmailTemplate
+from registry.patients.models import Patient
 
 
 class RegistryFormAdminForm(ModelForm):
@@ -19,6 +20,21 @@ class RegistryFormAdminForm(ModelForm):
                     cdes += section.get_elements()
                 self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
                     code__in=cdes)
+
+    def clean_sections(self):
+        data = self.cleaned_data['sections']
+        codes = [s.strip() for s in data.split(',')]
+        existing_codes = Section.objects.filter(code__in=codes).values_list('code', flat=True)
+        if len(codes) != len(existing_codes):
+            missing_codes = ', '.join(c for c in codes if c not in set(existing_codes))
+            raise ValidationError(f'Invalid section codes: {missing_codes}')
+        return self.cleaned_data['sections']
+
+    def clean(self):
+        if 'sections' in self.cleaned_data:
+            self.instance._check_completion_cdes(
+                self.cleaned_data['complete_form_cdes'],
+                self.cleaned_data['sections'])
 
     class Meta:
         model = RegistryForm
