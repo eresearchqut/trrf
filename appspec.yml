@@ -3,9 +3,9 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/efs/trrf
+    destination: /home/ec2-user/trrf
 permissions:
-  - object: /home/ec2-user/efs/trrf
+  - object: /home/ec2-user/trrf
     group: ec2-user
     owner: ec2-user
     type:
