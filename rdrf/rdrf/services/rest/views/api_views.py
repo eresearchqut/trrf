@@ -2,6 +2,7 @@ from operator import attrgetter
 import pycountry
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework import status
@@ -17,6 +18,7 @@ from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.definition.models import RegistryForm
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import all_countries
 
 
 import logging
@@ -148,8 +150,13 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class ListCountries(APIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get(self, request, format=None):
-        countries = sorted(pycountry.countries, key=attrgetter('name'))
+    def get(self, request, registry_code):
+        registry = get_object_or_404(Registry, code=registry_code)
+        restricted_countries = registry.get_restricted_countries()
+
+        countries = all_countries()
+        if restricted_countries:
+            countries = [c for c in countries if c.alpha_2 in restricted_countries]
 
         def to_dict(country):
             # wanted_fields = ('name', 'alpha_2', 'alpha_3', 'numeric', 'official_name')

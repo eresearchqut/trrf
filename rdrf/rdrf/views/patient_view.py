@@ -19,6 +19,7 @@ from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
 from registry.patients.models import PatientDoctor
 from registry.patients.models import PatientRelative
+from registry.patients.admin_forms import address_form_field_callback, patient_relative_form_field_callback
 from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
@@ -322,13 +323,16 @@ class PatientFormMixin:
         )
         if include_patient_relative_section:
             if not patient_relative_form:
-                patient_relative_formset = inlineformset_factory(Patient,
-                                                                 PatientRelative,
-                                                                 fk_name='patient',
-                                                                 form=PatientRelativeForm,
-                                                                 extra=0,
-                                                                 can_delete=True,
-                                                                 fields="__all__")
+                patient_relative_formset = inlineformset_factory(
+                    Patient,
+                    PatientRelative,
+                    fk_name='patient',
+                    form=PatientRelativeForm,
+                    formfield_callback=patient_relative_form_field_callback(registry),
+                    extra=0,
+                    can_delete=True,
+                    fields="__all__"
+                )
 
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
@@ -376,12 +380,15 @@ class PatientFormMixin:
         patient_form.user = user
 
         if not patient_address_form:
-            patient_address_formset = inlineformset_factory(Patient,
-                                                            PatientAddress,
-                                                            form=PatientAddressForm,
-                                                            extra=0,
-                                                            can_delete=True,
-                                                            fields="__all__")
+            patient_address_formset = inlineformset_factory(
+                Patient,
+                PatientAddress,
+                form=PatientAddressForm,
+                formfield_callback=address_form_field_callback(registry),
+                extra=0,
+                can_delete=True,
+                fields="__all__"
+            )
 
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
@@ -473,7 +480,9 @@ class PatientFormMixin:
 
     def _get_address_formset(self, request, instance=None):
         patient_address_form_set = inlineformset_factory(
-            Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
+            Patient, PatientAddress, form=PatientAddressForm,
+            formfield_callback=address_form_field_callback(self.registry_model),
+            fields="__all__")
         return patient_address_form_set(request.POST, instance=instance, prefix="patient_address")
 
     def _get_doctor_formset(self, request, instance=None):
@@ -482,13 +491,15 @@ class PatientFormMixin:
         return patient_doctor_form_set(request.POST, instance=instance, prefix="patient_doctor")
 
     def _get_patient_relatives_formset(self, request, instance=None):
-        patient_relatives_formset = inlineformset_factory(Patient,
-                                                          PatientRelative,
-                                                          fk_name='patient',
-                                                          form=PatientRelativeForm,
-                                                          extra=0,
-                                                          can_delete=True,
-                                                          fields="__all__")
+        patient_relatives_formset = inlineformset_factory(
+            Patient,
+            PatientRelative,
+            fk_name='patient',
+            form=PatientRelativeForm,
+            formfield_callback=patient_relative_form_field_callback(self.registry_model),
+            extra=0,
+            can_delete=True,
+            fields="__all__")
 
         return patient_relatives_formset(request.POST, instance=instance, prefix="patient_relative")
 

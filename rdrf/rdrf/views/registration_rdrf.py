@@ -26,6 +26,13 @@ class RdrfRegistrationView(RegistrationView):
             registration_class = import_string(settings.REGISTRATION_CLASS)
             return registration_class(request, form)
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if self.registry_code and hasattr(form, 'set_registry'):
+            registry = get_object_or_404(Registry, code=self.registry_code)
+            form.set_registry(registry)
+        return form
+
     def dispatch(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
         form_class = self.get_form_class()

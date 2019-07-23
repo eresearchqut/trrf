@@ -15,6 +15,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.helpers.utils import country_choices
 from registry.patients.models import PatientConsent
 
 logger = logging.getLogger(__name__)
@@ -168,22 +169,37 @@ class CountryWidget(widgets.Select):
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_STRING}
 
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        self.restricted_countries = attrs.get('restricted_countries', []) if attrs else []
+        empty_option_text = '---------'
+        self.empty_option_value = attrs.get('empty_option_text', empty_option_text) if attrs else empty_option_text
+        self.onchange_handler = attrs.get('onchange', '') if attrs else ''
+
+    def set_restricted_countries(self, restricted_countries):
+        self.restricted_countries = restricted_countries
+
+    @staticmethod
+    def output_country(output, code, name, selected_value):
+        if selected_value == code:
+            output.append("<option value='%s' selected>%s</option>" % (code, name))
+        else:
+            output.append("<option value='%s'>%s</option>" % (code, name))
+
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
-            "onchange": "select_country(this)",
+            "onchange": self.onchange_handler or "select_country(this)"
         })
-        output = [format_html("<select{}>", flatatt(final_attrs))]
-        empty_option = "<option value=''>---------</option>"
-        output.append(empty_option)
-        for country in sorted(pycountry.countries, key=attrgetter('name')):
 
-            if value == country.alpha_2:
-                output.append("<option value='%s' selected>%s</option>" %
-                              (country.alpha_2, country.name))
-            else:
-                output.append("<option value='%s'>%s</option>" % (country.alpha_2, country.name))
+        output = [format_html("<select{}>", flatatt(final_attrs))]
+        empty_option = "<option value=''>{}</option>".format(self.empty_option_value)
+        output.append(empty_option)
+        for code, name in country_choices():
+            if self.restricted_countries and code not in self.restricted_countries:
+                continue
+            self.output_country(output, code, name, value)
         output.append("</select>")
         return mark_safe('\n'.join(output))
 

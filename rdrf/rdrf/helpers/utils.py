@@ -12,7 +12,9 @@ from functools import total_ordering
 import datetime
 import dateutil.parser
 import logging
+import pycountry
 import re
+import operator
 import os.path
 import subprocess
 import uuid
@@ -761,3 +763,11 @@ def get_preferred_languages():
         return []
     else:
         return languages
+
+
+def all_countries():
+    return sorted(pycountry.countries, key=operator.attrgetter('name'))
+
+
+def country_choices():
+    return [(c.alpha_2, c.name) for c in all_countries()]

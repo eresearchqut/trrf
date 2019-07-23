@@ -18,6 +18,7 @@
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/country_selection.js' %}"></script>
 
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -58,7 +59,7 @@
             });
         }
 
-        function add_form(el, prefix) {
+        function add_form(prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);

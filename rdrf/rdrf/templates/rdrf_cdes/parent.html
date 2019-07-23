@@ -1,5 +1,4 @@
 {% extends "rdrf_cdes/base.html" %}
-{% load countries %}
 {% load de_camelcase %}
 {% load static from staticfiles %}
 {% load i18n %}
@@ -143,9 +142,8 @@
                                     <div class="col-sm-10">
                                         <select class="form-control" id="id_country" name="country">
                                             <option value="-1">{% trans 'Choose one' %}...</option>
-                                            {% countries as countries %}
                                             {% for con in countries %}
-                                                <option value="{{con.alpha_2}}">{{con.name}}</option>
+                                                <option value="{{con.0}}">{{con.1}}</option>
                                             {% endfor %}
                                         </select>
                                     </div>

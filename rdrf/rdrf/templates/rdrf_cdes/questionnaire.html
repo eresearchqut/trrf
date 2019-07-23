@@ -22,6 +22,8 @@
     
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/country_selection.js' %}"></script>
+
     <script>
         $(document).ready(function() {
           $( ".datepicker" ).datepicker({
@@ -56,32 +58,6 @@
             });
         });
         
-        function select_country(obj) {
-            var state_select;
-            state_id = obj.id.replace("Country", "State");
-            if (state_id.match(/formset/)) {
-                // CDEs using this widget are named diferently in formsets
-                state_select = $('#' + state_id);
-            }
-            else {
-                state_select = $("#" + state_id);
-            }
-
-            state_select.find('option').remove();
-
-            if (obj.value != "") {
-                $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
-                if (data) {
-                    $.each(data, function(i, item) {
-                        var option_html = "<option value='" + item.code + "'>" + item.name + "</option>";
-                        state_select.append(option_html);
-                        })
-                    }
-                });
-            }
-        }
-
-
         function add_form(prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
             var empty_form = $("#empty_" + prefix);

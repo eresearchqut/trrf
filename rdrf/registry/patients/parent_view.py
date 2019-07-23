@@ -13,7 +13,7 @@ from registry.patients.models import AddressType, ParentGuardian, Patient, Patie
 from rdrf.db.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress import form_progress
-from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import consent_status_for_patient, country_choices
 from rdrf.models.definition.models import Registry, RegistryForm
 from rdrf.helpers.registry_features import RegistryFeatures
 
@@ -123,6 +123,11 @@ class ParentView(BaseParentView):
             context['patients'] = patients
             context['registry_code'] = registry_code
 
+            restricted_countries = registry.get_restricted_countries()
+            if restricted_countries:
+                context['countries'] = [entry for entry in country_choices() if entry[0] in restricted_countries]
+            else:
+                context['countries'] = country_choices()
             self.set_rdrf_context(parent, context_id)
             context['context_id'] = self.rdrf_context.pk
             fth = FormTitleHelper(self.registry, "")
@@ -194,6 +199,9 @@ class ParentEditView(BaseParentView):
     def get(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(user=request.user)
+        registry = Registry.objects.get(code=registry_code)
+        parent_form = ParentGuardianForm(instance=parent)
+        parent_form.set_registry(registry)
 
         context['parent'] = parent
         context['registry_code'] = registry_code
@@ -204,8 +212,10 @@ class ParentEditView(BaseParentView):
     def post(self, request, registry_code, parent_id, context_id=None):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
+        registry = Registry.objects.get(code=registry_code)
 
         parent_form = ParentGuardianForm(request.POST, instance=parent)
+        parent_form.set_registry(registry)
         if parent_form.is_valid():
             parent_form.save()
             self.update_name(request.user, parent_form.cleaned_data)

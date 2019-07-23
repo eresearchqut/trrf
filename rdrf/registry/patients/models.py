@@ -1505,17 +1505,7 @@ class PatientRelative(models.Model, PatientUpdateMixin):
                       ("Other", "Other"),
                       )
 
-    RELATIVE_LOCATIONS = [
-        ("AU - WA", "Australia - WA"),
-        ("AU - SA", "Australia - SA"),
-        ("AU - NSW", "Australia - NSW"),
-        ("AU - QLD", "Australia - QLD"),
-        ("AU - NT", "Australia - NT"),
-        ("AU - VIC", "Australia - VIC"),
-        ("AU - TAS", "Australia - TAS"),
-        ("NZ", "New Zealand")
-
-    ]
+    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
 
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
     patient = models.ForeignKey(Patient,
@@ -1526,8 +1516,9 @@ class PatientRelative(models.Model, PatientUpdateMixin):
     date_of_birth = models.DateField()
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
-    location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
     living_status = models.CharField(choices=LivingStates.CHOICES, max_length=80)
+    country = models.CharField(max_length=80, default='')
+    state = models.CharField(max_length=50, null=True, blank=True)
     relative_patient = models.OneToOneField(
         to=Patient,
         null=True,

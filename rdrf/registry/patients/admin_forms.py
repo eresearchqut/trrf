@@ -56,6 +56,40 @@ class PatientDoctorForm(forms.ModelForm):
         model = PatientDoctor
 
 
+def form_field_callback(registry, field_name, required=False):
+
+    def form_field_func(field, **kwargs):
+        formfield = field.formfield(**kwargs)
+        if field.name == field_name:
+            attrs = {
+                'restricted_countries': registry.get_restricted_countries()
+            }
+            return forms.ChoiceField(required=required, widget=CountryWidget(attrs=attrs))
+        return formfield
+
+    return form_field_func
+
+
+def patient_relative_form_field_callback(registry):
+    return form_field_callback(registry, 'country')
+
+
+def validate_country_field(restricted_countries, data, field_name, error_message):
+    field_value = data.get(field_name, None)
+    if restricted_countries and field_value and field_value not in restricted_countries:
+        raise ValidationError(error_message)
+
+
+def validate_formset_country_field(form_prefix, fields, data, field_name):
+    total_forms = int(data.get(f'{form_prefix}-TOTAL_FORMS', '0'))
+    for n in range(total_forms):
+        full_name = f"{form_prefix}-{n}-{field_name}"
+        restricted_countries = getattr(fields[field_name].widget, 'restricted_countries', [])
+        validate_country_field(
+            restricted_countries, data, full_name, f"{form_prefix} {field_name} {n+1} not in list of valid countries !"
+        )
+
+
 class PatientRelativeForm(forms.ModelForm):
     class Meta:
         model = PatientRelative
@@ -65,6 +99,8 @@ class PatientRelativeForm(forms.ModelForm):
         exclude = ['id']
         widgets = {
             'relative_patient': PatientRelativeLinkWidget,
+            'country': CountryWidget,
+            'state': StateWidget
         }
 
     date_of_birth = forms.DateField(
@@ -128,17 +164,28 @@ class PatientRelativeForm(forms.ModelForm):
                 data[k] = self.data[k]
         return data
 
+    def clean(self):
+        validate_formset_country_field("patient_relative", self.fields, self.data, "country")
+        return super().clean()
+
+
+def address_form_field_callback(registry):
+    return form_field_callback(registry, 'country')
+
 
 class PatientAddressForm(forms.ModelForm):
+
     class Meta:
         model = PatientAddress
         fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
 
-    country = forms.ChoiceField(required=True,
-                                widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
     state = forms.ChoiceField(required=True,
                               widget=StateWidget())
     address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
+
+    def clean(self):
+        validate_formset_country_field("patient_address", self.fields, self.data, "country")
+        return super().clean()
 
 
 class PatientConsentFileForm(forms.ModelForm):
@@ -296,7 +343,7 @@ class PatientForm(forms.ModelForm):
     }
 
     next_of_kin_country = forms.ChoiceField(required=False,
-                                            widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
+                                            widget=CountryWidget())
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
@@ -394,6 +441,11 @@ class PatientForm(forms.ModelForm):
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()
+
+        if self.registry_model:
+            restricted_countries = self.registry_model.get_restricted_countries()
+            self.fields['country_of_birth'].widget.set_restricted_countries(restricted_countries)
+            self.fields['next_of_kin_country'].widget.set_restricted_countries(restricted_countries)
 
     def _is_parent_editing_child(self, patient_model):
         # see FKRP #472
@@ -510,7 +562,21 @@ class PatientForm(forms.ModelForm):
 
         self._validate_custom_consents()
 
-        return super().clean()
+        self._validate_countries()
+		
+		return super().clean()
+
+    def _validate_countries(self):
+        if self.registry_model:
+            restricted_countries = self.registry_model.get_restricted_countries()
+            validate_country_field(
+                restricted_countries, self.data, "country_of_birth",
+                "Country of birth not in list of valid countries !"
+            )
+            validate_country_field(
+                restricted_countries, self.data, "next_of_kin_country",
+                "Next of kin country not in list of valid countries !"
+            )
 
     def _validate_custom_consents(self):
         data = {}
@@ -628,3 +694,13 @@ class ParentGuardianForm(forms.ModelForm):
         exclude = ['user', 'patient', 'place_of_birth', 'date_of_migration']
 
         widgets = {'state': StateWidget(), 'country': CountryWidget()}
+
+    def set_registry(self, registry):
+        self.fields['country'].widget.set_restricted_countries(registry.get_restricted_countries())
+
+    def clean(self):
+        restricted_countries = getattr(self.fields['country'].widget, 'restricted_countries', [])
+        validate_country_field(
+            restricted_countries, self.data, "country", "Parent guardian country not in list of valid countries !"
+        )
+        return super().clean()

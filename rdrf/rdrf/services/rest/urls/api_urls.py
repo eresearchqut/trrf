@@ -27,5 +27,6 @@ urlpatterns = [
             api_views.RegistryForms.as_view(), name='registry-forms'),
     re_path(r'registries/(?P<registry_id>\d+)/stages/$',
             api_views.PatientStages.as_view(), name='patient-stages'),
+    re_path(r'countries/(?P<registry_code>\w+)/$', api_views.ListCountries.as_view(), name='country_lookup')
 
 ] + router.urls

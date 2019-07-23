@@ -5,6 +5,7 @@
 {% block extrahead %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+    <script type="text/javascript" src="{% static 'js/country_selection.js' %}"></script>
     <script>
         $(document).ready(function() {
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
@@ -24,18 +25,6 @@
             
         });
         
-        function select_country(obj) {
-            state_id = obj.id.replace("country", "state");
-            state_select = $('#' + state_id);
-            state_select.find('option').remove();
-            $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
-                if (data) {
-                    $.each(data, function(i, item) {
-                        state_select.append("<option value=" + item.code +">"+ item.name +"</option>");
-                    })
-                }
-            });
-        }
     </script>
 {% endblock %}
 

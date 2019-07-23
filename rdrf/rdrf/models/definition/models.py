@@ -22,7 +22,7 @@ from django.utils.translation import ugettext as _
 
 
 from rdrf.helpers.utils import check_calculation
-from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import format_date, parse_iso_datetime, country_choices
 from rdrf.events.events import EventType
 
 from rdrf.forms.dsl.validator import DSLValidator
@@ -209,6 +209,9 @@ class Registry(models.Model):
             return self.metadata[item]
         except KeyError:
             return True
+
+    def get_restricted_countries(self):
+        return [c.upper() for c in self.metadata.get('restricted_countries', [])]
 
     def shows(self, element):
         # does this registry make visible extra/custom functionality ( false by default)
@@ -525,6 +528,7 @@ class Registry(models.Model):
     def clean(self):
         self._check_metadata()
         self._check_dupes()
+        self._check_restricted_countries()
 
     def _check_dupes(self):
         dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
@@ -533,6 +537,14 @@ class Registry(models.Model):
             raise ValidationError(
                 "Code %s already exists ( ignore case) in: %s" %
                 (self.code, names))
+
+    def _check_restricted_countries(self):
+        restricted_countries = self.get_restricted_countries()
+        if restricted_countries:
+            all_country_codes = [c[0] for c in country_choices()]
+            non_existing_codes = [c for c in restricted_countries if c not in all_country_codes]
+            if non_existing_codes:
+                raise ValidationError(f"Invalid restricted country codes: {','.join(non_existing_codes)}")
 
     @property
     def context_name(self):
