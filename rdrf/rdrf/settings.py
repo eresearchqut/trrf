@@ -517,7 +517,7 @@ REST_FRAMEWORK = {
 }
 
 # setup for SYSTEM_ROLE
-SYSTEM_ROLE = SystemRoles.from_value(env.get("SYSTEM_ROLE", "NORMAL"))
+SYSTEM_ROLE = SystemRoles[env.get("SYSTEM_ROLE", "NORMAL")]
 
 PROJECT_TITLE = env.get("project_title", "Trial Ready Registry Framework")
 PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE is SystemRoles.CIC_PROMS else "patientslisting"
