@@ -34,6 +34,13 @@
             border-top: dotted 1px #bbb;
             padding-top: 20px;
         }
+        :required  {
+            background: url({% static 'images/red-asterisk-16.png' %}) no-repeat;
+            background-size: 8px;
+            background-position:right top;
+            background-clip: padding-box;
+            background-origin: content-box;
+        }
     </style>
 
     <script type="text/javascript">
@@ -138,6 +145,7 @@
                     });
                 }
 
+            $('fieldset').before('<span style="color:red">*</span>');
             {% endif %}
 
             {% block extra_js_init %}
