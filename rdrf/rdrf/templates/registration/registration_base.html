@@ -157,8 +157,7 @@
             r = grecaptcha.getResponse();
             url = "{% url 'recaptcha_validator'%}";
             $.post(url, {"response_value": r, "csrfmiddlewaretoken" : "{{csrf_token}}"}, function(data) {
-                json_result = $.parseJSON(data);
-                if (json_result.success) {
+                if (data.success) {
                     $("#registration-submit").prop("disabled", false);
                 }
             });

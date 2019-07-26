@@ -60,8 +60,8 @@ class RdrfRegistrationView(RegistrationView):
 
     def is_recaptcha_valid(self):
         response_value = self.request.POST['g-recaptcha-response']
-        resp_json = json.loads(validate_recaptcha(response_value).content)
-        return resp_json.get('success', False)
+        resp_data = validate_recaptcha(response_value)
+        return resp_data.get('success', False)
 
     def form_valid(self, form):
         failure_url = reverse("registration_failed")
