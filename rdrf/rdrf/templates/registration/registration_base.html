@@ -144,9 +144,9 @@
                         collapsible: true
                     });
                 }
-
-            $('fieldset').before('<span style="color:red">*</span>');
             {% endif %}
+
+            $('input:radio[required]').parent('fieldset').before('<span style="color:red">*</span>')
 
             {% block extra_js_init %}
             {% endblock %}
