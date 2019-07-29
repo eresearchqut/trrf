@@ -67,6 +67,9 @@
                 states.removeAttr("required");
                 states.empty();
                 states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
+                if (country === "") {
+                    return;
+                }
                 $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
                     if (data && data.length > 0) {
                         states.attr("required", "");
