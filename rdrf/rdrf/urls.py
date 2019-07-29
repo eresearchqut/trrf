@@ -30,7 +30,6 @@ from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
 from rdrf.views.lookup_views import UsernameLookup
-from rdrf.views.lookup_views import RecaptchaValidator
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
@@ -297,9 +296,6 @@ normalpatterns += [
     # ---- Look-ups URLs -----------------------
     re_path(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
             UsernameLookup.as_view(), name="lookup_username"),
-
-    re_path(r"^lookup/recaptcha/?$",
-            RecaptchaValidator.as_view(), name="recaptcha_validator"),
     # -------------------------------------------
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',

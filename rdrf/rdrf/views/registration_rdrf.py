@@ -1,4 +1,5 @@
 import logging
+import requests
 
 from django.conf import settings
 from django.db import transaction
@@ -12,8 +13,6 @@ from registration.backends.default.views import RegistrationView
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import get_preferred_languages
-
-from .lookup_views import validate_recaptcha
 
 logger = logging.getLogger(__name__)
 
@@ -89,3 +88,19 @@ class RdrfRegistrationView(RegistrationView):
     def registration_allowed(self):
         registry = get_object_or_404(Registry, code=self.registry_code)
         return registry.has_feature(RegistryFeatures.REGISTRATION)
+
+
+def validate_recaptcha(response_value):
+    payload = {"secret": settings.RECAPTCHA_SECRET_KEY, "response": response_value}
+    response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
+    try:
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException:
+        logger.exception('Re-captcha validation failed')
+        return {'success': False}
+
+    if not data.get('success', False):
+        logger.info(f'Re-captcha validation failed: \n{data}')
+
+    return data

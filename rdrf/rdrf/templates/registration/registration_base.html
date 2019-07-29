@@ -160,14 +160,8 @@
 
         }); // $(document).ready ...
 
-        function reCaptchaCallback() {
-            r = grecaptcha.getResponse();
-            url = "{% url 'recaptcha_validator'%}";
-            $.post(url, {"response_value": r, "csrfmiddlewaretoken" : "{{csrf_token}}"}, function(data) {
-                if (data.success) {
-                    $("#registration-submit").prop("disabled", false);
-                }
-            });
+        function reCaptchaCallback(response) {
+            $("#registration-submit").prop("disabled", false);
         }
 
         function reCaptchaExpiredCallback() {

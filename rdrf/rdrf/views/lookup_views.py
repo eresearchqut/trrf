@@ -1,13 +1,11 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.views.generic import View
-from django.conf import settings
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 import json
-import requests
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -153,26 +151,3 @@ class UsernameLookup(View):
             result["existing"] = False
 
         return HttpResponse(json.dumps(result))
-
-
-def validate_recaptcha(response_value):
-    payload = {"secret": settings.RECAPTCHA_SECRET_KEY, "response": response_value}
-    response = requests.post("https://www.google.com/recaptcha/api/siteverify", data=payload)
-    try:
-        response.raise_for_status()
-        data = response.json()
-    except requests.exceptions.RequestException:
-        logger.exception('Re-captcha validation failed')
-        return {'success': False}
-
-    if not data.get('success', False):
-        logger.info(f'Re-captcha validation failed: \n{data}')
-
-    return data
-
-
-class RecaptchaValidator(View):
-
-    def post(self, request):
-        response_value = request.POST['response_value']
-        return JsonResponse(validate_recaptcha(response_value))
