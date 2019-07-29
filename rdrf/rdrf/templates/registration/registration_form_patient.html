@@ -10,6 +10,7 @@
     $("#id_date_of_birth").datepicker(dateOptions);
     setStatesOnLoad("#id_country", "#id_state", "#patient_state_value");
     setUpStateOnCountryChange("#id_country", "#id_state");
+    $("#id_country").trigger("change");
 
 {% endblock %}
 

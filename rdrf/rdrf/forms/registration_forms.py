@@ -48,6 +48,8 @@ class PatientRegistrationForm(RegistrationForm):
 
     password_fields = ['password1', 'password2']
 
+    empty_state_choices = [("", _("State / County / Province / Region"))]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setup_fields()
@@ -68,10 +70,20 @@ class PatientRegistrationForm(RegistrationForm):
     address = CharField(required=True, max_length=100)
     suburb = CharField(required=True, max_length=30)
     country = ChoiceField(required=True, widget=Select, choices=country_choices, initial="")
-    state = CharField(required=True, widget=Select)
+    state = ChoiceField(required=False, widget=Select, choices=empty_state_choices)
     postcode = CharField(required=True, max_length=30)
     phone_number = CharField(required=True, max_length=30)
     registry_code = CharField(required=True)
+
+    def _clean_fields(self):
+        country = self.data.get('country', '')
+        if country:
+            country_states = pycountry.subdivisions.get(country_code=country)
+            self.fields['state'].required = bool(country_states)
+            self.fields['state'].choices = (
+                [(state.code, state.name) for state in country_states] if country_states else self.empty_state_choices
+            )
+        super()._clean_fields()
 
 
 class ParentWithPatientRegistrationForm(PatientRegistrationForm):
@@ -111,7 +123,8 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
     parent_guardian_suburb = CharField(required=True, max_length=30)
     parent_guardian_country = ChoiceField(required=True, widget=Select, choices=PatientRegistrationForm.country_choices,
                                           initial="-1")
-    parent_guardian_state = CharField(required=False, widget=Select, max_length=30)
+    parent_guardian_state = ChoiceField(required=False, widget=Select,
+                                        choices=PatientRegistrationForm.empty_state_choices)
     parent_guardian_postcode = CharField(required=True, max_length=30)
     parent_guardian_phone = CharField(required=True, max_length=30)
     same_address = BooleanField(required=False)
@@ -121,4 +134,14 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
         if self.data.get('same_address', False):
             for f in base_required_fields:
                 self.fields[f].required = False
+        else:
+            guardian_country = self.data.get('parent_guardian_country', '')
+            if guardian_country:
+                country_states = pycountry.subdivisions.get(country_code=guardian_country)
+                self.fields['parent_guardian_state'].required = bool(country_states)
+                self.fields['parent_guardian_state'].choices = (
+                    [(state.code, state.name) for state in country_states] if country_states
+                    else self.empty_state_choices
+                )
+
         super()._clean_fields()
