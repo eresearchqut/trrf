@@ -1391,10 +1391,11 @@ class DemographicFields(models.Model):
     FIELD_CHOICES = []
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    groups = models.ManyToManyField(Group, related_name='groups')
     field = models.CharField(max_length=50, choices=FIELD_CHOICES)
     readonly = models.NullBooleanField(null=True, blank=True)
     hidden = models.NullBooleanField(null=True, blank=True)
+    is_section = models.BooleanField(null=False, default=False)
 
     class Meta:
         verbose_name_plural = "Demographic Fields"

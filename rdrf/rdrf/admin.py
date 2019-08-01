@@ -324,7 +324,7 @@ class ConsentSectionAdmin(admin.ModelAdmin):
 class DemographicFieldsAdmin(admin.ModelAdmin):
     model = DemographicFields
     form = DemographicFieldsAdminForm
-    list_display = ("registry", "group", "field", "hidden", "readonly")
+    list_display = ("registry", "field", "hidden", "readonly")
 
 
 class CdePolicyAdmin(admin.ModelAdmin):
