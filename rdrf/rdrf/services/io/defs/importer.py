@@ -850,6 +850,7 @@ class Importer(object):
                 registry=registry_obj, field=d["field"])
             demo_field.hidden = d["hidden"]
             demo_field.readonly = d["readonly"]
+            demo_field.is_section = d['is_section']
             demo_field.save()
             demo_field.groups.add(*groups)
 

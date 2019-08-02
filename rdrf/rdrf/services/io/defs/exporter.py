@@ -461,6 +461,7 @@ class Exporter:
             fields['field'] = demographic_field.field
             fields['hidden'] = demographic_field.hidden
             fields['readonly'] = demographic_field.readonly
+            fields['is_section'] = demographic_field.is_section
             demographic_fields.append(fields)
 
         return demographic_fields
