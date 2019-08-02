@@ -552,23 +552,24 @@ class PatientFormMixin:
     def _section_hidden(self, user, registry, section_name):
         from rdrf.models.definition.models import DemographicFields
         user_groups = [g.name for g in user.groups.all()]
-        hidden_fields = DemographicFields.objects.filter(field=f"{DemographicFields.SECTION_PREFIX}{section_name}",
-                                                         registry=registry,
-                                                         groups__name__in=user_groups,
-                                                         is_section=True,
-                                                         hidden=True)
-
-        return hidden_fields.exists()
+        return DemographicFields.objects.filter(
+            field=f"{DemographicFields.SECTION_PREFIX}{section_name}",
+            registry=registry,
+            groups__name__in=user_groups,
+            is_section=True,
+            hidden=True
+        ).exists()
 
     def _check_for_hidden_section(self, user, registry, form_sections):
         section_hiddenlist = []
         for form, sections in form_sections:
             for name, section in sections:
+                if self._section_hidden(user, registry, name):
+                    section_hiddenlist.append(name)
+                    continue
                 if section is not None:
                     if self._section_fields_hidden(user, registry, section):
                         section_hiddenlist.append(name)
-                if self._section_hidden(user, registry, name) and name not in section_hiddenlist:
-                    section_hiddenlist.append(name)
         return section_hiddenlist
 
     def _check_for_blacklisted_sections(self, registry_model):
