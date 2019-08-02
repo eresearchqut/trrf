@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate
 from registry.patients.models import Patient
 
@@ -48,8 +48,7 @@ class RegistryFormAdminForm(ModelForm):
 
 class DemographicFieldsAdminForm(ModelForm):
 
-    sections = ["Next of Kin"]
-    section_prefix = "SECTION"
+    sections = ["Next of Kin", "Patient Address"]
 
     def __init__(self, *args, **kwargs):
         super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
@@ -60,7 +59,7 @@ class DemographicFieldsAdminForm(ModelForm):
             field_choices.append((patient_field.name, patient_field.name))
 
         for s in self.sections:
-            field_choices.append((f"{self.section_prefix}_{s}", f"{s} section"))
+            field_choices.append((f"{DemographicFields.SECTION_PREFIX}{s}", f"{s} section"))
 
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)
@@ -69,7 +68,7 @@ class DemographicFieldsAdminForm(ModelForm):
         cleaned_data = super().clean()
         field_value = cleaned_data.get('field')
         if field_value:
-            result = re.match(f"(^{self.section_prefix}_)(.+)", field_value)
+            result = re.match(f"(^{DemographicFields.SECTION_PREFIX})(.+)", field_value)
             if result and result.groups()[1] in self.sections:
                 cleaned_data['is_section'] = True
         return cleaned_data

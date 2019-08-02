@@ -1389,6 +1389,7 @@ class ConsentRule(models.Model):
 
 class DemographicFields(models.Model):
     FIELD_CHOICES = []
+    SECTION_PREFIX = "SECTION:"
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups = models.ManyToManyField(Group, related_name='groups')
