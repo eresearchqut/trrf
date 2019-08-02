@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 
@@ -46,6 +48,9 @@ class RegistryFormAdminForm(ModelForm):
 
 class DemographicFieldsAdminForm(ModelForm):
 
+    sections = ["Next of Kin"]
+    section_prefix = "SECTION"
+
     def __init__(self, *args, **kwargs):
         super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
 
@@ -54,8 +59,20 @@ class DemographicFieldsAdminForm(ModelForm):
         for patient_field in patient_fields:
             field_choices.append((patient_field.name, patient_field.name))
 
+        for s in self.sections:
+            field_choices.append((f"{self.section_prefix}_{s}", f"{s} section"))
+
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        field_value = cleaned_data.get('field')
+        if field_value:
+            result = re.match(f"(^{self.section_prefix}_)(.+)", field_value)
+            if result and result.groups()[1] in self.sections:
+                cleaned_data['is_section'] = True
+        return cleaned_data
 
 
 class EmailTemplateAdminForm(ModelForm):
