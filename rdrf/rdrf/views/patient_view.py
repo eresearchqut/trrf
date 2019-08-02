@@ -216,7 +216,7 @@ class PatientFormMixin:
             personal_header += " " + \
                 _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
 
-        personal_details_fields = (personal_header, [
+        personal_fields = [
             "family_name",
             "given_names",
             "maiden_name",
@@ -233,9 +233,10 @@ class PatientFormMixin:
             "work_phone",
             "email",
             "living_status",
-        ])
+        ]
+        personal_details_fields = (personal_header, self._exclude_hidden_fields(user, registry, personal_fields))
 
-        next_of_kin = (_("Next of Kin"), [
+        next_of_kin_fields = [
             "next_of_kin_family_name",
             "next_of_kin_given_names",
             "next_of_kin_relationship",
@@ -249,7 +250,9 @@ class PatientFormMixin:
             "next_of_kin_work_phone",
             "next_of_kin_email",
             "next_of_kin_parent_place_of_birth"
-        ])
+        ]
+
+        next_of_kin = (_("Next of Kin"), self._exclude_hidden_fields(user, registry, next_of_kin_fields))
 
         rdrf_registry = (_("Registry"), [
             "rdrf_registry",
@@ -538,6 +541,14 @@ class PatientFormMixin:
             forms['patient_relatives_form'] = patient_relative_formset
 
         return forms
+
+    def _exclude_hidden_fields(self, user, registry, fieldlist):
+        from rdrf.models.definition.models import DemographicFields
+        user_groups = [g.name for g in user.groups.all()]
+        hidden_fields = DemographicFields.objects.filter(
+            registry=registry, groups__name__in=user_groups, hidden=True, is_section=False
+        ).values_list('field', flat=True)
+        return list(set(fieldlist) - set(hidden_fields))
 
     def _section_fields_hidden(self, user, registry, fieldlist):
         from rdrf.models.definition.models import DemographicFields
