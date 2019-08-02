@@ -4,8 +4,14 @@ from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
-from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import EmailTemplate, RegistryFeatures
 from registry.patients.models import Patient
+
+from rdrf.helpers.constants import (
+    PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
+    PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
+    PATIENT_RELATIVE_SECTION_NAME
+)
 
 
 class RegistryFormAdminForm(ModelForm):
@@ -48,7 +54,10 @@ class RegistryFormAdminForm(ModelForm):
 
 class DemographicFieldsAdminForm(ModelForm):
 
-    sections = ["Next of Kin", "Patient Address"]
+    sections = [
+        PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME, PATIENT_NEXT_OF_KIN_SECTION_NAME,
+        PATIENT_STAGE_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
+    ]
 
     def __init__(self, *args, **kwargs):
         super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)

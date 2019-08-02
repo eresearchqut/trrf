@@ -25,6 +25,11 @@ from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
 from rdrf.forms.dynamic.registry_specific_fields import RegistrySpecificFieldsHandler
+from rdrf.helpers.constants import (
+    PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
+    PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
+    PATIENT_PERSONAL_DETAILS_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
+)
 from rdrf.helpers.utils import get_error_messages
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.forms.components import RDRFContextLauncherComponent
@@ -209,7 +214,7 @@ class PatientFormMixin:
 
     def get_form_sections(self, user, request, patient, registry, registry_code, patient_form,
                           patient_address_form, patient_doctor_form, patient_relative_form):
-        personal_header = _('Patients Personal Details')
+        personal_header = _(PATIENT_PERSONAL_DETAILS_SECTION_NAME)
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
         if registry_code == "fkrp":
@@ -252,7 +257,7 @@ class PatientFormMixin:
             "next_of_kin_parent_place_of_birth"
         ]
 
-        next_of_kin = (_("Next of Kin"), self._exclude_hidden_fields(user, registry, next_of_kin_fields))
+        next_of_kin = (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), self._exclude_hidden_fields(user, registry, next_of_kin_fields))
 
         rdrf_registry = (_("Registry"), [
             "rdrf_registry",
@@ -260,9 +265,9 @@ class PatientFormMixin:
             "clinician"
         ])
 
-        patient_address_section = (_("Patient Address"), None)
+        patient_address_section = (_(PATIENT_ADDRESS_SECTION_NAME), None)
 
-        patient_stage_section = (_("Patient Stage"), [
+        patient_stage_section = (_(PATIENT_STAGE_SECTION_NAME), [
             "stage"
         ])
 
@@ -304,7 +309,7 @@ class PatientFormMixin:
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
 
-            patient_doctor_section = (_("Patient Doctor"), None)
+            patient_doctor_section = (_(PATIENT_DOCTOR_SECTION_NAME), None)
 
             form_sections.append((
                 patient_doctor_form,
@@ -329,7 +334,7 @@ class PatientFormMixin:
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
 
-            patient_relative_section = (_("Patient Relative"), None)
+            patient_relative_section = (_(PATIENT_RELATIVE_SECTION_NAME), None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 
