@@ -220,13 +220,18 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 
 # Email Notifications
 # NB. This initialises the email notification form
-DEFAULT_FROM_EMAIL = env.get('default_from_email', 'No Reply <no-reply@registryframework.net>')
+DEFAULT_FROM_EMAIL = env.get('default_from_email', 'Registry Framework (TRRF) <no-reply@registryframework.net>')
 SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 
 if env.get('ALL_EMAIL_JUST_PRINTED_TO_CONSOLE', False):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+    # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+    EMAIL_BACKEND = 'django_ses.SESBackend'
+
+AWS_SES_ACCESS_KEY_ID = env.get("aws_ses_access_key_id", "")
+AWS_SES_SECRET_ACCESS_KEY = env.get("aws_ses_secret_access_key", "")
+AWS_SES_AUTO_THROTTLE = None
 
 ANYMAIL = {
     'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
