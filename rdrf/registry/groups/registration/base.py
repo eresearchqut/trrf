@@ -29,7 +29,7 @@ class BaseRegistration(abc.ABC):
         return Registry.objects.filter(code__iexact=registry_name).first()
 
     def _get_group(self, group_name):
-        group, _ = Group.objects.get_or_create(name__iexact=group_name, defaults={'name': 'group_name'})
+        group, _ = Group.objects.get_or_create(name__iexact=group_name, defaults={'name': group_name})
         return group
 
     def _get_unallocated_working_group(self, registry):
