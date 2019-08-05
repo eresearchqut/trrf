@@ -226,18 +226,9 @@ SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 if env.get('ALL_EMAIL_JUST_PRINTED_TO_CONSOLE', False):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
-    # EMAIL_BACKEND = 'django_ses.SESBackend'
     EMAIL_BACKEND = 'anymail.backends.amazon_ses.EmailBackend'
 
-EMAIL_BACKEND = 'anymail.backends.amazon_ses.EmailBackend'
-
-# AWS_SES_ACCESS_KEY_ID = env.get("aws_ses_access_key_id", "")
-# AWS_SES_SECRET_ACCESS_KEY = env.get("aws_ses_secret_access_key", "")
-# AWS_SES_AUTO_THROTTLE = None
-
 ANYMAIL = {
-    # 'MAILGUN_API_KEY': env.get('DJANGO_MAILGUN_API_KEY', ''),
     "AMAZON_SES_CLIENT_PARAMS": {
         "aws_access_key_id": env.get("aws_ses_access_key_id", env.get("aws_access_key_id", "")),
         "aws_secret_access_key": env.get("aws_ses_secret_access_key", env.get("aws_secret_access_key", "")),

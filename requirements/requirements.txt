@@ -46,4 +46,3 @@ django-user-agents==0.3.2
 django-simple-history==2.7.2
 lark-parser==0.7.1
 boto3==1.9.178
-django-ses==0.8.10
