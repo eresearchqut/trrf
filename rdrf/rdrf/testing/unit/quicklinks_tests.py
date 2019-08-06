@@ -1,10 +1,11 @@
 import logging
 
+from django.test import override_settings
 from registry.groups.models import WorkingGroup, CustomUser
 from rdrf.models.definition.models import Registry
 from rdrf.system_role import SystemRoles
 
-from django.conf import settings
+from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
 
 from .tests import RDRFTestCase
 
@@ -27,10 +28,8 @@ class QuickLinksTests(RDRFTestCase):
         self.user.working_groups.add(self.wg)
         super().setUp()
 
+    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_PROMS)
     def test_cic_proms_menus(self):
-        settings.SYSTEM_ROLE = SystemRoles.CIC_PROMS
-        from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks
-
         ql = QuickLinks([self.registry])
         ml = ql.menu_links(["Working Group Curators"])
         self.assertEqual(len(ml), 0)
@@ -40,11 +39,9 @@ class QuickLinksTests(RDRFTestCase):
         for value in PromsLinks.CIC.values():
             self.assertIn(value, al)
 
+    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_PROMS)
+    @override_settings(DESIGN_MODE=True)
     def test_cic_proms_menus_design_mode(self):
-        settings.SYSTEM_ROLE = SystemRoles.CIC_PROMS
-        settings.DESIGN_MODE = True
-        from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks
-
         ql = QuickLinks([self.registry])
         al = ql.admin_page_links()
         for value in PromsLinks.CIC.values():
@@ -52,10 +49,8 @@ class QuickLinksTests(RDRFTestCase):
         for value in PromsLinks.REGISTRY_DESIGN.values():
             self.assertIn(value, al)
 
+    @override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
     def test_regular_menus(self):
-        settings.SYSTEM_ROLE = SystemRoles.NORMAL
-        from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
-
         ql = QuickLinks([self.registry])
         ml = ql.menu_links(["Working Group Curators"])
         self.assertNotEqual(len(ml), 0)
@@ -71,11 +66,9 @@ class QuickLinksTests(RDRFTestCase):
         for value in RegularLinks.EMAIL.values():
             self.assertIn(value, al)
 
+    @override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
+    @override_settings(DESIGN_MODE=True)
     def test_regular_menus_design_mode(self):
-        settings.SYSTEM_ROLE = SystemRoles.NORMAL
-        settings.DESIGN_MODE = True
-        from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
-
         ql = QuickLinks([self.registry])
         al = ql.admin_page_links()
         for value in PromsLinks.CIC.values():
@@ -85,10 +78,8 @@ class QuickLinksTests(RDRFTestCase):
         for value in RegularLinks.EMAIL.values():
             self.assertIn(value, al)
 
+    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_DEV)
     def test_cic_non_proms_menus(self):
-        settings.SYSTEM_ROLE = SystemRoles.CIC_DEV
-        from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
-
         ql = QuickLinks([self.registry])
         ml = ql.menu_links(["Working Group Curators"])
         self.assertNotEqual(len(ml), 0)
