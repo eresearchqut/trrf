@@ -836,11 +836,14 @@ class Importer(object):
             registry_obj = Registry.objects.get(code=d["registry"])
             groups = []
             if "group" in d:
+                # Support for importing data in the old format. We used to have demographic fields
+                # assigned to only one group in the past.
                 group_obj, created = Group.objects.get_or_create(name=d["group"])
                 if created:
                     logger.info("created Group %s" % group_obj)
                 groups.append(group_obj)
             elif "groups" in d:
+                # New format for importing. Demographic fields can be assigned to many groups now
                 for g_name in d["groups"]:
                     group_obj, created = Group.objects.get_or_create(name=g_name)
                     if created:

@@ -6,8 +6,9 @@ from django.views.generic import CreateView
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
+from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.models.definition.models import Registry, RegistryFeatures
-from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import CdePolicy, DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 
 from django.forms.models import inlineformset_factory
@@ -547,46 +548,38 @@ class PatientFormMixin:
 
         return forms
 
-    def _exclude_hidden_fields(self, user, registry, fieldlist):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+    @staticmethod
+    def _exclude_hidden_fields(user, registry, field_list):
         hidden_fields = DemographicFields.objects.filter(
-            registry=registry, groups__name__in=user_groups, hidden=True, is_section=False
+            registry=registry, groups__in=user.groups.all(), hidden=True, is_section=False
         ).values_list('field', flat=True)
-        return list(set(fieldlist) - set(hidden_fields))
+        return list(set(field_list) - set(hidden_fields))
 
-    def _section_fields_hidden(self, user, registry, fieldlist):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
-        hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                         registry=registry,
-                                                         groups__name__in=user_groups,
-                                                         hidden=True)
+    def _all_section_fields_hidden(self, user, registry, field_list):
+        return len(self._exclude_hidden_fields(user, registry, field_list)) == 0
 
-        return len(fieldlist) == hidden_fields.count()
-
-    def _section_hidden(self, user, registry, section_name):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
+    @staticmethod
+    def _section_hidden(user, registry, section_name):
+        prefixed_section_name = DemographicFieldsAdminForm.section_name(section_name)
         return DemographicFields.objects.filter(
-            field=f"{DemographicFields.SECTION_PREFIX}{section_name}",
+            field=prefixed_section_name,
             registry=registry,
-            groups__name__in=user_groups,
+            groups__in=user.groups.all(),
             is_section=True,
             hidden=True
         ).exists()
 
     def _check_for_hidden_section(self, user, registry, form_sections):
-        section_hiddenlist = []
-        for form, sections in form_sections:
-            for name, section in sections:
-                if self._section_hidden(user, registry, name):
-                    section_hiddenlist.append(name)
-                    continue
-                if section is not None:
-                    if self._section_fields_hidden(user, registry, section):
-                        section_hiddenlist.append(name)
-        return section_hiddenlist
+
+        def is_hidden(name, section):
+            return (
+                self._section_hidden(user, registry, name) or
+                (section is not None and self._all_section_fields_hidden(user, registry, section))
+            )
+
+        return [
+            name for form, sections in form_sections for name, section in sections if is_hidden(name, section)
+        ]
 
     def _check_for_blacklisted_sections(self, registry_model):
         if "section_blacklist" in registry_model.metadata:

@@ -54,6 +54,12 @@ class RegistryFormAdminForm(ModelForm):
 
 class DemographicFieldsAdminForm(ModelForm):
 
+    SECTION_PREFIX = "SECTION:"
+
+    @classmethod
+    def section_name(cls, section):
+        return f"{cls.SECTION_PREFIX}{section}"
+
     sections = [
         PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME, PATIENT_NEXT_OF_KIN_SECTION_NAME,
         PATIENT_STAGE_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
@@ -68,7 +74,7 @@ class DemographicFieldsAdminForm(ModelForm):
             field_choices.append((patient_field.name, patient_field.name))
 
         for s in self.sections:
-            field_choices.append((f"{DemographicFields.SECTION_PREFIX}{s}", f"{s} section"))
+            field_choices.append((self.section_name(s), f"{s} section"))
 
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)
@@ -77,7 +83,7 @@ class DemographicFieldsAdminForm(ModelForm):
         cleaned_data = super().clean()
         field_value = cleaned_data.get('field')
         if field_value:
-            result = re.match(f"(^{DemographicFields.SECTION_PREFIX})(.+)", field_value)
+            result = re.match(f"(^{self.SECTION_PREFIX})(.+)", field_value)
             if result and result.groups()[1] in self.sections:
                 cleaned_data['is_section'] = True
         return cleaned_data

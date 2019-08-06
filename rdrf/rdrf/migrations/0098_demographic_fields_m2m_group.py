@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='demographicfields',
             name='groups',
-            field=models.ManyToManyField(related_name='groups', to='auth.Group'),
+            field=models.ManyToManyField(related_name='demographic_fields', to='auth.Group'),
         ),
     ]
