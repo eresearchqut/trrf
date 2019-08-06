@@ -235,8 +235,12 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form.existing_links = self._get_existing_links(context_form_group)
                 return form
 
-        form_links = (_form(cfg) for cfg in
-                      ContextFormGroup.objects.filter(registry=self.registry_model, context_type="M").order_by("name"))
+        form_links = (
+            _form(cfg) for cfg in
+            ContextFormGroup.objects
+                .filter(registry=self.registry_model, context_type="M")
+                .order_by("sort_order", "name")
+        )
         return [link for link in form_links if link]
 
     def _get_existing_links(self, context_form_group):
@@ -326,7 +330,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
     def _get_fixed_context_form_groups(self):
         return ContextFormGroup.objects.filter(registry=self.registry_model,
-                                               context_type="F")
+                                               context_type="F").order_by("sort_order")
 
     def _get_context_for_group(self, fixed_context_form_group):
         try:
