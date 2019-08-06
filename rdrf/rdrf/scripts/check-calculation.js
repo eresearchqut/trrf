@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env nodejs
 
 // Uses JSlint to check javascript against Crockford's ADsafe language subset.
 // The script under test is provided on stdin.
