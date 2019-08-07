@@ -12,6 +12,7 @@ x-common-env-variables: &common-env-variables
   CLINICAL_DBSERVER: dbclinicaltest
   REPORTING_DBSERVER: dbreportingtest
   CACHESERVER: cachetest
+  CONSOLE_LOG_LEVEL: WARNING
 
 services:
   aloe_dev:

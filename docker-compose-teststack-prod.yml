@@ -13,6 +13,8 @@ services:
       - SECURE_SSL_REDIRECT=0  # Disabling SSL redirect for ELB SSL termination
       - SESSION_COOKIE_SECURE=0
       - CSRF_COOKIE_SECURE=0
+
+      - CONSOLE_LOG_LEVEL=WARNING
     volumes:
       - .:/app
       - ./data/test/:/data

@@ -376,6 +376,8 @@ LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 # UserAgent lookup cache location - used by django_user_agents
 USER_AGENTS_CACHE = 'default'
 
+CONSOLE_LOG_LEVEL = env.get('console_log_level', 'DEBUG')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -407,7 +409,7 @@ LOGGING = {
             'class': 'logging.NullHandler',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': CONSOLE_LOG_LEVEL,
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
