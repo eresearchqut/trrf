@@ -238,13 +238,14 @@ class PatientForm(forms.ModelForm):
                 for field in self.fields:
                     hidden = False
                     readonly = False
-                    for wg in working_groups:
-                        try:
-                            field_config = DemographicFields.objects.get(registry=registry, group=wg, field=field)
-                            hidden = hidden or field_config.hidden
-                            readonly = readonly or field_config.readonly
-                        except DemographicFields.DoesNotExist:
-                            pass
+                    try:
+                        field_config = DemographicFields.objects.get(
+                            registry=registry, groups__in=working_groups, field=field
+                        )
+                        hidden = hidden or field_config.hidden
+                        readonly = readonly or field_config.readonly
+                    except DemographicFields.DoesNotExist:
+                        pass
 
                     if hidden:
                         self.fields[field].widget = forms.HiddenInput()
