@@ -2,6 +2,7 @@ import re
 
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
+from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate
@@ -66,22 +67,16 @@ class DemographicFieldsAdminForm(ModelForm):
     ]
 
     def __init__(self, *args, **kwargs):
-        super(DemographicFieldsAdminForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        patient_fields = Patient._meta.fields
-        field_choices = []
-        for patient_field in patient_fields:
-            allows_blank = getattr(patient_field, 'blank', False)
-            if allows_blank:
-                field_choices.append((patient_field.name, patient_field.name))
+        non_required_patient_fields = [f for f in Patient._meta.fields if f.blank]
 
-        for s in self.sections:
-            field_choices.append((self.section_name(s), f"{s} section"))
+        field_choices = sorted([(self.section_name(s), f'{s} section') for s in self.sections])
+        field_choices += sorted([(f.name, f.name) for f in non_required_patient_fields])
 
-        field_choices.sort()
         self.fields['field'] = ChoiceField(
             choices=field_choices,
-            help_text="Note: required fields can't be hidden or made read-only"
+            help_text=_("Note: required fields aren't displayed as they can't be hidden or made read-only")
         )
         self.fields['is_section'].disabled = True
 
