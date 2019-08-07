@@ -187,13 +187,10 @@ class PatientFormMixin:
             kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
         kwargs["location"] = _("Demographics")
-        section_blacklist = self._check_for_blacklisted_sections(self.registry_model)
-        kwargs["section_blacklist"] = section_blacklist
 
-        section_hiddenlist = self._check_for_hidden_section(self.request.user,
-                                                            self.registry_model,
-                                                            forms_sections)
-        kwargs["section_hiddenlist"] = section_hiddenlist
+        kwargs["section_blacklist"] = self._blacklisted_sections(self.registry_model)
+        kwargs["section_hiddenlist"] = self._hidden_sections(self.request.user, self.registry_model, forms_sections)
+
         if self.request.user.is_parent:
             kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
         return kwargs
@@ -240,7 +237,7 @@ class PatientFormMixin:
             "email",
             "living_status",
         ]
-        personal_details_fields = (personal_header, self._exclude_hidden_fields(user, registry, personal_fields))
+        personal_details_fields = (personal_header, personal_fields)
 
         next_of_kin_fields = [
             "next_of_kin_family_name",
@@ -258,7 +255,7 @@ class PatientFormMixin:
             "next_of_kin_parent_place_of_birth"
         ]
 
-        next_of_kin = (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), self._exclude_hidden_fields(user, registry, next_of_kin_fields))
+        next_of_kin = (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), next_of_kin_fields)
 
         rdrf_registry = (_("Registry"), [
             "rdrf_registry",
@@ -548,16 +545,11 @@ class PatientFormMixin:
 
         return forms
 
-    @staticmethod
-    def _exclude_hidden_fields(user, registry, field_list):
-        hidden_fields = DemographicFields.objects.filter(
-            registry=registry, groups__in=user.groups.all(), hidden=True, is_section=False
-        ).values_list('field', flat=True)
-        difference = set(field_list) - set(hidden_fields)
-        return [f for f in field_list if f in difference]
-
     def _all_section_fields_hidden(self, user, registry, field_list):
-        return len(self._exclude_hidden_fields(user, registry, field_list)) == 0
+        hidden_fields = DemographicFields.objects.filter(
+            registry=registry, groups__in=user.groups.all(), hidden=True, is_section=False, field__in=field_list
+        ).values_list('field', flat=True)
+        return len([f for f in field_list if f not in set(hidden_fields)]) == 0
 
     @staticmethod
     def _section_hidden(user, registry, section_name):
@@ -570,26 +562,23 @@ class PatientFormMixin:
             hidden=True
         ).exists()
 
-    def _check_for_hidden_section(self, user, registry, form_sections):
+    def _hidden_sections(self, user, registry, form_sections):
 
-        def is_hidden(name, section):
+        def is_hidden(name, section_fields):
+            if not section_fields:
+                return True
             return (
-                self._section_hidden(user, registry, name) or
-                (section is not None and self._all_section_fields_hidden(user, registry, section))
+                self._section_hidden(user, registry, name) or self._all_section_fields_hidden(user, registry, section_fields)
             )
 
         return [
-            name for form, sections in form_sections for name, section in sections if is_hidden(name, section)
+            section_name
+            for _, sections in form_sections
+            for section_name, section_fields in sections if is_hidden(section_name, section_fields)
         ]
 
-    def _check_for_blacklisted_sections(self, registry_model):
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_(x) for x in section_blacklist]
-        else:
-            section_blacklist = []
-
-        return section_blacklist
+    def _blacklisted_sections(self, registry_model):
+        return [_(x) for x in registry_model.metadata.get('section_blacklist', [])]
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -630,8 +619,6 @@ class PatientEditView(PatientFormMixin, View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        section_blacklist = self._check_for_blacklisted_sections(registry_model)
-
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
 
@@ -668,7 +655,7 @@ class PatientEditView(PatientFormMixin, View):
             "consent": consent_status_for_patient(
                 registry_code,
                 patient),
-            "section_blacklist": section_blacklist}
+            "section_blacklist": self._blacklisted_sections(registry_model)}
         if request.GET.get('just_created', False):
             context["message"] = _("Patient added successfully")
 
@@ -687,10 +674,7 @@ class PatientEditView(PatientFormMixin, View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        hidden_sectionlist = self._check_for_hidden_section(request.user,
-                                                            registry_model,
-                                                            form_sections)
-        context["hidden_sectionlist"] = hidden_sectionlist
+        context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -794,13 +778,8 @@ class PatientEditView(PatientFormMixin, View):
             registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-        section_blacklist = self._check_for_blacklisted_sections(registry_model)
-        context["section_blacklist"] = section_blacklist
-
-        hidden_sectionlist = self._check_for_hidden_section(request.user,
-                                                            registry_model,
-                                                            form_sections)
-        context["hidden_sectionlist"] = hidden_sectionlist
+        context["section_blacklist"] = self._blacklisted_sections(registry_model)
+        context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)

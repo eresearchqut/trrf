@@ -3,8 +3,8 @@ import re
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
-from rdrf.models.definition.models import EmailTemplate, RegistryFeatures
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
+from rdrf.models.definition.models import EmailTemplate
 from registry.patients.models import Patient
 
 from rdrf.helpers.constants import (
@@ -78,6 +78,7 @@ class DemographicFieldsAdminForm(ModelForm):
 
         field_choices.sort()
         self.fields['field'] = ChoiceField(choices=field_choices)
+        self.fields['is_section'].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()

@@ -216,7 +216,9 @@ class PatientForm(forms.ModelForm):
             user = self.user
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
-            if not user.is_superuser:
+            if user.is_superuser:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+            else:
                 if self._is_parent_editing_child(instance):
                     # see FKRP #472
                     self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
@@ -224,33 +226,26 @@ class PatientForm(forms.ModelForm):
                 else:
                     self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
                         registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
-            else:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
             # field visibility restricted no non admins
             if not user.is_superuser:
-                if not self.registry_model:
-                    registry = user.registry.all()[0]
-                else:
-                    registry = self.registry_model
-                working_groups = user.groups.all()
+                registry = self.registry_model or user.registry.all()[0]
+                user_groups = user.groups.all()
 
-                for field in self.fields:
-                    hidden = False
-                    readonly = False
+                def get_field_config(field):
                     try:
-                        field_config = DemographicFields.objects.get(
-                            registry=registry, groups__in=working_groups, field=field
-                        )
-                        hidden = hidden or field_config.hidden
-                        readonly = readonly or field_config.readonly
+                        return DemographicFields.objects.get(registry=registry, groups__in=user_groups, field=field)
                     except DemographicFields.DoesNotExist:
-                        pass
+                        return None
 
-                    if hidden:
+                field_configs = [fc for fc in [get_field_config(field) for field in self.fields] if fc is not None]
+
+                for field_config in field_configs:
+                    field = field_config.field
+                    if field_config.hidden:
                         self.fields[field].widget = forms.HiddenInput()
                         self.fields[field].label = ""
-                    if readonly and not hidden:
+                    elif field_config.readonly:
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
