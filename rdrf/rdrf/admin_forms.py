@@ -71,8 +71,8 @@ class DemographicFieldsAdminForm(ModelForm):
         patient_fields = Patient._meta.fields
         field_choices = []
         for patient_field in patient_fields:
-            allows_null = getattr(patient_field, 'null', False)
-            if allows_null:
+            allows_blank = getattr(patient_field, 'blank', False)
+            if allows_blank:
                 field_choices.append((patient_field.name, patient_field.name))
 
         for s in self.sections:
