@@ -242,10 +242,10 @@ class PatientForm(forms.ModelForm):
 
                 for field_config in field_configs:
                     field = field_config.field
-                    if field_config.hidden:
+                    if field_config.status == DemographicFields.HIDDEN:
                         self.fields[field].widget = forms.HiddenInput()
                         self.fields[field].label = ""
-                    elif field_config.readonly:
+                    elif field_config.status == DemographicFields.READONLY:
                         self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):

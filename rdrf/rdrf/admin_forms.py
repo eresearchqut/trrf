@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate
 from registry.patients.models import Patient
 
@@ -87,6 +87,10 @@ class DemographicFieldsAdminForm(ModelForm):
             result = re.match(f"(^{self.SECTION_PREFIX})(.+)", field_value)
             if result and result.groups()[1] in self.sections:
                 cleaned_data['is_section'] = True
+                if cleaned_data.get('status') == DemographicFields.READONLY:
+                    raise ValidationError(
+                        "You cannot set a section to read-only ! Only hidden sections are supported for now"
+                    )
         return cleaned_data
 
 

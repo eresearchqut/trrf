@@ -459,8 +459,7 @@ class Exporter:
             fields['registry'] = demographic_field.registry.code
             fields['groups'] = [g.name for g in demographic_field.groups.all()]
             fields['field'] = demographic_field.field
-            fields['hidden'] = demographic_field.hidden
-            fields['readonly'] = demographic_field.readonly
+            fields['status'] = demographic_field.status
             fields['is_section'] = demographic_field.is_section
             demographic_fields.append(fields)
 

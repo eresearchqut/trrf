@@ -547,7 +547,11 @@ class PatientFormMixin:
 
     def _all_section_fields_hidden(self, user, registry, field_list):
         hidden_fields = DemographicFields.objects.filter(
-            registry=registry, groups__in=user.groups.all(), hidden=True, is_section=False, field__in=field_list
+            registry=registry,
+            groups__in=user.groups.all(),
+            status=DemographicFields.HIDDEN,
+            is_section=False,
+            field__in=field_list
         ).values_list('field', flat=True)
         return len([f for f in field_list if f not in set(hidden_fields)]) == 0
 
@@ -559,7 +563,7 @@ class PatientFormMixin:
             registry=registry,
             groups__in=user.groups.all(),
             is_section=True,
-            hidden=True
+            status=DemographicFields.HIDDEN
         ).exists()
 
     def _hidden_sections(self, user, registry, form_sections):

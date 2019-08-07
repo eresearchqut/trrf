@@ -24,26 +24,6 @@ def migrate_groups(apps, schema_editor):
         df.groups.add(*value)
 
 
-def revert_groups(apps, schema_editor):
-    DemographicFields = apps.get_model('rdrf', 'demographicfields')
-    groups = defaultdict(list)
-    for entry in DemographicFields.objects.all():
-        for g in entry.groups.all():
-            key = (entry.field, entry.readonly, entry.hidden, entry.registry_id, entry.is_section)
-            groups[key].append(g)
-        entry.groups.clear()
-    DemographicFields.objects.all().delete()
-    for key, value in groups.items():
-        for group in value:
-            DemographicFields.objects.create(
-                field=key[0],
-                readonly=key[1],
-                hidden=key[2],
-                registry_id=key[3],
-                is_section=key[4],
-                group=group
-            )
-
 
 class Migration(migrations.Migration):
 
@@ -52,5 +32,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_groups, revert_groups)
+        migrations.RunPython(migrate_groups, migrations.RunPython.noop)
     ]
