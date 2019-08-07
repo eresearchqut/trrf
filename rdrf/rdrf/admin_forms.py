@@ -71,13 +71,18 @@ class DemographicFieldsAdminForm(ModelForm):
         patient_fields = Patient._meta.fields
         field_choices = []
         for patient_field in patient_fields:
-            field_choices.append((patient_field.name, patient_field.name))
+            allows_null = getattr(patient_field, 'null', False)
+            if allows_null:
+                field_choices.append((patient_field.name, patient_field.name))
 
         for s in self.sections:
             field_choices.append((self.section_name(s), f"{s} section"))
 
         field_choices.sort()
-        self.fields['field'] = ChoiceField(choices=field_choices)
+        self.fields['field'] = ChoiceField(
+            choices=field_choices,
+            help_text="Note: required fields can't be hidden or made read-only"
+        )
         self.fields['is_section'].disabled = True
 
     def clean(self):
