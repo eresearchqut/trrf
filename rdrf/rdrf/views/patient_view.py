@@ -553,7 +553,8 @@ class PatientFormMixin:
         hidden_fields = DemographicFields.objects.filter(
             registry=registry, groups__in=user.groups.all(), hidden=True, is_section=False
         ).values_list('field', flat=True)
-        return list(set(field_list) - set(hidden_fields))
+        difference = set(field_list) - set(hidden_fields)
+        return [f for f in field_list if f in difference]
 
     def _all_section_fields_hidden(self, user, registry, field_list):
         return len(self._exclude_hidden_fields(user, registry, field_list)) == 0
