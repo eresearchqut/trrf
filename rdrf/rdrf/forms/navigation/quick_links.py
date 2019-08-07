@@ -1,23 +1,21 @@
-from collections import OrderedDict
+from collections import namedtuple
+from functools import reduce
+import logging
+from operator import attrgetter
+
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.urls.exceptions import NoReverseMatch
 from django.conf import settings
+
+from registry import groups
 from rdrf.helpers.registry_features import RegistryFeatures
 
-from registry.groups import GROUPS as RDRF_GROUPS
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-class QuickLink(object):
-
-    def __init__(self, url, text):
-        self.url = url
-        self.text = text
+QuickLink = namedtuple('QuickLink', 'url text')
 
 
 def make_entries(*quick_links):
@@ -98,7 +96,7 @@ class Links:
         LinkDefs.ConsentSections,
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
-    ) if settings.DESIGN_MODE else {}
+    )
 
     CIC = make_entries(
         LinkDefs.Surveys,
@@ -177,7 +175,6 @@ class MenuConfig:
     """
     Class to store the menu configuration. Defined for namespace purposes
     """
-
     def __init__(self, registries):
         self.registries = registries
         self.patient = {}
@@ -191,19 +188,12 @@ class MenuConfig:
         self.settings = {}
         self.all = {}
 
-    def group_links(self, group):
-        # map RDRF user groups to quick links menu sets
-        switcher = {
-            RDRF_GROUPS.PATIENT: self.patient,
-            RDRF_GROUPS.PARENT: self.parent,
-            RDRF_GROUPS.CLINICAL: self.clinical,
-            RDRF_GROUPS.GENETIC_STAFF: self.genetic_staff,
-            RDRF_GROUPS.GENETIC_CURATOR: self.genetic_curator,
-            RDRF_GROUPS.WORKING_GROUP_STAFF: self.working_group_staff,
-            RDRF_GROUPS.WORKING_GROUP_CURATOR: self.working_group_curator,
-            RDRF_GROUPS.SUPER_USER: self.super_user,
-        }
-        return switcher.get(group.lower(), [])
+    def group_links(self, group_name):
+        group = groups.reverse_lookup(group_name)
+        if group is None:
+            return []
+        attr_name = group.lower()
+        return getattr(self, attr_name, [])
 
     def per_registry_links(self, label, url, feature=None):
         # build any per registry links that require the registry code as a param
@@ -224,30 +214,20 @@ class MenuConfig:
         return rval
 
     def registration_links(self):
-        # enable registration links if any registry uses registration
-        for registry in self.registries:
-            # don't provide per registry links to a registy that doesn't support feature
-            if registry.has_feature(RegistryFeatures.REGISTRATION):
-                Links.REGISTRATION = Links.ENABLED_REGISTRATION
-                break
+        if any(registry.has_feature(RegistryFeatures.REGISTRATION) for registry in self.registries):
+            Links.REGISTRATION = Links.ENABLED_REGISTRATION
 
     def doctors_link(self):
-        for registry in self.registries:
-            if registry.has_feature(RegistryFeatures.DOCTORS_LIST):
-                Links.DOCTORS = Links.ENABLED_DOCTORS
-                break
+        if any(registry.has_feature(RegistryFeatures.DOCTORS_LIST) for registry in self.registries):
+            Links.DOCTORS = Links.ENABLED_DOCTORS
 
     def questionnaire_links(self):
-        # enable questionnaire links if any registry uses questionnaires
         links = self.per_registry_links('Questionnaires', 'questionnaire', RegistryFeatures.QUESTIONNAIRES)
-
-        # special case: if we have questionnaires enabled, we enable questionnaire links
         if len(links) > 0:
-            links = {**links, **Links.ENABLED_QUESTIONNAIRE}
+            links.update(Links.ENABLED_QUESTIONNAIRE)
         Links.QUESTIONNAIRE = links
 
     def family_linkage_links(self):
-        # enable family linkage links if any registry uses family linkage
         Links.FAMILY_LINKAGE = self.per_registry_links(
             'Family Linkage', 'family_linkage', RegistryFeatures.FAMILY_LINKAGE)
 
@@ -256,18 +236,17 @@ class MenuConfig:
             Links.DOCTORS = Links.ENABLED_DOCTORS
 
     def patient_stages_links(self):
-        for registry in self.registries:
-            if registry.has_feature(RegistryFeatures.STAGES):
-                Links.STAGES = Links.ENABLED_STAGES
-                break
+        if any(registry.has_feature(RegistryFeatures.STAGES) for registry in self.registries):
+            Links.STAGES = Links.ENABLED_STAGES
 
     def verification_links(self):
-        Links.VERIFICATION = self.per_registry_links('Verifications',
-                                                     'verifications_list',
-                                                     RegistryFeatures.VERIFICATION)
+        Links.VERIFICATION = self.per_registry_links('Verifications', 'verifications_list', RegistryFeatures.VERIFICATION)
 
     def consent_links(self):
-        raise NotImplementedError
+        return {}
+
+    def permission_matrix_links(self):
+        return {}
 
     def settings_links(self):
         raise NotImplementedError
@@ -275,12 +254,9 @@ class MenuConfig:
     def menu_links(self, groups):
         raise NotImplementedError
 
-    def permission_matrix_links(self):
-        raise NotImplementedError
-
     def admin_page_links(self):
         # get links for the admin page
-        return OrderedDict(sorted(self.all.items())).values()
+        return self.all
 
     def build_menu(self):
         # enable dynamic links and build the menu
@@ -370,16 +346,8 @@ class RegularMenuConfig(MenuConfig):
 
         # menu with everything, used for the admin page
         self.all = normal_menus
-        self.all.update({**Links.REGISTRY_DESIGN})
-
-    def settings_links(self):
-        return OrderedDict(sorted(self.settings.items())).values()
-
-    def menu_links(self, groups):
-        links = {}
-        for group in groups:
-            links = {**links, **self.group_links(group.lower())}
-        return OrderedDict(sorted(links.items())).values()
+        if settings.DESIGN_MODE:
+            self.all.update({**Links.REGISTRY_DESIGN})
 
     def consent_links(self):
         Links.CONSENT = self.per_registry_links('Consents', 'consent_list')
@@ -387,15 +355,17 @@ class RegularMenuConfig(MenuConfig):
     def permission_matrix_links(self):
         Links.PERMISSIONS = self.per_registry_links('Permissions', 'permission_matrix')
 
+    def settings_links(self):
+        return self.settings
+
+    def menu_links(self, groups):
+        return reduce(add_dicts, map(self.group_links, groups), {})
+
 
 class PromsMenuConfig(MenuConfig):
 
     def __init__(self, registries):
         super().__init__(registries)
-        self.settings = {
-            **PromsLinks.PERMISSIONS,
-            **PromsLinks.REGISTRATION,
-        }
         proms_menus = {
             **PromsLinks.CIC,
             **PromsLinks.USER_MANAGEMENT,
@@ -403,18 +373,13 @@ class PromsMenuConfig(MenuConfig):
         }
         # menu with everything, used for the admin page
         self.all = proms_menus
-        self.all.update({**Links.REGISTRY_DESIGN})
+        if settings.DESIGN_MODE:
+            self.all.update({**Links.REGISTRY_DESIGN})
 
     def settings_links(self):
         return {}
 
     def menu_links(self, groups):
-        return {}
-
-    def consent_links(self):
-        return {}
-
-    def permission_matrix_links(self):
         return {}
 
 
@@ -431,10 +396,18 @@ class QuickLinks:
         self.menu_config.build_menu()
 
     def menu_links(self, groups):
-        return self.menu_config.menu_links(groups)
+        return ordered_links(self.menu_config.menu_links(groups))
 
     def settings_links(self):
-        return self.menu_config.settings_links()
+        return ordered_links(self.menu_config.settings_links())
 
     def admin_page_links(self):
-        return self.menu_config.admin_page_links()
+        return ordered_links(self.menu_config.admin_page_links())
+
+
+def ordered_links(links):
+    return sorted(links.values(), key=attrgetter('text'))
+
+
+def add_dicts(d1, d2):
+    return {**d1, **d2}

@@ -1,90 +1,89 @@
-import logging
-
 from django.test import override_settings
-from registry.groups.models import WorkingGroup, CustomUser
-from rdrf.models.definition.models import Registry
-from rdrf.system_role import SystemRoles
 
 from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
+from rdrf.system_role import SystemRoles
+from registry.groups import GROUPS as RDRF_GROUPS
 
 from .tests import RDRFTestCase
 
-logger = logging.getLogger(__name__)
 
+class ExtraAssertionsMixin:
+    def assertIsEmpty(self, xs, msg='Should be empty'):
+        self.assertEquals(len(xs), 0, msg)
 
-class QuickLinksTests(RDRFTestCase):
+    def assertNotEmpty(self, xs, msg='Should NOT be empty'):
+        self.assertNotEquals(len(xs), 0, msg)
 
-    def setUp(self):
-        super(QuickLinksTests, self).setUp()
-        self.registry = Registry.objects.get(code='fh')
-        self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
-                                                              registry=self.registry)
-
-        if created:
-            self.wg.save()
-
-        self.user = CustomUser.objects.get(username="curator")
-        self.user.registry.set([self.registry])
-        self.user.working_groups.add(self.wg)
-        super().setUp()
-
-    def contains_all_values(self, values_dict, container):
+    def assertContainsAll(self, values_dict, container):
         for value in values_dict.values():
             self.assertIn(value, container)
 
-    def does_not_contains_values(self, values_dict, container):
+    def assertContainsNoneOf(self, values_dict, container):
         for value in values_dict.values():
-            self.assertIn(value, container)
+            self.assertNotIn(value, container, f'{value} found unexpectedly in {container}')
 
-    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_PROMS)
+
+@override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
+class NormalQuickLinksTests(ExtraAssertionsMixin, RDRFTestCase):
+
+    @override_settings(DESIGN_MODE=False)
+    def test_menus(self):
+        ql = QuickLinks([])
+
+        menu = ql.menu_links([RDRF_GROUPS.WORKING_GROUP_CURATOR])
+
+        self.assertNotEmpty(menu)
+        self.assertContainsAll(RegularLinks.DATA_ENTRY, menu)
+
+        self.assertNotEmpty(ql.settings_links())
+        self.assertContainsAll(RegularLinks.AUDITING, ql.settings_links())
+
+        self.assertContainsNoneOf(PromsLinks.CIC, ql.admin_page_links())
+        self.assertContainsNoneOf(PromsLinks.REGISTRY_DESIGN, ql.admin_page_links())
+        self.assertContainsAll(RegularLinks.EMAIL, ql.admin_page_links())
+
+    @override_settings(DESIGN_MODE=True)
+    def test_menus_design_mode(self):
+        ql = QuickLinks([])
+
+        self.assertContainsNoneOf(PromsLinks.CIC, ql.admin_page_links())
+        self.assertContainsAll(PromsLinks.REGISTRY_DESIGN, ql.admin_page_links())
+        self.assertContainsAll(RegularLinks.EMAIL, ql.admin_page_links())
+
+
+@override_settings(SYSTEM_ROLE=SystemRoles.CIC_PROMS)
+class CICQuickLinksTests(ExtraAssertionsMixin, RDRFTestCase):
+
+    @override_settings(DESIGN_MODE=False)
     def test_cic_proms_menus(self):
-        ql = QuickLinks([self.registry])
-        ml = ql.menu_links(["Working Group Curators"])
-        self.assertEqual(len(ml), 0)
-        sl = ql.settings_links()
-        self.assertEqual(len(sl), 0)
-        al = ql.admin_page_links()
-        self.contains_all_values(PromsLinks.CIC, al)
+        ql = QuickLinks([])
 
-    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_PROMS)
+        menu = ql.menu_links([RDRF_GROUPS.WORKING_GROUP_CURATOR])
+
+        self.assertIsEmpty(menu)
+        self.assertIsEmpty(ql.settings_links())
+        self.assertContainsAll(PromsLinks.CIC, ql.admin_page_links())
+
     @override_settings(DESIGN_MODE=True)
     def test_cic_proms_menus_design_mode(self):
-        ql = QuickLinks([self.registry])
-        al = ql.admin_page_links()
-        self.contains_all_values(PromsLinks.CIC, al)
-        self.contains_all_values(PromsLinks.REGISTRY_DESIGN, al)
+        ql = QuickLinks([])
 
-    @override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
-    def test_regular_menus(self):
-        ql = QuickLinks([self.registry])
-        ml = ql.menu_links(["Working Group Curators"])
-        self.assertNotEqual(len(ml), 0)
-        self.contains_all_values(RegularLinks.DATA_ENTRY, ml)
-        sl = ql.settings_links()
-        self.assertNotEqual(len(sl), 0)
-        self.contains_all_values(RegularLinks.AUDITING, sl)
-        al = ql.admin_page_links()
-        self.does_not_contains_values(PromsLinks.CIC, al)
-        self.contains_all_values(RegularLinks.EMAIL, al)
+        self.assertContainsAll(PromsLinks.CIC, ql.admin_page_links())
+        self.assertContainsAll(PromsLinks.REGISTRY_DESIGN, ql.admin_page_links())
 
-    @override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
-    @override_settings(DESIGN_MODE=True)
-    def test_regular_menus_design_mode(self):
-        ql = QuickLinks([self.registry])
-        al = ql.admin_page_links()
-        self.does_not_contains_values(PromsLinks.CIC, al)
-        self.contains_all_values(PromsLinks.REGISTRY_DESIGN, al)
-        self.contains_all_values(RegularLinks.EMAIL, al)
 
-    @override_settings(SYSTEM_ROLE=SystemRoles.CIC_DEV)
+@override_settings(SYSTEM_ROLE=SystemRoles.CIC_DEV)
+class CICNonPromsQuickLinksTests(ExtraAssertionsMixin, RDRFTestCase):
+
     def test_cic_non_proms_menus(self):
-        ql = QuickLinks([self.registry])
-        ml = ql.menu_links(["Working Group Curators"])
-        self.assertNotEqual(len(ml), 0)
-        self.contains_all_values(RegularLinks.DATA_ENTRY, ml)
-        sl = ql.settings_links()
-        self.assertNotEqual(len(sl), 0)
-        self.contains_all_values(RegularLinks.AUDITING, sl)
-        al = ql.admin_page_links()
-        self.contains_all_values(RegularLinks.CIC, al)
-        self.contains_all_values(RegularLinks.EMAIL, al)
+        ql = QuickLinks([])
+
+        menu = ql.menu_links([RDRF_GROUPS.WORKING_GROUP_CURATOR])
+
+        self.assertNotEmpty(menu)
+        self.assertContainsAll(RegularLinks.DATA_ENTRY, menu)
+
+        self.assertNotEmpty(ql.settings_links())
+        self.assertContainsAll(RegularLinks.AUDITING, ql.settings_links())
+        self.assertContainsAll(RegularLinks.CIC, ql.admin_page_links())
+        self.assertContainsAll(RegularLinks.EMAIL, ql.admin_page_links())
