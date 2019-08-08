@@ -1401,6 +1401,7 @@ class DemographicFields(models.Model):
     class Meta:
         verbose_name_plural = "Demographic Fields"
         unique_together = ('registry', 'field')
+        ordering = ('registry', '-is_section', 'field', 'status')
 
 
 class EmailTemplate(models.Model):
