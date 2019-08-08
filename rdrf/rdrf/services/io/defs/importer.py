@@ -834,16 +834,30 @@ class Importer(object):
             logger.info("creating demographic fields ..")
             logger.info("d = %s" % d)
             registry_obj = Registry.objects.get(code=d["registry"])
-            group_obj, created = Group.objects.get_or_create(name=d["group"])
-            if created:
-                logger.info("created Group %s" % group_obj)
-                group_obj.save()
-
+            groups = []
+            if "group" in d:
+                # Support for importing data in the old format. We used to have demographic fields
+                # assigned to only one group in the past.
+                group_obj, created = Group.objects.get_or_create(name=d["group"])
+                if created:
+                    logger.info("created Group %s" % group_obj)
+                groups.append(group_obj)
+            elif "groups" in d:
+                # New format for importing. Demographic fields can be assigned to many groups now
+                for g_name in d["groups"]:
+                    group_obj, created = Group.objects.get_or_create(name=g_name)
+                    if created:
+                        logger.info("created Group %s" % group_obj)
+                    groups.append(group_obj)
             demo_field, created = DemographicFields.objects.get_or_create(
-                registry=registry_obj, group=group_obj, field=d["field"])
-            demo_field.hidden = d["hidden"]
-            demo_field.readonly = d["readonly"]
+                registry=registry_obj, field=d["field"])
+            if "status" in d:
+                demo_field.status = d["status"]
+            elif "hidden" in d:
+                demo_field.status = DemographicFields.HIDDEN if d["hidden"] else DemographicFields.READONLY
+            demo_field.is_section = d['is_section']
             demo_field.save()
+            demo_field.groups.add(*groups)
 
     def _create_complete_form_fields(self, registry_model, data):
         for d in data:

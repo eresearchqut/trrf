@@ -6,8 +6,9 @@ from django.views.generic import CreateView
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
+from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.models.definition.models import Registry, RegistryFeatures
-from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import CdePolicy, DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 
 from django.forms.models import inlineformset_factory
@@ -25,6 +26,11 @@ from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
 from rdrf.forms.dynamic.registry_specific_fields import RegistrySpecificFieldsHandler
+from rdrf.helpers.constants import (
+    PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
+    PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
+    PATIENT_PERSONAL_DETAILS_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
+)
 from rdrf.helpers.utils import get_error_messages
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.forms.components import RDRFContextLauncherComponent
@@ -181,13 +187,10 @@ class PatientFormMixin:
             kwargs["error_messages"] = error_messages
         kwargs["registry_code"] = self.registry_model.code
         kwargs["location"] = _("Demographics")
-        section_blacklist = self._check_for_blacklisted_sections(self.registry_model)
-        kwargs["section_blacklist"] = section_blacklist
 
-        section_hiddenlist = self._check_for_hidden_section(self.request.user,
-                                                            self.registry_model,
-                                                            forms_sections)
-        kwargs["section_hiddenlist"] = section_hiddenlist
+        kwargs["section_blacklist"] = self._blacklisted_sections(self.registry_model)
+        kwargs["section_hiddenlist"] = self._hidden_sections(self.request.user, self.registry_model, forms_sections)
+
         if self.request.user.is_parent:
             kwargs['parent'] = ParentGuardian.objects.get(user=self.request.user)
         return kwargs
@@ -209,14 +212,14 @@ class PatientFormMixin:
 
     def get_form_sections(self, user, request, patient, registry, registry_code, patient_form,
                           patient_address_form, patient_doctor_form, patient_relative_form):
-        personal_header = _('Patients Personal Details')
+        personal_header = _(PATIENT_PERSONAL_DETAILS_SECTION_NAME)
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
         if registry_code == "fkrp":
             personal_header += " " + \
                 _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
 
-        personal_details_fields = (personal_header, [
+        personal_fields = [
             "family_name",
             "given_names",
             "maiden_name",
@@ -233,9 +236,10 @@ class PatientFormMixin:
             "work_phone",
             "email",
             "living_status",
-        ])
+        ]
+        personal_details_fields = (personal_header, personal_fields)
 
-        next_of_kin = (_("Next of Kin"), [
+        next_of_kin_fields = [
             "next_of_kin_family_name",
             "next_of_kin_given_names",
             "next_of_kin_relationship",
@@ -249,7 +253,9 @@ class PatientFormMixin:
             "next_of_kin_work_phone",
             "next_of_kin_email",
             "next_of_kin_parent_place_of_birth"
-        ])
+        ]
+
+        next_of_kin = (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), next_of_kin_fields)
 
         rdrf_registry = (_("Registry"), [
             "rdrf_registry",
@@ -257,9 +263,9 @@ class PatientFormMixin:
             "clinician"
         ])
 
-        patient_address_section = (_("Patient Address"), None)
+        patient_address_section = (_(PATIENT_ADDRESS_SECTION_NAME), None)
 
-        patient_stage_section = (_("Patient Stage"), [
+        patient_stage_section = (_(PATIENT_STAGE_SECTION_NAME), [
             "stage"
         ])
 
@@ -301,7 +307,7 @@ class PatientFormMixin:
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
 
-            patient_doctor_section = (_("Patient Doctor"), None)
+            patient_doctor_section = (_(PATIENT_DOCTOR_SECTION_NAME), None)
 
             form_sections.append((
                 patient_doctor_form,
@@ -326,7 +332,7 @@ class PatientFormMixin:
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
 
-            patient_relative_section = (_("Patient Relative"), None)
+            patient_relative_section = (_(PATIENT_RELATIVE_SECTION_NAME), None)
 
             form_sections.append((patient_relative_form, (patient_relative_section,)))
 
@@ -539,33 +545,44 @@ class PatientFormMixin:
 
         return forms
 
-    def _section_hidden(self, user, registry, fieldlist):
-        from rdrf.models.definition.models import DemographicFields
-        user_groups = [g.name for g in user.groups.all()]
-        hidden_fields = DemographicFields.objects.filter(field__in=fieldlist,
-                                                         registry=registry,
-                                                         group__name__in=user_groups,
-                                                         hidden=True)
+    def _all_section_fields_hidden(self, user, registry, field_list):
+        hidden_fields = DemographicFields.objects.filter(
+            registry=registry,
+            groups__in=user.groups.all(),
+            status=DemographicFields.HIDDEN,
+            is_section=False,
+            field__in=field_list
+        ).values_list('field', flat=True)
+        return len([f for f in field_list if f not in set(hidden_fields)]) == 0
 
-        return len(fieldlist) == hidden_fields.count()
+    @staticmethod
+    def _section_hidden(user, registry, section_name):
+        prefixed_section_name = DemographicFieldsAdminForm.section_name(section_name)
+        return DemographicFields.objects.filter(
+            field=prefixed_section_name,
+            registry=registry,
+            groups__in=user.groups.all(),
+            is_section=True,
+            status=DemographicFields.HIDDEN
+        ).exists()
 
-    def _check_for_hidden_section(self, user, registry, form_sections):
-        section_hiddenlist = []
-        for form, sections in form_sections:
-            for name, section in sections:
-                if section is not None:
-                    if self._section_hidden(user, registry, section):
-                        section_hiddenlist.append(name)
-        return section_hiddenlist
+    def _hidden_sections(self, user, registry, form_sections):
 
-    def _check_for_blacklisted_sections(self, registry_model):
-        if "section_blacklist" in registry_model.metadata:
-            section_blacklist = registry_model.metadata["section_blacklist"]
-            section_blacklist = [_(x) for x in section_blacklist]
-        else:
-            section_blacklist = []
+        def is_hidden(name, section_fields):
+            if not section_fields:
+                return True
+            return (
+                self._section_hidden(user, registry, name) or self._all_section_fields_hidden(user, registry, section_fields)
+            )
 
-        return section_blacklist
+        return [
+            section_name
+            for _, sections in form_sections
+            for section_name, section_fields in sections if is_hidden(section_name, section_fields)
+        ]
+
+    def _blacklisted_sections(self, registry_model):
+        return [_(x) for x in registry_model.metadata.get('section_blacklist', [])]
 
 
 class AddPatientView(PatientFormMixin, CreateView):
@@ -606,8 +623,6 @@ class PatientEditView(PatientFormMixin, View):
 
         registry_model = Registry.objects.get(code=registry_code)
 
-        section_blacklist = self._check_for_blacklisted_sections(registry_model)
-
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
 
@@ -644,7 +659,7 @@ class PatientEditView(PatientFormMixin, View):
             "consent": consent_status_for_patient(
                 registry_code,
                 patient),
-            "section_blacklist": section_blacklist}
+            "section_blacklist": self._blacklisted_sections(registry_model)}
         if request.GET.get('just_created', False):
             context["message"] = _("Patient added successfully")
 
@@ -663,10 +678,7 @@ class PatientEditView(PatientFormMixin, View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        hidden_sectionlist = self._check_for_hidden_section(request.user,
-                                                            registry_model,
-                                                            form_sections)
-        context["hidden_sectionlist"] = hidden_sectionlist
+        context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -770,13 +782,8 @@ class PatientEditView(PatientFormMixin, View):
             registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
-        section_blacklist = self._check_for_blacklisted_sections(registry_model)
-        context["section_blacklist"] = section_blacklist
-
-        hidden_sectionlist = self._check_for_hidden_section(request.user,
-                                                            registry_model,
-                                                            form_sections)
-        context["hidden_sectionlist"] = hidden_sectionlist
+        context["section_blacklist"] = self._blacklisted_sections(registry_model)
+        context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
