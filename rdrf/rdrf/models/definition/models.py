@@ -1521,7 +1521,6 @@ class ContextFormGroup(models.Model):
     ordering = models.CharField(max_length=1, default="C", choices=ORDERING_TYPES)
     sort_order = models.PositiveIntegerField(null=False, blank=False, default=1)
 
-
     @property
     def forms(self):
         def sort_func(form):

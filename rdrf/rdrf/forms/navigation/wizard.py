@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.urls import reverse
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
@@ -55,13 +57,15 @@ class NavigationWizard(object):
             clinician_form_link = self._construct_clinican_form_link()
             self.links.append(clinician_form_link)
 
+        form_groups_dict = defaultdict(list)
+
         # there is one context per fixed group (always)
         for fixed_form_group in self._fixed_form_groups():
             for form_model in fixed_form_group.form_models:
                 if self.user.can_view(form_model):
-                    self.links.append(
-                        self._construct_fixed_form_link(
-                            fixed_form_group, form_model))
+                    form_groups_dict[fixed_form_group.sort_order].append(
+                        self._construct_fixed_form_link(fixed_form_group, form_model)
+                    )
 
         # for each multiple group, link through each assessment created for that group
         # in form order
@@ -69,7 +73,12 @@ class NavigationWizard(object):
             for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
                 for form_model in multiple_form_group.form_models:
                     if self.user.can_view(form_model):
-                        self.links.append(self._form_link(form_model, context_model))
+                        form_groups_dict[multiple_form_group.sort_order].append(
+                            self._form_link(form_model, context_model)
+                        )
+
+        for _, links in sorted(form_groups_dict.items()):
+            self.links.extend(links)
 
         # if form models have not been partitioned into form groups, they are "free"
         # most registries just have free forms because they don't define form groups
