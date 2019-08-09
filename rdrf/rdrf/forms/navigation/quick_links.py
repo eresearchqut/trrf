@@ -214,7 +214,7 @@ class MenuConfig:
         return rval
 
     def registration_links(self):
-        if any(registry.has_feature(RegistryFeatures.REGISTRATION) for registry in self.registries):
+        if any(registry.registration_allowed() for registry in self.registries):
             Links.REGISTRATION = Links.ENABLED_REGISTRATION
 
     def doctors_link(self):

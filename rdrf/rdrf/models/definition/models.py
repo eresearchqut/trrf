@@ -633,6 +633,17 @@ class Registry(models.Model):
         except KeyError:
             return None
 
+    def registration_allowed(self):
+        registration_enabled = self.has_feature(RegistryFeatures.REGISTRATION)
+        registration_notifications_configured = (
+            EmailNotification.objects.filter(
+                registry=self,
+                disabled=False,
+                description__in=EventType.REGISTRATION_TYPES
+            ).exists()
+        )
+        return registration_enabled and registration_notifications_configured
+
 
 def get_owner_choices():
     """

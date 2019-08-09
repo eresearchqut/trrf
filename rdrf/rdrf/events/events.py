@@ -10,6 +10,9 @@ class EventType:
     CLINICIAN_SIGNUP_REQUEST = "clinician-signup-request"  # clinican email to sign up
     CLINICIAN_ACTIVATION = "clinician-activation"  # clinican email to confirm registration
     PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"  # participant ( parent) notified when clinician verifies
+
+    REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
+
     @classmethod
     def is_registration(cls, evt):
-        return evt in (cls.NEW_PATIENT, cls.NEW_PATIENT_PARENT)
+        return evt in cls.REGISTRATION_TYPES
