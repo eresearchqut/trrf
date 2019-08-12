@@ -128,7 +128,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             if fg_type == 'fixed':
                 return form_group.name
             else:
-                return form_group.name
+                return form_group.text
 
         existing_data_link = self._get_existing_data_link()
 
@@ -138,8 +138,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         context_form_groups = []
         for position in sort_order:
-            form_groups = [('fixed', form_group) for form_group in fixed_contexts.get('position', ())]
-            form_groups += [('multiple', form_group) for form_group in multiple_contexts.get('position', ())]
+            form_groups = [('fixed', form_group) for form_group in fixed_contexts.get(position, ())]
+            form_groups += [('multiple', form_group) for form_group in multiple_contexts.get(position, ())]
             form_groups = sorted(form_groups, key=sort_by_name)
             context_form_groups += form_groups
 
