@@ -571,12 +571,12 @@ class Registry(models.Model):
     @property
     def fixed_form_groups(self):
         return [cfg for cfg in ContextFormGroup.objects.filter(
-            registry=self, context_type="F").order_by("is_default").order_by("name")]
+            registry=self, context_type="F").order_by("sort_order", "is_default", "name")]
 
     @property
     def multiple_form_groups(self):
         return [cfg for cfg in ContextFormGroup.objects.filter(
-            registry=self, context_type="M").order_by("name")]
+            registry=self, context_type="M").order_by("sort_order", "name")]
 
     def _check_metadata(self):
         if self.metadata_json == "":
@@ -1530,6 +1530,7 @@ class ContextFormGroup(models.Model):
     is_default = models.BooleanField(default=False)
     naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)
     ordering = models.CharField(max_length=1, default="C", choices=ORDERING_TYPES)
+    sort_order = models.PositiveIntegerField(null=False, blank=False, default=1)
 
     @property
     def forms(self):

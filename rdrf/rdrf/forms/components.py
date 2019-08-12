@@ -1,15 +1,17 @@
-from django.template import loader, Context
-from rdrf.models.definition.models import RegistryType, RDRFContext, ContextFormGroup
+import logging
+from collections import defaultdict
+
 from django.contrib.contenttypes.models import ContentType
-from rdrf.helpers.utils import get_form_links
-from rdrf.helpers.utils import consent_status_for_patient
-from rdrf.helpers.utils import is_generated_form
+from django.template import Context, loader
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
-
-import logging
+from rdrf.helpers.utils import (consent_status_for_patient, get_form_links,
+                                is_generated_form)
+from rdrf.models.definition.models import (ContextFormGroup, RDRFContext,
+                                           RegistryType)
 
 logger = logging.getLogger("registry_log")
 
@@ -121,14 +123,33 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return self.current_form_name
 
     def _get_template_data(self):
+        def sort_by_name(form_group):
+            fg_type, form_group = form_group
+            if fg_type == 'fixed':
+                return form_group.name
+            else:
+                return form_group.name
+
         existing_data_link = self._get_existing_data_link()
+
+        fixed_contexts = self._get_fixed_contexts()
+        multiple_contexts = self._get_multiple_contexts()
+        sort_order = sorted(set(list(fixed_contexts.keys()) + list(multiple_contexts.keys())))
+
+        context_form_groups = []
+        for position in sort_order:
+            form_groups = [('fixed', form_group) for form_group in fixed_contexts.get('position', ())]
+            form_groups += [('multiple', form_group) for form_group in multiple_contexts.get('position', ())]
+            form_groups = sorted(form_groups, key=sort_by_name)
+            context_form_groups += form_groups
+
+        logger.debug(context_form_groups)
 
         data = {
             "current_form_name": self.form_name_for_template,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
-            "fixed_contexts": self._get_fixed_contexts(),
-            "multiple_contexts": self._get_multiple_contexts(),
+            "context_form_groups": context_form_groups,
             "current_multiple_context": self._get_current_multiple_context(),
             "demographics_link": self._get_demographics_link(),
             "consents_link": self._get_consents_link(),
@@ -138,14 +159,10 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "proms_link": self._get_proms_link(),
             "can_add_proms": not self._proms_adding_disabled(),
         }
-
         return data
 
     def _proms_adding_disabled(self):
-        if not self.registry_model.has_feature(RegistryFeatures.PROMS_ADDING_DISABLED):
-            return False
-        else:
-            return True
+        return self.registry_model.has_feature(RegistryFeatures.PROMS_ADDING_DISABLED)
 
     def _get_proms_link(self):
         if not self.registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
@@ -210,11 +227,12 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return patient_context_menu.actions
 
     def _get_multiple_contexts(self):
+        if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
+            return {}
+
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
         patients_listing_url = reverse("patientslisting")
-        if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
-            return []
 
         def _form(context_form_group):
             name = _("All " + context_form_group.direct_name)
@@ -235,9 +253,18 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form.existing_links = self._get_existing_links(context_form_group)
                 return form
 
-        form_links = (_form(cfg) for cfg in
-                      ContextFormGroup.objects.filter(registry=self.registry_model, context_type="M").order_by("name"))
-        return [link for link in form_links if link]
+        cfg_qs = ContextFormGroup.objects.filter(
+            registry=self.registry_model,
+            context_type="M"
+        ).order_by("sort_order", "name")
+
+        form_links = defaultdict(list)
+        for cfg in cfg_qs:
+            form = _form(cfg)
+            if form:
+                form_links[cfg.sort_order].append(form)
+
+        return form_links
 
     def _get_existing_links(self, context_form_group):
         links = []
@@ -282,7 +309,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
     def _get_fixed_contexts(self):
         # We can provide direct links to forms in these contexts as they
         # will be created on patient creation
-        fixed_contexts = []
+        fixed_contexts = defaultdict(list)
         registry_type = self.registry_model.registry_type
         if registry_type == RegistryType.NORMAL:
             # just show all the forms
@@ -290,10 +317,11 @@ class RDRFContextLauncherComponent(RDRFComponent):
             for form_link in self._get_normal_form_links():
                 form = _Form(form_link.url, form_link.text, current=form_link.selected)
                 fg.forms.append(form)
-            return [fg]
+            fixed_contexts[0].append(fg)
+            return fixed_contexts
         elif registry_type == RegistryType.HAS_CONTEXTS:
             # nothing to show here
-            return []
+            return fixed_contexts
         else:
             # has context form groups , display form links for each "fixed" context
             for fixed_context_group in self._get_fixed_context_form_groups():
@@ -303,7 +331,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
                         fixed_context_group, rdrf_context):
                     form = _Form(form_link.url, form_link.text, current=form_link.selected)
                     fg.forms.append(form)
-                fixed_contexts.append(fg)
+                fixed_contexts[fixed_context_group.sort_order].append(fg)
             return fixed_contexts
 
     def _get_normal_form_links(self):
@@ -326,7 +354,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
     def _get_fixed_context_form_groups(self):
         return ContextFormGroup.objects.filter(registry=self.registry_model,
-                                               context_type="F")
+                                               context_type="F").order_by("sort_order")
 
     def _get_context_for_group(self, fixed_context_form_group):
         try:

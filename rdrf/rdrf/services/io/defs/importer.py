@@ -743,6 +743,7 @@ class Importer(object):
                 cfg.naming_cde_to_use = cfg_dict["naming_cde_to_use"]
             if "ordering" in cfg_dict:
                 cfg.ordering = cfg_dict["ordering"]
+            cfg.sort_order = cfg_dict.get("sort_order", 1)
 
             cfg.save()
 

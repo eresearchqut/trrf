@@ -524,6 +524,7 @@ class Exporter:
             cfg_dict["naming_scheme"] = cfg.naming_scheme
             cfg_dict["is_default"] = cfg.is_default
             cfg_dict["naming_cde_to_use"] = cfg.naming_cde_to_use
+            cfg_dict["sort_order"] = cfg.sort_order
             cfg_dict["forms"] = []
             for form in cfg.forms:
                 cfg_dict["forms"].append(form.name)
