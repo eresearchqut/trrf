@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0104_demographic_fields_remove_hidden_and_readonly'),
+        ('rdrf', '0105_demographic_fields_ordering'),
     ]
 
     operations = [
