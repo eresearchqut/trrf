@@ -585,7 +585,9 @@ REGISTRATION_CLASS = "registry.groups.registration.patient.PatientRegistration"
 
 # In case you set up customised email templates for the "new-patient" notification, you should
 # set this to False, otherwise the default registration email will also be sent to the user.
-# SEND_ACTIVATION_EMAIL = False
+# Setting it to False turns off django-registration-redux's email notifications as we would like to
+# send email registration through TRRF's email notification system.
+SEND_ACTIVATION_EMAIL = False
 
 RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
 RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
