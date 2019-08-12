@@ -127,7 +127,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         fixed_contexts = self._get_fixed_contexts()
         multiple_contexts = self._get_multiple_contexts()
-        sort_order = set(list(fixed_contexts.keys()) + list(multiple_contexts.keys()))
+        sort_order = sorted(set(list(fixed_contexts.keys()) + list(multiple_contexts.keys())))
         context_form_groups = []
         for position in sort_order:
             if position in fixed_contexts:
