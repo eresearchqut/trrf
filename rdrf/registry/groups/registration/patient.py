@@ -1,13 +1,13 @@
 import logging
 
-from rdrf.events.events import EventType
-from rdrf.services.io.notifications.email_notification import process_notification
 from registration.models import RegistrationProfile
+
+from rdrf.events.events import EventType
+from rdrf.services.io.notifications.email_notification import \
+    process_notification
 from registry.groups import GROUPS
 
-
 from .base import BaseRegistration
-
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,14 @@ class PatientRegistration(BaseRegistration):
 
         address = self._create_patient_address(patient)
         address.save()
+
         logger.debug("Registration process - created patient address")
 
+        registration = RegistrationProfile.objects.get(user=user)
         template_data = {
             "patient": patient,
-            "registration": RegistrationProfile.objects.get(user=user)
+            "registration": registration,
+            "activation_url": self.get_registration_activation_url(registration),
         }
 
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)

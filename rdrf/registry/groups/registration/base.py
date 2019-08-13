@@ -2,11 +2,12 @@ import abc
 import logging
 
 from django.contrib.auth.models import Group
+from django.contrib.sites.models import Site
+from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient, PatientAddress, AddressType
-
+from registry.patients.models import AddressType, Patient, PatientAddress
 
 logger = logging.getLogger(__name__)
 
@@ -78,3 +79,14 @@ class BaseRegistration(abc.ABC):
         django_user.first_name = first_name
         django_user.last_name = last_name
         return django_user
+
+    def get_registration_activation_url(self, registration_profile):
+        domain = Site.objects.get_current().domain
+        activation_url = reverse(
+            "registration_activate",
+            kwargs={"activation_key": registration_profile.activation_key}).lstrip("/")
+        protocol = "https"
+        if domain == "localhost:8000":
+            protocol = "http"
+        activation_full_url = f"{protocol}://{domain}/{activation_url}"
+        return activation_full_url
