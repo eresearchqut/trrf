@@ -26,8 +26,7 @@ class ConsentList(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code):
-        user_registries = [reg.code for reg in request.user.get_registries()]
-        if registry_code not in user_registries:
+        if not (request.user.is_superuser or request.user.registry.filter(code=registry_code).exists()):
             raise PermissionDenied
 
         context = {}
