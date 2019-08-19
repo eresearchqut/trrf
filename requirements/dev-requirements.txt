@@ -2,3 +2,4 @@ sphinx
 sphinxcontrib-fulltoc
 Werkzeug
 python-Levenshtein
+ipython
