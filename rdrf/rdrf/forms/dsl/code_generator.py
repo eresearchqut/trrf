@@ -121,7 +121,7 @@ class Instruction:
             '''
 
         has_multi_section = any(
-            [c for c in self.conditions if isinstance(c, Condition) and c.cde.is_multi_section]
+            [c for c in self.conditions if isinstance(c, Condition) and c.cde.is_multi_section()]
         )
 
         action_assignments, inverse_action_assignments = self.generate_visibility_assignments(has_multi_section)
