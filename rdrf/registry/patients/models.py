@@ -149,6 +149,16 @@ class PatientManager(models.Manager):
         return self.really_all().filter(active=False)
 
 
+class LivingStates:
+    ALIVE = 'Alive'
+    DECEASED = 'Deceased'
+
+    CHOICES = (
+        (ALIVE, _('Living')),
+        (DECEASED, _('Deceased')),
+    )
+
+
 class Patient(models.Model):
 
     SEX_CHOICES = (("1", _("Male")), ("2", _("Female")), ("3", _("Indeterminate")))
@@ -178,8 +188,6 @@ class Patient(models.Model):
         ("Other Ethnicity", _("Other Ethnicity")),
         ("Decline to Answer", _("Decline to Answer")),
     )
-
-    LIVING_STATES = (('Alive', _('Living')), ('Deceased', _('Deceased')))
 
     objects = PatientManager()
     rdrf_registry = models.ManyToManyField(
@@ -303,9 +311,9 @@ class Patient(models.Model):
         on_delete=models.SET_NULL)
 
     living_status = models.CharField(
-        choices=LIVING_STATES,
+        choices=LivingStates.CHOICES,
         max_length=80,
-        default='Alive',
+        default=LivingStates.ALIVE,
         verbose_name=_("Living status"))
 
     # The following is intended as a hidden field which is set only
@@ -1438,8 +1446,6 @@ class PatientRelative(models.Model):
 
     ]
 
-    LIVING_STATES = (('Alive', 'Living'), ('Deceased', 'Deceased'))
-
     SEX_CHOICES = (("1", "Male"), ("2", "Female"), ("3", "Indeterminate"))
     patient = models.ForeignKey(Patient,
                                 related_name="relatives",
@@ -1450,7 +1456,7 @@ class PatientRelative(models.Model):
     sex = models.CharField(max_length=1, choices=SEX_CHOICES)
     relationship = models.CharField(choices=RELATIVE_TYPES, max_length=80)
     location = models.CharField(choices=RELATIVE_LOCATIONS + get_countries(), max_length=80)
-    living_status = models.CharField(choices=LIVING_STATES, max_length=80)
+    living_status = models.CharField(choices=LivingStates.CHOICES, max_length=80)
     relative_patient = models.OneToOneField(
         to=Patient,
         null=True,
@@ -1543,6 +1549,15 @@ def update_family_linkage_fields(sender, instance, **kwargs):
             else:
                 logger.debug("%s is a relative" % instance)
                 flm.set_as_relative(instance)
+
+
+@receiver(post_save, sender=Patient)
+def update_living_status(sender, instance, created, raw, **kwargs):
+    patient = instance
+    if patient.date_of_death:
+        if patient.living_status != LivingStates.DECEASED:
+            patient.living_status = LivingStates.DECEASED
+            patient.save()
 
 
 def _get_registry_for_mongo(regs):
