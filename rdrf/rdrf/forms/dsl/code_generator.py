@@ -69,14 +69,26 @@ class Instruction:
             if cde_info.is_multi_section and condition_is_multiple:
                 return f'visibility_map[get_cde_name("{cde_info.name}", idx)] = "{final_action}";'
 
-            return f'visibility_map_update(visibility_map, "{cde_info.name}", "{final_action}");'
+            section = "true" if self.target.has_qualifier else "false"
+            return f'visibility_map_update(visibility_map, "{cde_info.name}", "{final_action}", {section});'
 
+        is_section = self.target.has_qualifier
         actions = [
-            visibility_map_entry(target.get_cde_info(), self.action, False, is_multi_section)
+            visibility_map_entry(
+                target.get_section_info() if is_section else target.get_cde_info(),
+                self.action,
+                False,
+                is_multi_section
+            )
             for target in self.target.target_cdes
         ]
         inverse_actions = [
-            visibility_map_entry(target.get_cde_info(), self.action, True, is_multi_section)
+            visibility_map_entry(
+                target.get_section_info() if is_section else target.get_cde_info(),
+                self.action,
+                True,
+                is_multi_section
+            )
             for target in self.target.target_cdes
         ]
         return "\n".join(actions), "\n".join(inverse_actions)

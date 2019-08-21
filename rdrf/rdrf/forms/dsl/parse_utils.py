@@ -41,7 +41,25 @@ class CDEHelper:
 
     def __init__(self, form):
         self.cde_names_dict = self.get_cde_names_dict(form)
+        self.section_names_dict = self.get_section_names_dict(form)
         self.cde_values_dict = self.get_cde_values_dict(form)
+
+    @staticmethod
+    def get_section_names_dict(form):
+
+        return {
+            s.code: (
+                CDEInfo(
+                    name=s.code,
+                    type='',
+                    allow_multiple='',
+                    is_multi_section=s.allow_multiple,
+                    formset_prefix=f"formset_{s.code}" if s.allow_multiple else ''
+                )
+            )
+            for s in form.section_models
+        }
+
 
     @staticmethod
     def get_cde_names_dict(form):
@@ -83,6 +101,10 @@ class CDEHelper:
     def get_cde_info(self, cde):
         default_info = CDEInfo(cde, None, False, False, '')
         return self.cde_names_dict.get(cde, default_info)
+
+    def get_section_info(self, section):
+        default_info = CDEInfo(section, None, False, False, '')
+        return self.section_names_dict.get(section, default_info)
 
     def get_actual_value(self, cde, value):
         stripped_val = value.strip('"')
@@ -142,6 +164,9 @@ class EnrichedCDE:
 
     def get_cde_info(self):
         return self.cde_helper.get_cde_info(self.cde)
+
+    def get_section_info(self):
+        return self.cde_helper.get_section_info(self.cde)
 
     def actual_cde_value(self, value):
         parts = value.split(", ")

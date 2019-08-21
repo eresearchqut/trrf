@@ -45,7 +45,11 @@ function get_cde_value(name, type, allow_multiple) {
         result.sort();
         return result.join(", ");
     }
-    return $("[name='" + name +"']").val();
+    var el = $("[name='" + name +"']");
+    if (el.length && el[0].type == 'checkbox') {
+        return el.is(":checked") ? "checked": "";
+    }
+    return el.val();
 }
 
 
@@ -176,8 +180,8 @@ function test_conditions(results, boolean_ops) {
     }
 }
 
-function visibility_map_update(visibility_map, name, action) {
-    var entry = cdeNameMapping[name];
+function visibility_map_update(visibility_map, name, action, is_section) {
+    var entry = is_section ? undefined : cdeNameMapping[name];
     if (!entry) {
         visibility_map[name] = action;
     } else {
