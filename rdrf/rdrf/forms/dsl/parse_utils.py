@@ -60,7 +60,6 @@ class CDEHelper:
             for s in form.section_models
         }
 
-
     @staticmethod
     def get_cde_names_dict(form):
 
