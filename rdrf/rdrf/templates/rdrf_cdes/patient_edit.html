@@ -211,6 +211,11 @@
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
+                <div class="panel panel-info trrf-page-header">
+                    <div class="panel-body">
+                        <h2>Demographics</h2>
+                    </div>
+                </div>
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
@@ -269,7 +274,7 @@
                             {% if name in hidden_sectionlist %}
                             <div class="section_hidden">
                             {% endif %}
-                                <div class="panel panel-default">
+                                <div class="panel panel-default collapsible">
                                     <div class="panel-heading">
                                         <strong>{{name|translate}}</strong>
                                         <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
@@ -288,7 +293,7 @@
                                                                 <!-- Empty in order to skip adding delete field in case of can_delete == False -->
                                                             {% else %}
                                                                     {% if element.errors %}
-                                                                        <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}"> 
+                                                                        <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                                                     {% else %}
                                                                         <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
                                                                     {% endif %}
@@ -336,19 +341,25 @@
                             <div class="section_hidden">
                             {% endif %}
 
-                                <div class="panel panel-default">
-                                    <div class="panel-heading"><strong>{{name}}</strong>
-                                    {% with link=section|get_information_link %}
-                                    {% with info_text_expression=section|get_info_text_expression %}
-                                    {% with doc="docs/"|add:link %}
-                                        {% if link %}<br><a href="{% static doc %}">{% trans "Information Sheet - Please Read" %}!</a>{% endif %}
-                                        {% if info_text_expression %}
-                                            <br>
-                                            <hr>
-                                            {% include info_text_expression %}
-                                        {% endif %}
-                                    {% endwith %}
-                                    {% endwith %}
+                                <div class="panel panel-default collapsible">
+                                    <div class="panel-heading">
+
+                                        <div class="panel-title">
+                                            <strong>{{name}}</strong>
+
+                                            {% with link=section|get_information_link %}
+                                            {% with info_text_expression=section|get_info_text_expression %}
+                                            {% with doc="docs/"|add:link %}
+                                                {% if link %}<br><a href="{% static doc %}">{% trans "Information Sheet - Please Read" %}!</a>{% endif %}
+                                                {% if info_text_expression %}
+                                                    <br>
+                                                    <hr>
+                                                    {% include info_text_expression %}
+                                                {% endif %}
+                                            {% endwith %}
+                                            {% endwith %}
+                                        </div>
+
                                     </div>
                                     <div class="panel-body">
                                         {% for s in section %}
