@@ -611,7 +611,7 @@ class SliderWidget(widgets.TextInput):
         context = """
              <script>
                  $(function() {
-                     $( "#%s" ).slider({
+                     $( "#%s" ).bootstrapSlider({
                          value: '%s',
                          min: 0,
                          max: 100,
