@@ -776,6 +776,9 @@ class CommonDataElement(models.Model):
         max_length=80,
         blank=True,
         help_text="If a special widget required indicate here - leave blank otherwise")
+    widget_settings = models.TextField(
+        blank=True,
+        help_text="If the widget needs additional settings add them here")
     calculation = models.TextField(
         blank=True,
         help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
