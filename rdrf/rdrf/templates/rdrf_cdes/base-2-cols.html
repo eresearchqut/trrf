@@ -66,13 +66,19 @@
 
     <script>
         $(document).ready(function () {
+            var hasErrors = {{ error_messages|length }} > 0;
+
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
             });
 
             hide_empty_menu();
 
-            setUpCollapsingPanels();
+            CollapsingPanels.setUp();
+            if (hasErrors) {
+                CollapsingPanels.expandAll();
+            }
+
         });
     </script>
 

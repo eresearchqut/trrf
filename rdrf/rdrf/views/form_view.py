@@ -747,6 +747,7 @@ class FormView(View):
             messages.add_message(request,
                                  messages.ERROR,
                                  failure_message)
+            context['error_messages'] = [failure_message]
 
         return render(request, self._get_template(), context)
 

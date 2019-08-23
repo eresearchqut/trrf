@@ -1,18 +1,25 @@
 /*
 Collapsing panel support for TRRF form panels.
 
-Call setUpCollapsingPanels() on document ready and set .collapsible CSS class on .panel's you want to be collapsible/expandable.
+Call CollapsingPanels.setUp() on document ready and set .collapsible CSS class on .panel's you want to be collapsible/expandable.
 
 If the page has a .trrf-page-header we also add a collapse/expand all button to the header.
 */
 
-function setUpCollapsingPanels() {
+var CollapsingPanels = function() {
     var collapsiblePanelsSelector = "form .panel.collapsible";
-    var collapsiblePanels = $(collapsiblePanelsSelector);
 
-    // Apply only when we have more than 1 collapsible panel
-    // if (collapsiblePanels.size() <= 1)
-    //    return;
+    function getAllPanelBodies() {
+        return $(collapsiblePanelsSelector +  ' > .panel-body');
+    }
+
+    function expandAll() {
+        getAllPanelBodies().collapse('show');
+    }
+
+    function collapseAll() {
+        getAllPanelBodies().collapse('hide');
+    }
 
     function setUpCollapseAllButton() {
         // Adding the collapse button works only if we have one and only one <hx> element in the page header.
@@ -22,15 +29,18 @@ function setUpCollapsingPanels() {
             return;
         }
         var collapseAllToggleBtn = $('<span class="badge pull-right"><span class="glyphicon glyphicon-sort"></span></span>');
-        function collapseAll() {
+
+        function onCollapseAll() {
             var panelBodies = $(collapsiblePanelsSelector +  ' > .panel-body');
             var allCollapsed = panelBodies.filter('.collapse.in').size() == 0;
-            panelBodies.collapse(allCollapsed ? 'show' : 'hide');
+            if (allCollapsed) {
+                expandAll();
+            } else {
+                collapseAll();
+            }
         }
 
-        collapseAllToggleBtn.on('click', function() {
-            collapseAll();
-        })
+        collapseAllToggleBtn.on('click', onCollapseAll);
         pageHeader.append(collapseAllToggleBtn);
     }
 
@@ -54,6 +64,21 @@ function setUpCollapsingPanels() {
         })
     }
 
-    collapsiblePanels.each(setUpCollapsiblePanel);
-    setUpCollapseAllButton();
-}
+
+    function setUp() {
+        var collapsiblePanels = $(collapsiblePanelsSelector);
+        // Apply only when we have more than 1 collapsible panel
+        // if (collapsiblePanels.size() <= 1)
+        //    return;
+
+        collapsiblePanels.each(setUpCollapsiblePanel);
+        setUpCollapseAllButton();
+    }
+
+    return {
+        setUp: setUp,
+        expandAll: expandAll,
+        collapseAll: collapseAll
+    }
+}();
+
