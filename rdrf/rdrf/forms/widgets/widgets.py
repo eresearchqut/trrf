@@ -608,13 +608,14 @@ class SliderWidget(widgets.TextInput):
         if not value or not isinstance(value, int):
             value = 0
 
+        widget_attrs = ",\n".join("\"{}\":{}".format(k, v) for k, v in self.attrs.items())
+
         context = """
              <script>
                  $(function() {
                      $( "#%s" ).bootstrapSlider({
                          value: '%s',
-                         min: 0,
-                         max: 100,
+                         %s,
                          slide: function( event, ui ) {
                              $( "#%s" ).val( ui.value );
                          }
@@ -623,11 +624,18 @@ class SliderWidget(widgets.TextInput):
              </script>
              <input type="hidden" id="%s" name="%s" value="%s"/>
              <p>
-                 <div class='col-md-2' style="color: green; font-size: x-small"><strong><i>No pain</i></strong></div>
-                 <div class='col-md-7' id='%s'></div>
-                 <div class='col-md-3' style="color: red; font-size: x-small"><strong><i>Worst possible pain</i></strong></div>
+                <div style="float:left" id='%s'></div>
              </p>
-         """ % (name, value, attrs['id'], attrs['id'], name, value, name)
+         """ % (
+            name,
+            value,
+            widget_attrs,
+            attrs['id'],
+            attrs['id'],
+            name,
+            value,
+            name
+        )
 
         return context
 
