@@ -864,6 +864,11 @@ class CommonDataElement(models.Model):
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
 
+        if self.allow_multiple and self.widget_name == 'RadioSelect':
+            raise ValidationError({
+                'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
+            })
+
 
 class CdePolicy(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
