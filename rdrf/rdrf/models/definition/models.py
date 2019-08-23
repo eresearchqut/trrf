@@ -874,6 +874,29 @@ class CommonDataElement(models.Model):
             raise ValidationError({
                 'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
             })
+        if self.widget_settings:
+            try:
+                json.loads(self.widget_settings)
+            except Exception:
+                raise ValidationError({
+                    'widget_settings': ["Widget settings must be a valid JSON !"]
+                })
+
+
+    def save(self, *args, **kwargs):
+        if self.widget_name == 'SliderWidget':
+            settings = {
+                "min": int(self.min_value),
+                "max": int(self.max_value)
+            }
+            if not self.widget_settings:
+                self.widget_settings = json.dumps(settings)
+            else:
+                existing = json.loads(self.widget_settings)
+                if "min" not in existing and "max" not in existing:
+                    existing.update(settings)
+                    self.widget_settings = json.dumps(existing)
+        super().save(args, kwargs)
 
 
 class CdePolicy(models.Model):

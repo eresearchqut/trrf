@@ -608,33 +608,43 @@ class SliderWidget(widgets.TextInput):
         if not value or not isinstance(value, int):
             value = 0
 
-        widget_attrs = ",\n".join("\"{}\":{}".format(k, v) for k, v in self.attrs.items())
+        left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
+        right_label = self.attrs.pop("right_label") if "right_label" in self.attrs else ''
+
+        if self.attrs:
+            widget_attrs = ",\n".join("\"{}\":{}".format(k, v) for k, v in self.attrs.items()) + ","
+        else:
+            widget_attrs = ''
 
         context = """
+             <div>
+                <div style="float:left; margin-right:20px;"><b>%s</b></div>
+                <div style="float:left">
+                    <input type="hidden" id="%s" name="%s" value="%s"/>
+                </div>
+                <div style="float:left;margin-left:20px;"><b>%s</b></div>
+             </div>
              <script>
                  $(function() {
                      $( "#%s" ).bootstrapSlider({
                          value: '%s',
-                         %s,
+                         %s
                          slide: function( event, ui ) {
                              $( "#%s" ).val( ui.value );
                          }
                      });
                  });
              </script>
-             <input type="hidden" id="%s" name="%s" value="%s"/>
-             <p>
-                <div style="float:left" id='%s'></div>
-             </p>
          """ % (
+            left_label,
+            attrs['id'],
             name,
+            value,
+            right_label,
+            attrs['id'],
             value,
             widget_attrs,
             attrs['id'],
-            attrs['id'],
-            name,
-            value,
-            name
         )
 
         return context

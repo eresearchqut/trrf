@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0106_contextformgroup_sort_order'),
+        ('rdrf', '0110_consent_section_and_question_timestamps'),
     ]
 
     operations = [
