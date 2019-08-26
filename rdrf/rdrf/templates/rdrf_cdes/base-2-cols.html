@@ -55,6 +55,7 @@
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/collapsing_panels.js' %}"></script>
     <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
     {% block extrastyle %}
@@ -65,11 +66,19 @@
 
     <script>
         $(document).ready(function () {
+            var hasErrors = {{ error_messages|length }} > 0;
+
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
             });
 
             hide_empty_menu();
+
+            CollapsingPanels.setUp();
+            if (hasErrors) {
+                CollapsingPanels.expandAll();
+            }
+
         });
     </script>
 
@@ -293,7 +302,7 @@
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
                     {% if header %}
-                    <div class="panel panel-info">
+                    <div class="panel panel-info trrf-page-header">
                         <div class="panel-body">
                             {% include header_expression %}
                         </div>

@@ -20,7 +20,6 @@ $(document).ready(function() {
     } else {
       $(this).parent().parent().data('pre', $(this).parent().parent().find(':checked').val());
       $(this).parent().parent().css("transition", transition);
-      console.log($(this).parent().parent().children().filter(':checked').val());
     }
   });
 

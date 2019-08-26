@@ -229,6 +229,8 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
+    if utils.is_section_collapsed(section_div):
+        utils.click(section_div_heading)
 
     label_expression = ".//label[contains(., '%s')]" % cde
 
@@ -258,6 +260,8 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    if utils.is_section_collapsed(section_div_heading):
+        utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
@@ -395,6 +399,8 @@ def value_is2(step, section, cde, expected_value):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    if utils.is_section_collapsed(section_div_heading):
+        utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -563,6 +569,8 @@ def click_radio_button(step, value, section, cde):
     # and ignores the value
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    if utils.is_section_collapsed(section_div_heading):
+        utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -633,6 +641,8 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+    if utils.is_section_collapsed(section_div_heading):
+        utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
@@ -756,3 +766,11 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
         multisection, cde, item, expected_value, actual_value)
 
     assert actual_value == expected_value, error_msg
+
+
+@step(r'I expand the "(.*)" section')
+def expand_section(step, section_name):
+    section_div_heading = world.browser.find_element_by_xpath(
+        ".//div[@class='panel-heading'][contains(., '%s')]" % section_name)
+    if utils.is_section_collapsed(section_div_heading):
+        utils.click(section_div_heading)

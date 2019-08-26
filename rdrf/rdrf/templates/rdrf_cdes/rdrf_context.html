@@ -37,8 +37,8 @@
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel
                 </a>
 	</div>
-	
-{% endblock %}	
+
+{% endblock %}
 
 {% block sidebar %}
 	{{ context_launcher | safe }}
@@ -119,7 +119,7 @@
                                     {% endif %}
                                 </label>
                                 <div class="col-sm-9">
-				    {% if field.name != "display_name" %} 
+				    {% if field.name != "display_name" %}
                                           {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
 				    {% else %}
                                           {{field|safe}}<p class="text-muted"><i>{{naming_info}}</i></p>
@@ -138,9 +138,9 @@
 	      <div class="panel panel-default">
 		<div class="panel-heading">Forms in this {{context_name}}</div>
 		<div class="panel-body">
-		
+
                    {% for form_link in form_links %}
-		 
+
                             <div class="form-group">
                                 <label for="{{form_link.text}}" class="col-sm-3 control-label">
                                     <a href="{{form_link.url}}">{{form_link.text}}</a>
