@@ -208,6 +208,9 @@ def scroll_to_multisection_cde(section, cde, item=1):
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
     xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
+    panel_heading = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    if is_section_collapsed(world.browser.find_element_by_xpath(xpath)):
+        click(panel_heading)
     default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
 
@@ -238,6 +241,8 @@ def scroll_to_cde(section, cde, item=None):
     input_element = None
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+    if is_section_collapsed(section_div_heading):
+        click(section_div_heading)
 
     section_div = section_div_heading.find_element_by_xpath("..")
 
@@ -272,3 +277,12 @@ def scroll_to_cde(section, cde, item=None):
 
     scroll_to(input_element)
     return input_element
+
+
+def is_section_collapsed(section):
+    section_body = section.find_element_by_xpath(".//following-sibling::div[contains(@class, 'panel-body')]")
+    css_class = section_body.get_attribute('class')
+    if css_class is None:
+        return False
+    css_classes = css_class.split(' ')
+    return 'collapse' in css_classes and 'in' not in css_classes

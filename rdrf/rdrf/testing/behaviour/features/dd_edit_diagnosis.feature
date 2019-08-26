@@ -18,6 +18,7 @@ Feature: Edit diagnosis for a patient
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
+    And I expand the "Status" section
     And I select "PP (Primary progressive)" from "Condition"
     And I select "DD Affected Status 2" from "Affected Status"
     And I select "Family" from "First Suspected By"
@@ -31,6 +32,7 @@ Feature: Edit diagnosis for a patient
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
+    And I expand the "Status" section
     And I select "PP (Primary progressive)" from "Condition"
     And I select "DD Affected Status 2" from "Affected Status"
     And I select "Family" from "First Suspected By"
@@ -39,6 +41,7 @@ Feature: Edit diagnosis for a patient
     And I press the "Save" button
     Then I should see "Patient Abigail ABBOTT saved successfully"
     When I navigate away then back
+    And I expand the "Status" section
     Then the progress indicator should be "12%"
     Then option "PP (Primary progressive)" from "Condition" should be selected
     And option "DD Affected Status 2" from "Affected Status" should be selected
@@ -52,6 +55,7 @@ Feature: Edit diagnosis for a patient
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
+    And I expand the "Medical History Record" section
     And I fill "Date" with "1-2-1991" in MultiSection "MedicalHistoryRecord" index "0"
     And I press the "Save" button
     Then I should see "Patient Abigail ABBOTT saved successfully"

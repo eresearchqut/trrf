@@ -25,7 +25,8 @@ Feature: User uploads files.
     When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
-    Then I should be able to download "README.rst"
+    And I expand the "Laboratory Data" section
+    And I should be able to download "README.rst"
 
 
   Scenario: Update (replace) an existing file cde.
@@ -41,11 +42,13 @@ Feature: User uploads files.
     When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
+    And I expand the "Laboratory Data" section
     Then I should be able to download "README.rst"
 
     When I upload file "/app/license.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
+    And I expand the "Laboratory Data" section
     Then I should be able to download "license.txt"
 
 
