@@ -569,11 +569,10 @@ class PatientFormMixin:
     def _hidden_sections(self, user, registry, form_sections):
 
         def is_hidden(name, section_fields):
+            section_is_hidden = self._section_hidden(user, registry, name)
             if not section_fields:
-                return True
-            return (
-                self._section_hidden(user, registry, name) or self._all_section_fields_hidden(user, registry, section_fields)
-            )
+                return section_is_hidden
+            return section_is_hidden or self._all_section_fields_hidden(user, registry, section_fields)
 
         return [
             section_name
