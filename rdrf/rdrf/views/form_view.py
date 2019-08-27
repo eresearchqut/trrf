@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse
 from rdrf.models.definition.models import Section, CommonDataElement
-from registry.patients.models import Patient, ParentGuardian
+from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.http import Http404
@@ -40,7 +40,7 @@ from explorer.utils import create_field_values
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
-from registry.patients.admin_forms import PatientConsentFileForm
+from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from django.utils.translation import ugettext as _
 
 import json
@@ -55,7 +55,7 @@ from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
-from rdrf.security.security_checks import security_check_user_patient
+from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
 
 import logging
 
@@ -1612,7 +1612,7 @@ class CustomConsentFormView(View):
         security_check_user_patient(request.user, patient_model)
 
         registry_model = Registry.objects.get(code=registry_code)
-        form_sections = self._get_form_sections(registry_model, patient_model)
+        form_sections = self._get_form_sections(request.user, registry_model, patient_model)
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient_model,
@@ -1652,6 +1652,7 @@ class CustomConsentFormView(View):
             "parent": parent,
             "consent": consent_status_for_patient(registry_code, patient_model),
             "show_print_button": True,
+            "can_sign_consent": can_sign_consent(request.user, patient_model)
         }
 
         return render(request, "rdrf_cdes/custom_consent_form.html", context)
@@ -1666,7 +1667,7 @@ class CustomConsentFormView(View):
             initial_data[consent_field_key] = data[consent_field_key]
         return initial_data
 
-    def _get_form_sections(self, registry_model, patient_model):
+    def _get_form_sections(self, request_user, registry_model, patient_model):
         custom_consent_form_generator = CustomConsentFormGenerator(
             registry_model, patient_model)
         initial_data = self._get_initial_consent_data(patient_model)
@@ -1678,10 +1679,24 @@ class CustomConsentFormView(View):
 
         patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
+        patient_signature_form = None
+        patient_signature = None
+        consent_config = getattr(registry_model, 'consent_configuration', None)
+        signature_supported = consent_config and (consent_config.signature_required or consent_config.signature_enabled)
+        if consent_sections and signature_supported:
+            patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
+            signature = PatientSignature.objects.filter(patient=patient_model).first()
+            patient_signature_form = PatientSignatureForm(
+                data=None, prefix="patient_signature", instance=signature, registry_model=registry_model,
+                can_sign_consent=can_sign_consent(request_user, patient_model)
+            )
+
         return self._section_structure(custom_consent_form,
                                        consent_sections,
                                        patient_consent_file_forms,
-                                       patient_section_consent_file)
+                                       patient_section_consent_file,
+                                       patient_signature_form,
+                                       patient_signature)
 
     def _get_consent_file_formset(self, patient_model):
         patient_consent_file_formset = inlineformset_factory(
@@ -1700,16 +1715,22 @@ class CustomConsentFormView(View):
                            custom_consent_form,
                            consent_sections,
                            patient_consent_file_forms,
-                           patient_section_consent_file):
-        return [
+                           patient_section_consent_file,
+                           patient_signature_form=None,
+                           patient_signature=None):
+        structure = [
             (
                 custom_consent_form,
                 consent_sections,
             ),
             (
                 patient_consent_file_forms,
-                (patient_section_consent_file,)
-            )]
+                (patient_section_consent_file,),
+            ),
+        ]
+        if patient_signature_form and patient_signature:
+            structure.append((patient_signature_form, (patient_signature,),))
+        return structure
 
     def _get_success_url(self, registry_model, patient_model):
         return reverse("consent_form_view", args=[registry_model.code,
@@ -1750,6 +1771,8 @@ class CustomConsentFormView(View):
                                                                   prefix="patient_consent_file")
         patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
+        patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
+
         custom_consent_form_generator = CustomConsentFormGenerator(
             registry_model, patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
@@ -1757,10 +1780,29 @@ class CustomConsentFormView(View):
 
         forms_to_validate = [custom_consent_form, patient_consent_file_forms]
 
-        form_sections = self._section_structure(custom_consent_form,
-                                                consent_sections,
-                                                patient_consent_file_forms,
-                                                patient_section_consent_file)
+        patient_signature_form = None
+        consent_config = getattr(registry_model, 'consent_configuration', None)
+        signature_supported = consent_config and (consent_config.signature_required or consent_config.signature_enabled)
+        if consent_sections and signature_supported and can_sign_consent(request.user, patient_model):
+            signature, __ = PatientSignature.objects.get_or_create(patient=patient_model)
+            patient_signature_form = PatientSignatureForm(
+                request.POST, prefix="patient_signature", instance=signature, registry_model=registry_model,
+                can_sign_consent=True
+            )
+            patient_signature_form.patient = patient_model
+            forms_to_validate.append(patient_signature_form)
+
+            form_sections = self._section_structure(
+                custom_consent_form, consent_sections,
+                patient_consent_file_forms, patient_section_consent_file,
+                patient_signature_form, patient_signature
+            )
+        else:
+            form_sections = self._section_structure(
+                custom_consent_form, consent_sections,
+                patient_consent_file_forms, patient_section_consent_file
+            )
+
         valid_forms = []
         error_messages = []
 
@@ -1781,6 +1823,8 @@ class CustomConsentFormView(View):
         if all(valid_forms):
             patient_consent_file_forms.save()
             custom_consent_form.save()
+            if patient_signature_form:
+                patient_signature_form.save()
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
             messages.success(
                 self.request,
@@ -1793,7 +1837,7 @@ class CustomConsentFormView(View):
             except ParentGuardian.DoesNotExist:
                 parent = None
 
-            context = {
+            context = dict({
                 "location": "Consents",
                 "patient": patient_model,
                 "patient_id": patient_model.id,
@@ -1811,9 +1855,9 @@ class CustomConsentFormView(View):
                 "forms": form_sections,
                 "error_messages": [],
                 "parent": parent,
-                "consent": consent_status_for_patient(
-                    registry_code,
-                    patient_model)}
+                "consent": consent_status_for_patient(registry_code, patient_model),
+                "can_sign_consent": can_sign_consent(request.user, patient_model),
+            })
 
             context["message"] = _("Consent section not complete")
             context["error_messages"] = error_messages

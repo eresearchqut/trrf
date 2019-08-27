@@ -12,11 +12,12 @@ from .models import (
     PatientRelative,
     ParentGuardian,
     PatientDoctor,
-    PatientStage
+    PatientStage,
+    PatientSignature
 )
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
+from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -149,6 +150,34 @@ class PatientConsentFileForm(forms.ModelForm):
         if self.cleaned_data.get("form"):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
+
+
+class PatientSignatureForm(forms.ModelForm):
+    class Meta:
+        model = PatientSignature
+        fields = ["consent_to_all", "signature"]
+
+    consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
+    signature = forms.CharField(widget=SignatureWidget, required=False)
+
+    def __init__(self, *args, **kwargs):
+        if 'registry_model' in kwargs:
+            consent_config = getattr(kwargs['registry_model'], 'consent_configuration', None)
+            del kwargs['registry_model']
+        else:
+            consent_config = None
+
+        can_sign_consent = False
+        if 'can_sign_consent' in kwargs:
+            can_sign_consent = kwargs['can_sign_consent']
+            del kwargs['can_sign_consent']
+
+        super().__init__(*args, **kwargs)
+        if consent_config and consent_config.signature_required and can_sign_consent:
+            self.fields['signature'].required = True
+
+    def save(self, commit=True):
+        return super(PatientSignatureForm, self).save(commit)
 
 
 class PatientStageForm(forms.ModelForm):

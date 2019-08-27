@@ -628,3 +628,69 @@ class SliderWidget(widgets.TextInput):
          """ % (name, value, attrs['id'], attrs['id'], name, value, name)
 
         return context
+
+
+class SignatureWidget(widgets.TextInput):
+    def render(self, name, value, attrs=None, renderer=None):
+
+        has_value = value and value != 'None'
+        set_value = f"$sigdiv.jSignature('setData', 'data:{value}')" if has_value else ""
+
+        html = f"""
+            <div id="signature" style="border: 1px solid black">
+            </div>
+            <input type="hidden" name="{name}" value="{value if has_value else ''}"/>
+            <div style="margin-top:5px; float:right">
+                <a class="btn btn-default" onclick="reset_signature();">
+                    <span class="glyphicon glyphicon-remove">&nbsp;Clear signature</span>
+                </a>
+            </div>
+        """
+
+        javascript = """
+                var $sigdiv = $("#signature").jSignature({'UndoButton':true});
+                $sigdiv.change(function(e) {
+                    var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
+                    var value = has_signature ? $sigdiv.jSignature('getData', 'image'):'';
+                    $("input[name='""" + name + """']").val(value);
+                });
+
+                function disable_signature() {
+                    $sigdiv.jSignature('disable', true);
+                    $("#signature div").css('background-color','lightgray');
+                    $(".jSignature").css('background-color','lightgray');
+                    $("#signature").css('background-color', 'lightgray');
+                }
+
+                function reset_signature() {
+                    $sigdiv.jSignature('reset');
+                    return false;
+                }
+        """
+
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+                {set_value}
+            </script>
+         """)
+
+
+class AllConsentWidget(widgets.CheckboxInput):
+    def render(self, name, value, attrs=None, renderer=None):
+
+        base = super().render(name, value, attrs, renderer)
+        javascript = """
+                $("[name='""" + name + """']").change(function(e) {
+                    if (this.checked) {
+                        $("[name^='customconsent']").prop("checked", this.checked);
+                    }
+                })
+        """
+        return mark_safe(f"""
+            {base}
+            <script>
+                {javascript}
+            </script>
+         """)

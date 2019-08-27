@@ -1394,6 +1394,11 @@ class PatientConsent(models.Model):
     history = HistoricalRecords()
 
 
+class PatientSignature(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    signature = models.TextField()
+
+
 class PatientDoctor(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)

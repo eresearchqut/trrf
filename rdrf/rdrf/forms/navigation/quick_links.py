@@ -77,6 +77,7 @@ class LinkDefs:
     ConsentValues = make_link("admin:patients_consentvalue_changelist", _("Registry Consent Values"))
     CdePolicy = make_link("admin:rdrf_cdepolicy_changelist", _("Registry Common Data Elements Policy"))
     ContextFormGroups = make_link("admin:rdrf_contextformgroup_changelist", _("Registry Context Form Groups"))
+    ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
 
 
 class Links:
@@ -93,6 +94,7 @@ class Links:
         LinkDefs.CdePolicy,
         LinkDefs.PermissibleValueGroups,
         LinkDefs.PermissibleValues,
+        LinkDefs.ConsentConfig,
         LinkDefs.ConsentSections,
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,

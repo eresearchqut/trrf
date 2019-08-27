@@ -232,6 +232,7 @@ class Exporter:
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
         data["consent_sections"] = self._get_consent_sections()
+        data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
@@ -402,6 +403,14 @@ class Exporter:
                     precondition_cde_model = CommonDataElement.objects.get(code=survey_question.precondition.cde.code)
                     cdes.add(precondition_cde_model)
         return cdes
+
+    def _get_consent_configuration(self):
+        consent_config = getattr(self.registry, "consent_configuration", None)
+        if consent_config:
+            return {
+                "consent_locked": consent_config.consent_locked,
+                "esignature": consent_config.esignature,
+            }
 
     def _get_consent_sections(self):
         section_dicts = []

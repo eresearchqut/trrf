@@ -19,6 +19,7 @@
 
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jSignature.min.js' %}"></script>
 
     <script>
         function setPatientRelativeFormVisiblity(visible) {
@@ -135,6 +136,7 @@
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
+
         });
     </script>
 

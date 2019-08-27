@@ -5,7 +5,7 @@ from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
-from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
 from registry.patients.models import Patient
 
 from rdrf.helpers.constants import (
@@ -108,3 +108,10 @@ class EmailTemplateAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = EmailTemplate
+
+
+class ConsentConfigurationAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = ConsentConfiguration
