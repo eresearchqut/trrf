@@ -4,6 +4,7 @@
 {% load get_forms %}
 {% load get_elements %}
 {% load i18n %}
+{% load lookup %}
 {% load project_logo %}
 {% load project_logo_link %}
 {% load project_stylesheet %}
@@ -230,25 +231,20 @@
             <div class="container">
                 <div class="row">
                     <!-- name row -->
-                    <div class="col-md-4 col-sm-4 col-xs-4">
-                        <h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
-                            {% block location %}
-                            {{ location|safe|translate }}
-                            {% endblock %}
-                        </h3>
-                    </div>
-                    <div class="col-md-4 col-sm-4 col-xs-4">
-                        {{ patient_info }}
-                    </div>
-                    <div class="col-md-4 col-sm-4 col-xs-4" style="text-align: right">
-                        <h3>
-
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <h3 style="float:left">
                             {% if patient_link %}
-                            {{ patient_link | safe}}
+                                {{ patient_link | safe}}
+                                {% if request.user.is_clinician %}
+                                    {{ patient_info }}
+                                {% endif %}
                             {% elif patient %}
-                            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                                {{ patient }}
-                            </i>
+                                <i class="text-muted" style="float:left"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                                        {{patient}}
+                                </i>
+                                {% if request.user.is_clinician %}
+                                    {{ patient_info }}
+                                {% endif %}
                             {% endif %}
                         </h3>
                     </div>

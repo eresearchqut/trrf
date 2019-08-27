@@ -359,7 +359,7 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
 
-        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model)
+        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
@@ -665,7 +665,7 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        patient_info_component = RDRFPatientInfoComponent(registry, patient)
+        patient_info_component = RDRFPatientInfoComponent(registry, patient, request.user)
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -1630,8 +1630,7 @@ class CustomConsentFormView(View):
                                                         patient_model,
                                                         current_form_name="Consents")
 
-        patient_info = RDRFPatientInfoComponent(registry_model,
-                                                patient_model)
+        patient_info = RDRFPatientInfoComponent(registry_model, patient_model, request.user)
 
         context = {
             "location": "Consents",

@@ -75,13 +75,17 @@ class RDRFComponent(object):
 class RDRFPatientInfoComponent(RDRFComponent):
     TEMPLATE = "rdrf_cdes/patient_info_component.html"
 
-    def __init__(self, registry_model, patient_model):
+    def __init__(self, registry_model, patient_model, viewing_user):
         self.patient_model = patient_model
         self.registry_model = registry_model
+        self.viewing_user = viewing_user
 
     def _get_template_data(self):
         patient_type = self._get_patient_type()
-        return {"patient_type": patient_type}
+        return {
+            "patient_type": patient_type,
+            "patient_information": self.patient_model.patient_info(self.viewing_user)
+        }
 
     def _get_patient_type(self):
         patient_type = self.patient_model.patient_type

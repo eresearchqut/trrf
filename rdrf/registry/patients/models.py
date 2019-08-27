@@ -370,6 +370,15 @@ class Patient(models.Model):
         else:
             return "%s %s (Archived)" % (self.family_name, self.given_names)
 
+    def patient_info(self, viewing_user):
+        is_clinician = viewing_user and viewing_user.is_clinician
+        return {
+            'dob': self.date_of_birth.strftime("%Y-%m-%d") if is_clinician else '',
+            'gender': dict(self.SEX_CHOICES).get(self.sex, '') if is_clinician else '',
+            'ancestry': self.ethnic_origin or 'Ancestry not set' if is_clinician else '',
+            'age': self.age or 'N/A' if is_clinician else ''
+        }
+
     @property
     def age(self):
         """ in years """

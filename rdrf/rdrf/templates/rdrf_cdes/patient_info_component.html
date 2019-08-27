@@ -1,6 +1,22 @@
 {% load i18n %}
+{% load lookup %}
 {% if patient_type %}
 <div id="patient_type_component">
 <h3><span class="label label-default">{% trans patient_type %}</span></h3>  
 </div>
 {% endif %}
+<br/>
+<div class="text-muted" style="float:left;">
+    {% with dob=patient_information|lookup:"dob" %}
+        {% with age=patient_information|lookup:"age" %}
+            {% with gender=patient_information|lookup:"gender" %}
+                {% with ancestry=patient_information|lookup:"ancestry" %}
+                    <small class="text-muted">
+                        <strong>DOB:</strong>&nbsp;{{dob}}&nbsp;(<strong>Age:</strong>&nbsp;{{age}}),&nbsp;{{gender}},&nbsp;{{ancestry}}
+                    </small>
+                {% endwith %}
+            {% endwith %}
+        {% endwith %}
+    {% endwith %}
+</div>
+
