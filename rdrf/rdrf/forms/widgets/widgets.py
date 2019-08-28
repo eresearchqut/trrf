@@ -11,6 +11,7 @@ from django.forms.widgets import ClearableFileInput
 from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
@@ -635,14 +636,17 @@ class SignatureWidget(widgets.TextInput):
 
         has_value = value and value != 'None'
         set_value = f"$sigdiv.jSignature('setData', 'data:{value}')" if has_value else ""
+        # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
+        hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
+        clear_signature_text = _('Clear signature')
 
         html = f"""
             <div id="signature" style="border: 1px solid black">
             </div>
             <input type="hidden" name="{name}" value="{value if has_value else ''}"/>
-            <div style="margin-top:5px; float:right">
+            <div class="pull-right">
                 <a class="btn btn-default" onclick="reset_signature();">
-                    <span class="glyphicon glyphicon-remove">&nbsp;Clear signature</span>
+                    <span class="glyphicon glyphicon-remove"></span> """ + clear_signature_text + """
                 </a>
             </div>
         """
@@ -651,7 +655,7 @@ class SignatureWidget(widgets.TextInput):
                 var $sigdiv = $("#signature").jSignature({'UndoButton':true});
                 $sigdiv.change(function(e) {
                     var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
-                    var value = has_signature ? $sigdiv.jSignature('getData', 'image'):'';
+                    var value = has_signature ? $sigdiv.jSignature('getData', 'base30') : '';
                     $("input[name='""" + name + """']").val(value);
                 });
 
@@ -673,6 +677,7 @@ class SignatureWidget(widgets.TextInput):
             <script>
                 {javascript}
                 {set_value}
+                {hide_undo_btn}
             </script>
          """)
 
