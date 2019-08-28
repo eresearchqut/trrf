@@ -654,9 +654,12 @@ class SignatureWidget(widgets.TextInput):
         javascript = """
                 var $sigdiv = $("#signature").jSignature({'UndoButton':true});
                 $sigdiv.change(function(e) {
-                    var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
-                    var value = has_signature ? $sigdiv.jSignature('getData', 'base30') : '';
-                    $("input[name='""" + name + """']").val(value);
+                    var isModified =  $sigdiv.jSignature('isModified');
+                    if (isModified) {
+                        var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
+                        var value = has_signature ? $sigdiv.jSignature('getData', 'base30') : '';
+                        $("input[name='""" + name + """']").val(value);
+                    }
                 });
 
                 function disable_signature() {
