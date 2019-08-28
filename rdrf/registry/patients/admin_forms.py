@@ -177,11 +177,12 @@ class PatientSignatureForm(forms.ModelForm):
         signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
         self.fields['signature'].required = signature_required
 
-    def _clean_fields(self):
-        signature = self.data.get('signature', '')
-        if signature and not self.can_sign_content:
+    def clean(self):
+        signature = self.cleaned_data.get('signature', '')
+        signature_check = signature and not self.can_sign_consent
+        if signature_check and self.instance and self.instance.signature != signature:
             raise ValidationError("Only patient or parent/guardian can change signature !")
-        return super()._clean_fields()
+        return super().clean()
 
     def save(self, commit=True):
         return super(PatientSignatureForm, self).save(commit)
