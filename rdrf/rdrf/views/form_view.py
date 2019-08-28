@@ -1783,11 +1783,11 @@ class CustomConsentFormView(View):
         patient_signature_form = None
         consent_config = getattr(registry_model, 'consent_configuration', None)
         signature_supported = consent_config and (consent_config.signature_required or consent_config.signature_enabled)
-        if consent_sections and signature_supported and can_sign_consent(request.user, patient_model):
+        if consent_sections and signature_supported:
             signature, __ = PatientSignature.objects.get_or_create(patient=patient_model)
             patient_signature_form = PatientSignatureForm(
                 request.POST, prefix="patient_signature", instance=signature, registry_model=registry_model,
-                can_sign_consent=True
+                can_sign_consent=can_sign_consent(request.user, patient_model)
             )
             patient_signature_form.patient = patient_model
             forms_to_validate.append(patient_signature_form)

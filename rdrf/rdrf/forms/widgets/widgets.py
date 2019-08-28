@@ -671,6 +671,7 @@ class SignatureWidget(widgets.TextInput):
 
                 function reset_signature() {
                     $sigdiv.jSignature('reset');
+                    $("input[name='""" + name + """']").val('');
                     return false;
                 }
         """

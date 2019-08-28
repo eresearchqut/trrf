@@ -173,8 +173,9 @@ class PatientSignatureForm(forms.ModelForm):
             del kwargs['can_sign_consent']
 
         super().__init__(*args, **kwargs)
-        if consent_config and consent_config.signature_required and can_sign_consent:
-            self.fields['signature'].required = True
+
+        signature_required = consent_config and consent_config.signature_required and can_sign_consent
+        self.fields['signature'].required = signature_required
 
     def save(self, commit=True):
         return super(PatientSignatureForm, self).save(commit)
