@@ -495,7 +495,7 @@ class Importer(object):
                 registry=r, consent_locked=config_map['consent_locked'], esignature=config_map['esignature']
             )
         else:
-            config, __ = ConsentConfiguration.objects.get_or_Create(registry=r)
+            config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
             config.consent_locked = registry_consent_locked
             config.save()
 
