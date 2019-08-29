@@ -48,6 +48,10 @@ var CollapsingPanels = function() {
         var panel = $(this);
         var header = panel.children(".panel-heading");
         var body = panel.children(".panel-body");
+        var iconParent = header;
+        if (header.find(".panel-title").size() == 1) {
+            iconParent = header.find(".panel-title");
+        }
 
         header.css("cursor", "pointer");
         body.addClass("collapse");
@@ -62,7 +66,23 @@ var CollapsingPanels = function() {
         header.on('click', function(evt) {
             body.collapse('toggle');
         })
-    }
+
+        function createIconElement(panel) {
+            var body = panel.children(".panel-body");
+            var isCollapsed = !body.hasClass('in');
+            var icon = isCollapsed ? 'glyphicon-triangle-right' : 'glyphicon-triangle-bottom';
+            return '<span class="panel-collapse-icon glyphicon ' + icon + '"></span>';
+        }
+
+        function toggleIcon() {
+            header.find('span[class*="panel-collapse-icon"]').toggleClass('glyphicon-triangle-right glyphicon-triangle-bottom');
+        }
+
+        panel.on('hide.bs.collapse', toggleIcon);
+        panel.on('show.bs.collapse', toggleIcon);
+
+        iconParent.prepend(createIconElement(panel));
+   }
 
 
     function setUp() {
