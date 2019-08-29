@@ -418,6 +418,12 @@ def check_checkbox(step, checkbox_label):
         utils.click(checkbox)
 
 
+@step('Sign consent')
+def sign_consent(step):
+    signature_div = world.browser.find_element_by_id('signature')
+    utils.click(signature_div)
+
+
 @step('the "(.*)" checkbox should be checked')
 def checkbox_should_be_checked(step, checkbox_label):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % checkbox_label)

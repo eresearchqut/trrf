@@ -26,6 +26,22 @@ def _security_violation(user, patient_model):
     raise PermissionDenied()
 
 
+def _patient_checks(user, patient_model):
+    # check patients who have registered as users with this user
+    for user_patient in Patient.objects.filter(user=user):
+        if user_patient.pk == patient_model.pk:
+            # user IS patient
+            return True
+
+    # check parent guardian self patient and own children
+    for parent in ParentGuardian.objects.filter(user=user):
+        if patient_model in parent.children:
+            return True
+        if parent.self_patient and parent.self_patient.pk == patient_model.pk:
+            return True
+    return False
+
+
 def security_check_user_patient(user, patient_model):
     # either user is allowed to act on this record ( return True)
     # or not ( raise PermissionDenied error)
@@ -33,19 +49,9 @@ def security_check_user_patient(user, patient_model):
         return True
 
     if _user_is_patient_type(user):
-        # check patients who have registered as users with this user
-        for user_patient in Patient.objects.filter(user=user):
-            if user_patient.pk == patient_model.pk:
-                # user IS patient
-                return True
-
-        # check parent guardian self patient and own children
-        for parent in ParentGuardian.objects.filter(user=user):
-            if patient_model in parent.children:
-                return True
-            if parent.self_patient and parent.self_patient.pk == patient_model.pk:
-                return True
-
+        patient_check_result = _patient_checks(user, patient_model)
+        if patient_check_result:
+            return patient_check_result
         _security_violation(user, patient_model)
 
     # user is staff of some sort
@@ -58,3 +64,9 @@ def security_check_user_patient(user, patient_model):
         return True
 
     _security_violation(user, patient_model)
+
+
+def can_sign_consent(user, patient_model):
+    if _user_is_patient_type(user):
+        return _patient_checks(user, patient_model)
+    return False

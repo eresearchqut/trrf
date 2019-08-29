@@ -1,5 +1,7 @@
 from itertools import chain
+import json
 import logging
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
@@ -12,11 +14,12 @@ from .models import (
     PatientRelative,
     ParentGuardian,
     PatientDoctor,
-    PatientStage
+    PatientStage,
+    PatientSignature
 )
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput
+from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -149,6 +152,52 @@ class PatientConsentFileForm(forms.ModelForm):
         if self.cleaned_data.get("form"):
             self.instance.filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
+
+
+class PatientSignatureForm(forms.ModelForm):
+    class Meta:
+        model = PatientSignature
+        fields = ["consent_to_all", "signature"]
+
+    consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
+    signature = forms.CharField(widget=SignatureWidget, required=False)
+
+    def __init__(self, *args, **kwargs):
+        if 'registry_model' in kwargs:
+            consent_config = getattr(kwargs['registry_model'], 'consent_configuration', None)
+            del kwargs['registry_model']
+        else:
+            consent_config = None
+
+        self.can_sign_consent = False
+        if 'can_sign_consent' in kwargs:
+            self.can_sign_consent = kwargs['can_sign_consent']
+            del kwargs['can_sign_consent']
+
+        super().__init__(*args, **kwargs)
+
+        self.signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
+        self.fields['signature'].required = self.signature_required
+
+    def clean_signature(self):
+        signature = self.cleaned_data['signature']
+        if not signature:
+            if self.signature_required:
+                raise ValidationError(_("Signature is required"), code="required")
+            return signature
+
+        data = json.loads(signature)['data']
+        if len(data) == 0:
+            if self.signature_required:
+                raise ValidationError(_("Signature is required"), code="required")
+        elif not self.can_sign_consent:
+            existing_data = []
+            if self.instance and self.instance.signature:
+                existing_data = json.loads(self.instance.signature)['data']
+            if data != existing_data:
+                raise ValidationError(_("Only patient or parent/guardian can change signature !"))
+
+        return signature
 
 
 class PatientStageForm(forms.ModelForm):

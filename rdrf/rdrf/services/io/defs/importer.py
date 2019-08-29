@@ -9,6 +9,7 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import DemographicFields
 
@@ -463,6 +464,7 @@ class Importer(object):
                     patient_data_section_map)
                 r.patient_data_section = patient_data_section
 
+        registry_consent_locked = False
         if "metadata_json" in self.data:
             metadata_json = self.data["metadata_json"]
             if self._check_metadata_json(metadata_json):
@@ -476,12 +478,26 @@ class Importer(object):
                     r.metadata_json = json.dumps(as_json)
                 else:
                     r.metadata_json = metadata_json
+                if 'features' in as_json and 'consent_lock' in as_json['features']:
+                    registry_consent_locked = True
+                    as_json['features'].remove('consent_lock')
+                    r.metadata_json = json.dumps(as_json)
             else:
                 raise DefinitionFileInvalid(
                     "Invalid JSON for registry metadata ( should be a json dictionary")
 
         r.save()
         logger.info("imported registry object OK")
+
+        if "consent_configuration" in self.data:
+            config_map = self.data["consent_configuration"]
+            ConsentConfiguration.objects.get_or_create(
+                registry=r, consent_locked=config_map['consent_locked'], esignature=config_map['esignature']
+            )
+        else:
+            config, __ = ConsentConfiguration.objects.get_or_Create(registry=r)
+            config.consent_locked = registry_consent_locked
+            config.save()
 
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)

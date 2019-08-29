@@ -1225,6 +1225,31 @@ class Notification(models.Model):
     seen = models.BooleanField(default=False)
 
 
+class ConsentConfiguration(models.Model):
+
+    ENABLED = 'enabled'
+    DISABLED = 'disabled'
+    REQUIRED = 'required'
+
+    SIGNATURE_CHOICES = ((ENABLED, ENABLED), (DISABLED, DISABLED), (REQUIRED, REQUIRED))
+
+    registry = models.OneToOneField(Registry, related_name="consent_configuration", on_delete=models.CASCADE)
+    esignature = models.CharField(choices=SIGNATURE_CHOICES, default=DISABLED, max_length=16)
+    consent_locked = models.BooleanField(default=False)
+
+    @property
+    def signature_disabled(self):
+        return self.esignature == self.DISABLED
+
+    @property
+    def signature_required(self):
+        return self.esignature == self.REQUIRED
+
+    @property
+    def signature_enabled(self):
+        return self.esignature == self.ENABLED
+
+
 class ConsentSectionManager(models.Manager):
 
     def get_by_natural_key(self, registry_code, code):

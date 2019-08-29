@@ -21,6 +21,7 @@
 
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jSignature.min.js' %}"></script>
 
     <script>
 
@@ -82,6 +83,11 @@
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
             });
+            {% if not can_sign_consent %}
+                if (typeof disable_signature === "function") {
+                    disable_signature();
+                }
+            {% endif %}
         });
     </script>
 
@@ -152,7 +158,10 @@
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
-		      {% trans 'Please make sure you have agreed to all of the mandatory consent statements, by ticking the box next to each statement' %}
+                        {% trans 'Please correct errors below' %}:<br>
+                        {% for error_message in error_messages %}
+                            {{ error_message }}<br>
+                        {% endfor %}
                     </div>
                 {% endif %}
 
@@ -300,21 +309,29 @@
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
+                                                    {% if name == "Patient signature" %}
+                                                        <div class="col-sm-12 col-md-9">
+                                                    {% else %}
+                                                        <div class="col-sm-1">
+                                                    {% endif %}
                                                 {% else %}
                                                     <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
                                                         {{ element.label|translate }}
-							<br>
-						    {% if not element.is_hidden %}
-                                                    <small class="text-muted">
-                                                        {{ element.help_text|translate }}
-                                                    </small>
-						    {% endif %}
+							                            <br>
+						                                {% if not element.is_hidden %}
+                                                            <small class="text-muted">
+                                                                {{ element.help_text|translate }}
+                                                            </small>
+						                                {% endif %}
                                                         {% if  element.field.required %}
                                                             <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
-                                                    <div class="col-sm-1">
+                                                    {% if name == "Patient signature" %}
+                                                        <div class="col-sm-12 col-md-9">
+                                                    {% else %}
+                                                        <div class="col-sm-1">
+                                                    {% endif %}
                                                 {% endif %}
                                                     {% if not element|is_checkbox %}
                                                         {{ element | add_attr:"class,form-control" }}

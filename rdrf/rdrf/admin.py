@@ -7,6 +7,7 @@ from rdrf.models.definition.models import QuestionnaireResponse
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import Notification
 from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import ConsentSection
@@ -41,6 +42,7 @@ from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
+from rdrf.admin_forms import ConsentConfigurationAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
@@ -321,6 +323,12 @@ class ConsentSectionAdmin(admin.ModelAdmin):
     inlines = [ConsentQuestionAdmin]
 
 
+class ConsentConfigurationAdmin(admin.ModelAdmin):
+    models = ConsentConfiguration
+    forms = ConsentConfigurationAdminForm
+    list_display = ("registry", "esignature", "consent_locked")
+
+
 class DemographicFieldsAdmin(admin.ModelAdmin):
     model = DemographicFields
     form = DemographicFieldsAdminForm
@@ -457,6 +465,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CommonDataElement, CommonDataElementAdmin),
     (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
     (RegistryForm, RegistryFormAdmin),
+    (ConsentConfiguration, ConsentConfigurationAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),

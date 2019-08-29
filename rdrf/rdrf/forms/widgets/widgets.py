@@ -11,6 +11,7 @@ from django.forms.widgets import ClearableFileInput
 from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
@@ -628,3 +629,124 @@ class SliderWidget(widgets.TextInput):
          """ % (name, value, attrs['id'], attrs['id'], name, value, name)
 
         return context
+
+
+class SignatureWidget(widgets.TextInput):
+    def render(self, name, value, attrs=None, renderer=None):
+
+        has_value = value and value != 'None'
+        set_value = f"set_value('{value}');" if has_value else 'set_value(\'{"width":1, "data":[]}\');'
+        # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
+        hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
+        clear_signature_text = _('Clear signature')
+        html_value = value if has_value else '{"width":1, "data":[]}}'
+
+        html = f"""
+            <div id="signature" style="border: 1px solid black">
+            </div>
+            <input type="hidden" name="{name}" value='{html_value}'/>
+            <div class="pull-right">
+                <a class="btn btn-default" onclick="reset_signature();">
+                    <span class="glyphicon glyphicon-remove"></span> """ + clear_signature_text + """
+                </a>
+            </div>
+        """
+
+        javascript = """
+                var $sigdiv = $("#signature").jSignature({'UndoButton':true});
+                var disabled = false;
+                $sigdiv.change(function(e) {
+                    var isModified =  $sigdiv.jSignature('isModified');
+                    if (isModified) {
+                        var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
+                        var value = has_signature ? $sigdiv.jSignature('getData', 'native') : [];
+                        var obj = {
+                            width:$("#signature").width(),
+                            data:value
+                        }
+                        $("input[name='""" + name + """']").val(JSON.stringify(obj));
+                    }
+                    if (disabled) {
+                        set_disabled_background();
+                        $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
+                    }
+
+                });
+
+                function set_disabled_background() {
+                    $("#signature div").css('background-color','lightgray');
+                    $(".jSignature").css('background-color','lightgray');
+                    $("#signature").css('background-color', 'lightgray');
+                }
+
+                function disable_signature() {
+                    disabled = true;
+                    $sigdiv.jSignature('disable', true);
+                    set_disabled_background();
+                }
+
+                function reset_signature() {
+                    $sigdiv.jSignature('reset');
+                    var obj = {
+                        width:$("#signature").width(),
+                        data:[]
+                    }
+                    $("input[name='""" + name + """']").val(JSON.stringify(obj));
+                    return false;
+                }
+
+                // function taken from: https://github.com/brinley/jSignature/blob/master/src/jSignature.js#L658
+                function scale_data(data, scale){
+                    var newData = [];
+                    var o, i, l, j, m, stroke;
+                    for ( i = 0, l = data.length; i < l; i++) {
+                        stroke = data[i];
+
+                        o = {'x':[],'y':[]};
+
+                        for ( j = 0, m = stroke.x.length; j < m; j++) {
+                            o.x.push(stroke.x[j] * scale);
+                            o.y.push(stroke.y[j] * scale);
+                        }
+
+                        newData.push(o);
+                    }
+                    return newData;
+                }
+
+                function set_value(input) {
+                    var obj = JSON.parse(input);
+                    var current_width = $("#signature").width();
+                    var scale = current_width * 1.0 / obj.width;
+                    var data = scale_data(obj.data, scale);
+                    $sigdiv.jSignature('setData', data, 'native');
+                }
+        """
+
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+                {set_value}
+                {hide_undo_btn}
+            </script>
+         """)
+
+
+class AllConsentWidget(widgets.CheckboxInput):
+    def render(self, name, value, attrs=None, renderer=None):
+
+        base = super().render(name, value, attrs, renderer)
+        javascript = """
+                $("[name='""" + name + """']").change(function(e) {
+                    if (this.checked) {
+                        $("[name^='customconsent']").prop("checked", this.checked);
+                    }
+                })
+        """
+        return mark_safe(f"""
+            {base}
+            <script>
+                {javascript}
+            </script>
+         """)

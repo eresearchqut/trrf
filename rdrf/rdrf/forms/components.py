@@ -182,7 +182,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 self.patient_model.pk])
 
     def _is_consent_locked(self):
-        if self.registry_model.has_feature(RegistryFeatures.CONSENT_LOCK):
+        has_config = hasattr(self.registry_model, 'consent_configuration')
+        if has_config and self.registry_model.consent_configuration.consent_locked:
             return not consent_status_for_patient(self.registry_model.code,
                                                   self.patient_model)
         else:
