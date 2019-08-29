@@ -1,5 +1,7 @@
 from itertools import chain
+import json
 import logging
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
@@ -178,10 +180,20 @@ class PatientSignatureForm(forms.ModelForm):
         self.fields['signature'].required = signature_required
 
     def clean(self):
-        signature = self.cleaned_data.get('signature', '')
+        signature = self.cleaned_data.get('signature', {})
         signature_check = signature and not self.can_sign_consent
         if signature_check and self.instance and self.instance.signature != signature:
-            raise ValidationError("Only patient or parent/guardian can change signature !")
+            signature_obj = {}
+            try:
+                signature_obj = json.loads(signature)
+            except Exception:
+                pass
+            current_data = signature_obj.get('data', [])
+            existing_signature_obj = json.loads(self.instance.signature or {})
+            existing_data = existing_signature_obj.get('data', [])
+
+            if current_data and existing_data and len(set(current_data) - set(existing_data)):
+                raise ValidationError("Only patient or parent/guardian can change signature !")
         return super().clean()
 
     def save(self, commit=True):

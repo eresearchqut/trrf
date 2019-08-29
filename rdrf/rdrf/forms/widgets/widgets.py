@@ -639,11 +639,12 @@ class SignatureWidget(widgets.TextInput):
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
         hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
         clear_signature_text = _('Clear signature')
+        html_value = value if has_value else '{"width":1, "data":[]}}'
 
         html = f"""
             <div id="signature" style="border: 1px solid black">
             </div>
-            <input type="hidden" name="{name}" value="{value if has_value else ''}"/>
+            <input type="hidden" name="{name}" value='{html_value}'/>
             <div class="pull-right">
                 <a class="btn btn-default" onclick="reset_signature();">
                     <span class="glyphicon glyphicon-remove"></span> """ + clear_signature_text + """
@@ -653,9 +654,11 @@ class SignatureWidget(widgets.TextInput):
 
         javascript = """
                 var $sigdiv = $("#signature").jSignature({'UndoButton':true});
+                var disabled = false;
                 $sigdiv.change(function(e) {
                     var isModified =  $sigdiv.jSignature('isModified');
                     if (isModified) {
+                        console.log("Modified")
                         var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
                         var value = has_signature ? $sigdiv.jSignature('getData', 'native') : [];
                         var obj = {
@@ -667,13 +670,22 @@ class SignatureWidget(widgets.TextInput):
                         // Hide undo button if not modified
                         $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
                     }
+                    if (disabled) {
+                        set_disabled_background();
+                    }
+
                 });
 
-                function disable_signature() {
-                    $sigdiv.jSignature('disable', true);
+                function set_disabled_background() {
                     $("#signature div").css('background-color','lightgray');
                     $(".jSignature").css('background-color','lightgray');
                     $("#signature").css('background-color', 'lightgray');
+                }
+
+                function disable_signature() {
+                    disabled = true;
+                    $sigdiv.jSignature('disable', true);
+                    set_disabled_background();
                 }
 
                 function reset_signature() {
