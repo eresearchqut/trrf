@@ -659,6 +659,9 @@ class SignatureWidget(widgets.TextInput):
                         var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
                         var value = has_signature ? $sigdiv.jSignature('getData', 'base30') : '';
                         $("input[name='""" + name + """']").val(value);
+                    } else {
+                        // Hide undo button if not modified
+                        $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
                     }
                 });
 
