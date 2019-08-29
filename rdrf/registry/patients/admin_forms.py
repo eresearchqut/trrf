@@ -184,16 +184,17 @@ class PatientSignatureForm(forms.ModelForm):
         def data_has_changes(existing_data, current_data):
             if len(existing_data) != len(current_data):
                 return True
-            for obj in existing_data:
-                for curr_obj in current_data:
-                    curr_x = current_data.get("x", [])
-                    existing_x = current_data.get("x", [])
-                    if len(set(curr_x) - set(existing_x)):
-                        return True
-                    curr_y = current_data.get("y", [])
-                    existing_y = current_data.get("y", [])
-                    if len(set(curr_y) - set(existing_y)):
-                        return True
+            for idx in range(len(existing_data)):
+                existing_obj = existing_data[idx]
+                curr_obj = current_data[idx]
+                curr_x = curr_obj.get("x", [])
+                existing_x = existing_obj.get("x", [])
+                if len(set(curr_x) - set(existing_x)):
+                    return True
+                curr_y = curr_obj.get("y", [])
+                existing_y = existing_obj.get("y", [])
+                if len(set(curr_y) - set(existing_y)):
+                    return True
             return False
 
 
