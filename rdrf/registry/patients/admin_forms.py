@@ -176,46 +176,28 @@ class PatientSignatureForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
-        self.fields['signature'].required = signature_required
+        self.signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
+        self.fields['signature'].required = self.signature_required
 
-    def clean(self):
+    def clean_signature(self):
+        signature = self.cleaned_data['signature']
+        if not signature:
+            if self.signature_required:
+                raise ValidationError(_("Signature is required"), code="required")
+            return signature
 
-        def data_has_changes(existing_data, current_data):
-            if len(existing_data) != len(current_data):
-                return True
-            for idx in range(len(existing_data)):
-                existing_obj = existing_data[idx]
-                curr_obj = current_data[idx]
-                curr_x = curr_obj.get("x", [])
-                existing_x = existing_obj.get("x", [])
-                if len(set(curr_x) - set(existing_x)):
-                    return True
-                curr_y = curr_obj.get("y", [])
-                existing_y = existing_obj.get("y", [])
-                if len(set(curr_y) - set(existing_y)):
-                    return True
-            return False
+        data = json.loads(signature)['data']
+        if len(data) == 0:
+            if self.signature_required:
+                raise ValidationError(_("Signature is required"), code="required")
+        elif not self.can_sign_consent:
+            existing_data = []
+            if self.instance and self.instance.signature:
+                existing_data = json.loads(self.instance.signature)['data']
+            if data != existing_data:
+                raise ValidationError(_("Only patient or parent/guardian can change signature !"))
 
-
-        signature = self.cleaned_data.get('signature', {})
-        signature_check = signature and not self.can_sign_consent
-        if signature_check and self.instance and self.instance.signature != signature:
-            signature_obj = {}
-            try:
-                signature_obj = json.loads(signature)
-            except Exception:
-                pass
-            current_data = signature_obj.get('data', [])
-            existing_signature_obj = json.loads(self.instance.signature or {})
-            existing_data = existing_signature_obj.get('data', [])
-
-            if current_data and existing_data and data_has_changes:
-                raise ValidationError("Only patient or parent/guardian can change signature !")
-        return super().clean()
-
-    def save(self, commit=True):
-        return super(PatientSignatureForm, self).save(commit)
+        return signature
 
 
 class PatientStageForm(forms.ModelForm):

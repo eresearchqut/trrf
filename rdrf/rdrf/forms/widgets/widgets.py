@@ -665,12 +665,10 @@ class SignatureWidget(widgets.TextInput):
                             data:value
                         }
                         $("input[name='""" + name + """']").val(JSON.stringify(obj));
-                    } else {
-                        // Hide undo button if not modified
-                        $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
                     }
                     if (disabled) {
                         set_disabled_background();
+                        $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
                     }
 
                 });
