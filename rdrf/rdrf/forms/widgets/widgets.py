@@ -635,7 +635,7 @@ class SignatureWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
 
         has_value = value and value != 'None'
-        set_value = f"$sigdiv.jSignature('setData', 'data:{value}')" if has_value else ""
+        set_value = f"set_value('{value}');" if has_value else 'set_value(\'{"width":1, "data":[]}\');'
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
         hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
         clear_signature_text = _('Clear signature')
@@ -657,8 +657,12 @@ class SignatureWidget(widgets.TextInput):
                     var isModified =  $sigdiv.jSignature('isModified');
                     if (isModified) {
                         var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
-                        var value = has_signature ? $sigdiv.jSignature('getData', 'base30') : '';
-                        $("input[name='""" + name + """']").val(value);
+                        var value = has_signature ? $sigdiv.jSignature('getData', 'native') : [];
+                        var obj = {
+                            width:$("#signature").width(),
+                            data:value
+                        }
+                        $("input[name='""" + name + """']").val(JSON.stringify(obj));
                     } else {
                         // Hide undo button if not modified
                         $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
@@ -674,8 +678,39 @@ class SignatureWidget(widgets.TextInput):
 
                 function reset_signature() {
                     $sigdiv.jSignature('reset');
-                    $("input[name='""" + name + """']").val('');
+                    var obj = {
+                        width:$("#signature").width(),
+                        data:[]
+                    }
+                    $("input[name='""" + name + """']").val(JSON.stringify(obj));
                     return false;
+                }
+
+                // function taken from: https://github.com/brinley/jSignature/blob/master/src/jSignature.js#L658
+                function scale_data(data, scale){
+                    var newData = [];
+                    var o, i, l, j, m, stroke;
+                    for ( i = 0, l = data.length; i < l; i++) {
+                        stroke = data[i];
+
+                        o = {'x':[],'y':[]};
+
+                        for ( j = 0, m = stroke.x.length; j < m; j++) {
+                            o.x.push(stroke.x[j] * scale);
+                            o.y.push(stroke.y[j] * scale);
+                        }
+
+                        newData.push(o);
+                    }
+                    return newData;
+                }
+
+                function set_value(input) {
+                    var obj = JSON.parse(input);
+                    var current_width = $("#signature").width();
+                    var scale = current_width * 1.0 / obj.width;
+                    var data = scale_data(obj.data, scale);
+                    $sigdiv.jSignature('setData', data, 'native');
                 }
         """
 
