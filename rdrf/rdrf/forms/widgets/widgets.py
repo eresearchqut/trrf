@@ -658,7 +658,6 @@ class SignatureWidget(widgets.TextInput):
                 $sigdiv.change(function(e) {
                     var isModified =  $sigdiv.jSignature('isModified');
                     if (isModified) {
-                        console.log("Modified")
                         var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
                         var value = has_signature ? $sigdiv.jSignature('getData', 'native') : [];
                         var obj = {
