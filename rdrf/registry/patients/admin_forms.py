@@ -180,6 +180,23 @@ class PatientSignatureForm(forms.ModelForm):
         self.fields['signature'].required = signature_required
 
     def clean(self):
+
+        def data_has_changes(existing_data, current_data):
+            if len(existing_data) != len(current_data):
+                return True
+            for obj in existing_data:
+                for curr_obj in current_data:
+                    curr_x = current_data.get("x", [])
+                    existing_x = current_data.get("x", [])
+                    if len(set(curr_x) - set(existing_x)):
+                        return True
+                    curr_y = current_data.get("y", [])
+                    existing_y = current_data.get("y", [])
+                    if len(set(curr_y) - set(existing_y)):
+                        return True
+            return False
+
+
         signature = self.cleaned_data.get('signature', {})
         signature_check = signature and not self.can_sign_consent
         if signature_check and self.instance and self.instance.signature != signature:
@@ -192,7 +209,7 @@ class PatientSignatureForm(forms.ModelForm):
             existing_signature_obj = json.loads(self.instance.signature or {})
             existing_data = existing_signature_obj.get('data', [])
 
-            if current_data and existing_data and len(set(current_data) - set(existing_data)):
+            if current_data and existing_data and data_has_changes:
                 raise ValidationError("Only patient or parent/guardian can change signature !")
         return super().clean()
 
