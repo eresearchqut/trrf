@@ -12,6 +12,8 @@ from rdrf.helpers.utils import (consent_status_for_patient, get_form_links,
                                 is_generated_form)
 from rdrf.models.definition.models import (ContextFormGroup, RDRFContext,
                                            RegistryType)
+from rdrf.security.security_checks import user_is_patient_type
+
 
 logger = logging.getLogger("registry_log")
 
@@ -75,6 +77,12 @@ class RDRFComponent(object):
 class RDRFPatientInfoComponent(RDRFComponent):
     TEMPLATE = "rdrf_cdes/patient_info_component.html"
 
+    @property
+    def html(self):
+        if user_is_patient_type(self.viewing_user):
+            return ''
+        return self._fill_template()
+
     def __init__(self, registry_model, patient_model, viewing_user):
         self.patient_model = patient_model
         self.registry_model = registry_model
@@ -84,7 +92,7 @@ class RDRFPatientInfoComponent(RDRFComponent):
         patient_type = self._get_patient_type()
         return {
             "patient_type": patient_type,
-            "patient_information": self.patient_model.patient_info(self.viewing_user)
+            "patient_information": self.patient_model.patient_info
         }
 
     def _get_patient_type(self):

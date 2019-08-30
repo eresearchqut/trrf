@@ -229,26 +229,23 @@
         <div class="banner">
             <!-- base 2 cols banner -->
             <div class="container">
-                <div class="row">
                     <!-- name row -->
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        <h3 style="float:left">
-                            {% if patient_link %}
-                                {{ patient_link | safe}}
-                                {% if request.user.is_clinician %}
-                                    {{ patient_info }}
-                                {% endif %}
-                            {% elif patient %}
-                                <i class="text-muted" style="float:left"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                        <div class="row">
+                            <div class="col-sm-12">
+                            <h3>
+                                {% if patient_link %}
+                                    {{ patient_link | safe}}
+                                {% elif patient %}
+                                    <i class="text-muted">
+                                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
                                         {{patient}}
-                                </i>
-                                {% if request.user.is_clinician %}
-                                    {{ patient_info }}
+                                    </i>
                                 {% endif %}
-                            {% endif %}
-                        </h3>
-                    </div>
-                </div>
+                            </h3>
+                        </div>
+                        </div>
+                        {{ patient_info }}
+
                 <div class="row">
                     <!-- command button row -->
                     <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
