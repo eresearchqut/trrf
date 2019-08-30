@@ -24,9 +24,12 @@ class RegistryFormAdminForm(ModelForm):
             if instance is not None:
                 sections = Section.objects.filter(
                     code__in=kwargs['instance'].sections.split(","))
-                cdes = []
+                cdes = set()
                 for section in sections:
-                    cdes += section.get_elements()
+                    cdes.update(set(section.get_elements()))
+
+                complete_cdes_codes = set(instance.complete_form_cdes.all().values_list('code', flat=True))
+                cdes.update(complete_cdes_codes)
                 self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
                     code__in=cdes)
 
