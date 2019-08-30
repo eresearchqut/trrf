@@ -84,7 +84,7 @@ class Section(models.Model):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
         cdes = {cde.code: cde for cde in qs}
-        return [cdes[code] for code in codes]
+        return [cdes[code] for code in codes if code in cdes]
 
     def clean(self):
         errors = {}
