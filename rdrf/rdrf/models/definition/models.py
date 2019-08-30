@@ -1047,9 +1047,9 @@ class RegistryForm(models.Model):
         completion_cdes = set(cde.code for cde in complete_form_cdes)
         section_models = Section.objects.get_by_comma_separated_codes(section_codes)
         current_cdes = set(
-            cde_model.code
+            code
             for section_model in section_models
-            for cde_model in section_model.cde_models)
+            for code in section_model.get_elements())
 
         extra = completion_cdes - current_cdes
 
@@ -1062,11 +1062,6 @@ class RegistryForm(models.Model):
             msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
                 "Camel Case, instead."
             raise ValidationError({'name': msg})
-
-        if self.pk:
-            self._check_completion_cdes(
-                self.complete_form_cdes.all(),
-                self.sections)
 
         if self.conditional_rendering_rules:
             DSLValidator(self.conditional_rendering_rules, self).check_rules()
