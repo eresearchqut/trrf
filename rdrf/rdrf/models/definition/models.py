@@ -1063,11 +1063,6 @@ class RegistryForm(models.Model):
                 "Camel Case, instead."
             raise ValidationError({'name': msg})
 
-        if self.pk:
-            self._check_completion_cdes(
-                self.complete_form_cdes.all(),
-                self.sections)
-
         if self.conditional_rendering_rules:
             DSLValidator(self.conditional_rendering_rules, self).check_rules()
 

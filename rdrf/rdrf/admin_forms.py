@@ -1,3 +1,4 @@
+from functools import reduce
 import re
 
 from django.conf import settings
@@ -18,20 +19,19 @@ from rdrf.helpers.constants import (
 class RegistryFormAdminForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
-        super(RegistryFormAdminForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if 'instance' in kwargs:
             instance = kwargs["instance"]
             if instance is not None:
-                sections = Section.objects.filter(
-                    code__in=kwargs['instance'].sections.split(","))
-                cdes = set()
-                for section in sections:
-                    cdes.update(set(section.get_elements()))
+                sections = Section.objects.get_by_comma_separated_codes(kwargs['instance'].sections)
+                available_cdes = reduce(set.union, (section.get_elements() for section in sections), set())
 
-                complete_cdes_codes = set(instance.complete_form_cdes.all().values_list('code', flat=True))
-                cdes.update(complete_cdes_codes)
+                complete_form_cdes = set(instance.complete_form_cdes.values_list('code', flat=True))
+
+                all_cdes = available_cdes.union(complete_form_cdes)
+
                 self.fields['complete_form_cdes'].queryset = CommonDataElement.objects.filter(
-                    code__in=cdes)
+                    code__in=all_cdes)
 
     def clean_sections(self):
         data = self.cleaned_data['sections']
