@@ -43,7 +43,7 @@ class RegistryFormAdminForm(ModelForm):
         return self.cleaned_data['sections']
 
     def clean(self):
-        if 'sections' in self.cleaned_data:
+        if 'sections' in self.cleaned_data and 'complete_form_cdes' in self.cleaned_data:
             self.instance._check_completion_cdes(
                 self.cleaned_data['complete_form_cdes'],
                 self.cleaned_data['sections'])

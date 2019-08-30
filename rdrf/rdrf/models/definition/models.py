@@ -84,7 +84,7 @@ class Section(models.Model):
         codes = self.get_elements()
         qs = CommonDataElement.objects.filter(code__in=codes)
         cdes = {cde.code: cde for cde in qs}
-        return [cdes[code] for code in codes if code in cdes]
+        return [cdes[code] for code in codes]
 
     def clean(self):
         errors = {}
@@ -1047,9 +1047,9 @@ class RegistryForm(models.Model):
         completion_cdes = set(cde.code for cde in complete_form_cdes)
         section_models = Section.objects.get_by_comma_separated_codes(section_codes)
         current_cdes = set(
-            cde_model.code
+            code
             for section_model in section_models
-            for cde_model in section_model.cde_models)
+            for code in section_model.get_elements())
 
         extra = completion_cdes - current_cdes
 
