@@ -22,7 +22,7 @@ from registry.groups.models import CustomUser
 from rdrf.models.definition.models import Registry
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.security.security_checks import security_check_user_patient
-from rdrf.forms.components import RDRFContextLauncherComponent
+from rdrf.forms.components import RDRFContextLauncherComponent, RDRFPatientInfoComponent
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -167,6 +167,7 @@ class ClinicianFormView(View):
             "parent": self.parent,
             "form": self.clinician_form,
             "context_launcher": self.context_launcher.html,
+            "patient_info": RDRFPatientInfoComponent(self.registry_model, self.patient_model, self.request.user).html
         }
 
         return context

@@ -636,7 +636,7 @@ class PatientEditView(PatientFormMixin, View):
                 raise PermissionDenied
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
-        patient_info = RDRFPatientInfoComponent(registry_model, patient)
+        patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
 
         family_linkage_panel = FamilyLinkagePanel(request.user,
                                                   registry_model,
@@ -697,7 +697,7 @@ class PatientEditView(PatientFormMixin, View):
         self.registry_model = registry_model
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
-        patient_info = RDRFPatientInfoComponent(registry_model, patient)
+        patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
 
         forms = self.get_forms(request, registry_model, user, patient)
 

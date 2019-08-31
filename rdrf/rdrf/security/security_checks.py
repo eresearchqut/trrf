@@ -14,7 +14,7 @@ def _get_prop(user, prop):
         return False
 
 
-def _user_is_patient_type(user):
+def user_is_patient_type(user):
     return any([_get_prop(user, "is_patient"),
                 _get_prop(user, "is_parent"),
                 _get_prop(user, "is_carrier")])
@@ -48,7 +48,7 @@ def security_check_user_patient(user, patient_model):
     if user.is_superuser:
         return True
 
-    if _user_is_patient_type(user):
+    if user_is_patient_type(user):
         patient_check_result = _patient_checks(user, patient_model)
         if patient_check_result:
             return patient_check_result
@@ -67,6 +67,6 @@ def security_check_user_patient(user, patient_model):
 
 
 def can_sign_consent(user, patient_model):
-    if _user_is_patient_type(user):
+    if user_is_patient_type(user):
         return _patient_checks(user, patient_model)
     return False

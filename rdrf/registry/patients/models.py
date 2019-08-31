@@ -371,6 +371,15 @@ class Patient(models.Model):
             return "%s %s (Archived)" % (self.family_name, self.given_names)
 
     @property
+    def patient_info(self):
+        return {
+            'dob': self.date_of_birth.strftime("%Y-%m-%d"),
+            'gender': dict(self.SEX_CHOICES).get(self.sex),
+            'ancestry': self.ethnic_origin,
+            'age': self.age,
+        }
+
+    @property
     def age(self):
         """ in years """
         from datetime import date

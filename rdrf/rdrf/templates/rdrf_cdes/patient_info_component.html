@@ -1,6 +1,27 @@
 {% load i18n %}
+{% load lookup %}
+
 {% if patient_type %}
-<div id="patient_type_component">
-<h3><span class="label label-default">{% trans patient_type %}</span></h3>  
-</div>
+    <div class="row">
+        <div class="col-sm-12 patient_type_component">
+            <h3 style="margin:5px"><span class="label label-default">{% trans patient_type %}</span></h3>
+        </div>
+    </div>
 {% endif %}
+
+{% if patient_information %}
+    <div class="row">
+        <div class="col-sm-12 text-muted">
+            <p>
+                {% with pi=patient_information %}
+                    <strong>DOB:</strong>&nbsp;{{ pi.dob }}&nbsp;(<strong>Age:</strong>&nbsp;{{ pi.age }})
+                    &nbsp;|&nbsp;{{ pi.gender }}
+                    {% if pi.ancestry %}
+                        &nbsp;|&nbsp;{{ pi.ancestry }}
+                    {% endif %}
+                {% endwith %}
+            </p>
+        </div>
+    </div>
+{% endif %}
+
