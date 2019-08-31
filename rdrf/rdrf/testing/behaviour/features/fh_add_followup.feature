@@ -10,7 +10,6 @@ Feature: Follow Up forms.
     When I am logged in as curator
     When I click "SMITH John" on patientlisting
     And I press "Add" button in "Follow Up" group in sidebar 
-    Then location is "Follow Up"
 
   Scenario: Save Follow Up
     When I am logged in as curator
@@ -27,7 +26,6 @@ Feature: Follow Up forms.
     And I enter value "02-8-2016" for form "Follow Up" section " " cde "Date of assessment"
     And I click Cancel
     And I accept the alert
-    Then location is "Follow Up"
     
   Scenario: Add Two Follow Ups
     When I am logged in as curator

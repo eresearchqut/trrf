@@ -73,7 +73,11 @@
 {% if family_linkage_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    <a href="{{family_linkage_link}}">{% trans 'Family Linkage' %}</a>
+      {% if current_form_name == "Family Linkage" %}
+        <i>{% trans 'Family Linkage' %}</i>
+      {% else %}
+        <a href="{{family_linkage_link}}">{% trans 'Family Linkage' %}</a>
+      {% endif %}
   </div>
 </div>
 {% endif %}

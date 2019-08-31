@@ -25,6 +25,7 @@ Feature: Sanity test history widget.
     When I enter value "baz" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foobarbaz"
+    And I expand the "Hypertensive Medication" section
     And History for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)" shows "foo,foobar,foobarbaz"
 
 # TODO this spec has to run before the others ATM or it fails intermittently. Fix up later!
