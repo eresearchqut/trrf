@@ -223,7 +223,7 @@ def click_button_sidebar_group(step, button_name, group_name):
 @step('I enter value "(.*)" for form "(.*)" section "(.*)" cde "(.*)"')
 def enter_cde_on_form(step, cde_value, form, section, cde):
     # And I enter "02-08-2016" for  section "" cde "Consent date"
-    location_is(step, form)  # sanity check
+    # location_is(step, form)  # sanity check
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
@@ -304,8 +304,14 @@ def error_message_is(step, error_message):
 
 @step('location is "(.*)"')
 def location_is(step, location_name):
-    world.browser.find_element_by_xpath(
-        '//div[@class="banner"]').find_element_by_xpath('//h3[contains(., "%s")]' % location_name)
+    wrap = world.browser.find_element_by_id("wrap")
+    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    location_parts = location_name.split("/")
+    if len(location_parts) == 1:
+        sidebar.find_element_by_xpath('//div[@class="panel-body"][contains(., "%s")]' % location_name)
+    else:
+        sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % location_parts[0])
+        sidebar.find_element_by_xpath('//div[@class="panel-body"][contains(., "%s")]' % location_parts[1])
 
 
 @step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
@@ -455,7 +461,10 @@ def goto_patient(step):
 
 @step('the page header should be "(.*)"')
 def the_page_header_should_be(step, header):
-    header = world.browser.find_element_by_xpath('//h3[contains(., "%s")]' % header)
+    wrap = world.browser.find_element_by_id("wrap")
+    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    panel_body = sidebar.find_element_by_xpath('//div[@class="panel-body"]')
+    panel_body.find_element_by_xpath('//i[contains(., "%s")]' % header)
 
 
 @step('I am logged in as (.*)')
@@ -657,7 +666,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_widget = label_element.find_elements_by_xpath(
         ".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
 
-    utils.scroll_to(input_element)
+    utils.scroll_to_ensure_margin(input_element, 80)
 
     # this causes the history component to become visible/clickable
     mover = ActionChains(world.browser)

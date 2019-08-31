@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.http import HttpResponse
 from django.db import transaction
 
+from rdrf.forms.components import RDRFContextLauncherComponent
+from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient, PatientRelative
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -242,6 +244,16 @@ class FamilyLinkageView(View):
 
         context = {}
         context.update(csrf(request))
+
+        if initial_index:
+            patient = Patient.objects.get(pk=initial_index)
+            context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient, "Family Linkage")
+            patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
+            context.update({
+                "context_launcher": context_launcher.html,
+                "patient_info": patient_info.html,
+                "patient": patient,
+            })
 
         context['registry_code'] = registry_code
         context['index_lookup_url'] = reverse("v1:index-list", args=(registry_code,))

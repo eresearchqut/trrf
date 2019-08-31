@@ -199,6 +199,13 @@ def scroll_to(element):
     return y
 
 
+def scroll_to_ensure_margin(element, margin):
+    loc = element.location_once_scrolled_into_view
+    y = loc["y"]
+    scroll_to_y(y - margin)
+    return y
+
+
 def scroll_to_multisection_cde(section, cde, item=1):
     # item 1 means the 1st block of cdes in the multisection
     print("Attempting to scroll to section %s cde %s item %s" % (section,
