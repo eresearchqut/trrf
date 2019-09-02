@@ -84,7 +84,8 @@
       "code": "reg4",
       "name": "Registry4",
       "version": "1",
-      "desc": "testing"
+      "desc": "testing",
+      "metadata_json":"{\"features\":[\"stages\", \"registration\"]}"
     }
   },
   {
