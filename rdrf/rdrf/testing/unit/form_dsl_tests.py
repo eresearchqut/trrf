@@ -14,11 +14,13 @@ class FormDSLValidationTestCase(FormTestCase):
             "sectionE", "Section E", ["DM1AffectedStatus", "DM1Anxiety"], True)
         self.sectionF = self.create_section(
             "sectionF", "Section F", ["DM1Apathy", "DM1BestMotorLevel"], True)
+        self.sectionG = self.create_section(
+            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol"], False)
 
     def create_forms(self):
         super().create_forms()
         self.new_form = self.create_form("simple", [self.sectionA, self.sectionB, self.sectionD,
-                                                    self.sectionE, self.sectionF])
+                                                    self.sectionE, self.sectionF, self.sectionG])
 
     def test_simple_form(self):
         pass
@@ -219,3 +221,24 @@ class FormDSLValidationTestCase(FormTestCase):
         DM1Fatigue visible if CDEfhDrugs includes Ezetimibe
         '''
         self.new_form.save()
+
+    def test_valid_overlapping_section_and_cde_name(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Cholesterol visible if DM1ChronicInfection == Yes
+        '''
+        self.new_form.save()
+
+    def test_invalid_overlapping_section_and_cde_name_with_qualifier(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            section DM1Cholesterol visible if DM1ChronicInfection == Yes
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['The target CDEs and conditions CDEs overlap on line 1']
+        )
+
+
+
