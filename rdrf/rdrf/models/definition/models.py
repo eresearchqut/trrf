@@ -1463,6 +1463,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
+        (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Values Change")
 
     )
 
