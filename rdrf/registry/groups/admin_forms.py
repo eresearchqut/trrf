@@ -1,13 +1,19 @@
-from django.contrib.auth.password_validation import validate_password
+import logging
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
-from .models import WorkingGroup
+
+from registry.patients.models import Patient
+from registry.patients.models import ParentGuardian
+
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_supported_languages
-from django.core.exceptions import ValidationError
-import logging
+
+from .models import WorkingGroup
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +51,22 @@ class UserValidationMixin(object):
 
         if not working_group_models:
             raise ValidationError("Please choose a working group")
+
+        if self.instance:
+            excluded_group_names = set()
+            if not Patient.objects.filter(user=self.instance).exists():
+                excluded_group_names.add('Patients')
+            if not ParentGuardian.objects.filter(user=self.instance).exists():
+                excluded_group_names.add('Parents')
+            if excluded_group_names:
+                invalid_groups = [
+                    g.name for g in self.cleaned_data['groups'] if g.name in excluded_group_names
+                ]
+                count = len(invalid_groups)
+                if count == 2:
+                    raise ValidationError(f"{' and '.join(invalid_groups)} are not valid groups this user !")
+                elif count == 1:
+                    raise ValidationError(f"{invalid_groups[0]} is not a valid group for this user !")
 
         return self.cleaned_data
 
