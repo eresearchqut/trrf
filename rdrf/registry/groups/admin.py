@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
@@ -31,42 +30,16 @@ class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'get_working_groups', 'get_registries', 'status')
 
     def get_form(self, request, obj=None, **kwargs):
-        user = get_user_model().objects.get(username=request.user)
-        creating_user_is_superuser = user.is_superuser
-        form = super(CustomUserAdmin, self).get_form(request, obj, **kwargs)
-        form.user = user
-        # User creation is in two stages in Django admin
-        if obj is None:
-            # First stage: Ensure that the registry and working group selections are restricted
-            form.CREATING_USER = request.user
-            return form
-        else:
-            #  Second stage: Prevent user from adding a superuser now that we've given
-            #  curators the ability to create users: To do this create a custom form which
-            #  overrides clean based on the creating user
-
-            if not creating_user_is_superuser:
-                def modified_clean(myself):
-                    cleaned_data = super(myself.__class__, myself).clean()
-                    if "is_superuser" in cleaned_data:
-                        if not creating_user_is_superuser and cleaned_data["is_superuser"]:
-                            raise ValidationError(
-                                "can't create a superuser unless you are one!")
-                    return cleaned_data
-
-                method_dict = {"clean": modified_clean}
-                return type("LockedDownUserEditForm", (form,), method_dict)
-            else:
-                return form
+        form = super().get_form(request, obj, **kwargs)
+        form.user = request.user
+        return form
 
     def get_fieldsets(self, request, obj=None):
-        if not obj:
+        if obj is None:
             return self.add_fieldsets
-
-        if not request.user.is_superuser:
-            return self.curator_fieldsets
-        else:
-            return super(UserAdmin, self).get_fieldsets(request, obj)
+        if request.user.is_superuser:
+            return self.superuser_fieldsets
+        return super().get_fieldsets(request, obj)
 
     def get_queryset(self, request):
         from django.db.models import Q
@@ -83,36 +56,31 @@ class CustomUserAdmin(UserAdmin):
 
         return filtered
 
-    def get_working_groups(self, obj):
-        works = ", ".join(reg.name for reg in obj.working_groups.all())
-        return works
+    def get_working_groups(self, user):
+        return ", ".join(wg.name for wg in user.working_groups.all())
 
-    def get_registries(self, obj):
-        regs = ", ".join(reg.name for reg in obj.registry.all())
-        return regs
-
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
-        ('Permissions', {
-         'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'is_superuser', 'groups', 'working_groups', 'registry')}),
-    )
-
-    # curators shouldn't see checkbox to create super user
-    curator_fieldsets = (
-        (None, {
-            'fields': (
-                'username', 'password')}), ('Personal information', {
-                    'fields': (
-                        'first_name', 'last_name', 'title', 'email')}), ('Permissions', {
-                            'fields': (
-                                'is_active', 'is_staff', 'groups', 'working_groups', 'registry')}))
+    def get_registries(self, user):
+        return ", ".join(reg.name for reg in user.registry.all())
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('username', 'password1', 'password2', 'registry', 'working_groups')}
          ),
+    )
+
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
+        ('Permissions', {
+         'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'groups', 'registry', 'working_groups')}))
+
+    # only superusers are allowed to make users superuser
+    superuser_fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
+        ('Permissions', {
+         'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'is_superuser', 'groups', 'registry', 'working_groups')}),
     )
 
     get_working_groups.short_description = "Working Groups"
