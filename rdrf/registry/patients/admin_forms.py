@@ -282,13 +282,8 @@ class PatientForm(forms.ModelForm):
                 user_groups = user.groups.all()
 
                 def get_field_config(field):
-                    return (
-                        DemographicFields
-                            .objects
-                            .filter(registry=registry, groups__in=user_groups, field=field)
-                            .distinct()
-                            .first()
-                    )
+                    qs = DemographicFields.objects.filter(registry=registry, groups__in=user_groups, field=field)
+                    return qs.distinct().first()
 
                 field_configs = [fc for fc in [get_field_config(field) for field in self.fields] if fc is not None]
 
