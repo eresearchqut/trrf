@@ -144,7 +144,7 @@ class ConditionChecker:
         return condition.cde.get_cde_info().allow_multiple
 
     def check_condition(self, conditions, action, target):
-        expanded_cdes = self.expand_cdes(target.target_cdes)
+        expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.cde for cde in target.target_cdes])
         multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
         condition_cdes = [c.cde.cde for c in conditions if isinstance(c, Condition)]
 
