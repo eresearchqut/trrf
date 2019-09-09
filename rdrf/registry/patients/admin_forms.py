@@ -166,6 +166,7 @@ class PatientSignatureForm(forms.ModelForm):
 
     SIGNATURE_REQUIRED = _("Signature is required")
     SIGNATURE_CHANGE_FORBIDDEN = _("Only patient or parent/guardian can change signature !")
+    SIGNATURE_INVALID = _("Invalid signature data !")
 
     def __init__(self, *args, **kwargs):
         if 'registry_model' in kwargs:
@@ -193,12 +194,12 @@ class PatientSignatureForm(forms.ModelForm):
         try:
             data = json.loads(base64.b64decode(signature))['data']
         except UnicodeDecodeError:
-            raise ValidationError(self.SIGNATURE_CHANGE_FORBIDDEN)
+            raise ValidationError(self.SIGNATURE_INVALID)
         except binascii.Error:
-            raise ValidationError(self.SIGNATURE_CHANGE_FORBIDDEN)
+            raise ValidationError(self.SIGNATURE_INVALID)
         if len(data) == 0:
             if self.signature_required:
-                raise ValidationError(_("Signature is required"), code="required")
+                raise ValidationError(self.SIGNATURE_REQUIRED, code="required")
         elif not self.can_sign_consent:
             existing_data = []
             if self.instance and self.instance.signature:
