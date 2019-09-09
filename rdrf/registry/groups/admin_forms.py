@@ -2,21 +2,31 @@ import logging
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm as OldUserChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
 
-from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_supported_languages
-
-from .models import WorkingGroup
+from registry.groups import GROUPS as RDRF_GROUPS
 
 
 logger = logging.getLogger(__name__)
 
 
-class UserValidationMixin(object):
+class UserMixin:
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.restrict_registries_and_working_groups(self.user)
+
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        if self.instance is not None and username == self.instance.username:
+            return username
+        if get_user_model().objects.filter(username=username).exists():
+            raise forms.ValidationError("There is already a user with that username!")
+        return username
 
     def clean(self):
         # When the registry and/or working groups are selected, validate the selection is consistent.
@@ -31,6 +41,12 @@ class UserValidationMixin(object):
             # Registries and working groups not selected. Don't check for consistency.
             return self.cleaned_data
 
+        if len(registry_models) == 0:
+            raise ValidationError("Choosing a registry is mandatory if you selected a working group")
+
+        if len(working_group_models) == 0:
+            raise ValidationError("Choosing a working group is mandatory if you selected a registry")
+
         for working_group_model in working_group_models:
             if working_group_model.registry not in registry_models:
                 msg = "Working Group '%s' not in any of the assigned registries" % working_group_model.display_name
@@ -43,51 +59,31 @@ class UserValidationMixin(object):
                       "to working group of that registry" % registry_model
                 raise ValidationError(msg)
 
-        if not registry_models:
-            raise ValidationError("Please choose a registry")
-
-        if not working_group_models:
-            raise ValidationError("Please choose a working group")
-
         return self.cleaned_data
 
+    def restrict_registries_and_working_groups(self, user):
+        # Enforce that non-admin users can create users only in their own registries and working groups
+        if user and not user.is_superuser:
+            self.fields['registry'].queryset = user.registry.all()
+            self.fields['working_groups'].queryset = user.working_groups.all()
+            self.fields['registry'].required = True
+            self.fields['working_groups'].required = True
 
-class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
-    # set by admin class - used to restrict registry and workign group choices
-    CREATING_USER = None
+
+class RDRFUserCreationForm(UserMixin, forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(
         label='Password confirmation', widget=forms.PasswordInput)
 
-    def __init__(self, *args, **kwargs):
-        super(RDRFUserCreationForm, self).__init__(*args, **kwargs)
-        if self.CREATING_USER:
-            self._restrict_registry_and_working_groups_choices(
-                self.CREATING_USER)
-
     class Meta:
         model = get_user_model()
-        fields = ('email',)
+        fields = ('username',)
 
     def clean_password2(self):
         password2 = self.cleaned_data.get("password2")
 
         validate_password(password2)
         return password2
-
-    def clean_username(self):
-        if "username" in self.cleaned_data:
-            username = self.cleaned_data["username"]
-            if not username:
-                raise forms.ValidationError("username cannot be blank")
-            try:
-                get_user_model().objects.get(username=username)
-                raise forms.ValidationError(
-                    'There is already a user with that username!')
-            except get_user_model().DoesNotExist:
-                return username
-        else:
-            raise forms.ValidationError("username cannot be blank")
 
     def save(self, commit=True):
         user = super(RDRFUserCreationForm, self).save(commit=False)
@@ -96,28 +92,10 @@ class RDRFUserCreationForm(UserValidationMixin, forms.ModelForm):
             user.save()
         return user
 
-    def _restrict_registry_and_working_groups_choices(self, creating_user):
-        if not creating_user.is_superuser:
-            self.fields['working_groups'].queryset = \
-                WorkingGroup.objects.filter(
-                    id__in=[wg.id for wg in creating_user.working_groups.all()])
-            self.fields['registry'].queryset = \
-                Registry.objects.filter(
-                    code__in=[reg.code for reg in creating_user.registry.all()])
 
-
-class UserChangeForm(UserValidationMixin, forms.ModelForm):
+class UserChangeForm(UserMixin, forms.ModelForm):
     model = get_user_model()
 
-    def __init__(self, *args, **kwargs):
-        super(UserChangeForm, self).__init__(*args, **kwargs)
-        if not self.user.is_superuser:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(
-                id__in=[wg.id for wg in self.user.working_groups.all()])
-            self.fields['registry'].queryset = Registry.objects.filter(
-                code__in=[reg.code for reg in self.user.registry.all()])
-
-    from django.contrib.auth.forms import UserChangeForm as OldUserChangeForm
     password = ReadOnlyPasswordHashField(
         help_text=(OldUserChangeForm.base_fields['password'].help_text))
 
@@ -130,21 +108,26 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
     def clean_password(self):
         return self.initial["password"]
 
-    @staticmethod
-    def _group_error_msg(name):
-        return f"You can't assign this user to the {name} group because it isn't associated with a {name.rstrip('s').lower()}"
+    def clean_is_superuser(self):
+        is_superuser = self.data.get('is_superuser', False)
+        if is_superuser and not self.user.is_superuser:
+            raise ValidationError("Can't make user a superuser unless you are one!")
+        return is_superuser
 
-    def clean(self):
-        excluded_group_names = set()
-        if not self.instance.user_object.exists():
-            excluded_group_names.add('Patients')
-        if not self.instance.parent_user_object.exists():
-            excluded_group_names.add('Parents')
-        if excluded_group_names:
-            invalid_groups = [
-                g.name for g in self.cleaned_data['groups'] if g.name in excluded_group_names
-            ]
-            errors = [self._group_error_msg(g) for g in invalid_groups]
-            if errors:
-                raise ValidationError(errors)
-        return super().clean()
+    def clean_groups(self):
+        group_names = [g.name for g in self.cleaned_data['groups']]
+        errors = [self._validate_group(gr) for gr in group_names]
+        if any(errors):
+            raise ValidationError([err for err in errors if err])
+
+        return self.cleaned_data['groups']
+
+    def _validate_group(self, group_name):
+        def group_error_msg(rdrf_group):
+            group_member = rdrf_group.rstrip('s')
+            return ValidationError(f"You can't assign this user to the {group_name} group because it isn't associated with a {group_member}")
+
+        if RDRF_GROUPS.PATIENT == group_name.lower() and not self.instance.user_object.exists():
+            return group_error_msg(RDRF_GROUPS.PATIENT)
+        if RDRF_GROUPS.PARENT == group_name.lower() and not self.instance.parent_user_object.exists():
+            return group_error_msg(RDRF_GROUPS.PARENT)
