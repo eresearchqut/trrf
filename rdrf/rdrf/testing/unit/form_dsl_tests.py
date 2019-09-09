@@ -239,6 +239,3 @@ class FormDSLValidationTestCase(FormTestCase):
             1,
             ['The target CDEs and conditions CDEs overlap on line 1']
         )
-
-
-
