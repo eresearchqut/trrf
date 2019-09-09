@@ -7,9 +7,6 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.forms import ChoiceField
 
-from registry.patients.models import Patient
-from registry.patients.models import ParentGuardian
-
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_supported_languages
 
@@ -51,22 +48,6 @@ class UserValidationMixin(object):
 
         if not working_group_models:
             raise ValidationError("Please choose a working group")
-
-        if self.instance:
-            excluded_group_names = set()
-            if not Patient.objects.filter(user=self.instance).exists():
-                excluded_group_names.add('Patients')
-            if not ParentGuardian.objects.filter(user=self.instance).exists():
-                excluded_group_names.add('Parents')
-            if excluded_group_names:
-                invalid_groups = [
-                    g.name for g in self.cleaned_data['groups'] if g.name in excluded_group_names
-                ]
-                count = len(invalid_groups)
-                if count == 2:
-                    raise ValidationError(f"{' and '.join(invalid_groups)} are not valid groups this user !")
-                elif count == 1:
-                    raise ValidationError(f"{invalid_groups[0]} is not a valid group for this user !")
 
         return self.cleaned_data
 
@@ -148,3 +129,22 @@ class UserChangeForm(UserValidationMixin, forms.ModelForm):
 
     def clean_password(self):
         return self.initial["password"]
+
+    @staticmethod
+    def _group_error_msg(name):
+        return f"You can't assign this user to the {name} group because it isn't associated with a {name.rstrip('s').lower()}"
+
+    def clean(self):
+        excluded_group_names = set()
+        if not self.instance.user_object.exists():
+            excluded_group_names.add('Patients')
+        if not self.instance.parent_user_object.exists():
+            excluded_group_names.add('Parents')
+        if excluded_group_names:
+            invalid_groups = [
+                g.name for g in self.cleaned_data['groups'] if g.name in excluded_group_names
+            ]
+            errors = [self._group_error_msg(g) for g in invalid_groups]
+            if errors:
+                raise ValidationError(errors)
+        return super().clean()
