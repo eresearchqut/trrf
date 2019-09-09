@@ -282,10 +282,13 @@ class PatientForm(forms.ModelForm):
                 user_groups = user.groups.all()
 
                 def get_field_config(field):
-                    try:
-                        return DemographicFields.objects.get(registry=registry, groups__in=user_groups, field=field)
-                    except DemographicFields.DoesNotExist:
-                        return None
+                    return (
+                        DemographicFields
+                            .objects
+                            .filter(registry=registry, groups__in=user_groups, field=field)
+                            .distinct()
+                            .first()
+                    )
 
                 field_configs = [fc for fc in [get_field_config(field) for field in self.fields] if fc is not None]
 
