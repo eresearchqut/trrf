@@ -1,3 +1,5 @@
+import base64
+import binascii
 from itertools import chain
 import json
 import logging
@@ -162,6 +164,10 @@ class PatientSignatureForm(forms.ModelForm):
     consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
     signature = forms.CharField(widget=SignatureWidget, required=False)
 
+    SIGNATURE_REQUIRED = _("Signature is required")
+    SIGNATURE_CHANGE_FORBIDDEN = _("Only patient or parent/guardian can change signature !")
+    SIGNATURE_INVALID = _("Invalid signature data !")
+
     def __init__(self, *args, **kwargs):
         if 'registry_model' in kwargs:
             consent_config = getattr(kwargs['registry_model'], 'consent_configuration', None)
@@ -183,19 +189,23 @@ class PatientSignatureForm(forms.ModelForm):
         signature = self.cleaned_data['signature']
         if not signature:
             if self.signature_required:
-                raise ValidationError(_("Signature is required"), code="required")
+                raise ValidationError(self.SIGNATURE_REQUIRED, code="required")
             return signature
-
-        data = json.loads(signature)['data']
+        try:
+            data = json.loads(base64.b64decode(signature))['data']
+        except UnicodeDecodeError:
+            raise ValidationError(self.SIGNATURE_INVALID)
+        except binascii.Error:
+            raise ValidationError(self.SIGNATURE_INVALID)
         if len(data) == 0:
             if self.signature_required:
-                raise ValidationError(_("Signature is required"), code="required")
+                raise ValidationError(self.SIGNATURE_REQUIRED, code="required")
         elif not self.can_sign_consent:
             existing_data = []
             if self.instance and self.instance.signature:
-                existing_data = json.loads(self.instance.signature)['data']
+                existing_data = json.loads(base64.b64decode(self.instance.signature))['data']
             if data != existing_data:
-                raise ValidationError(_("Only patient or parent/guardian can change signature !"))
+                raise ValidationError(self.SIGNATURE_CHANGE_FORBIDDEN)
 
         return signature
 

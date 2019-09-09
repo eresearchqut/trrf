@@ -1,4 +1,5 @@
 # Custom widgets / Complex controls required
+import base64
 import datetime
 import logging
 from operator import attrgetter
@@ -635,11 +636,12 @@ class SignatureWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
 
         has_value = value and value != 'None'
-        set_value = f"set_value('{value}');" if has_value else 'set_value(\'{"width":1, "data":[]}\');'
+        encoded_default_value = base64.b64encode('{"width":1, "data":[]}'.encode('utf-8')).decode('utf-8')
+        set_value = f"set_value('{value}');" if has_value else f"set_value('{encoded_default_value}');"
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
         hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
         clear_signature_text = _('Clear signature')
-        html_value = value if has_value else '{"width":1, "data":[]}}'
+        html_value = value if has_value else encoded_default_value
 
         html = f"""
             <div id="signature" style="border: 1px solid black">
@@ -664,7 +666,7 @@ class SignatureWidget(widgets.TextInput):
                             width:$("#signature").width(),
                             data:value
                         }
-                        $("input[name='""" + name + """']").val(JSON.stringify(obj));
+                        $("input[name='""" + name + """']").val(btoa(JSON.stringify(obj)));
                     }
                     if (disabled) {
                         set_disabled_background();
@@ -687,11 +689,7 @@ class SignatureWidget(widgets.TextInput):
 
                 function reset_signature() {
                     $sigdiv.jSignature('reset');
-                    var obj = {
-                        width:$("#signature").width(),
-                        data:[]
-                    }
-                    $("input[name='""" + name + """']").val(JSON.stringify(obj));
+                    $("input[name='""" + name + """']").val('""" + encoded_default_value + """');
                     return false;
                 }
 
@@ -715,7 +713,8 @@ class SignatureWidget(widgets.TextInput):
                 }
 
                 function set_value(input) {
-                    var obj = JSON.parse(input);
+                    decoded = atob(input);
+                    var obj = JSON.parse(decoded);
                     var current_width = $("#signature").width();
                     var scale = current_width * 1.0 / obj.width;
                     var data = scale_data(obj.data, scale);
