@@ -758,14 +758,17 @@ class Patient(models.Model):
         for cd in clinicaldata_models:
             cd.delete()
 
-    def notify_consent_change(self, consent_value):
-        if self.clinician and not consent_value.answer:
-            logger.info(f"Notify clinician {self.clinician} for change on {consent_value.consent_question}")
+    def notify_consent_changes(self, changes):
+        if self.clinician and changes:
+            formatted_changes = [{
+                'question': c.consent_question.question_label,
+                'answer': c.answer,
+                'is_new': c.first_save is not None,
+            } for c in changes]
             template_data = {
                 'patient': self,
                 'clinician': self.clinician,
-                'consent_question': consent_value.consent_question,
-                'answer': consent_value.answer,
+                'consent_changes': formatted_changes,
             }
             registry = self.rdrf_registry.first()
             process_notification(
@@ -774,13 +777,13 @@ class Patient(models.Model):
                 template_data
             )
 
-    def set_consent(self, consent_model, answer=True, commit=True, notify_clinician=False):
+    def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
             return   # error?
         cv, created = ConsentValue.objects.get_or_create(
             consent_question=consent_model, patient=self)
-        answer_changed = not created and cv.answer != answer
+        answer_changed = cv.answer != answer or created
         cv.answer = answer
         if cv.first_save:
             cv.last_update = datetime.datetime.now()
@@ -788,9 +791,7 @@ class Patient(models.Model):
             cv.first_save = datetime.datetime.now()
         if commit:
             cv.save()
-            if notify_clinician and answer_changed:
-                self.notify_consent_change(cv)
-        return cv
+        return cv, answer_changed
 
     def get_consent(self, consent_model, field="answer"):
         patient_registries = [r for r in self.rdrf_registry.all()]
