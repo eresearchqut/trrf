@@ -1387,12 +1387,25 @@ class ConsentQuestion(models.Model):
     def natural_key(self):
         return (self.section.code, self.code)
 
-    def create_field(self):
+    def create_field(self, patient, viewing_user):
         from django.forms import BooleanField
-        return BooleanField(
+        field = BooleanField(
             label=self.question_label,
             required=False,
-            help_text=self.instructions)
+            help_text=self.instructions,
+        )
+        if viewing_user.is_clinician:
+            consent_value = self.consentvalue_set.filter(patient=patient).first()
+            if not consent_value:
+                title = 'Never consented'
+            else:
+                action_date = consent_value.first_save or consent_value.last_updated
+                if consent_value.answer:
+                    title = 'Consented on {}'.format(action_date.strftime("%Y-%m-%d"))
+                else:
+                    title = 'Revoked on {}'.format(action_date.strftime("%Y-%m-%d"))
+            field.widget.attrs['title'] = title
+        return field
 
     @property
     def field_key(self):

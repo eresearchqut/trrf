@@ -1668,7 +1668,7 @@ class CustomConsentFormView(View):
 
     def _get_form_sections(self, request_user, registry_model, patient_model):
         custom_consent_form_generator = CustomConsentFormGenerator(
-            registry_model, patient_model)
+            registry_model, patient_model, request_user)
         initial_data = self._get_initial_consent_data(patient_model)
         custom_consent_form = custom_consent_form_generator.create_form(initial_data)
 
