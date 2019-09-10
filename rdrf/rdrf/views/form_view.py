@@ -1773,7 +1773,7 @@ class CustomConsentFormView(View):
         patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
 
         custom_consent_form_generator = CustomConsentFormGenerator(
-            registry_model, patient_model)
+            registry_model, patient_model, request.user)
         custom_consent_form = custom_consent_form_generator.create_form(request.POST)
         consent_sections = custom_consent_form.get_consent_sections()
 

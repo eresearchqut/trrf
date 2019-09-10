@@ -15,8 +15,11 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+from django.utils import timezone
+from django.utils.formats import date_format, time_format
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
+
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
@@ -1262,6 +1265,8 @@ class ConsentSection(models.Model):
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def natural_key(self):
         return (self.registry.code, self.code)
@@ -1275,6 +1280,16 @@ class ConsentSection(models.Model):
                 raise ValidationError(
                     "ConsentSection with registry.code '%s' and code '%s' already exists" %
                     (self.registry.code, self.code))
+
+    @property
+    def latest_update(self):
+        updates = [self.last_updated_at] if self.last_updated_at else []
+        updates.extend([q.last_updated_at for q in self.questions.all()])
+        valid_updates = [u for u in updates if u is not None]
+        if valid_updates:
+            latest = max(valid_updates)
+            return f"{date_format(latest)} {time_format(latest)}"
+        return None
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -1380,6 +1395,8 @@ class ConsentQuestion(models.Model):
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
     questionnaire_label = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         unique_together = ('section', 'code')
@@ -1401,9 +1418,9 @@ class ConsentQuestion(models.Model):
             else:
                 action_date = consent_value.first_save or consent_value.last_updated
                 if consent_value.answer:
-                    title = 'Consented on {}'.format(action_date.strftime("%Y-%m-%d"))
+                    title = 'Consented on {}'.format(date_format(action_date))
                 else:
-                    title = 'Revoked on {}'.format(action_date.strftime("%Y-%m-%d"))
+                    title = 'Revoked on {}'.format(date_format(action_date))
             field.widget.attrs['title'] = title
         return field
 
