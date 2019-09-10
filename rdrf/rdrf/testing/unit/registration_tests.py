@@ -65,6 +65,9 @@ class RegistrationTest(TestCase):
             self.assertEqual(response.status_code, 302)
             return Patient.objects.filter(email=self.PATIENT_EMAIL).first()
 
+
+class PatientStageFlowTest(RegistrationTest):
+
     def _consent_post_data(self, patient):
         return {
             f"customconsent_{self.registry.id}_{self.consent_section.id}_{self.consent_question.id}": "on",
@@ -84,7 +87,7 @@ class RegistrationTest(TestCase):
         self.assertIsNotNone(patient, "Patient not created !")
         self.assertEqual(patient.stage, self.informed_consent)
 
-    def test_patient_consent_sign(self):
+    def test_patient_consent_stage_after_sign(self):
         """
         When the patient signs the consent and patient stages are enabled
         its stage should move to the next one
