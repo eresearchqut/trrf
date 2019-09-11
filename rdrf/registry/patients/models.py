@@ -13,10 +13,12 @@ from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.events.events import EventType
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
-from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.services.io.notifications.email_notification import process_notification
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
@@ -756,12 +758,38 @@ class Patient(models.Model):
         for cd in clinicaldata_models:
             cd.delete()
 
+    def notify_consent_changes(self, registry, changes):
+        if len(changes) == 0:
+            return
+
+        def describe(change):
+            if change.answer:
+                return 'checked'
+            return 'left unchecked' if change.last_update is None else 'unchecked'
+
+        formatted_changes = [{
+            'question': c.consent_question.question_label,
+            'answer': c.answer,
+            'is_new': c.last_update is None,
+            'description': describe(c),
+        } for c in changes]
+        template_data = {
+            'patient': self,
+            'consent_changes': formatted_changes,
+        }
+        process_notification(
+            registry.code,
+            EventType.PATIENT_CONSENT_CHANGE,
+            template_data,
+        )
+
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]
         if consent_model.section.registry not in patient_registries:
             return   # error?
         cv, created = ConsentValue.objects.get_or_create(
             consent_question=consent_model, patient=self)
+        answer_changed = cv.answer != answer or created
         cv.answer = answer
         if cv.first_save:
             cv.last_update = datetime.datetime.now()
@@ -769,7 +797,7 @@ class Patient(models.Model):
             cv.first_save = datetime.datetime.now()
         if commit:
             cv.save()
-        return cv
+        return cv, answer_changed
 
     def get_consent(self, consent_model, field="answer"):
         patient_registries = [r for r in self.rdrf_registry.all()]
@@ -1210,9 +1238,6 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 
     if not instance.user and instance.use_other:
         # User has NOT selected an existing clinician
-        from rdrf.events.events import EventType
-        from rdrf.services.io.notifications.email_notification import process_notification
-
         other_clinician = instance
         patient = other_clinician.patient
         registry_model = patient.rdrf_registry.first()

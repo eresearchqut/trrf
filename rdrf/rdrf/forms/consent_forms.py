@@ -18,7 +18,7 @@ class BaseConsentForm(forms.BaseForm):
         del kwargs["patient_model"]
         self.registry_model = kwargs['registry_model']
         del kwargs['registry_model']
-        super(BaseConsentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _get_consent_section(self, consent_section_model):
         # return something like this for custom consents
@@ -69,6 +69,7 @@ class BaseConsentForm(forms.BaseForm):
             # If patient just created line above was erroring
             patient_registries = []
 
+        consent_changes = []
         for consent_field in self.custom_consents:
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
                 consent_field)
@@ -77,9 +78,14 @@ class BaseConsentForm(forms.BaseForm):
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(self.patient_model):
-                    self.patient_model.set_consent(consent_question_model,
-                                                   self.custom_consents[consent_field],
-                                                   commit)
+                    consent_value, has_changed = self.patient_model.set_consent(
+                        consent_question_model,
+                        self.custom_consents[consent_field],
+                        commit
+                    )
+                    if has_changed:
+                        consent_changes.append(consent_value)
+        self.patient_model.notify_consent_changes(self.registry_model, consent_changes)
 
     def clean(self):
         self.custom_consents = {}

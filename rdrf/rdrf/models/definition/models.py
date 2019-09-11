@@ -1463,7 +1463,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
-
+        (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
@@ -1841,14 +1841,14 @@ class ClinicalData(models.Model):
 
     @classmethod
     def create(cls, obj, **kwargs):
-        self = cls(**kwargs)
-        self.data["django_model"] = obj.__class__.__name__
-        self.data["django_id"] = obj.id
-        self.django_id = obj.id
-        self.django_model = obj.__class__.__name__
+        obj = cls(**kwargs)
+        obj.data["django_model"] = obj.__class__.__name__
+        obj.data["django_id"] = obj.id
+        obj.django_id = obj.id
+        obj.django_model = obj.__class__.__name__
         if "context_id" in kwargs:
-            self.context_id = kwargs["context_id"]
-        return self
+            obj.context_id = kwargs["context_id"]
+        return obj
 
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
