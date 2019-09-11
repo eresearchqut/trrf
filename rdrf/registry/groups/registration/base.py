@@ -6,9 +6,10 @@ from django.contrib.sites.models import Site
 from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
-from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import WorkingGroup
-from registry.patients.models import AddressType, Patient, PatientAddress, PatientStage
+from registry.patients.models import AddressType, Patient, PatientAddress
+from registry.patients.constants import PatientState
+from registry.patients.patient_stage_flows import PatientStageFlow
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +67,7 @@ class BaseRegistration(abc.ABC):
         patient.home_phone = form_data["phone_number"]
         patient.email = user.username
         patient.user = user if set_link_to_user else None
-        if registry.has_feature(RegistryFeatures.STAGES):
-            patient.stage = PatientStage.objects.filter(allowed_prev_stages__isnull=True).first()
+        PatientStageFlow(PatientState.REGISTERED).handle(registry, patient)
         patient.save()
         return patient
 

@@ -27,6 +27,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from simple_history.models import HistoricalRecords
 
+from .constants import PatientState
+
 logger = logging.getLogger(__name__)
 
 _6MONTHS_IN_DAYS = 183
@@ -1171,9 +1173,16 @@ class Patient(models.Model):
 
 
 class PatientStage(models.Model):
+
+    PATIENT_STATE_CHOICES = (
+        (PatientState.REGISTERED, 'Registered patient'),
+        (PatientState.CONSENTED, 'Consent provided'),
+    )
+
     name = models.CharField(max_length=200)
     allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
     allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
+    applicable_to = models.CharField(choices=PATIENT_STATE_CHOICES, null=True, blank=True, max_length=32)
 
     class Meta:
         ordering = ['pk']

@@ -39,7 +39,7 @@ from explorer.utils import create_field_values
 
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
-from registry.patients.models import PatientConsent, PatientStage
+from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from django.utils.translation import ugettext as _
 
@@ -56,6 +56,10 @@ from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
+
+from registry.patients.constants import PatientState
+from registry.patients.patient_stage_flows import PatientStageFlow
+
 
 import logging
 
@@ -1735,11 +1739,6 @@ class CustomConsentFormView(View):
         return reverse("consent_form_view", args=[registry_model.code,
                                                   patient_model.pk])
 
-    def _move_to_next_stage(self, registry_model, patient_model):
-        if registry_model.has_feature(RegistryFeatures.STAGES) and patient_model.stage:
-            patient_model.stage = patient_model.stage.allowed_next_stages.first()
-            patient_model.save()
-
     def post(self, request, registry_code, patient_id, context_id=None):
         if not request.user.is_authenticated:
             consent_form_url = reverse(
@@ -1829,7 +1828,7 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             if patient_signature_form:
                 patient_signature_form.save()
-            self._move_to_next_stage(registry_model, patient_model)
+            PatientStageFlow(PatientState.CONSENTED).handle(registry_model, patient_model)
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
             messages.success(
                 self.request,
