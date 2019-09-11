@@ -758,24 +758,30 @@ class Patient(models.Model):
         for cd in clinicaldata_models:
             cd.delete()
 
-    def notify_consent_changes(self, changes):
-        if self.clinician and changes:
-            formatted_changes = [{
-                'question': c.consent_question.question_label,
-                'answer': c.answer,
-                'is_new': c.first_save is not None,
-            } for c in changes]
-            template_data = {
-                'patient': self,
-                'clinician': self.clinician,
-                'consent_changes': formatted_changes,
-            }
-            registry = self.rdrf_registry.first()
-            process_notification(
-                registry.code,
-                EventType.PATIENT_CONSENT_CHANGE,
-                template_data
-            )
+    def notify_consent_changes(self, registry, changes):
+        if len(changes) == 0:
+            return
+
+        def describe(change):
+            if change.answer:
+                return 'checked'
+            return 'left unchecked' if change.last_update is None else 'unchecked'
+
+        formatted_changes = [{
+            'question': c.consent_question.question_label,
+            'answer': c.answer,
+            'is_new': c.last_update is None,
+            'description': describe(c),
+        } for c in changes]
+        template_data = {
+            'patient': self,
+            'consent_changes': formatted_changes,
+        }
+        process_notification(
+            registry.code,
+            EventType.PATIENT_CONSENT_CHANGE,
+            template_data,
+        )
 
     def set_consent(self, consent_model, answer=True, commit=True):
         patient_registries = [r for r in self.rdrf_registry.all()]

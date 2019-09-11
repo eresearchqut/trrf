@@ -18,7 +18,7 @@ class BaseConsentForm(forms.BaseForm):
         del kwargs["patient_model"]
         self.registry_model = kwargs['registry_model']
         del kwargs['registry_model']
-        super(BaseConsentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _get_consent_section(self, consent_section_model):
         # return something like this for custom consents
@@ -85,7 +85,7 @@ class BaseConsentForm(forms.BaseForm):
                     )
                     if has_changed:
                         consent_changes.append(consent_value)
-        self.patient_model.notify_consent_changes(consent_changes)
+        self.patient_model.notify_consent_changes(self.registry_model, consent_changes)
 
     def clean(self):
         self.custom_consents = {}
