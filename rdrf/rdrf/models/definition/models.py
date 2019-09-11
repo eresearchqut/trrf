@@ -1841,14 +1841,14 @@ class ClinicalData(models.Model):
 
     @classmethod
     def create(cls, obj, **kwargs):
-        obj = cls(**kwargs)
-        obj.data["django_model"] = obj.__class__.__name__
-        obj.data["django_id"] = obj.id
-        obj.django_id = obj.id
-        obj.django_model = obj.__class__.__name__
+        instance = cls(**kwargs)
+        instance.data["django_model"] = obj.__class__.__name__
+        instance.data["django_id"] = obj.id
+        instance.django_id = obj.id
+        instance.django_model = obj.__class__.__name__
         if "context_id" in kwargs:
-            obj.context_id = kwargs["context_id"]
-        return obj
+            instance.context_id = kwargs["context_id"]
+        return instance
 
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
