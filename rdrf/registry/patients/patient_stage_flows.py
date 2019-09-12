@@ -1,7 +1,11 @@
+import logging
+
 from rdrf.helpers.registry_features import RegistryFeatures
 
 from .constants import PatientState
-from .models import PatientStage
+from .models import PatientStageRule
+
+logger = logging.getLogger(__name__)
 
 
 class PatientStageFlow:
@@ -13,23 +17,20 @@ class PatientStageFlow:
             PatientState.CONSENTED: self.handle_consented_patient,
         }
 
-    @staticmethod
-    def handle_registered_patient(registry, patient):
-        patient.stage = PatientStage.objects.filter(applicable_to=PatientState.REGISTERED).first()
+    def handle_registered_patient(self, patient):
+        rule = PatientStageRule.objects.filter(rule=self.patient_state, from_stage__isnull=True).first()
+        logger.info(f"Handle registered patient for state {self.patient_state}, rule={rule}")
+        if rule:
+            patient.stage = rule.to_stage
 
-    @staticmethod
-    def handle_consented_patient(registry, patient):
-        current_stage = patient.stage
-        valid_stage = current_stage and current_stage.applicable_to == PatientState.REGISTERED
-        if valid_stage:
-            valid_next_stages = [
-                s for s in current_stage.allowed_next_stages.all() if s.applicable_to == PatientState.CONSENTED
-            ]
-            if valid_next_stages:
-                patient.stage = valid_next_stages[0]
-                patient.save()
+    def handle_consented_patient(self, patient):
+        rule = PatientStageRule.objects.filter(rule=self.patient_state, from_stage=patient.stage).first()
+        logger.info(f"Handle consented patient for state {self.patient_state}, rule={rule}")
+        if rule:
+            patient.stage = rule.to_stage
+            patient.save()
 
     def handle(self, registry, patient):
         if registry.has_feature(RegistryFeatures.STAGES):
-            handler_func = self.handlers.get(self.patient_state, lambda registry, patient: None)
-            handler_func(registry, patient)
+            handler_func = self.handlers.get(self.patient_state, lambda self, patient: None)
+            handler_func(patient)

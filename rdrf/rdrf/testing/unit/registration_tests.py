@@ -5,7 +5,8 @@ from django.urls import reverse
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, EmailNotification, ConsentSection, ConsentQuestion
-from registry.patients.models import Patient, PatientStage
+from registry.patients.constants import PatientState
+from registry.patients.models import Patient, PatientStage, PatientStageRule
 
 
 class RegistrationTest(TestCase):
@@ -24,10 +25,21 @@ class RegistrationTest(TestCase):
             recipient='{{user.email}}',
             email_from='no-reply@reg4.net'
         )
-        self.informed_consent, _ = PatientStage.objects.get_or_create(name="Informed consent", applicable_to='registered')
-        self.eligibility, _ = PatientStage.objects.get_or_create(name="Eligibility", applicable_to='consented')
+        self.informed_consent, _ = PatientStage.objects.get_or_create(name="Informed consent")
+        self.eligibility, _ = PatientStage.objects.get_or_create(name="Eligibility")
         self.informed_consent.allowed_next_stages.add(self.eligibility)
         self.eligibility.allowed_prev_stages.add(self.informed_consent)
+        PatientStageRule.objects.create(
+            from_stage=None,
+            rule=PatientState.REGISTERED,
+            to_stage=self.informed_consent
+        )
+        PatientStageRule.objects.create(
+            from_stage=self.informed_consent,
+            rule=PatientState.CONSENTED,
+            to_stage=self.eligibility
+        )
+
         self.consent_section = ConsentSection.objects.create(
             code='r4_cs',
             registry=self.registry,

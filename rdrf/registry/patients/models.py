@@ -1173,22 +1173,32 @@ class Patient(models.Model):
 
 
 class PatientStage(models.Model):
-
-    PATIENT_STATE_CHOICES = (
-        (PatientState.REGISTERED, 'Registered patient'),
-        (PatientState.CONSENTED, 'Consent provided'),
-    )
-
     name = models.CharField(max_length=200)
     allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
     allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
-    applicable_to = models.CharField(choices=PATIENT_STATE_CHOICES, null=True, blank=True, max_length=32)
 
     class Meta:
         ordering = ['pk']
 
     def __str__(self):
         return self.name
+
+
+class PatientStageRule(models.Model):
+
+    FLOW_RULES = (
+        (PatientState.REGISTERED, 'Patient registered'),
+        (PatientState.CONSENTED, 'Patient provided consent'),
+    )
+    from_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    rule = models.CharField(choices=FLOW_RULES, blank=False, null=True, max_length=32)
+    to_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+
+    class Meta:
+        unique_together = (("from_stage", "rule", "to_stage"),)
+
+    def __str__(self):
+        return f"PatientStageRule: {self.from_stage} {self.rule} {self.to_stage}"
 
 
 class Speciality(models.Model):
