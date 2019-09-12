@@ -25,4 +25,4 @@ def create_stage(name, previous_stage):
     return stage if created else None
 
 def create_rule(from_stage, rule, to_stage):
-    models.PatientStageRule.get_or_create(from_stage=from_stage, rule=rule, to_stage=to_stage)
+    models.PatientStageRule.objects.get_or_create(from_stage=from_stage, rule=rule, to_stage=to_stage)
