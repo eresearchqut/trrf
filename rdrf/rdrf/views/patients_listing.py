@@ -46,6 +46,7 @@ class PatientsListingView(View):
         self.records_total = None
         self.filtered_total = None
         self.context = {}
+        self.bottom = MinType()
 
     def get(self, request):
         # get just displays the empty table and writes the page
@@ -246,11 +247,7 @@ class PatientsListingView(View):
 
             def key_func_wrapper(thing):
                 value = k(thing)
-
-                if value is None:
-                    return self.bottom
-                else:
-                    return value
+                return self.bottom if value is None else value
 
             return sorted(qs, key=key_func_wrapper, reverse=(self.sort_direction == "desc"))
         else:
@@ -308,17 +305,13 @@ class PatientsListingView(View):
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
+            is_genetic = self.user.is_genetic_staff or self.user.is_genetic_curator
+            is_working_group_staff = self.user.is_working_group_staff
             if self.user.is_curator:
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-            elif self.user.is_genetic_staff:
-                self.patients = self.patients.filter(
-                    working_groups__in=self.user.working_groups.all())
-            elif self.user.is_genetic_curator:
-                self.patients = self.patients.filter(
-                    working_groups__in=self.user.working_groups.all())
-            elif self.user.is_working_group_staff:
+            elif is_genetic or is_working_group_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
             elif self.user.is_clinician and self.clinicians_have_patients:
@@ -370,18 +363,12 @@ class Column(object):
         self.order = order
         self.user_can_see = user.has_perm(self.perm)
 
-    def get_sort_value_for_none(self):
-        return self.bottom
-
     def sort_key(self, supports_contexts=False,
                  form_progress=None, context_manager=None):
 
         def sort_func(patient):
             value = self.cell(patient, supports_contexts, form_progress, context_manager)
-            if value is None:
-                return self.bottom
-            else:
-                return value
+            return self.bottom if value is None else value
 
         return sort_func
 
@@ -454,19 +441,6 @@ class ColumnNonContexts(Column):
 
     def fmt(self, val):
         return self.icon(None) if val is None else self.fmt_non_contexts(val)
-
-    def sort_key(self, supports_contexts=False,
-                 form_progress=None, context_manager=None):
-
-        def sk(patient):
-            value = self.cell(patient, supports_contexts, form_progress, context_manager)
-
-            if value is None:
-                return self.bottom
-            else:
-                return value
-
-        return sk
 
     def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
         pass
