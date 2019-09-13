@@ -311,16 +311,21 @@ class NotificationAdmin(admin.ModelAdmin):
 class ConsentQuestionAdmin(admin.StackedInline):
     model = ConsentQuestion
     extra = 0
-
+    readonly_fields = ['created_at', 'last_updated_at']
     fieldsets = (
         (None, {
             'fields': (
-                'position', 'code', 'question_label', 'questionnaire_label', 'instructions')}), )
+                'position', 'code', 'question_label', 'questionnaire_label', 'instructions', 'created_at', 'last_updated_at')}), )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
+    readonly_fields = ['created_at', 'last_updated_at', 'latest_change']
     list_display = ('registry', 'section_label')
     inlines = [ConsentQuestionAdmin]
+
+    def latest_change(self, obj):
+        return obj.latest_update
+    latest_change.short_description = 'Latest change (including questions)'
 
 
 class ConsentConfigurationAdmin(admin.ModelAdmin):

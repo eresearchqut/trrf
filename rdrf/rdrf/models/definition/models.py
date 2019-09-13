@@ -15,8 +15,11 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+from django.utils.formats import date_format, time_format
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
+from django.utils.translation import ugettext as _
+
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
@@ -1262,6 +1265,8 @@ class ConsentSection(models.Model):
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def natural_key(self):
         return (self.registry.code, self.code)
@@ -1275,6 +1280,15 @@ class ConsentSection(models.Model):
                 raise ValidationError(
                     "ConsentSection with registry.code '%s' and code '%s' already exists" %
                     (self.registry.code, self.code))
+
+    @property
+    def latest_update(self):
+        updates = [self.last_updated_at] + [q.last_updated_at for q in self.questions.all()]
+        valid_updates = [u for u in updates if u is not None]
+        if valid_updates:
+            latest = max(valid_updates)
+            return f"{date_format(latest)} {time_format(latest)}"
+        return None
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -1380,6 +1394,8 @@ class ConsentQuestion(models.Model):
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
     questionnaire_label = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         unique_together = ('section', 'code')
@@ -1387,12 +1403,26 @@ class ConsentQuestion(models.Model):
     def natural_key(self):
         return (self.section.code, self.code)
 
-    def create_field(self):
+    def create_field(self, patient, viewing_user):
         from django.forms import BooleanField
-        return BooleanField(
+        field = BooleanField(
             label=self.question_label,
             required=False,
-            help_text=self.instructions)
+            help_text=self.instructions,
+        )
+        if viewing_user.is_clinician:
+            consent_value = self.consentvalue_set.filter(patient=patient).first()
+            if not consent_value:
+                title = _('Never consented')
+            else:
+                action_date = consent_value.first_save or consent_value.last_updated
+                date = date_format(action_date)
+                if consent_value.answer:
+                    title = _('Consented on {date}'.format(date=date))
+                else:
+                    title = _('Revoked on {date}'.format(date=date))
+            field.widget.attrs['title'] = title
+        return field
 
     @property
     def field_key(self):

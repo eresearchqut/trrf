@@ -140,9 +140,10 @@ class BaseConsentForm(forms.BaseForm):
 
 class CustomConsentFormGenerator(object):
 
-    def __init__(self, registry_model, patient_model=None):
+    def __init__(self, registry_model, patient_model=None, viewing_user=None):
         self.registry_model = registry_model
         self.patient_model = patient_model  # None if add form
+        self.viewing_user = viewing_user
         self.fields = {}
 
     def create_form(self, post_data={}):
@@ -159,7 +160,7 @@ class CustomConsentFormGenerator(object):
         for consent_section_model in self.registry_model.consent_sections.all():
             if consent_section_model.applicable_to(self.patient_model):
                 for consent_question_model in consent_section_model.questions.all().order_by("position"):
-                    consent_field = consent_question_model.create_field()
+                    consent_field = consent_question_model.create_field(self.patient_model, self.viewing_user)
                     field_key = consent_question_model.field_key
                     fields[field_key] = consent_field
 
