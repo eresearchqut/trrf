@@ -17,7 +17,8 @@ from .models import (
     ParentGuardian,
     PatientDoctor,
     PatientStage,
-    PatientSignature
+    PatientSignature,
+    PatientStageRule
 )
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
@@ -213,6 +214,12 @@ class PatientSignatureForm(forms.ModelForm):
 class PatientStageForm(forms.ModelForm):
     class Meta:
         model = PatientStage
+        fields = "__all__"
+
+
+class PatientStageRuleForm(forms.ModelForm):
+    class Meta:
+        model = PatientStageRule
         fields = "__all__"
 
 
