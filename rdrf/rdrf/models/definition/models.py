@@ -15,10 +15,10 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
-from django.utils import timezone
 from django.utils.formats import date_format, time_format
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
+from django.utils.translation import ugettext as _
 
 
 from rdrf.helpers.utils import check_calculation
@@ -1283,8 +1283,7 @@ class ConsentSection(models.Model):
 
     @property
     def latest_update(self):
-        updates = [self.last_updated_at] if self.last_updated_at else []
-        updates.extend([q.last_updated_at for q in self.questions.all()])
+        updates = [self.last_updated_at] + [q.last_updated_at for q in self.questions.all()]
         valid_updates = [u for u in updates if u is not None]
         if valid_updates:
             latest = max(valid_updates)
@@ -1414,13 +1413,14 @@ class ConsentQuestion(models.Model):
         if viewing_user.is_clinician:
             consent_value = self.consentvalue_set.filter(patient=patient).first()
             if not consent_value:
-                title = 'Never consented'
+                title = _('Never consented')
             else:
                 action_date = consent_value.first_save or consent_value.last_updated
+                date = date_format(action_date)
                 if consent_value.answer:
-                    title = 'Consented on {}'.format(date_format(action_date))
+                    title = _('Consented on {date}'.format(date=date))
                 else:
-                    title = 'Revoked on {}'.format(date_format(action_date))
+                    title = _('Revoked on {date}'.format(date=date))
             field.widget.attrs['title'] = title
         return field
 
