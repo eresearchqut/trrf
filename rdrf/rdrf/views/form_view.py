@@ -57,9 +57,7 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
 
-from registry.patients.constants import PatientState
-from registry.patients.patient_stage_flows import PatientStageFlow
-
+from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 import logging
 
@@ -1828,7 +1826,7 @@ class CustomConsentFormView(View):
             custom_consent_form.save()
             if patient_signature_form:
                 patient_signature_form.save()
-            PatientStageFlow(PatientState.CONSENTED).handle(registry_model, patient_model)
+            get_registry_stage_flow(registry_model).handle(patient_model)
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
             messages.success(
                 self.request,
