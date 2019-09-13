@@ -13,6 +13,7 @@ from registry.utils import get_working_groups
 from .admin_forms import (
     PatientForm,
     PatientStageForm,
+    PatientStageRuleForm,
     PatientAddressForm,
     PatientDoctorForm,
     PatientRelativeForm)
@@ -24,6 +25,7 @@ from .models import (
     State,
     Patient,
     PatientStage,
+    PatientStageRule,
     PatientAddress,
     PatientDoctor,
     PatientRelative,
@@ -70,6 +72,13 @@ class PatientStageAdmin(admin.ModelAdmin):
     model = PatientStage
     form = PatientStageForm
     extra = 0
+
+
+class PatientStageRuleAdmin(admin.ModelAdmin):
+    model = PatientStageRule
+    form = PatientStageRuleForm
+    extra = 0
+    list_display = ('registry', 'condition')
 
 
 class RegistryFilter(admin.SimpleListFilter):
@@ -575,6 +584,7 @@ admin.site.register(AddressType, AddressTypeAdmin)
 admin.site.register(ParentGuardian, ParentGuardianAdmin)
 admin.site.register(Patient, PatientAdmin)
 admin.site.register(PatientStage, PatientStageAdmin)
+admin.site.register(PatientStageRule, PatientStageRuleAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
 admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)

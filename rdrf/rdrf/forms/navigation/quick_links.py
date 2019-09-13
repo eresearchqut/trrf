@@ -33,6 +33,7 @@ class LinkDefs:
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
+    PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
     Genes = make_link("admin:genetic_gene_changelist", _("Genes"))
     Laboratories = make_link("admin:genetic_laboratory_changelist", _("Laboratories"))
     Explorer = make_link("rdrf:explorer_main", _("Explorer"))
@@ -119,8 +120,11 @@ class Links:
         LinkDefs.ClinicianOther
     )
 
-    # When enabled, patient stages links
-    ENABLED_STAGES = make_entries(LinkDefs.PatientStages)
+    # When enabled, patient stages links and patient stage rules
+    ENABLED_STAGES = make_entries(
+        LinkDefs.PatientStages,
+        LinkDefs.PatientStageRules
+    )
 
     # only appear if related registry specific feature is set
     # Populated at runtime
@@ -238,7 +242,8 @@ class MenuConfig:
             Links.DOCTORS = Links.ENABLED_DOCTORS
 
     def patient_stages_links(self):
-        if any(registry.has_feature(RegistryFeatures.STAGES) for registry in self.registries):
+        has_stages = any(registry.has_feature(RegistryFeatures.STAGES) for registry in self.registries)
+        if has_stages and settings.DESIGN_MODE:
             Links.STAGES = Links.ENABLED_STAGES
 
     def verification_links(self):

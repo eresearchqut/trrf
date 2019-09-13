@@ -27,6 +27,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from simple_history.models import HistoricalRecords
 
+from .constants import PatientState
+
 logger = logging.getLogger(__name__)
 
 _6MONTHS_IN_DAYS = 183
@@ -1180,6 +1182,25 @@ class PatientStage(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PatientStageRule(models.Model):
+
+    FLOW_RULES = (
+        (PatientState.REGISTERED, 'Patient registered'),
+        (PatientState.CONSENTED, 'Patient provided consent'),
+    )
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE, related_name='+')
+    from_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    condition = models.CharField(choices=FLOW_RULES, blank=False, null=True, max_length=32)
+    to_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = (("registry", "from_stage", "condition", "to_stage"),)
+
+    def __str__(self):
+        return f"PatientStageRule: {self.from_stage} {self.condition} {self.to_stage}"
 
 
 class Speciality(models.Model):
