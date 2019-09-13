@@ -3,6 +3,7 @@ Initial treatment phases:
 """
 
 from registry.patients import models
+from rdrf.models.definition.models import Registry
 
 
 def load_data(**kwargs):
@@ -13,8 +14,9 @@ def load_data(**kwargs):
     run_in = create_stage('Run-in', screening)
     trial = create_stage('Trial', run_in)
     _ = create_stage('Follow-up', trial)
-    create_rule(None, 'registered', informed_consent)
-    create_rule(informed_consent, 'consented', eligibility)
+    for r in Registry.objects.all():
+        create_rule(r, None, 'registered', informed_consent, 1)
+        create_rule(r, informed_consent, 'consented', eligibility, 1)
 
 
 def create_stage(name, previous_stage):
@@ -24,5 +26,11 @@ def create_stage(name, previous_stage):
         previous_stage.allowed_next_stages.add(stage)
     return stage if created else None
 
-def create_rule(from_stage, rule, to_stage):
-    models.PatientStageRule.objects.get_or_create(from_stage=from_stage, rule=rule, to_stage=to_stage)
+def create_rule(registry, from_stage, rule, to_stage, order):
+    models.PatientStageRule.objects.get_or_create(
+        registry=registry,
+        from_stage=from_stage, 
+        condition=rule, 
+        to_stage=to_stage,
+        order=order
+    )

@@ -73,10 +73,13 @@ class PatientStageAdmin(admin.ModelAdmin):
     form = PatientStageForm
     extra = 0
 
+
 class PatientStageRuleAdmin(admin.ModelAdmin):
     model = PatientStageRule
     form = PatientStageRuleForm
     extra = 0
+    list_display = ('registry', 'condition')
+
 
 class RegistryFilter(admin.SimpleListFilter):
     title = "Registry"

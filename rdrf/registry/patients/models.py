@@ -1190,15 +1190,17 @@ class PatientStageRule(models.Model):
         (PatientState.REGISTERED, 'Patient registered'),
         (PatientState.CONSENTED, 'Patient provided consent'),
     )
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE, related_name='+')
     from_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
-    rule = models.CharField(choices=FLOW_RULES, blank=False, null=True, max_length=32)
+    condition = models.CharField(choices=FLOW_RULES, blank=False, null=True, max_length=32)
     to_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    order = models.PositiveIntegerField()
 
     class Meta:
-        unique_together = (("from_stage", "rule", "to_stage"),)
+        unique_together = (("registry", "from_stage", "condition", "to_stage"),)
 
     def __str__(self):
-        return f"PatientStageRule: {self.from_stage} {self.rule} {self.to_stage}"
+        return f"PatientStageRule: {self.from_stage} {self.condition} {self.to_stage}"
 
 
 class Speciality(models.Model):

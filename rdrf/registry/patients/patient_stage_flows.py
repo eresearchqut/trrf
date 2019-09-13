@@ -53,15 +53,11 @@ class PatientStageFlow:
         return self.CONDITION_HANDLERS[condition](self.registry, patient)
 
     def handle(self, patient):
-        # TODO
-        #   - field on PatientStageRules if we are going to have more than one rule per from_stage
-        #   - we might need to make the patient stages and the flow rules be different per registy
-        #   - rename rule.rule to rule.condition
-        for rule in PatientStageRule.objects.filter(from_stage=patient.stage).all():
-            if self.evaluate_condition(patient, rule.rule):
+        for rule in PatientStageRule.objects.filter(from_stage=patient.stage, registry=self.registry).order_by('order').all():
+            if self.evaluate_condition(patient, rule.condition):
                 logger.info(f"Moving patient {patient.pk} in registry {self.registry} "
                             f"from stage {rule.from_stage} to {rule.to_stage} "
-                            f"based on rule {rule.rule}")
+                            f"based on rule {rule.condition}")
                 patient.stage = rule.to_stage
                 patient.save()
                 return True

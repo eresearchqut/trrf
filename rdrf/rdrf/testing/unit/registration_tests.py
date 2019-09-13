@@ -30,14 +30,18 @@ class RegistrationTest(TestCase):
         self.informed_consent.allowed_next_stages.add(self.eligibility)
         self.eligibility.allowed_prev_stages.add(self.informed_consent)
         PatientStageRule.objects.create(
+            registry=self.registry,
             from_stage=None,
-            rule=PatientState.REGISTERED,
-            to_stage=self.informed_consent
+            condition=PatientState.REGISTERED,
+            to_stage=self.informed_consent,
+            order=1
         )
         PatientStageRule.objects.create(
+            registry=self.registry,
             from_stage=self.informed_consent,
-            rule=PatientState.CONSENTED,
-            to_stage=self.eligibility
+            condition=PatientState.CONSENTED,
+            to_stage=self.eligibility,
+            order=1
         )
 
         self.consent_section = ConsentSection.objects.create(
