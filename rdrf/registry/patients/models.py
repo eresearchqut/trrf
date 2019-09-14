@@ -1191,9 +1191,9 @@ class PatientStageRule(models.Model):
         (PatientState.CONSENTED, 'Patient provided consent'),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE, related_name='+')
-    from_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    from_stage = models.ForeignKey(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
     condition = models.CharField(choices=FLOW_RULES, blank=False, null=True, max_length=32)
-    to_stage = models.OneToOneField(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+    to_stage = models.ForeignKey(PatientStage, on_delete=models.CASCADE, related_name='+', null=True, blank=True)
     order = models.PositiveIntegerField()
 
     class Meta:
