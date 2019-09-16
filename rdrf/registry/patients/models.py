@@ -333,6 +333,9 @@ class Patient(models.Model):
                               null=True,
                               on_delete=models.SET_NULL)
 
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+
     history = HistoricalRecords()
 
     class Meta:
