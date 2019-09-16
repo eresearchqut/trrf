@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
+from django.utils import timezone
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.events.events import EventType
@@ -335,6 +336,7 @@ class Patient(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    last_updated_overall_at = models.DateTimeField(blank=True, null=True)
 
     history = HistoricalRecords()
 
@@ -886,6 +888,7 @@ class Patient(models.Model):
         if not self.pk:
             self.active = True
 
+        self.last_updated_overall_at = timezone.now()
         super(Patient, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -1175,6 +1178,15 @@ class Patient(models.Model):
         return Family(self)
 
 
+class PatientUpdateMixin:
+
+    def save(self, *args, **kwargs):
+        if self.patient:
+            self.patient.last_updated_overall_at = timezone.now()
+            self.patient.save()
+        super().save(*args, **kwargs)
+
+
 class PatientStage(models.Model):
     name = models.CharField(max_length=200)
     allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
@@ -1185,6 +1197,12 @@ class PatientStage(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        for patient in self.patient_set.all():
+            patient.last_updated_overall_at = timezone.now()
+            patient.save()
+        super().save(*args, **kwargs)
 
 
 class PatientStageRule(models.Model):
@@ -1216,7 +1234,7 @@ class Speciality(models.Model):
         return self.name
 
 
-class ClinicianOther(models.Model):
+class ClinicianOther(models.Model, PatientUpdateMixin):
     use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True, on_delete=models.SET_NULL)
     clinician_name = models.CharField(max_length=200, blank=True, null=True)
@@ -1351,6 +1369,13 @@ class ParentGuardian(models.Model):
     def is_parent_of(self, other_patient):
         return other_patient in self.children
 
+    def save(self, *args, **kwargs):
+        if self.patient:
+            for patient in self.patient.all():
+                patient.last_updated_overall_at = timezone.now()
+                patient.save()
+        super().save(*args, **kwargs)
+
 
 @receiver(post_save, sender=ParentGuardian)
 def update_my_user(sender, **kwargs):
@@ -1387,7 +1412,7 @@ class AddressType(models.Model):
         return "%s" % (self.type)
 
 
-class PatientAddress(models.Model):
+class PatientAddress(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     address_type = models.ForeignKey(AddressType,
                                      default=1,
@@ -1439,7 +1464,7 @@ class ConsentFileField(models.FileField):
         return name, path, args, kwargs
 
 
-class PatientConsent(models.Model):
+class PatientConsent(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     form = ConsentFileField(
         upload_to=upload_patient_consent_to,
@@ -1452,12 +1477,12 @@ class PatientConsent(models.Model):
     history = HistoricalRecords()
 
 
-class PatientSignature(models.Model):
+class PatientSignature(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     signature = models.TextField()
 
 
-class PatientDoctor(models.Model):
+class PatientDoctor(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     relationship = models.CharField(max_length=50)
@@ -1474,7 +1499,7 @@ def get_countries():
             for c in sorted(pycountry.countries, key=attrgetter("name"))]
 
 
-class PatientRelative(models.Model):
+class PatientRelative(models.Model, PatientUpdateMixin):
 
     RELATIVE_TYPES = (("Parent (1st degree)", "Parent (1st degree)"),
                       ("Child (1st degree)", "Child (1st degree)"),
@@ -1647,7 +1672,7 @@ def registry_changed_on_patient(sender, **kwargs):
         create_rdrf_default_contexts(instance, registry_ids)
 
 
-class ConsentValue(models.Model):
+class ConsentValue(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, related_name="consents", on_delete=models.CASCADE)
     consent_question = models.ForeignKey(ConsentQuestion, on_delete=models.CASCADE)
     answer = models.BooleanField(default=False)
