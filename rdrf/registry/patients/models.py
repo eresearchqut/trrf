@@ -1198,12 +1198,6 @@ class PatientStage(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        for patient in self.patient_set.all():
-            patient.last_updated_overall_at = timezone.now()
-            patient.save()
-        super().save(*args, **kwargs)
-
 
 class PatientStageRule(models.Model):
 
