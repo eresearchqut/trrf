@@ -1180,11 +1180,18 @@ class Patient(models.Model):
 
 class PatientUpdateMixin:
 
-    def save(self, *args, **kwargs):
+    def update_patient_overall_ts(self):
         if self.patient:
             self.patient.last_updated_overall_at = timezone.now()
             self.patient.save()
+
+    def save(self, *args, **kwargs):
+        self.update_patient_overall_ts()
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self.update_patient_overall_ts()
+        return super().delete(*args, **kwargs)
 
 
 class PatientStage(models.Model):
