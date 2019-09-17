@@ -54,6 +54,8 @@ TIME_ZONE = env.get("time_zone", 'Australia/Perth')
 LANGUAGE_CODE = env.get("language_code", 'en')
 USE_I18N = env.get("use_i18n", True)
 
+DATE_FORMAT = "d-m-Y"
+
 # This must be a superset of LANGUAGES
 ALL_LANGUAGES = (("en", "English"),
                  ("ar", "Arabic"),

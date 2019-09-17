@@ -17,6 +17,7 @@ from rdrf.forms.components import FormGroupButton
 from registry.patients.models import Patient
 from rdrf.helpers.utils import MinType
 from rdrf.helpers.utils import consent_check
+from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -422,7 +423,7 @@ class ColumnDateOfBirth(Column):
     sort_fields = ["date_of_birth"]
 
     def fmt(self, val):
-        return val.strftime("%d-%m-%Y") if val is not None else ""
+        return date_format(val) if val is not None else ""
 
 
 class ColumnCodeField(Column):
