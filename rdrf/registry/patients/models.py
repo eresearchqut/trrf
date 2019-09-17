@@ -859,8 +859,10 @@ class Patient(models.Model):
                 return False
 
     def mark_changed_timestamp(self):
-        self.last_updated_overall_at = timezone.now()
-        self.save(update_fields=['last_updated_overall_at'])
+        # Does an update through the QuerySet on purpose, so if only the last updated timestamp field
+        # changed (and none of the patient data) we don't execute any custom business logic
+        # in save(), pre-, and post- save signals.
+        Patient.objects.filter(pk=self.pk).update(last_updated_overall_at=timezone.now())
 
     @property
     def has_guardian(self):
