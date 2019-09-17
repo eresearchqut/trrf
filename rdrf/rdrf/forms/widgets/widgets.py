@@ -1,9 +1,11 @@
 # Custom widgets / Complex controls required
 import base64
 import datetime
+import json
 import logging
 from operator import attrgetter
 import re
+
 
 import pycountry
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
@@ -648,6 +650,64 @@ class SliderWidget(widgets.TextInput):
         )
 
         return context
+
+
+class SliderSettingsWidget(widgets.Textarea):
+
+    @staticmethod
+    def generate_input(name, title, parsed):
+        value = parsed.get(name, '')
+        return f"""
+            <div>
+                <label for="{name}">{title}</label>
+                <input type="text" name="{name}" id="{name}" value="{value}" onchange="saveJSON()">
+            </div>"""
+
+    def generate_inputs(self, parsed):
+        rows = [
+            self.generate_input('min', 'Min value', parsed),
+            self.generate_input('max', 'Max value', parsed),
+            self.generate_input('left_label', 'Left label', parsed),
+            self.generate_input('right_label', 'Right label', parsed),
+            self.generate_input('step', 'Step', parsed),
+        ]
+        return "<br/>".join(rows)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        parsed = {}
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            pass
+
+        html = """
+             <div style="display:inline-grid" id="id_{name}">
+                {inputs}
+                <input type="hidden" name="{name}" value='{value}'/>
+             </div>""".format(
+                 inputs=self.generate_inputs(parsed),
+                 name=name,
+                 value=value)
+        javascript = """
+            function saveJSON() {
+                var inputs = $('#id_%s input[type=text]');
+                var obj = {};
+                for (var i = 0; i < inputs.length; i++) {
+                    if (inputs[i].value !='' && inputs[i].value.trim() != '') {
+                        obj[inputs[i].name] = inputs[i].value;
+                    }
+                }
+                if (!$.isEmptyObject(obj)) {
+                    $("input[name='%s']").val(JSON.stringify(obj));
+                }
+            }
+        """ % (name, name)
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+            </script>"""
+        )
 
 
 class SignatureWidget(widgets.TextInput):
