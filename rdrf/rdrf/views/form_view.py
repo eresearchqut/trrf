@@ -737,6 +737,8 @@ class FormView(View):
             context["change_targets"] = code_gen.generate_change_targets() or ''
             context["generated_declarations"] = code_gen.generate_declarations() or ''
 
+            patient.mark_changed_timestamp()
+
             success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
                 "patient_name": patient_name}
             messages.add_message(request,
