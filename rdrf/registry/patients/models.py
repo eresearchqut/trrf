@@ -858,6 +858,10 @@ class Patient(models.Model):
             else:
                 return False
 
+    def mark_changed_timestamp(self):
+        self.last_updated_overall_at = timezone.now()
+        self.save(update_fields=['last_updated_overall_at'])
+
     @property
     def has_guardian(self):
         return ParentGuardian.objects.filter(patient=self).count() > 0
