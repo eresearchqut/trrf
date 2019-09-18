@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse
@@ -58,6 +59,8 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
 
 from registry.patients.patient_stage_flows import get_registry_stage_flow
+
+from rdrf.admin_forms import CommonDataElementAdminForm
 
 import logging
 
@@ -1872,3 +1875,22 @@ class CustomConsentFormView(View):
 
 class FormDSLHelpView(TemplateView):
     template_name = "rdrf_cdes/form-dsl-help.html"
+
+
+class CdeWidgetSettingsView(View):
+
+    @login_required_method
+    def get(self, request, code, new_name):
+        cde = get_object_or_404(CommonDataElement, code=code)
+        cde.widget_name = new_name
+        admin_form = CommonDataElementAdminForm(cde.__dict__, instance=cde)
+        is_hidden = admin_form['widget_settings'].is_hidden
+        ret_val = """
+            <div class="form-row field-widget_settings">
+              <div>
+                <label class="{}" for="id_widget_settings">Widget settings:</label>
+                {}
+              </div>
+            </div>
+        """.format('hidden' if is_hidden else '', admin_form['widget_settings'].as_widget())
+        return HttpResponse(mark_safe(ret_val))

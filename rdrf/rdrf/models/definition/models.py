@@ -882,7 +882,6 @@ class CommonDataElement(models.Model):
                     'widget_settings': ["Widget settings must be a valid JSON !"]
                 })
 
-
     def save(self, *args, **kwargs):
         if self.widget_name == 'SliderWidget':
             settings = {

@@ -127,6 +127,8 @@ class ConsentConfigurationAdminForm(ModelForm):
 
 class CommonDataElementAdminForm(ModelForm):
 
+    template = 'admin/cde_change_form.html'
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
@@ -134,6 +136,7 @@ class CommonDataElementAdminForm(ModelForm):
                 self.fields['widget_settings'].widget = SliderSettingsWidget()
             else:
                 self.fields['widget_settings'].widget = HiddenInput()
+            self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
 
     class Meta:
         fields = "__all__"

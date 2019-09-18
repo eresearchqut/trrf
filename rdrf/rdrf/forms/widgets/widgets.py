@@ -684,10 +684,7 @@ class SliderSettingsWidget(widgets.Textarea):
              <div style="display:inline-grid" id="id_{name}">
                 {inputs}
                 <input type="hidden" name="{name}" value='{value}'/>
-             </div>""".format(
-                 inputs=self.generate_inputs(parsed),
-                 name=name,
-                 value=value)
+             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
         javascript = """
             function saveJSON() {
                 var inputs = $('#id_%s input[type=text]');
@@ -706,8 +703,7 @@ class SliderSettingsWidget(widgets.Textarea):
             {html}
             <script>
                 {javascript}
-            </script>"""
-        )
+            </script>""")
 
 
 class SignatureWidget(widgets.TextInput):

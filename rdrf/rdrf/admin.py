@@ -48,7 +48,6 @@ from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
 
-from rdrf.forms.widgets.widgets import SliderSettingsWidget
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -293,6 +292,7 @@ def create_restricted_model_admin_class(
         overrides["list_display"] = list_display
     if form:
         overrides["form"] = form
+        overrides["change_form_template"] = form.template
 
     return type(model_class.__name__ + "Admin", (admin.ModelAdmin,), overrides)
 
