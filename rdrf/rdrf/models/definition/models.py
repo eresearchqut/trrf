@@ -847,6 +847,52 @@ class CommonDataElement(models.Model):
 
         return stored_value
 
+    def _validate_widget_settings(self):
+        settings = {}
+        try:
+            settings = json.loads(self.widget_settings)
+        except Exception:
+            raise ValidationError({
+                'widget_settings': ["Widget settings must be a valid JSON !"]
+            })
+        numeric_fields = ['min', 'max', 'step']
+        numeric_settings = [f for f in numeric_fields if f in settings]
+        for field in numeric_settings:
+            try:
+                float(settings[field])
+            except ValueError:
+                raise ValidationError({
+                    'widget_settings': [f"Widget setting: {field} must be numeric. Invalid value: {settings[field]}"]
+                })
+        has_min = 'min' in numeric_settings
+        has_max = 'max' in numeric_settings
+        has_step = 'step' in numeric_settings
+        if has_min and has_max:
+            max_num = float(settings['max'])
+            min_num = float(settings['min'])
+            if min_num < self.min_value:
+                raise ValidationError({
+                    'widget_settings': ["Widget setting: min should be bigger or equal than CDE's min value !"]
+                })
+            if max_num > self.max_value:
+                raise ValidationError({
+                    'widget_settings': ["Widget setting: max should be lower or equal than CDE's max value !"]
+                })
+            if max_num <= min_num:
+                raise ValidationError({
+                    'widget_settings': ["Widget setting: max should be bigger than min"]
+                })
+            if has_step:
+                step = float(settings['step'])
+                if step >= max_num - min_num:
+                    raise ValidationError({
+                        'widget_settings': ["Widget setting: invalid step value"]
+                    })
+        if has_step and not (has_min and has_max):
+            raise ValidationError({
+                'widget_settings': ["Widget setting: Cannot set step unless min and max are also set!"]
+            })
+
     def clean(self):
         # this was causing issues with form progress completion cdes record
         # todo update the way form progress completion cdes are recorded to
@@ -875,18 +921,13 @@ class CommonDataElement(models.Model):
                 'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
             })
         if self.widget_settings:
-            try:
-                json.loads(self.widget_settings)
-            except Exception:
-                raise ValidationError({
-                    'widget_settings': ["Widget settings must be a valid JSON !"]
-                })
+            self._validate_widget_settings()
 
     def save(self, *args, **kwargs):
         if self.widget_name == 'SliderWidget':
             settings = {
-                "min": int(self.min_value),
-                "max": int(self.max_value)
+                "min": float(self.min_value),
+                "max": float(self.max_value)
             }
             if not self.widget_settings:
                 self.widget_settings = json.dumps(settings)

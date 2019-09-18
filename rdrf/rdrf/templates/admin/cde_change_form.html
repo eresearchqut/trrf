@@ -79,8 +79,8 @@
 <script type="text/javascript">
 
 function widgetNameChangeHandler() {
-    var code = $("#id_code").val();
-    var widgetName = $("#id_widget_name").val();
+    var code = $("#id_code").val() == '' ? 'Unset' : $("#id_code").val();
+    var widgetName = $("#id_widget_name").val() == '' ? 'Unset' : $("#id_widget_name").val();
     var url = "/admin/cde/" + code + "/" + widgetName + "/settings";
     $.get(url, function(data) {
         $(".field-widget_settings").remove();

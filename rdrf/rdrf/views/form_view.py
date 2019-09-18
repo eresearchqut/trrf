@@ -1881,16 +1881,17 @@ class CdeWidgetSettingsView(View):
 
     @login_required_method
     def get(self, request, code, new_name):
-        cde = get_object_or_404(CommonDataElement, code=code)
+        cde = CommonDataElement.objects.filter(code=code).first() or CommonDataElement()
         cde.widget_name = new_name
         admin_form = CommonDataElementAdminForm(cde.__dict__, instance=cde)
         is_hidden = admin_form['widget_settings'].is_hidden
+        display = 'style="display:none"' if is_hidden else ''
         ret_val = """
-            <div class="form-row field-widget_settings">
+            <div class="form-row field-widget_settings" {}>
               <div>
                 <label class="{}" for="id_widget_settings">Widget settings:</label>
                 {}
               </div>
             </div>
-        """.format('hidden' if is_hidden else '', admin_form['widget_settings'].as_widget())
+        """.format(display, 'hidden' if is_hidden else '', admin_form['widget_settings'].as_widget())
         return HttpResponse(mark_safe(ret_val))

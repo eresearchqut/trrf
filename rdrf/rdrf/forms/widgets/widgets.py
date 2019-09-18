@@ -607,7 +607,7 @@ class ConsentFileInput(ClearableFileInput):
 
 class SliderWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
-        if not value or not isinstance(value, int):
+        if not value or not isinstance(value, float) or not isinstance(value, int):
             value = 0
 
         left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
@@ -626,9 +626,11 @@ class SliderWidget(widgets.TextInput):
                 </div>
                 <div style="float:left;margin-left:20px;"><b>%s</b></div>
              </div>
+             <br/>
              <script>
                  $(function() {
                      $( "#%s" ).bootstrapSlider({
+                         tooltip: 'always',
                          value: '%s',
                          %s
                          slide: function( event, ui ) {
@@ -655,21 +657,27 @@ class SliderWidget(widgets.TextInput):
 class SliderSettingsWidget(widgets.Textarea):
 
     @staticmethod
-    def generate_input(name, title, parsed):
+    def generate_input(name, title, parsed, input_type="text", info=None):
         value = parsed.get(name, '')
+        info_text = f'title="{info}"' if info else ''
+        step = 'step="0.01"' if isinstance(value, float) else ''
+        if input_type == 'number':
+            input_str = f'<input type="{input_type}" {step} name="{name}" id="{name}" value="{value}" {info_text} onchange="saveJSON()">'
+        else:
+            input_str = f'<input type="{input_type}" name="{name}" id="{name}" value="{value}" {info_text} onchange="saveJSON()">'
         return f"""
             <div>
                 <label for="{name}">{title}</label>
-                <input type="text" name="{name}" id="{name}" value="{value}" onchange="saveJSON()">
+                {input_str}
             </div>"""
 
     def generate_inputs(self, parsed):
         rows = [
-            self.generate_input('min', 'Min value', parsed),
-            self.generate_input('max', 'Max value', parsed),
+            self.generate_input('min', 'Min value', parsed, 'number', "leave empty if you want to use the CDE's min value"),
+            self.generate_input('max', 'Max value', parsed, 'number', "leave empty if you want to use the CDE's min value"),
             self.generate_input('left_label', 'Left label', parsed),
             self.generate_input('right_label', 'Right label', parsed),
-            self.generate_input('step', 'Step', parsed),
+            self.generate_input('step', 'Step', parsed, 'number'),
         ]
         return "<br/>".join(rows)
 
@@ -687,11 +695,11 @@ class SliderSettingsWidget(widgets.Textarea):
              </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
         javascript = """
             function saveJSON() {
-                var inputs = $('#id_%s input[type=text]');
+                var inputs = $('#id_%s input[type!=hidden]');
                 var obj = {};
                 for (var i = 0; i < inputs.length; i++) {
                     if (inputs[i].value !='' && inputs[i].value.trim() != '') {
-                        obj[inputs[i].name] = inputs[i].value;
+                        obj[inputs[i].name] = inputs[i].type == 'number' ? parseFloat(inputs[i].value) : inputs[i].value;
                     }
                 }
                 if (!$.isEmptyObject(obj)) {
