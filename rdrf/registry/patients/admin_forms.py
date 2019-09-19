@@ -262,7 +262,7 @@ class PatientForm(forms.ModelForm):
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
-        super(PatientForm, self).__init__(*args, **kwargs)  # NB I have moved the constructor
+        super().__init__(*args, **kwargs)
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
         self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
@@ -418,7 +418,7 @@ class PatientForm(forms.ModelForm):
             }),
             'user': forms.HiddenInput()
         }
-        exclude = ['doctors']
+        exclude = ['doctors', 'user']
 
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB
@@ -443,7 +443,7 @@ class PatientForm(forms.ModelForm):
 
         self._validate_custom_consents()
 
-        return super(PatientForm, self).clean()
+        return super().clean()
 
     def _validate_custom_consents(self):
         data = {}
@@ -487,9 +487,6 @@ class PatientForm(forms.ModelForm):
         except ValueError:
             # If patient just created line above was erroring
             patient_registries = []
-
-        if "user" in self.cleaned_data:
-            patient_model.user = self.cleaned_data["user"]
 
         if commit:
             patient_model.save()
