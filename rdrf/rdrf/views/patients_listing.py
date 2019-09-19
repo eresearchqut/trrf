@@ -302,7 +302,31 @@ class PatientsListingView(View):
         if self.search_term:
             name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
             stage_filter = Q(stage__name__istartswith=self.search_term)
-            self.patients = self.patients.filter(Q(name_filter | stage_filter))
+
+
+    def patients_for_clinician(self):
+        supports_ethical_clearance = any(
+            r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) for r in self.user.registry.all()
+        )
+        if supports_ethical_clearance:
+            if self.clinicians_have_patients:
+                if not self.user.ethically_cleared:
+                    return self.patients.filter(created_by=self.user, clinician__isnull=True)
+                else:
+                    query_patients = Q(created_by=self.user, clinician__isnull=True) | Q(clinician=self.user)
+                    return self.patients.filter(query_patients)
+            else:
+                if not self.user.ethically_cleared:
+                    return self.patients.filter(created_by=self.user, clinician__isnull=True)
+                else:
+                    query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(working_groups__in=self.user.working_groups.all())
+                    return self.patients.filter(query_patients)
+        else:
+            if self.clinicians_have_patients:
+                return self.patients.filter(clinician=self.user)
+            else:
+                query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(working_groups__in=self.user.working_groups.all())
+                return self.patients.filter(query_patients)
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -315,12 +339,8 @@ class PatientsListingView(View):
             elif is_genetic or is_working_group_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
-            elif self.user.is_clinician and self.clinicians_have_patients:
-                self.patients = self.patients.filter(clinician=self.user)
-            elif self.user.is_clinician and not self.clinicians_have_patients:
-                query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
-                    working_groups__in=self.user.working_groups.all())
-                self.patients = self.patients.filter(query_patients)
+            elif self.user.is_clinician:
+                self.patients = self.patients_for_clinician()
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
             else:

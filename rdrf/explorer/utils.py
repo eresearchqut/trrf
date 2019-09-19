@@ -174,7 +174,7 @@ class DatabaseUtils(object):
                 d = get_sql_dict(row)
                 row_dict.update(d)
                 patient_id = int(d['id'])
-                patient_model = Patient.objects.get(id=patient_id)
+                patient_model = Patient.objects.filter(id=patient_id).first()
                 q = (FieldValue.objects.filter(registry_id=registry_id)
                      .prefetch_related("patient")
                      .prefetch_related("context")
@@ -182,20 +182,21 @@ class DatabaseUtils(object):
                      .prefetch_related("section")
                      .prefetch_related("cde"))
 
-                for context_model in patient_model.context_models:
-                    context_id = context_model.pk
-                    row = copy(row_dict)
-                    row["context_id"] = context_id
+                if patient_model:
+                    for context_model in patient_model.context_models:
+                        context_id = context_model.pk
+                        row = copy(row_dict)
+                        row["context_id"] = context_id
 
-                    qry = q.filter(registry_id=registry_id,
-                                   patient_id=patient_id,
-                                   context_id=context_id,
-                                   column_name__in=report_columns,
-                                   index__lt=max_items)
+                        qry = q.filter(registry_id=registry_id,
+                                       patient_id=patient_id,
+                                       context_id=context_id,
+                                       column_name__in=report_columns,
+                                       index__lt=max_items)
 
-                    self._get_fvs_by_datatype(qry, row)
+                        self._get_fvs_by_datatype(qry, row)
 
-                    yield row
+                        yield row
 
         if self.mongo_search_type == "C":
             # current data - no longitudinal snapshots
@@ -401,11 +402,12 @@ class DatabaseUtils(object):
         for cde_dict in self.projection:
             form_model = RegistryForm.objects.get(
                 name=cde_dict["formName"], registry=self.registry_model)
-            section_model = Section.objects.get(code=cde_dict["sectionCode"])
-            cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
-            column_name = self._get_database_column_name(form_model, section_model, cde_model)
-            data["multisection_column_map"][(
-                form_model, section_model, cde_model)] = column_name
+            section_model = Section.objects.filter(code=cde_dict["sectionCode"]).first()
+            if section_model:
+                cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+                column_name = self._get_database_column_name(form_model, section_model, cde_model)
+                data["multisection_column_map"][(
+                    form_model, section_model, cde_model)] = column_name
         return data
 
     def _get_database_column_name(self, form_model, section_model, cde_model):
@@ -421,8 +423,8 @@ class DatabaseUtils(object):
                 registry=self.registry_model)
             section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
             cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
-
-            yield form_model, section_model, cde_model
+            if section_model and cde_model:
+                yield form_model, section_model, cde_model
 
     def run_mongo_one_row(self, sql_column_data, collection, max_items):
         mongo_query = {

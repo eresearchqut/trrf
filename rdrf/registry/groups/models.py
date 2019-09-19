@@ -84,6 +84,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         default="en",
         help_text=_("Preferred language (code) for communications"))
+    ethically_cleared = models.BooleanField(null=False, blank=False, default=False)
 
     USERNAME_FIELD = "username"
 
@@ -236,7 +237,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            links = qlinks.menu_links([group.name for group in self.groups.all()])
+            reports_disabled = self.is_clinician and not self.ethically_cleared
+            links = qlinks.menu_links([group.name for group in self.groups.all()], reports_disabled)
 
         return links
 

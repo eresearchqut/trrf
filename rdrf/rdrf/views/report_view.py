@@ -32,7 +32,7 @@ class ReportView(LoginRequiredMixin, View):
 
         if user.is_superuser:
             reports = Query.objects.all()
-        elif user.is_curator:
+        elif user.is_curator or (user.is_clinician and user.ethically_cleared):
             reports = Query.objects.filter(
                 registry__in=[
                     reg.id for reg in user.get_registries()]).filter(

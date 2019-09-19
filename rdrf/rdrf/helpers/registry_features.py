@@ -16,3 +16,4 @@ class RegistryFeatures:
     PROMS_ADDING_DISABLED = "proms_adding_disabled"
     PATIENT_FORM_DOCTORS = "patient_form_doctors"
     PATIENT_GUID = "patient_guid"
+    CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"

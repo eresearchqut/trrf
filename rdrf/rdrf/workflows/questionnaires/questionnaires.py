@@ -381,6 +381,7 @@ class PatientCreator(object):
             raise PatientCreatorError("%s" % ex)
 
         try:
+            patient.created_by = self.user
             patient.full_clean()
             patient.save()
             patient.rdrf_registry.set([self.registry])

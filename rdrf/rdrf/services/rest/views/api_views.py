@@ -115,6 +115,7 @@ class PatientList(generics.ListCreateAPIView):
                 request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
             self.permission_denied(
                 request, message='Not allowed to create Patient in this Registry')
+        request.data['created_by'] = request.user
         return super(PatientList, self).post(request, *args, **kwargs)
 
 

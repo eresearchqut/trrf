@@ -307,6 +307,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.VERIFICATION,
+            **RegularLinks.REPORTING,
         }
 
         # Super user has combined menu of all other users
@@ -365,8 +366,11 @@ class RegularMenuConfig(MenuConfig):
     def settings_links(self):
         return self.settings
 
-    def menu_links(self, groups):
-        return reduce(add_dicts, map(self.group_links, groups), {})
+    def menu_links(self, groups, reports_disabled=False):
+        ret_val = reduce(add_dicts, map(self.group_links, groups), {})
+        if reports_disabled and 'Reports' in ret_val:
+            del ret_val['Reports']
+        return ret_val
 
 
 class PromsMenuConfig(MenuConfig):
@@ -386,7 +390,7 @@ class PromsMenuConfig(MenuConfig):
     def settings_links(self):
         return {}
 
-    def menu_links(self, groups):
+    def menu_links(self, groups, reports_disabled=False):
         return {}
 
 
@@ -402,8 +406,8 @@ class QuickLinks:
             self.menu_config = RegularMenuConfig(registries)
         self.menu_config.build_menu()
 
-    def menu_links(self, groups):
-        return ordered_links(self.menu_config.menu_links(groups))
+    def menu_links(self, groups, reports_disabled=False):
+        return ordered_links(self.menu_config.menu_links(groups, reports_disabled))
 
     def settings_links(self):
         return ordered_links(self.menu_config.settings_links())

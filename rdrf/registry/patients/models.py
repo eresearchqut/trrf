@@ -338,6 +338,12 @@ class Patient(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     last_updated_overall_at = models.DateTimeField(blank=True, null=True)
+    created_by = models.ForeignKey(
+        CustomUser,
+        blank=True,
+        null=True,
+        related_name="created_patient_object",
+        on_delete=models.SET_NULL)
 
     history = HistoricalRecords()
 
