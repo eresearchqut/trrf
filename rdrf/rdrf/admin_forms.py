@@ -160,7 +160,7 @@ class CommonDataElementAdminForm(ModelForm):
         return data
 
     def _validate_widget_settings(self):
-        settings = json.loads(self.cleaned_data['widget_settings'])
+        settings = json.loads(self.cleaned_data.get('widget_settings', '{}'))
         cde_datatype = self.cleaned_data['datatype']
         cde_min_value = self.cleaned_data['min_value']
         cde_max_value = self.cleaned_data['max_value']

@@ -647,10 +647,10 @@ class SliderWidget(widgets.TextInput):
 class SliderSettingsWidget(widgets.Widget):
 
     @staticmethod
-    def generate_input(name, title, parsed, input_type="text", info=None):
+    def generate_input(name, title, parsed, info=None):
         value = parsed.get(name, '')
         step = 'step="0.01"' if isinstance(value, float) else ''
-        input_str = f'<input type="{input_type}" {step} name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
+        input_str = f'<input type="text" {step} name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
         help_text = f'<div class="help">{info}</div>' if info else ''
         return f"""
             <div>
@@ -661,8 +661,8 @@ class SliderSettingsWidget(widgets.Widget):
 
     def generate_inputs(self, parsed):
         rows = [
-            self.generate_input('min', 'Min value', parsed, 'number', "leave empty if you want to use the CDE's min value"),
-            self.generate_input('max', 'Max value', parsed, 'number', "leave empty if you want to use the CDE's min value"),
+            self.generate_input('min', 'Min value', parsed, "leave empty if you want to use the CDE's min value"),
+            self.generate_input('max', 'Max value', parsed, "leave empty if you want to use the CDE's min value"),
             self.generate_input('left_label', 'Left label', parsed),
             self.generate_input('right_label', 'Right label', parsed),
             self.generate_input('step', 'Step', parsed, 'number'),
@@ -687,7 +687,7 @@ class SliderSettingsWidget(widgets.Widget):
                 var obj = {};
                 for (var i = 0; i < inputs.length; i++) {
                     if (inputs[i].value !='' && inputs[i].value.trim() != '') {
-                        obj[inputs[i].name] = inputs[i].type == 'number' ? parseFloat(inputs[i].value) : inputs[i].value;
+                        obj[inputs[i].name] = inputs[i].value;
                     }
                 }
                 if (!$.isEmptyObject(obj)) {
