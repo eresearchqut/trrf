@@ -607,7 +607,7 @@ class ConsentFileInput(ClearableFileInput):
 
 class SliderWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
-        if not value or not isinstance(value, float) or not isinstance(value, int):
+        if not (value and isinstance(value, float) or isinstance(value, int)):
             value = 0
 
         left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
@@ -618,57 +618,45 @@ class SliderWidget(widgets.TextInput):
         else:
             widget_attrs = ''
 
-        context = """
+        context = f"""
              <div>
-                <div style="float:left; margin-right:20px;"><b>%s</b></div>
+                <div style="float:left; margin-right:20px;"><b>{left_label}</b></div>
                 <div style="float:left">
-                    <input type="hidden" id="%s" name="%s" value="%s"/>
+                    <input type="hidden" id="{attrs['id']}" name="{name}" value="{value}"/>
                 </div>
-                <div style="float:left;margin-left:20px;"><b>%s</b></div>
+                <div style="float:left;margin-left:20px;"><b>{right_label}</b></div>
              </div>
              <br/>
              <script>
-                 $(function() {
-                     $( "#%s" ).bootstrapSlider({
+                 $(function() {{
+                     $( "#{attrs['id']}" ).bootstrapSlider({{
                          tooltip: 'always',
-                         value: '%s',
-                         %s
-                         slide: function( event, ui ) {
-                             $( "#%s" ).val( ui.value );
-                         }
-                     });
-                 });
+                         value: '{value}',
+                         {widget_attrs}
+                         slide: function( event, ui ) {{
+                             $( "#{attrs['id']}" ).val( ui.value );
+                         }}
+                     }});
+                 }});
              </script>
-         """ % (
-            left_label,
-            attrs['id'],
-            name,
-            value,
-            right_label,
-            attrs['id'],
-            value,
-            widget_attrs,
-            attrs['id'],
-        )
+            """
 
         return context
 
 
-class SliderSettingsWidget(widgets.Textarea):
+class SliderSettingsWidget(widgets.Widget):
 
     @staticmethod
     def generate_input(name, title, parsed, input_type="text", info=None):
         value = parsed.get(name, '')
-        info_text = f'title="{info}"' if info else ''
         step = 'step="0.01"' if isinstance(value, float) else ''
-        if input_type == 'number':
-            input_str = f'<input type="{input_type}" {step} name="{name}" id="{name}" value="{value}" {info_text} onchange="saveJSON()">'
-        else:
-            input_str = f'<input type="{input_type}" name="{name}" id="{name}" value="{value}" {info_text} onchange="saveJSON()">'
+        input_str = f'<input type="{input_type}" {step} name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
+        help_text = f'<div class="help">{info}</div>' if info else ''
         return f"""
             <div>
                 <label for="{name}">{title}</label>
                 {input_str}
+                {help_text}
             </div>"""
 
     def generate_inputs(self, parsed):

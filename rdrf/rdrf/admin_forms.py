@@ -1,4 +1,5 @@
 from functools import reduce
+import json
 import logging
 import re
 
@@ -141,3 +142,74 @@ class CommonDataElementAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = CommonDataElement
+
+    def clean_widget_settings(self):
+        data = self.cleaned_data['widget_settings']
+
+        settings = {}
+        try:
+            settings = json.loads(data)
+        except Exception:
+            raise ValidationError(_('Widget settings must be a valid JSON!'))
+
+        allowed_fields = {'min', 'max', 'left_label', 'right_label', 'step'}
+        unknown_fields = set(settings.keys()) - allowed_fields
+        if unknown_fields:
+            raise ValidationError(_('Invalid fields in JSON: {fields}').format(fields=', '.join(unknown_fields)))
+
+        return data
+
+    def _validate_widget_settings(self):
+        settings = json.loads(self.cleaned_data['widget_settings'])
+        cde_datatype = self.cleaned_data['datatype']
+        cde_min_value = self.cleaned_data['min_value']
+        cde_max_value = self.cleaned_data['max_value']
+
+        def validation_error(msg):
+            raise ValidationError({'widget_settings': msg})
+
+        def parse_number(field):
+            if field not in settings:
+                return None
+            try:
+                if cde_datatype == 'float':
+                    return float(settings[field])
+                if cde_datatype == 'integer':
+                    return int(settings[field])
+            except ValueError:
+                validation_error(_('{field} must be {data_type}. Invalid value: {value}').format(
+                    data_type=cde_datatype, field=field, value=settings[field]))
+
+        min_value = parse_number('min')
+        max_value = parse_number('max')
+        step = parse_number('step')
+
+        if cde_min_value is None and min_value is None:
+            validation_error(_('You must supply the widget setting Min value if the CDE Min value is not set'))
+
+        if cde_max_value is None and max_value is None:
+            validation_error(_('You must supply the widget setting Max value if the CDE Max value is not set'))
+
+        if min_value is not None:
+            if min_value < cde_min_value:
+                validation_error(_("Min value must be bigger or equal than CDE's min value!"))
+
+        if max_value is not None:
+            if max_value > cde_max_value:
+                validation_error(_("Max value must be lower or equal than CDE's max value!"))
+
+        if min_value is not None and max_value is not None:
+            if max_value <= min_value:
+                validation_error(_('Max value should be bigger than Min value'))
+
+        if step is not None:
+            overall_min_value = min_value or cde_min_value
+            overall_max_value = max_value or cde_max_value
+            if step >= overall_max_value - overall_min_value:
+                validation_error(_('Step value too large for Min value and Max value'))
+
+    def clean(self):
+        if self.cleaned_data['widget_name'] == 'SliderWidget' and self.cleaned_data['datatype'] not in ('integer', 'float'):
+            raise ValidationError(_('SliderWidget can be used only with CDEs of datatype "integer" or "float"'))
+
+        self._validate_widget_settings()
