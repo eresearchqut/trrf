@@ -660,11 +660,11 @@ class SliderSettingsWidget(widgets.Widget):
 
     def generate_inputs(self, parsed):
         rows = [
-            self.generate_input('min', 'Min value', parsed, "leave empty if you want to use the CDE's min value"),
-            self.generate_input('max', 'Max value', parsed, "leave empty if you want to use the CDE's min value"),
-            self.generate_input('left_label', 'Left label', parsed),
-            self.generate_input('right_label', 'Right label', parsed),
-            self.generate_input('step', 'Step', parsed, 'number'),
+            self.generate_input('min', _('Min value'), parsed, _("leave empty if you want to use the CDE's min value")),
+            self.generate_input('max', _('Max value'), parsed, _("leave empty if you want to use the CDE's max value")),
+            self.generate_input('left_label', _('Left label'), parsed),
+            self.generate_input('right_label', _('Right label'), parsed),
+            self.generate_input('step', _('Step'), parsed),
         ]
         return "<br/>".join(rows)
 
