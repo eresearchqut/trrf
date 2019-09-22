@@ -132,19 +132,19 @@ class CommonDataElementAdminForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance:
-            if self.instance.widget_name == 'SliderWidget':
-                self.fields['widget_settings'].widget = SliderSettingsWidget()
-            else:
-                self.fields['widget_settings'].widget = HiddenInput()
-            self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
+        widget_name = self.data.get('widget_name', '') or self.instance.widget_name
+        if widget_name == 'SliderWidget':
+            self.fields['widget_settings'].widget = SliderSettingsWidget()
+        else:
+            self.fields['widget_settings'].widget = HiddenInput()
+        self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
 
     class Meta:
         fields = "__all__"
         model = CommonDataElement
 
     def clean_widget_settings(self):
-        data = self.cleaned_data['widget_settings']
+        data = self.cleaned_data['widget_settings'] or '{}'
 
         settings = {}
         try:
@@ -160,6 +160,9 @@ class CommonDataElementAdminForm(ModelForm):
         return data
 
     def _validate_widget_settings(self):
+        widget_name = self.cleaned_data['widget_name']
+        if widget_name != 'SliderWidget':
+            return
         settings = json.loads(self.cleaned_data.get('widget_settings', '{}'))
         cde_datatype = self.cleaned_data['datatype']
         cde_min_value = self.cleaned_data['min_value']
@@ -190,11 +193,11 @@ class CommonDataElementAdminForm(ModelForm):
         if cde_max_value is None and max_value is None:
             validation_error(_('You must supply the widget setting Max value if the CDE Max value is not set'))
 
-        if min_value is not None:
+        if min_value is not None and cde_min_value is not None:
             if min_value < cde_min_value:
                 validation_error(_("Min value must be bigger or equal than CDE's min value!"))
 
-        if max_value is not None:
+        if max_value is not None and cde_max_value is not None:
             if max_value > cde_max_value:
                 validation_error(_("Max value must be lower or equal than CDE's max value!"))
 

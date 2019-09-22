@@ -325,7 +325,7 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
     re_path(r'^health-check/?$', health_check, name='health_check'),
-    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>\w+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings')
+    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings')
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:

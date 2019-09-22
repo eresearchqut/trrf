@@ -876,7 +876,7 @@ class CommonDataElement(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        if self.widget_name == 'SliderWidget':
+        if self.widget_name == 'SliderWidget' and self.min_value and self.max_value:
             settings = {
                 "min": float(self.min_value),
                 "max": float(self.max_value)
