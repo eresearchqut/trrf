@@ -649,8 +649,7 @@ class SliderSettingsWidget(widgets.Widget):
     @staticmethod
     def generate_input(name, title, parsed, info=None):
         value = parsed.get(name, '')
-        step = 'step="0.01"' if isinstance(value, float) else ''
-        input_str = f'<input type="text" {step} name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
+        input_str = f'<input type="text" name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
         help_text = f'<div class="help">{info}</div>' if info else ''
         return f"""
             <div>
