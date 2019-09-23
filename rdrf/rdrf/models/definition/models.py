@@ -888,7 +888,7 @@ class CommonDataElement(models.Model):
                 if "min" not in existing and "max" not in existing:
                     existing.update(settings)
                     self.widget_settings = json.dumps(existing)
-        super().save(args, kwargs)
+        super().save(*args, **kwargs)
 
 
 class CdePolicy(models.Model):
