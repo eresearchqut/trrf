@@ -1,9 +1,11 @@
 # Custom widgets / Complex controls required
 import base64
 import datetime
+import json
 import logging
 from operator import attrgetter
 import re
+
 
 import pycountry
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
@@ -605,31 +607,98 @@ class ConsentFileInput(ClearableFileInput):
 
 class SliderWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
-        if not value or not isinstance(value, int):
+        if not (value and isinstance(value, float) or isinstance(value, int)):
             value = 0
 
-        context = """
+        left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
+        right_label = self.attrs.pop("right_label") if "right_label" in self.attrs else ''
+
+        if self.attrs:
+            widget_attrs = ",\n".join("\"{}\":{}".format(k, v) for k, v in self.attrs.items()) + ","
+        else:
+            widget_attrs = ''
+
+        context = f"""
+             <div>
+                <div style="float:left; margin-right:20px;"><b>{left_label}</b></div>
+                <div style="float:left">
+                    <input type="hidden" id="{attrs['id']}" name="{name}" value="{value}"/>
+                </div>
+                <div style="float:left;margin-left:20px;"><b>{right_label}</b></div>
+             </div>
+             <br/>
              <script>
-                 $(function() {
-                     $( "#%s" ).slider({
-                         value: '%s',
-                         min: 0,
-                         max: 100,
-                         slide: function( event, ui ) {
-                             $( "#%s" ).val( ui.value );
-                         }
-                     });
-                 });
+                 $(function() {{
+                     $( "#{attrs['id']}" ).bootstrapSlider({{
+                         tooltip: 'always',
+                         value: '{value}',
+                         {widget_attrs}
+                         slide: function( event, ui ) {{
+                             $( "#{attrs['id']}" ).val( ui.value );
+                         }}
+                     }});
+                 }});
              </script>
-             <input type="hidden" id="%s" name="%s" value="%s"/>
-             <p>
-                 <div class='col-md-2' style="color: green; font-size: x-small"><strong><i>No pain</i></strong></div>
-                 <div class='col-md-7' id='%s'></div>
-                 <div class='col-md-3' style="color: red; font-size: x-small"><strong><i>Worst possible pain</i></strong></div>
-             </p>
-         """ % (name, value, attrs['id'], attrs['id'], name, value, name)
+            """
 
         return context
+
+
+class SliderSettingsWidget(widgets.Widget):
+
+    @staticmethod
+    def generate_input(name, title, parsed, info=None):
+        value = parsed.get(name, '')
+        input_str = f'<input type="text" name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
+        help_text = f'<div class="help">{info}</div>' if info else ''
+        return f"""
+            <div>
+                <label for="{name}">{title}</label>
+                {input_str}
+                {help_text}
+            </div>"""
+
+    def generate_inputs(self, parsed):
+        rows = [
+            self.generate_input('min', _('Min value'), parsed, _("leave empty if you want to use the CDE's min value")),
+            self.generate_input('max', _('Max value'), parsed, _("leave empty if you want to use the CDE's max value")),
+            self.generate_input('left_label', _('Left label'), parsed),
+            self.generate_input('right_label', _('Right label'), parsed),
+            self.generate_input('step', _('Step'), parsed),
+        ]
+        return "<br/>".join(rows)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        parsed = {}
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            pass
+
+        html = """
+             <div style="display:inline-grid" id="id_{name}">
+                {inputs}
+                <input type="hidden" name="{name}" value='{value}'/>
+             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
+        javascript = """
+            function saveJSON() {
+                var inputs = $('#id_%s input[type!=hidden]');
+                var obj = {};
+                for (var i = 0; i < inputs.length; i++) {
+                    if (inputs[i].value !='' && inputs[i].value.trim() != '') {
+                        obj[inputs[i].name] = inputs[i].value;
+                    }
+                }
+                if (!$.isEmptyObject(obj)) {
+                    $("input[name='%s']").val(JSON.stringify(obj));
+                }
+            }
+        """ % (name, name)
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+            </script>""")
 
 
 class SignatureWidget(widgets.TextInput):

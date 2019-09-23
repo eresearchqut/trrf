@@ -776,6 +776,9 @@ class CommonDataElement(models.Model):
         max_length=80,
         blank=True,
         help_text="If a special widget required indicate here - leave blank otherwise")
+    widget_settings = models.TextField(
+        blank=True,
+        help_text="If the widget needs additional settings add them here")
     calculation = models.TextField(
         blank=True,
         help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
@@ -871,6 +874,21 @@ class CommonDataElement(models.Model):
             raise ValidationError({
                 'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
             })
+
+    def save(self, *args, **kwargs):
+        if self.widget_name == 'SliderWidget' and self.min_value and self.max_value:
+            settings = {
+                "min": float(self.min_value),
+                "max": float(self.max_value)
+            }
+            if not self.widget_settings:
+                self.widget_settings = json.dumps(settings)
+            else:
+                existing = json.loads(self.widget_settings)
+                if "min" not in existing and "max" not in existing:
+                    existing.update(settings)
+                    self.widget_settings = json.dumps(existing)
+        super().save(args, kwargs)
 
 
 class CdePolicy(models.Model):

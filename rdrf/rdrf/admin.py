@@ -46,6 +46,8 @@ from rdrf.admin_forms import ConsentConfigurationAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
+from rdrf.admin_forms import CommonDataElementAdminForm
+
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -258,7 +260,8 @@ def create_restricted_model_admin_class(
         model_class,
         search_fields=None,
         ordering=None,
-        list_display=None):
+        list_display=None,
+        form=None):
 
     def query_set_func(model_class):
         def queryset(myself, request):
@@ -287,6 +290,9 @@ def create_restricted_model_admin_class(
         overrides["ordering"] = ordering
     if list_display:
         overrides["list_display"] = list_display
+    if form:
+        overrides["form"] = form
+        overrides["change_form_template"] = form.template
 
     return type(model_class.__name__ + "Admin", (admin.ModelAdmin,), overrides)
 
@@ -462,7 +468,8 @@ CommonDataElementAdmin = create_restricted_model_admin_class(
         'code',
         'name',
         'datatype',
-        'widget_name'])
+        'widget_name'],
+    form=CommonDataElementAdminForm)
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
     (Registry, RegistryAdmin),

@@ -1,3 +1,4 @@
+import json
 import re
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
@@ -234,7 +235,7 @@ class FieldFactory(object):
                 choices.append(choice_tuple)
         return choices
 
-    def _widget_search(self, widget_class_name):
+    def _widget_search(self, cde):
         """
 
         :param widget_class_name: E.g. "RadioSelect" Allow us to override
@@ -242,15 +243,15 @@ class FieldFactory(object):
         """
         import django.forms as django_forms
 
-        if hasattr(widgets, widget_class_name):
-            widget_class = getattr(widgets, widget_class_name)
-            return widget_class
+        if hasattr(widgets, cde.widget_name):
+            widget_class = getattr(widgets, cde.widget_name)
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
 
-        if hasattr(django_forms, widget_class_name):
-            widget_class = getattr(django_forms, widget_class_name)
-            return widget_class
+        if hasattr(django_forms, cde.widget_name):
+            widget_class = getattr(django_forms, cde.widget_name)
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
 
-        if self._is_parametrised_widget(widget_class_name):
+        if self._is_parametrised_widget(cde.widget_name):
             widget_context = {"registry_model": self.registry,
                               "registry_form": self.registry_form,
                               "cde": self.cde,
@@ -260,7 +261,7 @@ class FieldFactory(object):
                               "primary_id": self.primary_id
                               }
 
-            return self._get_parametrised_widget_instance(widget_class_name, widget_context)
+            return self._get_parametrised_widget_instance(cde.widget_name, widget_context)
 
         return None
 
@@ -350,7 +351,7 @@ class FieldFactory(object):
                     label=_(self.cde.name))
             else:
                 if self.cde.widget_name:
-                    widget = self._widget_search(self.cde.widget_name)
+                    widget = self._widget_search(self.cde)
                 else:
                     widget = None
 
@@ -428,7 +429,7 @@ class FieldFactory(object):
 
             if self.cde.widget_name:
                 try:
-                    widget = self._widget_search(self.cde.widget_name)
+                    widget = self._widget_search(self.cde)
                 except Exception as ex:
                     logger.error("Error setting widget %s for cde %s: %s" %
                                  (self.cde.widget_name, self.cde, ex))
