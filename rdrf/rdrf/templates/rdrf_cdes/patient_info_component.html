@@ -19,6 +19,9 @@
                     {% if pi.ancestry %}
                         &nbsp;|&nbsp;{{ pi.ancestry }}
                     {% endif %}
+                    {% if pi.guid %}
+                        &nbsp;|&nbsp;<strong>GUID:</strong>&nbsp;{{ pi.guid}}
+                    {% endif %}
                 {% endwith %}
             </p>
         </div>

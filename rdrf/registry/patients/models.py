@@ -3,6 +3,7 @@ import datetime
 import logging
 from operator import attrgetter
 import pycountry
+import random
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
@@ -386,6 +387,7 @@ class Patient(models.Model):
             'gender': dict(self.SEX_CHOICES).get(self.sex),
             'ancestry': self.ethnic_origin,
             'age': self.age,
+            'guid': self.patientguid.guid if hasattr(self, 'patientguid') else None,
         }
 
     @property
@@ -1655,6 +1657,14 @@ def update_living_status(sender, instance, created, raw, **kwargs):
             patient.save()
 
 
+@receiver(post_save, sender=Patient)
+def generate_patient_guid(sender, instance, created, raw, **kwargs):
+    existing = PatientGUID.objects.filter(patient=instance).exists()
+    can_set_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in instance.rdrf_registry.all())
+    if can_set_guid and not existing:
+        PatientGUID.objects.create(patient=instance)
+
+
 def _get_registry_for_mongo(regs):
     registry_obj = Registry.objects.filter(pk__in=regs)
     json_str = serializers.serialize("json", registry_obj)
@@ -1698,3 +1708,19 @@ def delete_associated_patient_if_any(sender, instance, **kwargs):
     if instance.relative_patient:
         if not hasattr(instance, "skip_archiving"):
             instance.relative_patient.delete()
+
+
+class PatientGUIDManager(models.Manager):
+
+    def randomString(self, letters, length):
+        return ''.join(random.choice(letters) for i in range(length))
+
+    def create(self, *args, **kwargs):
+        kwargs['guid'] = self.randomString('ABCDEFGHJKLMNPRSTUVXYZ', 6) + self.randomString('123456789', 4)
+        return super().create(*args, **kwargs)
+
+
+class PatientGUID(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
+    guid = models.CharField(max_length=16, unique=True)
+    objects = PatientGUIDManager()
