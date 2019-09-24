@@ -1712,11 +1712,17 @@ def delete_associated_patient_if_any(sender, instance, **kwargs):
 
 class PatientGUIDManager(models.Manager):
 
-    def randomString(self, letters, length):
-        return ''.join(random.choice(letters) for i in range(length))
+    def _generate_guid(self):
+        def randomString(letters, length):
+            return ''.join(random.choice(letters) for i in range(length))
+
+        return randomString('ABCDEFGHJKLMNPRSTUVXYZ', 6) + randomString('123456789', 4)
 
     def create(self, *args, **kwargs):
-        kwargs['guid'] = self.randomString('ABCDEFGHJKLMNPRSTUVXYZ', 6) + self.randomString('123456789', 4)
+        if 'guid' not in kwargs:
+            kwargs['guid'] = self._generate_guid()
+        if self.get_queryset().filter(guid=kwargs['guid']).exists():
+            kwargs['guid'] = self._generate_guid()
         return super().create(*args, **kwargs)
 
 
