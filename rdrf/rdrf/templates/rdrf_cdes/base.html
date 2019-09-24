@@ -91,26 +91,21 @@
         <nav class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
-                    <div class="col_project_header">
-                        {% project_logo as PL %}
 
-                        {% if PL %}
-                        {% static "" as baseUrl %}
-                        <a href="{% project_logo_link %}" target="_blank">
-                            <img src="{{ baseUrl }}/{{ PL }}" class="project_logo">
-                        </a>
+                    <a class="navbar-brand project_title" href="{% project_title_link %}">
+                        {% project_logo as PL %}
                         {% project_title as PT %}
+                        {% if PL %}
+                            <img src="{% static PL %}" class="project_logo">
+                            &nbsp;
+                        {% endif %}
                         {% if PT %}
-                        <a class="navbar-brand project_title" href="{% project_title_link %}">
-                            {% project_title %}
-                        </a>
+                            <span>
+                                {% project_title %}
+                            </span>
                         {% endif %}
-                        {% else %}
-                        <a class="navbar-brand" href="{% project_title_link %}">
-                            {% project_title %}
-                        </a>
-                        {% endif %}
-                    </div>
+                    </a>
+
                 </div>
 
                 <!-- Collect the nav links, forms, and other content for toggling -->

@@ -146,9 +146,8 @@ form .aligned ul.errorlist {
 }
 
 .project_logo {
-    height: 60px;
-    width: Auto;
-    position: relative;
+    height: 48px;
+    margin-top: -16px;
     float: left;
 }
 
@@ -179,9 +178,9 @@ form .aligned ul.errorlist {
 }
 
 .promstitle {
-    right:0; 
-    font-family: 'Century Gothic', Helvetica, sans-serif; 
-    font-size: 20px; 
+    right:0;
+    font-family: 'Century Gothic', Helvetica, sans-serif;
+    font-size: 20px;
     font-weight: bold;
     margin: 0;
     color: green;
