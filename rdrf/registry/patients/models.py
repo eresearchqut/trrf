@@ -1712,21 +1712,28 @@ def delete_associated_patient_if_any(sender, instance, **kwargs):
 
 class PatientGUIDManager(models.Manager):
 
-    def _generate_guid(self):
+    @staticmethod
+    def _generate_guid():
         def randomString(letters, length):
             return ''.join(random.choice(letters) for i in range(length))
 
         return randomString('ABCDEFGHJKLMNPRSTUVXYZ', 6) + randomString('123456789', 4)
 
     def create(self, *args, **kwargs):
-        if 'guid' not in kwargs:
-            kwargs['guid'] = self._generate_guid()
-        if self.get_queryset().filter(guid=kwargs['guid']).exists():
-            kwargs['guid'] = self._generate_guid()
+        if not kwargs.get('guid'):
+            kwargs['guid'] = self._generate_unique_guid()
         return super().create(*args, **kwargs)
+
+    def _generate_unique_guid(self):
+        retries = 10
+        for guid in (self._generate_guid() for __ in range(retries)):
+            if not self.get_queryset().filter(guid=guid).exists():
+                return guid
+        raise Exception("Couldn't generate unique GUID for Patient")
 
 
 class PatientGUID(models.Model):
     patient = models.OneToOneField(Patient, on_delete=models.CASCADE)
     guid = models.CharField(max_length=16, unique=True)
+
     objects = PatientGUIDManager()
