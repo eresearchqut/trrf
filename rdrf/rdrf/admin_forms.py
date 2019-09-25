@@ -206,8 +206,8 @@ class CommonDataElementAdminForm(ModelForm):
                 validation_error(_('Max value should be bigger than Min value'))
 
         if step is not None:
-            overall_min_value = min_value or cde_min_value
-            overall_max_value = max_value or cde_max_value
+            overall_min_value = cde_min_value if min_value is None else min_value
+            overall_max_value = cde_max_value if max_value is None else max_value
             if step >= overall_max_value - overall_min_value:
                 validation_error(_('Step value too large for Min value and Max value'))
 
