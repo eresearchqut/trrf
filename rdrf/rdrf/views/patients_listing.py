@@ -316,7 +316,7 @@ class PatientsListingView(View):
         if not ethical_clearance_needed:
             return base_qs
 
-        unassigned_patients_created_by_clinician = self.patients.filter(patients_created_by_clinician & Q(clinician=None))
+        unassigned_patients_created_by_clinician = self.patients.filter(patients_created_by_clinician & Q(clinician__isnull=True))
 
         if self.user.ethically_cleared:
             if self.clinicians_have_patients:
@@ -337,7 +337,6 @@ class PatientsListingView(View):
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
             elif self.user.is_clinician:
-                logger.debug('xx' * 15)
                 self.patients = self.patients_for_clinician()
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
