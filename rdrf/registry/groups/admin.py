@@ -39,7 +39,7 @@ class CustomUserAdmin(UserAdmin):
         if obj is None:
             return self.add_fieldsets
         if request.user.is_superuser:
-            return self.superuser_fieldsets(request.user)
+            return self.superuser_fieldsets(obj)
         return super().get_fieldsets(request, obj)
 
     def get_queryset(self, request):

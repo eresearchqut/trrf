@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('patients', '0044_patient_add_create_and_update_timestamps'),
+        ('patients', '0046_patient_guid_data_migration'),
     ]
 
     operations = [

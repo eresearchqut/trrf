@@ -296,37 +296,34 @@ class PatientsListingView(View):
         self.registry_queryset = Registry.objects.filter(
             code=self.registry_model.code)
         self.patients = Patient.objects.all().prefetch_related(
-            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry__code=self.registry_model.code)
+            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry=self.registry_model)
 
     def apply_search_filter(self):
         if self.search_term:
             name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
             stage_filter = Q(stage__name__istartswith=self.search_term)
-
+            self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
     def patients_for_clinician(self):
-        supports_ethical_clearance = any(
-            r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) for r in self.user.registry.all()
-        )
-        if supports_ethical_clearance:
+        ethical_clearance_needed = self.registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+
+        normal = Q(working_groups__in=self.user.working_groups.all())
+        clinicians_patients = Q(clinician=self.user)
+        patients_created_by_clinician = Q(created_by=self.user)
+
+        base_qs = self.patients.filter(clinicians_patients if self.clinicians_have_patients else normal)
+
+        if not ethical_clearance_needed:
+            return base_qs
+
+        unassigned_patients_created_by_clinician = self.patients.filter(patients_created_by_clinician & Q(clinician=None))
+
+        if self.user.ethically_cleared:
             if self.clinicians_have_patients:
-                if not self.user.ethically_cleared:
-                    return self.patients.filter(created_by=self.user, clinician__isnull=True)
-                else:
-                    query_patients = Q(created_by=self.user, clinician__isnull=True) | Q(clinician=self.user)
-                    return self.patients.filter(query_patients)
-            else:
-                if not self.user.ethically_cleared:
-                    return self.patients.filter(created_by=self.user, clinician__isnull=True)
-                else:
-                    query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(working_groups__in=self.user.working_groups.all())
-                    return self.patients.filter(query_patients)
-        else:
-            if self.clinicians_have_patients:
-                return self.patients.filter(clinician=self.user)
-            else:
-                query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(working_groups__in=self.user.working_groups.all())
-                return self.patients.filter(query_patients)
+                return base_qs | unassigned_patients_created_by_clinician
+            return base_qs
+
+        return self.patients.filter(patients_created_by_clinician)
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
@@ -340,6 +337,7 @@ class PatientsListingView(View):
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
             elif self.user.is_clinician:
+                logger.debug('xx' * 15)
                 self.patients = self.patients_for_clinician()
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
