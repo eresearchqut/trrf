@@ -236,7 +236,7 @@ class DatabaseUtils(object):
         self.col_map = col_map
 
         collection = ClinicalData.objects.collection(self.registry_model.code, self.collection)
-        history = ClinicalData.objects.collection(self.registry_model.code, "history")
+        # history = ClinicalData.objects.collection(self.registry_model.code, "history")
 
         if self.projection:
             self.mongo_models = [model_triple for model_triple in self._get_mongo_fields()]
