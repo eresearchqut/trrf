@@ -137,6 +137,7 @@ class ParentView(BaseParentView):
             given_names=request.POST["first_name"],
             date_of_birth=request.POST["date_of_birth"],
             sex=request.POST["gender"],
+            created_by=request.user
         )
         patient.rdrf_registry.add(registry)
 

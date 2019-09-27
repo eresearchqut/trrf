@@ -105,6 +105,13 @@ class UserChangeForm(UserMixin, forms.ModelForm):
         fields = "__all__"
         model = get_user_model()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            contains_clinician = any(RDRF_GROUPS.CLINICAL == g.name.lower() for g in self.instance.groups.all())
+            if not contains_clinician:
+                self.fields['ethically_cleared'].widget = forms.HiddenInput()
+
     def clean_password(self):
         return self.initial["password"]
 
@@ -121,6 +128,14 @@ class UserChangeForm(UserMixin, forms.ModelForm):
             raise ValidationError([err for err in errors if err])
 
         return self.cleaned_data['groups']
+
+    def clean_ethically_cleared(self):
+        cleared = self.cleaned_data['ethically_cleared']
+        group_names = [g.name for g in self.cleaned_data.get('groups', [])]
+        contains_clinician = any(RDRF_GROUPS.CLINICAL == g.lower() for g in group_names)
+        if not contains_clinician and cleared:
+            raise ValidationError('You can enable ethical clearance only for clincians !')
+        return self.cleaned_data['ethically_cleared']
 
     def _validate_group(self, group_name):
         def group_error_msg(rdrf_group):

@@ -68,6 +68,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         new_patient = super(PatientSerializer, self).create(validated_data)
         new_patient.rdrf_registry.clear()
         new_patient.rdrf_registry.add(self.initial_data.get('registry'))
+        new_patient.created_by = self.initial_data.get('created_by')
         new_patient.save()
         return new_patient
 

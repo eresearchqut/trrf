@@ -404,6 +404,8 @@ class PatientFormMixin:
         # save patient
         patient_form = forms['patient_form']
         self.object = patient_form.save()
+        self.object.created_by = self.user
+        self.object.save()
         # if this patient was created from a patient relative, sync with it
         self.object.sync_patient_relative()
 

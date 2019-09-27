@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
 from useraudit.models import UserDeactivation
+from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
 
@@ -38,7 +39,7 @@ class CustomUserAdmin(UserAdmin):
         if obj is None:
             return self.add_fieldsets
         if request.user.is_superuser:
-            return self.superuser_fieldsets
+            return self.superuser_fieldsets(obj)
         return super().get_fieldsets(request, obj)
 
     def get_queryset(self, request):
@@ -76,12 +77,23 @@ class CustomUserAdmin(UserAdmin):
          'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'groups', 'registry', 'working_groups')}))
 
     # only superusers are allowed to make users superuser
-    superuser_fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
-        ('Permissions', {
-         'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'is_superuser', 'groups', 'registry', 'working_groups')}),
-    )
+    def superuser_fieldsets(self, user):
+        def get_permision_fields(user):
+            base_fields = ['is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'is_superuser',
+                           'groups', 'registry', 'working_groups']
+            show_ethically_cleared = any(r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) for r in user.registry.all())
+            if show_ethically_cleared:
+                base_fields.append('ethically_cleared')
+            return tuple(base_fields)
+
+        fieldset = (
+            (None, {'fields': ('username', 'password')}),
+            ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
+            ('Permissions', {
+                'fields': get_permision_fields(user)
+            }),
+        )
+        return fieldset
 
     get_working_groups.short_description = "Working Groups"
     get_registries.short_description = "Registries"

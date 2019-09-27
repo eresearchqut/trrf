@@ -190,7 +190,7 @@ def cached(func):
 
 @cached
 def get_cached_instance(klass, *args, **kwargs):
-    return klass.objects.get(*args, **kwargs)
+    return klass.objects.filter(*args, **kwargs).first()
 
 
 def is_multisection(code):
