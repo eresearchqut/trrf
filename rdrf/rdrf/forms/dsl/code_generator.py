@@ -234,7 +234,7 @@ class CodeGenerator:
                 \t{event_handlers}
                 \t{self.get_initializer()}'''
 
-            logger.info(f"Generated code:\n{ret_val}")
+            logger.debug(f"Generated code:\n{ret_val}")
             return ret_val
         except Exception:
             logger.exception("Exception while parsing dsl")
