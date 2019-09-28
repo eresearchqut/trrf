@@ -109,7 +109,7 @@ class UserChangeForm(UserMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance:
             contains_clinician = any(RDRF_GROUPS.CLINICAL == g.name.lower() for g in self.instance.groups.all())
-            if not contains_clinician:
+            if 'ethically_cleared' in self.fields and not contains_clinician:
                 self.fields['ethically_cleared'].widget = forms.HiddenInput()
 
     def clean_password(self):
