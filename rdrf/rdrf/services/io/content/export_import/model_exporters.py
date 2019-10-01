@@ -53,7 +53,9 @@ class SectionExporter(ModelExporter):
         if registry.patient_data_section is not None:
             yield registry.patient_data_section
         for section_code in registry.generic_sections:
-            yield models.Section.objects.get(code=section_code)
+            section_model = models.Section.objects.filter(code=section_code).first()
+            if section_model:
+                yield section_model
 
     @property
     def queryset(self):
