@@ -426,14 +426,30 @@ class DatabaseUtils(object):
             if section_model and cde_model:
                 yield form_model, section_model, cde_model
 
+    def get_cde_forms_list(self):
+        """
+        Get all distinct forms to which the CDEs used in the report belong
+        """
+        forms = set()
+        for key, column_name in self.col_map.items():
+            if isinstance(key, tuple) and len(key) == 4:
+                form_model, *rest = key
+                forms.add(form_model.name)
+        return forms
+
     def run_mongo_one_row(self, sql_column_data, collection, max_items):
+
+        def has_valid_form(record):
+            forms = self.get_cde_forms_list()
+            return any(f['name'] in forms for f in record['forms'])
+
         mongo_query = {
             "django_model": "Patient",
             "django_id": sql_column_data["id"],  # convention?
         }
 
-        records = collection.find(**mongo_query).data()
-        num_records = records.count()
+        records = [r for r in collection.find(**mongo_query).data() if has_valid_form(r)]
+        num_records = len(records)
         if num_records == 0:
             yield None
         else:
