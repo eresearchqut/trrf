@@ -144,12 +144,15 @@ class ReportingTableGenerator(object):
 
     def _create_must_exist_columns(self):
         # These columns will always appear
-        self.columns.append(self._create_column("context_id", alc.Integer))
-        self._add_reverse_mapping("context_id", "context_id")
+
+        # Oct 5 demo note: Don't need context_id and snapshot columns for the demo
+
+        # self.columns.append(self._create_column("context_id", alc.Integer))
+        # self._add_reverse_mapping("context_id", "context_id")
         self.columns.append(self._create_column("timestamp", alc.String))
         self._add_reverse_mapping("timestamp", "timestamp")
-        self.columns.append(self._create_column("snapshot", alc.Boolean))
-        self._add_reverse_mapping("snapshot", "snapshot")
+        # self.columns.append(self._create_column("snapshot", alc.Boolean))
+        # self._add_reverse_mapping("snapshot", "snapshot")
 
     def _create_sql_columns(self, sql_metadata):
         # Columns from sql query
