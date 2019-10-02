@@ -158,7 +158,7 @@ class DatabaseUtils(object):
             for i, item in enumerate(row):
                 sql_column_name = self.reverse_map[i]
                 sql_columns_dict[sql_column_name] = item
-                sql_columns_dict["snapshot"] = False
+                # sql_columns_dict["snapshot"] = False
             return sql_columns_dict
 
         def sql_only_c():
@@ -186,7 +186,7 @@ class DatabaseUtils(object):
                     for context_model in patient_model.context_models:
                         context_id = context_model.pk
                         row = copy(row_dict)
-                        row["context_id"] = context_id
+                        # row["context_id"] = context_id
 
                         qry = q.filter(registry_id=registry_id,
                                        patient_id=patient_id,
@@ -269,10 +269,10 @@ class DatabaseUtils(object):
 
                     for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                         if mongo_columns_dict is None:
-                            sql_columns_dict["snapshot"] = False
+                            # sql_columns_dict["snapshot"] = False
                             yield sql_columns_dict
                         else:
-                            mongo_columns_dict["snapshot"] = False
+                            # mongo_columns_dict["snapshot"] = False
                             for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                                 yield combined_dict
 
@@ -285,10 +285,10 @@ class DatabaseUtils(object):
 
                 for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
                     if mongo_columns_dict is None:
-                        sql_columns_dict["snapshot"] = False
+                        # sql_columns_dict["snapshot"] = False
                         yield sql_columns_dict
                     else:
-                        mongo_columns_dict["snapshot"] = False
+                        # mongo_columns_dict["snapshot"] = False
                         for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
                             yield combined_dict
 
@@ -472,7 +472,7 @@ class DatabaseUtils(object):
             record = mongo_document["record"]
         else:
             record = mongo_document
-        result["context_id"] = record.get("context_id", None)
+        # result["context_id"] = record.get("context_id", None)
 
         # timestamp from top level in for current and snapshot
         result['timestamp'] = mongo_document.get("timestamp", None)
