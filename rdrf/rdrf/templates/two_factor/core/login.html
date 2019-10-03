@@ -84,10 +84,12 @@
           </div>
       </div>
 
+      {% block footer %}
       <div class="panel-footer">
           <a href="{% url 'login_assistance' %}">{% trans "Trouble signing in?" %}</a>
           <div class="clearfix"></div>
       </div>
+      {% endblock %}
 
   </form>
 
