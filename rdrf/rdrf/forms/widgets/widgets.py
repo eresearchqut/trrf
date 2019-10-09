@@ -637,6 +637,9 @@ class SliderWidget(widgets.TextInput):
                              $( "#{attrs['id']}" ).val( ui.value );
                          }}
                      }});
+                     // Set z-index to 0 for slider tooltip so it's not displayed through
+                     // form headers
+                     $(".slider .tooltip").css("z-index","0");
                  }});
              </script>
             """
