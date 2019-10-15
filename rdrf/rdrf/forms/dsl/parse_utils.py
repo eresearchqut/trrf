@@ -40,9 +40,19 @@ CDEInfo = namedtuple('CDEInfo', 'name type allow_multiple is_multi_section forms
 class CDEHelper:
 
     def __init__(self, form):
+        self.form = form
         self.cde_names_dict = self.get_cde_names_dict(form)
         self.section_names_dict = self.get_section_names_dict(form)
         self.cde_values_dict = self.get_cde_values_dict(form)
+        self.section_dict = self.get_cde_sections_dict(form)
+
+    @staticmethod
+    def get_cde_sections_dict(form):
+        return {
+            m.code: s.code
+            for s in form.section_models
+            for m in s.cde_models
+        }
 
     @staticmethod
     def get_section_names_dict(form):
@@ -97,6 +107,12 @@ class CDEHelper:
             for m in s.cde_models
         }
 
+    def get_cde_section(self, cde):
+        return self.section_dict.get(cde, None)
+
+    def get_cdes_for_section(self, section_code):
+        return [m.code for s in self.form.section_models for m in s.cde_models if s.code == section_code]
+
     def get_cde_info(self, cde):
         default_info = CDEInfo(cde, None, False, False, '')
         return self.cde_names_dict.get(cde, default_info)
@@ -108,6 +124,9 @@ class CDEHelper:
     def get_actual_value(self, cde, value):
         stripped_val = value.strip('"')
         return self.cde_values_dict.get(cde, {}).get('values', {}).get(stripped_val.lower(), stripped_val)
+
+    def get_data_type(self, cde):
+        return self.cde_values_dict.get(cde, {}).get('type', None)
 
     def is_valid_value(self, cde, value):
 
@@ -166,6 +185,12 @@ class EnrichedCDE:
 
     def get_section_info(self):
         return self.cde_helper.get_section_info(self.cde)
+
+    def get_section(self):
+        return self.cde_helper.get_cde_section(self.cde)
+
+    def get_data_type(self):
+        return self.cde_helper.get_data_type(self.cde)
 
     def actual_cde_value(self, value):
         parts = value.split(", ")

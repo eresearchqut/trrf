@@ -1016,19 +1016,18 @@ class RegistryForm(models.Model):
         returns a list of sectioncode.cde_code strings
         E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
         """
-        return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
+        return [q.strip() for q in self.questionnaire_questions.split(",") if q.strip()]
 
     @property
     def section_models(self):
         return Section.objects.get_by_comma_separated_codes(self.sections)
 
     def in_questionnaire(self, section_code, cde_code):
-        questionnaire_code = "%s.%s" % (section_code, cde_code)
-        return questionnaire_code in self.questionnaire_list
+        return f"{section_code}.{cde_code}" in self.questionnaire_list
 
     @property
     def has_progress_indicator(self):
-        return True if len(self.complete_form_cdes.values_list()) > 0 else False
+        return len(self.complete_form_cdes.values_list()) > 0
 
     def link(self, patient_model):
         from rdrf.helpers.utils import FormLink
