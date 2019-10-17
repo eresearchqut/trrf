@@ -60,7 +60,9 @@
         }
 
         function add_form(prefix) {
+
             var mgmt_form = $("#mgmt_" + prefix);
+            $("#section_" + prefix).parent().siblings().find(".glyphicon-triangle-right").trigger('click');
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);
 
