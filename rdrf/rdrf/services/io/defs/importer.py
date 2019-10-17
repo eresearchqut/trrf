@@ -1,4 +1,7 @@
+import json
 import logging
+import yaml
+
 
 from rdrf.helpers.registry_features import RegistryFeatures
 
@@ -19,6 +22,7 @@ from rdrf.models.definition.models import FormTitle
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 from registry.groups.models import WorkingGroup
+from registry.patients.models import Patient, PatientStage, PatientStageRule
 
 from explorer.models import Query
 
@@ -28,9 +32,8 @@ from django.core.exceptions import ValidationError
 
 
 from rdrf.helpers.utils import create_permission
+from .patient_stage_changes import PatientStageChanges
 
-import yaml
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -506,7 +509,80 @@ class Importer(object):
         r.save()
         logger.info("imported registry object OK")
 
-        if "consent_configuration" in self.data:
+        changes = None
+        if "patient_stages" in self.data:
+            logger.info("Importing stages")
+            stages = self.data["patient_stages"]
+            changes = PatientStageChanges(stages, r)
+            to_remove = changes.get_removed_stages()
+            to_add = changes.get_added_stages()
+            renames = changes.get_renamed_stages()
+            associated_patients = Patient.objects.filter(rdrf_registry__in=[r], stage__name__in=to_remove).exists()
+            if associated_patients:
+                raise RegistryImportError(f"Cannot remove {to_remove} stages as there are patients associated with them !")
+
+            for stage_name in to_remove:
+                logger.info(f"Removing stage: {stage_name}")
+                stage = PatientStage.objects.filter(name=stage_name, registry=r).first()
+                if stage:
+                    for s in PatientStage.objects.filter(registry=r, allowed_prev_stages__in=[stage]):
+                        logger.info(f"Remove prev stage {stage} from {s}")
+                        s.allowed_prev_stages.remove(stage)
+                        s.save()
+                    for s in PatientStage.objects.filter(registry=r, allowed_next_stages__in=[stage]):
+                        logger.info(f"Remove next stage {stage} from {s}")
+                        s.allowed_next_stages.remove(stage)
+                        s.save()
+                PatientStage.objects.filter(name=stage_name, registry=r).delete()
+
+            for k, v in renames.items():
+                PatientStage.objects.filter(name=k, registry=r).update(name=v)
+
+            for stages_dict in stages:
+                s = PatientStage.objects.filter(name=stages_dict["name"], registry=r).first()
+                if s:
+                    changes.add_stage_mapping(stages_dict["id"], s)
+
+            for new_stage in to_add:
+                created = PatientStage.objects.create(name=new_stage, registry=r)
+                logger.info(f'Created stage {new_stage}')
+                stage_id = changes.get_reverse_mapping(new_stage)
+                changes.add_stage_mapping(stage_id, created)
+
+            for stage_dict in stages:
+                if changes.has_stage_mapping(stage_dict["id"]):
+                    prev_stages = stage_dict["prev_stages"]
+                    next_stages = stage_dict["next_stages"]
+                    current_stage = changes.get_stages_mapping(stage_dict["id"])
+                    if prev_stages:
+                        current_stage.allowed_prev_stages.clear()
+                        for stage_id in prev_stages:
+                            current_stage.allowed_prev_stages.add(changes.get_stages_mapping(stage_id))
+                    if next_stages:
+                        current_stage.allowed_next_stages.clear()
+                        for stage_id in next_stages:
+                            current_stage.allowed_next_stages.add(changes.get_stages_mapping(stage_id))
+
+            logger.info("Patient stages imported")
+
+        if "patient_stage_rules" in self.data and changes and changes.contains_stage_mappings():
+            logger.info("Importing patient stage rules")
+            logger.info("Delete existing patient stage rules")
+            PatientStageRule.objects.filter(registry=r).delete()
+            rules = self.data["patient_stage_rules"]
+            for rules_dict in rules:
+                from_stage = changes.get_stages_mapping(rules_dict["from_stage"]) if rules_dict["from_stage"] else None
+                to_stage = changes.get_stages_mapping(rules_dict["to_stage"]) if rules_dict["to_stage"] else None
+                PatientStageRule.objects.create(
+                    registry=r,
+                    condition=rules_dict["condition"],
+                    order=rules_dict["order"],
+                    from_stage=from_stage,
+                    to_stage=to_stage
+                )
+            logger.info("Patient stage rules imported")
+
+        if "consent_configuration" in self.data and self.data["consent_configuration"]:
             config_map = self.data["consent_configuration"]
             ConsentConfiguration.objects.get_or_create(
                 registry=r, consent_locked=config_map['consent_locked'], esignature=config_map['esignature']
@@ -516,7 +592,7 @@ class Importer(object):
             config.consent_locked = registry_consent_locked
             config.save()
 
-        if "form_titles" in self.data:
+        if "form_titles" in self.data and self.data["form_titles"]:
             titles = self.data["form_titles"]
             import_default_titles = set(t["default_title"] for t in titles)
             existing_titles = set(t[0] for t in FormTitle.FORM_TITLE_CHOICES)

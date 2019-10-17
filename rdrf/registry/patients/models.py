@@ -1209,6 +1209,7 @@ class PatientUpdateMixin:
 
 
 class PatientStage(models.Model):
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE, related_name='+')
     name = models.CharField(max_length=200)
     allowed_prev_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)
     allowed_next_stages = models.ManyToManyField('self', symmetrical=False, related_name='+', blank=True)

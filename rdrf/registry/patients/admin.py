@@ -72,6 +72,8 @@ class PatientStageAdmin(admin.ModelAdmin):
     model = PatientStage
     form = PatientStageForm
     extra = 0
+    list_display = ('name', 'registry')
+    ordering = ('registry', 'pk')
 
 
 class PatientStageRuleAdmin(admin.ModelAdmin):
