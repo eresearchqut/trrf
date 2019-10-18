@@ -216,6 +216,8 @@
         var empty_form = $("#empty_" + prefix);
         var forms = $("#forms_" + prefix);
 
+        forms.parent().siblings().find(".glyphicon-triangle-right").trigger('click');
+
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
 
         var new_form = empty_form.clone(true, true);
