@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
-from rdrf.forms.widgets.widgets import SliderSettingsWidget
+from rdrf.forms.widgets.widgets import SliderWidgetSettings, TimeWidgetSettings
 from registry.patients.models import Patient
 
 
@@ -133,10 +133,11 @@ class CommonDataElementAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget_name = self.data.get('widget_name', '') or self.instance.widget_name
-        if widget_name == 'SliderWidget':
-            self.fields['widget_settings'].widget = SliderSettingsWidget()
-        else:
-            self.fields['widget_settings'].widget = HiddenInput()
+        settings_dict = {
+            'SliderWidget': lambda: SliderWidgetSettings(),
+            'TimeWidget': lambda: TimeWidgetSettings(),
+        }
+        self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
 
     class Meta:
@@ -144,26 +145,25 @@ class CommonDataElementAdminForm(ModelForm):
         model = CommonDataElement
 
     def clean_widget_settings(self):
-        data = self.cleaned_data['widget_settings'] or '{}'
+        settings_widget = self.fields['widget_settings'].widget
+        if not hasattr(settings_widget, 'get_allowed_fields'):
+            return
 
+        data = self.cleaned_data['widget_settings'] or '{}'
         settings = {}
         try:
             settings = json.loads(data)
         except Exception:
             raise ValidationError(_('Widget settings must be a valid JSON!'))
 
-        allowed_fields = {'min', 'max', 'left_label', 'right_label', 'step'}
+        allowed_fields = settings_widget.get_allowed_fields()
         unknown_fields = set(settings.keys()) - allowed_fields
         if unknown_fields:
             raise ValidationError(_('Invalid fields in JSON: {fields}').format(fields=', '.join(unknown_fields)))
 
         return data
 
-    def _validate_widget_settings(self):
-        widget_name = self.cleaned_data['widget_name']
-        if widget_name != 'SliderWidget':
-            return
-        settings = json.loads(self.cleaned_data.get('widget_settings', '{}'))
+    def _validate_slider_widget_settings(self, settings):
         cde_datatype = self.cleaned_data['datatype']
         cde_min_value = self.cleaned_data['min_value']
         cde_max_value = self.cleaned_data['max_value']
@@ -210,6 +210,26 @@ class CommonDataElementAdminForm(ModelForm):
             overall_max_value = cde_max_value if max_value is None else max_value
             if step >= overall_max_value - overall_min_value:
                 validation_error(_('Step value too large for Min value and Max value'))
+
+    def _validate_time_widget_settings(self, settings):
+        if 'format' not in settings:
+            raise ValidationError({'widget_settings': _("The format must be specified for time widget settings !")})
+
+    def _default_validate_widget_settings(self, settings):
+        pass
+
+    def _validate_widget_settings(self):
+        widget_name = self.cleaned_data['widget_name']
+        validators = {
+            'SliderWidget': self._validate_slider_widget_settings,
+            'TimeWidget': self._validate_time_widget_settings
+        }
+        validator = validators.get(widget_name, self._default_validate_widget_settings)
+        cleaned_settings = self.cleaned_data.get('widget_settings')
+        if not cleaned_settings:
+            self.cleaned_data['widget_settings'] = '{}'
+        settings = json.loads(self.cleaned_data['widget_settings'])
+        validator(settings)
 
     def clean(self):
         if self.cleaned_data['widget_name'] == 'SliderWidget' and self.cleaned_data['datatype'] not in ('integer', 'float'):

@@ -23,6 +23,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
+    <link rel="stylesheet" type="text/css" href="{% static 'timepicki/css/timepicki.css' %}">
+
 
     {% project_stylesheet as PSS %}
     {% if PSS %}
@@ -48,6 +50,7 @@
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'timepicki/js/timepicki.js' %}"></script>
     <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
     {% block extrastyle %}
     <style>
