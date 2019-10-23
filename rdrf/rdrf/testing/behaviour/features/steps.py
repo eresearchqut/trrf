@@ -736,7 +736,7 @@ def scroll_to_section(step, section):
 def add_multisection_item(step, section):
     xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     div = world.browser.find_element_by_xpath(xpath)
-    add_link_xpath = """.//a[starts-with(@onclick,"add_form('formset_")]"""
+    add_link_xpath = """.//a[starts-with(@onclick,"add_form(")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
     add_link.click()
     # sometimes the next cde send keys was going to the wrong item
