@@ -21,6 +21,18 @@ var CollapsingPanels = function() {
         getAllPanelBodies().collapse('hide');
     }
 
+    function expandParentPanel(el, handler) {
+        var parentPanel = $(el).parents(collapsiblePanelsSelector);
+        if (!parentPanel.length) {
+            return;
+        }
+        var panelBody = parentPanel.find('.panel-body');
+        panelBody.collapse('show');
+        if (typeof(handler) !== 'undefined') {
+            handler();
+        };
+    }
+
     function setUpCollapseAllButton() {
         // Adding the collapse button works only if we have one and only one <hx> element in the page header.
         // Otherwise, we might mess up the layout. This can be further customise as needed later on (ie. pass in selector of the button etc.)
@@ -97,6 +109,7 @@ var CollapsingPanels = function() {
 
     return {
         setUp: setUp,
+        expandParentPanel: expandParentPanel,
         expandAll: expandAll,
         collapseAll: collapseAll
     }
