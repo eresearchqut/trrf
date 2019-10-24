@@ -108,7 +108,9 @@
                     $("#guardian-form").accordion('option', 'active' ,0);
                 }
                 if (registration_form.valid()) {
-                    registration_form.submit();
+                    registration_form.submit(function(evt) {
+                        evt.preventDefault();
+                    });
                 } else {
                     var msg = $("#form-invalid");
                     msg.slideDown("slow", function() {
