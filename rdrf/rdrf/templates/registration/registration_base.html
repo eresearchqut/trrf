@@ -102,15 +102,9 @@
 
             $("#registration-submit").click(function() {
                 var registration_form = $("#registration-form");
-                $("#id_email").val($("#id_username").val());
-                $("#patient-form").accordion("option", "active" ,0);
-                if ($("#guardian-form").length > 0) {
-                    $("#guardian-form").accordion('option', 'active' ,0);
-                }
+                onBeforeSubmit();
                 if (registration_form.valid()) {
-                    registration_form.submit(function(evt) {
-                        evt.preventDefault();
-                    });
+                    registration_form.submit();
                 } else {
                     var msg = $("#form-invalid");
                     msg.slideDown("slow", function() {
@@ -170,10 +164,18 @@
             $("#registration-submit").prop("disabled", true);
         }
 
-        // Overwrite in specific template if needed.
+        // Overwrite these in specific template if needed.
+
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
 
+        function onBeforeSubmit() {
+            $("#id_email").val($("#id_username").val());
+            $("#patient-form").accordion("option", "active" ,0);
+            if ($("#guardian-form").length > 0) {
+                $("#guardian-form").accordion('option', 'active' ,0);
+            }
+        }
     </script>
 
     {% block extrahead %}
