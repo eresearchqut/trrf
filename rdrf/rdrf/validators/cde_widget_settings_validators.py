@@ -44,9 +44,6 @@ class SliderWidgetSettingsValidator(BaseValidator):
         cde_min_value = self.cleaned_data['min_value']
         cde_max_value = self.cleaned_data['max_value']
 
-        def validation_error(msg):
-            raise ValidationError({'widget_settings': msg})
-
         def parse_number(field):
             if field not in self.settings:
                 return None
@@ -56,7 +53,7 @@ class SliderWidgetSettingsValidator(BaseValidator):
                 if cde_datatype == 'integer':
                     return int(self.settings[field])
             except ValueError:
-                validation_error(_('{field} must be {data_type}. Invalid value: {value}').format(
+                raise ValidationError(_('{field} must be {data_type}. Invalid value: {value}').format(
                     data_type=cde_datatype, field=field, value=self.settings[field]))
 
         min_value = parse_number('min')
@@ -64,28 +61,28 @@ class SliderWidgetSettingsValidator(BaseValidator):
         step = parse_number('step')
 
         if cde_min_value is None and min_value is None:
-            validation_error(_('You must supply the widget setting Min value if the CDE Min value is not set'))
+            raise ValidationError(_('You must supply the widget setting Min value if the CDE Min value is not set'))
 
         if cde_max_value is None and max_value is None:
-            validation_error(_('You must supply the widget setting Max value if the CDE Max value is not set'))
+            raise ValidationError(_('You must supply the widget setting Max value if the CDE Max value is not set'))
 
         if min_value is not None and cde_min_value is not None:
             if min_value < cde_min_value:
-                validation_error(_("Min value must be bigger or equal than CDE's min value!"))
+                raise ValidationError(_("Min value must be bigger or equal than CDE's min value!"))
 
         if max_value is not None and cde_max_value is not None:
             if max_value > cde_max_value:
-                validation_error(_("Max value must be lower or equal than CDE's max value!"))
+                raise ValidationError(_("Max value must be lower or equal than CDE's max value!"))
 
         if min_value is not None and max_value is not None:
             if max_value <= min_value:
-                validation_error(_('Max value should be bigger than Min value'))
+                raise ValidationError(_('Max value should be bigger than Min value'))
 
         if step is not None:
             overall_min_value = cde_min_value if min_value is None else min_value
             overall_max_value = cde_max_value if max_value is None else max_value
             if step >= overall_max_value - overall_min_value:
-                validation_error(_('Step value too large for Min value and Max value'))
+                raise ValidationError(_('Step value too large for Min value and Max value'))
 
 
 class TimeWidgetSettingsValidator(BaseValidator):
@@ -93,7 +90,7 @@ class TimeWidgetSettingsValidator(BaseValidator):
     def validate(self):
         super().validate()
         if 'format' not in self.settings:
-            raise ValidationError({'widget_settings': _("The format must be specified for time widget settings !")})
+            raise ValidationError(_("The format must be specified for time widget settings !"))
 
 
 def get_validator(widget_instance, cleaned_data):
