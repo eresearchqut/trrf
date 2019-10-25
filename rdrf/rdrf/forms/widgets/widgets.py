@@ -698,10 +698,9 @@ class SliderWidgetSettings(widgets.Widget):
                         obj[inputs[i].name] = inputs[i].value;
                     }
                 }
-                if (!$.isEmptyObject(obj)) {
-                    $("input[name='%s']").val(JSON.stringify(obj));
-                }
+                $("input[name='%s']").val(JSON.stringify(obj));
             }
+            saveJSON();
         """ % (name, name)
         return mark_safe(f"""
             {html}
