@@ -652,6 +652,9 @@ class SliderWidgetSettings(widgets.Widget):
     def get_allowed_fields(self):
         return {'min', 'max', 'left_label', 'right_label', 'step'}
 
+    def usable_for_types(self):
+        return {'integer', 'float'}
+
     @staticmethod
     def generate_input(name, title, parsed, info=None):
         value = parsed.get(name, '')
@@ -908,6 +911,9 @@ class TimeWidgetSettings(TimeWidgetMixin, widgets.Widget):
 
     def get_allowed_fields(self):
         return {'format'}
+
+    def usable_for_types(self):
+        return {'string'}
 
     def generate_input(self, name, title, parsed, info=None):
         value = parsed.get(name, '')
