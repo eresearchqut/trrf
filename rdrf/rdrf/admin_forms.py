@@ -1,9 +1,10 @@
 from functools import reduce
+import importlib
 import logging
 import re
 
 from django.conf import settings
-from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput
+from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
@@ -139,7 +140,9 @@ class CommonDataElementAdminForm(ModelForm):
             'TimeWidget': lambda: TimeWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
+        self.fields['widget_name'].widget = Select()
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
+        self.fields['datatype'].widget.attrs = {'onchange': 'dataTypeChangeHandler()'}
 
     class Meta:
         fields = "__all__"
@@ -150,3 +153,13 @@ class CommonDataElementAdminForm(ModelForm):
         if validator:
             validator.validate()
         return self.cleaned_data['widget_settings']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_type = cleaned_data.get('datatype')
+        widget_name = cleaned_data.get('widget_name')
+        if widget_name:
+            WidgetClass = getattr(importlib.import_module("rdrf.forms.widgets.widgets"), widget_name)
+            if data_type not in WidgetClass.usable_for_types():
+                raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))
+        return cleaned_data

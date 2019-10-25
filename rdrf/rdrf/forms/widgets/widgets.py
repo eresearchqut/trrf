@@ -31,12 +31,20 @@ class BadCustomFieldWidget(Textarea):
 
 class DatatypeWidgetAlphanumericxxx(Textarea):
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     def render(self, name, value, attrs=None, renderer=None):
         html = super(DatatypeWidgetAlphanumericxxx, self).render(name, value, attrs)
         return "<table border=3>%s</table>" % html
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
         self.main_choices = main_choices
@@ -109,6 +117,10 @@ class OtherPleaseSpecifyWidget(MultiWidget):
 
 class CalculatedFieldWidget(widgets.TextInput):
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_CALCULATED}
+
     def __init__(self, script, attrs={}):
         attrs['readonly'] = 'readonly'
         self.script = script
@@ -120,6 +132,11 @@ class CalculatedFieldWidget(widgets.TextInput):
 
 
 class ExtensibleListWidget(MultiWidget):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
 
     def __init__(self, prototype_widget, attrs={}):
         self.widget_count = 1
@@ -153,6 +170,11 @@ class ExtensibleListWidget(MultiWidget):
 
 
 class LookupWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     SOURCE_URL = ""
 
     def render(self, name, value, attrs, renderer=None):
@@ -168,6 +190,10 @@ class LookupWidget(widgets.TextInput):
 
 class LookupWidget2(LookupWidget):
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     def render(self, name, value, attrs, renderer=None):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
@@ -180,11 +206,20 @@ class LookupWidget2(LookupWidget):
 
 
 class GeneLookupWidget(LookupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     SOURCE_URL = reverse_lazy('v1:gene-list')
 
 
 class LaboratoryLookupWidget(LookupWidget2):
     SOURCE_URL = reverse_lazy('v1:laboratory-list')
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER}
 
     def render(self, name, value, attrs, renderer=None):
         widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
@@ -197,6 +232,10 @@ class LaboratoryLookupWidget(LookupWidget2):
 
 
 class DateWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_DATE}
 
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
@@ -213,6 +252,10 @@ class DateWidget(widgets.TextInput):
 
 
 class CountryWidget(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
@@ -235,6 +278,10 @@ class CountryWidget(widgets.Select):
 
 
 class StateWidget(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         try:
@@ -307,6 +354,10 @@ class ParametrisedSelectWidget(widgets.Select):
 
 class StateListWidget(ParametrisedSelectWidget):
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
             country_code=self._widget_context['questionnaire_context'].upper())
@@ -325,6 +376,11 @@ class StateListWidget(ParametrisedSelectWidget):
 
 class DataSourceSelect(ParametrisedSelectWidget):
 
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
+
     """
     A parametrised select that retrieves values from a data source specified in the parameter
     """
@@ -341,6 +397,10 @@ class DataSourceSelect(ParametrisedSelectWidget):
 
 
 class PositiveIntegerInput(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER}
 
     def render(self, name, value, attrs, renderer=None):
         min_value, max_value = self._get_value_range(name)
@@ -361,6 +421,10 @@ class RadioSelect(widgets.RadioSelect):
     # def __init__(self, name, value, attrs, renderer):
     #     super(RadioSelect, self).__init__(renderer=renderer)
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_RANGE}
+
     def render(self, name, value, attrs=None, renderer=None):
         html = super().render(name, value, attrs, renderer)
         return self._transform(html)
@@ -373,6 +437,11 @@ class RadioSelect(widgets.RadioSelect):
 
 
 class ReadOnlySelect(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
 
     def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
@@ -467,22 +536,46 @@ class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
 
 
 class DNAValidator(GenericValidatorWithConstructorPopupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
+
     RPC_COMMAND_NAME = "validate_dna"
     CONSTRUCTOR_FORM_NAME = "variation"
     CONSTRUCTOR_NAME = "DNA"
 
 
 class RNAValidator(GenericValidatorWithConstructorPopupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
+
     RPC_COMMAND_NAME = "validate_rna"
     CONSTRUCTOR_FORM_NAME = "variation"
     CONSTRUCTOR_NAME = "RNA"
 
 
 class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
+
     RPC_COMMAND_NAME = "validate_protein"
 
 
 class ExonValidator(GenericValidatorWithConstructorPopupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        # TODO: what are the applicable types for this widget ?
+        return set()
+
     RPC_COMMAND_NAME = "validate_exon"
 
 
@@ -494,6 +587,10 @@ class MultipleFileInput(Widget):
     It relies on javascript in form.js, which uses styling from
     rdrf.css.
     """
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_FILE}
 
     @staticmethod
     def input_name(base_name, i):
@@ -568,6 +665,11 @@ class ValueWrapper:
 
 
 class ConsentFileInput(ClearableFileInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_FILE}
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         checkbox_name = self.clear_checkbox_name(name)
@@ -606,6 +708,11 @@ class ConsentFileInput(ClearableFileInput):
 
 
 class SliderWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER, CommonDataElement.DATA_TYPE_FLOAT}
+
     def render(self, name, value, attrs=None, renderer=None):
         if not (value and isinstance(value, float) or isinstance(value, int)):
             value = 0
@@ -649,11 +756,13 @@ class SliderWidget(widgets.TextInput):
 
 class SliderWidgetSettings(widgets.Widget):
 
-    def get_allowed_fields(self):
+    @staticmethod
+    def get_allowed_fields():
         return {'min', 'max', 'left_label', 'right_label', 'step'}
 
-    def usable_for_types(self):
-        return {'integer', 'float'}
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER, CommonDataElement.DATA_TYPE_FLOAT}
 
     @staticmethod
     def generate_input(name, title, parsed, info=None):
@@ -710,6 +819,11 @@ class SliderWidgetSettings(widgets.Widget):
 
 
 class SignatureWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
     def render(self, name, value, attrs=None, renderer=None):
 
         has_value = value and value != 'None'
@@ -810,6 +924,11 @@ class SignatureWidget(widgets.TextInput):
 
 
 class AllConsentWidget(widgets.CheckboxInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_BOOL}
+
     def render(self, name, value, attrs=None, renderer=None):
 
         base = super().render(name, value, attrs, renderer)
@@ -834,6 +953,10 @@ class TimeWidgetMixin:
 
 
 class TimeWidget(TimeWidgetMixin, widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_TIME}
 
     def _parse_value(self, value, fmt):
         '''
@@ -907,11 +1030,13 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
 
 class TimeWidgetSettings(TimeWidgetMixin, widgets.Widget):
 
-    def get_allowed_fields(self):
+    @staticmethod
+    def get_allowed_fields():
         return {'format'}
 
-    def usable_for_types(self):
-        return {'string'}
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_TIME}
 
     def generate_input(self, name, title, parsed, info=None):
         value = parsed.get(name, '')
