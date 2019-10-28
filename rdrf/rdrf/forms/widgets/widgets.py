@@ -647,7 +647,13 @@ class SliderWidget(widgets.TextInput):
         return context
 
 
-class SliderSettingsWidget(widgets.Widget):
+class SliderWidgetSettings(widgets.Widget):
+
+    def get_allowed_fields(self):
+        return {'min', 'max', 'left_label', 'right_label', 'step'}
+
+    def usable_for_types(self):
+        return {'integer', 'float'}
 
     @staticmethod
     def generate_input(name, title, parsed, info=None):
@@ -692,10 +698,9 @@ class SliderSettingsWidget(widgets.Widget):
                         obj[inputs[i].name] = inputs[i].value;
                     }
                 }
-                if (!$.isEmptyObject(obj)) {
-                    $("input[name='%s']").val(JSON.stringify(obj));
-                }
+                $("input[name='%s']").val(JSON.stringify(obj));
             }
+            saveJSON();
         """ % (name, name)
         return mark_safe(f"""
             {html}
@@ -821,3 +826,139 @@ class AllConsentWidget(widgets.CheckboxInput):
                 {javascript}
             </script>
          """)
+
+
+class TimeWidgetMixin:
+    AMPM = "12hour"
+    FULL = "24hour"
+
+
+class TimeWidget(TimeWidgetMixin, widgets.TextInput):
+
+    def _parse_value(self, value, fmt):
+        '''
+        Parse the input time and transform it to the format
+        the timepicki widget expects
+        '''
+
+        def validate(hr, min, fmt):
+            try:
+                max_hr = 12 if fmt == self.AMPM else 23
+                return 0 <= int(hr) <= max_hr and 0 <= int(min) <= 59
+            except ValueError:
+                return False
+
+        start_time = []
+        if not value:
+            return start_time
+
+        m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
+        if not m:
+            return start_time
+        parts = m.groups()
+        hour, minute, meridian = parts
+        if not validate(hour, minute, self.AMPM if meridian else self.FULL):
+            return start_time
+        hour, minute = int(hour), int(minute)
+
+        if fmt == self.FULL:
+            if meridian == 'PM':
+                hour = 12 if hour == 12 else hour + 12
+        else:
+            if hour > 12:
+                hour = hour - 12
+                meridian = 'PM'
+            meridian = meridian or 'AM'
+
+        formatted_time = f'{hour}:{minute}'
+        start_time = [hour, minute]
+        if fmt == self.AMPM:
+            formatted_time += f' {meridian}'
+            start_time.append(meridian)
+
+        return formatted_time, start_time
+
+    def render(self, name, value, attrs=None, renderer=None):
+        fmt = self.attrs.pop("format") if "format" in self.attrs else self.AMPM
+        value, start_time = self._parse_value(value, fmt)
+        html = f'''
+            <input id="id_{name}" type="text" name="{name}" value="{value}"/>
+        '''
+        set_time_str = f", start_time:{start_time}" if start_time else ""
+
+        if fmt == self.AMPM:
+            attrs = f"{{show_meridian:true, min_hour_value:0, max_hour_value:12 {set_time_str}}}"
+        else:
+            attrs = f"{{show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
+
+        js = f'''
+            $("#id_{name}").timepicki({attrs});
+            $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
+        '''
+        return f'''
+        {html}
+        <script>
+            {js}
+        </script>
+        '''
+
+
+class TimeWidgetSettings(TimeWidgetMixin, widgets.Widget):
+
+    def get_allowed_fields(self):
+        return {'format'}
+
+    def usable_for_types(self):
+        return {'string'}
+
+    def generate_input(self, name, title, parsed, info=None):
+        value = parsed.get(name, '')
+        selected_12hour = 'selected' if value == self.AMPM else ''
+        selected_24hour = 'selected' if value == self.FULL else ''
+        if not selected_12hour and not selected_24hour:
+            selected_12hour = 'selected'
+
+        input_str = f'''
+            <select name="{name}" id="{name}" onchange="saveJSON()">
+                <option value="{self.AMPM}" {selected_12hour}> 12-hour format </option>
+                <option value="{self.FULL}" {selected_24hour}> 24-hour format </option>
+            </select>'''
+        help_text = f'<div class="help">{info}</div>' if info else ''
+        return f"""
+            <div>
+                <label for="{name}">{title}</label>
+                {input_str}
+                {help_text}
+            </div>"""
+
+    def generate_inputs(self, parsed):
+        rows = [
+            self.generate_input('format', _('Format'), parsed, _("Format of time: 12-hour or 24-hour")),
+        ]
+        return "<br/>".join(rows)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        parsed = {}
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            pass
+
+        html = """
+             <div style="display:inline-grid" id="id_{name}">
+                {inputs}
+                <input type="hidden" name="{name}" value='{value}'/>
+             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
+        javascript = """
+            function saveJSON() {
+                var value = $('#id_%s option:selected').val();
+                var obj = { format: value };
+                $("input[name='%s']").val(JSON.stringify(obj));
+            }
+            saveJSON();
+        """ % (name, name)
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+            </script>""")

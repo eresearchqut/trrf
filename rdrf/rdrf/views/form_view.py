@@ -1886,6 +1886,7 @@ class CdeWidgetSettingsView(View):
         admin_form = CommonDataElementAdminForm(cde.__dict__, instance=cde)
         is_hidden = admin_form['widget_settings'].is_hidden
         display = 'style="display:none"' if is_hidden else ''
+        hidden_input = '<input type="hidden" name="widget_settings" value="{}" id="id_widget_settings">'
         ret_val = """
             <div class="form-row field-widget_settings" {}>
               <div>
@@ -1893,5 +1894,5 @@ class CdeWidgetSettingsView(View):
                 {}
               </div>
             </div>
-        """.format(display, 'hidden' if is_hidden else '', admin_form['widget_settings'].as_widget())
+        """.format(display, 'hidden' if is_hidden else '', hidden_input if is_hidden else admin_form['widget_settings'].as_widget())
         return HttpResponse(mark_safe(ret_val))

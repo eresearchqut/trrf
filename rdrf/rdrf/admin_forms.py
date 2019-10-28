@@ -1,5 +1,4 @@
 from functools import reduce
-import json
 import logging
 import re
 
@@ -9,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
-from rdrf.forms.widgets.widgets import SliderSettingsWidget
+from rdrf.forms.widgets.widgets import SliderWidgetSettings, TimeWidgetSettings
 from registry.patients.models import Patient
 
 
@@ -18,6 +17,8 @@ from rdrf.helpers.constants import (
     PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
     PATIENT_RELATIVE_SECTION_NAME
 )
+
+from rdrf.validators.cde_widget_settings_validators import get_validator
 
 logger = logging.getLogger(__name__)
 
@@ -133,10 +134,11 @@ class CommonDataElementAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget_name = self.data.get('widget_name', '') or self.instance.widget_name
-        if widget_name == 'SliderWidget':
-            self.fields['widget_settings'].widget = SliderSettingsWidget()
-        else:
-            self.fields['widget_settings'].widget = HiddenInput()
+        settings_dict = {
+            'SliderWidget': lambda: SliderWidgetSettings(),
+            'TimeWidget': lambda: TimeWidgetSettings(),
+        }
+        self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
 
     class Meta:
@@ -144,75 +146,7 @@ class CommonDataElementAdminForm(ModelForm):
         model = CommonDataElement
 
     def clean_widget_settings(self):
-        data = self.cleaned_data['widget_settings'] or '{}'
-
-        settings = {}
-        try:
-            settings = json.loads(data)
-        except Exception:
-            raise ValidationError(_('Widget settings must be a valid JSON!'))
-
-        allowed_fields = {'min', 'max', 'left_label', 'right_label', 'step'}
-        unknown_fields = set(settings.keys()) - allowed_fields
-        if unknown_fields:
-            raise ValidationError(_('Invalid fields in JSON: {fields}').format(fields=', '.join(unknown_fields)))
-
-        return data
-
-    def _validate_widget_settings(self):
-        widget_name = self.cleaned_data['widget_name']
-        if widget_name != 'SliderWidget':
-            return
-        settings = json.loads(self.cleaned_data.get('widget_settings', '{}'))
-        cde_datatype = self.cleaned_data['datatype']
-        cde_min_value = self.cleaned_data['min_value']
-        cde_max_value = self.cleaned_data['max_value']
-
-        def validation_error(msg):
-            raise ValidationError({'widget_settings': msg})
-
-        def parse_number(field):
-            if field not in settings:
-                return None
-            try:
-                if cde_datatype == 'float':
-                    return float(settings[field])
-                if cde_datatype == 'integer':
-                    return int(settings[field])
-            except ValueError:
-                validation_error(_('{field} must be {data_type}. Invalid value: {value}').format(
-                    data_type=cde_datatype, field=field, value=settings[field]))
-
-        min_value = parse_number('min')
-        max_value = parse_number('max')
-        step = parse_number('step')
-
-        if cde_min_value is None and min_value is None:
-            validation_error(_('You must supply the widget setting Min value if the CDE Min value is not set'))
-
-        if cde_max_value is None and max_value is None:
-            validation_error(_('You must supply the widget setting Max value if the CDE Max value is not set'))
-
-        if min_value is not None and cde_min_value is not None:
-            if min_value < cde_min_value:
-                validation_error(_("Min value must be bigger or equal than CDE's min value!"))
-
-        if max_value is not None and cde_max_value is not None:
-            if max_value > cde_max_value:
-                validation_error(_("Max value must be lower or equal than CDE's max value!"))
-
-        if min_value is not None and max_value is not None:
-            if max_value <= min_value:
-                validation_error(_('Max value should be bigger than Min value'))
-
-        if step is not None:
-            overall_min_value = cde_min_value if min_value is None else min_value
-            overall_max_value = cde_max_value if max_value is None else max_value
-            if step >= overall_max_value - overall_min_value:
-                validation_error(_('Step value too large for Min value and Max value'))
-
-    def clean(self):
-        if self.cleaned_data['widget_name'] == 'SliderWidget' and self.cleaned_data['datatype'] not in ('integer', 'float'):
-            raise ValidationError(_('SliderWidget can be used only with CDEs of datatype "integer" or "float"'))
-
-        self._validate_widget_settings()
+        validator = get_validator(self.fields['widget_settings'].widget, self.cleaned_data)
+        if validator:
+            validator.validate()
+        return self.cleaned_data['widget_settings']
