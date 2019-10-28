@@ -841,17 +841,12 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
         the timepicki widget expects
         '''
 
-        def validate(hour, minute):
+        def validate(hr, min, fmt):
             try:
-                int_h = int(hour)
-                int_m = int(minute)
-                if int_h < 0 or ((int_h > 23 and self.fmt == self.FULL) or (int_h > 12 and self.fmt == self.AMPM)):
-                    return False
-                if int_m < 0 or int_m > 59:
-                    return False
+                max_hr = 12 if fmt == self.AMPM else 23
+                return 0 <= int(hr) <= max_hr and 0 <= int(min) <= 59
             except ValueError:
                 return False
-            return True
 
         start_time = []
         if not value:
@@ -862,31 +857,33 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
             return start_time
         parts = m.groups()
         hour, minute, meridian = parts
-        if not validate(hour, minute):
+        if not validate(hour, minute, self.AMPM if meridian else self.FULL):
             return start_time
+        hour, minute = int(hour), int(minute)
 
-        if not meridian:
-            if fmt == self.AMPM and int(hour) > 12:
-                start_time = [f"{int(hour) - 12}", minute, "PM"]
-            else:
-                start_time = [hour, minute]
+        if fmt == self.FULL:
+            if meridian == 'PM':
+                hour = 12 if hour == 12 else hour + 12
         else:
-            if fmt == self.AMPM:
-                start_time = [hour, minute, meridian]
-            else:
-                if meridian == "PM":
-                    hour = int(hour) + 12
-                    start_time = [str(hour), minute]
-                else:
-                    start_time = [hour, minute]
-        return start_time
+            if hour > 12:
+                hour = hour - 12
+                meridian = 'PM'
+            meridian = meridian or 'AM'
+
+        formatted_time = f'{hour}:{minute}'
+        start_time = [hour, minute]
+        if fmt == self.AMPM:
+            formatted_time += f' {meridian}'
+            start_time.append(meridian)
+
+        return formatted_time, start_time
 
     def render(self, name, value, attrs=None, renderer=None):
         fmt = self.attrs.pop("format") if "format" in self.attrs else self.AMPM
+        value, start_time = self._parse_value(value, fmt)
         html = f'''
             <input id="id_{name}" type="text" name="{name}" value="{value}"/>
         '''
-        start_time = self._parse_value(value, fmt)
         set_time_str = f", start_time:{start_time}" if start_time else ""
 
         if fmt == self.AMPM:
@@ -923,8 +920,8 @@ class TimeWidgetSettings(TimeWidgetMixin, widgets.Widget):
 
         input_str = f'''
             <select name="{name}" id="{name}" onchange="saveJSON()">
-                <option value="{self.AMPM}" {selected_12hour}> 12 hour format </option>
-                <option value="{self.FULL}" {selected_24hour}> 24 hour format </option>
+                <option value="{self.AMPM}" {selected_12hour}> 12-hour format </option>
+                <option value="{self.FULL}" {selected_24hour}> 24-hour format </option>
             </select>'''
         help_text = f'<div class="help">{info}</div>' if info else ''
         return f"""
@@ -936,7 +933,7 @@ class TimeWidgetSettings(TimeWidgetMixin, widgets.Widget):
 
     def generate_inputs(self, parsed):
         rows = [
-            self.generate_input('format', _('Format'), parsed, _("Format of time: 12hour or 24hour")),
+            self.generate_input('format', _('Format'), parsed, _("Format of time: 12-hour or 24-hour")),
         ]
         return "<br/>".join(rows)
 
