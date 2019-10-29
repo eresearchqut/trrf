@@ -261,10 +261,12 @@
                         </div>
                         {% endif %}
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
-                        {% block formbtns %}
-                        {% endblock %}
-                    </div>
+                    {% if not changes_only %}
+                        <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+                            {% block formbtns %}
+                            {% endblock %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -301,6 +303,25 @@
                     <div class="panel panel-info trrf-page-header">
                         <div class="panel-body">
                             {% include header_expression %}
+                            {% if previous_data %}
+                                {% if changes_only %}
+                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=False">All fields</a></span>
+                                    <div style="float:right">
+                                        <label for="previous_versions">Compare against:</label>
+                                        <select id="previous_versions">
+                                            {% for version in previous_versions %}
+                                                {%if forloop.first and not selected_version %}
+                                                    <option value="{{version.id}}" selected>{{version.name}}</option>
+                                                {% else %}
+                                                    <option value="{{version.id}}" {% if version.id == selected_version %} selected {%endif%}>{{version.name}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% else %}
+                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=True">Changes only</a></span>
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
@@ -315,3 +336,9 @@
 </body>
 
 </html>
+<script language="javascript">
+    $("#previous_versions").change(function(){
+        var version_id = $("#previous_versions option:selected").val();
+        window.location.href = "?changes_only=True&selected_version=" + version_id;
+    });
+</script>

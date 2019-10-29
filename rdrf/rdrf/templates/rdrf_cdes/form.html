@@ -1,4 +1,5 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
+{% load array_item %}
 {% load get_display_name %}
 {% load get_cde_name %}
 {% load get_section_id %}
@@ -353,7 +354,7 @@
                             <strong data-name="{{s}}">{{display_names|get_display_name:s|translate}}</strong>
                         {% endif %}
 
-                        {% if forms|is_formset:s %}
+                        {% if forms|is_formset:s and not changes_only %}
                             {% with formset=forms|get_form_object:s %}
                                 <a class="btn btn-primary btn-xs pull-right" onclick="add_form(this, '{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
@@ -393,11 +394,11 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         {{ element|safe }}
-							{% if not element.is_hidden %}
-                                                        <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
-                                                        </small>
-							{% endif %}
+							                            {% if not element.is_hidden %}
+                                                            <small class="text-muted">
+                                                                <i>{{ element.help_text }}</i>
+                                                            </small>
+							                            {% endif %}
                                                         {% if element.errors %}
                                                             <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
@@ -409,6 +410,7 @@
 
                                 <div id="forms_{{formset.prefix}}">
                                 {% for f in formset.forms %}
+                                    {% with index=forloop.counter0 %}
                                     <div>
                                         {% for element in f %}
                                             {% if element.errors %}
@@ -416,34 +418,41 @@
                                             {% else %}
                                                 <div class="form-group">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                        {% if element.label == "Delete" %}
-                                                            Mark for deletion
-                                                        {% else %}
-                                                            {{ element.label }}
-                                                            {% if  element.field.required %}
-                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    {% if changes_only and element.label == "Delete" %}
+                                                        <div></div>
+                                                    {% else %}
+                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                            {% if element.label == "Delete" %}
+                                                                Mark for deletion
+                                                            {% else %}
+                                                                {{ element.label }}
+                                                                {% if  element.field.required %}
+                                                                    <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                {% endif %}
+                                                            {% if  element.field.important %}
+                                                                <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
                                                             {% endif %}
-                                                        {% if  element.field.important %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
-                                                        {% endif %}
-                                                        {% endif %}
-                                                    </label>
-                                                    <div class="col-sm-9">
-                                                        {{ element|safe }}
-							{% if not element.is_hidden %}
-                                                        <small class="text-muted">
-                                                            <i>{{ element.help_text }}</i>
-                                                        </small>
-							{% endif %}
-                                                        {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                        {% endif %}
-                                                    </div>
+                                                            {% endif %}
+                                                        </label>
+                                                        <div class="col-sm-9">
+                                                            <div title="Previous value:{{element.field.previous_value|array_item:index|default_if_none:'Not set'}}">
+                                                                {{ element|safe }}
+                                                            </div>
+                                                            {% if not element.is_hidden %}
+                                                                <small class="text-muted">
+                                                                    <i>{{ element.help_text }}</i>
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if element.errors %}
+                                                                <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}    
                                                 </div>
                                         {% endfor %}
                                         <p><hr style="border: solid 1px gray"></p>
                                     </div>
+                                    {% endwith %}
                                 {% endfor %}
                                 </div>
                             {% endwith%}
@@ -469,7 +478,10 @@
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
-                                        {{field|safe}}<p class="text-muted"><i>{{field.help_text}}</i></p>
+                                        <div title="Previous value:{{field.field.previous_value|default_if_none:'Not set'}}">
+                                            {{field|safe}}
+                                        </div>
+                                        <p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="label label-danger">{{field.errors.as_text}}</span>
                                         {% endif %}

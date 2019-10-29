@@ -50,7 +50,9 @@ def create_form_class_for_section(
         injected_model_id=None,
         is_superuser=None,
         user_groups=None,
-        patient_model=None):
+        patient_model=None,
+        allowed_cdes=[],
+        previous_values={}):
 
     base_fields = OrderedDict()
     for cde in section.cde_models:
@@ -60,6 +62,8 @@ def create_form_class_for_section(
                                          patient_model,
                                          is_superuser=is_superuser):
                 continue
+        if allowed_cdes and cde.code not in allowed_cdes:
+            continue
 
         cde_field = FieldFactory(
             registry,
@@ -72,6 +76,17 @@ def create_form_class_for_section(
             is_superuser=is_superuser).create_field()
 
         cde_field.important = cde.important
+        prev_value = previous_values.get(cde.code)
+        if section.allow_multiple and section.code in previous_values:
+            prev_value = [v for x in previous_values[section.code] for k, v in x.items() if k.endswith(cde.code)]
+
+        cde_field.previous_value = prev_value
+        if prev_value and cde.pv_group:
+            values = {el['code'].lower(): el['value'] for el in cde.pv_group.as_dict()['values']}
+            if isinstance(prev_value, list):
+                cde_field.previous_value = [values.get(v.lower()) for v in prev_value]
+            else:
+                cde_field.previous_value = values.get(prev_value.lower())
 
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
                                              settings.FORM_SECTION_DELIMITER,
@@ -82,7 +97,7 @@ def create_form_class_for_section(
 
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
-    return type("SectionForm", (BaseForm,), form_class_dict)
+    return type("SectionForm", (BaseForm,), form_class_dict) if base_fields else None
 
 
 def create_form_class_for_consent_section(

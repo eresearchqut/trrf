@@ -51,6 +51,7 @@ from django.conf import settings
 from rdrf.services.rpc.actions import ActionExecutor
 from rdrf.helpers.utils import FormLink
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
+from rdrf.forms.dynamic.form_changes import FormChangesExtractor
 from rdrf.forms.progress.form_progress import FormProgress
 
 from rdrf.forms.navigation.locators import PatientLocator
@@ -294,6 +295,9 @@ class FormView(View):
 
         self.CREATE_MODE = True
 
+    def _dynamic_data_form_names(self, dynamic_data):
+        return set(f.split("_")[0] for f in dynamic_data if f.endswith("_timestamp"))
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -337,16 +341,40 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
+        self.previous_data = None
+        self.previous_versions = []
+        self.registry_form = self.get_registry_form(form_id)
+        selected_version = request.GET.get("selected_version")
         if not self.CREATE_MODE:
             rdrf_context_id = self.rdrf_context.pk
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
+            current_forms = self._dynamic_data_form_names(self.dynamic_data)
+            previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
+                rdrf_context_id, patient_model
+            )
+            for prev_context in previous_contexts_qs:
+                clinical_data = self._get_dynamic_data(
+                    id=patient_id,
+                    registry_code=registry_code,
+                    rdrf_context_id=prev_context.id
+                )
+                data_forms = self._dynamic_data_form_names(clinical_data)
+                if data_forms == current_forms:
+                    if not self.previous_data:
+                        if not selected_version:
+                            self.previous_data = clinical_data
+                        elif int(selected_version) == prev_context.id:
+                            self.previous_data = clinical_data
+                    fg = prev_context.context_form_group
+                    self.previous_versions.append({
+                        "id": prev_context.id,
+                        "name": fg.get_default_name(patient_model, prev_context)
+                    })
         else:
             rdrf_context_id = "add"
             self.dynamic_data = None
-
-        self.registry_form = self.get_registry_form(form_id)
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
@@ -358,7 +386,8 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        context = self._build_context(user=request.user, patient_model=patient_model)
+        changes_only = request.GET.get("changes_only", "") == "True"
+        context = self._build_context(user=request.user, patient_model=patient_model, changes_only=changes_only, selected_version=selected_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -399,10 +428,10 @@ class FormView(View):
         context["context_id"] = rdrf_context_id
 
         code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
-        context["change_targets"] = code_gen.generate_change_targets() or ''
-        context["generated_declarations"] = code_gen.generate_declarations() or ''
+        context["generated_code"] = code_gen.generate_code() or '' if not changes_only else ''
+        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_only else ''
+        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_only else ''
+        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_only else ''
 
         return self._render_context(request, context)
 
@@ -777,7 +806,7 @@ class FormView(View):
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
             registry,
             registry_form,
@@ -785,7 +814,9 @@ class FormView(View):
             injected_model="Patient",
             injected_model_id=self.patient_id,
             is_superuser=self.request.user.is_superuser,
-            user_groups=self.request.user.groups.all())
+            user_groups=self.request.user.groups.all(),
+            allowed_cdes=allowed_cdes,
+            previous_values=previous_values)
 
     def _get_formlinks(self, user, context_model=None):
         container_model = self.registry
@@ -804,6 +835,7 @@ class FormView(View):
                 ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
+
 
     def _build_context(self, **kwargs):
         """
@@ -825,11 +857,21 @@ class FormView(View):
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
             else:
                 self.dynamic_data['questionnaire_context'] = 'au'
+        changes_only = kwargs.get("changes_only", False)
+        selected_version = kwargs.get("selected_version")
+        form_changes = FormChangesExtractor(self.registry_form, self.previous_data, self.dynamic_data)
+        form_changes.determine_form_changes()
+        allowed_cdes = form_changes.allowed_cdes if changes_only else []
+        previous_values = form_changes.previous_values if changes_only else {}
 
+        remove_sections = []
         for s in sections:
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
-                self.registry, self.registry_form, section_model)
+                self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
+            if not form_class and changes_only:
+                remove_sections.append(s)
+                continue
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -866,6 +908,9 @@ class FormView(View):
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
 
+        for s in remove_sections:
+            sections.remove(s)
+
         context = {
             'CREATE_MODE': self.CREATE_MODE,
             'old_style_demographics': self.registry.code != 'fkrp',
@@ -893,6 +938,10 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
             "settings": settings,
+            "previous_data": self.previous_data is not None,
+            "changes_only": not changes_only,
+            "previous_versions": self.previous_versions,
+            "selected_version": selected_version,
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
