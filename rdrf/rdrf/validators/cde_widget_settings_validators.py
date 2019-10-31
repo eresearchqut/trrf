@@ -27,6 +27,8 @@ class BaseValidator:
     def validate_data_type(self):
         cde_datatype = self.cleaned_data['datatype']
         widget_name = self.cleaned_data['widget_name']
+        if not widget_name:
+            return
         if cde_datatype not in self.widget.usable_for_types():
             usable_types = ", ".join(self.widget.usable_for_types())
             raise ValidationError(_(f'{widget_name} can be used only with CDEs of datatype {usable_types}'))

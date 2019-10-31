@@ -133,7 +133,7 @@ class CommonDataElementAdminForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        widget_name = self.data.get('widget_name', '') or self.instance.widget_name
+        widget_name = self.data.get('widget_name', self.instance.widget_name)
         settings_dict = {
             'SliderWidget': lambda: SliderWidgetSettings(),
             'TimeWidget': lambda: TimeWidgetSettings(),

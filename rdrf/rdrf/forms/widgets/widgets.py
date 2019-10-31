@@ -848,17 +848,17 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
             except ValueError:
                 return False
 
-        start_time = []
+        NO_VALUE = ('', [])
         if not value:
-            return start_time
+            return NO_VALUE
 
         m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
         if not m:
-            return start_time
+            return NO_VALUE
         parts = m.groups()
         hour, minute, meridian = parts
         if not validate(hour, minute, self.AMPM if meridian else self.FULL):
-            return start_time
+            return NO_VALUE
         hour, minute = int(hour), int(minute)
 
         if fmt == self.FULL:
