@@ -63,6 +63,7 @@ from rdrf.security.security_checks import security_check_user_patient, can_sign_
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.forms.widgets.widget_validator import get_widgets_for_data_type
 
 import logging
 
@@ -1902,36 +1903,6 @@ class CdeWidgetSettingsView(View):
 
 class CdeAvailableWidgetsView(View):
 
-    BASE_WIDGETS_MAPPING = [('Textarea', CommonDataElement.DATA_TYPE_STRING)]
-    FILTERED_WIDGET_NAMES = ['Widget', 'HiddenInput']
-
     @login_required_method
     def get(self, request, data_type):
-        import rdrf.forms.widgets.widgets as w
-
-        def is_widget(obj):
-            return issubclass(obj, w.Widget)
-
-        def has_valid_type(obj, name):
-            if hasattr(obj, 'get_allowed_fields'):
-                return False
-            if hasattr(obj, 'usable_for_types'):
-                return data_type in obj.usable_for_types()
-            for w_name, w_type in self.BASE_WIDGETS_MAPPING:
-                if w_name == name and w_type == data_type:
-                    return True
-            return False
-
-        def has_valid_name(name):
-            return name not in self.FILTERED_WIDGET_NAMES
-
-        def is_valid_obj(name, obj):
-            return (
-                inspect.isclass(obj) and is_widget(obj) and has_valid_name(name) and has_valid_type(obj, name)
-            )
-
-        result = [{
-            'name': name,
-            'value': name
-        } for name, obj in inspect.getmembers(w) if is_valid_obj(name, obj)]
-        return JsonResponse({'widgets': sorted(result, key=lambda el: el["name"])})
+        return JsonResponse({'widgets': sorted(get_widgets_for_data_type(data_type), key=lambda el: el["name"])})

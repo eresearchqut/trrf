@@ -94,7 +94,7 @@ function dataTypeChangeHandler() {
     var url = "/admin/cde/widgets/" + dataType + "/";
     var widgetNameSelect = $("#id_widget_name")
     widgetNameSelect.find('option').remove();
-    widgetNameSelect.append("<option value=\"\">------</option>");
+    widgetNameSelect.append("<option value=\"\">Default widget</option>");
     $.get(url, function(data) {
       $.each(data.widgets, function (i, item) {
         widgetNameSelect.append("<option value=" + item.value +">"+ item.name +"</option>");
