@@ -1,7 +1,6 @@
 import inspect
 import rdrf.forms.widgets.widgets as w
 
-BASE_WIDGETS_MAPPING = [('Textarea', 'string')]
 FILTERED_WIDGET_NAMES = ['Widget', 'HiddenInput']
 
 
@@ -14,9 +13,6 @@ def get_widgets_for_data_type(data_type):
             return False
         if hasattr(obj, 'usable_for_types'):
             return data_type in obj.usable_for_types()
-        for w_name, w_type in BASE_WIDGETS_MAPPING:
-            if w_name == name and w_type == data_type:
-                return True
         return False
 
     def has_valid_name(name):

@@ -14,8 +14,7 @@ class CdeMappings:
     }
 
     WIDGET_NAME_MAPPING = {
-        "TextArea": "Textarea",
-        "TextAreaWidget": "Textarea",
+        "TextArea": "TextAreaWidget",
         "PercentageWidget": "",
     }
 

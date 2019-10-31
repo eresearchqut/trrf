@@ -29,6 +29,13 @@ class BadCustomFieldWidget(Textarea):
     """
 
 
+class TextAreaWidget(Textarea):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
+
+
 class DatatypeWidgetAlphanumericxxx(Textarea):
 
     @staticmethod
