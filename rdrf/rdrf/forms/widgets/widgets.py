@@ -865,7 +865,9 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
             if meridian == 'PM':
                 hour = 12 if hour == 12 else hour + 12
         else:
-            if hour > 12:
+            if hour == 0:
+                hour = 12
+            elif hour > 12:
                 hour = hour - 12
                 meridian = 'PM'
             meridian = meridian or 'AM'
@@ -887,7 +889,7 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
         set_time_str = f", start_time:{start_time}" if start_time else ""
 
         if fmt == self.AMPM:
-            attrs = f"{{show_meridian:true, min_hour_value:0, max_hour_value:12 {set_time_str}}}"
+            attrs = f"{{show_meridian:true, min_hour_value:1, max_hour_value:12 {set_time_str}}}"
         else:
             attrs = f"{{show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
 
