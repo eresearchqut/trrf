@@ -870,7 +870,7 @@ class TimeWidget(TimeWidgetMixin, widgets.TextInput):
                 meridian = 'PM'
             meridian = meridian or 'AM'
 
-        formatted_time = f'{hour}:{minute}'
+        formatted_time = f'{hour:02d}:{minute:02d}'
         start_time = [hour, minute]
         if fmt == self.AMPM:
             formatted_time += f' {meridian}'
