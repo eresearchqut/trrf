@@ -3,23 +3,29 @@
 from django.db import migrations, models
 
 from rdrf.models.data_fixes import CdeMappings
+from rdrf.forms.widgets.widgets import get_all_widgets
 
 
 def fix_cde_data_type(cde_model):
     for k, v in CdeMappings.DATA_TYPE_MAPPING.items():
-        cde_model.objects.filter(datatype__iexact=k.lower()).update(datatype=v)
+        cde_model.objects.filter(datatype__iexact=k.lower()).exclude(datatype=v).update(datatype=v)
     cde_model.objects.filter(widget_name__iexact='timewidget').update(datatype='time')
 
 
 def fix_cde_widget_name(cde_model):
     for k, v in CdeMappings.DATA_TYPE_MAPPING.items():
-        cde_model.objects.filter(widget_name__iexact=k.lower()).update(widget_name=v)
+        cde_model.objects.filter(widget_name__iexact=k.lower()).exclude(widget_name=v).update(widget_name=v)
+
+def fix_cde_widget_name_case(cde_model):
+    for name in get_all_widgets():
+        cde_model.objects.filter(widget_name__iexact=name.lower()).exclude(widget_name=name).update(widget_name=name)
 
 
 def fix_data(apps, schema_editor):
     CommonDataElement = apps.get_model('rdrf','CommonDataElement')
     fix_cde_data_type(CommonDataElement)
     fix_cde_widget_name(CommonDataElement)
+    fix_cde_widget_name_case(CommonDataElement)
 
 class Migration(migrations.Migration):
 

@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
 from rdrf.forms.widgets import widgets as rdrf_widgets
+from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
 
 
@@ -135,8 +136,8 @@ class CommonDataElementAdminForm(ModelForm):
         super().__init__(*args, **kwargs)
         widget_name = self.data.get('widget_name', self.instance.widget_name)
         settings_dict = {
-            'SliderWidget': lambda: rdrf_widgets.SliderWidgetSettings(),
-            'TimeWidget': lambda: rdrf_widgets.TimeWidgetSettings(),
+            'SliderWidget': lambda: settings_widgets.SliderWidgetSettings(),
+            'TimeWidget': lambda: settings_widgets.TimeWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
         self.fields['widget_name'].widget = Select()
@@ -159,9 +160,11 @@ class CommonDataElementAdminForm(ModelForm):
         return widget_name
 
     def clean_widget_settings(self):
+        logger.debug('asdfdsafjsda %s', self.cleaned_data['widget_settings'])
         validator = get_validator(self.fields['widget_settings'].widget, self.cleaned_data)
         if validator:
             validator.validate()
+        logger.debug(self.cleaned_data['widget_settings'])
         return self.cleaned_data['widget_settings']
 
     def clean(self):
@@ -172,4 +175,3 @@ class CommonDataElementAdminForm(ModelForm):
             WidgetClass = getattr(rdrf_widgets, widget_name)
             if data_type not in WidgetClass.usable_for_types():
                 raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))
-        return cleaned_data

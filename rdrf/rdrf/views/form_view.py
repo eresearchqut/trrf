@@ -1,5 +1,3 @@
-import inspect
-
 from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
@@ -63,7 +61,7 @@ from rdrf.security.security_checks import security_check_user_patient, can_sign_
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
-from rdrf.forms.widgets.widget_validator import get_widgets_for_data_type
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 import logging
 
@@ -1905,4 +1903,5 @@ class CdeAvailableWidgetsView(View):
 
     @login_required_method
     def get(self, request, data_type):
-        return JsonResponse({'widgets': sorted(get_widgets_for_data_type(data_type), key=lambda el: el["name"])})
+        widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
+        return JsonResponse({'widgets': widgets})

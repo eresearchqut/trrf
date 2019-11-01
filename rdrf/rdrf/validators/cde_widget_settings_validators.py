@@ -4,7 +4,7 @@ import json
 from django.forms import ValidationError
 from django.utils.translation import gettext as _
 
-from rdrf.forms.widgets.widgets import SliderWidgetSettings, TimeWidgetSettings
+from rdrf.forms.widgets.settings_widgets import SliderWidgetSettings, TimeWidgetSettings
 
 
 class BaseValidator:
@@ -24,18 +24,8 @@ class BaseValidator:
         if unknown_fields:
             raise ValidationError(_('Invalid fields in JSON: {fields}').format(fields=', '.join(unknown_fields)))
 
-    def validate_data_type(self):
-        cde_datatype = self.cleaned_data['datatype']
-        widget_name = self.cleaned_data['widget_name']
-        if not widget_name:
-            return
-        if cde_datatype not in self.widget.usable_for_types():
-            usable_types = ", ".join(self.widget.usable_for_types())
-            raise ValidationError(_(f'{widget_name} can be used only with CDEs of datatype {usable_types}'))
-
     def validate(self):
         self.validate_json()
-        self.validate_data_type()
 
 
 class SliderWidgetSettingsValidator(BaseValidator):

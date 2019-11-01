@@ -365,8 +365,7 @@ class Importer(object):
                         import_value = CdeMappings.fix_widget_name(import_value)
                         data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
                         valid_widgets = get_widgets_for_data_type(data_type)
-                        valid_names = [el['name'] for el in valid_widgets]
-                        if import_value not in valid_names:
+                        if import_value not in valid_widgets:
                             raise ValidationError(f'Invalid widget_name {import_value} for datatype {data_type} and CDE: {cde_map["code"]}')
 
                     setattr(cde_model, field, import_value)
