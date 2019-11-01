@@ -3,7 +3,7 @@ import logging
 import re
 
 from django.conf import settings
-from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select
+from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
@@ -146,6 +146,17 @@ class CommonDataElementAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = CommonDataElement
+
+    def clean_widget_name(self):
+        widget_name = self.cleaned_data['widget_name']
+        if not widget_name:
+            return widget_name
+
+        WidgetClass = getattr(rdrf_widgets, widget_name, object)
+        if not issubclass(WidgetClass, Widget):
+            raise ValidationError(_(f'Invalid widget "{widget_name}"'))
+
+        return widget_name
 
     def clean_widget_settings(self):
         validator = get_validator(self.fields['widget_settings'].widget, self.cleaned_data)
