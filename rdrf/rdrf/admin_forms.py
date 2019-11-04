@@ -135,12 +135,19 @@ class CommonDataElementAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget_name = self.data.get('widget_name', self.instance.widget_name)
+        data_type = self.data.get('datatype', self.instance.datatype)
         settings_dict = {
             'SliderWidget': lambda: settings_widgets.SliderWidgetSettings(),
             'TimeWidget': lambda: settings_widgets.TimeWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
-        self.fields['widget_name'].widget = Select()
+        default_choice = ('', _("Default widget"))
+        logger.info(f"data_type={data_type}, widget_name={widget_name}")
+        if data_type:
+            choices = [default_choice] + [(name, name) for name in rdrf_widgets.get_widgets_for_data_type(data_type)]
+        else:
+            choices = [default_choice]
+        self.fields['widget_name'].widget = Select(choices=choices)
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
         self.fields['datatype'].widget.attrs = {'onchange': 'dataTypeChangeHandler()'}
 

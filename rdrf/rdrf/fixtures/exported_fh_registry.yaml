@@ -222,7 +222,7 @@ cdes:
     concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
   widget_name: !!python/unicode ''}
 - {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00015',
-  datatype: !!python/unicode 'Number', desc: !!python/unicode '', instructions: !!python/unicode '',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
   is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'HDL-cholesterol
     concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
   widget_name: !!python/unicode ''}
@@ -237,7 +237,7 @@ cdes:
     patient on medication now?', pattern: !!python/unicode '', pv_group: !!python/unicode 'fh_yes_no',
   questionnaire_text: !!python/unicode '', widget_name: !!python/unicode ''}
 - {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00016',
-  datatype: !!python/unicode 'Number', desc: !!python/unicode '', instructions: !!python/unicode '',
+  datatype: !!python/unicode 'float', desc: !!python/unicode '', instructions: !!python/unicode '',
   is_required: false, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Lp(a)
     concentration (nmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
   widget_name: !!python/unicode ''}
@@ -247,7 +247,7 @@ cdes:
   pattern: !!python/unicode '', pv_group: !!python/unicode 'PVG-YES_NO_UNKNOWN', questionnaire_text: !!python/unicode '',
   widget_name: !!python/unicode ''}
 - {allow_multiple: false, calculation: !!python/unicode '', code: !!python/unicode 'CDE00018',
-  datatype: !!python/unicode 'Ineger', desc: !!python/unicode '', instructions: !!python/unicode '',
+  datatype: !!python/unicode 'Integer', desc: !!python/unicode '', instructions: !!python/unicode '',
   is_required: true, max_length: null, max_value: null, min_value: null, name: !!python/unicode 'Cholesterol
     concentration (mmol/L)', pattern: !!python/unicode '', pv_group: null, questionnaire_text: !!python/unicode '',
   widget_name: !!python/unicode ''}

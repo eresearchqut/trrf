@@ -13,7 +13,7 @@ def fix_cde_data_type(cde_model):
 
 
 def fix_cde_widget_name(cde_model):
-    for k, v in CdeMappings.DATA_TYPE_MAPPING.items():
+    for k, v in CdeMappings.WIDGET_NAME_MAPPING.items():
         cde_model.objects.filter(widget_name__iexact=k.lower()).exclude(widget_name=v).update(widget_name=v)
 
 def fix_cde_widget_name_case(cde_model):

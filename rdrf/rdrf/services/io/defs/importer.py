@@ -15,7 +15,7 @@ from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import DemographicFields
 
-from rdrf.forms.widgets.widget_validator import get_widgets_for_data_type
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 from registry.groups.models import WorkingGroup
 
@@ -362,11 +362,11 @@ class Importer(object):
                         if import_value not in valid_types:
                             raise ValidationError(f'Invalid data type {import_value} for CDE: {cde_map["code"]}')
                     elif field == 'widget_name':
-                        import_value = CdeMappings.fix_widget_name(import_value)
+                        import_value = CdeMappings.fix_widget_name(import_value).strip()
                         data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
-                        valid_widgets = get_widgets_for_data_type(data_type)
+                        valid_widgets = get_widgets_for_data_type(data_type) + ['']
                         if import_value not in valid_widgets:
-                            raise ValidationError(f'Invalid widget_name {import_value} for datatype {data_type} and CDE: {cde_map["code"]}')
+                            raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} and CDE: {cde_map["code"]}')
 
                     setattr(cde_model, field, import_value)
                     # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
