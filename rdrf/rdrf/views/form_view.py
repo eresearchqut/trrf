@@ -4,7 +4,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.urls import reverse
@@ -61,6 +61,7 @@ from rdrf.security.security_checks import security_check_user_patient, can_sign_
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 import logging
 
@@ -1896,3 +1897,11 @@ class CdeWidgetSettingsView(View):
             </div>
         """.format(display, 'hidden' if is_hidden else '', hidden_input if is_hidden else admin_form['widget_settings'].as_widget())
         return HttpResponse(mark_safe(ret_val))
+
+
+class CdeAvailableWidgetsView(View):
+
+    @login_required_method
+    def get(self, request, data_type):
+        widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
+        return JsonResponse({'widgets': widgets})

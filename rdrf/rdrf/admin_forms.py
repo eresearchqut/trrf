@@ -3,12 +3,13 @@ import logging
 import re
 
 from django.conf import settings
-from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput
+from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
-from rdrf.forms.widgets.widgets import SliderWidgetSettings, TimeWidgetSettings
+from rdrf.forms.widgets import widgets as rdrf_widgets
+from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
 
 
@@ -134,19 +135,48 @@ class CommonDataElementAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         widget_name = self.data.get('widget_name', self.instance.widget_name)
+        data_type = self.data.get('datatype', self.instance.datatype)
         settings_dict = {
-            'SliderWidget': lambda: SliderWidgetSettings(),
-            'TimeWidget': lambda: TimeWidgetSettings(),
+            'SliderWidget': lambda: settings_widgets.SliderWidgetSettings(),
+            'TimeWidget': lambda: settings_widgets.TimeWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
+
+        default_choice = ('', _("Default widget"))
+        choices = [default_choice]
+        if data_type:
+            choices += [(name, name) for name in rdrf_widgets.get_widgets_for_data_type(data_type)]
+
+        self.fields['widget_name'].widget = Select(choices=choices)
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
+        self.fields['datatype'].widget.attrs = {'onchange': 'dataTypeChangeHandler()'}
 
     class Meta:
         fields = "__all__"
         model = CommonDataElement
+
+    def clean_widget_name(self):
+        widget_name = self.cleaned_data['widget_name']
+        if not widget_name:
+            return widget_name
+
+        WidgetClass = getattr(rdrf_widgets, widget_name, object)
+        if not issubclass(WidgetClass, Widget):
+            raise ValidationError(_(f'Invalid widget "{widget_name}"'))
+
+        return widget_name
 
     def clean_widget_settings(self):
         validator = get_validator(self.fields['widget_settings'].widget, self.cleaned_data)
         if validator:
             validator.validate()
         return self.cleaned_data['widget_settings']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_type = cleaned_data.get('datatype')
+        widget_name = cleaned_data.get('widget_name')
+        if widget_name:
+            WidgetClass = getattr(rdrf_widgets, widget_name)
+            if data_type not in WidgetClass.usable_for_types():
+                raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))

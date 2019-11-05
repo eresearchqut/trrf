@@ -738,10 +738,33 @@ class CDEPermittedValue(models.Model):
 
 
 class CommonDataElement(models.Model):
+
+    DATA_TYPE_BOOL = 'boolean'
+    DATA_TYPE_CALCULATED = 'calculated'
+    DATA_TYPE_DATE = 'date'
+    DATA_TYPE_FILE = 'file'
+    DATA_TYPE_FLOAT = 'float'
+    DATA_TYPE_INTEGER = 'integer'
+    DATA_TYPE_RANGE = 'range'
+    DATA_TYPE_STRING = 'string'
+    DATA_TYPE_TIME = 'time'
+
+    DATA_TYPE_CHOICES = [
+        (DATA_TYPE_BOOL, 'Boolean'),
+        (DATA_TYPE_CALCULATED, 'Calculated'),
+        (DATA_TYPE_DATE, 'Date'),
+        (DATA_TYPE_FILE, 'File'),
+        (DATA_TYPE_FLOAT, 'Float'),
+        (DATA_TYPE_INTEGER, 'Integer'),
+        (DATA_TYPE_RANGE, 'Range'),
+        (DATA_TYPE_STRING, 'String'),
+        (DATA_TYPE_TIME, 'Time')
+    ]
+
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(max_length=50, help_text="type of field")
+    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=DATA_TYPE_STRING)
     instructions = models.TextField(
         blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(
@@ -775,7 +798,8 @@ class CommonDataElement(models.Model):
     widget_name = models.CharField(
         max_length=80,
         blank=True,
-        help_text="If a special widget required indicate here - leave blank otherwise")
+        help_text="If a special widget required indicate here - leave blank otherwise",
+    )
     widget_settings = models.TextField(
         blank=True,
         help_text="If the widget needs additional settings add them here")
@@ -876,6 +900,8 @@ class CommonDataElement(models.Model):
             })
 
     def save(self, *args, **kwargs):
+        if self.widget_name is not None:
+            self.widget_name = self.widget_name.strip()
         if self.widget_name == 'SliderWidget' and self.min_value and self.max_value:
             settings = {
                 "min": float(self.min_value),
