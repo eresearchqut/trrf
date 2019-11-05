@@ -141,12 +141,12 @@ class CommonDataElementAdminForm(ModelForm):
             'TimeWidget': lambda: settings_widgets.TimeWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
+
         default_choice = ('', _("Default widget"))
-        logger.info(f"data_type={data_type}, widget_name={widget_name}")
+        choices = [default_choice]
         if data_type:
-            choices = [default_choice] + [(name, name) for name in rdrf_widgets.get_widgets_for_data_type(data_type)]
-        else:
-            choices = [default_choice]
+            choices += [(name, name) for name in rdrf_widgets.get_widgets_for_data_type(data_type)]
+
         self.fields['widget_name'].widget = Select(choices=choices)
         self.fields['widget_name'].widget.attrs = {'onchange': 'widgetNameChangeHandler()'}
         self.fields['datatype'].widget.attrs = {'onchange': 'dataTypeChangeHandler()'}
@@ -167,11 +167,9 @@ class CommonDataElementAdminForm(ModelForm):
         return widget_name
 
     def clean_widget_settings(self):
-        logger.debug('asdfdsafjsda %s', self.cleaned_data['widget_settings'])
         validator = get_validator(self.fields['widget_settings'].widget, self.cleaned_data)
         if validator:
             validator.validate()
-        logger.debug(self.cleaned_data['widget_settings'])
         return self.cleaned_data['widget_settings']
 
     def clean(self):
