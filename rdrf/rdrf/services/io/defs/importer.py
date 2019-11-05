@@ -357,12 +357,12 @@ class Importer(object):
                                 (cde_model.code, old_value, import_value))
 
                     if field == 'datatype':
-                        import_value = CdeMappings.fix_data_type(import_value)
+                        import_value = CdeMappings.fix_data_type(import_value.strip())
                         valid_types = [choice[0] for choice in CommonDataElement.DATA_TYPE_CHOICES]
                         if import_value not in valid_types:
                             raise ValidationError(f'Invalid data type {import_value} for CDE: {cde_map["code"]}')
                     elif field == 'widget_name':
-                        import_value = CdeMappings.fix_widget_name(import_value).strip()
+                        import_value = CdeMappings.fix_widget_name(import_value.strip())
                         data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
                         valid_widgets = get_widgets_for_data_type(data_type) + ['']
                         if import_value not in valid_widgets:
