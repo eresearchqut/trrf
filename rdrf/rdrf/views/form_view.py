@@ -296,6 +296,8 @@ class FormView(View):
         self.CREATE_MODE = True
 
     def _dynamic_data_form_names(self, dynamic_data):
+        if not dynamic_data:
+            return set()
         return set(f.split("_")[0] for f in dynamic_data if f.endswith("_timestamp"))
 
     @login_required_method
