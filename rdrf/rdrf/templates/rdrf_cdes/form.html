@@ -435,7 +435,7 @@
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-9">
-                                                            <div title="Previous value:{{element.field.previous_value|array_item:index|default_if_none:'Not set'}}">
+                                                            <div title="{%trans "Previous value:" %}{{element.field.previous_value|array_item:index|default_if_none:'Not set'}}">
                                                                 {{ element|safe }}
                                                             </div>
                                                             {% if not element.is_hidden %}
@@ -478,7 +478,7 @@
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
-                                        <div title="Previous value:{{field.field.previous_value|default_if_none:'Not set'}}">
+                                        <div title="{% trans "Previous value:" %}{{field.field.previous_value|default_if_none:'Not set'}}">
                                             {{field|safe}}
                                         </div>
                                         <p class="text-muted"><i>{{field.help_text}}</i></p>

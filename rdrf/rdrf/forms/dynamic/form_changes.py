@@ -17,9 +17,7 @@ class FormChangesExtractor:
         result = set()
         for vals in multi_section_values.values():
             for d in vals:
-                cdes = [self.extract_cde(r) for r in d]
-                for x in cdes:
-                    result.add(x)
+                result.update([self.extract_cde(r) for r in d])
         return list(result)
 
     def determine_form_changes(self):

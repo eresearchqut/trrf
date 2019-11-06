@@ -295,11 +295,6 @@ class FormView(View):
 
         self.CREATE_MODE = True
 
-    def _dynamic_data_form_names(self, dynamic_data):
-        if not dynamic_data:
-            return set()
-        return set(f.split("_")[0] for f in dynamic_data if f.endswith("_timestamp"))
-
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -352,9 +347,8 @@ class FormView(View):
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-            current_forms = self._dynamic_data_form_names(self.dynamic_data)
             previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
-                rdrf_context_id, patient_model
+                self.rdrf_context, patient_model
             )
             for prev_context in previous_contexts_qs:
                 clinical_data = self._get_dynamic_data(
@@ -362,18 +356,16 @@ class FormView(View):
                     registry_code=registry_code,
                     rdrf_context_id=prev_context.id
                 )
-                data_forms = self._dynamic_data_form_names(clinical_data)
-                if data_forms == current_forms:
-                    if not self.previous_data:
-                        if not selected_version:
-                            self.previous_data = clinical_data
-                        elif int(selected_version) == prev_context.id:
-                            self.previous_data = clinical_data
-                    fg = prev_context.context_form_group
-                    self.previous_versions.append({
-                        "id": prev_context.id,
-                        "name": fg.get_default_name(patient_model, prev_context)
-                    })
+                if not self.previous_data:
+                    if not selected_version:
+                        self.previous_data = clinical_data
+                    elif int(selected_version) == prev_context.id:
+                        self.previous_data = clinical_data
+                fg = prev_context.context_form_group
+                self.previous_versions.append({
+                    "id": prev_context.id,
+                    "name": fg.get_default_name(patient_model, prev_context)
+                })
         else:
             rdrf_context_id = "add"
             self.dynamic_data = None

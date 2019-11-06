@@ -305,9 +305,9 @@
                             {% include header_expression %}
                             {% if previous_data %}
                                 {% if changes_only %}
-                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=False">All fields</a></span>
+                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=False">{% trans "All fields" %}</a></span>
                                     <div style="float:right">
-                                        <label for="previous_versions">Compare against:</label>
+                                        <label for="previous_versions">{% trans "Compare against:" %}</label>
                                         <select id="previous_versions">
                                             {% for version in previous_versions %}
                                                 {%if forloop.first and not selected_version %}
@@ -319,7 +319,7 @@
                                         </select>
                                     </div>
                                 {% else %}
-                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=True">Changes only</a></span>
+                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=True">{% trans "Changes only" %}</a></span>
                                 {% endif %}
                             {% endif %}
                         </div>
