@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.forms import BooleanField
 from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -893,11 +894,22 @@ class FormView(View):
                     extra = 0
                 form_set_class = formset_factory(
                     form_class, extra=extra, can_delete=self.show_multisection_delete_checkbox)
+                has_deleted_forms = False
+                deleted_index = -1
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
+                        data = self.dynamic_data[s]
+                        if changes_only and self.previous_data and s in self.previous_data:
+                            prev_data = self.previous_data[s]
+                            if len(prev_data) > len(data):
+                                has_deleted_forms = True
+                                deleted_index = len(data)
+                                for k in range(len(data), len(prev_data)):
+                                    prev_data[k]['deleted'] = True
+                                    data.append(prev_data[k])
                         initial_data = wrap_fs_data_for_form(
-                            self.registry, self.dynamic_data[s])
+                            self.registry, data)
                     except KeyError:
                         initial_data = [""]  # * len(section_elements)
                 else:
@@ -905,6 +917,13 @@ class FormView(View):
                     initial_data = [""]  # this appears to forms
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
+                if has_deleted_forms:
+                    for idx, form in enumerate(form_section[s].forms):
+                        if idx >= deleted_index:
+                            form.fields['deleted'] = BooleanField(label=_('Form was deleted'))
+                            form.fields['deleted'].widget.attrs['disabled'] = True
+                            for field in form.fields:
+                                form.fields[field].widget.attrs['disabled'] = True
 
         for s in remove_sections:
             sections.remove(s)
