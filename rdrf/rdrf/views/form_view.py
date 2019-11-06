@@ -351,6 +351,7 @@ class FormView(View):
                 self.rdrf_context, patient_model
             )
             for prev_context in previous_contexts_qs:
+                selected = False
                 clinical_data = self._get_dynamic_data(
                     id=patient_id,
                     registry_code=registry_code,
@@ -359,12 +360,15 @@ class FormView(View):
                 if not self.previous_data:
                     if not selected_version:
                         self.previous_data = clinical_data
+                        selected = True
                     elif int(selected_version) == prev_context.id:
                         self.previous_data = clinical_data
+                        selected = True
                 fg = prev_context.context_form_group
                 self.previous_versions.append({
                     "id": prev_context.id,
-                    "name": fg.get_default_name(patient_model, prev_context)
+                    "name": fg.get_default_name(patient_model, prev_context),
+                    "selected": selected,
                 })
         else:
             rdrf_context_id = "add"

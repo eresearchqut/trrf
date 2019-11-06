@@ -435,9 +435,13 @@
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-9">
-                                                            <div title="{%trans "Previous value:" %}{{element.field.previous_value|array_item:index|default_if_none:'Not set'}}">
+                                                            {% if changes_only %}
+                                                                <div title="{%trans "Previous value:" %}{{element.field.previous_value|array_item:index|default_if_none:'Was not set previously'|default:'Was not set previously'}}">
+                                                                    {{ element|safe }}
+                                                                </div>
+                                                            {% else %}
                                                                 {{ element|safe }}
-                                                            </div>
+                                                            {% endif %}
                                                             {% if not element.is_hidden %}
                                                                 <small class="text-muted">
                                                                     <i>{{ element.help_text }}</i>
@@ -478,9 +482,13 @@
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
-                                        <div title="{% trans "Previous value:" %}{{field.field.previous_value|default_if_none:'Not set'}}">
+                                        {% if changes_only %}
+                                        <div title="{% trans "Previous value:" %}{{field.field.previous_value|default_if_none:'Was not set previously'|default:'Was not set previously'}}">
                                             {{field|safe}}
                                         </div>
+                                        {% else %}
+                                            {{field|safe}}
+                                        {% endif %}
                                         <p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
                                             <span class="label label-danger">{{field.errors.as_text}}</span>

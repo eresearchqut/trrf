@@ -300,30 +300,38 @@
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
                     {% if header %}
-                    <div class="panel panel-info trrf-page-header">
-                        <div class="panel-body">
-                            {% include header_expression %}
-                            {% if previous_data %}
-                                {% if changes_only %}
-                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=False">{% trans "All fields" %}</a></span>
-                                    <div style="float:right">
-                                        <label for="previous_versions">{% trans "Compare against:" %}</label>
-                                        <select id="previous_versions">
-                                            {% for version in previous_versions %}
-                                                {%if forloop.first and not selected_version %}
-                                                    <option value="{{version.id}}" selected>{{version.name}}</option>
-                                                {% else %}
-                                                    <option value="{{version.id}}" {% if version.id == selected_version %} selected {%endif%}>{{version.name}}</option>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                {% else %}
-                                    <span class="glyphicon glyphicon-transfer">&nbsp;<a href="?changes_only=True">{% trans "Changes only" %}</a></span>
+                        <div class="panel panel-info trrf-page-header">
+                            <div class="panel-body">
+                                {% include header_expression %}
+                                {% if previous_data %}
+                                    {% if changes_only %}
+                                        <div>
+                                            <a class="btn btn-success" href="?changes_only=False">{% trans "Exit compare mode" %}</a>
+                                        </div>
+                                        <br/>
+                                        <div style="float:left">
+                                            <label for="previous_versions">{% trans "Compare against:" %}</label>
+                                            <select id="previous_versions">
+                                                {% for version in previous_versions %}
+                                                    <option value="{{version.id}}" {% if version.selected %} selected {%endif%}>{{version.name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    {% else %}
+                                        <a class="btn btn-success" href="?changes_only=True"><span class="glyphicon glyphicon-transfer">&nbsp;{% trans "Compare mode" %}</span></a>
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
+                            </div>
                         </div>
-                    </div>
+                        {% if changes_only %}
+                            <div class="col-md-12 alert alert-info alert-dismissible">
+                                Compare mode is showing just the fields that have been changed since the selected previous version. 
+                                Please hover over the fields to see their previous value.
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endif %}
                     {% endif %}
                     {% endblock%}
                 </div>
