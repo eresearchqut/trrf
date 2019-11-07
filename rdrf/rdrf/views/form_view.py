@@ -342,7 +342,14 @@ class FormView(View):
         self.previous_data = None
         self.previous_versions = []
         self.registry_form = self.get_registry_form(form_id)
+        self.has_previous_contexts = False
         changes_since_version = request.GET.get("changes_since_version")
+        if changes_since_version:
+            try:
+                int(changes_since_version)
+            except ValueError:
+                changes_since_version = None
+        selected_version_name = ''
         if not self.CREATE_MODE:
             rdrf_context_id = self.rdrf_context.pk
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
@@ -351,26 +358,25 @@ class FormView(View):
             previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
                 self.rdrf_context, patient_model
             )
+            self.has_previous_contexts = previous_contexts_qs.exists()
             for prev_context in previous_contexts_qs:
-                selected = False
                 clinical_data = self._get_dynamic_data(
                     id=patient_id,
                     registry_code=registry_code,
                     rdrf_context_id=prev_context.id
                 )
-                if not self.previous_data:
-                    if not changes_since_version:
-                        self.previous_data = clinical_data
-                        selected = True
-                    elif int(changes_since_version) == prev_context.id:
-                        self.previous_data = clinical_data
-                        selected = True
+                if changes_since_version and int(changes_since_version) == prev_context.id:
+                    self.previous_data = clinical_data
                 fg = prev_context.context_form_group
+                name = fg.get_default_name(patient_model, prev_context)
                 self.previous_versions.append({
                     "id": prev_context.id,
-                    "name": fg.get_default_name(patient_model, prev_context),
-                    "selected": selected,
+                    "name": name,
                 })
+                if self.previous_data:
+                    selected_version_name = name
+            if not self.previous_data:
+                changes_since_version = None
         else:
             rdrf_context_id = "add"
             self.dynamic_data = None
@@ -430,12 +436,6 @@ class FormView(View):
         context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
         context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
         context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
-
-        selected_version_name = ''
-        if changes_since_version:
-            for v in self.previous_versions:
-                if v.get('selected'):
-                    selected_version_name = v.get('name')
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
@@ -959,7 +959,7 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
             "settings": settings,
-            "has_previous_data": self.previous_data is not None,
+            "has_previous_data": self.has_previous_contexts,
             "previous_versions": self.previous_versions,
             "changes_since_version": changes_since_version,
         }
