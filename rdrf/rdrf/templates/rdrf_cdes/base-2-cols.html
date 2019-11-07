@@ -261,7 +261,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    {% if not changes_only %}
+                    {% if not changes_since_version %}
                         <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
                             {% block formbtns %}
                             {% endblock %}
@@ -302,7 +302,7 @@
                         <div class="panel panel-info trrf-page-header">
                             <div class="panel-body">
                                 {% include header_expression %}
-                                {% if previous_data %}
+                                {% if has_previous_data %}
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             {% trans "View Changes Since" %}
@@ -310,12 +310,12 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             {% for version in previous_versions %}
-                                               <li><a class="dropdown-item" href="?changes_only=True&selected_version={{version.id}}">{{version.name}}</a></li>
+                                               <li><a class="dropdown-item" href="?changes_since_version={{version.id}}">{{version.name}}</a></li>
                                             {% endfor %}
                                         </ul>
                                     </div>
 
-                                    {% if changes_only %}
+                                    {% if changes_since_version %}
                                         <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
                                         <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
                                             <h4>Compare mode</h4>

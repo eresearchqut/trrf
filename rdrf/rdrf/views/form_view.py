@@ -342,7 +342,7 @@ class FormView(View):
         self.previous_data = None
         self.previous_versions = []
         self.registry_form = self.get_registry_form(form_id)
-        selected_version = request.GET.get("selected_version")
+        changes_since_version = request.GET.get("changes_since_version")
         if not self.CREATE_MODE:
             rdrf_context_id = self.rdrf_context.pk
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
@@ -359,10 +359,10 @@ class FormView(View):
                     rdrf_context_id=prev_context.id
                 )
                 if not self.previous_data:
-                    if not selected_version:
+                    if not changes_since_version:
                         self.previous_data = clinical_data
                         selected = True
-                    elif int(selected_version) == prev_context.id:
+                    elif int(changes_since_version) == prev_context.id:
                         self.previous_data = clinical_data
                         selected = True
                 fg = prev_context.context_form_group
@@ -385,8 +385,7 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        changes_only = request.GET.get("changes_only", "") == "True"
-        context = self._build_context(user=request.user, patient_model=patient_model, changes_only=changes_only, selected_version=selected_version)
+        context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -427,13 +426,13 @@ class FormView(View):
         context["context_id"] = rdrf_context_id
 
         code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or '' if not changes_only else ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_only else ''
-        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_only else ''
-        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_only else ''
+        context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
+        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
+        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
+        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
 
         selected_version_name = ''
-        if changes_only:
+        if changes_since_version:
             for v in self.previous_versions:
                 if v.get('selected'):
                     selected_version_name = v.get('name')
@@ -862,19 +861,18 @@ class FormView(View):
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
             else:
                 self.dynamic_data['questionnaire_context'] = 'au'
-        changes_only = kwargs.get("changes_only", False)
-        selected_version = kwargs.get("selected_version")
+        changes_since_version = kwargs.get("changes_since_version")
         form_changes = FormChangesExtractor(self.registry_form, self.previous_data, self.dynamic_data)
         form_changes.determine_form_changes()
-        allowed_cdes = form_changes.allowed_cdes if changes_only else []
-        previous_values = form_changes.previous_values if changes_only else {}
+        allowed_cdes = form_changes.allowed_cdes if changes_since_version else []
+        previous_values = form_changes.previous_values if changes_since_version else {}
 
         remove_sections = []
         for s in sections:
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
                 self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
-            if not form_class and changes_only:
+            if not form_class and changes_since_version:
                 remove_sections.append(s)
                 continue
             section_elements = section_model.get_elements()
@@ -906,7 +904,7 @@ class FormView(View):
                     try:
                         # we grab the list of data items by section code not cde code
                         data = self.dynamic_data[s]
-                        if changes_only and self.previous_data and s in self.previous_data:
+                        if changes_since_version and self.previous_data and s in self.previous_data:
                             prev_data = self.previous_data[s]
                             if len(prev_data) > len(data):
                                 has_deleted_forms = True
@@ -961,10 +959,9 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
             "settings": settings,
-            "previous_data": self.previous_data is not None,
-            "changes_only": not changes_only,
+            "has_previous_data": self.previous_data is not None,
             "previous_versions": self.previous_versions,
-            "selected_version": selected_version,
+            "changes_since_version": changes_since_version,
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:

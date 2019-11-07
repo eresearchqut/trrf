@@ -353,7 +353,7 @@
                             <strong data-name="{{s}}">{{display_names|get_display_name:s|translate}}</strong>
                         {% endif %}
 
-                        {% if forms|is_formset:s and not changes_only %}
+                        {% if forms|is_formset:s and not changes_since_version %}
                             {% with formset=forms|get_form_object:s %}
                                 <a class="btn btn-primary btn-xs pull-right" onclick="add_form(this, '{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
@@ -417,7 +417,7 @@
                                             {% else %}
                                                 <div class="form-group">
                                             {% endif %}
-                                                    {% if changes_only and element.label == "Delete" %}
+                                                    {% if changes_since_version and element.label == "Delete" %}
                                                         <div></div>
                                                     {% else %}
                                                         <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
@@ -434,7 +434,7 @@
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-9">
-                                                            {% if changes_only %}
+                                                            {% if changes_since_version %}
                                                                 <div title="{%trans "Previous value:" %}{{element.field.previous_value|array_item:index|default_if_none:'Was not set previously'|default:'Was not set previously'}}">
                                                                     {{ element|safe }}
                                                                 </div>
@@ -481,7 +481,7 @@
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
-                                        {% if changes_only %}
+                                        {% if changes_since_version %}
                                         <div title="{% trans "Previous value:" %}{{field.field.previous_value|default_if_none:'Was not set previously'|default:'Was not set previously'}}">
                                             {{field|safe}}
                                         </div>
