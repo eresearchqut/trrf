@@ -307,7 +307,6 @@
 		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 	</a>
 
-    <br>
     <div class="row">
     <div class="col-md-12">
         <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
@@ -451,7 +450,7 @@
                                                                 <span class="label label-danger">{{ element.errors.as_text }}</span>
                                                             {% endif %}
                                                         </div>
-                                                    {% endif %}    
+                                                    {% endif %}
                                                 </div>
                                         {% endfor %}
                                         <p><hr style="border: solid 1px gray"></p>

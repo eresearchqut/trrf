@@ -272,7 +272,7 @@
         </div>
         {% endif %}
 
-        <div id="content" class="container-fluid" style="padding-top: 110px;">
+        <div id="content" class="container-fluid" style="padding-top: 150px;">
             {% if messages %}
             <div class="header">
                 <div class="row">
@@ -289,7 +289,6 @@
 
             <div class="row">
                 <div class="col-md-offset-1 col-md-2">
-                    <br>
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
@@ -304,34 +303,31 @@
                             <div class="panel-body">
                                 {% include header_expression %}
                                 {% if previous_data %}
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            {% trans "View Changes Since" %}
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% for version in previous_versions %}
+                                               <li><a class="dropdown-item" href="?changes_only=True&selected_version={{version.id}}">{{version.name}}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
                                     {% if changes_only %}
-                                        <div>
-                                            <a class="btn btn-success" href="?changes_only=False">{% trans "Exit compare mode" %}</a>
+                                        <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
+                                        <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
+                                            <h4>Compare mode</h4>
+                                            <p>
+                                            Displaying fields that changed since <strong>{{ selected_version_name }}</strong>.
+                                            Please hover over the fields to see their previous value.
+                                            </p>
                                         </div>
-                                        <br/>
-                                        <div style="float:left">
-                                            <label for="previous_versions">{% trans "Compare against:" %}</label>
-                                            <select id="previous_versions">
-                                                {% for version in previous_versions %}
-                                                    <option value="{{version.id}}" {% if version.selected %} selected {%endif%}>{{version.name}}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                    {% else %}
-                                        <a class="btn btn-success" href="?changes_only=True"><span class="glyphicon glyphicon-transfer">&nbsp;{% trans "Compare mode" %}</span></a>
                                     {% endif %}
                                 {% endif %}
                             </div>
                         </div>
-                        {% if changes_only %}
-                            <div class="col-md-12 alert alert-info alert-dismissible">
-                                Compare mode is showing just the fields that have been changed since the selected previous version. 
-                                Please hover over the fields to see their previous value.
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        {% endif %}
                     {% endif %}
                     {% endblock%}
                 </div>
@@ -339,14 +335,16 @@
         </div>
     </div>
 
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#exit-compare-mode-btn').click(function() {
+                window.location.href=window.location.pathname;
+            });
+        })
+    </script>
+
     {% include 'rdrf_cdes/footer.html' %}
 
 </body>
 
 </html>
-<script language="javascript">
-    $("#previous_versions").change(function(){
-        var version_id = $("#previous_versions option:selected").val();
-        window.location.href = "?changes_only=True&selected_version=" + version_id;
-    });
-</script>

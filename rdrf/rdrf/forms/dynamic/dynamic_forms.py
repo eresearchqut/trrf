@@ -51,8 +51,11 @@ def create_form_class_for_section(
         is_superuser=None,
         user_groups=None,
         patient_model=None,
-        allowed_cdes=[],
-        previous_values={}):
+        allowed_cdes=(),
+        previous_values=None):
+
+    if previous_values is None:
+        previous_values = {}
 
     base_fields = OrderedDict()
     for cde in section.cde_models:

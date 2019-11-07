@@ -432,6 +432,13 @@ class FormView(View):
         context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_only else ''
         context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_only else ''
 
+        selected_version_name = ''
+        if changes_only:
+            for v in self.previous_versions:
+                if v.get('selected'):
+                    selected_version_name = v.get('name')
+        context["selected_version_name"] = selected_version_name
+
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -834,7 +841,6 @@ class FormView(View):
                 ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
         else:
             return []
-
 
     def _build_context(self, **kwargs):
         """
