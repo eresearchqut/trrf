@@ -512,7 +512,7 @@ class FormView(View):
         dyn_patient.user = request.user
 
         self.init_previous_data_members()
-        changes_since_version, _ = self.fetch_previous_data(None, patient, registry_code)
+        changes_since_version, __ = self.fetch_previous_data(None, patient, registry_code)
 
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
@@ -799,14 +799,12 @@ class FormView(View):
 
             patient.mark_changed_timestamp()
 
-            success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
-                "patient_name": patient_name}
+            success_message = _(f"Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.")
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
         else:
-            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {
-                "patient_name": patient_name}
+            failure_message = _(f"Patient %(patient_name)s not saved due to validation errors")
 
             messages.add_message(request,
                                  messages.ERROR,
