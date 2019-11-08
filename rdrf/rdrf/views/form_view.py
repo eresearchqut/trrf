@@ -6,7 +6,6 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.forms import BooleanField
 from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -296,6 +295,46 @@ class FormView(View):
 
         self.CREATE_MODE = True
 
+    @staticmethod
+    def get_form_group_name(patient_model, context):
+        return context.context_form_group.get_default_name(patient_model, context)
+
+    def init_previous_data_members(self):
+        self.previous_data = None
+        self.previous_versions = []
+        self.has_previous_contexts = False
+
+    def fetch_previous_data(self, changes_since_version, patient_model, registry_code):
+        selected_version_name = ''
+        if not self.rdrf_context:
+            # create mode
+            return None, selected_version_name
+
+        previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
+            self.rdrf_context, patient_model
+        )
+        self.has_previous_contexts = previous_contexts_qs.exists()
+        for prev_context in previous_contexts_qs:
+            form_group_name = self.get_form_group_name(patient_model, prev_context)
+            clinical_data = self._get_dynamic_data(
+                id=patient_model.id,
+                registry_code=registry_code,
+                rdrf_context_id=prev_context.id
+            )
+            if changes_since_version and int(changes_since_version) == prev_context.id:
+                self.previous_data = clinical_data
+                selected_version_name = form_group_name
+            self.previous_versions.append({
+                "id": prev_context.id,
+                "name": form_group_name,
+            })
+        if not self.previous_data:
+            # We must have received a version that isn't valid (same context form group and previous version)
+            # Returning None to avoid entering in Compare Mode
+            changes_since_version = None
+
+        return changes_since_version, selected_version_name
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -339,13 +378,8 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        def get_form_group_name(context):
-            return context.context_form_group.get_default_name(patient_model, context)
-
-        self.previous_data = None
-        self.previous_versions = []
         self.registry_form = self.get_registry_form(form_id)
-        self.has_previous_contexts = False
+        self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
         if changes_since_version:
             try:
@@ -361,28 +395,7 @@ class FormView(View):
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-            previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
-                self.rdrf_context, patient_model
-            )
-            self.has_previous_contexts = previous_contexts_qs.exists()
-            for prev_context in previous_contexts_qs:
-                form_group_name = get_form_group_name(prev_context)
-                clinical_data = self._get_dynamic_data(
-                    id=patient_id,
-                    registry_code=registry_code,
-                    rdrf_context_id=prev_context.id
-                )
-                if changes_since_version and int(changes_since_version) == prev_context.id:
-                    self.previous_data = clinical_data
-                    selected_version_name = form_group_name
-                self.previous_versions.append({
-                    "id": prev_context.id,
-                    "name": form_group_name,
-                })
-            if not self.previous_data:
-                # We must have received a version that isn't valid (same context form group and previous version)
-                # Returning None to avoid entering in Compare Mode
-                changes_since_version = None
+            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
@@ -497,6 +510,9 @@ class FormView(View):
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
         dyn_patient.user = request.user
+
+        self.init_previous_data_members()
+        changes_since_version, _ = self.fetch_previous_data(None, patient, registry_code)
 
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
@@ -745,6 +761,9 @@ class FormView(View):
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
             'settings': settings,
+            "has_previous_data": self.has_previous_contexts,
+            "previous_versions": self.previous_versions,
+            "changes_since_version": changes_since_version,
         }
 
         if request.user.is_parent:

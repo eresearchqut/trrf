@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
+
 @register.filter()
 def array_item(arr, item):
     try:
