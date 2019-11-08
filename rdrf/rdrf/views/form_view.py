@@ -799,12 +799,12 @@ class FormView(View):
 
             patient.mark_changed_timestamp()
 
-            success_message = _(f"Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.")
+            success_message = _(f"Patient {patient_name} saved successfully. Please now use the blue arrow on the right to continue.")
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
         else:
-            failure_message = _(f"Patient %(patient_name)s not saved due to validation errors")
+            failure_message = _(f"Patient {patient_name} not saved due to validation errors")
 
             messages.add_message(request,
                                  messages.ERROR,
