@@ -425,10 +425,11 @@
                                                 <div class="form-group">
                                             {% endif %}
                                                     {% if changes_since_version and element.label == "Delete" %}
+                                                        <div></div>
                                                     {% else %}
                                                         <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
                                                             {% if element.label == "Delete" %}
-                                                                {% trans "Mark for deletion" %}%
+                                                                {% trans "Mark for deletion" %}
                                                             {% else %}
                                                                 {{ element.label }}
                                                                 {% if element.field.required %}
@@ -440,8 +441,8 @@
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-9">
-                                                            {% if changes_since_version %}
-                                                                <div title="{%trans "Previous value:" %}{{element.field.previous_value|array_item:index|default_if_none:'Was not set previously'|default:'Was not set previously'}}">
+                                                            {% if not f.was_deleted and changes_since_version %}
+                                                                <div title="{%trans "Previous value:" %}&nbsp;{{element.field.previous_value|array_item:index|default:_('Was not set previously')}}">
                                                                     {{ element|safe }}
                                                                 </div>
                                                             {% else %}
