@@ -261,16 +261,18 @@
                         </div>
                         {% endif %}
                     </div>
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
-                        {% block formbtns %}
-                        {% endblock %}
-                    </div>
+                    {% if not changes_since_version %}
+                        <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+                            {% block formbtns %}
+                            {% endblock %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <div id="content" class="container-fluid" style="padding-top: 110px;">
+        <div id="content" class="container-fluid" style="padding-top: 150px;">
             {% if messages %}
             <div class="header">
                 <div class="row">
@@ -287,7 +289,6 @@
 
             <div class="row">
                 <div class="col-md-offset-1 col-md-2">
-                    <br>
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
@@ -298,17 +299,51 @@
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
                     {% if header %}
-                    <div class="panel panel-info trrf-page-header">
-                        <div class="panel-body">
-                            {% include header_expression %}
+                        <div class="panel panel-info trrf-page-header">
+                            <div class="panel-body">
+                                {% include header_expression %}
+                                {% if has_previous_data %}
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            {% trans "View Changes Since" %}
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% for version in previous_versions %}
+                                               <li><a class="dropdown-item" href="?changes_since_version={{version.id}}">{{version.name}}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                    {% if changes_since_version %}
+                                        <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
+                                        <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
+                                            <h4>{% trans "Compare mode" %}</h4>
+                                            <p>
+                                            {% blocktrans with since_version=selected_version_name %}
+                                            Displaying fields that changed since <strong>{{ since_version }}</strong>.
+                                            Please hover over the fields to see their previous value.
+                                            {% endblocktrans %}
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
                     {% endif %}
                     {% endblock%}
                 </div>
             </div>
         </div>
     </div>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#exit-compare-mode-btn').click(function() {
+                window.location.href=window.location.pathname;
+            });
+        })
+    </script>
 
     {% include 'rdrf_cdes/footer.html' %}
 

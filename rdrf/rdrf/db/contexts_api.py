@@ -123,3 +123,11 @@ class RDRFContextManager(object):
             return rdrf_context_model
         except RDRFContext.DoesNotExist:
             raise RDRFContextError("Context does not exist")
+
+    def get_previous_contexts(self, context, patient_model):
+        content_type = ContentType.objects.get_for_model(patient_model)
+        return RDRFContext.objects.filter(
+            created_at__lt=context.created_at, registry=self.registry_model,
+            content_type=content_type, object_id=patient_model.pk,
+            context_form_group__id=context.context_form_group_id
+        ).order_by("-created_at")
