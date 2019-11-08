@@ -57,16 +57,17 @@ def create_form_class_for_section(
     if previous_values is None:
         previous_values = {}
 
+    cde_models = section.cde_models
+    if allowed_cdes:
+        cde_models = (c for c in cde_models if c.code in allowed_cdes)
     base_fields = OrderedDict()
-    for cde in section.cde_models:
+    for cde in cde_models:
         cde_policy = get_cde_policy(registry, cde)
         if cde_policy and user_groups:
             if not cde_policy.is_allowed(user_groups.all(),
                                          patient_model,
                                          is_superuser=is_superuser):
                 continue
-        if allowed_cdes and cde.code not in allowed_cdes:
-            continue
 
         cde_field = FieldFactory(
             registry,

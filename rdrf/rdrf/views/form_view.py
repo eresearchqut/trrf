@@ -339,6 +339,9 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
+        def get_form_group_name(context):
+            return context.context_form_group.get_default_name(patient_model, context)
+
         self.previous_data = None
         self.previous_versions = []
         self.registry_form = self.get_registry_form(form_id)
@@ -350,7 +353,10 @@ class FormView(View):
             except ValueError:
                 changes_since_version = None
         selected_version_name = ''
-        if not self.CREATE_MODE:
+        if self.CREATE_MODE:
+            rdrf_context_id = "add"
+            self.dynamic_data = None
+        else:
             rdrf_context_id = self.rdrf_context.pk
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
@@ -360,6 +366,7 @@ class FormView(View):
             )
             self.has_previous_contexts = previous_contexts_qs.exists()
             for prev_context in previous_contexts_qs:
+                form_group_name = get_form_group_name(prev_context)
                 clinical_data = self._get_dynamic_data(
                     id=patient_id,
                     registry_code=registry_code,
@@ -367,19 +374,15 @@ class FormView(View):
                 )
                 if changes_since_version and int(changes_since_version) == prev_context.id:
                     self.previous_data = clinical_data
-                fg = prev_context.context_form_group
-                name = fg.get_default_name(patient_model, prev_context)
+                    selected_version_name = form_group_name
                 self.previous_versions.append({
                     "id": prev_context.id,
-                    "name": name,
+                    "name": form_group_name,
                 })
-                if self.previous_data:
-                    selected_version_name = name
             if not self.previous_data:
+                # We must have received a version that isn't valid (same context form group and previous version)
+                # Returning None to avoid entering in Compare Mode
                 changes_since_version = None
-        else:
-            rdrf_context_id = "add"
-            self.dynamic_data = None
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
@@ -924,8 +927,7 @@ class FormView(View):
                 if has_deleted_forms:
                     for idx, form in enumerate(form_section[s].forms):
                         if idx >= deleted_index:
-                            form.fields['deleted'] = BooleanField(label=_('Form was deleted'))
-                            form.fields['deleted'].widget.attrs['disabled'] = True
+                            form.was_deleted = True
                             for field in form.fields:
                                 form.fields[field].widget.attrs['disabled'] = True
 
