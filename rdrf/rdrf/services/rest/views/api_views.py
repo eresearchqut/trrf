@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
 from registry.groups.models import CustomUser, WorkingGroup
+from rdrf.models.definition.models import RegistryForm
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
 
@@ -294,3 +295,16 @@ class LookupIndex(APIView):
 
         return Response(
             list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))
+
+
+class RegistryForms(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get(self, request, registry_id):
+        registry = Registry.objects.filter(pk=registry_id).first()
+        forms = RegistryForm.objects.filter(registry=registry)
+        result = [{
+            'id': form.id,
+            'name': str(form)
+        } for form in forms]
+        return Response({"forms": [{"id": "", "name": "--------"}] + result})

@@ -437,6 +437,9 @@ class ContextFormGroupAdmin(admin.ModelAdmin):
     def registry(self, obj):
         return obj.registry.name
 
+    class Media:
+        js = ("js/admin/context_form_group_on_load.js", "js/admin/context_form_group_admin_change.js")
+
 
 class CDEFileAdmin(admin.ModelAdmin):
     model = CDEFile
