@@ -57,10 +57,11 @@ def create_form_class_for_section(
         allowed_cdes=(),
         previous_values=None):
 
-    def reverse_date(input):
+    def format_date(input):
         # Transform date from YYYY-MM-DD to DD-MM-YYYY
         if not input:
             return
+        # TODO: python 3.7 re-write to use date.fromisoformat(input)
         as_date = dt.strptime(input, "%Y-%m-%d")
         return date_format(as_date)
 
@@ -105,7 +106,7 @@ def create_form_class_for_section(
         if cde.datatype == CommonDataElement.DATA_TYPE_DATE and cde_field.previous_value:
             previous = cde_field.previous_value
             is_list = isinstance(previous, list)
-            cde_field.previous_value = [reverse_date(el) for el in previous] if is_list else reverse_date(previous)
+            cde_field.previous_value = [format_date(el) for el in previous] if is_list else format_date(previous)
 
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
                                              settings.FORM_SECTION_DELIMITER,
