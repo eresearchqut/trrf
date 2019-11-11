@@ -13,9 +13,19 @@ var CollapsingPanels = function() {
         return $(collapsiblePanelsSelector +  ' > .panel-body');
     }
 
+    function getFirstPanelBody() {
+        return $(collapsiblePanelsSelector +  ' > .panel-body').first();
+    }
+
+
     function expandAll() {
         getAllPanelBodies().collapse('show');
     }
+
+    function expandFirst() {
+        getFirstPanelBody().collapse('show');
+    }
+
 
     function collapseAll() {
         getAllPanelBodies().collapse('hide');
@@ -111,7 +121,8 @@ var CollapsingPanels = function() {
         setUp: setUp,
         expandParentPanel: expandParentPanel,
         expandAll: expandAll,
-        collapseAll: collapseAll
+        collapseAll: collapseAll,
+        expandFirst: expandFirst
     }
 }();
 
