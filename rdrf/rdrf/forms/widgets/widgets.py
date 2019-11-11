@@ -9,6 +9,7 @@ from operator import attrgetter
 import pycountry
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.utils import flatatt
+from django.utils.formats import date_format
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -151,7 +152,7 @@ class DateWidget(widgets.TextInput):
         def just_date(value):
             if value:
                 if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
-                    return "%s-%s-%s" % (value.day, value.month, value.year)
+                    return date_format(value)
                 else:
                     return value
             else:

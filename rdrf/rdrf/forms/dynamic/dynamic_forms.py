@@ -1,15 +1,18 @@
-from django.forms import BaseForm
 from collections import OrderedDict
-from rdrf.forms.dynamic.field_lookup import FieldFactory
-from django.conf import settings
+from datetime import datetime as dt
 import logging
-from rdrf.models.definition.models import CdePolicy
+
+from django.conf import settings
+from django.forms import BaseForm
+from django.utils.formats import date_format
+
+from rdrf.forms.dynamic.field_lookup import FieldFactory
+from rdrf.models.definition.models import CdePolicy, CommonDataElement
 
 logger = logging.getLogger(__name__)
 
 
 def create_form_class(owner_class_name):
-    from rdrf.models.definition.models import CommonDataElement
     form_class_name = "CDEForm"
     cde_map = {}
     base_fields = {}
@@ -54,6 +57,14 @@ def create_form_class_for_section(
         allowed_cdes=(),
         previous_values=None):
 
+    def format_date(input):
+        # Transform date from YYYY-MM-DD to DD-MM-YYYY
+        if not input:
+            return
+        # TODO: python 3.7 re-write to use date.fromisoformat(input)
+        as_date = dt.strptime(input, "%Y-%m-%d")
+        return date_format(as_date)
+
     if previous_values is None:
         previous_values = {}
 
@@ -91,6 +102,11 @@ def create_form_class_for_section(
                 cde_field.previous_value = [values.get(v.lower()) for v in prev_value]
             else:
                 cde_field.previous_value = values.get(prev_value.lower())
+
+        if cde.datatype == CommonDataElement.DATA_TYPE_DATE and cde_field.previous_value:
+            previous = cde_field.previous_value
+            is_list = isinstance(previous, list)
+            cde_field.previous_value = [format_date(el) for el in previous] if is_list else format_date(previous)
 
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
                                              settings.FORM_SECTION_DELIMITER,
