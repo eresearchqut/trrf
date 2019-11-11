@@ -298,7 +298,7 @@ class LookupIndex(APIView):
 
 
 class RegistryForms(APIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticated, )
 
     def get(self, request, registry_id):
         registry = Registry.objects.filter(pk=registry_id).first()
