@@ -46,7 +46,7 @@ Feature: Edit diagnosis for a patient
     Then option "PP (Primary progressive)" from "Condition" should be selected
     And option "DD Affected Status 2" from "Affected Status" should be selected
     And option "Family" from "First Suspected By" should be selected
-    And value of "Date of Diagnosis" should be "1-2-1991"
+    And value of "Date of Diagnosis" should be "01-02-1991"
     And the "Family Consent" checkbox should be checked
     And value of "Age in years at clinical diagnosis" should be "57"
 

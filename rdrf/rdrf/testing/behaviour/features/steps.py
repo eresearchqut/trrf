@@ -666,7 +666,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_widget = label_element.find_elements_by_xpath(
         ".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
 
-    utils.scroll_to_ensure_margin(input_element, 80)
+    utils.scroll_to_ensure_margin(input_element)
 
     # this causes the history component to become visible/clickable
     mover = ActionChains(world.browser)
