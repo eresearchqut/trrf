@@ -993,6 +993,9 @@ class RegistryForm(models.Model):
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
 
+    class Meta:
+        ordering = ('registry', 'position')
+
     def natural_key(self):
         return (self.registry.code, self.name)
 

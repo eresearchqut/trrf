@@ -65,6 +65,8 @@
     {% endblock %}
     {% block extrahead %}{% endblock %}
 
+    <script src="{% url 'js_reverse' %}" type="text/javascript"></script>
+
     <script>
         $(document).ready(function () {
             addExtraValidationMethods();

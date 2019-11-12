@@ -9,6 +9,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework import serializers
 from rest_framework.views import APIView
 
 from registry.genetic.models import Gene, Laboratory
@@ -191,7 +192,6 @@ class ListStates(APIView):
 
 class ListClinicians(APIView):
     queryset = CustomUser.objects.none()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get(self, request, registry_code, format=None):
         users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
@@ -297,14 +297,14 @@ class LookupIndex(APIView):
             list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))
 
 
-class RegistryForms(APIView):
-    permission_classes = (IsAuthenticated, )
+class RegistryFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistryForm
+        fields = ('id', 'name', 'nice_name')
 
-    def get(self, request, registry_id):
-        registry = Registry.objects.filter(pk=registry_id).first()
-        forms = RegistryForm.objects.filter(registry=registry)
-        result = [{
-            'id': form.id,
-            'name': str(form)
-        } for form in forms]
-        return Response({"forms": [{"id": "", "name": "--------"}] + result})
+
+class RegistryForms(generics.ListAPIView):
+    serializer_class = RegistryFormSerializer
+
+    def get_queryset(self):
+        return RegistryForm.objects.get_by_registry(self.kwargs.get('registry_id'))

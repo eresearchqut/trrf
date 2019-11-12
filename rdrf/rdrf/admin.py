@@ -47,6 +47,7 @@ from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import ContextFormGroupItemAdminForm
 
 from functools import reduce
 
@@ -427,6 +428,7 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
+    form = ContextFormGroupItemAdminForm
 
 
 class ContextFormGroupAdmin(admin.ModelAdmin):

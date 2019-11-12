@@ -6,7 +6,7 @@ from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget
 from django.utils.translation import gettext as _
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, Section, DemographicFields
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
@@ -180,3 +180,17 @@ class CommonDataElementAdminForm(ModelForm):
             WidgetClass = getattr(rdrf_widgets, widget_name)
             if data_type not in WidgetClass.usable_for_types():
                 raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))
+
+
+class ContextFormGroupItemAdminForm(ModelForm):
+
+    class Meta:
+        model = ContextFormGroupItem
+        fields = "__all__"
+
+    def clean(self):
+        cfg = self.cleaned_data['context_form_group']
+        form = self.cleaned_data['registry_form']
+
+        if cfg.registry != form.registry:
+            raise ValidationError(_(f"Form's registry ({cfg.registry.code}) must be the same as the Context Form Group's registry ({form.registry.code})"))
