@@ -47,6 +47,7 @@ from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import ContextFormGroupItemAdminForm
 
 from functools import reduce
 
@@ -427,6 +428,7 @@ class SurveyAssignmentAdmin(admin.ModelAdmin):
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
     model = ContextFormGroupItem
+    form = ContextFormGroupItemAdminForm
 
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
@@ -436,6 +438,9 @@ class ContextFormGroupAdmin(admin.ModelAdmin):
 
     def registry(self, obj):
         return obj.registry.name
+
+    class Media:
+        js = ("js/admin/context_form_group_on_load.js", "js/admin/context_form_group_admin_change.js")
 
 
 class CDEFileAdmin(admin.ModelAdmin):
