@@ -20,6 +20,7 @@ from rdrf.helpers.constants import (
 )
 
 from rdrf.validators.cde_widget_settings_validators import get_validator
+from rdrf.validators.cde_widget_validators import OtherPleaseSpecifyWidgetValidator
 
 logger = logging.getLogger(__name__)
 
@@ -180,6 +181,8 @@ class CommonDataElementAdminForm(ModelForm):
             WidgetClass = getattr(rdrf_widgets, widget_name)
             if data_type not in WidgetClass.usable_for_types():
                 raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))
+            if WidgetClass == rdrf_widgets.OtherPleaseSpecifyWidget:
+                OtherPleaseSpecifyWidgetValidator(self.cleaned_data).validate()
 
 
 class ContextFormGroupItemAdminForm(ModelForm):
