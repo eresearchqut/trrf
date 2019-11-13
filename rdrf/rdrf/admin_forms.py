@@ -7,7 +7,7 @@ from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
-from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
+from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
@@ -197,3 +197,10 @@ class ContextFormGroupItemAdminForm(ModelForm):
 
         if cfg.registry != form.registry:
             raise ValidationError(_(f"Form's registry ({cfg.registry.code}) must be the same as the Context Form Group's registry ({form.registry.code})"))
+
+
+class FormTitleAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = FormTitle

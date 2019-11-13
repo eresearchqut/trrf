@@ -6,6 +6,7 @@ from django.template import Context, loader
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import (consent_status_for_patient, get_form_links,
@@ -125,6 +126,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
         self.registry_form = registry_form
+        self.form_title_dict = FormTitleHelper(self.registry_model, current_form_name).title_dict_for_user(self.user)
 
     @property
     def form_name_for_template(self):
@@ -159,6 +161,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         data = {
             "current_form_name": self.form_name_for_template,
+            "form_title_dict": self.form_title_dict,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
             "context_form_groups": context_form_groups,
@@ -599,12 +602,17 @@ class FamilyLinkagePanel(RDRFComponent):
                 sorted([wg.name for wg in self.patient_model.my_index.working_groups.all()]))
         else:
             self.index_working_groups = None
+        fth = FormTitleHelper(self.registry_model, "Family linkage")
+        self.form_title_dict = fth.title_dict_for_user(self.user)
 
     def _get_template_data(self):
-        data = {"patient": self.patient_model,
-                "link_allowed": self.link_allowed,
-                "is_index": self.is_index,
-                "registry_code": self.registry_model.code,
-                "index_working_groups": self.index_working_groups}
+        data = {
+            "patient": self.patient_model,
+            "link_allowed": self.link_allowed,
+            "is_index": self.is_index,
+            "registry_code": self.registry_model.code,
+            "index_working_groups": self.index_working_groups,
+            "form_title_dict": self.form_title_dict
+        }
 
         return data

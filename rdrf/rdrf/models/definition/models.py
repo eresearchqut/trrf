@@ -2022,3 +2022,21 @@ class FileStorage(models.Model):
     name = models.CharField(primary_key=True, max_length=255)
     data = models.BinaryField()
     size = models.IntegerField(default=0)
+
+
+class FormTitle(models.Model):
+    FORM_TITLE_CHOICES = (
+        ("Demographics", "Demographics"),
+        ("Consents", "Consents"),
+        ("Clinician", "Clinician"),
+        ("Proms", "Proms"),
+        ("Family linkage", "Family linkage")
+    )
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE)
+    default_name = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
+    custom_name = models.CharField(max_length=50)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        unique_together = ('registry', 'group', 'default_name', 'order')

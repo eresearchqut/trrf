@@ -22,6 +22,7 @@ from rdrf.models.definition.models import ContextFormGroupItem
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import FormTitle
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -448,6 +449,11 @@ class CDEFileAdmin(admin.ModelAdmin):
     list_display = ("form_name", "section_code", "cde_code", "item")
 
 
+class FormTitleAdmin(admin.ModelAdmin):
+    model = FormTitle
+    list_display = ('default_name', 'custom_name', 'order', 'registry')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -505,6 +511,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Notification, NotificationAdmin),
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
+    (FormTitle, FormTitleAdmin)
 ]
 
 ADMIN_COMPONENTS = []

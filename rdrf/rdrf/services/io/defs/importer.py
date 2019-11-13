@@ -14,6 +14,7 @@ from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import FormTitle
 
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
@@ -514,6 +515,17 @@ class Importer(object):
             config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
             config.consent_locked = registry_consent_locked
             config.save()
+
+        if "form_titles" in self.data:
+            titles = self.data["form_titles"]
+            for t in titles:
+                g = Group.objects.filter(name=t["group"]).first()
+                FormTitle.objects.get_or_create(
+                    group=g,
+                    default_name=t["default_name"],
+                    registry=r,
+                    defaults={"order": t["order"], "custom_name": t["custom_name"]}
+                )
 
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)

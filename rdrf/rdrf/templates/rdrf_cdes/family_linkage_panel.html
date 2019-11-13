@@ -1,15 +1,16 @@
 {% load i18n %}
 {% load translate %}
 {% load has_feature %}
+{% load lookup %}
 
 {% if patient %}
     {% if patient|has_feature:"family_linkage" %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 {% if patient.is_index %}
-                    <strong><a href="{% url 'family_linkage' registry_code patient.id %}">{% trans 'Family Linkage' %}</a></strong>
+                    <strong><a href="{% url 'family_linkage' registry_code patient.id %}">{{form_title_dict|lookup:"Family linkage"|translate }}</a></strong>
                 {% else %}
-                        <strong><a href="{% url 'family_linkage' registry_code patient.my_index.id %}">{% trans 'Family Linkage' %}</a></strong>
+                        <strong><a href="{% url 'family_linkage' registry_code patient.my_index.id %}">{{form_title_dict|lookup:"Family linkage"|translate }}</a></strong>
                 {% endif %}
             </div>
             <div class="panel-body">

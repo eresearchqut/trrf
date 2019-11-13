@@ -10,6 +10,7 @@ from django.db import transaction
 
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
+from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient, PatientRelative
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -259,6 +260,8 @@ class FamilyLinkageView(View):
         context['index_lookup_url'] = reverse("v1:index-list", args=(registry_code,))
         context["initial_index"] = initial_index
         context["location"] = "Family Linkage"
+        fth = FormTitleHelper(registry_model, "Family linkage")
+        context["form_title_dict"] = fth.title_dict_for_user(request.user)
 
         return render(request, 'rdrf_cdes/family_linkage.html', context)
 

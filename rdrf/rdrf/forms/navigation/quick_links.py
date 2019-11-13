@@ -79,6 +79,7 @@ class LinkDefs:
     CdePolicy = make_link("admin:rdrf_cdepolicy_changelist", _("Registry Common Data Elements Policy"))
     ContextFormGroups = make_link("admin:rdrf_contextformgroup_changelist", _("Registry Context Form Groups"))
     ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
+    FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
 
 
 class Links:
@@ -166,6 +167,7 @@ class RegularLinks(Links):
         LinkDefs.NextOfKinRelationship,
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
+        LinkDefs.FormTitlesConfig
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)

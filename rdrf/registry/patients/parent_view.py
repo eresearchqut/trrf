@@ -11,6 +11,7 @@ from registry.patients.admin_forms import ParentGuardianForm
 from registry.patients.models import AddressType, ParentGuardian, Patient, PatientAddress
 
 from rdrf.db.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
@@ -124,6 +125,8 @@ class ParentView(BaseParentView):
 
             self.set_rdrf_context(parent, context_id)
             context['context_id'] = self.rdrf_context.pk
+            fth = FormTitleHelper(self.registry, "")
+            context['form_title_dict'] = fth.title_dict_for_user(request.user)
 
         return render(request, 'rdrf_cdes/parent.html', context)
 
@@ -210,8 +213,12 @@ class ParentEditView(BaseParentView):
         else:
             messages.add_message(request, messages.ERROR, "Please correct the errors bellow")
 
+        registry = Registry.objects.get(code=registry_code)
+
         context['parent'] = parent
         context['registry_code'] = registry_code
         context['parent_form'] = parent_form
+        fth = FormTitleHelper(registry, "")
+        context['form_title_dict'] = fth.title_dict_for_user(request.user)
 
         return render(request, "rdrf_cdes/parent_edit.html", context)
