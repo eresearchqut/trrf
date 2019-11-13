@@ -4,7 +4,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.urls import reverse
@@ -51,6 +51,7 @@ from django.conf import settings
 from rdrf.services.rpc.actions import ActionExecutor
 from rdrf.helpers.utils import FormLink
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
+from rdrf.forms.dynamic.form_changes import FormChangesExtractor
 from rdrf.forms.progress.form_progress import FormProgress
 
 from rdrf.forms.navigation.locators import PatientLocator
@@ -61,6 +62,7 @@ from rdrf.security.security_checks import security_check_user_patient, can_sign_
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 import logging
 
@@ -293,6 +295,46 @@ class FormView(View):
 
         self.CREATE_MODE = True
 
+    @staticmethod
+    def get_form_group_name(patient_model, context):
+        return context.context_form_group.get_default_name(patient_model, context)
+
+    def init_previous_data_members(self):
+        self.previous_data = None
+        self.previous_versions = []
+        self.has_previous_contexts = False
+
+    def fetch_previous_data(self, changes_since_version, patient_model, registry_code):
+        selected_version_name = ''
+        if not self.rdrf_context:
+            # create mode
+            return None, selected_version_name
+
+        previous_contexts_qs = self.rdrf_context_manager.get_previous_contexts(
+            self.rdrf_context, patient_model
+        )
+        self.has_previous_contexts = previous_contexts_qs.exists()
+        for prev_context in previous_contexts_qs:
+            form_group_name = self.get_form_group_name(patient_model, prev_context)
+            clinical_data = self._get_dynamic_data(
+                id=patient_model.id,
+                registry_code=registry_code,
+                rdrf_context_id=prev_context.id
+            )
+            if changes_since_version and int(changes_since_version) == prev_context.id:
+                self.previous_data = clinical_data
+                selected_version_name = form_group_name
+            self.previous_versions.append({
+                "id": prev_context.id,
+                "name": form_group_name,
+            })
+        if not self.previous_data:
+            # We must have received a version that isn't valid (same context form group and previous version)
+            # Returning None to avoid entering in Compare Mode
+            changes_since_version = None
+
+        return changes_since_version, selected_version_name
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -336,16 +378,24 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        if not self.CREATE_MODE:
+        self.registry_form = self.get_registry_form(form_id)
+        self.init_previous_data_members()
+        changes_since_version = request.GET.get("changes_since_version")
+        if changes_since_version:
+            try:
+                int(changes_since_version)
+            except ValueError:
+                changes_since_version = None
+        selected_version_name = ''
+        if self.CREATE_MODE:
+            rdrf_context_id = "add"
+            self.dynamic_data = None
+        else:
             rdrf_context_id = self.rdrf_context.pk
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-        else:
-            rdrf_context_id = "add"
-            self.dynamic_data = None
-
-        self.registry_form = self.get_registry_form(form_id)
+            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
@@ -357,7 +407,7 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        context = self._build_context(user=request.user, patient_model=patient_model)
+        context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -398,10 +448,11 @@ class FormView(View):
         context["context_id"] = rdrf_context_id
 
         code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
-        context["change_targets"] = code_gen.generate_change_targets() or ''
-        context["generated_declarations"] = code_gen.generate_declarations() or ''
+        context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
+        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
+        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
+        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
+        context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
 
@@ -459,6 +510,9 @@ class FormView(View):
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id='add')
 
         dyn_patient.user = request.user
+
+        self.init_previous_data_members()
+        changes_since_version, __ = self.fetch_previous_data(None, patient, registry_code)
 
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
@@ -707,6 +761,9 @@ class FormView(View):
             "context_launcher": context_launcher.html,
             "have_dynamic_data": all_sections_valid,
             'settings': settings,
+            "has_previous_data": self.has_previous_contexts,
+            "previous_versions": self.previous_versions,
+            "changes_since_version": changes_since_version,
         }
 
         if request.user.is_parent:
@@ -742,14 +799,12 @@ class FormView(View):
 
             patient.mark_changed_timestamp()
 
-            success_message = _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
-                "patient_name": patient_name}
+            success_message = _(f"Patient {patient_name} saved successfully. Please now use the blue arrow on the right to continue.")
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
         else:
-            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {
-                "patient_name": patient_name}
+            failure_message = _(f"Patient {patient_name} not saved due to validation errors")
 
             messages.add_message(request,
                                  messages.ERROR,
@@ -776,7 +831,7 @@ class FormView(View):
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
             registry,
             registry_form,
@@ -784,7 +839,9 @@ class FormView(View):
             injected_model="Patient",
             injected_model_id=self.patient_id,
             is_superuser=self.request.user.is_superuser,
-            user_groups=self.request.user.groups.all())
+            user_groups=self.request.user.groups.all(),
+            allowed_cdes=allowed_cdes,
+            previous_values=previous_values)
 
     def _get_formlinks(self, user, context_model=None):
         container_model = self.registry
@@ -824,11 +881,20 @@ class FormView(View):
                 self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
             else:
                 self.dynamic_data['questionnaire_context'] = 'au'
+        changes_since_version = kwargs.get("changes_since_version")
+        form_changes = FormChangesExtractor(self.registry_form, self.previous_data, self.dynamic_data)
+        form_changes.determine_form_changes()
+        allowed_cdes = form_changes.allowed_cdes if changes_since_version else []
+        previous_values = form_changes.previous_values if changes_since_version else {}
 
+        remove_sections = []
         for s in sections:
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
-                self.registry, self.registry_form, section_model)
+                self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
+            if not form_class and changes_since_version:
+                remove_sections.append(s)
+                continue
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -852,11 +918,22 @@ class FormView(View):
                     extra = 0
                 form_set_class = formset_factory(
                     form_class, extra=extra, can_delete=self.show_multisection_delete_checkbox)
+                has_deleted_forms = False
+                deleted_index = -1
                 if self.dynamic_data:
                     try:
                         # we grab the list of data items by section code not cde code
+                        data = self.dynamic_data[s]
+                        if changes_since_version and self.previous_data and s in self.previous_data:
+                            prev_data = self.previous_data[s]
+                            if len(prev_data) > len(data):
+                                has_deleted_forms = True
+                                deleted_index = len(data)
+                                for k in range(len(data), len(prev_data)):
+                                    prev_data[k]['deleted'] = True
+                                    data.append(prev_data[k])
                         initial_data = wrap_fs_data_for_form(
-                            self.registry, self.dynamic_data[s])
+                            self.registry, data)
                     except KeyError:
                         initial_data = [""]  # * len(section_elements)
                 else:
@@ -864,6 +941,15 @@ class FormView(View):
                     initial_data = [""]  # this appears to forms
 
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
+                if has_deleted_forms:
+                    for idx, form in enumerate(form_section[s].forms):
+                        if idx >= deleted_index:
+                            form.was_deleted = True
+                            for field in form.fields:
+                                form.fields[field].widget.attrs['disabled'] = True
+
+        for s in remove_sections:
+            sections.remove(s)
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -892,6 +978,9 @@ class FormView(View):
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
             "settings": settings,
+            "has_previous_data": self.has_previous_contexts,
+            "previous_versions": self.previous_versions,
+            "changes_since_version": changes_since_version,
         }
 
         if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
@@ -1886,6 +1975,7 @@ class CdeWidgetSettingsView(View):
         admin_form = CommonDataElementAdminForm(cde.__dict__, instance=cde)
         is_hidden = admin_form['widget_settings'].is_hidden
         display = 'style="display:none"' if is_hidden else ''
+        hidden_input = '<input type="hidden" name="widget_settings" value="{}" id="id_widget_settings">'
         ret_val = """
             <div class="form-row field-widget_settings" {}>
               <div>
@@ -1893,5 +1983,13 @@ class CdeWidgetSettingsView(View):
                 {}
               </div>
             </div>
-        """.format(display, 'hidden' if is_hidden else '', admin_form['widget_settings'].as_widget())
+        """.format(display, 'hidden' if is_hidden else '', hidden_input if is_hidden else admin_form['widget_settings'].as_widget())
         return HttpResponse(mark_safe(ret_val))
+
+
+class CdeAvailableWidgetsView(View):
+
+    @login_required_method
+    def get(self, request, data_type):
+        widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
+        return JsonResponse({'widgets': widgets})

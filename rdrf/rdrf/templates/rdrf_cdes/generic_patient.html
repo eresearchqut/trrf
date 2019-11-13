@@ -46,8 +46,8 @@
 
 
         function select_country(obj) {
-            state_id = obj.id.replace("country", "state");
-            state_select = $('#' + state_id);
+            var state_id = obj.id.replace("country", "state");
+            var state_select = $('#' + state_id);
             state_select.find('option').remove();
             $.get( "{% url 'v1:state_lookup' 'XX' %}".replace('XX', obj.value), function( data ) {
                 if (data) {
@@ -58,7 +58,7 @@
             });
         }
 
-        function add_form(prefix) {
+        function add_form(el, prefix) {
             var mgmt_form = $("#mgmt_" + prefix);
             var empty_form = $("#empty_" + prefix);
             var forms = $("#forms_" + prefix);
@@ -82,6 +82,8 @@
                     });
                 }
             });
+
+            CollapsingPanels.expandParentPanel(el);
 
             var total_forms_inc = parseInt(total_forms.val()) + 1;
             total_forms.attr("value", total_forms_inc);
@@ -265,7 +267,7 @@
                                 <div class="panel panel-default">
                                     <div class="panel-heading">
                                         <strong>{{name}}</strong>
-                                        <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
+                                        <a class="btn btn-info btn-xs pull-right" onclick="add_form(this, '{{form.prefix}}')">
                                             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                         </a>
                                     </div>

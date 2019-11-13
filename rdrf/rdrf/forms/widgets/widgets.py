@@ -1,17 +1,15 @@
-# Custom widgets / Complex controls required
 import base64
 import datetime
-import json
+import inspect
 import logging
-from operator import attrgetter
 import re
-
+import sys
+from operator import attrgetter
 
 import pycountry
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.utils import flatatt
-from django.forms.widgets import ClearableFileInput
-from django.urls import reverse_lazy
+from django.utils.formats import date_format
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -29,14 +27,18 @@ class BadCustomFieldWidget(Textarea):
     """
 
 
-class DatatypeWidgetAlphanumericxxx(Textarea):
+class TextAreaWidget(Textarea):
 
-    def render(self, name, value, attrs=None, renderer=None):
-        html = super(DatatypeWidgetAlphanumericxxx, self).render(name, value, attrs)
-        return "<table border=3>%s</table>" % html
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
         self.main_choices = main_choices
@@ -109,6 +111,10 @@ class OtherPleaseSpecifyWidget(MultiWidget):
 
 class CalculatedFieldWidget(widgets.TextInput):
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_CALCULATED}
+
     def __init__(self, script, attrs={}):
         attrs['readonly'] = 'readonly'
         self.script = script
@@ -119,41 +125,11 @@ class CalculatedFieldWidget(widgets.TextInput):
         return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
 
 
-class ExtensibleListWidget(MultiWidget):
-
-    def __init__(self, prototype_widget, attrs={}):
-        self.widget_count = 1
-        self.prototype_widget = prototype_widget
-        super(ExtensibleListWidget, self).__init__([prototype_widget], attrs)
-
-    def _buttons_html(self):
-        return """<button type="button" onclick="alert('todo')">Click Me!</button>"""
-
-    def decompress(self, data):
-        """
-
-        :param data: dictionary contains items key with a list of row data for each widget
-        We create as many widgets on the fly so that render method can iterate
-        data  must not be a list else render won't call decompress ...
-        :return: a list of data for the widgets to render
-        """
-        from copy import copy
-        if not data:
-            self.widgets = [copy(self.prototype_widget)]
-            return [None]
-        else:
-            items = data["items"]
-            num_widgets = len(items)
-            self.widgets = [copy(self.prototype_widget) for i in range(num_widgets)]
-            return data
-
-    def render(self, name, value, renderer=None):
-        html = super(ExtensibleListWidget, self).render(name, value)
-        return html + self._buttons_html()
-
-
 class LookupWidget(widgets.TextInput):
-    SOURCE_URL = ""
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         return """
@@ -166,43 +142,17 @@ class LookupWidget(widgets.TextInput):
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
 
-class LookupWidget2(LookupWidget):
-
-    def render(self, name, value, attrs, renderer=None):
-        return """
-            <input type="text" name="%s" id="id_%s" value="%s">
-            <script type="text/javascript">
-                $("#id_%s").keyup(function() {
-                    lookup2($(this), '%s');
-                });
-            </script>
-        """ % (name, name, value or '', name, self.SOURCE_URL)
-
-
-class GeneLookupWidget(LookupWidget):
-    SOURCE_URL = reverse_lazy('v1:gene-list')
-
-
-class LaboratoryLookupWidget(LookupWidget2):
-    SOURCE_URL = reverse_lazy('v1:laboratory-list')
-
-    def render(self, name, value, attrs, renderer=None):
-        widget_html = super(LaboratoryLookupWidget, self).render(name, value, attrs)
-        link_to_labs = reverse_lazy("admin:genetic_laboratory_changelist")
-
-        link_html = """<span class="input-group-btn">
-                            <a class="btn btn-info" href="#" onclick="window.open('%s');" >Add</a>
-                        </span>""" % link_to_labs
-        return "<div class='input-group'>" + widget_html + link_html + "</div>"
-
-
 class DateWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_DATE}
 
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
             if value:
                 if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
-                    return "%s-%s-%s" % (value.day, value.month, value.year)
+                    return date_format(value)
                 else:
                     return value
             else:
@@ -213,6 +163,10 @@ class DateWidget(widgets.TextInput):
 
 
 class CountryWidget(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
@@ -235,6 +189,10 @@ class CountryWidget(widgets.Select):
 
 
 class StateWidget(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         try:
@@ -264,8 +222,7 @@ class StateWidget(widgets.Select):
         return mark_safe('\n'.join(output))
 
 
-class ParametrisedSelectWidget(widgets.Select):
-
+class ParameterisedSelectWidget(widgets.Select):
     """
     A dropdown that can retrieve values dynamically from the registry that "owns" the form containing the widget.
     This is an abstract class which must be subclassed.
@@ -278,7 +235,7 @@ class ParametrisedSelectWidget(widgets.Select):
         del kwargs['widget_parameter']
         self._widget_context = kwargs['widget_context']
         del kwargs['widget_context']
-        super(ParametrisedSelectWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def render(self, name, value, attrs, renderer=None):
         if not value:
@@ -305,7 +262,11 @@ class ParametrisedSelectWidget(widgets.Select):
             "subclass responsibility - it should return a list of pairs: [(code, display), ...]")
 
 
-class StateListWidget(ParametrisedSelectWidget):
+class StateListWidget(ParameterisedSelectWidget):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
@@ -323,8 +284,7 @@ class StateListWidget(ParametrisedSelectWidget):
         return mark_safe('\n'.join(output))
 
 
-class DataSourceSelect(ParametrisedSelectWidget):
-
+class DataSourceSelect(ParameterisedSelectWidget):
     """
     A parametrised select that retrieves values from a data source specified in the parameter
     """
@@ -341,6 +301,10 @@ class DataSourceSelect(ParametrisedSelectWidget):
 
 
 class PositiveIntegerInput(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER}
 
     def render(self, name, value, attrs, renderer=None):
         min_value, max_value = self._get_value_range(name)
@@ -361,6 +325,10 @@ class RadioSelect(widgets.RadioSelect):
     # def __init__(self, name, value, attrs, renderer):
     #     super(RadioSelect, self).__init__(renderer=renderer)
 
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_RANGE}
+
     def render(self, name, value, attrs=None, renderer=None):
         html = super().render(name, value, attrs, renderer)
         return self._transform(html)
@@ -373,6 +341,10 @@ class RadioSelect(widgets.RadioSelect):
 
 
 class ReadOnlySelect(widgets.Select):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_RANGE}
 
     def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
@@ -394,98 +366,6 @@ class ReadOnlySelect(widgets.Select):
             return html
 
 
-class GenericValidatorWithConstructorPopupWidget(widgets.TextInput):
-
-    """
-    If RPC_COMMAND_NAME is not None
-    presents a  textbox with a tick or cross ( valid/invalid)
-    As the input is typed , an rpc call ( subclass ) is made to the server
-    the result is checked and if the answer is valid , a tick
-    is shown else a cross ( tne default )
-    If CONSTRUCTOR_TEMPLATE is not None - also display a popup form  and a + symbol next to the
-    validator to cause a constructor form to be displayed which "constructs" a value which is used
-    to populate the original field value on popup close.
-    """
-    RPC_COMMAND_NAME = None                               # Subclass Responsibility
-    CONSTRUCTOR_FORM_NAME = None                          # If None no popup needed
-    CONSTRUCTOR_NAME = None
-
-    class Media:
-        # this include doesn't seem to work as advertised so I've
-        # included the js on form template
-        js = ("js/generic_validator.js",)
-
-    def render(self, name, value, attrs, renderer=None):
-        rpc_endpoint_url = reverse_lazy('rpc')
-        if self.RPC_COMMAND_NAME:
-            attrs["onkeyup"] = "generic_validate(this,'%s','%s');" % (
-                rpc_endpoint_url, self.RPC_COMMAND_NAME)
-        return super(
-            GenericValidatorWithConstructorPopupWidget,
-            self).render(
-            name,
-            value,
-            attrs) + self._validation_indicator_html() + self._constructor_button() + self._on_page_load(
-            attrs['id'])
-
-    def _constructor_button(self):
-        if not self.CONSTRUCTOR_FORM_NAME:
-            return ""
-        else:
-            constructor_form_url = self._get_constructor_form_url(self.CONSTRUCTOR_FORM_NAME)
-            return """<span  class="glyphicon glyphicon-add"  onclick="generic_constructor(this, '%s', '%s');"/>""" % (
-                self.CONSTRUCTOR_FORM_NAME, constructor_form_url)
-
-    def _validation_indicator_html(self):
-        if self.RPC_COMMAND_NAME:
-            return """<span class="validationindicator"></span>"""
-        else:
-            return ""
-
-    def _get_constructor_form_url(self, form_name):
-        return reverse_lazy('constructors', kwargs={'form_name': form_name})
-
-    def _on_page_load(self, control_id):
-        # force validation on page load
-        rpc_endpoint_url = reverse_lazy('rpc')
-        if self.RPC_COMMAND_NAME:
-            onload_script = """
-                <script>
-                        $(document).ready(function() {{
-                            var controlId = "{control_id}";
-                            var element = $("#" + controlId);
-                            var rpcEndPoint = "{rpc_endpoint}";
-                            var rpcCommand =  "{rpc_command}";
-                            generic_validate(document.getElementById(controlId) ,rpcEndPoint, rpcCommand);
-                        }});
-
-                </script>
-                """.format(control_id=control_id, rpc_endpoint=rpc_endpoint_url, rpc_command=self.RPC_COMMAND_NAME)
-            return onload_script
-        else:
-            return ""
-
-
-class DNAValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "validate_dna"
-    CONSTRUCTOR_FORM_NAME = "variation"
-    CONSTRUCTOR_NAME = "DNA"
-
-
-class RNAValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "validate_rna"
-    CONSTRUCTOR_FORM_NAME = "variation"
-    CONSTRUCTOR_NAME = "RNA"
-
-
-class ProteinValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "validate_protein"
-
-
-class ExonValidator(GenericValidatorWithConstructorPopupWidget):
-    RPC_COMMAND_NAME = "validate_exon"
-
-
 class MultipleFileInput(Widget):
     """
     This widget combines multiple file inputs.
@@ -494,6 +374,10 @@ class MultipleFileInput(Widget):
     It relies on javascript in form.js, which uses styling from
     rdrf.css.
     """
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_FILE}
 
     @staticmethod
     def input_name(base_name, i):
@@ -530,7 +414,7 @@ class MultipleFileInput(Widget):
 
     def _render_base(self, name, value, attrs, index):
         input_name = self.input_name(name, index)
-        base = ClearableFileInput().render(input_name, value, attrs)
+        base = widgets.ClearableFileInput().render(input_name, value, attrs)
         hidden = HiddenInput().render(input_name + "-index", index, {})
         return "%s\n%s" % (base, hidden)
 
@@ -544,7 +428,7 @@ class MultipleFileInput(Widget):
         """
         Gets file input value from each sub-fileinput.
         """
-        base_widget = ClearableFileInput()
+        base_widget = widgets.ClearableFileInput()
 
         indices = (self.input_index(name, n, "-index") for n in data)
         clears = (self.input_index(name, n, "-clear") for n in data)
@@ -567,7 +451,12 @@ class ValueWrapper:
         return self.filename
 
 
-class ConsentFileInput(ClearableFileInput):
+class ConsentFileInput(widgets.ClearableFileInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_FILE}
+
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         checkbox_name = self.clear_checkbox_name(name)
@@ -606,6 +495,11 @@ class ConsentFileInput(ClearableFileInput):
 
 
 class SliderWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_INTEGER, CommonDataElement.DATA_TYPE_FLOAT}
+
     def render(self, name, value, attrs=None, renderer=None):
         if not (value and isinstance(value, float) or isinstance(value, int)):
             value = 0
@@ -637,6 +531,9 @@ class SliderWidget(widgets.TextInput):
                              $( "#{attrs['id']}" ).val( ui.value );
                          }}
                      }});
+                     // Set z-index to 0 for slider tooltip so it's not displayed through
+                     // form headers
+                     $(".slider .tooltip").css("z-index","0");
                  }});
              </script>
             """
@@ -644,64 +541,12 @@ class SliderWidget(widgets.TextInput):
         return context
 
 
-class SliderSettingsWidget(widgets.Widget):
+class SignatureWidget(widgets.TextInput):
 
     @staticmethod
-    def generate_input(name, title, parsed, info=None):
-        value = parsed.get(name, '')
-        input_str = f'<input type="text" name="{name}" id="{name}" value="{value}" onchange="saveJSON()">'
-        help_text = f'<div class="help">{info}</div>' if info else ''
-        return f"""
-            <div>
-                <label for="{name}">{title}</label>
-                {input_str}
-                {help_text}
-            </div>"""
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_STRING}
 
-    def generate_inputs(self, parsed):
-        rows = [
-            self.generate_input('min', _('Min value'), parsed, _("leave empty if you want to use the CDE's min value")),
-            self.generate_input('max', _('Max value'), parsed, _("leave empty if you want to use the CDE's max value")),
-            self.generate_input('left_label', _('Left label'), parsed),
-            self.generate_input('right_label', _('Right label'), parsed),
-            self.generate_input('step', _('Step'), parsed),
-        ]
-        return "<br/>".join(rows)
-
-    def render(self, name, value, attrs=None, renderer=None):
-        parsed = {}
-        try:
-            parsed = json.loads(value)
-        except Exception:
-            pass
-
-        html = """
-             <div style="display:inline-grid" id="id_{name}">
-                {inputs}
-                <input type="hidden" name="{name}" value='{value}'/>
-             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
-        javascript = """
-            function saveJSON() {
-                var inputs = $('#id_%s input[type!=hidden]');
-                var obj = {};
-                for (var i = 0; i < inputs.length; i++) {
-                    if (inputs[i].value !='' && inputs[i].value.trim() != '') {
-                        obj[inputs[i].name] = inputs[i].value;
-                    }
-                }
-                if (!$.isEmptyObject(obj)) {
-                    $("input[name='%s']").val(JSON.stringify(obj));
-                }
-            }
-        """ % (name, name)
-        return mark_safe(f"""
-            {html}
-            <script>
-                {javascript}
-            </script>""")
-
-
-class SignatureWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
 
         has_value = value and value != 'None'
@@ -802,6 +647,11 @@ class SignatureWidget(widgets.TextInput):
 
 
 class AllConsentWidget(widgets.CheckboxInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_BOOL}
+
     def render(self, name, value, attrs=None, renderer=None):
 
         base = super().render(name, value, attrs, renderer)
@@ -818,3 +668,106 @@ class AllConsentWidget(widgets.CheckboxInput):
                 {javascript}
             </script>
          """)
+
+
+class TimeWidget(widgets.TextInput):
+    AMPM = "12hour"
+    FULL = "24hour"
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_TIME}
+
+    def _parse_value(self, value, fmt):
+        '''
+        Parse the input time and transform it to the format
+        the timepicki widget expects
+        '''
+
+        def validate(hr, min, fmt):
+            try:
+                max_hr = 12 if fmt == self.AMPM else 23
+                return 0 <= int(hr) <= max_hr and 0 <= int(min) <= 59
+            except ValueError:
+                return False
+
+        NO_VALUE = ('', [])
+        if not value:
+            return NO_VALUE
+
+        m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
+        if not m:
+            return NO_VALUE
+        parts = m.groups()
+        hour, minute, meridian = parts
+        if not validate(hour, minute, self.AMPM if meridian else self.FULL):
+            return NO_VALUE
+        hour, minute = int(hour), int(minute)
+
+        if fmt == self.FULL:
+            if meridian == 'PM':
+                hour = 12 if hour == 12 else hour + 12
+        else:
+            if hour == 0:
+                hour = 12
+            elif hour > 12:
+                hour = hour - 12
+                meridian = 'PM'
+            meridian = meridian or 'AM'
+
+        formatted_time = f'{hour:02d}:{minute:02d}'
+        start_time = [hour, minute]
+        if fmt == self.AMPM:
+            formatted_time += f' {meridian}'
+            start_time.append(meridian)
+
+        return formatted_time, start_time
+
+    def render(self, name, value, attrs=None, renderer=None):
+        fmt = self.attrs.pop("format") if "format" in self.attrs else self.AMPM
+        value, start_time = self._parse_value(value, fmt)
+        html = f'''
+            <input id="id_{name}" type="text" name="{name}" value="{value}"/>
+        '''
+        set_time_str = f", start_time:{start_time}" if start_time else ""
+
+        if fmt == self.AMPM:
+            attrs = f"{{show_meridian:true, min_hour_value:1, max_hour_value:12 {set_time_str}}}"
+        else:
+            attrs = f"{{show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
+
+        js = f'''
+            $("#id_{name}").timepicki({attrs});
+            $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
+        '''
+        return f'''
+        {html}
+        <script>
+            {js}
+        </script>
+        '''
+
+
+def _all_widgets():
+    EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput']
+
+    def is_widget(cls):
+        return issubclass(cls, Widget)
+
+    def is_name_ok(name):
+        return name not in EXCLUDED_WIDGET_NAMES
+
+    return ((name, cls) for name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass) if is_widget(cls) and is_name_ok(name))
+
+
+def get_all_widgets():
+    return [name for name, _ in _all_widgets()]
+
+
+def get_widgets_for_data_type(data_type):
+    def has_valid_type(cls):
+        if not hasattr(cls, 'usable_for_types'):
+            return False
+        return data_type in cls.usable_for_types()
+
+    return [name for name, cls in _all_widgets() if has_valid_type(cls)]

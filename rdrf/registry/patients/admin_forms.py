@@ -418,7 +418,7 @@ class PatientForm(forms.ModelForm):
             }),
             'user': forms.HiddenInput()
         }
-        exclude = ['doctors', 'user']
+        exclude = ['doctors', 'user', 'created_by']
 
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB

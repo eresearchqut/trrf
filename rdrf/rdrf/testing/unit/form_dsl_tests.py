@@ -3,8 +3,6 @@ from .tests import FormTestCase
 
 
 class FormDSLValidationTestCase(FormTestCase):
-    def setUp(self):
-        super().setUp()
 
     def create_sections(self):
         super().create_sections()
@@ -19,11 +17,8 @@ class FormDSLValidationTestCase(FormTestCase):
 
     def create_forms(self):
         super().create_forms()
-        self.new_form = self.create_form("simple", [self.sectionA, self.sectionB, self.sectionD,
-                                                    self.sectionE, self.sectionF, self.sectionG])
-
-    def test_simple_form(self):
-        pass
+        self.new_form = self.create_form("new_form", [self.sectionA, self.sectionB, self.sectionD,
+                                                      self.sectionE, self.sectionF, self.sectionG])
 
     @staticmethod
     def get_exception_msgs(exc_info):

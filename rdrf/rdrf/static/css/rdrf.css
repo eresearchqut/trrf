@@ -6,7 +6,6 @@ html {
 body {
     background-color: #F8F8F8;
     margin-bottom: 80px;
-    margin-top: 60px;
 }
 
 .next-form {
@@ -43,7 +42,6 @@ body {
 
 .footer-wrap {
     border-top: 5px solid #e1e3e5;;
-    height: 60px;
     position: fixed;
     width: 100%;
     z-index: 99;

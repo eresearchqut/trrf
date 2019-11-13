@@ -116,7 +116,7 @@ class UserChangeForm(UserMixin, forms.ModelForm):
         return self.initial["password"]
 
     def clean_is_superuser(self):
-        is_superuser = self.data.get('is_superuser', False)
+        is_superuser = self.cleaned_data['is_superuser']
         if is_superuser and not self.user.is_superuser:
             raise ValidationError("Can't make user a superuser unless you are one!")
         return is_superuser

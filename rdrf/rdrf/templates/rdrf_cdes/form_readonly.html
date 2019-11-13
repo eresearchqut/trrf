@@ -135,7 +135,7 @@
         });
     });
 
-    function add_form(prefix) {
+    function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
         var empty_form = $("#empty_" + prefix);
         var forms = $("#forms_" + prefix);
@@ -159,6 +159,8 @@
                 });
             }
         });
+
+        CollapsingPanels.expandParentPanel(el);
 
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
@@ -224,7 +226,6 @@
 		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 	</a>
 
-    <br>
     <div class="row">
     <div class="col-md-10">
         <form class="form-horizontal" enctype="multipart/form-data" method="post">{% csrf_token %}
@@ -273,7 +274,7 @@
 
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form('{{formset.prefix}}');">
+                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form(this, '{{formset.prefix}}');">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
                                 </a>
                             {% endwith %}

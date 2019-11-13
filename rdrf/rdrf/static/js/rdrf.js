@@ -11,9 +11,11 @@ function hide_empty_menu() {
 function adjustContentTopPadding() {
     var navbarHeight = $(".navbar").height();
     var bannerHeight = $(".banner").height();
+    var relativePadding = 36;
+
     if (navbarHeight == null || bannerHeight == null) {
         // Can't find navbar or banner, better not do anything
-        return
+        return;
     }
-    $("#content").css({"padding-top": navbarHeight + bannerHeight});
+    $("#content").css({"padding-top": navbarHeight + bannerHeight + relativePadding});
 }

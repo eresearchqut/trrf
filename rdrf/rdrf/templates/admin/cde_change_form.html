@@ -88,5 +88,20 @@ function widgetNameChangeHandler() {
         $(".field-widget_settings").removeClass('hidden');
     });
 }
+
+function dataTypeChangeHandler() {
+    var dataType = $("#id_datatype").val();
+    var url = "/admin/cde/widgets/" + dataType + "/";
+    var widgetNameSelect = $("#id_widget_name")
+    widgetNameSelect.find('option').remove();
+    widgetNameSelect.append("<option value=\"\">Default widget</option>");
+    $.get(url, function(data) {
+      $.each(data.widgets, function (i, item) {
+        widgetNameSelect.append("<option value=" + item.value +">"+ item.name +"</option>");
+      });
+      widgetNameSelect.trigger('change');
+    });
+}
+
 </script>
 {% endblock %}

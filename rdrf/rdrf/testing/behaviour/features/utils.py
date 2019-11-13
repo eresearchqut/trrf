@@ -199,10 +199,10 @@ def scroll_to(element):
     return y
 
 
-def scroll_to_ensure_margin(element, margin):
+def scroll_to_ensure_margin(element, margin=80):
     loc = element.location_once_scrolled_into_view
     y = loc["y"]
-    scroll_to_y(y - margin)
+    scroll_to_y(y + margin)
     return y
 
 

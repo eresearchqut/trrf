@@ -738,10 +738,33 @@ class CDEPermittedValue(models.Model):
 
 
 class CommonDataElement(models.Model):
+
+    DATA_TYPE_BOOL = 'boolean'
+    DATA_TYPE_CALCULATED = 'calculated'
+    DATA_TYPE_DATE = 'date'
+    DATA_TYPE_FILE = 'file'
+    DATA_TYPE_FLOAT = 'float'
+    DATA_TYPE_INTEGER = 'integer'
+    DATA_TYPE_RANGE = 'range'
+    DATA_TYPE_STRING = 'string'
+    DATA_TYPE_TIME = 'time'
+
+    DATA_TYPE_CHOICES = [
+        (DATA_TYPE_BOOL, 'Boolean'),
+        (DATA_TYPE_CALCULATED, 'Calculated'),
+        (DATA_TYPE_DATE, 'Date'),
+        (DATA_TYPE_FILE, 'File'),
+        (DATA_TYPE_FLOAT, 'Float'),
+        (DATA_TYPE_INTEGER, 'Integer'),
+        (DATA_TYPE_RANGE, 'Range'),
+        (DATA_TYPE_STRING, 'String'),
+        (DATA_TYPE_TIME, 'Time')
+    ]
+
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(max_length=50, help_text="type of field")
+    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=DATA_TYPE_STRING)
     instructions = models.TextField(
         blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(
@@ -775,7 +798,8 @@ class CommonDataElement(models.Model):
     widget_name = models.CharField(
         max_length=80,
         blank=True,
-        help_text="If a special widget required indicate here - leave blank otherwise")
+        help_text="If a special widget required indicate here - leave blank otherwise",
+    )
     widget_settings = models.TextField(
         blank=True,
         help_text="If the widget needs additional settings add them here")
@@ -876,6 +900,8 @@ class CommonDataElement(models.Model):
             })
 
     def save(self, *args, **kwargs):
+        if self.widget_name is not None:
+            self.widget_name = self.widget_name.strip()
         if self.widget_name == 'SliderWidget' and self.min_value and self.max_value:
             settings = {
                 "min": float(self.min_value),
@@ -967,6 +993,9 @@ class RegistryForm(models.Model):
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
 
+    class Meta:
+        ordering = ('registry', 'position')
+
     def natural_key(self):
         return (self.registry.code, self.name)
 
@@ -1016,19 +1045,18 @@ class RegistryForm(models.Model):
         returns a list of sectioncode.cde_code strings
         E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
         """
-        return list(filter(bool, map(str.strip, self.questionnaire_questions.split(","))))
+        return [q.strip() for q in self.questionnaire_questions.split(",") if q.strip()]
 
     @property
     def section_models(self):
         return Section.objects.get_by_comma_separated_codes(self.sections)
 
     def in_questionnaire(self, section_code, cde_code):
-        questionnaire_code = "%s.%s" % (section_code, cde_code)
-        return questionnaire_code in self.questionnaire_list
+        return f"{section_code}.{cde_code}" in self.questionnaire_list
 
     @property
     def has_progress_indicator(self):
-        return True if len(self.complete_form_cdes.values_list()) > 0 else False
+        return len(self.complete_form_cdes.values_list()) > 0
 
     def link(self, patient_model):
         from rdrf.helpers.utils import FormLink

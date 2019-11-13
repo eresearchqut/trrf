@@ -13,12 +13,34 @@ var CollapsingPanels = function() {
         return $(collapsiblePanelsSelector +  ' > .panel-body');
     }
 
+    function getFirstPanelBody() {
+        return $(collapsiblePanelsSelector +  ' > .panel-body').first();
+    }
+
+
     function expandAll() {
         getAllPanelBodies().collapse('show');
     }
 
+    function expandFirst() {
+        getFirstPanelBody().collapse('show');
+    }
+
+
     function collapseAll() {
         getAllPanelBodies().collapse('hide');
+    }
+
+    function expandParentPanel(el, handler) {
+        var parentPanel = $(el).parents(collapsiblePanelsSelector);
+        if (!parentPanel.length) {
+            return;
+        }
+        var panelBody = parentPanel.find('.panel-body');
+        panelBody.collapse('show');
+        if (typeof(handler) !== 'undefined') {
+            handler();
+        };
     }
 
     function setUpCollapseAllButton() {
@@ -97,8 +119,10 @@ var CollapsingPanels = function() {
 
     return {
         setUp: setUp,
+        expandParentPanel: expandParentPanel,
         expandAll: expandAll,
-        collapseAll: collapseAll
+        collapseAll: collapseAll,
+        expandFirst: expandFirst
     }
 }();
 

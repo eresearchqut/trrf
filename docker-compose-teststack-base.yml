@@ -3,6 +3,8 @@ version: '3.7'
 services:
   dbtest:
     image: postgres:9.4
+    volumes:
+      - ./docker/dev/devdb-docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d
     env_file:
       - docker/dev/envs/postgres  # Using same db settings as dev for now
     ports:
@@ -10,6 +12,8 @@ services:
 
   dbclinicaltest:
     image: postgres:9.4
+    volumes:
+      - ./docker/dev/devdb-docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d
     env_file:
       - docker/dev/envs/postgres
     ports:

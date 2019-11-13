@@ -7,6 +7,8 @@ from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
+from django_js_reverse.views import urls_js
+
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
@@ -325,7 +327,9 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
     re_path(r'^health-check/?$', health_check, name='health_check'),
-    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings')
+    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
+    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
+    re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:

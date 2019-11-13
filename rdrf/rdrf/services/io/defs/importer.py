@@ -2,6 +2,8 @@ import logging
 
 from rdrf.helpers.registry_features import RegistryFeatures
 
+from rdrf.models.data_fixes import CdeMappings
+
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
@@ -12,6 +14,8 @@ from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import DemographicFields
+
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 from registry.groups.models import WorkingGroup
 
@@ -352,7 +356,19 @@ class Importer(object):
                                 "import will change cde %s: import value = %s new value = %s" %
                                 (cde_model.code, old_value, import_value))
 
-                    setattr(cde_model, field, cde_map[field])
+                    if field == 'datatype':
+                        import_value = CdeMappings.fix_data_type(import_value.strip())
+                        valid_types = [choice[0] for choice in CommonDataElement.DATA_TYPE_CHOICES]
+                        if import_value not in valid_types:
+                            raise ValidationError(f'Invalid data type {import_value} for CDE: {cde_map["code"]}')
+                    elif field == 'widget_name':
+                        import_value = CdeMappings.fix_widget_name(import_value.strip())
+                        data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
+                        valid_widgets = get_widgets_for_data_type(data_type) + ['']
+                        if import_value not in valid_widgets:
+                            raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} and CDE: {cde_map["code"]}')
+
+                    setattr(cde_model, field, import_value)
                     # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
             # Assign value group - pv_group will be empty string is not a range
