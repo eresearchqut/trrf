@@ -261,7 +261,7 @@ class FamilyLinkageView(View):
         context["initial_index"] = initial_index
         context["location"] = "Family Linkage"
         fth = FormTitleHelper(registry_model, "Family linkage")
-        context["form_title_dict"] = fth.title_dict_for_user(request.user)
+        context["form_titles"] = fth.title_dict_for_user(request.user)
 
         return render(request, 'rdrf_cdes/family_linkage.html', context)
 

@@ -518,14 +518,36 @@ class Importer(object):
 
         if "form_titles" in self.data:
             titles = self.data["form_titles"]
+            import_default_titles = set(t["default_title"] for t in titles)
+            existing_titles = set(t[0] for t in FormTitle.FORM_TITLE_CHOICES)
+            diff = import_default_titles - existing_titles
+            if diff:
+                raise RegistryImportError(f"Non existent default form titles: {diff} !")
             for t in titles:
-                g = Group.objects.filter(name=t["group"]).first()
-                FormTitle.objects.get_or_create(
-                    group=g,
-                    default_name=t["default_name"],
+                groups = []
+                for g_name in t["groups"]:
+                    group_obj, created = Group.objects.get_or_create(name=g_name)
+                    if created:
+                        logger.info("created Group %s" % group_obj)
+                    groups.append(group_obj)
+                form_title_qs = FormTitle.objects.filter(
+                    default_title=t["default_title"],
                     registry=r,
-                    defaults={"order": t["order"], "custom_name": t["custom_name"]}
+                    groups__in=groups,
+                    order=t["order"]
                 )
+                if form_title_qs.exists():
+                    form_title_qs.update(custom_title=t["custom_title"])
+                    for ft in form_title_qs:
+                        ft.groups.set(groups, clear=True)
+                else:
+                    ft = FormTitle.objects.create(
+                        default_title=t["default_title"],
+                        registry=r,
+                        order=t["order"],
+                        custom_title=t["custom_title"]
+                    )
+                    ft.groups.set(groups, clear=True)
 
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)

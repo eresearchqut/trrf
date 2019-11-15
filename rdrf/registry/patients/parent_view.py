@@ -126,7 +126,7 @@ class ParentView(BaseParentView):
             self.set_rdrf_context(parent, context_id)
             context['context_id'] = self.rdrf_context.pk
             fth = FormTitleHelper(self.registry, "")
-            context['form_title_dict'] = fth.title_dict_for_user(request.user)
+            context['form_titles'] = fth.title_dict_for_user(request.user)
 
         return render(request, 'rdrf_cdes/parent.html', context)
 
@@ -219,6 +219,6 @@ class ParentEditView(BaseParentView):
         context['registry_code'] = registry_code
         context['parent_form'] = parent_form
         fth = FormTitleHelper(registry, "")
-        context['form_title_dict'] = fth.title_dict_for_user(request.user)
+        context['form_titles'] = fth.title_dict_for_user(request.user)
 
         return render(request, "rdrf_cdes/parent_edit.html", context)

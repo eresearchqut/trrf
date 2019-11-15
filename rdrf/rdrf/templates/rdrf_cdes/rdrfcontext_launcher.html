@@ -26,9 +26,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Demographics" %}
-     <i>{% trans form_title_dict.Demographics %}</i>
+     <i>{{ form_titles.Demographics  }}</i>
   {% else %}
-     <a href="{{demographics_link}}">{% trans form_title_dict.Demographics %}</a>
+     <a href="{{demographics_link}}">{{ form_titles.Demographics }}</a>
   {% endif %}
   </div>
 </div>
@@ -38,9 +38,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Consents" %}
-     <i>{% trans form_title_dict.Consents %}</i>
+     <i>{{ form_titles.Consents }}</i>
   {% else %}
-     <a href="{{consents_link}}">{% trans form_title_dict.Consents %}</a>
+     <a href="{{consents_link}}">{{ form_titles.Consents }}</a>
   {% endif %}
   </div>
 </div>
@@ -50,9 +50,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Clinician" %}
-     <i>{% trans form_title_dict.Clinician %}</i>
+     <i>{{ form_titles.Clinician }}</i>
   {% else %}
-     <a href="{{clinician_form_link}}">{% trans form_title_dict.Clinician %}</a>
+     <a href="{{clinician_form_link}}">{{ form_titles.Clinician }}</a>
   {% endif %}
   </div>
 </div>
@@ -62,9 +62,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Proms" %}
-     <i>{% trans form_title_dict.Proms %}</i>
+     <i>{{ form_titles.Proms }}</i>
   {% else %}
-     <a href="{{proms_link}}">{% trans form_title_dict.Proms %}</a>
+     <a href="{{proms_link}}">{{ form_titles.Proms }}</a>
   {% endif %}
   </div>
 </div>
@@ -75,9 +75,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
       {% if current_form_name == "Family Linkage" %}
-        <i>{{ form_title_dict|lookup:"Family linkage"|translate }}</i>
+        <i>{{ form_titles|lookup:"Family linkage" }}</i>
       {% else %}
-        <a href="{{family_linkage_link}}">{{ form_title_dict|lookup:"Family linkage"|translate }}</a>
+        <a href="{{family_linkage_link}}">{{ form_titles|lookup:"Family linkage" }}</a>
       {% endif %}
   </div>
 </div>

@@ -49,6 +49,7 @@ from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
+from rdrf.admin_forms import FormTitleAdminForm
 
 from functools import reduce
 
@@ -451,7 +452,8 @@ class CDEFileAdmin(admin.ModelAdmin):
 
 class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
-    list_display = ('default_name', 'custom_name', 'order', 'registry')
+    form = FormTitleAdminForm
+    list_display = ('registry', 'default_title')
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(

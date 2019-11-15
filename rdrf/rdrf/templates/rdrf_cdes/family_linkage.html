@@ -1,6 +1,5 @@
 {% extends "rdrf_cdes/base-2-cols.html" %}
 {% load static %}
-{% load translate %}
 {% block extrastyle %}
         {{ block.super }}
         <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
@@ -137,7 +136,7 @@
             clearTableData("#indexpatient table");
 
             if (patient.link) {
-               patient_link = link({url: patient.link, text: "{{form_title_dict.Demographics|translate}}"});
+               patient_link = link({url: patient.link, text: "{{form_titles.Demographics}}"});
             }
 	
 	    if (patient.working_group) {
@@ -174,7 +173,7 @@
         function addRelativeRow(relationships, relative) {
             var relative_link = "Not in registry";
             if (relative.link) {
-                relative_link = link({url: relative.link, text: "{{form_title_dict.Demographics|translate}}"});
+                relative_link = link({url: relative.link, text: "{{form_titles.Demographics}}"});
             }
 	    if (relative.working_group) {
 	        relative_link = relative.working_group;

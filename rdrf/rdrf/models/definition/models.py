@@ -2030,13 +2030,16 @@ class FormTitle(models.Model):
         ("Consents", "Consents"),
         ("Clinician", "Clinician"),
         ("Proms", "Proms"),
-        ("Family linkage", "Family linkage")
+        ("Family linkage", "Family Linkage")
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE)
-    default_name = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
-    custom_name = models.CharField(max_length=50)
+    groups = models.ManyToManyField(
+        Group,
+        help_text="Users of these groups will see the custom title instead of the default one"
+    )
+    default_title = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
+    custom_title = models.CharField(max_length=50)
     order = models.PositiveIntegerField()
 
     class Meta:
-        unique_together = ('registry', 'group', 'default_name', 'order')
+        ordering = ('registry', 'default_title', 'order')

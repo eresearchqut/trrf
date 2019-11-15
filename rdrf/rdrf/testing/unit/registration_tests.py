@@ -56,7 +56,7 @@ class RegistrationTest(TestCase):
             section=self.consent_section
         )
 
-    def _register_patient(self):
+    def register_patient(self):
         post_data = {
             "registry_code": "reg4",
             "email": self.PATIENT_EMAIL,
@@ -80,10 +80,7 @@ class RegistrationTest(TestCase):
             self.assertEqual(response.status_code, 302)
             return Patient.objects.filter(email=self.PATIENT_EMAIL).first()
 
-
-class PatientStageFlowTest(RegistrationTest):
-
-    def _consent_post_data(self, patient):
+    def consent_post_data(self, patient):
         return {
             f"customconsent_{self.registry.id}_{self.consent_section.id}_{self.consent_question.id}": "on",
             "patient_consent_file-INITIAL_FORMS": 0,
@@ -93,12 +90,15 @@ class PatientStageFlowTest(RegistrationTest):
             "patient_consent_file-__prefix__-patient": patient.id
         }
 
+
+class PatientStageFlowTest(RegistrationTest):
+
     def test_patient_registration_stage(self):
         """
         When a patient is registered and stages are enabled the stage should be set
         to the first stage automatically
         """
-        patient = self._register_patient()
+        patient = self.register_patient()
         self.assertIsNotNone(patient, "Patient not created !")
         self.assertEqual(patient.stage, self.informed_consent)
 
@@ -107,7 +107,7 @@ class PatientStageFlowTest(RegistrationTest):
         When the patient signs the consent and patient stages are enabled
         its stage should move to the next one
         """
-        patient = self._register_patient()
+        patient = self.register_patient()
         self.assertIsNotNone(patient, "Patient not created !")
         self.assertEqual(patient.stage, self.informed_consent)
         patient.user.is_active = True
@@ -118,7 +118,7 @@ class PatientStageFlowTest(RegistrationTest):
             reverse(
                 'consent_form_view',
                 kwargs={'registry_code': self.registry.code, "patient_id": patient.id}
-            ), data=self._consent_post_data(patient)
+            ), data=self.consent_post_data(patient)
         )
         self.assertEqual(response.status_code, 302)
         patient.refresh_from_db()

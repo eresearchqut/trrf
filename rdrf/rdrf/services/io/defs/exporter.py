@@ -612,10 +612,12 @@ class Exporter:
         data = []
         for form_title in FormTitle.objects.filter(registry=self.registry):
             title_dict = {}
-            title_dict["default_name"] = form_title.default_name
-            title_dict["custom_name"] = form_title.custom_name
+            title_dict["default_title"] = form_title.default_title
+            title_dict["custom_title"] = form_title.custom_title
             title_dict["order"] = form_title.order
-            title_dict["group"] = form_title.group.name if form_title.group else ''
+            title_dict["groups"] = [
+                g.name for g in form_title.groups.all()
+            ]
             data.append(title_dict)
         return data
 

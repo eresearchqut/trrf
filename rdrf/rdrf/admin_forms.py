@@ -201,6 +201,23 @@ class ContextFormGroupItemAdminForm(ModelForm):
 
 class FormTitleAdminForm(ModelForm):
 
+    def clean(self):
+        reg = self.cleaned_data['registry']
+        groups = self.cleaned_data['groups']
+        default_title = self.cleaned_data['default_title']
+        order = self.cleaned_data['order']
+        logger.info(f"groups={groups}, reg={reg}, default={default_title}, order={order}")
+        ft_qs = (
+            FormTitle
+            .objects
+            .filter(registry=reg, groups__in=groups, default_title=default_title, order=order)
+        )
+        if self.instance and self.instance.pk:
+            ft_qs = ft_qs.exclude(id=self.instance.pk)
+
+        if ft_qs.exists():
+            raise ValidationError(_("An entry for the current combination of groups, default title and order already exists !"))
+
     class Meta:
         fields = "__all__"
         model = FormTitle

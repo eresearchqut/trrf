@@ -596,7 +596,7 @@ class AddPatientView(PatientFormMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(AddPatientView, self).get_context_data(**kwargs)
         fth = FormTitleHelper(self.registry_model, "Demographics")
-        context["custom_form_name"] = fth.title_for_user(self.user)
+        context["form_title"] = fth.title_for_user(self.user)
         return context
 
     def get(self, request, registry_code):
@@ -689,7 +689,7 @@ class PatientEditView(PatientFormMixin, View):
 
         context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
         fth = FormTitleHelper(registry_model, "Demographics")
-        context["custom_form_name"] = fth.title_for_user(request.user)
+        context["form_title"] = fth.title_for_user(request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -799,7 +799,7 @@ class PatientEditView(PatientFormMixin, View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         fth = FormTitleHelper(registry_model, "Demographics")
-        context["custom_form_name"] = fth.title_for_user(request.user)
+        context["form_title"] = fth.title_for_user(request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 

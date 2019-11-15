@@ -161,7 +161,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         data = {
             "current_form_name": self.form_name_for_template,
-            "form_title_dict": self.form_title_dict,
+            "form_titles": self.form_title_dict,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
             "context_form_groups": context_form_groups,
@@ -583,6 +583,8 @@ class FamilyLinkagePanel(RDRFComponent):
 
     def __init__(self, user, registry_model, patient_model):
         self.registry_model = registry_model
+        fth = FormTitleHelper(self.registry_model, "Family linkage")
+        self.form_title_dict = fth.title_dict_for_user(user)
         if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             self.patient_model = None
             self.link_allowed = self.is_index = None
@@ -602,8 +604,6 @@ class FamilyLinkagePanel(RDRFComponent):
                 sorted([wg.name for wg in self.patient_model.my_index.working_groups.all()]))
         else:
             self.index_working_groups = None
-        fth = FormTitleHelper(self.registry_model, "Family linkage")
-        self.form_title_dict = fth.title_dict_for_user(self.user)
 
     def _get_template_data(self):
         data = {
@@ -612,7 +612,7 @@ class FamilyLinkagePanel(RDRFComponent):
             "is_index": self.is_index,
             "registry_code": self.registry_model.code,
             "index_working_groups": self.index_working_groups,
-            "form_title_dict": self.form_title_dict
+            "form_titles": self.form_title_dict
         }
 
         return data
