@@ -185,6 +185,7 @@ class Command(BaseCommand):
         yield from self._yield_menu_items()
         yield from self._yield_permission_strings()
         yield from self._yield_misc_strings()
+        yield from self._yield_form_title_strings()
 
     def _yield_registry_level_strings(self):
         # registry name
@@ -308,3 +309,11 @@ class Command(BaseCommand):
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
+
+    def _yield_form_title_strings(self):
+        titles = self.data.get("form_titles", [])
+        result = [(t.get("default_title", ""), t.get("custom_title", "")) for t in titles]
+        valid_entries = [(default_title, custom_title) for default_title, custom_title in result if default_title and custom_title]
+        for default_title, custom_title in valid_entries:
+            yield None, default_title
+            yield None, custom_title

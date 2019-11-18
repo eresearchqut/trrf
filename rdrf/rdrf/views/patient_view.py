@@ -36,6 +36,7 @@ from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.components import FamilyLinkagePanel
+from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.db.contexts_api import RDRFContextManager
 
 from rdrf.security.security_checks import security_check_user_patient
@@ -592,6 +593,12 @@ class AddPatientView(PatientFormMixin, CreateView):
     form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(AddPatientView, self).get_context_data(**kwargs)
+        fth = FormTitleHelper(self.registry_model, "Demographics")
+        context["form_title"] = fth.title_for_user(self.user)
+        return context
+
     def get(self, request, registry_code):
         if not request.user.is_authenticated:
             patient_add_url = reverse('patient_add', args=[registry_code])
@@ -681,6 +688,8 @@ class PatientEditView(PatientFormMixin, View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
         context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
+        fth = FormTitleHelper(registry_model, "Demographics")
+        context["form_title"] = fth.title_for_user(request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -789,6 +798,8 @@ class PatientEditView(PatientFormMixin, View):
 
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
+        fth = FormTitleHelper(registry_model, "Demographics")
+        context["form_title"] = fth.title_for_user(request.user)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 

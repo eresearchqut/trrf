@@ -1,6 +1,7 @@
 <!-- start demographics form launcher -->
 {% load i18n %}
 {% load translate %}
+{% load lookup %}
 <script>
   /*
   var USE_ACCORDION = false;
@@ -25,9 +26,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Demographics" %}
-     <i>{% trans 'Demographics' %}</i>
+     <i>{{ form_titles.Demographics  }}</i>
   {% else %}
-     <a href="{{demographics_link}}">{% trans 'Demographics' %}</a>
+     <a href="{{demographics_link}}">{{ form_titles.Demographics }}</a>
   {% endif %}
   </div>
 </div>
@@ -37,9 +38,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Consents" %}
-     <i>{% trans 'Consents' %}</i>
+     <i>{{ form_titles.Consents }}</i>
   {% else %}
-     <a href="{{consents_link}}">{% trans 'Consents' %}</a>
+     <a href="{{consents_link}}">{{ form_titles.Consents }}</a>
   {% endif %}
   </div>
 </div>
@@ -49,9 +50,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Clinician" %}
-     <i>{% trans 'Clinician' %}</i>
+     <i>{{ form_titles.Clinician }}</i>
   {% else %}
-     <a href="{{clinician_form_link}}">{% trans 'Clinician' %}</a>
+     <a href="{{clinician_form_link}}">{{ form_titles.Clinician }}</a>
   {% endif %}
   </div>
 </div>
@@ -61,9 +62,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
     {% if current_form_name == "Proms" %}
-     <i>{% trans 'Proms' %}</i>
+     <i>{{ form_titles.Proms }}</i>
   {% else %}
-     <a href="{{proms_link}}">{% trans 'Proms' %}</a>
+     <a href="{{proms_link}}">{{ form_titles.Proms }}</a>
   {% endif %}
   </div>
 </div>
@@ -74,9 +75,9 @@
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
       {% if current_form_name == "Family Linkage" %}
-        <i>{% trans 'Family Linkage' %}</i>
+        <i>{{ form_titles|lookup:"Family linkage" }}</i>
       {% else %}
-        <a href="{{family_linkage_link}}">{% trans 'Family Linkage' %}</a>
+        <a href="{{family_linkage_link}}">{{ form_titles|lookup:"Family linkage" }}</a>
       {% endif %}
   </div>
 </div>

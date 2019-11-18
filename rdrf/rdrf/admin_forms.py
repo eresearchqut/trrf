@@ -7,7 +7,7 @@ from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
-from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration
+from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
@@ -197,3 +197,21 @@ class ContextFormGroupItemAdminForm(ModelForm):
 
         if cfg.registry != form.registry:
             raise ValidationError(_(f"Form's registry ({cfg.registry.code}) must be the same as the Context Form Group's registry ({form.registry.code})"))
+
+
+class FormTitleAdminForm(ModelForm):
+
+    def clean(self):
+        reg = self.cleaned_data['registry']
+        groups = self.cleaned_data['groups']
+        default_title = self.cleaned_data['default_title']
+        ft_qs = FormTitle.objects.filter(registry=reg, groups__in=groups, default_title=default_title)
+        if self.instance and self.instance.pk:
+            ft_qs = ft_qs.exclude(id=self.instance.pk)
+
+        if ft_qs.exists():
+            raise ValidationError(_("An entry for the current combination of groups and default title already exists!"))
+
+    class Meta:
+        fields = "__all__"
+        model = FormTitle

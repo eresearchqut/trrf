@@ -24,6 +24,14 @@
     }
   },
   {
+    "pk": 4,
+    "model": "auth.group",
+    "fields": {
+      "name": "Patients",
+      "permissions": []
+    }
+  },
+  {
     "pk": 1,
     "model": "groups.customuser",
     "fields": {

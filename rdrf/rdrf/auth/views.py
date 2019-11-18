@@ -2,6 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.messages.storage import default_storage
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in
@@ -48,6 +49,10 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
         msg = mark_safe(
             _('We strongly recommend that you protect your account with Two-Factor authentication. '
               'Please %(link)s to set it up.') % {'link': link})
+
+        if not hasattr(request, '_messages'):
+            # Workaround for tests when privileged users log in
+            request._messages = default_storage(request)
 
         if msg not in [m.message for m in messages.get_messages(request)]:
             messages.info(request, msg)

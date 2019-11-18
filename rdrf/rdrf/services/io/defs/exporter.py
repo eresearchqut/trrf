@@ -242,6 +242,7 @@ class Exporter:
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
         data["surveys"] = self._get_surveys()
+        data["form_titles"] = self._get_form_titles()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -604,6 +605,20 @@ class Exporter:
                                                "value": sq.precondition.value}
                 survey_dict["questions"].append(sq_dict)
             data.append(survey_dict)
+        return data
+
+    def _get_form_titles(self):
+        from rdrf.models.definition.models import FormTitle
+        data = []
+        for form_title in FormTitle.objects.filter(registry=self.registry):
+            title_dict = {}
+            title_dict["default_title"] = form_title.default_title
+            title_dict["custom_title"] = form_title.custom_title
+            title_dict["order"] = form_title.order
+            title_dict["groups"] = [
+                g.name for g in form_title.groups.all()
+            ]
+            data.append(title_dict)
         return data
 
 

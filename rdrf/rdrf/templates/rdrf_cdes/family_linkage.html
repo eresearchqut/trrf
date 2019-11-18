@@ -136,7 +136,7 @@
             clearTableData("#indexpatient table");
 
             if (patient.link) {
-               patient_link = link({url: patient.link, text: "Demographics"});
+               patient_link = link({url: patient.link, text: "{{form_titles.Demographics}}"});
             }
 	
 	    if (patient.working_group) {
@@ -173,7 +173,7 @@
         function addRelativeRow(relationships, relative) {
             var relative_link = "Not in registry";
             if (relative.link) {
-                relative_link = link({url: relative.link, text: "Demographics"});
+                relative_link = link({url: relative.link, text: "{{form_titles.Demographics}}"});
             }
 	    if (relative.working_group) {
 	        relative_link = relative.working_group;

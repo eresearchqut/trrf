@@ -2022,3 +2022,28 @@ class FileStorage(models.Model):
     name = models.CharField(primary_key=True, max_length=255)
     data = models.BinaryField()
     size = models.IntegerField(default=0)
+
+
+class FormTitle(models.Model):
+    FORM_TITLE_CHOICES = (
+        ("Demographics", "Demographics"),
+        ("Consents", "Consents"),
+        ("Clinician", "Clinician"),
+        ("Proms", "Proms"),
+        ("Family linkage", "Family Linkage")
+    )
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    groups = models.ManyToManyField(
+        Group,
+        help_text="Users of these groups will see the custom title instead of the default one"
+    )
+    default_title = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
+    custom_title = models.CharField(max_length=50)
+    order = models.PositiveIntegerField(help_text="When the user with multiple groups matches more than 1 customisation the title with the lower order number will be displayed.")
+
+    class Meta:
+        ordering = ('registry', 'default_title', 'order')
+
+    @property
+    def group_names(self):
+        return ', '.join(group.name for group in self.groups.order_by('name').all())
