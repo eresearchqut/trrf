@@ -2039,7 +2039,7 @@ class FormTitle(models.Model):
     )
     default_title = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
     custom_title = models.CharField(max_length=50)
-    order = models.PositiveIntegerField()
+    order = models.PositiveIntegerField(help_text="When the user with multiple groups matches more than 1 customisation the title with the lower order number will be displayed.")
 
     class Meta:
         ordering = ('registry', 'default_title', 'order')
