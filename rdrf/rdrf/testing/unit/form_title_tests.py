@@ -1,9 +1,5 @@
-from unittest.mock import patch
-
-from django.test import TestCase
 from django.urls import reverse
 
-from rdrf.events.events import EventType
 from django.contrib.auth.models import Group
 from rdrf.models.definition.models import FormTitle
 
