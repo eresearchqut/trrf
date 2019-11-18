@@ -126,7 +126,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         self.current_rdrf_context_model = current_rdrf_context_model
         self.consent_locked = self._is_consent_locked()
         self.registry_form = registry_form
-        self.form_title_dict = FormTitleHelper(self.registry_model, current_form_name).title_dict_for_user(self.user)
+        self.form_titles = FormTitleHelper(self.registry_model, current_form_name).all_titles_for_user(self.user)
 
     @property
     def form_name_for_template(self):
@@ -161,7 +161,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         data = {
             "current_form_name": self.form_name_for_template,
-            "form_titles": self.form_title_dict,
+            "form_titles": self.form_titles,
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
             "context_form_groups": context_form_groups,
@@ -584,7 +584,7 @@ class FamilyLinkagePanel(RDRFComponent):
     def __init__(self, user, registry_model, patient_model):
         self.registry_model = registry_model
         fth = FormTitleHelper(self.registry_model, "Family linkage")
-        self.form_title_dict = fth.title_dict_for_user(user)
+        self.form_titles = fth.all_titles_for_user(user)
         if not registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             self.patient_model = None
             self.link_allowed = self.is_index = None
@@ -612,7 +612,7 @@ class FamilyLinkagePanel(RDRFComponent):
             "is_index": self.is_index,
             "registry_code": self.registry_model.code,
             "index_working_groups": self.index_working_groups,
-            "form_titles": self.form_title_dict
+            "form_titles": self.form_titles
         }
 
         return data

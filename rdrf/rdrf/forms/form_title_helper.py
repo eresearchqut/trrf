@@ -20,14 +20,8 @@ class FormTitleHelper:
         ).order_by('order').first()
         return entry.custom_title if entry else self.default_title
 
-    def title_dict_for_user(self, user):
-        results = self.get_base_qs(user).order_by('default_title', 'order')
-        mappings = {}
-        for r in results:
-            if r.default_title not in mappings:
-                mappings[r.default_title] = _(r.custom_title)
+    def all_titles_for_user(self, user):
+        default_titles = {x[0]: _(x[1]) for x in FormTitle.FORM_TITLE_CHOICES}
+        custom_titles = dict(self.get_base_qs(user).order_by('default_title', '-order').values_list('default_title', 'custom_title'))
 
-        for default_title, custom_title in FormTitle.FORM_TITLE_CHOICES:
-            if default_title not in mappings:
-                mappings[default_title] = _(custom_title)
-        return mappings
+        return {**default_titles, **custom_titles}
