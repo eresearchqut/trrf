@@ -453,7 +453,7 @@ class CDEFileAdmin(admin.ModelAdmin):
 class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
     form = FormTitleAdminForm
-    list_display = ('registry', 'default_title')
+    list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(

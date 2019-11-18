@@ -2043,3 +2043,7 @@ class FormTitle(models.Model):
 
     class Meta:
         ordering = ('registry', 'default_title', 'order')
+
+    @property
+    def group_names(self):
+        return ', '.join(group.name for group in self.groups.order_by('name').all())
