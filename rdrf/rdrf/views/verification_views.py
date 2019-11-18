@@ -132,7 +132,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(id=patient_id)
-        context_model = RDRFContext.objects.get(id=context_id)
+        context_model = RDRFContext.objects.get(id=context_id, active=True)
 
         self.security_check(user, registry_model, patient_model)
 
@@ -200,7 +200,7 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
         patient_model = Patient.objects.get(pk=patient_id)
-        context_model = RDRFContext.objects.get(id=context_id)
+        context_model = RDRFContext.objects.get(id=context_id, active=True)
         self.security_check(user, registry_model, patient_model)
         # these are the verifications posted in the form
         verification_map = self._get_verification_map(request, registry_code)

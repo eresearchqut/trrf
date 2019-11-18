@@ -80,7 +80,7 @@ class ContextFormGroupHelperMixin(object):
                 return False
             patient_model = Patient.objects.get(pk=patient_id)
             patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
-            context_model = RDRFContext.objects.get(pk=context_id)
+            context_model = RDRFContext.objects.get(pk=context_id, active=True)
             if not user.is_superuser:
                 user_working_groups = set([wg for wg in user.working_groups.all()])
             else:
@@ -215,7 +215,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id):
         try:
-            rdrf_context_model = RDRFContext.objects.get(pk=context_id)
+            rdrf_context_model = RDRFContext.objects.get(pk=context_id, active=True)
         except RDRFContext.DoesNotExist:
             raise Http404()
 
@@ -262,7 +262,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
         registry_model = Registry.objects.get(code=registry_code)
-        context_model = RDRFContext.objects.get(pk=context_id)
+        context_model = RDRFContext.objects.get(pk=context_id, active=True)
         context_form_group_model = context_model.context_form_group
         if context_form_group_model:
             naming_info = context_form_group_model.naming_info

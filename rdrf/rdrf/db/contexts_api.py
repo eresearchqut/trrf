@@ -21,9 +21,13 @@ def create_rdrf_default_contexts(patient, registry_ids):
         except Registry.DoesNotExist:
             continue
 
-        existing_contexts_count = RDRFContext.objects.filter(registry=registry_model,
-                                                             content_type=content_type,
-                                                             object_id=patient.pk).count()
+        existing_contexts_count = (
+            RDRFContext.objects.filter(
+                registry=registry_model,
+                content_type=content_type,
+                object_id=patient.pk
+            ).count()
+        )
 
         if existing_contexts_count == 0:
             context_manager = RDRFContextManager(registry_model)
@@ -39,9 +43,11 @@ class RDRFContextManager(object):
     def get_or_create_default_context(self, patient_model, new_patient=False):
         if not self.supports_contexts:
             content_type = ContentType.objects.get_for_model(patient_model)
-            contexts = [c for c in RDRFContext.objects.filter(registry=self.registry_model,
-                                                              content_type=content_type,
-                                                              object_id=patient_model.pk)]
+            contexts = [
+                c for c in RDRFContext.objects.filter(registry=self.registry_model,
+                                                      content_type=content_type,
+                                                      object_id=patient_model.pk)
+            ]
             if len(contexts) == 0:
                 return self.create_context(patient_model, "default")
             elif len(contexts) == 1:
@@ -76,7 +82,8 @@ class RDRFContextManager(object):
                 fixed_context, created = RDRFContext.objects.get_or_create(registry=self.registry_model,
                                                                            content_type=content_type,
                                                                            object_id=patient_model.pk,
-                                                                           context_form_group=context_form_group)
+                                                                           context_form_group=context_form_group,
+                                                                           active=True)
                 if created:
                     fixed_context.display_name = context_form_group.get_default_name(
                         patient_model)
@@ -119,7 +126,8 @@ class RDRFContextManager(object):
             rdrf_context_model = RDRFContext.objects.get(pk=context_id,
                                                          registry=self.registry_model,
                                                          content_type=content_type,
-                                                         object_id=patient_model.pk)
+                                                         object_id=patient_model.pk,
+                                                         active=True)
             return rdrf_context_model
         except RDRFContext.DoesNotExist:
             raise RDRFContextError("Context does not exist")
