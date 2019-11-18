@@ -523,24 +523,17 @@ class Importer(object):
             diff = import_default_titles - existing_titles
             if diff:
                 raise RegistryImportError(f"Non existent default form titles: {diff} !")
-            for t in titles:
-                groups = []
-                for g_name in t["groups"]:
-                    group_obj, created = Group.objects.get_or_create(name=g_name)
-                    if created:
-                        logger.info("created Group %s" % group_obj)
-                    groups.append(group_obj)
-                form_title_qs = FormTitle.objects.filter(
-                    default_title=t["default_title"],
-                    registry=r,
-                    groups__in=groups,
-                    order=t["order"]
-                )
-                if form_title_qs.exists():
-                    form_title_qs.update(custom_title=t["custom_title"])
-                    for ft in form_title_qs:
-                        ft.groups.set(groups, clear=True)
-                else:
+            if import_default_titles:
+                logger.info("Remove existing FormTitle records")
+                FormTitle.objects.filter(registry=r).delete()
+                logger.info("Import FormTitle records")
+                for t in titles:
+                    groups = []
+                    for g_name in t["groups"]:
+                        group_obj, created = Group.objects.get_or_create(name=g_name)
+                        if created:
+                            logger.info("created Group %s" % group_obj)
+                        groups.append(group_obj)
                     ft = FormTitle.objects.create(
                         default_title=t["default_title"],
                         registry=r,
@@ -548,6 +541,7 @@ class Importer(object):
                         custom_title=t["custom_title"]
                     )
                     ft.groups.set(groups, clear=True)
+                logger.info("FormTitle records imported")
 
         for frm_map in self.data["forms"]:
             logger.info("starting import of form map %s" % frm_map)
