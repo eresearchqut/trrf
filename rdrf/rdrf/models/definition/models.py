@@ -1581,6 +1581,13 @@ class RDRFCtxManager(models.Manager):
     def inactive_contexts(self):
         return self.all_contexts().filter(active=False)
 
+    def get_for_patient(self, patient, registry):
+        return self.get_queryset().filter(
+            registry=registry,
+            content_type=ContentType.objects.get_for_model(patient),
+            object_id=patient.pk,
+        )
+
 
 class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)

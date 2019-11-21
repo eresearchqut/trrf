@@ -14,27 +14,13 @@ class RDRFContextError(Exception):
 
 def create_rdrf_default_contexts(patient, registry_ids):
     # invoked when patient is added to a registry
-    content_type = ContentType.objects.get_for_model(patient)
-    for registry_id in registry_ids:
-        try:
-            registry_model = Registry.objects.get(id=registry_id)
-        except Registry.DoesNotExist:
-            continue
-
-        existing_contexts_count = (
-            RDRFContext.objects.filter(
-                registry=registry_model,
-                content_type=content_type,
-                object_id=patient.pk
-            ).count()
-        )
-
-        if existing_contexts_count == 0:
-            context_manager = RDRFContextManager(registry_model)
+    for registry in Registry.objects.filter(pk__in=registry_ids):
+        if RDRFContext.objects.get_for_patient(patient, registry).exists():
+            context_manager = RDRFContextManager(registry)
             return context_manager.get_or_create_default_context(patient)
 
 
-class RDRFContextManager(object):
+class RDRFContextManager:
 
     def __init__(self, registry_model):
         self.registry_model = registry_model
@@ -42,12 +28,7 @@ class RDRFContextManager(object):
 
     def get_or_create_default_context(self, patient_model, new_patient=False):
         if not self.supports_contexts:
-            content_type = ContentType.objects.get_for_model(patient_model)
-            contexts = [
-                c for c in RDRFContext.objects.filter(registry=self.registry_model,
-                                                      content_type=content_type,
-                                                      object_id=patient_model.pk)
-            ]
+            contexts = RDRFContext.objects.get_for_patient(patient_model, self.registry_model)
             if len(contexts) == 0:
                 return self.create_context(patient_model, "default")
             elif len(contexts) == 1:
@@ -57,10 +38,10 @@ class RDRFContextManager(object):
                                        (patient_model, self.registry_model))
         else:
             default_fixed_context = self.create_fixed_contexts_for_patient(patient_model)
-            if default_fixed_context is not None:
-                return default_fixed_context
-            else:
+            if default_fixed_context is None:
                 return self.create_initial_context_for_new_patient(patient_model)
+            else:
+                return default_fixed_context
 
     def create_fixed_contexts_for_patient(self, patient_model):
         from rdrf.models.definition.models import ContextFormGroup
