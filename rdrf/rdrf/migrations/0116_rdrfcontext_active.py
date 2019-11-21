@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rdrfcontext',
             name='active',
-            field=models.BooleanField(default=True, null=True),
+            field=models.BooleanField(default=True),
         ),
     ]

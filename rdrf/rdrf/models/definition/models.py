@@ -1602,7 +1602,7 @@ class RDRFContext(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.SET_NULL)
     display_name = models.CharField(max_length=80, blank=True, null=True)
-    active = models.BooleanField(default=True, blank=False, null=True)
+    active = models.BooleanField(default=True, blank=False)
     objects = RDRFCtxManager()
 
     def __str__(self):
