@@ -1,12 +1,11 @@
 from django.urls import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 
 from rdrf.models.definition.models import Registry
@@ -80,7 +79,7 @@ class ContextFormGroupHelperMixin(object):
                 return False
             patient_model = Patient.objects.get(pk=patient_id)
             patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
-            context_model = RDRFContext.objects.get(pk=context_id, active=True)
+            context_model = RDRFContext.objects.get(pk=context_id)
             if not user.is_superuser:
                 user_working_groups = set([wg for wg in user.working_groups.all()])
             else:
@@ -214,10 +213,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id):
-        try:
-            rdrf_context_model = RDRFContext.objects.get(pk=context_id, active=True)
-        except RDRFContext.DoesNotExist:
-            raise Http404()
+        rdrf_context_model = get_object_or_404(RDRFContext, pk=context_id)
 
         if not self.allowed(request.user, registry_code, patient_id, context_id):
             return HttpResponseRedirect("/")
@@ -262,7 +258,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
         registry_model = Registry.objects.get(code=registry_code)
-        context_model = RDRFContext.objects.get(pk=context_id, active=True)
+        context_model = RDRFContext.objects.get(pk=context_id)
         context_form_group_model = context_model.context_form_group
         if context_form_group_model:
             naming_info = context_form_group_model.naming_info

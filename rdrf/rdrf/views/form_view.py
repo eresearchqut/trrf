@@ -692,7 +692,7 @@ class FormView(View):
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 # we've created the context on the fly so no redirect to the edit view on
                 # the new context
-                newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id, active=True)
+                newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
                 dyn_patient.save_form_progress(
                     registry_code, context_model=newly_created_context)
 
