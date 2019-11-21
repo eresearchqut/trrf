@@ -338,10 +338,7 @@ class FormView(View):
     def delete(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
-        try:
-            patient_model = Patient.objects.get(pk=patient_id)
-        except Patient.DoesNotExist:
-            raise Http404
+        patient_model = get_object_or_404(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
         self.registry = self._get_registry(registry_code)
         if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
@@ -379,10 +376,7 @@ class FormView(View):
         self.form_id = form_id
         self.patient_id = patient_id
 
-        try:
-            patient_model = Patient.objects.get(pk=patient_id)
-        except Patient.DoesNotExist:
-            raise Http404
+        patient_model = get_object_or_404(Patient, pk=patient_id)
 
         security_check_user_patient(request.user, patient_model)
 

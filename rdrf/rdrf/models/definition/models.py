@@ -1700,14 +1700,9 @@ class ContextFormGroup(models.Model):
             return "%s/%s %s" % (self.name, s, t)
         elif self.naming_scheme == "N":
             registry_model = self.registry
-            patient_content_type = ContentType.objects.get(model='patient')
-            existing_contexts = [
-                c for c in RDRFContext.objects.filter(
-                    object_id=patient_model.pk,
-                    content_type=patient_content_type,
-                    registry=registry_model,
-                    context_form_group=self)]
-            next_number = len(existing_contexts) + 1
+            contexts = RDRFContext.objects.get_for_patient(patient_model, registry_model)
+            existing_count = contexts.filter(context_form_group=self).count()
+            next_number = existing_count + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
             return "Unused"  # user will see value from cde when context is created
@@ -1847,11 +1842,12 @@ class ContextFormGroup(models.Model):
             return True
         else:
             # fixed - is there one already?
-            patient_content_type = ContentType.objects.get(model='patient')
-            return RDRFContext.objects.filter(
-                registry=self.registry, content_type=patient_content_type,
-                object_id=patient_model.id, context_form_group=self
-            ).count() == 0
+            return not (
+                RDRFContext.objects
+                           .get_for_patient(patient_model, self.registry)
+                           .filter(context_form_group=self)
+                           .exists()
+            )
 
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):

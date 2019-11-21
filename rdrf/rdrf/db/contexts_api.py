@@ -74,12 +74,7 @@ class RDRFContextManager:
             return default_context
 
     def create_initial_context_for_new_patient(self, patient_model):
-        content_type = ContentType.objects.get_for_model(patient_model)
-        contexts = [
-            c for c in RDRFContext.objects.filter(
-                registry=self.registry_model,
-                content_type=content_type,
-                object_id=patient_model.pk).order_by("pk")]
+        contexts = RDRFContext.objects.get_for_patient(patient_model, self.registry_model).order_by("pk")
         if len(contexts) > 0:
             return contexts[0]
         else:
