@@ -1636,6 +1636,14 @@ class RDRFContext(models.Model):
                                                        context_id=self.pk)
         return cde_value
 
+    @property
+    def is_multi_context(self):
+        return (
+            self.context_form_group.context_type == "M"
+            if self.context_form_group
+            else False
+        )
+
 
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F", "Fixed"), ("M", "Multiple")]

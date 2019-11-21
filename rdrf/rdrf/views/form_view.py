@@ -349,7 +349,8 @@ class FormView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
-        if context_id and context_id != 'add':
+        rdrf_context = get_object_or_404(RDRFContext, pk=context_id)
+        if rdrf_context.is_multi_context:
             RDRFContext.objects.filter(pk=context_id).update(active=False, updated_by=request.user)
             dyn_obj = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
             dyn_obj.soft_delete(registry_code, request.user.id)
@@ -428,17 +429,12 @@ class FormView(View):
                                                         registry_form=self.registry_form)
 
         context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
-        form_group_type = (
-            self.rdrf_context.context_form_group.context_type
-            if self.rdrf_context and self.rdrf_context.context_form_group
-            else ""
-        )
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
-        context["is_multi_context"] = form_group_type == "M"
+        context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
