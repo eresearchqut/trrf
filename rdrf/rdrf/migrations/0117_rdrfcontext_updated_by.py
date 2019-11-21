@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='rdrfcontext',
-            name='updated_by',
+            name='last_updated_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
         ),
     ]

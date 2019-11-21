@@ -351,7 +351,7 @@ class FormView(View):
 
         rdrf_context = get_object_or_404(RDRFContext, pk=context_id)
         if rdrf_context.is_multi_context:
-            RDRFContext.objects.filter(pk=context_id).update(active=False, updated_by=request.user)
+            RDRFContext.objects.filter(pk=context_id).update(active=False, last_updated_by=request.user)
             dyn_obj = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
             dyn_obj.soft_delete(registry_code, request.user.id)
             result = {"result": "Context deleted !"}

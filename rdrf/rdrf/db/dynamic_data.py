@@ -468,7 +468,7 @@ class DynamicDataWrapper(object):
                 active=True, registry_code=registry, collection__in=["cdes", "history", "progress"]
             ).find(
                 self.obj, self.rdrf_context_id
-            ).update(active=False, updated_by=user_id))
+            ).update(active=False, last_updated_by=user_id))
 
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})

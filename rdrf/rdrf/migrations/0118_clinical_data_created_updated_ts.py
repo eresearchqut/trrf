@@ -17,12 +17,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='clinicaldata',
-            name='last_updated',
+            name='last_updated_at',
             field=models.DateTimeField(auto_now=True, null=True),
         ),
         migrations.AddField(
             model_name='clinicaldata',
-            name='updated_by',
+            name='last_updated_by',
             field=models.IntegerField(blank=True, db_index=True, null=True),
         ),
     ]

@@ -1600,7 +1600,7 @@ class RDRFContext(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.SET_NULL)
+    last_updated_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.SET_NULL)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     active = models.BooleanField(default=True, blank=False, null=True)
     objects = RDRFCtxManager()
@@ -1944,8 +1944,8 @@ class ClinicalData(models.Model):
     active = models.BooleanField(
         default=True, help_text="Indicate whether an entity is active or not")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    last_updated = models.DateTimeField(auto_now=True, null=True)
-    updated_by = models.IntegerField(db_index=True, blank=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, null=True)
+    last_updated_by = models.IntegerField(db_index=True, blank=True, null=True)
 
     objects = ClinicalDataQuerySet.as_manager()
 
