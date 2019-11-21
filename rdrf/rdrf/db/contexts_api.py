@@ -15,7 +15,7 @@ class RDRFContextError(Exception):
 def create_rdrf_default_contexts(patient, registry_ids):
     # invoked when patient is added to a registry
     for registry in Registry.objects.filter(pk__in=registry_ids):
-        if RDRFContext.objects.get_for_patient(patient, registry).exists():
+        if not RDRFContext.objects.get_for_patient(patient, registry).exists():
             context_manager = RDRFContextManager(registry)
             return context_manager.get_or_create_default_context(patient)
 
