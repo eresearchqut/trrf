@@ -885,6 +885,14 @@ class FormView(View):
         else:
             return []
 
+    def _set_initial_randomized_data(self, form_class, initial_data):
+        if not initial_data:
+            initial_data = {}
+        for field_name, field in form_class.base_fields.items():
+            if hasattr(field, 'randomized_value'):
+                initial_data[field_name] = field.randomized_value
+        return initial_data
+
     def _build_context(self, **kwargs):
         """
         :param kwargs: extra key value pairs to be passed into the built context
@@ -926,8 +934,8 @@ class FormView(View):
             if not section_model.allow_multiple:
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
+                initial_data = self._set_initial_randomized_data(form_class, initial_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
-
             else:
                 # Ensure that we can have multiple formsets on the one page
                 prefix = "formset_%s" % s
@@ -964,6 +972,7 @@ class FormView(View):
                     # initial_data = [""] * len(section_elements)
                     initial_data = [""]  # this appears to forms
 
+                initial_data = self._set_initial_randomized_data(form_class, initial_data)
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
                 if has_deleted_forms:
                     for idx, form in enumerate(form_section[s].forms):

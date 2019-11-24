@@ -243,13 +243,15 @@ class FieldFactory(object):
         """
         import django.forms as django_forms
 
+        widget_attrs = {'readonly': 'readonly'} if self.cde.randomize else {}
+
         if hasattr(widgets, cde.widget_name):
             widget_class = getattr(widgets, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class(attrs=widget_attrs)
 
         if hasattr(django_forms, cde.widget_name):
             widget_class = getattr(django_forms, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class(attrs=widget_attrs)
 
         if self._is_parametrised_widget(cde.widget_name):
             widget_context = {"registry_model": self.registry,
@@ -356,7 +358,15 @@ class FieldFactory(object):
                     widget = None
 
                 if self.cde.allow_multiple:
-                    widget = widget or CheckboxSelectMultiple
+                    if self.cde.randomize:
+                        widget = widget or CheckboxSelectMultiple(
+                            attrs={
+                                'onclick': 'return false',
+                                'readonly': 'readonly'
+                            }
+                        )
+                    else:
+                        widget = widget or CheckboxSelectMultiple
                     if widget:
                         options['widget'] = widget
 
@@ -384,7 +394,8 @@ class FieldFactory(object):
                         from rdrf.forms.dynamic.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
 
-                    return django.forms.ChoiceField(**options)
+                    field = django.forms.ChoiceField(**options)
+                    return field
         else:
             # Not a drop down
             widget = None
