@@ -903,9 +903,9 @@ class CommonDataElement(models.Model):
                     "calculation": [ValidationError(e) for e in err.split("\n")]
                 })
 
-        if self.allow_multiple and self.widget_name == 'RadioSelect':
+        if self.allow_multiple and self.widget_name in ['RadioSelect', 'ReadOnlySelect']:
             raise ValidationError({
-                'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
+                'widget_name': [f"{self.widget_name} is not a valid choice if multiple values are allowed !"]
             })
 
     def save(self, *args, **kwargs):
