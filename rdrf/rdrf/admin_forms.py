@@ -176,8 +176,10 @@ class CommonDataElementAdminForm(ModelForm):
     def clean_randomise(self):
         randomise = self.cleaned_data.get('randomise', False)
         pv_group = self.cleaned_data.get('pv_group')
-        if randomise and not pv_group:
-            raise ValidationError(_("Randomise can only be selected if a Permissible Value Group is selected !"))
+        datatype = self.cleaned_data.get('datatype')
+        valid_datatype = datatype == CommonDataElement.DATA_TYPE_RANGE
+        if randomise and (not pv_group or not valid_datatype):
+            raise ValidationError(_("Randomise can only be selected if a Permissible Value Group is selected and data type is set to range !"))
         return randomise
 
     def clean(self):
