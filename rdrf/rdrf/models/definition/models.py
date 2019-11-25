@@ -875,9 +875,9 @@ class CommonDataElement(models.Model):
 
     @property
     def randomised_value(self):
-        values_dict = self.pv_group.as_dict()
-        possible_values = [e['code'] for e in values_dict['values']]
-        if self.randomise:
+        if self.randomise and self.pv_group:
+            values_dict = self.pv_group.as_dict()
+            possible_values = [e['code'] for e in values_dict['values']]
             return random_selection(possible_values, self.allow_multiple)
 
     def clean(self):
