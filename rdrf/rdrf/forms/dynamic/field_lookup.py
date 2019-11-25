@@ -243,15 +243,13 @@ class FieldFactory(object):
         """
         import django.forms as django_forms
 
-        widget_attrs = {'readonly': 'readonly'} if self.cde.randomise else {}
-
         if hasattr(widgets, cde.widget_name):
             widget_class = getattr(widgets, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class(attrs=widget_attrs)
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
 
         if hasattr(django_forms, cde.widget_name):
             widget_class = getattr(django_forms, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class(attrs=widget_attrs)
+            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
 
         if self._is_parametrised_widget(cde.widget_name):
             widget_context = {"registry_model": self.registry,
