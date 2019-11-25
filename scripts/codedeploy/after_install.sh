@@ -27,7 +27,9 @@ docker-compose -f docker-compose-prod.yml pull
 
 # TODO collecstatic should happen when the image is built after we switch to storing static files in S3
 docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin collectstatic --noinput
+
 docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin migrate --noinput
+docker-compose -f docker-compose-prod.yml run uwsgi /docker-entrypoint.sh django-admin migrate --database clinical --noinput
 
 # TODO this should happen in a DB init script that also creates the DBs if necessary
 # it should only run the first time after the DB has been created
