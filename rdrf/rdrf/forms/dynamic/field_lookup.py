@@ -380,6 +380,9 @@ class FieldFactory(object):
                             # get rid of the unset choice
                             options["choices"] = options['choices'][1:]
 
+                    if self.cde.randomise:
+                        return django.forms.CharField(widget=django.forms.TextInput(attrs={'readonly': 'readonly'}))
+
                     if self.cde.code in [
                             "CDEPatientNextOfKinState",
                             "CDEPatientNextOfKinCountry"]:
@@ -394,8 +397,7 @@ class FieldFactory(object):
                         from rdrf.forms.dynamic.fields import ChoiceFieldNonBlankValidation
                         return ChoiceFieldNonBlankValidation(**options)
 
-                    field = django.forms.ChoiceField(**options)
-                    return field
+                    return django.forms.ChoiceField(**options)
         else:
             # Not a drop down
             widget = None
