@@ -243,7 +243,7 @@ class FieldFactory(object):
         """
         import django.forms as django_forms
 
-        widget_attrs = {'readonly': 'readonly'} if self.cde.randomize else {}
+        widget_attrs = {'readonly': 'readonly'} if self.cde.randomise else {}
 
         if hasattr(widgets, cde.widget_name):
             widget_class = getattr(widgets, cde.widget_name)
@@ -358,7 +358,7 @@ class FieldFactory(object):
                     widget = None
 
                 if self.cde.allow_multiple:
-                    if self.cde.randomize:
+                    if self.cde.randomise:
                         widget = widget or CheckboxSelectMultiple(
                             attrs={
                                 'onclick': 'return false',

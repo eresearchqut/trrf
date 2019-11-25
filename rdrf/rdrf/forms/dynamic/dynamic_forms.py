@@ -108,8 +108,8 @@ def create_form_class_for_section(
             is_list = isinstance(previous, list)
             cde_field.previous_value = [format_date(el) for el in previous] if is_list else format_date(previous)
 
-        if cde.randomize and not hasattr(cde_field, 'randomized_value'):
-            cde_field.randomized_value = cde.randomized_value
+        if cde.randomise and not hasattr(cde_field, 'randomised_value'):
+            cde_field.randomised_value = cde.randomised_value
 
         field_code_on_form = "%s%s%s%s%s" % (registry_form.name,
                                              settings.FORM_SECTION_DELIMITER,

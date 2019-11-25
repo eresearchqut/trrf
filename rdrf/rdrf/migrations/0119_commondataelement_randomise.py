@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='commondataelement',
-            name='randomize',
-            field=models.BooleanField(default=False, help_text='Randomize permitted value group value is this CDE has a PVG set'),
+            name='randomise',
+            field=models.BooleanField(default=False, help_text='Randomise permitted value group value if this CDE has a PVG set'),
         ),
     ]

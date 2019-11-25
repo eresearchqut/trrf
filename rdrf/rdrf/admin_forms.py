@@ -173,12 +173,12 @@ class CommonDataElementAdminForm(ModelForm):
             validator.validate()
         return self.cleaned_data['widget_settings']
 
-    def clean_randomize(self):
-        randomize = self.cleaned_data.get('randomize', False)
+    def clean_randomise(self):
+        randomise = self.cleaned_data.get('randomise', False)
         pv_group = self.cleaned_data.get('pv_group')
-        if randomize and not pv_group:
-            raise ValidationError(_("Randomize can only be selected if a Permissible Value Group is selected !"))
-        return randomize
+        if randomise and not pv_group:
+            raise ValidationError(_("Randomise can only be selected if a Permissible Value Group is selected !"))
+        return randomise
 
     def clean(self):
         cleaned_data = super().clean()

@@ -28,7 +28,7 @@ from rdrf.events.events import EventType
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.randomized_selection import random_selection
+from rdrf.helpers.randomised_selection import random_selection
 
 logger = logging.getLogger(__name__)
 
@@ -812,7 +812,7 @@ class CommonDataElement(models.Model):
         help_text="The text to use in any public facing questionnaires/registration forms")
 
     important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
-    randomize = models.BooleanField(default=False, help_text="Randomize permitted value group value is this CDE has a PVG set")
+    randomise = models.BooleanField(default=False, help_text="Randomise permitted value group value if this CDE has a PVG set")
 
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -874,10 +874,10 @@ class CommonDataElement(models.Model):
         return stored_value
 
     @property
-    def randomized_value(self):
+    def randomised_value(self):
         values_dict = self.pv_group.as_dict()
         possible_values = [e['code'] for e in values_dict['values']]
-        if self.randomize:
+        if self.randomise:
             return random_selection(possible_values, self.allow_multiple)
 
     def clean(self):
