@@ -299,6 +299,7 @@
                     {% block content %}
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
+                    {% include 'rdrf_cdes/form_modal.html' %}
                     {% if header %}
                         <div class="panel panel-info trrf-page-header">
                             <div class="panel-body">
@@ -315,7 +316,6 @@
                                             {% endfor %}
                                         </ul>
                                     </div>
-
                                     {% if changes_since_version %}
                                         <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
                                         <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
@@ -328,6 +328,14 @@
                                             </p>
                                         </div>
                                     {% endif %}
+                                {% endif %}
+                                {% if delete_form_url and not changes_since_version and is_multi_context %}
+                                    <div class="btn-group" role="group" aria-label="...">
+                                        <a class="btn btn-danger" href="" data-toggle="modal" data-target="#form_modal" target="_blank">
+                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                            {% trans "Delete " %}
+                                        </a>
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>

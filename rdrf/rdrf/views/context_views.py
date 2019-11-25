@@ -1,12 +1,11 @@
 from django.urls import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 
 from rdrf.models.definition.models import Registry
@@ -214,10 +213,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id):
-        try:
-            rdrf_context_model = RDRFContext.objects.get(pk=context_id)
-        except RDRFContext.DoesNotExist:
-            raise Http404()
+        rdrf_context_model = get_object_or_404(RDRFContext, pk=context_id)
 
         if not self.allowed(request.user, registry_code, patient_id, context_id):
             return HttpResponseRedirect("/")

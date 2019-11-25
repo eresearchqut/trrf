@@ -335,6 +335,30 @@ class FormView(View):
 
         return changes_since_version, selected_version_name
 
+    def delete(self, request, registry_code, form_id, patient_id, context_id=None):
+        if request.user.is_working_group_staff:
+            raise PermissionDenied()
+        patient_model = get_object_or_404(Patient, pk=patient_id)
+        security_check_user_patient(request.user, patient_model)
+        self.registry = self._get_registry(registry_code)
+        if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
+            from rdrf.helpers.utils import consent_check
+            if not consent_check(self.registry,
+                                 self.user,
+                                 patient_model,
+                                 "see_patient"):
+                raise PermissionDenied
+
+        rdrf_context = get_object_or_404(RDRFContext, pk=context_id)
+        if rdrf_context.is_multi_context:
+            RDRFContext.objects.filter(pk=context_id).update(active=False, last_updated_by=request.user)
+            dyn_obj = DynamicDataWrapper(patient_model, rdrf_context_id=context_id)
+            dyn_obj.soft_delete(registry_code, request.user.id)
+            result = {"result": "Context deleted !"}
+            return JsonResponse(result, status=200)
+
+        return JsonResponse({"result": "Cannot delete form !"}, status=400)
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -353,10 +377,7 @@ class FormView(View):
         self.form_id = form_id
         self.patient_id = patient_id
 
-        try:
-            patient_model = Patient.objects.get(pk=patient_id)
-        except Patient.DoesNotExist:
-            raise Http404
+        patient_model = get_object_or_404(Patient, pk=patient_id)
 
         security_check_user_patient(request.user, patient_model)
 
@@ -413,7 +434,7 @@ class FormView(View):
         context["header"] = self.registry_form.header
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
-
+        context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
@@ -446,7 +467,10 @@ class FormView(View):
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
         context["context_id"] = rdrf_context_id
-
+        context["delete_form_url"] = reverse(
+            "registry_form",
+            kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
+        ) if context_id != 'add' else ''
         code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
         context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
         context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''

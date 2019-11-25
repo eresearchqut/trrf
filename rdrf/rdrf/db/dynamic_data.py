@@ -462,6 +462,14 @@ class DynamicDataWrapper(object):
         context_id_to_search_for = None if self.rdrf_context_id == "add" else self.rdrf_context_id
         return qs.find(self.obj, context_id_to_search_for if filter_by_context else None)
 
+    def soft_delete(self, registry, user_id):
+        (ClinicalData.objects
+            .filter(
+                active=True, registry_code=registry, collection__in=["cdes", "history", "progress"]
+            ).find(
+                self.obj, self.rdrf_context_id
+            ).update(active=False, last_updated_by=user_id))
+
     def _make_record(self, registry_code, collection_name, data=None, **kwargs):
         data = dict(data or {})
         data["context_id"] = self.rdrf_context_id

@@ -1568,6 +1568,27 @@ class RDRFContextError(Exception):
     pass
 
 
+class RDRFCtxManager(models.Manager):
+
+    def get_queryset(self):
+        # do NOT include inactive (soft-deleted) contexts
+        return super().get_queryset().filter(active=True)
+
+    def all_contexts(self):
+        # shows soft-deleted contexts also
+        return super().get_queryset().all()
+
+    def inactive_contexts(self):
+        return self.all_contexts().filter(active=False)
+
+    def get_for_patient(self, patient, registry):
+        return self.get_queryset().filter(
+            registry=registry,
+            content_type=ContentType.objects.get_for_model(patient),
+            object_id=patient.pk,
+        )
+
+
 class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -1579,7 +1600,10 @@ class RDRFContext(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.SET_NULL)
     display_name = models.CharField(max_length=80, blank=True, null=True)
+    active = models.BooleanField(default=True, blank=False)
+    objects = RDRFCtxManager()
 
     def __str__(self):
         return "%s %s" % (self.display_name, self.created_at)
@@ -1611,6 +1635,14 @@ class RDRFContext(models.Model):
                                                        section_code,
                                                        context_id=self.pk)
         return cde_value
+
+    @property
+    def is_multi_context(self):
+        return (
+            self.context_form_group.context_type == "M"
+            if self.context_form_group
+            else False
+        )
 
 
 class ContextFormGroup(models.Model):
@@ -1676,14 +1708,9 @@ class ContextFormGroup(models.Model):
             return "%s/%s %s" % (self.name, s, t)
         elif self.naming_scheme == "N":
             registry_model = self.registry
-            patient_content_type = ContentType.objects.get(model='patient')
-            existing_contexts = [
-                c for c in RDRFContext.objects.filter(
-                    object_id=patient_model.pk,
-                    content_type=patient_content_type,
-                    registry=registry_model,
-                    context_form_group=self)]
-            next_number = len(existing_contexts) + 1
+            contexts = RDRFContext.objects.get_for_patient(patient_model, registry_model)
+            existing_count = contexts.filter(context_form_group=self).count()
+            next_number = existing_count + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
             return "Unused"  # user will see value from cde when context is created
@@ -1823,11 +1850,12 @@ class ContextFormGroup(models.Model):
             return True
         else:
             # fixed - is there one already?
-            patient_content_type = ContentType.objects.get(model='patient')
-            return RDRFContext.objects.filter(registry=self.registry,
-                                              content_type=patient_content_type,
-                                              object_id=patient_model.id,
-                                              context_form_group=self).count() == 0
+            return not (
+                RDRFContext.objects
+                           .get_for_patient(patient_model, self.registry)
+                           .filter(context_form_group=self)
+                           .exists()
+            )
 
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
@@ -1875,8 +1903,11 @@ class ContextFormGroupItem(models.Model):
 
 class ClinicalDataQuerySet(models.QuerySet):
     def collection(self, registry_code, collection):
-        qs = self.filter(registry_code=registry_code, collection=collection)
+        qs = self.filter(registry_code=registry_code, collection=collection, active=True)
         return qs.order_by("pk")
+
+    def active(self):
+        return self.filter(active=True)
 
     def find(self, obj=None, context_id=None, **query):
         q = {}
@@ -1912,6 +1943,9 @@ class ClinicalData(models.Model):
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
     active = models.BooleanField(
         default=True, help_text="Indicate whether an entity is active or not")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    last_updated_at = models.DateTimeField(auto_now=True, null=True)
+    last_updated_by = models.IntegerField(db_index=True, blank=True, null=True)
 
     objects = ClinicalDataQuerySet.as_manager()
 
