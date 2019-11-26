@@ -886,12 +886,15 @@ class FormView(View):
             return []
 
     def _set_initial_randomised_data(self, form_class, initial_data):
-        if not initial_data or initial_data == ['']:
-            initial_data = {}
-        initial_data.update({
+        randomised_values = {
             field_name: field.randomised_value for field_name, field in form_class.base_fields.items()
             if hasattr(field, 'randomised_value')
-        })
+        }
+        if not randomised_values:
+            return initial_data
+        if not initial_data or initial_data == ['']:
+            initial_data = {}
+        initial_data.update(randomised_values)
         return initial_data
 
     def _build_context(self, **kwargs):
