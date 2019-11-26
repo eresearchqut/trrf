@@ -77,4 +77,5 @@ artifacts:
     selenium_screenshots:
       files:
         - data/aloe/dev/scratch/*
+      discard-paths: yes
       name: dev-trrf
