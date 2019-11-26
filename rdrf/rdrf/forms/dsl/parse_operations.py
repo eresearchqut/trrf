@@ -91,7 +91,7 @@ class BooleanOp:
         self.operator = value
 
     def to_js(self):
-        return "&&" if self.operator == 'and' else " ||"
+        return "&&" if self.operator == "and" else "||"
 
     def as_string(self):
         return self.operator
