@@ -73,3 +73,8 @@ artifacts:
     - '*'
     - 'docker/**/*'
     - 'scripts/**/*'
+  secondary-artifacts:
+    selenium_screenshots:
+      files:
+        - data/aloe/dev/scratch/*
+      name: dev-trrf
