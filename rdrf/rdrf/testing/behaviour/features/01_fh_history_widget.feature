@@ -14,7 +14,7 @@ Feature: Sanity test history widget.
 
     # NB. the quirk of the step - it's appending the input to whats there, not over typing into the field..
 
-    When I enter value "foo" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
+    When I enter value "foox" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foo"
 
