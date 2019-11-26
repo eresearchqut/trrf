@@ -16,14 +16,17 @@ Feature: Sanity test history widget.
 
     When I enter value "foo" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
+    And I wait 3 seconds
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foo"
 
     When I enter value "bar" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
+    And I wait 3 seconds
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foobar"
 
     When I enter value "baz" for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)"
     And I click the "Save" button
+    And I wait 3 seconds
     Then the form value of section "Hypertensive Medication" cde "If other, enter medication name(s)" should be "foobarbaz"
     And I expand the "Hypertensive Medication" section
     And History for form "Medications" section "Hypertensive Medication" cde "If other, enter medication name(s)" shows "foo,foobar,foobarbaz"
