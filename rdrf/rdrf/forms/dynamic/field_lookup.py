@@ -374,7 +374,10 @@ class FieldFactory(object):
                             options["choices"] = options['choices'][1:]
 
                     if self.cde.randomise:
-                        return django.forms.CharField(widget=django.forms.TextInput(attrs={'readonly': 'readonly'}))
+                        return django.forms.CharField(
+                            label=_(self.cde.name),
+                            widget=django.forms.TextInput(attrs={'readonly': 'readonly'})
+                        )
 
                     if self.cde.code in [
                             "CDEPatientNextOfKinState",
