@@ -366,6 +366,18 @@ class ReadOnlySelect(widgets.Select):
             return html
 
 
+class ReadOnlyCheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.update({
+            'attrs': {
+                'onclick': 'return false',
+                'readonly': 'readonly'
+            }
+        })
+        super().__init__(*args, **kwargs)
+
+
 class MultipleFileInput(Widget):
     """
     This widget combines multiple file inputs.

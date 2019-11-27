@@ -357,12 +357,7 @@ class FieldFactory(object):
 
                 if self.cde.allow_multiple:
                     if self.cde.randomise:
-                        widget = widget or CheckboxSelectMultiple(
-                            attrs={
-                                'onclick': 'return false',
-                                'readonly': 'readonly'
-                            }
-                        )
+                        widget = widget or widgets.ReadOnlyCheckboxSelectMultiple
                     else:
                         widget = widget or CheckboxSelectMultiple
                     if widget:

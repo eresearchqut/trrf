@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.forms import ValidationError
 from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -359,6 +360,30 @@ class FormView(View):
 
         return JsonResponse({"result": "Cannot delete form !"}, status=400)
 
+    def has_valid_randomised_values(self, request, dynamic_data):
+
+        def verify_value(random_value, dynamic_data):
+            if isinstance(random_value, list):
+                if set(random_value) != set(dynamic_data[field_name]):
+                    logger.info(f"Invalid randomised value for {field_name}: {dynamic_data[field_name]} != {random_value}")
+                    return False
+            elif random_value != dynamic_data[field_name]:
+                logger.info(f"Invalid randomised value for {field_name}: {dynamic_data[field_name]} != {random_value}")
+                return False
+            return True
+
+        if request.session['has_randomised_values']:
+            randomised_values = request.session['randomised_values']
+            for field_name, random_value in randomised_values.items():
+                if field_name in dynamic_data and not verify_value(random_value, dynamic_data):
+                    return False
+            if isinstance(dynamic_data, list):
+                for field_name, random_value in randomised_values.items():
+                    for data in dynamic_data:
+                        if field_name in data and not verify_value(random_value, data):
+                            return False
+        return True
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -428,7 +453,7 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
+        context = self._build_context(request, user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -587,6 +612,14 @@ class FormView(View):
                     form_data = wrap_file_cdes(
                         registry_code, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
+                    if not self.has_valid_randomised_values(request, dynamic_data):
+                        error_count += 1
+                        all_sections_valid = False
+                        all_errors.append(
+                            ValidationError({
+                                "non_field_errors": _(f"Randomised data has been tampered with for section: {section_model.display_name}")
+                            })
+                        )
                 else:
                     all_sections_valid = False
                     for e in form.errors:
@@ -643,7 +676,14 @@ class FormView(View):
                         multisection=True,
                         index_map=index_map)
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
-
+                    if not self.has_valid_randomised_values(request, dynamic_data):
+                        error_count += 1
+                        all_sections_valid = False
+                        all_errors.append(
+                            ValidationError({
+                                "non_field_errors": _(f"Randomised data has been tampered with for section: {section_model.display_name}")
+                            })
+                        )
                 else:
                     all_sections_valid = False
                     for e in formset.errors:
@@ -885,19 +925,51 @@ class FormView(View):
         else:
             return []
 
-    def _set_initial_randomised_data(self, form_class, initial_data):
+    def _randomised_values(self, form_class, initial_data):
         randomised_values = {
             field_name: field.randomised_value for field_name, field in form_class.base_fields.items()
             if hasattr(field, 'randomised_value')
         }
+        if not self.CREATE_MODE and randomised_values and initial_data:
+            if isinstance(initial_data, dict):
+                for field in randomised_values.keys():
+                    if field in initial_data:
+                        randomised_values[field] = initial_data[field]
+            elif isinstance(initial_data, list):
+                for field in randomised_values.keys():
+                    for data in initial_data:
+                        if field in data:
+                            randomised_values[field] = data[field]
+
+        return randomised_values
+
+    def _set_initial_randomised_data(self, form_class, initial_data):
+        randomised_values = self._randomised_values(form_class, initial_data)
         if not randomised_values:
             return initial_data
-        if not initial_data or initial_data == ['']:
-            initial_data = {}
-        initial_data.update(randomised_values)
+
+        if self.CREATE_MODE or not initial_data or initial_data == ['']:
+            if not initial_data:
+                initial_data = randomised_values
+                return initial_data
+            elif initial_data == ['']:
+                initial_data[0] = randomised_values
+                return initial_data
+
+            if isinstance(initial_data, dict):
+                for name, value in randomised_values.items():
+                    if name in initial_data:
+                        initial_data[name] = value
+            elif isinstance(initial_data, list):
+                logger.info(f"initial_data={initial_data}, randomised={randomised_values}")
+                for data in initial_data:
+                    for name, value in randomised_values.items():
+                        if name in data:
+                            data[name] = value
+
         return initial_data
 
-    def _build_context(self, **kwargs):
+    def _build_context(self, request, **kwargs):
         """
         :param kwargs: extra key value pairs to be passed into the built context
         :return: a context dictionary to render the template ( all form generation done here)
@@ -924,6 +996,7 @@ class FormView(View):
         previous_values = form_changes.previous_values if changes_since_version else {}
 
         remove_sections = []
+        randomised = {}
         for s in sections:
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
@@ -934,11 +1007,11 @@ class FormView(View):
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
-
             if not section_model.allow_multiple:
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 initial_data = self._set_initial_randomised_data(form_class, initial_data)
+                randomised.update(self._randomised_values(form_class, initial_data))
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
                 # Ensure that we can have multiple formsets on the one page
@@ -977,6 +1050,7 @@ class FormView(View):
                     initial_data = [""]  # this appears to forms
 
                 initial_data = self._set_initial_randomised_data(form_class, initial_data)
+                randomised.update(self._randomised_values(form_class, initial_data))
                 form_section[s] = form_set_class(initial=initial_data, prefix=prefix)
                 if has_deleted_forms:
                     for idx, form in enumerate(form_section[s].forms):
@@ -987,6 +1061,9 @@ class FormView(View):
 
         for s in remove_sections:
             sections.remove(s)
+
+        request.session['has_randomised_values'] = bool(randomised)
+        request.session['randomised_values'] = randomised
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -1187,7 +1264,7 @@ class QuestionnaireView(FormView):
                 raise RegistryForm.DoesNotExist()
 
             self.registry_form = form
-            context = self._build_context(questionnaire_context=questionnaire_context)
+            context = self._build_context(request, questionnaire_context=questionnaire_context)
 
             custom_consent_helper = CustomConsentHelper(self.registry)
             custom_consent_helper.create_custom_consent_wrappers()
