@@ -933,12 +933,12 @@ class FormView(View):
         if not self.CREATE_MODE and randomised_values and initial_data:
             if isinstance(initial_data, dict):
                 for field in randomised_values.keys():
-                    if field in initial_data:
+                    if field in initial_data and initial_data[field]:
                         randomised_values[field] = initial_data[field]
             elif isinstance(initial_data, list):
                 for field in randomised_values.keys():
                     for data in initial_data:
-                        if field in data:
+                        if field in data and data[field]:
                             randomised_values[field] = data[field]
 
         return randomised_values
@@ -948,24 +948,22 @@ class FormView(View):
         if not randomised_values:
             return initial_data
 
-        if self.CREATE_MODE or not initial_data or initial_data == ['']:
-            if not initial_data:
-                initial_data = randomised_values
-                return initial_data
-            elif initial_data == ['']:
-                initial_data[0] = randomised_values
-                return initial_data
+        if not initial_data:
+            initial_data = randomised_values
+            return initial_data
+        elif initial_data == ['']:
+            initial_data[0] = randomised_values
+            return initial_data
 
-            if isinstance(initial_data, dict):
+        if isinstance(initial_data, dict):
+            for name, value in randomised_values.items():
+                if name in initial_data and initial_data[name] != value:
+                    initial_data[name] = value
+        elif isinstance(initial_data, list):
+            for data in initial_data:
                 for name, value in randomised_values.items():
-                    if name in initial_data:
-                        initial_data[name] = value
-            elif isinstance(initial_data, list):
-                for data in initial_data:
-                    for name, value in randomised_values.items():
-                        if name in data:
-                            data[name] = value
-
+                    if name in data and data[name] != value:
+                        data[name] = value
         return initial_data
 
     def _build_context(self, request, **kwargs):
@@ -1010,7 +1008,10 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 initial_data = self._set_initial_randomised_data(form_class, initial_data)
-                randomised.update(self._randomised_values(form_class, initial_data))
+                rnd_data = self._randomised_values(form_class, initial_data)
+                randomised.update(rnd_data)
+                if self.dynamic_data:
+                    self.dynamic_data.update(rnd_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
             else:
                 # Ensure that we can have multiple formsets on the one page
