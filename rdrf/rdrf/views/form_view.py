@@ -961,7 +961,6 @@ class FormView(View):
                     if name in initial_data:
                         initial_data[name] = value
             elif isinstance(initial_data, list):
-                logger.info(f"initial_data={initial_data}, randomised={randomised_values}")
                 for data in initial_data:
                     for name, value in randomised_values.items():
                         if name in data:

@@ -222,6 +222,11 @@
         var new_form = empty_form.clone(true, true);
 
         new_form.find(":input").each(function() {
+            if ($(this).attr("readonly") == "readonly") {
+                var old_id = $(this).attr("id").replace(/__prefix__/g, total_forms.val()-1);
+                var old_value = $("#" + old_id).val();
+                $(this).val(old_value);
+            }
             $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
             $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
 
