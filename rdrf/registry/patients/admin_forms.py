@@ -269,7 +269,7 @@ class PatientStageRuleForm(forms.ModelForm):
             raise ValidationError({
                 "to_stage": [_("The final stage must belong to the selected registry !")]
             })
-        if to_stage not in from_stage.allowed_next_stages.all():
+        if to_stage and from_stage and to_stage not in from_stage.allowed_next_stages.all():
             raise ValidationError({
                 "to_stage": [_("The final stage must be in the next stages list of the initial stage!")]
             })
