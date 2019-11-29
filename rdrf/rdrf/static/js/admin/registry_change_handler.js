@@ -1,8 +1,9 @@
-function registry_change_handler(first_stage_id, second_stage_id, registry_id, first_stage_empty_option) {
+function registry_change_handler(first_stage_id, second_stage_id, registry_id, add_stage_empty_option) {
     $(first_stage_id).empty();
     $(second_stage_id).empty();
-    if (first_stage_empty_option) {
+    if (add_stage_empty_option) {
         $(first_stage_id).append($("<option>").attr('value','').text('------'));
+        $(second_stage_id).append($("<option>").attr('value','').text('------'));
     }
     var url = Urls['v1:patient-stages'](registry_id);
     if (registry_id !== "" && url != "") {
