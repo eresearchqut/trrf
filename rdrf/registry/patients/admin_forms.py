@@ -261,6 +261,10 @@ class PatientStageRuleForm(forms.ModelForm):
         cleaneddata = self.cleaned_data
         from_stage = cleaneddata["from_stage"]
         to_stage = cleaneddata["to_stage"]
+        if not from_stage and not to_stage:
+            raise ValidationError(
+                _("Both to_stage and from_stage cannot be None !")
+            )
         if from_stage and from_stage.registry != cleaneddata["registry"]:
             raise ValidationError({
                 "from_stage": [_("The initial stage must belong to the selected registry !")]
