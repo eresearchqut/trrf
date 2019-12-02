@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.formats import date_format, time_format
@@ -2046,6 +2046,16 @@ class CDEFile(models.Model):
 @receiver(pre_delete, sender=CDEFile)
 def fileuploaditem_delete(sender, instance, **kwargs):
     instance.item.delete(False)
+
+
+@receiver(post_save, sender=Registry)
+def registry_post_save(sender, instance, **kwargs):
+    from registry.patients.models import PatientStage
+    from rdrf.initial_data.patient_stage import init_registry_stages_and_rules
+
+    if instance.has_feature(RegistryFeatures.STAGES):
+        if not PatientStage.objects.filter(registry=instance).exists():
+            init_registry_stages_and_rules(instance)
 
 
 class FileStorage(models.Model):

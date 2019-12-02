@@ -13,7 +13,7 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 
 from registry.genetic.models import Gene, Laboratory
-from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship
+from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.definition.models import RegistryForm
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
@@ -308,3 +308,16 @@ class RegistryForms(generics.ListAPIView):
 
     def get_queryset(self):
         return RegistryForm.objects.get_by_registry(self.kwargs.get('registry_id'))
+
+
+class PatientStageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientStage
+        fields = ('id', 'name')
+
+
+class PatientStages(generics.ListAPIView):
+    serializer_class = PatientStageSerializer
+
+    def get_queryset(self):
+        return PatientStage.objects.filter(registry_id=self.kwargs.get('registry_id'))

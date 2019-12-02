@@ -25,18 +25,18 @@ class RegistrationTest(TestCase):
             recipient='{{user.email}}',
             email_from='no-reply@reg4.net'
         )
-        self.informed_consent, _ = PatientStage.objects.get_or_create(name="Informed consent")
-        self.eligibility, _ = PatientStage.objects.get_or_create(name="Eligibility")
+        self.informed_consent, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Informed Consent")
+        self.eligibility, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Eligibility")
         self.informed_consent.allowed_next_stages.add(self.eligibility)
         self.eligibility.allowed_prev_stages.add(self.informed_consent)
-        PatientStageRule.objects.create(
+        PatientStageRule.objects.get_or_create(
             registry=self.registry,
             from_stage=None,
             condition=PatientState.REGISTERED,
             to_stage=self.informed_consent,
             order=1
         )
-        PatientStageRule.objects.create(
+        PatientStageRule.objects.get_or_create(
             registry=self.registry,
             from_stage=self.informed_consent,
             condition=PatientState.CONSENTED,

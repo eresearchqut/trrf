@@ -12,6 +12,7 @@ from rdrf import VERSION
 import datetime
 from rdrf.models.definition.models import DemographicFields, RegistryForm
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
+from registry.patients.models import PatientStage, PatientStageRule
 
 from explorer.models import Query
 
@@ -251,6 +252,8 @@ class Exporter:
             data["patient_data_section"] = {}
 
         data["working_groups"] = self._get_working_groups()
+        data["patient_stages"] = self._get_patient_stages()
+        data["patient_stage_rules"] = self._get_patient_stage_rules()
 
         if export_type in [
                 ExportType.REGISTRY_ONLY,
@@ -619,6 +622,32 @@ class Exporter:
                 g.name for g in form_title.groups.all()
             ]
             data.append(title_dict)
+
+    def _get_patient_stages(self):
+        data = []
+        for stage in PatientStage.objects.filter(registry=self.registry):
+            stage_dict = {
+                "id": stage.id,
+                "name": stage.name,
+                "next_stages": [next_stage.id for next_stage in stage.allowed_next_stages.all()],
+                "prev_stages": [prev_stage.id for prev_stage in stage.allowed_prev_stages.all()],
+            }
+            data.append(stage_dict)
+        return data
+
+    def _get_patient_stage_rules(self):
+        data = []
+        for rule in PatientStageRule.objects.filter(registry=self.registry):
+            from_stage = rule.from_stage.id if rule.from_stage else None
+            to_stage = rule.to_stage.id if rule.to_stage else None
+            rule_dict = {
+                "id": rule.id,
+                "condition": rule.condition,
+                "from_stage": from_stage,
+                "to_stage": to_stage,
+                "order": rule.order,
+            }
+            data.append(rule_dict)
         return data
 
 

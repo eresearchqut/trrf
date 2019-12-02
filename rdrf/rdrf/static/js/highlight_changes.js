@@ -28,6 +28,9 @@ $(document).ready(function() {
   // highlights fields that have changed
   $('#main-form').change(function() {
     $('#main-form *').filter(monitored_fields).each(function() {
+      if ($(this).hasClass('timepicki-input')) {
+        return;
+      }
       if (!$(this).is(':radio')) {
         if ($(this).val() != $(this).data('pre')) {
           $(this).css("border", new_border);

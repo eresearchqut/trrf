@@ -212,15 +212,80 @@ class PatientSignatureForm(forms.ModelForm):
 
 
 class PatientStageForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'instance' in kwargs and kwargs['instance'] is not None:
+            self.instance = kwargs['instance']
+            stages_qs = PatientStage.objects.filter(registry=self.instance.registry)
+            self.fields["allowed_prev_stages"].queryset = stages_qs
+            self.fields["allowed_next_stages"].queryset = stages_qs
+            self.fields["registry"].disabled = True
+
+    def clean(self):
+        cleaneddata = super().clean()
+        if self.instance and hasattr(self.instance, 'registry'):
+            cleaneddata["registry"] = self.instance.registry
+        prev_stages = cleaneddata["allowed_prev_stages"]
+        next_stages = cleaneddata["allowed_next_stages"]
+        selected_registry = cleaneddata["registry"]
+        if not all([stage.registry == selected_registry for stage in prev_stages]):
+            raise ValidationError({
+                "allowed_prev_stages": [_("All stages in prev stages must belong to the selected registry !")]
+            })
+        if not all([stage.registry == selected_registry for stage in next_stages]):
+            raise ValidationError({
+                "allowed_next_stages": [_("All stages in next stages must belong to the selected registry !")]
+            })
+        return cleaneddata
+
     class Meta:
         model = PatientStage
         fields = "__all__"
 
+    class Media:
+        js = ("js/admin/registry_change_handler.js", "js/admin/patient_stage_admin.js",)
+
 
 class PatientStageRuleForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'instance' in kwargs and kwargs['instance'] is not None:
+            instance = kwargs['instance']
+            stages_qs = PatientStage.objects.filter(registry=instance.registry)
+            self.fields["from_stage"].queryset = stages_qs
+            self.fields["to_stage"].queryset = stages_qs
+
+    def clean(self):
+        cleaneddata = self.cleaned_data
+        from_stage = cleaneddata["from_stage"]
+        to_stage = cleaneddata["to_stage"]
+        if not from_stage and not to_stage:
+            raise ValidationError(
+                _("Both to_stage and from_stage cannot be None !")
+            )
+        if from_stage and from_stage.registry != cleaneddata["registry"]:
+            raise ValidationError({
+                "from_stage": [_("The initial stage must belong to the selected registry !")]
+            })
+        if to_stage and to_stage.registry != cleaneddata["registry"]:
+            raise ValidationError({
+                "to_stage": [_("The final stage must belong to the selected registry !")]
+            })
+        if to_stage and from_stage and to_stage not in from_stage.allowed_next_stages.all():
+            raise ValidationError({
+                "to_stage": [_("The final stage must be in the next stages list of the initial stage!")]
+            })
+
+        return super().clean()
+
     class Meta:
         model = PatientStageRule
         fields = "__all__"
+
+    class Media:
+        js = ("js/admin/registry_change_handler.js", "js/admin/patient_stage_rule_admin.js", )
 
 
 class PatientForm(forms.ModelForm):
@@ -323,7 +388,9 @@ class PatientForm(forms.ModelForm):
 
                     self.fields['stage'].queryset = PatientStage.objects.filter(pk__in=(s.pk for s in allowed_stages))
                 else:
-                    self.fields['stage'].queryset = PatientStage.objects.filter(allowed_prev_stages__isnull=True)
+                    self.fields['stage'].queryset = PatientStage.objects.filter(
+                        allowed_prev_stages__isnull=True, registry=self.registry_model
+                    )
 
         if self._is_adding_patient(kwargs):
             self._setup_add_form()

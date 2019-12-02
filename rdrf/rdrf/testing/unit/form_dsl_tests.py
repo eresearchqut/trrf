@@ -7,7 +7,10 @@ class FormDSLValidationTestCase(FormTestCase):
     def create_sections(self):
         super().create_sections()
         self.sectionD = self.create_section(
-            "sectionD", "Section D", ["DM1Fatigue", "DM1FatigueSittingReading", "CDEfhDrugs"], False)
+            "sectionD", "Section D",
+            ["DM1Fatigue", "DM1FatigueSittingReading", "CDEfhDrugs", "CDEfhHistoryDrugIntolerance", "CDEfhIntolerantDrugs"],
+            False
+        )
         self.sectionE = self.create_section(
             "sectionE", "Section E", ["DM1AffectedStatus", "DM1Anxiety"], True)
         self.sectionF = self.create_section(
@@ -233,4 +236,35 @@ class FormDSLValidationTestCase(FormTestCase):
             exc_info,
             1,
             ['The target CDEs and conditions CDEs overlap on line 1']
+        )
+
+    def test_single_or_condition(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Fatigue visible if DM1FatigueSittingReading == "Slight chance of dozing" or CDEfhDrugs == Ezetimibe
+        '''
+        self.new_form.save()
+
+    def test_three_or_conditions(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Fatigue visible if DM1FatigueSittingReading == "Slight chance of dozing" or CDEfhDrugs == Ezetimibe or CDEfhHistoryDrugIntolerance == Yes
+        '''
+        self.new_form.save()
+
+    def test_four_or_conditions(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Fatigue visible if DM1FatigueSittingReading == "Slight chance of dozing" or
+         CDEfhDrugs == Ezetimibe or CDEfhHistoryDrugIntolerance == Yes or CDEfhIntolerantDrugs == Other
+        '''
+        self.new_form.save()
+
+    def test_contradicting_multiple_or_conditions(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1Fatigue visible if CDEfhDrugs == Ezetimibe or CDEfhDrugs == Statin or CDEfhDrugs != Ezetimibe
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['The conditions repeat or contradict on line 1']
         )
