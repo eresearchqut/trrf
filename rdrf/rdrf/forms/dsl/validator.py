@@ -71,24 +71,43 @@ class ConditionChecker:
              [Condition("a < b"), BooleanOp("and"), Conditionn("d < e")],
              [Condition("a <=b"), BooleanOp("and"), Condition("d <=e")]]
         """
-        index = 0
-        result = []
-        cond_count = len(condition)
-        while index < cond_count:
-            first_cond = condition[index]
-            first_inverse = self.inverse_conditions(first_cond)
-            index += 1
-            if index < cond_count:
-                op = condition[index]
-                index += 1
-                second_cond = condition[index]
-                second_inverse = self.inverse_conditions(second_cond)
 
+        cloned = [x for x in condition]
+
+        def next_operator():
+            return cloned.pop(0)
+
+        def next_condition():
+            cond = cloned.pop(0)
+            inverse = self.inverse_conditions(cond)
+            return cond, inverse
+
+        def add_result(first_inverse_list, second_inverse_list, op):
+            for f in first_inverse_list:
+                for s in second_inverse_list:
+                    result.append([f, op, s])
+
+        result = []
+        op_next = False
+        prev_conditions = []
+        while cloned:
+            if op_next:
+                op = next_operator()
+            first_cond, first_inverse = next_condition()
+            op_next = True
+            if cloned:
+                prev_conditions.append((first_cond, first_inverse))
+                if op_next:
+                    op = next_operator()
+                second_cond, second_inverse = next_condition()
+                prev_conditions.append((second_cond, second_inverse))
                 result.append([first_cond, BooleanOp(op.inverse()), second_cond])
-                for f in first_inverse:
-                    for s in second_inverse:
-                        result.append([f, op, s])
-                index += 1
+                add_result(first_inverse, second_inverse, op)
+            else:
+                for cond, inverse in prev_conditions:
+                    result.append([first_cond, BooleanOp(op.inverse()), cond])
+                    add_result(first_inverse, inverse, op)
+
         return result
 
     def check_condition_values(self, condition, multiple_conditions):
@@ -105,7 +124,7 @@ class ConditionChecker:
                 if idx + 2 < cond_len:
                     boolean_op = condition[idx + 1]
                     operation_dict[boolean_op].append(c)
-                if current_boolean_op:
+                elif current_boolean_op:
                     operation_dict[current_boolean_op].append(c)
                 idx += 2
                 current_boolean_op = boolean_op

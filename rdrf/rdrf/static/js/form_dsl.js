@@ -166,18 +166,45 @@ function test_cde_value_simple(name, op, value) {
 
 
 function test_conditions(results, boolean_ops) {
-    var result = true;
+    var result, partial_result;
+    var previous_op = '';
     while (results.length > 0) {
-        op = boolean_ops.shift();
-        first = results.shift();
-        second = results.shift();
-        if (op == '&&') {
-            result = result && (first && second);
-        } else if (op == '||') {
-            result = result && (first || second);
+        var op = boolean_ops.shift();
+        var first = results.shift();
+        var second = results.shift();
+        if (second === undefined) {
+            switch (op) {
+                case '&&':
+                    result = result && first;
+                    break;
+                case '||':
+                    result = result || first;
+                    break;
+            }
+        } else {
+            switch(op) {
+                case '&&':
+                    partial_result = first && second;
+                    break;
+                case '||':
+                    partial_result = first || second;
+                    break;
+            }
+            switch (previous_op) {
+                case '':
+                    result = partial_result;
+                    break;
+                case '&&':
+                    result = result && partial_result;
+                    break;
+                case '||':
+                    result = result || partial_result;
+                    break;
+            }
         }
-        return result;
+        previous_op = op;
     }
+    return result;
 }
 
 function visibility_map_update(visibility_map, name, action, is_section) {
