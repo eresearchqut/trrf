@@ -730,14 +730,18 @@ class TimeWidget(widgets.TextInput):
             <input id="id_{name}" type="text" name="{name}" value="{value}"/>
         '''
         set_time_str = f", start_time:{start_time}" if start_time else ""
+        change_handler = '''
+            on_change: function() { $("#main-form").trigger('change'); }
+        '''
 
         if fmt == self.AMPM:
-            attrs = f"{{show_meridian:true, min_hour_value:1, max_hour_value:12 {set_time_str}}}"
+            attrs = f"{{ {change_handler}, $show_meridian:true, min_hour_value:1, max_hour_value:12 {set_time_str}}}"
         else:
-            attrs = f"{{show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
+            attrs = f"{{ {change_handler}, show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
 
         js = f'''
             $("#id_{name}").timepicki({attrs});
+            $("#id_{name}").addClass("form-control");
             $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
         '''
         return f'''
