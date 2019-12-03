@@ -6,11 +6,14 @@ $(document).ready(function() {
   var monitored_fields     = "select,input,textarea";
 
   // Save default colors for later recovery.
-  var old_border = $('#main-form *').filter('input').first().css("border");
-  var old_background_color = $('#main-form *').filter('input').first().css("background-color");
+  // TS: Moved these into the change handler below as they were called before the elements
+  // get styled on Chromium which resulted in saving an incorrect border of 0
+  // https://eresearchqut.atlassian.net/browse/TRRFFDA-449
+  var old_border;
+  var old_background_color;
 
-  var old_radio_border = $('#main-form *').filter(':radio').first().parent().parent().css("border");
-  var old_radio_background_color = $('#main-form *').filter(':radio').first().parent().parent().css("background-color");
+  var old_radio_border;
+  var old_radio_background_color;
 
   // Save defaults in each DOM element's pre data and append transitions
   $('#main-form *').filter(monitored_fields).each(function() {
@@ -27,6 +30,19 @@ $(document).ready(function() {
   // current value to value stored in DOM element's pre data and
   // highlights fields that have changed
   $('#main-form').change(function() {
+    if (!old_border) {
+      old_border = $('#main-form *').filter('input').first().css("border");
+    }
+    if (!old_background_color) {
+      old_background_color = $('#main-form *').filter('input').first().css("background-color");
+    }
+    if (!old_radio_border) {
+      old_radio_border = $('#main-form *').filter(':radio').first().parent().parent().css("border");
+    }
+    if (!old_radio_background_color) {
+      old_radio_background_color = $('#main-form *').filter(':radio').first().parent().parent().css("background-color");
+    }
+
     $('#main-form *').filter(monitored_fields).each(function() {
       if ($(this).hasClass('timepicki-input')) {
         return;
