@@ -4,7 +4,7 @@ DEBUG=0
 # TODO review these
 ALLOWED_HOSTS=*
 IPRESTRICT_IGNORE_PROXY_HEADER=1
-CSRF_TRUSTED_ORIGINS=.registryframework.net
+CSRF_TRUSTED_ORIGINS=.registryframework.net .eresearchqut.net
 
 # Without this http://localhost gets redirected to https://uwsgi:9000 and
 # in production it doesn't matter as we're not listening on port 80 anyways
