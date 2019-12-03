@@ -600,6 +600,8 @@ def click_radio_button(step, value, section, cde):
 
 @step(r'upload file "(.*)" for multisection "(.*)" cde "(.*)" in item (\d+)')
 def upload_file(step, upload_filename, section, cde, item):
+    utils.wait_for_first_section()
+
     input_element = utils.scroll_to_multisection_cde(section, cde, item)
     input_element.send_keys(upload_filename)
 
