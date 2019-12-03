@@ -10,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
 
 from . import utils
+from .terrain import TEST_WAIT
 
 from collections import OrderedDict
 import time
@@ -402,6 +403,8 @@ def value_is(step, textfield_label, expected_value):
 
 @step('form value of section "(.*)" cde "(.*)" should be "(.*)"')
 def value_is2(step, section, cde, expected_value):
+    utils.wait_for_first_section()
+
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
@@ -674,7 +677,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
     history_widget.click()
 
-    WebDriverWait(world.browser, 60).until(
+    WebDriverWait(world.browser, TEST_WAIT).until(
         ec.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
     )
 
@@ -785,7 +788,10 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
 
 @step(r'I expand the "(.*)" section')
 def expand_section(step, section_name):
+    utils.wait_for_first_section()
+
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section_name)
+
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)

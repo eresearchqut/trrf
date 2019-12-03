@@ -4,6 +4,7 @@ import subprocess
 
 from aloe import world
 
+from .terrain import TEST_WAIT
 
 logger = logging.getLogger(__name__)
 
@@ -293,3 +294,13 @@ def is_section_collapsed(section):
         return False
     css_classes = css_class.split(' ')
     return 'collapse' in css_classes and 'in' not in css_classes
+
+
+def wait_for_first_section():
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as ec
+    from selenium.webdriver.support.ui import WebDriverWait
+
+    WebDriverWait(world.browser, TEST_WAIT).until(
+        ec.visibility_of_element_located((By.CSS_SELECTOR, ".panel-body"))
+    )
