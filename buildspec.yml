@@ -55,10 +55,10 @@ phases:
 
       - docker-compose build
       - echo Running tests...
-      - scripts/lint.sh
-      - scripts/check-migrations.sh
-      - scripts/unit-tests.sh
-      - scripts/end2end-tests.sh
+      #- scripts/lint.sh
+      #- scripts/check-migrations.sh
+      #- scripts/unit-tests.sh
+      #- scripts/end2end-tests.sh
       - echo Building and tagging the Docker image...
       - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
 
