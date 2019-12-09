@@ -74,8 +74,9 @@ artifacts:
     - 'docker/**/*'
     - 'scripts/**/*'
 
-# TODO: create a secondary artifact in CloudFormation for CodeBuild, selenium_screenshots that maps to this configuration
-# to get the selenium screenshots uploaded to S3
+# TODO: create a secondary artifact in CloudFormation for CodeBuild, selenium_screenshots that maps
+# to this configuration to get the selenium screenshots uploaded to S3
+#
 #  secondary-artifacts:
 #    selenium_screenshots:
 #      files:
