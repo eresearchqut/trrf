@@ -780,6 +780,8 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
     """
     Check the value of an entered field in a multisection
     """
+    utils.wait_for_first_section()
+
     input_element = utils.scroll_to_multisection_cde(multisection, cde, item)
     actual_value = input_element.get_attribute("value")
     error_msg = "Multisection %s cde %s item %s expected value %s - actual value %s" % (
