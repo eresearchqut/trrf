@@ -121,7 +121,7 @@ class PatientExporter(ModelExporter):
 
     @property
     def queryset(self):
-        return self.model.objects.filter(
+        return self.model.objects.really_all().filter(
             rdrf_registry__code=self.exporter_context['registry_code'])
 
 
