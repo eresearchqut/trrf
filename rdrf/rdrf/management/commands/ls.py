@@ -1,4 +1,5 @@
 import os
+from argparse import ArgumentParser
 
 from django.core.management import load_command_class, find_commands, color_style
 from django.core.management.base import BaseCommand
@@ -15,3 +16,8 @@ class Command(BaseCommand):
         for command_name in find_commands(command_path):
             command = load_command_class("rdrf", command_name)
             print(f"{style.SUCCESS(command_name)}: {command.help}")
+
+            parser = ArgumentParser(command_name)
+            command.add_arguments(parser)
+            parser.print_help()
+            print()
