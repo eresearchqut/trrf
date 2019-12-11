@@ -7,12 +7,11 @@ import jsonschema
 import errno
 import os
 
-explanation = "This command checks for schema validation errors"
 SCHEMA_FILE = "modjgo.yaml"
 
 
 class Command(BaseCommand):
-    help = 'Checks in clinical db against json schema(s)'
+    help = 'Validate clinical db according to json schema(s)'
 
     def add_arguments(self, parser):
         parser.add_argument('-r', "--registry_code",
@@ -25,9 +24,6 @@ class Command(BaseCommand):
                             default="cdes",
                             choices=['cdes', 'history', 'progress', 'registry_specific'],
                             help='Collection name')
-
-    def _usage(self):
-        print(explanation)
 
     def _print(self, msg):
         self.stdout.write(msg + "\n")
