@@ -23,7 +23,7 @@ class ExtraAssertionsMixin:
             self.assertNotIn(value, container, f'{value} found unexpectedly in {container}')
 
 
-@override_settings(SYSTEM_ROLE=SystemRoles.NORMAL)
+@override_settings(SYSTEM_ROLE=SystemRoles.NORMAL_NO_PROMS)
 class NormalQuickLinksTests(ExtraAssertionsMixin, RDRFTestCase):
 
     @override_settings(DESIGN_MODE=False)

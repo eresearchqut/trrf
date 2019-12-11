@@ -73,6 +73,10 @@ def handler_application_error(request):
     })
 
 
+def proms_only(url_pattern):
+    return None if settings.SYSTEM_ROLE == SystemRoles.NORMAL_NO_PROMS else url_pattern
+
+
 JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
 
 normalpatterns = []
@@ -132,7 +136,7 @@ normalpatterns += [
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
-    re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
+    proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
     re_path(r'^constructors/(?P<form_name>\w+)/?$',
             form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -179,16 +183,16 @@ normalpatterns += [
             kwargs={'template_name': 'registration/login_assistance_complete.html'},
             name='login_assistance_complete'),
 
-    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
-    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
-    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
-    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
+    proms_only(re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page")),
+    proms_only(re_path(r'^proms/?$', PromsView.as_view(), name="proms")),
+    proms_only(re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode")),
+    proms_only(re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed")),
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view"),
+    proms_only(re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view")),
     # -------------------------------------------
 
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
@@ -332,7 +336,10 @@ normalpatterns += [
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
 ]
 
+
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
-    urlpatterns = proms_patterns
+    patterns = proms_patterns
 else:
-    urlpatterns = normalpatterns
+    patterns = normalpatterns
+
+urlpatterns = [u for u in patterns if u is not None]
