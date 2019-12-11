@@ -56,6 +56,8 @@
 
     <script>
         $(document).ready(function () {
+            adjustContentTopPadding();
+
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
             });
@@ -204,11 +206,7 @@
         </div>
         {% endif %}
 
-        {% if location %}
         <div id="content" class="container" style="padding-top: 150px;">
-        {% else %}
-        <div class="container">
-        {% endif %}
             {% if messages %}
             <div class="header">
                 <div class="row">
