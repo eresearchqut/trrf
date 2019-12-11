@@ -18,7 +18,7 @@ def send_reminder(user, registry_model, process_func=None):
 
 
 class Command(BaseCommand):
-    help = "Lists users who haven't logged in for a while"
+    help = "Lists users who haven't logged in for a given number of days"
 
     def add_arguments(self, parser):
         parser.add_argument('-r', "--registry_code",
