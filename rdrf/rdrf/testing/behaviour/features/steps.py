@@ -701,11 +701,10 @@ def clear_file_upload(step, section, cde, download_name):
     clear_checkbox = download_link_element.find_element_by_xpath(
         ".//following-sibling::input[@type='checkbox']")
     y = int(utils.scroll_to(clear_checkbox))
-    attempts = 1
     succeeded = False
 
     # ugh
-    while attempts <= 10:
+    while (attempts := 1) <= 10:  # noqa TODO remove noqa when flake8 catches up with python 3.8
         try:
             clear_checkbox.click()
             print("clicked the clear checkbox OK")
