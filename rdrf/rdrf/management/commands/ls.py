@@ -17,7 +17,8 @@ class Command(BaseCommand):
             command = load_command_class("rdrf", command_name)
             print(f"{style.SUCCESS(command_name)}: {command.help}")
 
-            parser = ArgumentParser(command_name)
-            command.add_arguments(parser)
-            parser.print_help()
-            print()
+            if options.get('verbosity', 1) > 1:
+                parser = ArgumentParser(command_name)
+                command.add_arguments(parser)
+                parser.print_help()
+                print()
