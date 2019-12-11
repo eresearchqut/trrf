@@ -1,6 +1,5 @@
 # FROM muccg/rdrf-builder
-# TODO upgrade to 3.7 (both here and main image below)
-FROM python:3.6 as builder
+FROM python:3.8.0 as builder
 
 ENV PYTHONUNBUFFERED 1
 
@@ -42,7 +41,7 @@ RUN pip install -r test-requirements.txt
 
 VOLUME ["/data"]
 
-FROM python:3.6-slim
+FROM python:3.8.0-slim
 
 ENV PYTHONPATH="/app/rdrf/:${PYTHONPATH}"
 ENV DJANGO_SETTINGS_MODULE rdrf.settings

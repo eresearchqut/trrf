@@ -1,6 +1,5 @@
 # Container to build our prod image
-# TODO upgrade to 3.7 (both here and main image below)
-FROM python:3.6 as builder
+FROM python:3.8.0 as builder
 
 ENV PYTHONUNBUFFERED 1
 
@@ -50,7 +49,7 @@ WORKDIR /app/rdrf/rdrf/frontend
 RUN /docker-entrypoint-node.sh build
 
 # Actual image we are building
-FROM python:3.6-slim
+FROM python:3.8.0-slim
 
 ENV PYTHONUNBUFFERED 1
 
