@@ -6,6 +6,11 @@ class SystemRoles(Enum):
     CIC_PROMS = 'CIC_PROMS'
     CIC_CLINICAL = 'CIC_CLINICAL'
     NORMAL = 'NORMAL'
+    NORMAL_NO_PROMS = 'NORMAL_NO_PROMS'
+
+    @property
+    def is_normal_no_proms(self):
+        return self == SystemRoles.NORMAL_NO_PROMS
 
     @property
     def is_normal(self):
@@ -29,4 +34,4 @@ class SystemRoles(Enum):
 
     @property
     def is_cic_role(self):
-        return not self.is_normal
+        return self in (SystemRoles.CIC_DEV, SystemRoles.CIC_PROMS, SystemRoles.CIC_CLINICAL)

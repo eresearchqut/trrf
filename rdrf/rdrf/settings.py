@@ -262,7 +262,7 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # Use filesystem storage by default.
 # But the plan is to use "s3" on all servers deployed to AWS.
-if env.get("file_storage", "fs") == "s3":
+if env.get("file_storage", "s3" if PRODUCTION else "fs") == "s3":
     DEFAULT_FILE_STORAGE = env.get("storage_backend", "storages.backends.s3boto3.S3Boto3Storage")
 else:
     DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
@@ -530,7 +530,7 @@ REST_FRAMEWORK = {
 }
 
 # setup for SYSTEM_ROLE
-SYSTEM_ROLE = SystemRoles[env.get("SYSTEM_ROLE", "NORMAL")]
+SYSTEM_ROLE = SystemRoles[env.get("SYSTEM_ROLE", "NORMAL_NO_PROMS")]
 
 PROJECT_TITLE = env.get("project_title", "Trial Ready Registry Framework")
 PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE is SystemRoles.CIC_PROMS else "patientslisting"
