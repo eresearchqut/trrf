@@ -19,7 +19,7 @@ from rdrf.security.security_checks import user_is_patient_type
 logger = logging.getLogger("registry_log")
 
 
-class Link(object):
+class Link:
 
     def __init__(self, url, text, current):
         self.url = url
@@ -31,7 +31,7 @@ class LauncherError(Exception):
     pass
 
 
-class _Form(object):
+class _Form:
 
     def __init__(self, url, text, current=False, add_link_url=None, add_link_text=None):
         self.id = None
@@ -47,14 +47,14 @@ class _Form(object):
         return "Form %s %s %s" % (self.text, self.url, self.current)
 
 
-class _FormGroup(object):
+class _FormGroup:
 
     def __init__(self, name):
         self.name = name
         self.forms = []
 
 
-class RDRFComponent(object):
+class RDRFComponent:
     TEMPLATE = ""
 
     @property
@@ -390,7 +390,7 @@ class FormsButton(RDRFComponent):
     TEMPLATE = "rdrf_cdes/forms_button.html"
     MULTIPLE_LIMIT = 10  # Only show the last <MULTIPLE_LIMIT> items for multiple context form groups
 
-    class FormWrapper(object):
+    class FormWrapper:
 
         def __init__(
                 self,
