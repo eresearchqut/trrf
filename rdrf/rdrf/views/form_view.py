@@ -1930,8 +1930,9 @@ class CustomConsentFormView(View):
                 valid_forms.append(False)
                 if isinstance(form.errors, list):
                     for error_dict in form.errors:
-                        for field in error_dict:
-                            error_messages.append("%s: %s" % (field, error_dict[field]))
+                        for field, values in error_dict.items():
+                            for value in values:
+                                error_messages.append("%s: %s" % (field, value))
                 else:
                     for field in form.errors:
                         for error in form.errors[field]:
