@@ -5,13 +5,11 @@ services:
   uwsgi:
     # image: eresearchqut/trrf:${TRRF_VERSION}
     image: ${UWSGI_IMAGE}
-    command: uwsgi_ssl
+    command: uwsgi
     env_file:
       - docker/production/envs/uwsgi
       # the .env file below is appended to by CodeDeploy on the server with environment specific variables
       - .env
-    ports:
-      - 443:9443
     volumes:
       - ./data/prod/:/data
     logging:
@@ -20,4 +18,9 @@ services:
           awslogs-create-group: "true"
           awslogs-group: /app/${ENVIRONMENT}/${APPLICATION_NAME}
           awslogs-stream: django-uwsgi-app
-
+  nginx:
+    image: ${NGINX_DOCKER_IMAGE}
+    ports:
+      - 443:443
+    depends_on:
+      - uwsgi
