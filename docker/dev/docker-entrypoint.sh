@@ -192,6 +192,18 @@ if [ "$1" = 'uwsgi' ]; then
     exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
+# prod uwsgi HTTPS entrypoint
+if [ "$1" = 'uwsgi_ssl' ]; then
+    info "[Run] Starting prod uwsgi on HTTPS"
+
+    _django_check_deploy
+
+    set -x
+    # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
+    exec uwsgi --master --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+fi
+
+
 # runserver entrypoint
 if [ "$1" = 'runserver' ]; then
     info "[Run] Starting runserver"

@@ -85,6 +85,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   mime-support \
   nodejs \
   unixodbc \
+  ssl-cert \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir /requirements
@@ -94,6 +95,13 @@ COPY --from=builder /root/.cache /root/.cache
 COPY --from=builder /requirements/requirements.txt .
 
 RUN pip install -r requirements.txt
+
+# The generate snakeoil cert is valid for 10 years, but if you need to
+# re-generate it you can use:
+# RUN make-ssl-cert generate-default-snakeoil --force-overwrite
+
+RUN chgrp -R django /etc/ssl/private/ \
+  && chmod g+r /etc/ssl/private/ssl-cert-snakeoil.key
 
 RUN rm -Rf /root/.cache
 
