@@ -1,3 +1,5 @@
+# flake8: noqa TODO remove noqa when flake8 catches up with python 3.8 (walrus operator)
+
 import logging
 
 from aloe import step, world
@@ -704,7 +706,7 @@ def clear_file_upload(step, section, cde, download_name):
     succeeded = False
 
     # ugh
-    while (attempts := 1) <= 10:  # noqa TODO remove noqa when flake8 catches up with python 3.8
+    while (attempts := 1) <= 10:
         try:
             clear_checkbox.click()
             print("clicked the clear checkbox OK")
