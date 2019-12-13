@@ -1532,7 +1532,7 @@ class EmailNotification(models.Model):
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
+    email_from = models.EmailField(default='no-reply@trrf.registryframework.net')
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     email_templates = models.ManyToManyField(EmailTemplate)
