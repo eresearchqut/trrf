@@ -35,7 +35,7 @@ uwsgi==2.0.18
 django-formtools==2.1
 django-otp==0.6.0
 django-phonenumber-field==3.0.1
-django-two-factor-auth==1.8.0
+django-two-factor-auth==1.10.0
 phonenumberslite==8.10.13
 Pillow==6.2.0
 qrcode==6.1
