@@ -8,7 +8,7 @@ volumes:
 services:
   db:
     # TODO time to upgrade? (all postgres images)
-    image: postgres:9.4
+    image: postgres:10.7
     env_file:
       - docker/dev/envs/postgres
     volumes:
@@ -17,7 +17,7 @@ services:
       - "5432"
 
   clinicaldb:
-    image: postgres:9.4
+    image: postgres:10.7
     env_file:
       - docker/dev/envs/postgres
     volumes:
@@ -26,7 +26,7 @@ services:
       - "5432"
 
   reportingdb:
-    image: postgres:9.4
+    image: postgres:10.7
     env_file:
       - docker/dev/envs/postgres
     volumes:
