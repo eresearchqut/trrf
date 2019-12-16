@@ -21,11 +21,10 @@ class RegistrationTest(TestCase):
     def setUpClass(cls):
         # Try fixme when moving to >= Django 3.1
         # See https://docs.djangoproject.com/en/2.2/topics/testing/tools/#multi-database-support
-        # And https://code.djangoproject.com/ticket/30541
         #
         # Django 2.2 tries to load the fixtures (commented out above) into both databases
-        # We want to load them only into the default database, but still interact with the
-        # clinical database within the test.
+        # using the router. Because our models use natural keys, the data is not being
+        # deserialized correctly, and causes an exception
         #
         # Therefore we must call the loaddata command manually like so, rather than using
         # the loop in TestCase.setUpClass
