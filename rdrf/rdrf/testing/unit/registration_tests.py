@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
@@ -10,11 +11,29 @@ from registry.patients.models import Patient, PatientStage, PatientStageRule
 
 
 class RegistrationTest(TestCase):
-
-    fixtures = ['testing_auth', 'users', 'testing_rdrf']
+    databases = ['default', 'clinical']
+    # fixtures = ['testing_auth', 'users', 'testing_rdrf']
 
     PATIENT_EMAIL = "john_doe@me.com"
     PATIENT_PWD = "12Password34%"
+
+    @classmethod
+    def setUpClass(cls):
+        # Try fixme when moving to >= Django 3.1
+        # See https://docs.djangoproject.com/en/2.2/topics/testing/tools/#multi-database-support
+        # And https://code.djangoproject.com/ticket/30541
+        #
+        # Django 2.2 tries to load the fixtures (commented out above) into both databases
+        # We want to load them only into the default database, but still interact with the
+        # clinical database within the test.
+        #
+        # Therefore we must call the loaddata command manually like so, rather than using
+        # the loop in TestCase.setUpClass
+        super().setUpClass()
+
+        call_command('loaddata', 'testing_auth', **{'verbosity': 0, 'database': 'default'})
+        call_command('loaddata', 'users', **{'verbosity': 0, 'database': 'default'})
+        call_command('loaddata', 'testing_rdrf', **{'verbosity': 0, 'database': 'default'})
 
     def setUp(self):
         super().setUp()
