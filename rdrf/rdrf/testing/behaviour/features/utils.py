@@ -302,5 +302,5 @@ def wait_for_first_section():
     from selenium.webdriver.support.ui import WebDriverWait
 
     WebDriverWait(world.browser, TEST_WAIT).until(
-        ec.visibility_of_element_located((By.CSS_SELECTOR, ".panel-body"))
+        ec.visibility_of_element_located((By.CSS_SELECTOR, ".section-available"))
     )

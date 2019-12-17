@@ -87,7 +87,7 @@ var CollapsingPanels = function() {
 
         header.on('click', function(evt) {
             body.collapse('toggle');
-        })
+        });
 
         function createIconElement(panel) {
             var body = panel.children(".panel-body");
@@ -100,8 +100,13 @@ var CollapsingPanels = function() {
             header.find('span[class*="panel-collapse-icon"]').toggleClass('glyphicon-triangle-right glyphicon-triangle-bottom');
         }
 
+        function available() {
+            panel.addClass("section-available");
+        }
+
         panel.on('hide.bs.collapse', toggleIcon);
         panel.on('show.bs.collapse', toggleIcon);
+        panel.on('shown.bs.collapse', available);
 
         iconParent.prepend(createIconElement(panel));
    }
