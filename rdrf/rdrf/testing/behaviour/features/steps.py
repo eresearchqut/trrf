@@ -697,31 +697,19 @@ def check_history_popup(step, form, section, cde, history_values_csv):
 
 @step('check the clear checkbox for multisection "(.*)" cde "(.*)" file "(.*)"')
 def clear_file_upload(step, section, cde, download_name):
-    # NB. the nots here! We avoid dummy empty forms and the hidden history
-    import time
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support import expected_conditions as ec
+    from selenium.webdriver.support.ui import WebDriverWait
+
     download_link_element = world.browser.find_element_by_link_text(download_name)
-    clear_checkbox = download_link_element.find_element_by_xpath(
-        ".//following-sibling::input[@type='checkbox']")
-    y = int(utils.scroll_to(clear_checkbox))
-    succeeded = False
+    clear_checkbox_path = ".//following-sibling::input[@type='checkbox']"\
 
-    # ugh
-    while (attempts := 1) <= 10:
-        try:
-            clear_checkbox.click()
-            print("clicked the clear checkbox OK")
-            succeeded = True
-            break
-        except BaseException:
-            print("clear checkbox could not be clicked on attempt %s" % attempts)
-            time.sleep(2)
-            attempts += 1
-        y = y + 10
-        utils.scroll_to_y(y)
-        print("scrolled to y = %s" % y)
+    WebDriverWait(world.browser, TEST_WAIT).until(
+        ec.element_to_be_clickable((By.XPATH, clear_checkbox_path))
+    )
 
-    if not succeeded:
-        raise Exception("Could not click the file clear checkbox")
+    clear_checkbox = download_link_element.find_element_by_xpath(clear_checkbox_path)
+    clear_checkbox.click()
 
 
 @step('when I scroll to section "(.*)"')
