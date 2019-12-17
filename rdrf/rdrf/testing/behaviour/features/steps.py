@@ -1,5 +1,3 @@
-# flake8: noqa TODO remove noqa when flake8 catches up with python 3.8 (walrus operator)
-
 import logging
 
 from aloe import step, world
