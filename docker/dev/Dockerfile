@@ -2,35 +2,41 @@
 FROM python:3.8.0 as builder
 
 ENV PYTHONUNBUFFERED 1
-#
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
-#  gettext \
-#  libpcre3 \
-#  libpq5 \
-#  mime-support \
-#  nodejs \
-#  unixodbc \
+  # TODO check if requirements are needed
+  # Base
+  gettext \
+  libpcre3 \
+  libpq5 \
+  mime-support \
+  nodejs \
+  unixodbc \
+  # Builder
   build-essential \
-#  git \
-#  gzip \
-#  libpcre3-dev \
-#  libpq-dev \
-#  libssl-dev \
-#  libyaml-dev \
+  git \
+  gzip \
+  libpcre3-dev \
+  libpq-dev \
+  libssl-dev \
+  libyaml-dev \
   unixodbc-dev \
-#  zlib1g-dev \
+  zlib1g-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir -p /requirements
 WORKDIR /requirements
 
-COPY requirements/requirements.txt ./
+# RUN env | sort
+
+# Add our python deps in multiple docker layers
+# hgvs was failing due to lack of nose, hence the order
+
+COPY requirements/* ./
+
 RUN pip install -r requirements.txt
-
-COPY requirements/dev-requirements.txt ./
 RUN pip install -r dev-requirements.txt
-
-COPY requirements/test-requirements.txt ./
+# TODO this should be installed only in the test images?
 RUN pip install -r test-requirements.txt
 
 VOLUME ["/data"]
@@ -45,8 +51,13 @@ ENV LOCALE_PATHS="/data/translations/locale"
 ENV LOG_DIRECTORY="/data/log"
 ENV MEDIA_ROOT="/data/static/media"
 
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#    libxml2 \
+#   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
   # Base
+  # TODO check if requirements are needed
   gettext \
   libpcre3 \
   libpq5 \
