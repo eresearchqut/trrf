@@ -327,13 +327,12 @@ class PatientsListingView(View):
 
     def filter_by_user_group(self):
         if not self.user.is_superuser:
-            is_genetic = self.user.is_genetic_staff or self.user.is_genetic_curator
             is_working_group_staff = self.user.is_working_group_staff
             if self.user.is_curator:
                 query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
                     working_groups__in=self.user.working_groups.all())
                 self.patients = self.patients.filter(query_patients)
-            elif is_genetic or is_working_group_staff:
+            elif is_working_group_staff:
                 self.patients = self.patients.filter(
                     working_groups__in=self.user.working_groups.all())
             elif self.user.is_clinician:

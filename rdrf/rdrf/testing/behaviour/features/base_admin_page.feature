@@ -42,8 +42,6 @@ Feature: Admin Page and Settings
     Then I should see a link to "Patient List"
     And I should see a link to "Reports"
     And I should see a link to "Users"
-    And I should see a link to "Genes"
-    And I should see a link to "Laboratories"
     # these only in design mode (  which is not default anymore)
     #And I should see a link to "Registries"
     #And I should see a link to "Registry Common Data Elements"

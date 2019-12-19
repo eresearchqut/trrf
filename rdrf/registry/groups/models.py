@@ -158,14 +158,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.in_group(RDRF_GROUPS.CLINICAL)
 
     @property
-    def is_genetic_staff(self):
-        return self.in_group(RDRF_GROUPS.GENETIC_STAFF)
-
-    @property
-    def is_genetic_curator(self):
-        return self.in_group(RDRF_GROUPS.GENETIC_CURATOR)
-
-    @property
     def is_working_group_staff(self):
         return self.in_group(RDRF_GROUPS.WORKING_GROUP_STAFF)
 

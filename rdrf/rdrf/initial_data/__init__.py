@@ -1,10 +1,8 @@
-from . import (base, groups, users, sample_registry, sample_laboratories,
-               genes, genes_smaller_sample, DEV, iprestrict_permissive, reference_data, patient_stage)
+from . import (base, groups, users, sample_registry, DEV, iprestrict_permissive, reference_data, patient_stage)
 
 datasets = [
     DEV,
     groups,
     users,
-    genes,
     iprestrict_permissive,
 ]

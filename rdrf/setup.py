@@ -52,11 +52,10 @@ packages = ['rdrf',
             'registry.common',
             'registry.patients',
             'registry.groups',
-            'registry.genetic',
             'explorer',
             ]
 
-for package in ['rdrf', 'registry.common', 'registry.genetic',
+for package in ['rdrf', 'registry.common',
                 'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer']:
     package_data[package] = []
     if "." in package:

@@ -11,20 +11,12 @@
     "pk": 2,
     "model": "auth.group",
     "fields": {
-      "name": "Genetic Staff",
-      "permissions": []
-    }
-  },
-  {
-    "pk": 3,
-    "model": "auth.group",
-    "fields": {
       "name": "Clinical Staff",
       "permissions": []
     }
   },
   {
-    "pk": 4,
+    "pk": 3,
     "model": "auth.group",
     "fields": {
       "name": "Patients",
@@ -81,30 +73,6 @@
   },
   {
     "pk": 3,
-    "model": "groups.customuser",
-    "fields": {
-      "username": "genetic",
-      "first_name": "genetic",
-      "last_name": "genetic",
-      "title": "CHANGE ME",
-      "is_active": true,
-      "is_superuser": false,
-      "is_staff": true,
-      "registry": [],
-      "groups": [
-        [
-            "Genetic Staff"
-        ]
-      ],
-      "user_permissions": [],
-      "working_groups": [],
-      "password": "sha1$a93bf$107c80b515f13f2e22feef0970112a0c1a91a97e",
-      "email": "genetic@example.com",
-      "date_joined": "2010-08-18T16:33:13"
-    }
-  },
-  {
-    "pk": 4,
     "model": "groups.customuser",
     "fields": {
       "username": "clinical",

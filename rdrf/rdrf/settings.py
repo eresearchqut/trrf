@@ -507,10 +507,6 @@ INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
 INSTALL_NAME = env.get("install_name", 'rdrf')
 
-AJAX_LOOKUP_CHANNELS = {
-    'gene': {'model': 'genetic.Gene', 'search_field': 'symbol'},
-}
-
 ACCOUNT_ACTIVATION_DAYS = 2
 
 LOGIN_URL = '{0}/account/login'.format(SCRIPT_NAME)

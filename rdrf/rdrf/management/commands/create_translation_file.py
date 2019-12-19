@@ -301,7 +301,6 @@ class Command(BaseCommand):
         for column_heading in [
             "Permission",
             "Clinical Staff",
-            "Genetic Staff",
             "Parents",
             "Patients",
                 "Working Group Curators"]:
