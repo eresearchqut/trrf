@@ -20,7 +20,11 @@
 <style>
   .panel-body  {
     word-break:break-word
-}
+  }
+  .panel-footer {
+    text-align: right;
+    font-weight: bold;
+  }
 </style>
 
 <div width="100%" class="panel panel-default collapsible">
@@ -113,13 +117,21 @@
                {% endif %}
             </div>
             <div id="existing_{{context.id}}" class="panel-body">
-              {% for link in context.existing_links %}
+              {% for link in context.existing_links|slice:"0:5" %}
                   {% if not link.current %}
                      <a href="{{link.url}}">{% trans link.text %}</a><br>
                   {% else %}
                     <i>{{link.text}}</i><br>
                   {% endif %}
               {% endfor %}
+              {% if context.existing_links|length > 5 %}
+                  <span title="{% trans 'More forms available' %}">...</span>
+              {% endif %}
+            </div>
+            <div class="panel-footer">
+                <a href="{{ context.list_link }}" target="_blank">
+                  {% trans "Show all" %} ({{ context.existing_links|length }})
+                </a>
             </div>
          </div>
     {% endif %}

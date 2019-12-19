@@ -1,0 +1,49 @@
+{% extends "rdrf_cdes/base-2-cols.html" %}
+
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load get_patient %}
+{% load has_feature %}
+{% load get_form_element %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+{% load get_info_text_expression %}
+{% load i18n %}
+{% load translate %}
+
+
+{% block extrastyle %}
+{% endblock %}
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+    Back
+{% endblock %}
+
+{% block formbtns %}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-info trrf-page-header">
+                <div class="panel-body">
+                    <h2>{% trans form_title %}</h2>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <ul>
+                        <li>1</li>
+                        <li>2</li>
+                        <li>3</li>
+                        <li>4</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

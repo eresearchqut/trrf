@@ -249,7 +249,6 @@ class FormView(View):
             logger.error(
                 "Error setting rdrf context id %s for patient %s in %s: %s" %
                 (context_id, patient_model, self.registry, ex))
-
             raise RDRFContextSwitchError
 
     def _evaluate_form_rules(self, form_rules, evaluation_context):
@@ -1078,6 +1077,20 @@ class FormPrintView(FormView):
 
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
+
+
+class FormListView(TemplateView):
+    template_name = "rdrf_cdes/form_list.html"
+
+    @login_required_method
+    def get(self, request, **kwargs):
+        return super().get(request, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["form_title"] = "Test"
+        return context
 
 
 class FormFieldHistoryView(TemplateView):

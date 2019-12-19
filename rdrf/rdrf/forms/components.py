@@ -15,7 +15,6 @@ from rdrf.models.definition.models import (ContextFormGroup, RDRFContext,
                                            RegistryType)
 from rdrf.security.security_checks import user_is_patient_type
 
-
 logger = logging.getLogger("registry_log")
 
 
@@ -42,6 +41,7 @@ class _Form:
         self.add_link_text = add_link_text
         self.heading = ""
         self.existing_links = []  # for multiple contexts
+        self.list_link = ""
 
     def __str__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
@@ -267,6 +267,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
                 form.id = context_form_group.pk
                 form.existing_links = self._get_existing_links(context_form_group)
+                form.list_link = self._get_form_list_link(form)
                 return form
 
         cfg_qs = ContextFormGroup.objects.filter(
@@ -281,6 +282,13 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form_links[cfg.sort_order].append(form)
 
         return form_links
+
+    def _get_form_list_link(self, form):
+        return reverse("registry_form_list", args=[
+            self.registry_model.code,
+            form.id,
+            self.patient_model.pk,
+        ])
 
     def _get_existing_links(self, context_form_group):
         links = []
