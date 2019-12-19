@@ -2,7 +2,7 @@
 set -xe
 
 export AWS_DEFAULT_REGION=ap-southeast-2
-export ECR_ACCOUNT_ID=$(aws ssm get-parameter --name ECR_ACCOUNT_ID | jq -r .Parameter.Value)
+export ECR_ACCOUNT_ID=$(aws ssm get-parameter --name /app/dev/ECR_ACCOUNT_ID | jq -r .Parameter.Value)
 export ECR_URL="${ECR_ACCOUNT_ID}.dkr.ecr.ap-southeast-2.amazonaws.com"
 
 $(aws ecr get-login --no-include-email --registry-ids ${ECR_ACCOUNT_ID})
