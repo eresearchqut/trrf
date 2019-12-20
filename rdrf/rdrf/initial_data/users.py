@@ -5,7 +5,6 @@ Includes users:
     - admin
     - curator
     - clinical
-    - genetic
 '''
 from django.contrib.auth.models import Group
 from registry.groups import models
@@ -18,7 +17,6 @@ def load_data(**kwargs):
     create_user('admin', groups=['Working Group Curators'], is_superuser=True)
     create_user('curator', groups=['Working Group Curators'])
     create_user('clinical', groups=['Clinical Staff'])
-    create_user('genetic', groups=['Genetic Staff'])
 
 
 def create_user(username, password=None, groups=[], **kwargs):
