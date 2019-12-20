@@ -4,7 +4,6 @@ Initial groups for different roles.
 Includes groups:
     - Working Group Curators
     - Clinical Staff
-    - Genetic Staff
 '''
 from django.contrib.auth.models import Group
 
@@ -19,4 +18,3 @@ def create_group(name):
 def load_data(**kwargs):
     create_group('Working Group Curators')
     create_group('Clinical Staff')
-    create_group('Genetic Staff')

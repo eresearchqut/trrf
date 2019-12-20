@@ -47,11 +47,7 @@ class RouterView(View):
                 redirect_url = reverse("verifications_list", args=[user.registry_code])
             elif user.is_clinician:
                 redirect_url = reverse(_PATIENTS_LISTING)
-            elif user.is_genetic_staff:
-                redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_working_group_staff:
-                redirect_url = reverse(_PATIENTS_LISTING)
-            elif user.is_genetic_curator:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_curator:
                 redirect_url = reverse(_PATIENTS_LISTING)

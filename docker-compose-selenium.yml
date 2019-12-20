@@ -10,7 +10,7 @@ services:
 
   chrome:
     image: selenium/node-chrome-debug:3.2
-    shm_size: 256M
+    shm_size: 2G
     environment:
       - SCREEN_WIDTH=1366
       - SCREEN_HEIGHT=768
@@ -24,7 +24,7 @@ services:
 
   firefox:
     image: selenium/node-firefox-debug:3.2
-    shm_size: 256M
+    shm_size: 2G
     environment:
       - SCREEN_WIDTH=1366
       - SCREEN_HEIGHT=768

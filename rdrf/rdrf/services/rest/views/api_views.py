@@ -12,7 +12,6 @@ from rest_framework.reverse import reverse
 from rest_framework import serializers
 from rest_framework.views import APIView
 
-from registry.genetic.models import Gene, Laboratory
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.definition.models import RegistryForm
@@ -215,56 +214,6 @@ class ListClinicians(APIView):
             }
 
         return Response([to_dict(c, wg) for c in clinicians for wg in c.working_groups.all()])
-
-
-class LookupGenes(APIView):
-    queryset = Gene.objects.none()
-
-    def get(self, request, format=None):
-        query = None
-        try:
-            query = request.GET['term']
-        except KeyError:
-            pass
-            # raise BadRequestError("Required query parameter 'term' not received")
-
-        def to_dict(gene):
-            return {
-                'value': gene.symbol,
-                'label': gene.name,
-            }
-
-        genes = None
-        if query is None:
-            genes = Gene.objects.all()
-        else:
-            genes = Gene.objects.filter(symbol__icontains=query)
-        return Response(list(map(to_dict, genes)))
-
-
-class LookupLaboratories(APIView):
-    queryset = Laboratory.objects.none()
-
-    def get(self, request, format=None):
-        query = None
-        try:
-            query = request.GET['term']
-        except KeyError:
-            pass
-            # raise BadRequestError("Required query parameter 'term' not received")
-
-        def to_dict(lab):
-            return {
-                'value': lab.pk,
-                'label': lab.name,
-            }
-
-        labs = None
-        if query is None:
-            labs = Laboratory.objects.all()
-        else:
-            labs = Laboratory.objects.filter(name__icontains=query)
-        return Response(list(map(to_dict, labs)))
 
 
 class LookupIndex(APIView):

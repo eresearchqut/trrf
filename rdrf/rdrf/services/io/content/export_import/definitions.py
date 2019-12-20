@@ -40,10 +40,6 @@ _REFDATA_GROUP = GroupDefinition(
     name='Reference Data',
     dirname='reference_data',
     models=(
-        'genetic.Gene',
-        'genetic.Laboratory',
-        'genetic.Technique',
-
         'patients.State',
         'patients.NextOfKinRelationship',
         'patients.AddressType',

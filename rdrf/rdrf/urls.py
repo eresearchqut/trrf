@@ -51,7 +51,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# very important so that registry admins (genetic, patient, etc) are discovered.
+# very important so that registry admins (patient, etc) are discovered.
 admin.autodiscover()
 
 
