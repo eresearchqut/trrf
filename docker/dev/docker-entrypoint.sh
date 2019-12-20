@@ -203,6 +203,22 @@ if [ "$1" = 'uwsgi_ssl' ]; then
     exec uwsgi --master --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
+# prod uwsgi HTTPS entrypoint
+if [ "$1" = 'uwsgi_ssl_fargate' ]; then
+    info "[Run] Starting prod uwsgi on HTTPS"
+
+    _django_check_deploy
+
+    info "running collectstatic"
+    set -x
+    django-admin.py collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1
+
+    set -x
+    # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
+    exec uwsgi --master --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+fi
+
+
 
 # runserver entrypoint
 if [ "$1" = 'runserver' ]; then
