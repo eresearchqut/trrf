@@ -70,7 +70,8 @@ phases:
 
     post_build:
       commands:
-        - cat << EOF > taskdef.json
+        - |
+          cat << EOF > taskdef.json
           {
             "executionRoleArn": "$EXECUTION_ROLE_ARN",
             "containerDefinitions": [
@@ -96,7 +97,8 @@ phases:
             "family": "$TASK_DEF_NAME"
           }
           EOF
-        - cat << EOF > appspec.yaml
+        - |
+          cat << EOF > appspec.yaml
           version: 0.0
           Resources:
             - TargetService:
