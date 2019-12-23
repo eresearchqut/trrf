@@ -81,9 +81,9 @@ phases:
                   "essential": true,
                   "portMappings": [
                       {
-                          "hostPort": 9433,
+                          "hostPort": 9443,
                           "protocol": "tcp",
-                          "containerPort": 9433
+                          "containerPort": 9443
                       }
                   ]
               }
@@ -107,7 +107,7 @@ phases:
                 TaskDefinition: <TASK_DEFINITION>
                 LoadBalancerInfo:
                   ContainerName: "$CONTAINER_NAME"
-                  ContainerPort: 9433
+                  ContainerPort: 9443
         EOF
       - pwd
       - ls -la
