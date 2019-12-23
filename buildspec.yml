@@ -109,6 +109,10 @@ phases:
                     ContainerName: "$CONTAINER_NAME"
                     ContainerPort: 9433
           EOF
+        - pwd
+        - ls -la
+        - cat taskdef.json
+        - cat appspec.yaml
 artifacts:
   files:
     - 'taskdef.json'
