@@ -68,11 +68,50 @@ phases:
       - echo Pushing the Docker image...
       - docker push $IMAGE_REPO:qa
 
+    post_build:
+      commands:
+        cat << EOF > taskdef.json
+        {
+          "executionRoleArn": "$EXECUTION_ROLE_ARN",
+          "containerDefinitions": [
+              {
+                  "name": "$CONTAINER_NAME",
+                  "image": "$IMAGE_REPO:qa",
+                  "essential": true,
+                  "portMappings": [
+                      {
+                          "hostPort": 9433,
+                          "protocol": "tcp",
+                          "containerPort": 9433
+                      }
+                  ]
+              }
+          ],
+          "requiresCompatibilities": [
+              "FARGATE"
+          ],
+          "networkMode": "awsvpc",
+          "cpu": "1024",
+          "memory": "2048",
+          "family": "$TASK_DEF_NAME"
+        }
+        EOF
+        cat << EOF > appspec.yaml
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: <TASK_DEFINITION>
+                LoadBalancerInfo:
+                  ContainerName: "$CONTAINER_NAME"
+                  ContainerPort: 9433
+        EOF
 artifacts:
   files:
-    - '*'
-    - 'docker/**/*'
-    - 'scripts/**/*'
+    - 'taskdef.json'
+    - 'appspec.yaml'
+
 
 # TODO: create a secondary artifact in CloudFormation for CodeBuild, selenium_screenshots that maps
 # to this configuration to get the selenium screenshots uploaded to S3
