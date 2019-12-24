@@ -204,8 +204,8 @@ phases:
                   "valueFrom": "$RECAPTCHA_SITE_KEY"
                 },
                 {
-                  "Name": "DBPASS",
-                  "ValueFrom": "$DBPASS"
+                  "name": "DBPASS",
+                  "valueFrom": "$DBPASS"
                 }
               ]
             }
