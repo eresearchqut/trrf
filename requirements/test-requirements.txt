@@ -9,5 +9,5 @@ pyvirtualdisplay==0.2.5
 selenium==3.141.0
 unittest-xml-reporting==2.5.2
 requests==2.22.0
-sqlalchemy-utils==0.36.0
+sqlalchemy-utils==0.36.1
 stellar==0.4.5
