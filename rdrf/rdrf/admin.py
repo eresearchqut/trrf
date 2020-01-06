@@ -371,7 +371,7 @@ class EmailNotificationAdmin(admin.ModelAdmin):
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
     form = EmailTemplateAdminForm
-    list_display = ("language", "description")
+    list_display = ("subject", "language", "description")
 
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
