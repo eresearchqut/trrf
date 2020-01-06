@@ -4,16 +4,16 @@ from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
 
 
 router = DefaultRouterWithSimpleViews()
-router.register(r'registries', api_views.RegistryList, base_name='registry')
+router.register(r'registries', api_views.RegistryList, basename='registry')
 router.register(r'users', api_views.CustomUserViewSet)
 router.register(r'doctors', api_views.DoctorViewSet)
 router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
 router.register(r'workinggroups', api_views.WorkingGroupViewSet)
-router.register(r'countries', api_views.ListCountries, base_name='country')
+router.register(r'countries', api_views.ListCountries, basename='country')
 router.register(r'registries/(?P<registry_code>\w+)/indices',
-                api_views.LookupIndex, base_name='index')
+                api_views.LookupIndex, basename='index')
 router.register(r'registries/(?P<registry_code>\w+)/clinicians',
-                api_views.ListClinicians, base_name='clinician')
+                api_views.ListClinicians, basename='clinician')
 
 urlpatterns = [
     re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),

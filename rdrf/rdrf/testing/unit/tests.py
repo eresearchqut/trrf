@@ -268,6 +268,7 @@ class ImporterTestCase(TestCase):
 
 
 class FormTestCase(RDRFTestCase):
+    databases = ['default', 'clinical']
 
     def setUp(self):
         super(FormTestCase, self).setUp()
@@ -1080,6 +1081,8 @@ class MinTypeTest(TestCase):
 
 
 class StructureChecker(TestCase):
+    databases = ['default', 'clinical']
+
     def _run_command(self, *args, **kwargs):
         from django.core import management
         import io
@@ -1368,6 +1371,8 @@ class RemindersTestCase(TestCase):
 
 
 class ClinicalDataTestCase(RDRFTestCase):
+    databases = ['default', 'clinical']
+
     def create_clinicaldata(self, patient_id, registry_code):
         try:
             registry = Registry.objects.all().get(code=registry_code)
