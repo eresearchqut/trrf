@@ -37,7 +37,7 @@ class ReportView(LoginRequiredMixin, View):
                 registry__in=[
                     reg.id for reg in user.get_registries()]).filter(
                 access_group__in=[
-                    g.id for g in user.get_groups()])
+                    g.id for g in user.get_groups()]).distinct()
 
         context = {}
         context['reports'] = reports
