@@ -194,9 +194,9 @@ class MenuConfig:
     def group_links(self, group_name):
         group = groups.reverse_lookup(group_name)
         if group is None:
-            return []
+            return {}
         attr_name = group.lower()
-        return getattr(self, attr_name, [])
+        return getattr(self, attr_name, {})
 
     def per_registry_links(self, label, url, feature=None):
         # build any per registry links that require the registry code as a param
