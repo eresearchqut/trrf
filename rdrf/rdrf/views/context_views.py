@@ -103,9 +103,9 @@ class ContextFormGroupHelperMixin(object):
 
     def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):
         assert len(
-            context_form_group.form_models) == 1, "Direct link only possible if num forms in form group is 1"
+            context_form_group.forms) == 1, "Direct link only possible if num forms in form group is 1"
         patient_content_type = ContentType.objects.get_for_model(patient_model)
-        form_model = context_form_group.form_models[0]
+        form_model = context_form_group.forms[0]
         context_model = RDRFContext()
         context_model.registry = registry_model
         context_model.name = "change me"

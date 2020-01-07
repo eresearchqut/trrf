@@ -280,7 +280,7 @@ class FormView(View):
         # is this form the only member of a multiple form group?
         form_group = None
         for cfg in registry_model.multiple_form_groups:
-            form_models = cfg.form_models
+            form_models = cfg.forms
             if len(form_models) == 1 and form_models[0].pk == form_model.pk:
                 form_group = cfg
                 break
