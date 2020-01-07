@@ -226,6 +226,8 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     # And I enter "02-08-2016" for  section "" cde "Consent date"
     # location_is(step, form)  # sanity check
 
+    utils.wait_for_first_section()
+
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
