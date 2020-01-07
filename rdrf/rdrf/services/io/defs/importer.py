@@ -992,7 +992,7 @@ class Importer(object):
                 demo_field.status = d["status"]
             elif "hidden" in d:
                 demo_field.status = DemographicFields.HIDDEN if d["hidden"] else DemographicFields.READONLY
-            demo_field.is_section = d['is_section']
+            demo_field.is_section = d.get('is_section', False)
             demo_field.save()
             demo_field.groups.add(*groups)
 
