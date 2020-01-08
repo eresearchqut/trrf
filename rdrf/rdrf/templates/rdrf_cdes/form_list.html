@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base-2-cols.html" %}
+{% extends "rdrf_cdes/base-1-col.html" %}
 
 {% load add_attr %}
 {% load static from staticfiles %}
@@ -13,17 +13,62 @@
 {% load translate %}
 
 
-{% block extrastyle %}
-{% endblock %}
-
 {% block formlinks %}
 {% endblock %}
 
 {% block sidebar %}
-    Back
+    List view
 {% endblock %}
 
 {% block formbtns %}
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript">
+        var formLinks = JSON.parse("{{form_links|escapejs}}");
+
+        function list_links(query) {
+            var linkList = document.getElementById("link-list");
+            linkList.innerHTML = "";
+
+            formLinks.forEach(function (linkItem) {
+                if (!linkItem["text"].includes(query)) {
+                    return;
+                }
+
+                var linkElement = document.createElement("a");
+                linkElement.href = linkItem["url"];
+                linkElement.onclick = function () {
+                    click_close(linkItem["url"]);
+                };
+
+                var listElement = document.createElement("li");
+                listElement.innerHTML = linkItem["text"];
+
+                linkElement.appendChild(listElement);
+                linkList.appendChild(linkElement);
+            })
+
+        }
+
+        $(window).on('load', function () {
+            list_links("")
+        });
+        $(window).on('load', function () {
+            $("#search").keyup(function () {
+                list_links(this.value);
+            });
+            $("#search-button").click(function () {
+                list_links($("#search").val());
+            });
+
+        });
+
+        function click_close(link) {
+            window.opener.location.href = link;
+            window.close()
+        }
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -32,18 +77,26 @@
             <div class="panel panel-info trrf-page-header">
                 <div class="panel-body">
                     <h2>{% trans form_title %}</h2>
+                    <div class="input-group">
+                        <input type="text" id="search" class="form-control" placeholder="Search for..."
+                               aria-label="Search" autofocus="autofocus">
+                        <span class="input-group-btn">
+                            <button id="search-button" class="btn btn-default" type="button">
+                                <i class="glyphicon glyphicon-search" aria-hidden="true"></i>
+                            </button>
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <ul>
-                        <li>1</li>
-                        <li>2</li>
-                        <li>3</li>
-                        <li>4</li>
+                    <ul id="link-list">
                     </ul>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block footer %}
 {% endblock %}
