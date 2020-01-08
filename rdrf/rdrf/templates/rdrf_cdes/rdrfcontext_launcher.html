@@ -3,19 +3,23 @@
 {% load translate %}
 {% load lookup %}
 <script>
-  /*
-  var USE_ACCORDION = false;
-  var START_COLLAPSED = false;
-  $(function() {
-  if(USE_ACCORDION) {
-  $(".collapsible" ).accordion({
-  collapsible: true,
-  active: !START_COLLAPSED
-  }}
-  );
-  });
-  */
-  </script>
+  // Taken from https://stackoverflow.com/a/16861050
+  function popupCenter(url, title, w, h) {
+      var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
+      var dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
+
+      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+      var systemZoom = width / window.screen.availWidth;
+      var left = (width - w) / 2 / systemZoom + dualScreenLeft;
+      var top = (height - h) / 2 / systemZoom + dualScreenTop;
+      var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w / systemZoom + ', height=' + h / systemZoom + ', top=' + top + ', left=' + left);
+
+      // Puts focus on the newWindow
+      if (window.focus) newWindow.focus();
+  }
+</script>
 
 <style>
   .panel-body  {
@@ -24,6 +28,10 @@
   .panel-footer {
     text-align: right;
     font-weight: bold;
+  }
+  .more-forms {
+    font-weight: bold;
+      text-align: center;
   }
 </style>
 
@@ -117,21 +125,25 @@
                {% endif %}
             </div>
             <div id="existing_{{context.id}}" class="panel-body">
-              {% for link in context.existing_links|slice:"0:5" %}
+
+              {% for link in context.existing_links %}
                   {% if not link.current %}
                      <a href="{{link.url}}">{% trans link.text %}</a><br>
                   {% else %}
                     <i>{{link.text}}</i><br>
                   {% endif %}
               {% endfor %}
-              {% if context.existing_links|length > 5 %}
-                  <span title="{% trans 'More forms available' %}">...</span>
-              {% endif %}
             </div>
             <div class="panel-footer">
-                <a href="{{ context.list_link }}" target="_blank">
-                  {% trans "Show all" %} ({{ context.existing_links|length }})
+              <span>
+                <a href="{{ context.list_link }}" target="popup" onclick="popupCenter('{{ context.list_link }}', '{{context.heading}}', 600, 600); return false;">
+                  {% if context.existing_links_index == -1 %}
+                      {% trans "Show all" %} ({{ context.existing_links_len }})
+                  {% else %}
+                      {% trans "Show all" %} ({{ context.existing_links_index|add:1 }}/{{ context.existing_links_len }})
+                  {% endif %}
                 </a>
+              </span>
             </div>
          </div>
     {% endif %}
