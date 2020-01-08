@@ -1122,7 +1122,7 @@ class Patient(models.Model):
                                                   form_model.id,
                                                   self.pk, cm.id))
 
-        return [(link_url(cm), link_text(cm)) for cm in context_models]
+        return [(cm.id, link_url(cm), link_text(cm)) for cm in context_models]
 
     def default_context(self, registry_model):
         # return None if doesn't make sense

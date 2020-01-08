@@ -1,5 +1,5 @@
 import logging
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from django.contrib.contenttypes.models import ContentType
 from django.template import Context, loader
@@ -19,7 +19,6 @@ logger = logging.getLogger("registry_log")
 
 
 class Link:
-
     def __init__(self, url, text, current):
         self.url = url
         self.text = text
@@ -266,7 +265,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form.heading = _(context_form_group.direct_name)
 
                 form.id = context_form_group.pk
-                form.existing_links = self._get_existing_links(context_form_group)
+                form.existing_links, form.existing_links_index, form.existing_links_len = \
+                    self._get_existing_links(context_form_group)
                 form.list_link = self._get_form_list_link(form)
                 return form
 
@@ -290,23 +290,48 @@ class RDRFContextLauncherComponent(RDRFComponent):
             self.patient_model.pk,
         ])
 
-    def _get_existing_links(self, context_form_group):
-        links = []
+    def _get_existing_links(self, context_form_group, slice_len=5):
+        """
+        Create a subset of context form links of slice_len length, where the
+        currently-selected context form (if one is selected) is as central as
+        possible:
 
-        def is_current(url):
-            parts = url.split("/")
-            context_id = int(parts[-1])
-            if self.current_rdrf_context_model:
-                return context_id == self.current_rdrf_context_model.pk
-            else:
-                return False
+          01234.6789 (slice_len=5)
+        = 34.67
 
-        for url, text in self.patient_model.get_forms_by_group(context_form_group):
+          01234.6 (slice_len=4)
+        = 34.6
+
+          0123456 (slice_len=3)
+        = 012
+
+        :return: links, current_index, total_forms
+        """
+        links = deque(maxlen=slice_len)
+        current_index = 0
+        index_found = False
+        current_context_id = self.current_rdrf_context_model.pk if self.current_rdrf_context_model else None
+
+        forms = self.patient_model.get_forms_by_group(context_form_group)
+        total_forms = len(forms)
+        if not current_context_id:
+            forms = forms[0:slice_len]
+
+        for index, (context_id, url, text) in enumerate(forms):
+            is_current = context_id == current_context_id
+            if is_current:
+                current_index = index
+                index_found = True
+
+            if (index - current_index) > (slice_len / 2) and len(links) == slice_len and index_found:
+                break
+
             if not text:
                 text = "Not set"
-            link_obj = Link(url, text, is_current(url))
+            link_obj = Link(url, text, is_current)
             links.append(link_obj)
-        return links
+
+        return list(links), current_index if index_found else -1, total_forms
 
     def _get_current_multiple_context(self):
         # def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
