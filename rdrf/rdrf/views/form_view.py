@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 
-from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse
+from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
 from rdrf.models.definition.models import Section, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
@@ -1086,10 +1086,27 @@ class FormListView(TemplateView):
     def get(self, request, **kwargs):
         return super().get(request, **kwargs)
 
+    def _get_form_links(self, registry_code, form_id, patient_id):
+        registry = get_object_or_404(Registry, code=registry_code)
+        cfg = get_object_or_404(ContextFormGroup, pk=form_id, registry=registry)
+        patient = get_object_or_404(Patient, pk=patient_id)
+
+        links = []
+        for context_id, url, text in patient.get_forms_by_group(cfg):
+            if not text:
+                text = "Not set"
+            links.append({
+                "url": url,
+                "text": text,
+            })
+        return cfg, links
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["form_title"] = "Test"
+        form, form_links = self._get_form_links(**kwargs)
+        context["form_title"] = form.direct_name
+        context["form_links"] = json.dumps(form_links)
         return context
 
 
