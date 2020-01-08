@@ -340,6 +340,7 @@ class FormProgress:
         return True
 
     def _calculate(self, dynamic_data, patient_model=None):
+
         logger.info("calculating progress")
         if patient_model is not None:
             self.current_patient = patient_model
@@ -351,9 +352,26 @@ class FormProgress:
         groups_progress = {}
         forms_progress = {}
 
+        existing_patient_data = patient_model.get_dynamic_data(self.registry_model) if patient_model else {}
+        existing_form_dyn_data = {
+            el['name']: {"forms": [el]} for el in existing_patient_data['forms']
+        } if existing_patient_data else {}
+
+        forms = dynamic_data.get("forms", [])
+        current_form_name = forms[0]["name"] if forms else ""
+
         for form_model in self.registry_model.forms:
+            form_name = form_model.name
             if not form_model.is_questionnaire and self._applicable(form_model):
-                fpc = FormProgressCalculator(self.registry_model, form_model, dynamic_data, self.progress_cdes_map)
+                if form_name != current_form_name and form_name in existing_form_dyn_data:
+                    # Load existing data from previously saved forms because dynamic_data
+                    # contains data only for the currently submitted form. As progress is cummulative
+                    # we need existing data to properly compute it
+                    fpc = FormProgressCalculator(
+                        self.registry_model, form_model, existing_form_dyn_data[form_name], self.progress_cdes_map
+                    )
+                else:
+                    fpc = FormProgressCalculator(self.registry_model, form_model, dynamic_data, self.progress_cdes_map)
                 fpc.calculate_progress()
                 forms_progress[form_model.name] = fpc.progress_as_dict()
 
