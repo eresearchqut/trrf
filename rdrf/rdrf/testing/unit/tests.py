@@ -136,10 +136,10 @@ class TestFormPermissions(RDRFTestCase):
         from registry.groups.models import CustomUser
         from django.contrib.auth.models import Group
         fh = Registry.objects.get(code='fh')
-        genetic_user = CustomUser.objects.get(username='genetic')
-        genetic_group, created = Group.objects.get_or_create(name="Genetic Staff")
+        curator_user = CustomUser.objects.get(username='curator')
+        curator_group, created = Group.objects.get_or_create(name="Working Group Curators")
         if created:
-            genetic_group.save()
+            curator_group.save()
 
         clinical_group, created = Group.objects.get_or_create(name="Clinical Staff")
         if created:
@@ -147,7 +147,7 @@ class TestFormPermissions(RDRFTestCase):
         f = fh.forms[0]
         f.groups_allowed.set([clinical_group])
         f.save()
-        assert not genetic_user.can_view(f), "A form set to be viewed "
+        assert not curator_user.can_view(f), "A form set to be viewed "
 
 
 class ExporterTestCase(RDRFTestCase):
@@ -268,6 +268,7 @@ class ImporterTestCase(TestCase):
 
 
 class FormTestCase(RDRFTestCase):
+    databases = ['default', 'clinical']
 
     def setUp(self):
         super(FormTestCase, self).setUp()
@@ -403,10 +404,10 @@ class FormTestCase(RDRFTestCase):
             Patient.objects.really_all().get(id=my_id)
 
         # test can archive prop on CustomUser
-        # by default genetic user can't delete as they don't have patient delete permission
+        # by default curator user can't delete as they don't have patient delete permission
 
-        genetic_user = CustomUser.objects.get(username='genetic')
-        self.assertFalse(genetic_user.can_archive)
+        curator_user = CustomUser.objects.get(username='curator')
+        self.assertFalse(curator_user.can_archive)
 
         # admin can by default
         admin_user = CustomUser.objects.get(username='admin')
@@ -1080,6 +1081,8 @@ class MinTypeTest(TestCase):
 
 
 class StructureChecker(TestCase):
+    databases = ['default', 'clinical']
+
     def _run_command(self, *args, **kwargs):
         from django.core import management
         import io
@@ -1368,6 +1371,8 @@ class RemindersTestCase(TestCase):
 
 
 class ClinicalDataTestCase(RDRFTestCase):
+    databases = ['default', 'clinical']
+
     def create_clinicaldata(self, patient_id, registry_code):
         try:
             registry = Registry.objects.all().get(code=registry_code)

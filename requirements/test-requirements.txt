@@ -4,10 +4,10 @@ nose==1.3.7
 nose-timer==0.7.5
 aloe==0.1.19
 aloe_webdriver==0.5.11
-aloe_django==0.1.3
-pyvirtualdisplay==0.2.3
-selenium==3.3.1
-unittest-xml-reporting==2.5.1
+aloe_django==0.1.6
+pyvirtualdisplay==0.2.5
+selenium==3.141.0
+unittest-xml-reporting==2.5.2
 requests==2.22.0
-sqlalchemy-utils==0.34.2
+sqlalchemy-utils==0.36.1
 stellar==0.4.5

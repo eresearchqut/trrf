@@ -189,7 +189,6 @@ INSTALLED_APPS = [
     'registry.groups',
     'registry.patients',
     'registry.common',
-    'registry.genetic',
     'registration',
     'reversion',
     'storages',
@@ -506,10 +505,6 @@ ACCOUNT_SELF_UNLOCK_ENABLED = env.get("account_self_unlock_enabled", True)
 INTERNAL_IPS = ('127.0.0.1', '172.16.2.1')
 
 INSTALL_NAME = env.get("install_name", 'rdrf')
-
-AJAX_LOOKUP_CHANNELS = {
-    'gene': {'model': 'genetic.Gene', 'search_field': 'symbol'},
-}
 
 ACCOUNT_ACTIVATION_DAYS = 2
 

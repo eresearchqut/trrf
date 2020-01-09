@@ -34,8 +34,6 @@ class LinkDefs:
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
-    Genes = make_link("admin:genetic_gene_changelist", _("Genes"))
-    Laboratories = make_link("admin:genetic_laboratory_changelist", _("Laboratories"))
     Explorer = make_link("rdrf:explorer_main", _("Explorer"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
@@ -153,7 +151,6 @@ class RegularLinks(Links):
         LinkDefs.EmailTemplate,
         LinkDefs.EmailNotificationHistory,
     )
-    GENETIC = make_entries(LinkDefs.Genes, LinkDefs.Laboratories)
     IP_RESTRICT = make_entries(
         LinkDefs.IPRestrictRangeGroup,
         LinkDefs.IPRestrictGeoGroup,
@@ -189,8 +186,6 @@ class MenuConfig:
         self.parent = {}
         self.working_group_staff = {}
         self.working_group_curator = {}
-        self.genetic_staff = {}
-        self.genetic_curator = {}
         self.clinical = {}
         self.super_user = {}
         self.settings = {}
@@ -199,9 +194,9 @@ class MenuConfig:
     def group_links(self, group_name):
         group = groups.reverse_lookup(group_name)
         if group is None:
-            return []
+            return {}
         attr_name = group.lower()
-        return getattr(self, attr_name, [])
+        return getattr(self, attr_name, {})
 
     def per_registry_links(self, label, url, feature=None):
         # build any per registry links that require the registry code as a param
@@ -296,15 +291,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.QUESTIONNAIRE,
         }
 
-        self.genetic_staff = {
-            **RegularLinks.DATA_ENTRY
-        }
-
-        self.genetic_curator = {
-            **RegularLinks.DATA_ENTRY,
-            **RegularLinks.GENETIC
-        }
-
         self.clinical = {
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.QUESTIONNAIRE,
@@ -316,8 +302,6 @@ class RegularMenuConfig(MenuConfig):
         self.super_user = {
             **self.working_group_staff,
             **self.working_group_curator,
-            **self.genetic_staff,
-            **self.genetic_curator,
             **self.clinical,
         }
 
@@ -338,7 +322,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.DOCTORS,
             **RegularLinks.EMAIL,
             **RegularLinks.FAMILY_LINKAGE,
-            **RegularLinks.GENETIC,
             **RegularLinks.IP_RESTRICT,
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,

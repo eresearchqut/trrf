@@ -475,7 +475,7 @@ class Patient(models.Model):
     @property
     def genetic_data_map(self):
         """
-        map of reg code to Boolean iff patient has some genetic data filled in
+        map of reg code to Boolean if patient has some genetic data filled in
         """
         registry_genetic_progress = {}
 

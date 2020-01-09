@@ -226,6 +226,8 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
     # And I enter "02-08-2016" for  section "" cde "Consent date"
     # location_is(step, form)  # sanity check
 
+    utils.wait_for_first_section()
+
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='panel-heading'][contains(., '%s')]" % section)
@@ -257,6 +259,8 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
         return formset_string in input_id
 
     location_is(step, form)  # sanity check
+
+    utils.wait_for_first_section()
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
@@ -668,14 +672,20 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     label_element = section_div.find_element_by_xpath(label_expression)
     input_div = label_element.find_element_by_xpath(".//following-sibling::div")
     input_element = input_div.find_element_by_xpath(".//input")
-    history_widget = label_element.find_elements_by_xpath(
-        ".//a[@onclick='rdrf_click_form_field_history(event, this)']")[0]
+    history_widget = label_element.find_element_by_xpath(
+        ".//a[@onclick='rdrf_click_form_field_history(event, this)']")
 
-    utils.scroll_to_ensure_margin(input_element)
+    ActionChains(world.browser)\
+        .move_to_element(label_element)\
+        .perform()
 
-    # this causes the history component to become visible/clickable
-    mover = ActionChains(world.browser)
-    mover.move_to_element(input_element).perform()
+    # Scroll down avoid top overlay
+    world.browser.execute_script("window.scrollBy(0, 50)")
+
+    # Hover over the label element to make history link visible
+    ActionChains(world.browser)\
+        .move_to_element(input_element)\
+        .perform()
 
     history_widget.click()
 

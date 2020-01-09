@@ -51,7 +51,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# very important so that registry admins (genetic, patient, etc) are discovered.
+# very important so that registry admins (patient, etc) are discovered.
 admin.autodiscover()
 
 
@@ -59,7 +59,7 @@ def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
 
-def handler404(request):
+def handler404(request, exception):
     return render(request, "404.html")
 
 
