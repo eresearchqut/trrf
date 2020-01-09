@@ -27,7 +27,7 @@
     <script type="text/javascript">
         var formLinks = JSON.parse("{{form_links|escapejs}}");
 
-        function list_links(query) {
+        function listLinks(query) {
             var linkList = document.getElementById("link-list");
             linkList.innerHTML = "";
 
@@ -39,7 +39,7 @@
                 var linkElement = document.createElement("a");
                 linkElement.href = linkItem["url"];
                 linkElement.onclick = function () {
-                    click_close(linkItem["url"]);
+                    clickClose(linkItem["url"]);
                 };
 
                 var listElement = document.createElement("li");
@@ -52,19 +52,18 @@
         }
 
         $(window).on('load', function () {
-            list_links("")
-        });
-        $(window).on('load', function () {
+            listLinks("");
+
             $("#search").keyup(function () {
-                list_links(this.value);
-            });
-            $("#search-button").click(function () {
-                list_links($("#search").val());
+                listLinks(this.value);
             });
 
+            $("#search-button").click(function () {
+                listLinks($("#search").val());
+            });
         });
 
-        function click_close(link) {
+        function clickClose(link) {
             window.opener.location.href = link;
             window.close()
         }

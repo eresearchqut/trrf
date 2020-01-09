@@ -1093,11 +1093,9 @@ class FormListView(TemplateView):
 
         links = []
         for context_id, url, text in patient.get_forms_by_group(cfg):
-            if not text:
-                text = "Not set"
             links.append({
                 "url": url,
-                "text": text,
+                "text": text or "Not set",
             })
         return cfg, links
 

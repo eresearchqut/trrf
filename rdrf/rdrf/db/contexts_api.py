@@ -95,7 +95,6 @@ class RDRFContextManager:
 
         content_type = ContentType.objects.get_for_model(patient_model)
         try:
-            logger.info(f"Getting contexts: {context_id=} {patient_model.pk=}")
             rdrf_context_model = RDRFContext.objects.get(pk=context_id,
                                                          registry=self.registry_model,
                                                          content_type=content_type,

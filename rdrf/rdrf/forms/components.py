@@ -39,7 +39,12 @@ class _Form:
         self.add_link_url = add_link_url
         self.add_link_text = add_link_text
         self.heading = ""
-        self.existing_links = []  # for multiple contexts
+
+        # Multiple contexts
+        self.existing_links = []
+        self.existing_links_index = -1
+        self.existing_links_len = 0
+
         self.list_link = ""
 
     def __str__(self):
