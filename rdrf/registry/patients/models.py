@@ -357,7 +357,6 @@ class Patient(models.Model):
             ("can_see_working_groups", _("Can see Working Groups column")),
             ("can_see_diagnosis_progress", _("Can see Diagnosis Progress column")),
             ("can_see_diagnosis_currency", _("Can see Diagnosis Currency column")),
-            ("can_see_genetic_data_map", _("Can see Genetic Module column")),
             ("can_see_data_modules", _("Can see Data Modules column")),
             ("can_see_code_field", _("Can see Code Field column"))
         )
@@ -454,7 +453,7 @@ class Patient(models.Model):
 
     def clinical_data_currency(self, days=365):
         """
-        If some clinical form ( non genetic ) has been updated  in the window
+        If some clinical form has been updated  in the window
         then the data for that registry is considered "current" - this mirrors
         """
         time_window_start = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -462,8 +461,6 @@ class Patient(models.Model):
         for registry_model in self.rdrf_registry.all():
             last_updated_in_window = False
             for form_model in registry_model.forms:
-                if "genetic" in form_model.name.lower():
-                    continue
                 form_timestamp = self.get_form_timestamp(form_model)
                 if form_timestamp and form_timestamp >= time_window_start:
                     last_updated_in_window = True
@@ -471,40 +468,6 @@ class Patient(models.Model):
             currency_map[registry_model.code] = last_updated_in_window
 
         return currency_map
-
-    @property
-    def genetic_data_map(self):
-        """
-        map of reg code to Boolean if patient has some genetic data filled in
-        """
-        registry_genetic_progress = {}
-
-        class Sentinel(Exception):
-            pass
-
-        for registry_model in self.rdrf_registry.all():
-            has_data = False
-            try:
-                for form_model in registry_model.forms:
-                    if "genetic" in form_model.name.lower():
-                        for section_model in form_model.section_models:
-                            for cde_model in section_model.cde_models:
-                                try:
-                                    self.get_form_value(registry_model.code,
-                                                        form_model.name,
-                                                        section_model.code,
-                                                        cde_model.code,
-                                                        section_model.allow_multiple)
-
-                                    # got value for at least one field
-                                    raise Sentinel()
-                                except KeyError:
-                                    pass
-            except Sentinel:
-                has_data = True
-
-            registry_genetic_progress[registry_model.code] = has_data
-        return registry_genetic_progress
 
     def get_form_value(
             self,

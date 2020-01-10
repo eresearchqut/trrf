@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class ProgressType:
     DIAGNOSIS = "diagnosis"
-    GENETIC = "genetic"
 
 
 class ProgressMetric:
@@ -285,12 +284,9 @@ class FormProgress:
                 pm = metadata[ProgressMetric.PROGRESS]
             else:
                 # default behaviour - this is the old behaviour
-                groups_dict = {ProgressType.DIAGNOSIS: [], ProgressType.GENETIC: []}
+                groups_dict = {ProgressType.DIAGNOSIS: []}
                 for form_model in self.registry_model.forms:
-                    if ProgressType.GENETIC in form_model.name.lower():
-                        groups_dict[ProgressType.GENETIC].append(form_model.name)
-                    else:
-                        groups_dict[ProgressType.DIAGNOSIS].append(form_model.name)
+                    groups_dict[ProgressType.DIAGNOSIS].append(form_model.name)
                 pm = groups_dict
 
             # if the registry uses patient types , we need to prefilter the list

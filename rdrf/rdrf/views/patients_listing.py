@@ -92,7 +92,6 @@ class PatientsListingView(View):
             ColumnWorkingGroups(_("Working Groups"), "patients.can_see_working_groups"),
             ColumnDiagnosisProgress(_("Diagnosis Entry Progress"), "patients.can_see_diagnosis_progress"),
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
-            ColumnGeneticDataMap(_("Genetic Data"), "patients.can_see_genetic_data_map"),
         ]
 
         if any(r.has_feature(RegistryFeatures.STAGES) for r in self._users_registries()):
@@ -498,16 +497,6 @@ class ColumnDiagnosisCurrency(ColumnNonContexts):
 
     def fmt_non_contexts(self, diagnosis_currency):
         return self.icon(diagnosis_currency)
-
-
-class ColumnGeneticDataMap(ColumnNonContexts):
-    field = "genetic_data_map"
-
-    def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
-        return form_progress.get_group_has_data("genetic", patient)
-
-    def fmt_non_contexts(self, has_genetic_data):
-        return self.icon(has_genetic_data)
 
 
 class ColumnPatientStage(Column):
