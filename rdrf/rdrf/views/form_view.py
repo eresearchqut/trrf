@@ -1084,6 +1084,9 @@ class FormListView(TemplateView):
 
     @login_required_method
     def get(self, request, **kwargs):
+        patient_model = get_object_or_404(Patient, pk=kwargs.get('patient_id'))
+        security_check_user_patient(request.user, patient_model)
+
         return super().get(request, **kwargs)
 
     def _get_form_links(self, registry_code, form_id, patient_id):
