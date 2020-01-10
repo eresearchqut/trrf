@@ -105,98 +105,8 @@ class RegistryFormAdmin(admin.ModelAdmin):
         return False
 
 
-def export_registry_action(modeladmin, request, registry_models_selected):
-    from datetime import datetime
-    export_time = str(datetime.now())
-
-    def export_registry(registry, request):
-        from rdrf.services.io.defs.exporter import Exporter
-        exporter = Exporter(registry)
-        logger.info("Exporting Registry %s" % registry.name)
-        try:
-            yaml_data, errors = exporter.export_yaml()
-            if errors:
-                logger.error("Error(s) exporting %s:" % registry.name)
-                for error in errors:
-                    logger.error("Export Error: %s" % error)
-                    messages.error(request, "Error in export of %s: %s" %
-                                   (registry.name, error))
-                return None
-            else:
-                logger.info("Exported YAML Data for %s OK" % registry.name)
-            return yaml_data
-        except Exception as ex:
-            logger.error("export registry action for %s error: %s" % (registry.name, ex))
-            messages.error(request, "Custom Action Failed: %s" % ex)
-            return None
-
-    registrys = list(registry_models_selected)
-
-    if len(registrys) == 1:
-        registry = registrys[0]
-        yaml_export_filename = registry.name + ".yaml"
-        yaml_data = export_registry(registry, request)
-        if yaml_data is None:
-            return
-
-        myfile = io.StringIO()
-        myfile.write(yaml_data)
-        myfile.flush()
-        myfile.seek(0)
-
-        response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
-        yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
-        response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
-
-        return response
-    else:
-        import zipfile
-        zippedfile = io.BytesIO()
-        zf = zipfile.ZipFile(zippedfile, mode='w', compression=zipfile.ZIP_DEFLATED)
-
-        for registry in registrys:
-            yaml_data = export_registry(registry, request)
-            if yaml_data is None:
-                return
-
-            zf.writestr(registry.code + '.yaml', yaml_data)
-
-        zf.close()
-        zippedfile.flush()
-        zippedfile.seek(0)
-
-        response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_" + \
-            reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
-        response['Content-Disposition'] = 'attachment; filename="%s"' % name
-
-        return response
-
-
-export_registry_action.short_description = "Export"
-
-
-def design_registry_action(modeladmin, request, registry_models_selected):
-    if len(registry_models_selected) != 1:
-        return
-    else:
-        registry = [r for r in registry_models_selected][0]
-        return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
-
-
-design_registry_action.short_description = _("Design")
-
-
-def generate_questionnaire_action(modeladmin, request, registry_models_selected):
-    for registry in registry_models_selected:
-        registry.generate_questionnaire()
-
-
-generate_questionnaire_action.short_description = _("Generate Questionnaire")
-
-
 class RegistryAdmin(admin.ModelAdmin):
-    actions = [export_registry_action, design_registry_action, generate_questionnaire_action]
+    actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action']
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -228,6 +138,88 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
         return () if obj is None else ("code",)
+
+    def design_registry_action(self, request, registry_models_selected):
+        if len(registry_models_selected) != 1:
+            return
+        else:
+            registry = [r for r in registry_models_selected][0]
+            return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
+    design_registry_action.short_description = _("Design")
+
+    @staticmethod
+    def export_registry(registry, request):
+        from rdrf.services.io.defs.exporter import Exporter
+        exporter = Exporter(registry)
+        logger.info("Exporting Registry %s" % registry.name)
+        try:
+            yaml_data, errors = exporter.export_yaml()
+            if errors:
+                logger.error("Error(s) exporting %s:" % registry.name)
+                for error in errors:
+                    logger.error("Export Error: %s" % error)
+                    messages.error(request, "Error in export of %s: %s" %
+                                   (registry.name, error))
+                return None
+            else:
+                logger.info("Exported YAML Data for %s OK" % registry.name)
+            return yaml_data
+        except Exception as ex:
+            logger.error("export registry action for %s error: %s" % (registry.name, ex))
+            messages.error(request, "Custom Action Failed: %s" % ex)
+            return None
+
+    def export_registry_action(self, request, registry_models_selected):
+        from datetime import datetime
+        export_time = str(datetime.now())
+
+        registries = list(registry_models_selected)
+
+        if len(registries) == 1:
+            registry = registries[0]
+            yaml_export_filename = registry.name + ".yaml"
+            yaml_data = self.export_registry(registry, request)
+            if yaml_data is None:
+                return
+
+            yaml_file = io.StringIO()
+            yaml_file.write(yaml_data)
+            yaml_file.flush()
+            yaml_file.seek(0)
+
+            response = HttpResponse(FileWrapper(yaml_file), content_type='text/yaml')
+            yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
+            response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
+
+            return response
+        else:
+            import zipfile
+            zipped_file = io.BytesIO()
+            zf = zipfile.ZipFile(zipped_file, mode='w', compression=zipfile.ZIP_DEFLATED)
+
+            for registry in registries:
+                yaml_data = self.export_registry(registry, request)
+                if yaml_data is None:
+                    return
+
+                zf.writestr(registry.code + '.yaml', yaml_data)
+
+            zf.close()
+            zipped_file.flush()
+            zipped_file.seek(0)
+
+            response = HttpResponse(FileWrapper(zipped_file), content_type='application/zip')
+            name = "export_" + export_time + "_" + \
+                   reduce(lambda x, y: x + '_and_' + y, [r.code for r in registries]) + ".zip"
+            response['Content-Disposition'] = 'attachment; filename="%s"' % name
+
+            return response
+    export_registry_action.short_description = _("Export")
+
+    def generate_questionnaire_action(self, request, registry_models_selected):
+        for registry in registry_models_selected:
+            registry.generate_questionnaire()
+    generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
