@@ -269,7 +269,6 @@ class Registry(models.Model):
     def diagnosis_progress_cde_triples(self):
         return self._progress_cdes()
 
-
     @property
     def has_diagnosis_progress_defined(self):
         return len(self.diagnosis_progress_cde_triples) > 0
