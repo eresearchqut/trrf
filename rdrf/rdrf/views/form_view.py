@@ -1094,19 +1094,18 @@ class FormListView(TemplateView):
         cfg = get_object_or_404(ContextFormGroup, pk=form_id, registry=registry)
         patient = get_object_or_404(Patient, pk=patient_id)
 
-        links = []
-        for context_id, url, text in patient.get_forms_by_group(cfg):
-            links.append({
+        return cfg.direct_name, [
+            {
                 "url": url,
-                "text": text or "Not set",
-            })
-        return cfg, links
+                "text": text or _("Not set"),
+            } for context_id, url, text in patient.get_forms_by_group(cfg)
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        form, form_links = self._get_form_links(**kwargs)
-        context["form_title"] = form.direct_name
+        form_name, form_links = self._get_form_links(**kwargs)
+        context["form_title"] = form_name
         context["form_links"] = json.dumps(form_links)
         return context
 

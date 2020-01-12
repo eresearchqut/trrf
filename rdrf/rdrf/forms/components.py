@@ -308,14 +308,14 @@ class RDRFContextLauncherComponent(RDRFComponent):
         :return: links, current_index, total_forms
         """
         links = deque(maxlen=slice_len)
-        current_index = 0
+        current_index = -1
         index_found = False
         current_context_id = self.current_rdrf_context_model.pk if self.current_rdrf_context_model else None
 
         forms = self.patient_model.get_forms_by_group(context_form_group)
         total_forms = len(forms)
         if not current_context_id:
-            forms = forms[0:slice_len]
+            forms = forms[:slice_len]
 
         for index, (context_id, url, text) in enumerate(forms):
             is_current = context_id == current_context_id
@@ -326,12 +326,11 @@ class RDRFContextLauncherComponent(RDRFComponent):
             if (index - current_index) > (slice_len / 2) and len(links) == slice_len and index_found:
                 break
 
-            if not text:
-                text = "Not set"
+            text = text or _("Not set")
             link_obj = Link(url, text, is_current)
             links.append(link_obj)
 
-        return list(links), current_index if index_found else -1, total_forms
+        return list(links), current_index, total_forms
 
     def _get_current_multiple_context(self):
         # def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
