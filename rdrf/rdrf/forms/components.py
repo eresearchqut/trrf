@@ -1,5 +1,5 @@
 import logging
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 
 from django.contrib.contenttypes.models import ContentType
 from django.template import Context, loader
@@ -17,12 +17,7 @@ from rdrf.security.security_checks import user_is_patient_type
 
 logger = logging.getLogger("registry_log")
 
-
-class Link:
-    def __init__(self, url, text, current):
-        self.url = url
-        self.text = text
-        self.current = current
+Link = namedtuple('Link', ['url', 'text', 'current'])
 
 
 class LauncherError(Exception):
