@@ -310,7 +310,10 @@ class RDRFContextLauncherComponent(RDRFComponent):
         links = deque(maxlen=slice_len)
         current_index = -1
         index_found = False
-        current_context_id = self.current_rdrf_context_model.pk if self.current_rdrf_context_model else None
+
+        is_current_form = self.current_rdrf_context_model and \
+            self.registry_form.display_name == context_form_group.direct_name
+        current_context_id = self.current_rdrf_context_model.pk if is_current_form else None
 
         forms = self.patient_model.get_forms_by_group(context_form_group)
         total_forms = len(forms)
