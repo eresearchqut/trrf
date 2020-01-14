@@ -45,31 +45,6 @@ def rpc_fh_patient_is_index(request, patient_id):
         return False
 
 
-# Molecular Data Validation
-def rpc_validate_dna(request, field_value):
-    from rdrf.forms.validation.genetic_validation import GeneticValidator, GeneticType
-    validator = GeneticValidator()
-    return validator.validate(field_value, GeneticType.DNA)
-
-
-def rpc_validate_exon(request, field_value):
-    from rdrf.forms.validation.genetic_validation import GeneticValidator, GeneticType
-    validator = GeneticValidator()
-    return validator.validate(field_value, GeneticType.EXON)
-
-
-def rpc_validate_rna(request, field_value):
-    from rdrf.forms.validation.genetic_validation import GeneticValidator, GeneticType
-    validator = GeneticValidator()
-    return validator.validate(field_value, GeneticType.RNA)
-
-
-def rpc_validate_protein(request, field_value):
-    from rdrf.forms.validation.genetic_validation import GeneticValidator, GeneticType
-    validator = GeneticValidator()
-    return validator.validate(field_value, GeneticType.PROTEIN)
-
-
 def rpc_reporting_command(request, query_id, registry_id, command, arg):
     # 2 possible commands/invocations client side from report definition screen:
     # get_field_data: used to build all the checkboxes for client

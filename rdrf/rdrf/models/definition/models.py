@@ -258,10 +258,6 @@ class Registry(models.Model):
         # returns list of triples (form_model, section_model, cde_model)
         results = []
         for form_model in self.forms:
-            if progress_type == "diagnosis" and "genetic" in form_model.name.lower():
-                continue
-            elif progress_type == "genetic" and "genetic" not in form_model.name.lower():
-                continue
             completion_cde_codes = [cde.code for cde in form_model.complete_form_cdes.all()]
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
@@ -274,16 +270,8 @@ class Registry(models.Model):
         return self._progress_cdes()
 
     @property
-    def genetic_progress_cde_triples(self):
-        return self._progress_cdes(progress_type="genetic")
-
-    @property
     def has_diagnosis_progress_defined(self):
         return len(self.diagnosis_progress_cde_triples) > 0
-
-    @property
-    def has_genetic_progress_defined(self):
-        return len(self.genetic_progress_cde_triples) > 0
 
     def _generated_section_questionnaire_code(self, form_name, section_code):
         return self.questionnaire_section_prefix + form_name + section_code
