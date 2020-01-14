@@ -1,37 +1,29 @@
-from registry.patients.models import Patient
-from registry.patients.models import ParentGuardian
-from django.core.exceptions import PermissionDenied
 import logging
+
+from django.core.exceptions import PermissionDenied
+from registry.patients.models import ParentGuardian
+
 
 logger = logging.getLogger(__name__)
 
 
-def _get_prop(user, prop):
-    # case where site does not have prop defined
-    try:
-        return getattr(user, prop)
-    except BaseException:
-        return False
-
-
 def user_is_patient_type(user):
-    return any([_get_prop(user, "is_patient"),
-                _get_prop(user, "is_parent"),
-                _get_prop(user, "is_carrier")])
+    return user.is_patient or user.is_parent or user.is_carrier or user.is_carer
 
 
 def _security_violation(user, patient_model):
-    logger.info("SECURITY VIOLATION User %s Patient %s" % (user.pk,
-                                                           patient_model.pk))
+    logger.info(f"SECURITY VIOLATION User {user.pk} Patient {patient_model.pk}")
     raise PermissionDenied()
 
 
 def _patient_checks(user, patient_model):
     # check patients who have registered as users with this user
-    for user_patient in Patient.objects.filter(user=user):
-        if user_patient.pk == patient_model.pk:
-            # user IS patient
-            return True
+
+    if patient_model.user == user:
+        return True
+    # check carer of patient
+    if patient_model.carer == user:
+        return True
 
     # check parent guardian self patient and own children
     for parent in ParentGuardian.objects.filter(user=user):
@@ -70,3 +62,29 @@ def can_sign_consent(user, patient_model):
     if user_is_patient_type(user):
         return _patient_checks(user, patient_model)
     return False
+
+
+def get_object_or_permission_denied(klass, *args, **kwargs):
+    """
+    Use get() to return an object, or raise a PermissionDenied exception if the object
+    does not exist. This is used to raise PermissionDenied for records which do not exist.
+
+    klass may be a Model, Manager, or QuerySet object. All other passed
+    arguments and keyword arguments are used in the get() query.
+
+    Like with QuerySet.get(), MultipleObjectsReturned is raised if more than
+    one object is found.
+    """
+    queryset = klass
+    if hasattr(klass, '_default_manager'):
+        queryset = klass._default_manager.all()
+    if not hasattr(queryset, 'get'):
+        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+        raise ValueError(
+            "First argument to get_object_or_404() must be a Model, Manager, "
+            "or QuerySet, not '%s'." % klass__name
+        )
+    try:
+        return queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist:
+        raise PermissionDenied()

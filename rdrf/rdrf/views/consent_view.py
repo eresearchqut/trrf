@@ -16,7 +16,7 @@ from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import Registry
 
-from rdrf.security.security_checks import security_check_user_patient
+from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
 
 
 class ConsentList(View):
@@ -86,7 +86,7 @@ class ConsentDetails(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
-        patient_model = Patient.objects.get(pk=patient_id)
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
 
         if request.is_ajax:
@@ -128,7 +128,7 @@ class ConsentDetailsPrint(ConsentDetails):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
-        patient_model = Patient.objects.get(pk=patient_id)
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
         context = {}
 

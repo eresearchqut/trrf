@@ -49,10 +49,22 @@ PERMISSIONS_BY_ROLES = {
         'change_state',
         'delete_state',
         'change_questionnaireresponse',
-        'delete_questionnaireresponse'],
+        'delete_questionnaireresponse',
+    ],
 
     'Parents': [],
     'Patients': [],
+
+    'Carer': [
+        'can_see_code_field',
+        'can_see_data_modules',
+        'can_see_diagnosis_currency',
+        'can_see_diagnosis_progress',
+        'can_see_dob',
+        'can_see_full_name',
+        'can_see_working_groups',
+        'view_patient',
+    ],
 
     'Working Group Curators': [
         'add_addresstype',
@@ -87,7 +99,8 @@ PERMISSIONS_BY_ROLES = {
         'change_state',
         'delete_state',
         'change_questionnaireresponse',
-        'delete_questionnaireresponse'],
+        'delete_questionnaireresponse',
+    ],
 
     'Working Group Staff': [
         'add_addresstype',
@@ -122,5 +135,6 @@ PERMISSIONS_BY_ROLES = {
         'delete_patientrelative',
         'add_state',
         'change_state',
-        'delete_state']
+        'delete_state',
+    ]
 }

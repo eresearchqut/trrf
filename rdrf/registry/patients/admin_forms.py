@@ -327,6 +327,9 @@ class PatientForm(forms.ModelForm):
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
+        if "carer" in kwargs:
+            self.carer = kwargs.pop("carer")
+
         super().__init__(*args, **kwargs)
 
         clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
@@ -485,7 +488,7 @@ class PatientForm(forms.ModelForm):
             }),
             'user': forms.HiddenInput()
         }
-        exclude = ['doctors', 'user', 'created_by']
+        exclude = ['doctors', 'user', 'created_by', 'carer']
 
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB

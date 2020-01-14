@@ -181,12 +181,14 @@
 {% endblock %}
 
 {% block formbtns %}
+    {% if not user.is_carer %}
         <br>
-	<div class="btn-group" role="group" aria-label="...">
-		<button id="add_patient" class="btn btn-success">
-			<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
-		</button>
-	</div>
+        <div class="btn-group" role="group" aria-label="...">
+            <button id="add_patient" class="btn btn-success">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
+            </button>
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block content %}

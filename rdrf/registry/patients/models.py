@@ -317,6 +317,13 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
+    carer = models.ForeignKey(
+        CustomUser,
+        blank=True,
+        null=True,
+        related_name="patients_in_care",
+        on_delete=models.SET_NULL)
+
     living_status = models.CharField(
         choices=LivingStates.CHOICES,
         max_length=80,
