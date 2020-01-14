@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n admin_static %}
+{% load version_number %}
+
+{% block title %}{{ section.title }}{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

@@ -1,6 +1,10 @@
+from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from django.contrib import admin
-from django.urls import reverse
+from django.urls import reverse, re_path
+
+from rdrf.forms.admin.registry_registration import RegistrationAdminForm
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
@@ -106,7 +110,8 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 
 class RegistryAdmin(admin.ModelAdmin):
-    actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action']
+    actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action',
+               'enable_registration_action']
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -131,9 +136,14 @@ class RegistryAdmin(admin.ModelAdmin):
         return False
 
     def get_urls(self):
-        original_urls = super(RegistryAdmin, self).get_urls()
+        urls = super(RegistryAdmin, self).get_urls()
+        view_urls = [
+            re_path(r'^setup_registration/(?P<registry_code>\w+)?$',
+                    self.admin_site.admin_view(self.setup_registration_view),
+                    name='setup_registration')
+        ]
 
-        return original_urls
+        return view_urls + urls
 
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
@@ -220,6 +230,35 @@ class RegistryAdmin(admin.ModelAdmin):
         for registry in registry_models_selected:
             registry.generate_questionnaire()
     generate_questionnaire_action.short_description = _("Generate Questionnaire")
+
+    @staticmethod
+    def setup_registration_view(request, registry_code):
+        if request.method == 'POST':
+            form = RegistrationAdminForm(request.POST)
+
+            if form.is_valid():
+                return
+        else:
+            form = RegistrationAdminForm()
+
+        context = {
+            'form': form,
+        }
+
+        return TemplateResponse(request, 'admin/registration_intermediate.html', context)
+
+    def enable_registration_action(self, request, registry_models_selected):
+        if len(registry_models_selected) != 1:
+            messages.error(request, _("Registration must be configured individually"))
+        else:
+            return HttpResponseRedirect(reverse('admin:setup_registration', kwargs={
+                'registry_code': registry_models_selected[0].code,
+            }))
+    enable_registration_action.short_description = _("Setup registration")
+
+    def disable_registration_action(self, request, registry_models_selected):
+        for registry in registry_models_selected:
+            registry.remove_feature(RegistryFeatures.REGISTRATION)
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
