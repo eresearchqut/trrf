@@ -26,29 +26,30 @@
 {% block extrahead %}
     <script type="text/javascript">
         var formLinks = JSON.parse("{{form_links|escapejs}}");
+        var formLinkElements = [];
+        formLinks.forEach(function (linkItem) {
+            var linkElement = document.createElement("a");
+            linkElement.href = linkItem["url"];
+            linkElement.onclick = function () {
+                clickClose(linkItem["url"]);
+            };
+
+            var listElement = document.createElement("li");
+            listElement.innerHTML = linkItem["text"];
+
+            linkElement.appendChild(listElement);
+            formLinkElements.push(linkElement);
+        });
 
         function listLinks(query) {
             var linkList = document.getElementById("link-list");
             linkList.innerHTML = "";
 
-            formLinks.forEach(function (linkItem) {
-                if (!linkItem["text"].includes(query)) {
-                    return;
+            formLinkElements.forEach(function (linkItem) {
+                if (linkItem.textContent.includes(query)) {
+                    linkList.appendChild(linkItem);
                 }
-
-                var linkElement = document.createElement("a");
-                linkElement.href = linkItem["url"];
-                linkElement.onclick = function () {
-                    clickClose(linkItem["url"]);
-                };
-
-                var listElement = document.createElement("li");
-                listElement.innerHTML = linkItem["text"];
-
-                linkElement.appendChild(listElement);
-                linkList.appendChild(linkElement);
             })
-
         }
 
         $(window).on('load', function () {
