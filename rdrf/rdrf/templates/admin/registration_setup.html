@@ -1,0 +1,76 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n admin_static %}
+{% load version_number %}
+
+{% block title %}{{ section.title }}{% endblock %}
+
+{% block extrahead %}
+    <script>
+        $(document).ready(function () {
+            $('.collapser').click(function () {
+                $(this).next().collapse('toggle');
+            });
+        });
+    </script>
+{% endblock %}
+
+
+
+{% block content %}
+    <h1>Registration</h1>
+    <h2>{{ registry.name }}</h2>
+
+    {% if existing_notifications %}
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                {% trans "WARNING: This registry already sends notifications upon registration" %}
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th scope="col">Description</th>
+                        <th scope="col">From</th>
+                        <th scope="col">Recipient</th>
+                        <th scope="col">Group Recipient</th>
+                        <th scope="col">Templates</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for notification in existing_notifications %}
+                        <tr>
+                            <td>{{ notification.description }}</td>
+                            <td>{{ notification.email_from }}</td>
+                            <td>{{ notification.recipient }}</td>
+                            <td>{{ notification.group_recipient.name }}</td>
+                            <td>
+                                <ul>
+                                    {% for email_template in notification.email_templates.all %}
+                                        <li>
+                                            <a href="#" data-toggle="collapse" class="collapser">{{ email_template.subject }}
+                                                ({{ email_template.language }})
+                                            </a>
+                                            <pre class="collapse pre-scrollable"><code>{{ email_template.body }}</code></pre>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <p>{% trans "Edit existing notifications " %} <a href="{% url "admin:rdrf_emailnotification_changelist" %}">{% trans "here" %}</a></p>
+            </div>
+        </div>
+    {% endif %}
+
+
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}

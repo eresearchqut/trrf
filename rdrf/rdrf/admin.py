@@ -3,6 +3,7 @@ from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse, re_path
 
+from rdrf.events.events import EventType
 from rdrf.forms.admin.registry_registration import RegistrationAdminForm
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
@@ -233,19 +234,38 @@ class RegistryAdmin(admin.ModelAdmin):
 
     @staticmethod
     def setup_registration_view(request, registry_code):
+        registry = Registry.objects.get(code=registry_code)
         if request.method == 'POST':
             form = RegistrationAdminForm(request.POST)
 
             if form.is_valid():
-                return
-        else:
-            form = RegistrationAdminForm()
+                if form.cleaned_data['enable_registration']:
+                    registry.add_feature(RegistryFeatures.REGISTRATION)
+                    messages.info(request, _("Registration enabled"))
+                else:
+                    registry.remove_feature(RegistryFeatures.REGISTRATION)
+                    messages.info(request, _("Registration disabled"))
 
+                if form.cleaned_data['new_notification']:
+                    pass
+
+        else:
+            form = RegistrationAdminForm(initial={
+                'enable_registration': registry.has_feature(RegistryFeatures.REGISTRATION),
+                'new_template_description': _("Patient registration"),
+                'new_template_subject': f"{_('Welcome to the')} {registry.name} registry",
+                'new_template_body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),
+            })
+
+        existing_notifications = EmailNotification.objects.filter(registry=registry,
+                                                                  description__in=EventType.REGISTRATION_TYPES)
         context = {
+            'existing_notifications': existing_notifications,
             'form': form,
+            'registry': registry,
         }
 
-        return TemplateResponse(request, 'admin/registration_intermediate.html', context)
+        return TemplateResponse(request, 'admin/registration_setup.html', context)
 
     def enable_registration_action(self, request, registry_models_selected):
         if len(registry_models_selected) != 1:
