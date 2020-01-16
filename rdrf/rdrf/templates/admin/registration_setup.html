@@ -17,8 +17,7 @@
 
 
 {% block content %}
-    <h1>Registration</h1>
-    <h2>{{ registry.name }}</h2>
+    <h1>{{ registry.name }}</h1>
 
     {% if existing_notifications %}
         <div class="panel panel-warning">
@@ -47,7 +46,8 @@
                                 <ul>
                                     {% for email_template in notification.email_templates.all %}
                                         <li>
-                                            <a href="#" data-toggle="collapse" class="collapser">{{ email_template.subject }}
+                                            <a href="#" data-toggle="collapse"
+                                               class="collapser">{{ email_template.subject }}
                                                 ({{ email_template.language }})
                                             </a>
                                             <pre class="collapse pre-scrollable"><code>{{ email_template.body }}</code></pre>
@@ -61,7 +61,8 @@
                 </table>
             </div>
             <div class="panel-footer">
-                <p>{% trans "Edit existing notifications " %} <a href="{% url "admin:rdrf_emailnotification_changelist" %}">{% trans "here" %}</a></p>
+                <p>{% trans "Edit existing notifications " %} <a
+                        href="{% url "admin:rdrf_emailnotification_changelist" %}">{% trans "here" %}</a></p>
             </div>
         </div>
     {% endif %}
@@ -70,7 +71,56 @@
 
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+
+        <div class="panel panel-default" id="main-fields">
+            <div class="panel-heading">
+                {% trans "Registration" %}
+            </div>
+            <div class="panel-body">
+                <div class="fieldWrapper">
+                    {{ form.enable_registration.errors }}
+                    {{ form.enable_registration.label_tag }} {{ form.enable_registration }}
+                </div>
+                <div class="fieldWrapper">
+                    {{ form.new_notification.errors }}
+                    {{ form.new_notification.label_tag }}
+                    <label data-toggle="collapse" data-target="#template-fields">
+                        {{ form.new_notification }}
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-info collapse" id="template-fields">
+            <div class="panel-heading">
+                {% trans "New template" %}
+            </div>
+            <div class="panel-body">
+                <div class="fieldWrapper">
+                    {{ form.language.errors }}
+                    {{ form.language.label_tag }} {{ form.language }}
+                </div>
+                <br>
+                <div class="fieldWrapper">
+                    {{ form.description.errors }}
+                    {{ form.description.label_tag }} {{ form.description }}
+                </div>
+                <br>
+                <div class="fieldWrapper">
+                    {{ form.subject.errors }}
+                    {{ form.subject.label_tag }} {{ form.subject }}
+                </div>
+                <br>
+                <div class="fieldWrapper">
+                    {{ form.body.errors }}
+                    {{ form.body.label_tag }} {{ form.body }}
+                </div>
+            </div>
+        </div>
         <input type="submit" value="Submit">
     </form>
 {% endblock %}

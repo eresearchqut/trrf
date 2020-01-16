@@ -1,6 +1,6 @@
 from django.conf import settings
-
 from django.forms import Form, BooleanField, ChoiceField, CharField, TextInput, Select, Textarea
+from django.utils.translation import ugettext as _
 
 _form_attrs = {
     "class": "form-control",
@@ -11,9 +11,16 @@ BootstrapTextAreaInput = Textarea(attrs=_form_attrs)
 
 
 class RegistrationAdminForm(Form):
-    enable_registration = BooleanField(required=False, label='Enable registration feature')
-    new_notification = BooleanField(required=False, label='Create an email notification for patients upon registration, with the template below')
-    new_template_language = ChoiceField(required=False, choices=settings.ALL_LANGUAGES, widget=BootstrapSelectInput)
-    new_template_description = CharField(required=False, widget=BootstrapTextInput)
-    new_template_subject = CharField(required=False, max_length=50, widget=BootstrapTextInput)
-    new_template_body = CharField(required=False, widget=BootstrapTextAreaInput)
+    enable_registration = BooleanField(
+        required=False,
+        label=_('Enable registration feature'),
+    )
+    new_notification = BooleanField(
+        required=False,
+        label=_('Create a new email notification for patients upon registration'),
+    )
+
+    language = ChoiceField(required=False, choices=settings.ALL_LANGUAGES, widget=BootstrapSelectInput)
+    description = CharField(required=False, widget=BootstrapTextInput)
+    subject = CharField(required=False, max_length=50, widget=BootstrapTextInput)
+    body = CharField(required=False, widget=BootstrapTextAreaInput)

@@ -265,9 +265,9 @@ class RegistryAdmin(admin.ModelAdmin):
         else:
             form = RegistrationAdminForm(initial={
                 'enable_registration': registry.has_feature(RegistryFeatures.REGISTRATION),
-                'new_template_description': _("Patient registration"),
-                'new_template_subject': f"{_('Welcome to the')} {registry.name} registry",
-                'new_template_body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),
+                'description': _("Patient registration"),
+                'subject': f"{_('Welcome to the')} {registry.name} registry",
+                'body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),
             })
 
         existing_notifications = EmailNotification.objects.filter(registry=registry,
