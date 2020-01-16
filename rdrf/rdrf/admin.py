@@ -255,10 +255,10 @@ class RegistryAdmin(admin.ModelAdmin):
                 with transaction.atomic():
                     if form.cleaned_data['enable_registration']:
                         registry.add_feature(RegistryFeatures.REGISTRATION)
-                        messages.info(request, _("Registration enabled"))
+                        messages.success(request, _("Registration enabled"))
                     else:
                         registry.remove_feature(RegistryFeatures.REGISTRATION)
-                        messages.info(request, _("Registration disabled"))
+                        messages.success(request, _("Registration disabled"))
                     registry.save()
 
                     if form.cleaned_data['new_notification']:
