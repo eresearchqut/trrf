@@ -28,9 +28,6 @@ class PatientRegistration(BaseRegistration):
         patient = self._create_patient(registry, working_group, user)
         logger.debug("Registration process - created patient")
 
-        address = self._create_patient_address(patient)
-        address.save()
-
         logger.debug("Registration process - created patient address")
 
         registration = RegistrationProfile.objects.get(user=user)
