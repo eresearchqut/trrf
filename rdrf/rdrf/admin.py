@@ -275,8 +275,7 @@ class RegistryAdmin(admin.ModelAdmin):
                             subject=form.cleaned_data['subject'],
                             body=form.cleaned_data['body'],
                         )
-
-                    return HttpResponseRedirect(reverse("admin:rdrf_registry_changelist"))
+                return HttpResponseRedirect(reverse("admin:rdrf_registry_changelist"))
         else:
             form = RegistrationAdminForm(initial={
                 'enable_registration': registry.has_feature(RegistryFeatures.REGISTRATION),
@@ -286,10 +285,10 @@ class RegistryAdmin(admin.ModelAdmin):
                 'body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),
             })
 
-        existing_notifications = EmailNotification.objects.filter(registry=registry,
-                                                                  description__in=EventType.REGISTRATION_TYPES)
         context = {
-            'existing_notifications': existing_notifications,
+            'existing_notifications': EmailNotification.objects.filter(
+                registry=registry,
+                description__in=EventType.REGISTRATION_TYPES),
             'form': form,
             'registry': registry,
         }
