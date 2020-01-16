@@ -1,5 +1,5 @@
 from django.core.cache import caches
-from django.db import connection
+from django.db import connection, transaction
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from django.contrib import admin
@@ -252,19 +252,35 @@ class RegistryAdmin(admin.ModelAdmin):
             form = RegistrationAdminForm(request.POST)
 
             if form.is_valid():
-                if form.cleaned_data['enable_registration']:
-                    registry.add_feature(RegistryFeatures.REGISTRATION)
-                    messages.info(request, _("Registration enabled"))
-                else:
-                    registry.remove_feature(RegistryFeatures.REGISTRATION)
-                    messages.info(request, _("Registration disabled"))
+                with transaction.atomic():
+                    if form.cleaned_data['enable_registration']:
+                        registry.add_feature(RegistryFeatures.REGISTRATION)
+                        messages.info(request, _("Registration enabled"))
+                    else:
+                        registry.remove_feature(RegistryFeatures.REGISTRATION)
+                        messages.info(request, _("Registration disabled"))
+                    registry.save()
 
-                if form.cleaned_data['new_notification']:
-                    pass
+                    if form.cleaned_data['new_notification']:
+                        notification = EmailNotification(
+                            description=EventType.NEW_PATIENT,
+                            registry=registry,
+                            email_from=form.cleaned_data['from_address'],
+                            recipient="{{ patient.user.email }}"
+                        )
+                        notification.save()
+                        notification.email_templates.create(
+                            language=form.cleaned_data['language'],
+                            description=form.cleaned_data['description'],
+                            subject=form.cleaned_data['subject'],
+                            body=form.cleaned_data['body'],
+                        )
 
+                    return HttpResponseRedirect(reverse("admin:rdrf_registry_changelist"))
         else:
             form = RegistrationAdminForm(initial={
                 'enable_registration': registry.has_feature(RegistryFeatures.REGISTRATION),
+                'from_address': settings.DEFAULT_FROM_EMAIL,
                 'description': _("Patient registration"),
                 'subject': f"{_('Welcome to the')} {registry.name} registry",
                 'body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),

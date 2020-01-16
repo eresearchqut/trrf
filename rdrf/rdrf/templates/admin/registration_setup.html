@@ -10,6 +10,10 @@
             $('.collapser').click(function () {
                 $(this).next().collapse('toggle');
             });
+
+            if ($('#section-expander input').is(":checked")) {
+                $('form .collapse').collapse()
+            }
         });
     </script>
 {% endblock %}
@@ -22,13 +26,14 @@
     {% if existing_notifications %}
         <div class="panel panel-warning">
             <div class="panel-heading">
-                {% trans "WARNING: This registry already sends notifications upon registration" %}
+                {% trans "WARNING: This registry already has notifications configured" %}
             </div>
             <div class="panel-body">
                 <table class="table table-bordered">
                     <thead>
                     <tr>
                         <th scope="col">Description</th>
+                        <th scope="col">Enabled</th>
                         <th scope="col">From</th>
                         <th scope="col">Recipient</th>
                         <th scope="col">Group Recipient</th>
@@ -39,6 +44,13 @@
                     {% for notification in existing_notifications %}
                         <tr>
                             <td>{{ notification.description }}</td>
+                            <td>
+                                {% if notification.disabled %}
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                {% else %}
+                                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                                {% endif %}
+                            </td>
                             <td>{{ notification.email_from }}</td>
                             <td>{{ notification.recipient }}</td>
                             <td>{{ notification.group_recipient.name }}</td>
@@ -67,8 +79,6 @@
         </div>
     {% endif %}
 
-
-
     <form method="post">
         {% csrf_token %}
 
@@ -85,16 +95,27 @@
                     {{ form.enable_registration.errors }}
                     {{ form.enable_registration.label_tag }} {{ form.enable_registration }}
                 </div>
-                <div class="fieldWrapper">
+                <div class="fieldWrapper" id="section-expander">
                     {{ form.new_notification.errors }}
                     {{ form.new_notification.label_tag }}
-                    <label data-toggle="collapse" data-target="#template-fields">
+                    <label data-toggle="collapse" data-target="#template-fields,#notification-fields">
                         {{ form.new_notification }}
                     </label>
                 </div>
             </div>
         </div>
-
+        <div class="panel panel-info collapse" id="notification-fields">
+            <div class="panel-heading">
+                {% trans "New notification" %}
+            </div>
+            <div class="panel-body">
+                <div class="fieldWrapper">
+                    {{ form.from_address.errors }}
+                    {{ form.from_address.label_tag }} {{ form.from_address }}
+                </div>
+                <br>
+            </div>
+        </div>
         <div class="panel panel-info collapse" id="template-fields">
             <div class="panel-heading">
                 {% trans "New template" %}
@@ -122,5 +143,7 @@
             </div>
         </div>
         <input type="submit" value="Submit">
+        <br>
+        <br>
     </form>
 {% endblock %}

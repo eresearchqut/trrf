@@ -20,6 +20,8 @@ class RegistrationAdminForm(Form):
         label=_('Create a new email notification for patients upon registration'),
     )
 
+    from_address = CharField(required=False, widget=BootstrapTextInput)
+
     language = ChoiceField(required=False, choices=settings.ALL_LANGUAGES, widget=BootstrapSelectInput)
     description = CharField(required=False, widget=BootstrapTextInput)
     subject = CharField(required=False, max_length=50, widget=BootstrapTextInput)
