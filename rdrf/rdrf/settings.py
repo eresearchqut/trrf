@@ -589,7 +589,7 @@ DEFAULT_REGISTRATION_TEMPLATE = """<p>Dear {{patient.given_names}} {{patient.fam
 
 <p><a href="{{ activation_url }}">Activation link</a></p>
 
-<p>If needed, we will contact you by e-mail at {{patient.user.email}}.
+<p>If needed, we will contact you by e-mail at {{patient.user.email}}.</p>
 
 <p>Yours sincerely,<br>
 The Registry Team</p>
