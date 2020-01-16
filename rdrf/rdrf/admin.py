@@ -1,3 +1,5 @@
+from django.core.cache import caches
+from django.db import connection
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from django.contrib import admin
@@ -233,8 +235,19 @@ class RegistryAdmin(admin.ModelAdmin):
     generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
     @staticmethod
-    def setup_registration_view(request, registry_code):
+    def missing_cache_table():
+        for cache_alias in settings.CACHES:
+            cache = caches[cache_alias]
+            if hasattr(cache, '_table') and cache._table not in connection.introspection.table_names():
+                return cache._table
+
+    def setup_registration_view(self, request, registry_code):
         registry = Registry.objects.get(code=registry_code)
+
+        missing_table = self.missing_cache_table()
+        if missing_table:
+            messages.error(request, _(f"Cache table '{missing_table}' is missing. Run django-admin createcachetable"))
+
         if request.method == 'POST':
             form = RegistrationAdminForm(request.POST)
 
