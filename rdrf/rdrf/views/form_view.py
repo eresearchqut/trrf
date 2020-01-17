@@ -1107,6 +1107,7 @@ class FormListView(TemplateView):
         form_name, form_links = self._get_form_links(**kwargs)
         context["form_title"] = form_name
         context["form_links"] = json.dumps(form_links)
+        context["no_form_links"] = len(form_links) == 0
         return context
 
 

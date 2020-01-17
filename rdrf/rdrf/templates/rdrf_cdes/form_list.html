@@ -43,6 +43,9 @@
 
         function listLinks(query) {
             var linkList = document.getElementById("link-list");
+            if (linkList === null) {
+                return;
+            }
             linkList.innerHTML = "";
 
             formLinkElements.forEach(function (linkItem) {
@@ -90,8 +93,12 @@
             </div>
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <ul id="link-list">
-                    </ul>
+                    {% if no_form_links %}
+                        <span>{% trans "No forms available" %}</span>
+                    {% else %}
+                        <ul id="link-list">
+                        </ul>
+                    {% endif %}
                 </div>
             </div>
         </div>
