@@ -45,6 +45,10 @@ class _Form:
     def __str__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
 
+    @property
+    def all_existing_links_shown(self):
+        return self.existing_links_len == len(self.existing_links)
+
 
 class _FormGroup:
 
