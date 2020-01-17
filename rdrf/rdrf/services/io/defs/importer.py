@@ -339,6 +339,7 @@ class Importer(object):
                 value.save()
 
     def _create_cdes(self, cde_maps):
+        unknown_attributes = set()
         for cde_map in cde_maps:
             cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
 
@@ -351,29 +352,35 @@ class Importer(object):
                         registries_already_using)
 
             for field in cde_map:
-                if field not in ["code", "pv_group"]:
-                    import_value = cde_map[field]
-                    if not created:
-                        old_value = getattr(cde_model, field)
-                        if old_value != import_value:
-                            logger.warning(
-                                "import will change cde %s: import value = %s new value = %s" %
-                                (cde_model.code, old_value, import_value))
+                if not hasattr(cde_model, field):
+                    if field not in unknown_attributes:
+                        unknown_attributes.add(field)
+                        logger.warning(f"CDE model does not have the `{field}` attribute !")
+                    continue
+                if field in ["code", "pv_group"]:
+                    continue
+                import_value = cde_map[field]
+                if field == 'datatype':
+                    import_value = CdeMappings.fix_data_type(import_value.strip())
+                    valid_types = [choice[0] for choice in CommonDataElement.DATA_TYPE_CHOICES]
+                    if import_value not in valid_types:
+                        raise ValidationError(f'Invalid data type {import_value} for CDE: {cde_map["code"]}')
+                elif field == 'widget_name':
+                    import_value = CdeMappings.fix_widget_name(import_value.strip())
+                    data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
+                    valid_widgets = get_widgets_for_data_type(data_type) + ['']
+                    if import_value not in valid_widgets:
+                        raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} and CDE: {cde_map["code"]}')
 
-                    if field == 'datatype':
-                        import_value = CdeMappings.fix_data_type(import_value.strip())
-                        valid_types = [choice[0] for choice in CommonDataElement.DATA_TYPE_CHOICES]
-                        if import_value not in valid_types:
-                            raise ValidationError(f'Invalid data type {import_value} for CDE: {cde_map["code"]}')
-                    elif field == 'widget_name':
-                        import_value = CdeMappings.fix_widget_name(import_value.strip())
-                        data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
-                        valid_widgets = get_widgets_for_data_type(data_type) + ['']
-                        if import_value not in valid_widgets:
-                            raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} and CDE: {cde_map["code"]}')
+                if not created:
+                    old_value = getattr(cde_model, field)
+                    if old_value != import_value:
+                        logger.warning(
+                            "import will change cde %s: import value = %s new value = %s" %
+                            (cde_model.code, old_value, import_value))
 
-                    setattr(cde_model, field, import_value)
-                    # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
+                setattr(cde_model, field, import_value)
+                # logger.info("cde %s.%s set to [%s]" % (cde_model.code, field, cde_map[field]))
 
             # Assign value group - pv_group will be empty string is not a range
 
@@ -992,7 +999,7 @@ class Importer(object):
                 demo_field.status = d["status"]
             elif "hidden" in d:
                 demo_field.status = DemographicFields.HIDDEN if d["hidden"] else DemographicFields.READONLY
-            demo_field.is_section = d['is_section']
+            demo_field.is_section = d.get('is_section', False)
             demo_field.save()
             demo_field.groups.add(*groups)
 
