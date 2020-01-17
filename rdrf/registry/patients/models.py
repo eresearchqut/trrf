@@ -1069,7 +1069,7 @@ class Patient(models.Model):
 
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
-        form_model = context_form_group.form_models[0]
+        form_model = context_form_group.forms[0]
 
         def matches_context_form_group(cm):
             return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
@@ -1085,7 +1085,7 @@ class Patient(models.Model):
                                                   form_model.id,
                                                   self.pk, cm.id))
 
-        return [(link_url(cm), link_text(cm)) for cm in context_models]
+        return [(cm.id, link_url(cm), link_text(cm)) for cm in context_models]
 
     def default_context(self, registry_model):
         # return None if doesn't make sense

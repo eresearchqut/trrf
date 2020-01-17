@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 
-from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse
+from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
 from rdrf.models.definition.models import Section, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
@@ -249,7 +249,6 @@ class FormView(View):
             logger.error(
                 "Error setting rdrf context id %s for patient %s in %s: %s" %
                 (context_id, patient_model, self.registry, ex))
-
             raise RDRFContextSwitchError
 
     def _evaluate_form_rules(self, form_rules, evaluation_context):
@@ -281,7 +280,7 @@ class FormView(View):
         # is this form the only member of a multiple form group?
         form_group = None
         for cfg in registry_model.multiple_form_groups:
-            form_models = cfg.form_models
+            form_models = cfg.forms
             if len(form_models) == 1 and form_models[0].pk == form_model.pk:
                 form_group = cfg
                 break
@@ -1078,6 +1077,37 @@ class FormPrintView(FormView):
 
     def _get_template(self):
         return "rdrf_cdes/form_print.html"
+
+
+class FormListView(TemplateView):
+    template_name = "rdrf_cdes/form_list.html"
+
+    @login_required_method
+    def get(self, request, **kwargs):
+        patient_model = get_object_or_404(Patient, pk=kwargs.get('patient_id'))
+        security_check_user_patient(request.user, patient_model)
+
+        return super().get(request, **kwargs)
+
+    def _get_form_links(self, registry_code, form_id, patient_id):
+        registry = get_object_or_404(Registry, code=registry_code)
+        cfg = get_object_or_404(ContextFormGroup, pk=form_id, registry=registry)
+        patient = get_object_or_404(Patient, pk=patient_id)
+
+        return cfg.direct_name, [
+            {
+                "url": url,
+                "text": text or _("Not set"),
+            } for context_id, url, text in patient.get_forms_by_group(cfg)
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        form_name, form_links = self._get_form_links(**kwargs)
+        context["form_title"] = form_name
+        context["form_links"] = json.dumps(form_links)
+        return context
 
 
 class FormFieldHistoryView(TemplateView):

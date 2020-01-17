@@ -1672,11 +1672,11 @@ class ContextFormGroup(models.Model):
         if not self.supports_direct_linking:
             return self.name
 
-        return self.form_models[0].nice_name
+        return self.forms[0].nice_name
 
     @property
     def supports_direct_linking(self):
-        return len(self.form_models) == 1
+        return len(self.forms) == 1
 
     @property
     def is_ordered_by_name(self):
@@ -1847,11 +1847,11 @@ class ContextFormGroup(models.Model):
 
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
-            num_forms = len(self.form_models)
+            num_forms = len(self.forms)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
             from rdrf.helpers.utils import de_camelcase as dc
             action_title = "Add %s" % dc(
-                self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(
+                self.forms[0].name) if num_forms == 1 else "Add %s" % dc(
                 self.name)
 
             if not self.supports_direct_linking:
@@ -1863,7 +1863,7 @@ class ContextFormGroup(models.Model):
                                                            str(self.pk)))
 
             else:
-                form_model = self.form_models[0]
+                form_model = self.forms[0]
                 # provide a link to the create view for a clinical form
                 # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
 
@@ -1875,11 +1875,6 @@ class ContextFormGroup(models.Model):
             return action_link, action_title
         else:
             return None
-
-    @property
-    def form_models(self):
-        return sorted([item.registry_form for item in self.items.all()],
-                      key=lambda f: f.position)
 
 
 class ContextFormGroupItem(models.Model):
