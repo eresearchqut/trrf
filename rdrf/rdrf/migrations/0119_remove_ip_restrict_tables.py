@@ -19,7 +19,6 @@ class Migration(migrations.Migration):
             drop table if exists iprestrict_rule;
             delete from auth_permission where content_type_id in (select id from django_content_type where app_label = 'iprestrict');
             delete from django_admin_log where content_type_id in (select id from django_content_type where app_label = 'iprestrict');
-            delete from reversion_version where content_type_id in (select id from django_content_type where app_label = 'iprestrict');
             delete from django_content_type where app_label = 'iprestrict';
             delete from django_migrations where app='iprestrict';
         ''')
