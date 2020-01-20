@@ -137,10 +137,6 @@ def django_import(export_name):
         ["import", "{0}/{1}".format(exported_data_path(), export_name)], fail_on_error=True)
 
 
-def django_reloadrules():
-    django_admin(["reload_rules"])
-
-
 def django_init_dev():
     django_admin(["init", "DEV"])
 
