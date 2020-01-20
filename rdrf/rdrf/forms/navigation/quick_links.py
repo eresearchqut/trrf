@@ -52,9 +52,6 @@ class LinkDefs:
     LoginLog = make_link("admin:useraudit_loginlog_changelist", _("User Login Log"))
     FailedLoginLog = make_link("admin:useraudit_failedloginlog_changelist", _("User Failed Login Log"))
     LoginAttempts = make_link("admin:useraudit_loginattempt_changelist", _("User Login Attempts Log"))
-    IPRestrictRangeGroup = make_link("admin:iprestrict_rangebasedipgroup_changelist", _("IP Restrict Groups"))
-    IPRestrictGeoGroup = make_link("admin:iprestrict_locationbasedipgroup_changelist", _("IP Restrict Geolocations"))
-    IPRestrictRule = make_link("admin:iprestrict_rule_changelist", _("IP Restrict Rules"))
     Sites = make_link("admin:sites_site_changelist", _("Sites"))
     ParentGuardian = make_link("admin:patients_parentguardian_changelist", _("Parents/Guardians"))
 
@@ -150,11 +147,6 @@ class RegularLinks(Links):
         LinkDefs.EmailNotification,
         LinkDefs.EmailTemplate,
         LinkDefs.EmailNotificationHistory,
-    )
-    IP_RESTRICT = make_entries(
-        LinkDefs.IPRestrictRangeGroup,
-        LinkDefs.IPRestrictGeoGroup,
-        LinkDefs.IPRestrictRule
     )
     OTHER = make_entries(
         LinkDefs.Sites,
@@ -322,7 +314,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.DOCTORS,
             **RegularLinks.EMAIL,
             **RegularLinks.FAMILY_LINKAGE,
-            **RegularLinks.IP_RESTRICT,
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.QUESTIONNAIRE,

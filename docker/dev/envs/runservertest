@@ -3,7 +3,7 @@ CLINICAL_DBSERVER=dbclinicaltest
 REPORTING_DBSERVER=dbreportingtest
 CACHESERVER=cachetest
 
-DJANGO_FIXTURES=iprestrict_permissive
+DJANGO_FIXTURES=DEV
 DESIGN_MODE=1
 ALLOWED_HOSTS=*
 

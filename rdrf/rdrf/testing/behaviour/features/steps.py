@@ -568,11 +568,6 @@ def click_cancel(step):
     utils.click(link)
 
 
-@step('I reload iprestrict')
-def reload_iprestrict(step):
-    utils.django_reloadrules()
-
-
 @step('enter value "(.*)" for "(.*)"')
 def enter_value_for_named_element(step, value, name):
     # try to find place holders, labels etc
