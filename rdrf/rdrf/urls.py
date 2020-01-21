@@ -31,7 +31,6 @@ from registration.backends.default.views import ActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
-from rdrf.views.lookup_views import UsernameLookup
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
@@ -296,10 +295,6 @@ normalpatterns += [
 
     re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
-    # ---- Look-ups URLs -----------------------
-    re_path(r"^lookup/username/(?P<username>[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4})/?$",
-            UsernameLookup.as_view(), name="lookup_username"),
-    # -------------------------------------------
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',
             RdrfRegistrationView.as_view(),
