@@ -7,7 +7,6 @@ from django.core.exceptions import PermissionDenied
 
 import json
 
-from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -137,17 +136,3 @@ class FamilyLookup(View):
     def _get_working_group_name(self, patient_model):
         wgs = ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))
         return "No link - patient in " + wgs
-
-
-class UsernameLookup(View):
-
-    def get(self, request, username):
-        result = {}
-
-        try:
-            CustomUser.objects.get(username=username)
-            result["existing"] = True
-        except CustomUser.DoesNotExist:
-            result["existing"] = False
-
-        return HttpResponse(json.dumps(result))

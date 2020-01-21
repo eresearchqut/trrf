@@ -117,23 +117,6 @@
                 }
             });
 
-            $("#id_username").focusout(function() {
-                if (!$('#id_username').valid()) {
-                    // not a valid email address. Skip checking for existence.
-                    return;
-                };
-                var url = "{% url 'lookup_username' 'replace-me@domain.com' %}";
-                url = url.replace("replace-me@domain.com", $(this).val());
-
-                $.getJSON(url, function(data) {
-                    if (data.existing == true) {
-                        $("#username-error").show("fast");
-                    } else {
-                        $("#username-error").hide("fast");
-                    }
-                });
-            });
-
             $('[data-toggle="tooltip"]').tooltip();
 
             {% if not is_mobile %}
