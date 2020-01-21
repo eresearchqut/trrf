@@ -1,7 +1,7 @@
 from operator import attrgetter
 import pycountry
 from django.forms import CharField, ChoiceField, DateField, BooleanField
-from django.forms.widgets import RadioSelect, Select
+from django.forms.widgets import RadioSelect, Select, EmailInput
 from django.utils.translation import gettext as _
 
 from registration.forms import RegistrationForm
@@ -55,6 +55,7 @@ class PatientRegistrationForm(RegistrationForm):
         self.setup_fields()
 
     def setup_fields(self):
+        self.fields['username'].widget = EmailInput(attrs={})
         for field in self.fields:
             if field not in self.no_placeholder_fields:
                 self.fields[field].widget.attrs['class'] = 'form-control'

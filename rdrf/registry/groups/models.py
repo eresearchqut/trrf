@@ -88,6 +88,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "username"
 
+    class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
+
     objects = UserManager()
 
     @property
