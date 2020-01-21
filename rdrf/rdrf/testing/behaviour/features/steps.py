@@ -153,7 +153,6 @@ def sleep_for_admin(step):
 @step('development fixtures')
 def load_development_fixtures(step):
     utils.django_init_dev()
-    utils.django_reloadrules()
 
 
 @step('export "(.*)"')
@@ -566,11 +565,6 @@ def click_cancel(step):
     link = world.browser.find_element_by_xpath(
         '//a[@class="btn btn-danger" and contains(., "Cancel")]')
     utils.click(link)
-
-
-@step('I reload iprestrict')
-def reload_iprestrict(step):
-    utils.django_reloadrules()
 
 
 @step('enter value "(.*)" for "(.*)"')

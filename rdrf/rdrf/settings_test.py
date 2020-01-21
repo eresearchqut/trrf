@@ -14,6 +14,3 @@ TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
 # We don't want to run against the Test DB and we don't want a Transaction Test Case
 GHERKIN_TEST_RUNNER = 'rdrf.testing.behaviour.features.runner.GherkinNoDjangoTestDBTestRunner'
 GHERKIN_TEST_CLASS = 'aloe.testclass.TestCase'
-
-MIGRATION_MODULES = {"iprestrict": None}
-IPRESTRICT_GEOIP_ENABLED = False
