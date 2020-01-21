@@ -162,6 +162,14 @@ phases:
                 {
                   "name": "DEBUG",
                   "value": "$DEBUG"
+                },
+                {
+                  "name": "NEW_RELIC_APP_NAME",
+                  "value": "$NEW_RELIC_APP_NAME"
+                },
+                {
+                  "name": "NEW_RELIC_MONITOR_MODE",
+                  "value": "$NEW_RELIC_MONITOR_MODE"
                 }
               ],
               "image": "$IMAGE_REPO:qa",
@@ -206,6 +214,10 @@ phases:
                 {
                   "name": "DBPASS",
                   "valueFrom": "$DBPASS"
+                },
+                {
+                  "name": "NEW_RELIC_LICENSE_KEY",
+                  "valueFrom": "$NEW_RELIC_LICENSE_KEY"
                 }
               ]
             }
