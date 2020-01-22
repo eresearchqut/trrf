@@ -1725,6 +1725,7 @@ PatientDTO = namedtuple('PatientDTO', (
     'display_name',
     'umrn',
     'date_of_birth',
+    'age',
     'date_of_death',
     'place_of_birth',
     'date_of_migration',
@@ -1750,4 +1751,8 @@ PatientDTO = namedtuple('PatientDTO', (
     'next_of_kin_country',
     'living_status',
     'patient_type',
+    'is_linked',
+    'is_index',
+    'my_index',
+    'has_guardian',
 ))
