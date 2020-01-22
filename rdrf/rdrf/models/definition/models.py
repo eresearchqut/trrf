@@ -930,7 +930,7 @@ class CdePolicy(models.Model):
             return True
         # need to think about safety here
 
-        context = {"patient": patient_model}
+        context = {"patient": patient_model.as_dto()}
         result = eval(self.condition, {"__builtins__": None}, context)
         return result
 
@@ -1137,7 +1137,7 @@ class RegistryForm(models.Model):
         if not self.applicability_condition:
             return True
 
-        evaluation_context = {"patient": patient}
+        evaluation_context = {"patient": patient.as_dto()}
 
         try:
             is_applicable = eval(self.applicability_condition,
@@ -1347,7 +1347,7 @@ class ConsentSection(models.Model):
             except ParentGuardian.DoesNotExist:
                 pass
 
-            function_context = {"patient": patient, "self_patient": self_patient}
+            function_context = {"patient": patient.as_dto(), "self_patient": self_patient.as_dto()}
 
             is_applicable = eval(
                 self.applicability_condition, {"__builtins__": None}, function_context)
