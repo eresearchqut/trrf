@@ -4,7 +4,10 @@
 {% load lookup %}
 <script>
   // Taken from https://stackoverflow.com/a/16861050
-  function popupCenter(url, title, w, h) {
+  function popupCenter(url, title) {
+      var w = window.screen.width * 0.25;
+      var h = window.screen.height * 0.5;
+
       var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
       var dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
 
@@ -133,7 +136,7 @@
             {% if not context.all_existing_links_shown %}
                 <div class="panel-footer">
                   <span>
-                    <a href="{{ context.list_link }}" target="popup" onclick="popupCenter('{{ context.list_link }}', '{{context.heading}}', 600, 600); return false;">
+                    <a href="{{ context.list_link }}" target="popup" onclick="popupCenter('{{ context.list_link }}', '{{context.heading}}'); return false;">
                       {% if context.existing_links_index == -1 %}
                           {% trans "Show all" %} ({{ context.existing_links_len }})
                       {% else %}
