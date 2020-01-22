@@ -28,6 +28,13 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
+
+from rdrf.models.definition.review_models import Review
+from rdrf.models.definition.review_models import ReviewItem
+from rdrf.models.definition.review_models import PatientReview
+from rdrf.models.definition.review_models import PatientReviewItem
+from rdrf.models.definition.verification_models import Verification
+
 from rdrf.system_role import SystemRoles
 
 
@@ -438,6 +445,45 @@ class CDEFileAdmin(admin.ModelAdmin):
     list_display = ("form_name", "section_code", "cde_code", "item")
 
 
+class ReviewItemAdmin(admin.StackedInline):
+    model = ReviewItem
+    ordering = ['position']
+
+
+class ReviewAdmin(admin.ModelAdmin):
+    model = Review
+    list_display = ("registry", "name", "code")
+    inlines = [ReviewItemAdmin]
+
+
+class PatientReviewItemAdmin(admin.StackedInline):
+    model = PatientReviewItem
+
+
+class PatientReviewAdmin(admin.ModelAdmin):
+    model = PatientReview
+    list_display = ("patient",
+                    "parent",
+                    "token",
+                    "created_date",
+                    "completed_date",
+                    "state")
+    inlines = [PatientReviewItemAdmin]
+
+
+class VerificationAdmin(admin.ModelAdmin):
+    model = Verification
+    list_display = ("patient",
+                    "registry",
+                    "form_name",
+                    "section_code",
+                    "cde_code",
+                    "created_date",
+                    "status",
+                    "username",
+                    "data")
+
+
 class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
     form = FormTitleAdminForm
@@ -501,7 +547,10 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Notification, NotificationAdmin),
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
-    (FormTitle, FormTitleAdmin)
+    (FormTitle, FormTitleAdmin),
+    (Review, ReviewAdmin),
+    (PatientReview, PatientReviewAdmin),
+    (Verification, VerificationAdmin),
 ]
 
 ADMIN_COMPONENTS = []

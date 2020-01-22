@@ -244,6 +244,7 @@ class Exporter:
         data["consent_rules"] = self._get_consent_rules()
         data["surveys"] = self._get_surveys()
         data["form_titles"] = self._get_form_titles()
+        data["reviews"] = self._get_reviews()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -343,6 +344,7 @@ class Exporter:
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
+            cde_map["abnormality_condition"] = cde_model.abnormality_condition
 
             data["cdes"].append(cde_map)
 
@@ -594,6 +596,16 @@ class Exporter:
             survey_dict["display_name"] = survey_model.display_name
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
+            if survey_model.context_form_group:
+                cfg = survey_model.context_form_group.name
+            else:
+                cfg = ""
+            survey_dict["context_form_group"] = cfg
+
+            if survey_model.form:
+                survey_dict["form"] = survey_model.form.name
+            else:
+                survey_dict["form"] = ""
 
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}
@@ -649,6 +661,36 @@ class Exporter:
             }
             data.append(rule_dict)
         return data
+
+    def _get_reviews(self):
+        from rdrf.models.definition.review_models import Review
+        review_dicts = []
+        for review_model in Review.objects.filter(registry=self.registry).order_by("name"):
+            review_dict = {}
+            review_dict["name"] = review_model.name
+            review_dict["code"] = review_model.code
+            review_dict["review_type"] = review_model.review_type
+            review_dict["items"] = []
+            for review_item in review_model.items.all().order_by("position"):
+                item_dict = {}
+                item_dict["position"] = review_item.position
+                item_dict["item_type"] = review_item.item_type
+                item_dict["category"] = review_item.category
+                item_dict["name"] = review_item.name
+                item_dict["code"] = review_item.code
+                item_dict["form"] = ""
+                if review_item.form:
+                    item_dict["form"] = review_item.form.name
+                item_dict["section"] = ""
+                if review_item.section:
+                    item_dict["section"] = review_item.section.code
+                item_dict["target_code"] = review_item.target_code
+                item_dict["fields"] = review_item.fields
+                item_dict["summary"] = review_item.summary
+                item_dict["appearance_condition"] = review_item.appearance_condition
+                review_dict["items"].append(item_dict)
+            review_dicts.append(review_dict)
+        return review_dicts
 
 
 def str_presenter(dumper, data):

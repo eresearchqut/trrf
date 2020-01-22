@@ -5,6 +5,8 @@ import logging
 import os.path
 import yaml
 
+from pyparsing import Word, nums, Optional, delimitedList, alphanums, Literal, LineEnd, LineStart
+
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -31,6 +33,10 @@ from rdrf.helpers.registry_features import RegistryFeatures
 
 
 logger = logging.getLogger(__name__)
+class InvalidAbnormalityConditionError(Exception):
+    pass
+
+
 
 
 class InvalidQuestionnaireError(Exception):
@@ -98,9 +104,9 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if " " in self.code:
+        if any(x in self.code for x in (" ", "&")):
             errors["code"] = ValidationError(
-                "Section %s code '%s' contains spaces" %
+                "Section %s code '%s' should not contain spaces or &" %
                 (self.display_name, self.code))
 
         if errors:
@@ -621,6 +627,10 @@ class CommonDataElement(models.Model):
         max_digits=10,
         decimal_places=2,
         help_text="Only used for numeric fields")
+    abnormality_condition = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Rules triggering a visual notification encouraging the user to process with further investigations")
     is_required = models.BooleanField(
         default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(
@@ -718,6 +728,13 @@ class CommonDataElement(models.Model):
                 "CDE [%s] has space(s) in code - this causes problems please remove" %
                 self.code)
 
+        if self.abnormality_condition:
+            if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
+                raise ValidationError(
+                    f"""The abnormality condition is incorrect. It should something like
+                        x in ("code_1", "code_2"), or x <= 10
+                        """)
+
         # check javascript calculation for naughty code
         if self.calculation.strip():
             err = check_calculation(self.calculation).strip()
@@ -730,6 +747,68 @@ class CommonDataElement(models.Model):
             raise ValidationError({
                 'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
             })
+
+    def is_abnormal(self, value):
+        if self.abnormality_condition:
+
+            # some sanity check
+            # ignore any non integer / float / string values (.i.e. we ignore multiple selectors)
+            # (if you add a list to the condition, it will be critical to validate deeply the list value to avoid hack)
+            if not isinstance(value, str) and not isinstance(value, float) and not isinstance(value, int):
+                return False
+
+            # some sanity checks (it could happen because we updated the validation to be more restrictive
+            # but we did not update the existing abnormality_condition to match the new restriction)
+            if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
+                raise InvalidAbnormalityConditionError(
+                    f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
+
+            # extract each individual rules from abnormality_condition
+            # ignore empty lines
+            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if
+                                           rule.strip()]
+
+            return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
+
+        # no abnormality condition
+        return False
+
+
+def validate_abnormality_condition(abnormality_condition, datatype):
+    abnormality_condition_lines = list(
+        filter(None, map(lambda rule: rule.strip(), abnormality_condition.split("\r\n")))
+    )
+    return all(validate_rule(rule, datatype) for rule in abnormality_condition_lines)
+
+
+def validate_rule(rule, datatype):
+    # numeric rules
+    eq = Literal("==")
+    le = Literal("<=")
+    ge = Literal(">=")
+    lo = Literal("<")
+    g = Literal(">")
+    quote = "\""
+
+    parsing_formats = None
+    if datatype in ["range", "string"]:
+        string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
+        string_list_expression = 'x' + Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
+        parsing_formats = string_equality_expression | string_list_expression
+
+    if datatype in ["integer", "float"]:
+        number = Optional('-') + Word(nums) + Optional('.' + Word(nums))
+        numeric_expression = 'x' + (eq | le | ge | lo | g) + number
+        numeric_list_expression = 'x' + Literal('in') + "[" + (delimitedList(number, ',')) + "]"
+        parsing_formats = numeric_expression | numeric_list_expression
+
+    # If we can not find any matching rule (should only happen when a designer edit the CDE).
+    if parsing_formats is None:
+        raise ValidationError(
+            f"This CDE datatype \"{datatype}\" is not supported by the abnormality field.")
+
+    parsing_formats = LineStart() + parsing_formats + LineEnd()
+    return list(parsing_formats.scanString(rule))
 
     def save(self, *args, **kwargs):
         if self.widget_name is not None:

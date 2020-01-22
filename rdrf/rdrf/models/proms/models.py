@@ -1,17 +1,28 @@
+from rest_framework import status
 import logging
 import requests
-
 from django.db import models
 from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ContextFormGroup
 from rdrf.services.io.notifications.notifications import Notifier
 from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
 
-from rest_framework import status
+
+def clean(s):
+    return s.replace("'", "").replace('"', "")
+
+
+def clean_options(options):
+    for option_dict in options:
+        option_dict['text'] = clean(option_dict['text'])
+    return options
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +40,16 @@ class Survey(models.Model):
     name = models.CharField(max_length=80)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     is_followup = models.BooleanField(default=False)
+    context_form_group = models.ForeignKey(ContextFormGroup,
+                                           blank=True,
+                                           null=True,
+                                           on_delete=models.SET_NULL)
+
+    # if this set will on try to populate this form on proms pull
+    form = models.ForeignKey(RegistryForm,
+                             blank=True,
+                             null=True,
+                             on_delete=models.SET_NULL)
 
     @property
     def client_rep(self):
@@ -82,8 +103,8 @@ class SurveyQuestion(models.Model):
                     "cde": self.cde.code,
                     "datatype": self.cde.datatype,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": self.cde.name,
-                    "survey_question_instruction": self.instruction,
+                    "title": clean(self.cde.name),
+                    "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "spec": self._get_cde_specification()}
@@ -92,9 +113,9 @@ class SurveyQuestion(models.Model):
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
-                    "title": self.cde.name,
+                    "title": clean(self.cde.name),
                     "spec": self._get_cde_specification(),
-                    "survey_question_instruction": self.instruction,
+                    "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
                     "cond": {"op": "=",
@@ -105,7 +126,7 @@ class SurveyQuestion(models.Model):
 
     def _get_options(self):
         if self.cde.datatype == 'range':
-            return self.cde.pv_group.options
+            return clean_options(self.cde.pv_group.options)
         else:
             return []
 
@@ -113,13 +134,14 @@ class SurveyQuestion(models.Model):
         if self.cde.datatype == 'range':
             return {
                 "tag": "range",
-                "options": self._get_options()
+                "options": self._get_options(),
+                "allow_multiple": self.cde.allow_multiple,  # allow for multiselect options
             }
         elif self.cde.datatype == 'integer':
             return {
                 "tag": "integer",
                 "max": int(self.cde.max_value),
-                "min": int(self.cde.min_value)
+                "min": int(self.cde.min_value),
             }
 
     @property
@@ -295,14 +317,30 @@ class SurveyRequest(models.Model):
         return "%s %s Survey" % (self.registry.name,
                                  self.survey_name)
 
+    @property
+    def display_name(self):
+        survey_model = Survey.objects.get(name=self.survey_name,
+                                          registry=self.registry)
+        if survey_model.display_name:
+            return survey_model.display_name
+
+        return self.survey_name
+
     def _send_email(self):
         logger.debug("sending email to user with link")
         try:
             emailer = Notifier()
             subject_line = "%s %s Survey Request" % (self.registry.name,
                                                      self.survey_name)
-            email_body = "Please use the following link to take the %s survey: %s" % (self.name,
-                                                                                      self.email_link)
+            email_body = f"""You are receiving this email because you agreed to take part in the Continuous Improvement in Care - Cancer Project.
+
+We would appreciate if you could complete the following survey prior to your next appointment with the doctor.
+
+Your answers will help your doctor to identify any areas where you are having problems, so that these can be addressed promptly.
+
+Please click on the following link to begin the survey:
+
+{self.email_link}"""
 
             emailer.send_email(self.patient.email,
                                subject_line,

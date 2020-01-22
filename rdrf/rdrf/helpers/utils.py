@@ -749,6 +749,49 @@ def get_site(request=None):
             return "http://localhost:8000"
 
 
+def check_models(registry_model, form_model, section_model, cde_model):
+    # raise an error if this quadruple not correct in given registry
+    for f in registry_model.forms:
+        if f.id == form_model.id:
+            for s in f.section_models:
+                if s.id == section_model.id:
+                    for c in s.cde_models:
+                        if c.id == cde_model.id:
+                            return True
+
+    raise ValueError("%s/%s/%s/%s not consistent" % (registry_model, form_model, section_model, cde_model))
+
+
+def is_authorised(user, patient_model):
+    if user.is_superuser:
+        return True
+    from registry.patients.models import ParentGuardian
+    # is the given user allowed to see this patient
+    # patient IS user:
+    if patient_model.user and patient_model.user.id == user.id:
+        return True
+    # user is parent of patient
+    try:
+        pg = ParentGuardian.objects.get(user=user)
+        if pg.user and pg.user.id == user.id:
+            if patient_model.id in [p.id for p in pg.children]:
+                return True
+    except ParentGuardian.DoesNotExist:
+        pass
+
+    # otherwise, is the user in (some of) the same working group(s)
+
+    user_wgs = set([wg.id for wg in user.working_groups.all()])
+    patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
+    common = user_wgs.intersection(patient_wgs)
+    if common and not user.is_parent:
+        return True
+
+    logger.info("user %s is not authorised for patient %s" % (user, patient_model.pk))
+
+    return False
+
+
 def get_preferred_languages():
     # Registration allows choice of preferred language
     # But we allow different sites to expose different values
