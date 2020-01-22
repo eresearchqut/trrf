@@ -222,7 +222,7 @@ if [ "$1" = 'uwsgi_ssl_fargate' ]; then
 
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-    exec ${nr_command} uwsgi --master --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+    exec ${nr_command} uwsgi --master --enable-threads --single-interpreter --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
 
