@@ -7,6 +7,7 @@ import jsonschema
 import errno
 import os
 
+explanation = "This command checks for schema validation errors"
 SCHEMA_FILE = "modjgo.yaml"
 
 
@@ -24,6 +25,9 @@ class Command(BaseCommand):
                             default="cdes",
                             choices=['cdes', 'history', 'progress', 'registry_specific'],
                             help='Collection name')
+
+    def _usage(self):
+        print(explanation)
 
     def _print(self, msg):
         self.stdout.write(msg + "\n")

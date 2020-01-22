@@ -6,6 +6,9 @@ from explorer.utils import create_field_values
 
 
 class Command(BaseCommand):
+    """
+    (re)-create field values for reporting
+    """
     help = "Creates field values for reporting"
 
     def handle(self, *args, **options):
