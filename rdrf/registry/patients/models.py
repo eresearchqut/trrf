@@ -1,5 +1,6 @@
-import json
+from collections import namedtuple
 import datetime
+import json
 import logging
 from operator import attrgetter
 import pycountry
@@ -360,6 +361,9 @@ class Patient(models.Model):
             ("can_see_data_modules", _("Can see Data Modules column")),
             ("can_see_code_field", _("Can see Code Field column"))
         )
+
+    def as_dto(self):
+        return PatientDTO(**{f: getattr(self, f) for f in PatientDTO._fields})
 
     @property
     def code_field(self):
@@ -1707,3 +1711,43 @@ class PatientGUID(models.Model):
     guid = models.CharField(max_length=16, unique=True)
 
     objects = PatientGUIDManager()
+
+
+PatientDTO = namedtuple('PatientDTO', (
+    'id',
+    'consent',
+    'consent_clinical_trials',
+    'consent_sent_information',
+    'consent_provided_by_parent_guardian',
+    'family_name',
+    'given_names',
+    'maiden_name',
+    'display_name',
+    'umrn',
+    'date_of_birth',
+    'date_of_death',
+    'place_of_birth',
+    'date_of_migration',
+    'country_of_birth',
+    'ethnic_origin',
+    'sex',
+    'home_phone',
+    'mobile_phone',
+    'work_phone',
+    'email',
+    'next_of_kin_family_name',
+    'next_of_kin_given_names',
+    'next_of_kin_relationship_id',
+    'next_of_kin_address',
+    'next_of_kin_suburb',
+    'next_of_kin_state',
+    'next_of_kin_postcode',
+    'next_of_kin_home_phone',
+    'next_of_kin_mobile_phone',
+    'next_of_kin_work_phone',
+    'next_of_kin_email',
+    'next_of_kin_parent_place_of_birth',
+    'next_of_kin_country',
+    'living_status',
+    'patient_type',
+))
