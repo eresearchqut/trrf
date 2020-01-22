@@ -1,0 +1,51 @@
+{% load i18n admin_static %}
+<div class="panel panel-primary collapse hidden-fields" id="notification-fields">
+    <div class="panel-heading">
+        {% trans "New notification" %}
+    </div>
+    <div class="panel-body">
+        <div class="fieldWrapper">
+            {{ from_address.errors }}
+            {{ from_address.label_tag }} {{ from_address }}
+        </div>
+        <br>
+        <div class="fieldWrapper">
+            {{ disabled.errors }}
+            {{ disabled.label_tag }} {{ disabled }}
+        </div>
+        <br>
+    </div>
+</div>
+<div class="panel panel-info collapse hidden-fields">
+    <div class="panel-heading">
+        {% trans "Notification templates" %}
+    </div>
+    <div class="panel-body">
+        {% for template in templates %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="fieldWrapper">
+                        {{ template.language.errors }}
+                        {{ template.language.label_tag }} {{ template.language }}
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="fieldWrapper">
+                        {{ template.description.errors }}
+                        {{ template.description.label_tag }} {{ template.description }}
+                    </div>
+                    <br>
+                    <div class="fieldWrapper">
+                        {{ template.subject.errors }}
+                        {{ template.subject.label_tag }} {{ template.subject }}
+                    </div>
+                    <br>
+                    <div class="fieldWrapper">
+                        {{ template.body.errors }}
+                        {{ template.body.label_tag }} {{ template.body }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

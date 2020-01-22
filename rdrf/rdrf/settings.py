@@ -581,19 +581,6 @@ ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS = env.get('account_authenticated_re
 # Patient Registration
 REGISTRATION_FORM = "rdrf.forms.registration_forms.PatientRegistrationForm"
 REGISTRATION_CLASS = "registry.groups.registration.patient.PatientRegistration"
-DEFAULT_REGISTRATION_TEMPLATE = """<p>Dear {{patient.given_names}} {{patient.family_name|title}},</p>
-
-<p>Thank you for registering.</p>
-
-<p>Please click the following activation link to verify your account, or copy and paste into a web browser and log into the registry. This link will expire in 2 days.</p>
-
-<p><a href="{{ activation_url }}">Activation link</a></p>
-
-<p>If needed, we will contact you by e-mail at {{patient.user.email}}.</p>
-
-<p>Yours sincerely,<br>
-The Registry Team</p>
-"""
 
 # Parent Registration (also adding a patient at registration time)
 # REGISTRATION_FORM = "rdrf.forms.registration_forms.ParentWithPatientRegistrationForm"

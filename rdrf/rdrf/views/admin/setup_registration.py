@@ -14,11 +14,14 @@ from rdrf.events.events import EventType
 from rdrf.forms.admin.registry_registration import RegistrationAdminForm
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, EmailNotification
+from rdrf.views.admin.registration_notifications import DEFAULT_NOTIFICATIONS
 
 logger = logging.getLogger(__name__)
 
 
 class SetupRegistrationView(View):
+    notifications = DEFAULT_NOTIFICATIONS
+
     @staticmethod
     def missing_cache_table():
         for cache_alias in settings.CACHES:
@@ -33,13 +36,7 @@ class SetupRegistrationView(View):
         if missing_table:
             messages.error(request, _(f"Cache table '{missing_table}' is missing. Run django-admin createcachetable"))
 
-        form = RegistrationAdminForm(initial={
-            'enable_registration': registry.has_feature(RegistryFeatures.REGISTRATION),
-            'from_address': settings.DEFAULT_FROM_EMAIL,
-            'description': _("Patient registration"),
-            'subject': f"{_('Welcome to the')} {registry.name} registry",
-            'body': _(settings.DEFAULT_REGISTRATION_TEMPLATE),
-        })
+        form = RegistrationAdminForm(self.notifications)
 
         context = {
             'existing_notifications': EmailNotification.objects.filter(
@@ -53,7 +50,7 @@ class SetupRegistrationView(View):
 
     def post(self, request, registry_code):
         registry = Registry.objects.get(code=registry_code)
-        form = RegistrationAdminForm(request.POST)
+        form = RegistrationAdminForm(self.notifications, request.POST)
 
         if form.is_valid():
             with transaction.atomic():
@@ -66,17 +63,24 @@ class SetupRegistrationView(View):
                 registry.save()
 
                 if form.cleaned_data['new_notification']:
-                    notification = EmailNotification(
-                        description=EventType.NEW_PATIENT,
-                        registry=registry,
-                        email_from=form.cleaned_data['from_address'],
-                        recipient="{{ patient.user.email }}"
-                    )
-                    notification.save()
-                    notification.email_templates.create(
-                        language=form.cleaned_data['language'],
-                        description=form.cleaned_data['description'],
-                        subject=form.cleaned_data['subject'],
-                        body=form.cleaned_data['body'],
-                    )
+                    for notification_data in DEFAULT_NOTIFICATIONS:
+                        name = notification_data.name
+
+                        notification = EmailNotification(
+                            description=EventType.NEW_PATIENT,
+                            registry=registry,
+                            email_from=form.cleaned_data[f'{name}_from_address'],
+                            recipient="{{ patient.user.email }}"
+                        )
+                        notification.save()
+
+                        for template in notification_data.templates:
+                            language = template.language
+
+                            notification.email_templates.create(
+                                language=form.cleaned_data[f'{name}_{language}_language'],
+                                description=form.cleaned_data[f'{name}_{language}_description'],
+                                subject=form.cleaned_data[f'{name}_{language}_subject'],
+                                body=form.cleaned_data[f'{name}_{language}_body'],
+                            )
             return HttpResponseRedirect(reverse("admin:rdrf_registry_changelist"))

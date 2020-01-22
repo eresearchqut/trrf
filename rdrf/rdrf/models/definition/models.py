@@ -1510,7 +1510,7 @@ class EmailTemplate(models.Model):
     body = models.TextField()
 
     def __str__(self):
-        return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
+        return "%s (%s)" % (self.description, dict(settings.ALL_LANGUAGES)[self.language])
 
 
 class EmailNotification(models.Model):

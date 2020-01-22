@@ -73,8 +73,10 @@
                 </table>
             </div>
             <div class="panel-footer">
-                <p>{% trans "Edit existing notifications " %} <a
-                        href="{% url "admin:rdrf_emailnotification_changelist" %}">{% trans "here" %}</a></p>
+                <p>
+                    {% trans "Edit existing notifications " %}
+                    <a href="{% url "admin:rdrf_emailnotification_changelist" %}">{% trans "here" %}</a>
+                </p>
             </div>
         </div>
     {% endif %}
@@ -98,50 +100,15 @@
                 <div class="fieldWrapper" id="section-expander">
                     {{ form.new_notification.errors }}
                     {{ form.new_notification.label_tag }}
-                    <label data-toggle="collapse" data-target="#template-fields,#notification-fields">
+                    <label data-toggle="collapse" data-target=".hidden-fields">
                         {{ form.new_notification }}
                     </label>
                 </div>
             </div>
         </div>
-        <div class="panel panel-info collapse" id="notification-fields">
-            <div class="panel-heading">
-                {% trans "New notification" %}
-            </div>
-            <div class="panel-body">
-                <div class="fieldWrapper">
-                    {{ form.from_address.errors }}
-                    {{ form.from_address.label_tag }} {{ form.from_address }}
-                </div>
-                <br>
-            </div>
-        </div>
-        <div class="panel panel-info collapse" id="template-fields">
-            <div class="panel-heading">
-                {% trans "New template" %}
-            </div>
-            <div class="panel-body">
-                <div class="fieldWrapper">
-                    {{ form.language.errors }}
-                    {{ form.language.label_tag }} {{ form.language }}
-                </div>
-                <br>
-                <div class="fieldWrapper">
-                    {{ form.description.errors }}
-                    {{ form.description.label_tag }} {{ form.description }}
-                </div>
-                <br>
-                <div class="fieldWrapper">
-                    {{ form.subject.errors }}
-                    {{ form.subject.label_tag }} {{ form.subject }}
-                </div>
-                <br>
-                <div class="fieldWrapper">
-                    {{ form.body.errors }}
-                    {{ form.body.label_tag }} {{ form.body }}
-                </div>
-            </div>
-        </div>
+
+        {{ form.render_notifications }}
+
         <input type="submit" value="{% trans "Submit" %}">
         <br>
         <br>
