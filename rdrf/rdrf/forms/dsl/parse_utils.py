@@ -128,7 +128,8 @@ class CDEHelper:
     def get_data_type(self, cde):
         return self.cde_values_dict.get(cde, {}).get('type', None)
 
-    def is_valid_value(self, cde, value):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def is_valid_value(self, cde, value):   # noqa: C901
 
         def validate_date(v):
             try:

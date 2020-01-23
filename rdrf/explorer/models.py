@@ -69,8 +69,10 @@ class FieldValue(models.Model):
             else:
                 return model.raw_value
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @classmethod
-    def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
+    def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model,  # noqa: C901
+            index, value):
         datatype = cde_model.datatype.strip().lower()
         model, _ = cls.objects.get_or_create(
             registry=registry_model,
@@ -185,7 +187,8 @@ class FieldValue(models.Model):
 
         return name
 
-    def get_typed_value(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def get_typed_value(self):  # noqa: C901
         # 'text', 'email', 'range', 'integer',
         # 'file', 'string', 'float', 'String', 'date', 'striing',
         # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}

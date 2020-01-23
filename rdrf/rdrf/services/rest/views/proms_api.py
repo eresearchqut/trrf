@@ -147,7 +147,8 @@ class PromsProcessor:
 
                 self._update_proms_fields(survey_request, survey_data)
 
-    def _update_proms_fields(self, survey_request, survey_data):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _update_proms_fields(self, survey_request, survey_data):  # noqa: C901
         from rdrf.models.definition.models import RDRFContext
         from rdrf.models.definition.models import ContextFormGroup
         # pokes downloaded proms into correct fields inside

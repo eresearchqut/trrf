@@ -340,7 +340,8 @@ def timed(func):
     return wrapper
 
 
-def get_cde_value(form_model, section_model, cde_model, patient_record):
+# TODO: Refactor to meet cyclomatic complexity requirements
+def get_cde_value(form_model, section_model, cde_model, patient_record):  # noqa: C901
     # should refactor code everywhere to use this func
     if patient_record is None:
         return None
@@ -562,7 +563,8 @@ class TimeStripper(object):
                                                                                     ex))
                     raise   # rollback
 
-    def munge_data(self, data):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def munge_data(self, data):  # noqa: C901
         updated = 0
         if "forms" in data:
             for form in data["forms"]:

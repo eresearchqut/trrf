@@ -227,8 +227,9 @@ class FormDataParser(object):
         self.global_timestamp = t
         self.form_timestamps[form_timestamp] = t
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @property
-    def nested_data(self):
+    def nested_data(self):  # noqa: C901
         if not self.parse_all_forms:
             self._parse()
         else:

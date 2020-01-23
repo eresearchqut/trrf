@@ -163,7 +163,8 @@ class SpreadSheetCreator(object):
         print("applying validation %s to column %s" % (validation, column))
         self.sheet.data_validation(applicable_cells, validation)
 
-    def _get_type(self, cde_dict):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _get_type(self, cde_dict):  # noqa: C901
         print("getting type for cde %s" % cde_dict)
         datatype = cde_dict['datatype'].lower().strip()
         if datatype in ['string', 'text']:

@@ -170,7 +170,8 @@ class ReportingTableGenerator(object):
         self._create_must_exist_columns()
         self.col_map = self._create_clinical_columns(mongo_metadata)
 
-    def _create_clinical_columns(self, mongo_metadata):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_clinical_columns(self, mongo_metadata):  # noqa: C901
         # FH-22 ...
         # given triples of form_model, section_model and cde_models + a column name
         # create the correctly typed column in postgres

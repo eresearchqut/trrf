@@ -698,7 +698,8 @@ class PatientEditView(PatientFormMixin, View):
             return None
         return "todo"
 
-    def post(self, request, registry_code, patient_id):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def post(self, request, registry_code, patient_id):  # noqa: C901
         user = request.user
         patient = Patient.objects.get(id=patient_id)
         security_check_user_patient(user, patient)

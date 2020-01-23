@@ -43,7 +43,8 @@ class RulesEvaluator:
             if condition:
                 return self._eval_action(action)
 
-    def _eval(self, expr):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _eval(self, expr):  # noqa: C901
         logger.debug("evaluating expr %s" % expr)
         # atoms evaluate themselves
         if not isinstance(expr, type([])):

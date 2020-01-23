@@ -285,7 +285,8 @@ class FieldFactory(object):
         field.cde = self.cde
         return field
 
-    def _create_field(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_field(self):  # noqa: C901
         """
         :param cde: Common Data Element instance
         :return: A field object ( with widget possibly)

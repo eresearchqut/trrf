@@ -123,7 +123,8 @@ class QuestionnaireReverseMapper(object):
                 if address:
                     address.save()
 
-    def _create_address(self, address_map, patient_model):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_address(self, address_map, patient_model):  # noqa: C901
         # GeneratedQuestionnaireForbfr____PatientDataAddressSection____State
 
         if self._empty_address_data(address_map):
@@ -352,7 +353,8 @@ class PatientCreator(object):
         self.registry = registry
         self.user = user
 
-    def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def create_patient(self, approval_form_data, questionnaire_response, questionnaire_data):  # noqa: C901
         log_prefix = "PatientCreator on QR %s" % questionnaire_response.pk
 
         class MyLogger(object):
@@ -1083,7 +1085,8 @@ class Questionnaire(object):
                                     self,
                                     )
 
-    def update_patient(self, patient_model, selected_questions):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def update_patient(self, patient_model, selected_questions):  # noqa: C901
         # NB. here that the _original_ target form needs to be updated ( the source of the question )
         # NOT the dynamically generated questionnaire form's version ...
         errors = []

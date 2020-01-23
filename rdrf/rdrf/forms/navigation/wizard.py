@@ -44,7 +44,8 @@ class NavigationWizard(object):
 
         self._construct_links()
 
-    def _construct_links(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _construct_links(self):  # noqa: C901
         # aim is to construct a web ring of links:
         # --> demographics --> consents --> fixed group 1 form 1 --> fixed group 1 form 2 --> ... --> --> multiple group 1 assessment 1 form 1 ---> ..
         # ^<---  free form n <---  free form n -1 <--                                                                                    <--^

@@ -209,7 +209,8 @@ class PokeFieldExpression(GeneralisedFieldExpression):
 
         raise ValueError("cde not found")
 
-    def _iterate_through_forms(self, mongo_data, **kwargs):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _iterate_through_forms(self, mongo_data, **kwargs):  # noqa: C901
         is_setting = "value" in kwargs
 
         for form_dict in mongo_data["forms"]:
@@ -484,7 +485,8 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
     def evaluate(self, patient_model, mongo_record):
         return get_cde_value(self.form_model, self.section_model, self.cde_model, mongo_record)
 
-    def set_value(self, patient_model, mongo_record, new_value, **kwargs):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def set_value(self, patient_model, mongo_record, new_value, **kwargs):  # noqa: C901
         from datetime import datetime
         from rdrf.db.contexts_api import RDRFContextManager
         context_id = kwargs.get("context_id", None)
@@ -572,7 +574,8 @@ class GeneralisedFieldExpressionParser(object):
         s.add("working_groups")
         return s
 
-    def parse(self, field_expression):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def parse(self, field_expression):  # noqa: C901
         try:
             if field_expression.startswith("Consents/"):
                 return self._parse_consent_expression(field_expression)
@@ -603,7 +606,8 @@ class GeneralisedFieldExpressionParser(object):
     def _parse_patient_fields_expression(self, field_expression):
         return PatientFieldExpression(self.registry_model, field_expression)
 
-    def _parse_ms_expression(self, field_expression):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _parse_ms_expression(self, field_expression):  # noqa: C901
         try:
             if field_expression.startswith("pick/") or field_expression.startswith("poke/"):
                 return self._parse_poke_expression(field_expression)

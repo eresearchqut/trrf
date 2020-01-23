@@ -461,7 +461,8 @@ class Generator:
         for table in self.table_list:
             self._drop_table(table)
 
-    def _create_demographic_tables(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_demographic_tables(self):  # noqa: C901
         from registry.patients.models import PatientAddress, AddressType, State, NextOfKinRelationship
         from registry.patients.models import ConsentValue
         from rdrf.models.definition.models import ConsentQuestion, ConsentSection, Registry, RegistryForm
@@ -608,7 +609,8 @@ class Generator:
     def patients(self):
         return Patient.objects.filter(rdrf_registry__in=[self.registry_model])
 
-    def _extract_clinical_data(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _extract_clinical_data(self):  # noqa: C901
         logger.info("EXTRACTING CLINICAL DATA")
         form_tables = [
             t for t in self.clinical_tables if not t.is_multisection]

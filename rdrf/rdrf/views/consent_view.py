@@ -24,8 +24,9 @@ class ConsentList(View):
     def _get_template(self):
         return 'rdrf_cdes/consent_list.html'
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @method_decorator(login_required)
-    def get(self, request, registry_code):
+    def get(self, request, registry_code):  # noqa: C901
         if not (request.user.is_superuser or request.user.registry.filter(code=registry_code).exists()):
             raise PermissionDenied
 

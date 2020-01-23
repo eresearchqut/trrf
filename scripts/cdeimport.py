@@ -230,7 +230,8 @@ class PatientUpdater:
                                                     field_expression,
                                                     value=rdrf_value)
 
-    def _get_rdrf_value(self, value, field_info):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _get_rdrf_value(self, value, field_info):  # noqa: C901
         if field_info.is_range:
             return field_info.get_range_code(value)
         else:
@@ -336,7 +337,8 @@ def usage():
     print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
 
 
-if __name__ == '__main__':
+# TODO: Refactor to meet cyclomatic complexity requirements
+if __name__ == '__main__':  # noqa: C901
     try:
         registry_code = sys.argv[1]
         field_map_file = sys.argv[2]

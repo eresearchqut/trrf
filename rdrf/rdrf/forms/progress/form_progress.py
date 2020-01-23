@@ -339,7 +339,8 @@ class FormProgress:
                 return form_model.applicable_to(self.current_patient)
         return True
 
-    def _calculate(self, dynamic_data, patient_model=None):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _calculate(self, dynamic_data, patient_model=None):  # noqa: C901
         logger.info("calculating progress")
         if patient_model is not None:
             self.current_patient = patient_model

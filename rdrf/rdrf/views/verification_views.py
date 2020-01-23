@@ -243,7 +243,8 @@ class PatientVerificationView(View, VerificationSecurityMixin):
 
         return render(request, 'rdrf_cdes/patient_verification.html', context)
 
-    def _get_verification_map(self, request, registry_code):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _get_verification_map(self, request, registry_code):  # noqa: C901
         # fields in the POST look like:
         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key status_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =unverified
         # runserver_1    | [DEBUG:2018-03-13 16:45:40,339:verification_views.py:123:post] key comments_AngelmanRegistryBehaviourAndDevelopment____ANGMuscleTone____ANGBEHDEVMuscleTrunk value =

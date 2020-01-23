@@ -678,7 +678,8 @@ class TimeWidget(widgets.TextInput):
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_TIME}
 
-    def _parse_value(self, value, fmt):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _parse_value(self, value, fmt):  # noqa: C901
         '''
         Parse the input time and transform it to the format
         the timepicki widget expects

@@ -83,7 +83,8 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, index_map={}):
+# TODO: Refactor to meet cyclomatic complexity requirements
+def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, index_map={}):  # noqa: C901
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful

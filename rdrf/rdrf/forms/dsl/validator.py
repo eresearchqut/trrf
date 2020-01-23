@@ -63,7 +63,8 @@ class ConditionChecker:
         inverse_ops = self.INVERSE_CONDITION_DICT.get(c.operator, [])
         return [Condition.from_values(c.cde.cde, inverse, c.value, c.cde_helper) for inverse in inverse_ops]
 
-    def inverse_multiple_conditions(self, condition):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def inverse_multiple_conditions(self, condition):  # noqa: C901
         """"
         Returns a list of inverse conditions for a given multiple condition
         Ex: [Condition("a > b"), BooleanOp("and"), Condition("d > e")] =>
@@ -110,7 +111,8 @@ class ConditionChecker:
 
         return result
 
-    def check_condition_values(self, condition, multiple_conditions):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def check_condition_values(self, condition, multiple_conditions):  # noqa: C901
         """
         Check if conditions do not repeat/contradict in case of multiple conditions
         """
@@ -162,7 +164,8 @@ class ConditionChecker:
     def check_includes_cde(self, condition):
         return condition.cde.get_cde_info().allow_multiple
 
-    def check_condition(self, conditions, action, target):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def check_condition(self, conditions, action, target):  # noqa: C901
         expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.cde for cde in target.target_cdes])
         multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
         condition_cdes = [c.cde.cde for c in conditions if isinstance(c, Condition)]

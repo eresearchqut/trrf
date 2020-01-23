@@ -30,7 +30,8 @@ class BaseValidator:
 
 class SliderWidgetSettingsValidator(BaseValidator):
 
-    def validate(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def validate(self):  # noqa: C901
         super().validate()
         cde_datatype = self.cleaned_data['datatype']
         cde_min_value = self.cleaned_data['min_value']

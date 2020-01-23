@@ -24,7 +24,8 @@ class RegistrySpecificFieldsHandler(object):
         self.patient_model = patient_model
         self.mongo_wrapper = DynamicDataWrapper(self.patient_model)
 
-    def save_registry_specific_data_in_mongo(self, request):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def save_registry_specific_data_in_mongo(self, request):  # noqa: C901
         if self.registry_model.patient_fields and self.allowed_to_write_data():
             mongo_patient_data = {self.registry_model.code: {}}
             for cde_model, field_object in self.registry_model.patient_fields:

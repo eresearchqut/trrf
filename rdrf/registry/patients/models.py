@@ -510,7 +510,8 @@ class Patient(models.Model):
             else:
                 return data[key]
 
-    def update_field_expressions(self, registry_model, field_expressions, context_model=None):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def update_field_expressions(self, registry_model, field_expressions, context_model=None):  # noqa: C901
         from rdrf.db.dynamic_data import DynamicDataWrapper
         from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
         if registry_model.has_feature(RegistryFeatures.CONTEXTS) and context_model is None:
@@ -893,7 +894,8 @@ class Patient(models.Model):
         return ', '.join([r.name for r in self.rdrf_registry.all()])
     get_reg_list.short_description = 'Registry'
 
-    def form_progress(self, registry_form, numbers_only=False):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def form_progress(self, registry_form, numbers_only=False):  # noqa: C901
         if not registry_form.has_progress_indicator:
             if numbers_only:
                 return 0, 0

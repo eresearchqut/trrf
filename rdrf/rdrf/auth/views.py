@@ -83,10 +83,11 @@ class DisableView(tfv.profile.DisableView):
         return redirect(self.request.POST['redirect_url'])
 
 
+# TODO: Refactor to meet cyclomatic complexity requirements
 # Doesn't need csrf_protect since no-one can guess the URL
 @sensitive_post_parameters()
 @never_cache
-def login_assistance_confirm(request, uidb64=None, token=None):
+def login_assistance_confirm(request, uidb64=None, token=None):  # noqa: C901
 
     user_model = get_user_model()
     assert uidb64 is not None and token is not None  # checked by URLconf

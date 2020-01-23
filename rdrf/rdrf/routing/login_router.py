@@ -30,7 +30,8 @@ _PATIENTS_LISTING = "patientslisting"
 
 class RouterView(View):
 
-    def get(self, request):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def get(self, request):  # noqa: C901
         user = request.user
 
         redirect_url = None

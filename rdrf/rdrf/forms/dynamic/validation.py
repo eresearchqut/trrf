@@ -14,7 +14,8 @@ class ValidationType:
     LENGTH = 3
 
 
-def make_validation_func(val_type, cde):
+# TODO: Refactor to meet cyclomatic complexity requirements
+def make_validation_func(val_type, cde):  # noqa: C901
     if val_type == ValidationType.MIN:
         def vf(value):
             if value < cde.min_value:

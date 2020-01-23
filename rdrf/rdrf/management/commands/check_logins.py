@@ -69,7 +69,8 @@ class Command(BaseCommand):
     def _get_threshold(self, num_days):
         return datetime.now() - timedelta(days=num_days)
 
-    def handle(self, *args, **options):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def handle(self, *args, **options):  # noqa: C901
         action = options.get("action")
         if action is None:
             self._error("no action?")

@@ -167,7 +167,8 @@ class ExporterTestCase(RDRFTestCase):
         b = "cdes in forms but not in cde list: %s" % in_forms_not_cdes
         return "%s\n%s" % (a, b)
 
-    def test_export_registry(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def test_export_registry(self):  # noqa: C901
 
         def test_key(key, data):
             assert key in data, "%s not in yaml export" % key

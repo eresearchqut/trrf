@@ -93,8 +93,9 @@ class DatabaseUtils(object):
         else:
             return self
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @timed
-    def dump_results_into_reportingdb(self, reporting_table_generator):
+    def dump_results_into_reportingdb(self, reporting_table_generator):  # noqa: C901
         try:
             reporting_table_generator.drop_table()
         except Exception as ex:
@@ -137,8 +138,9 @@ class DatabaseUtils(object):
             logger.exception("Error running explorer query: {}".format(ex))
             raise
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @timed
-    def generate_results2(self, reverse_column_map, col_map, max_items):
+    def generate_results2(self, reverse_column_map, col_map, max_items):  # noqa: C901
         from registry.patients.models import Patient
         self.reverse_map = reverse_column_map
         self.col_map = col_map
@@ -230,8 +232,9 @@ class DatabaseUtils(object):
         for fv in query.filter(datatype='calculated'):
             row[fv.column_name] = fv.get_calculated_value()
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @timed
-    def generate_results(self, reverse_column_map, col_map, max_items):
+    def generate_results(self, reverse_column_map, col_map, max_items):  # noqa: C901
         self.reverse_map = reverse_column_map
         self.col_map = col_map
 
@@ -520,7 +523,8 @@ class DatabaseUtils(object):
         for snapshot in history.find(**mongo_query).data():
             yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items)
 
-    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):  # noqa: C901
         # retrieve value of cde
         for form_dict in mongo_document["forms"]:
             if form_dict["name"] == form_model.name:
@@ -608,7 +612,9 @@ class ParseQuery(object):
         pass
 
 
-def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
+# TODO: Refactor to meet cyclomatic complexity requirements
+def create_field_values(registry_model, patient_model, context_model, remove_existing=False,  # noqa: C901
+                        form_model=None):
     """
     Create faster representations of the clinical data for reporting
     """

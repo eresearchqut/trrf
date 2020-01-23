@@ -78,7 +78,8 @@ class PatientRelativeForm(forms.ModelForm):
         self.create_patient_flag = False
         self.tag = None  # used to locate this form
 
-    def _clean_fields(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _clean_fields(self):  # noqa: C901
         self._errors = ErrorDict()
         num_errors = 0
         if not self.is_bound:  # Stop further processing.
@@ -186,7 +187,8 @@ class PatientSignatureForm(forms.ModelForm):
         self.signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
         self.fields['signature'].required = self.signature_required
 
-    def clean_signature(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def clean_signature(self):  # noqa: C901
         signature = self.cleaned_data['signature']
         if not signature:
             if self.signature_required:
@@ -300,7 +302,8 @@ class PatientForm(forms.ModelForm):
     next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
-    def __init__(self, *args, **kwargs):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def __init__(self, *args, **kwargs):  # noqa: C901
         clinicians = CustomUser.objects.all()
         instance = None
 

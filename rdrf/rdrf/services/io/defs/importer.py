@@ -234,7 +234,8 @@ class Importer(object):
                     "Imported registry has different sections for form %s: %s" %
                     (form.name, msg))
 
-    def _check_cdes(self, imported_registry):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _check_cdes(self, imported_registry):  # noqa: C901
         for form in RegistryForm.objects.filter(registry=imported_registry):
             if form.name == imported_registry.generated_questionnaire_name:
                 continue
@@ -275,7 +276,8 @@ class Importer(object):
                         "Section %s in form %s has not been created?!" %
                         (section_code, form.name))
 
-    def _create_groups(self, permissible_value_group_maps):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_groups(self, permissible_value_group_maps):  # noqa: C901
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
@@ -338,7 +340,8 @@ class Importer(object):
 
                 value.save()
 
-    def _create_cdes(self, cde_maps):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_cdes(self, cde_maps):  # noqa: C901
         unknown_attributes = set()
         for cde_map in cde_maps:
             cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
@@ -458,7 +461,8 @@ class Importer(object):
                         (metadata_json, verr))
             return False
 
-    def _create_registry_objects(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_registry_objects(self):  # noqa: C901
         self._create_groups(self.data["pvgs"])
         logger.info("imported pvgs OK")
         self._create_cdes(self.data["cdes"])
@@ -852,7 +856,8 @@ class Importer(object):
             s.save()
             logger.info("imported section %s OK" % s.code)
 
-    def _create_context_form_groups(self, registry):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _create_context_form_groups(self, registry):  # noqa: C901
         from rdrf.models.definition.models import ContextFormGroup, ContextFormGroupItem
 
         def default_first(data):

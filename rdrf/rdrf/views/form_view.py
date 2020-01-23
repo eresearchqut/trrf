@@ -358,8 +358,9 @@ class FormView(View):
 
         return JsonResponse({"result": "Cannot delete form !"}, status=400)
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @login_required_method
-    def get(self, request, registry_code, form_id, patient_id, context_id=None):
+    def get(self, request, registry_code, form_id, patient_id, context_id=None):  # noqa: C901
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
             raise Http404
@@ -487,8 +488,9 @@ class FormView(View):
         # the ids of each cde on the form
         return ",".join(form_class().fields.keys())
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @login_required_method
-    def post(self, request, registry_code, form_id, patient_id, context_id=None):
+    def post(self, request, registry_code, form_id, patient_id, context_id=None):  # noqa: C901
         if context_id is None:
             raise Http404
         all_errors = []
@@ -884,7 +886,8 @@ class FormView(View):
         else:
             return []
 
-    def _build_context(self, **kwargs):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _build_context(self, **kwargs):  # noqa: C901
         """
         :param kwargs: extra key value pairs to be passed into the built context
         :return: a context dictionary to render the template ( all form generation done here)
@@ -1266,8 +1269,9 @@ class QuestionnaireView(FormView):
 
         return consent_form_wrappers
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @method_decorator(patient_questionnaire_access)
-    def post(self, request, registry_code, **kwargs):
+    def post(self, request, registry_code, **kwargs):  # noqa: C901
         error_count = 0
         registry = self._get_registry(registry_code)
         self.registry = registry
@@ -1591,8 +1595,9 @@ class QuestionnaireConfigurationView(View):
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
+    # TODO: Refactor to meet cyclomatic complexity requirements
     @login_required_method
-    def get(self, request, form_pk):
+    def get(self, request, form_pk):  # noqa: C901
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
         class QuestionWrapper(object):
@@ -1886,7 +1891,8 @@ class CustomConsentFormView(View):
         return reverse("consent_form_view", args=[registry_model.code,
                                                   patient_model.pk])
 
-    def post(self, request, registry_code, patient_id, context_id=None):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def post(self, request, registry_code, patient_id, context_id=None):  # noqa: C901
         if not request.user.is_authenticated:
             consent_form_url = reverse(
                 'consent_form_view', args=[

@@ -44,7 +44,8 @@ def get_cde_policy(registry, cde):
         return None
 
 
-def create_form_class_for_section(
+# TODO: Refactor to meet cyclomatic complexity requirements
+def create_form_class_for_section(  # noqa: C901
         registry,
         registry_form,
         section,

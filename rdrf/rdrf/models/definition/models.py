@@ -276,7 +276,8 @@ class Registry(models.Model):
     def _generated_section_questionnaire_code(self, form_name, section_code):
         return self.questionnaire_section_prefix + form_name + section_code
 
-    def generate_questionnaire(self):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def generate_questionnaire(self):  # noqa: C901
         logger.info("starting to generate questionnaire for %s" % self)
         if not new_style_questionnaire(self):
             logger.info(
@@ -579,7 +580,8 @@ class Registry(models.Model):
         except ValueError:
             raise ValidationError("metadata json field should be a valid json dictionary")
 
-    def _check_structure(self, structure):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def _check_structure(self, structure):  # noqa: C901
         # raise error if structure not valid
 
         for k in ["name", "code", "version", "forms"]:
@@ -828,7 +830,8 @@ class CommonDataElement(models.Model):
                 return None
         return stored_value
 
-    def get_display_value(self, stored_value):
+    # TODO: Refactor to meet cyclomatic complexity requirements
+    def get_display_value(self, stored_value):  # noqa: C901
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
