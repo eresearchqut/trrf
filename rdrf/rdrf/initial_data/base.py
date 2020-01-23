@@ -13,7 +13,7 @@ def load_data(**kwargs):
 
 
 def set_up_site():
-    if not 'TRRF_SITE_DOMAIN' in os.environ:
+    if 'TRRF_SITE_DOMAIN' not in os.environ:
         return
 
     domain = os.environ['TRRF_SITE_DOMAIN']
