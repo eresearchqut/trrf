@@ -94,7 +94,11 @@ class RegistrationTest(TestCase):
         }
         patch_method = "rdrf.views.registration_rdrf.RdrfRegistrationView.is_recaptcha_valid"
         with patch(patch_method, side_effect=lambda: True):
-            response = self.client.post(reverse("registration_register", kwargs={"registry_code": self.registry.code}), post_data)
+            register_url = reverse(
+                "registration_register",
+                kwargs={"registry_code": self.registry.code}
+            )
+            response = self.client.post(register_url, post_data)
             self.assertEqual(response.status_code, 302)
             return Patient.objects.filter(email=self.PATIENT_EMAIL).first()
 

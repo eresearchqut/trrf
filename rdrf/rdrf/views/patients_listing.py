@@ -231,7 +231,8 @@ class PatientsListingView(View):
         context_model = patient_model.default_context(self.registry_model)
         assert context_model is not None, "Expected context model to exist always"
         if context_model.context_form_group:
-            assert context_model.context_form_group.is_default, "Expected to always get a context of the default form group"
+            assert context_model.context_form_group.is_default, \
+                "Expected to always get a context of the default form group"
 
         return context_model
 
@@ -315,11 +316,11 @@ class PatientsListingView(View):
         if not ethical_clearance_needed:
             return base_qs
 
-        unassigned_patients_created_by_clinician = self.patients.filter(patients_created_by_clinician & Q(clinician__isnull=True))
+        unassigned_clinician_patients = self.patients.filter(patients_created_by_clinician & Q(clinician__isnull=True))
 
         if self.user.ethically_cleared:
             if self.clinicians_have_patients:
-                return base_qs | unassigned_patients_created_by_clinician
+                return base_qs | unassigned_clinician_patients
             return base_qs
 
         return self.patients.filter(patients_created_by_clinician)

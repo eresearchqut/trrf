@@ -29,7 +29,8 @@ class FormChangesExtractor:
             if k in self.dynamic_data and self.dynamic_data[k] != v
         }
         self.allowed_cdes = [self.extract_cde(k) for k in self.form_changes.keys() if self.CDE_SEPARATOR in k]
-        self.previous_values = {self.extract_cde(k): v for k, v in self.previous_data.items() if self.CDE_SEPARATOR in k}
+        self.previous_values = {self.extract_cde(k): v for k, v in self.previous_data.items()
+                                if self.CDE_SEPARATOR in k}
         sections = [s.code for s in self.registry_form.section_models]
         multi_section_values = {k: v for k, v in self.form_changes.items() if k in sections}
         self.previous_values.update(multi_section_values)

@@ -17,31 +17,35 @@ class TimeStripperTestCase(TestCase):
     def setUp(self):
         super(TimeStripperTestCase, self).setUp()
 
-        self.data_with_date_cdes = {'django_model': 'Patient',
-                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                    'context_id': 4,
-                                    'django_id': 3,
-                                    'forms': [{'name': 'ClinicalData',
-                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
-                                                                      {'value': '1972-06-15T00:00:00.00', 'code': 'DateOfAssessment'},
-                                                                      {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
-                                                            {'code': 'SEC0007', 'allow_multiple': False,
-                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_with_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 4,
+            'django_id': 3,
+            'forms': [{'name': 'ClinicalData',
+                       'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                     'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
+                                              {'value': '1972-06-15T00:00:00.00', 'code': 'DateOfAssessment'},
+                                              {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
+                                    {'code': 'SEC0007', 'allow_multiple': False,
+                                     'cdes': [{'value': '', 'code': 'CDE00024'},
+                                              {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
+        }
 
         self.copy_of_initial_data = deepcopy(self.data_with_date_cdes)
 
-        self.data_without_date_cdes = {'django_model': 'Patient',
-                                       'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                       'context_id': 40,
-                                       'django_id': 300,
-                                       'forms': [{'name': 'ClinicalData',
-                                                  'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                                 'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
-                                                               {'code': 'SEC0007', 'allow_multiple': False,
-                                                                'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                         {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_without_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 40,
+            'django_id': 300,
+            'forms': [{'name': 'ClinicalData',
+                      'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                    'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
+                                   {'code': 'SEC0007', 'allow_multiple': False,
+                                    'cdes': [{'value': '', 'code': 'CDE00024'},
+                                             {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
+        }
 
         self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
         self.m2 = FakeClinicalData(2, self.data_without_date_cdes)

@@ -7,48 +7,50 @@ Move CDEs from one section to another and migrate data on ClinicalData form
 
 
 def structure_valid(cde_codes, source_section_code, target_section_code, cd_data_dict):
+    head = "******* Skipping cdes movement...... "
     print(" Validating Structure ......")
     # Check if 'Forms' exist in cd_data dictionary
     if 'forms' not in cd_data_dict.keys():
-        print("******* Skipping cdes movement...... No 'forms' found in data dictionary ...... %s" % cd_data_dict)
+        print(f"{head}No 'forms' found in data dictionary ...... {cd_data_dict}")
         return False
     # Check if clinical data form exist
     cd_form = get_cd_form(cd_data_dict)
     if not cd_form:
-        print("******* Skipping cdes movement...... Couldn't find 'ClinicalData' form in data dictionary...... %s" % cd_data_dict)
+        print(f"{head}Couldn't find 'ClinicalData' form in data dictionary...... {cd_data_dict}")
         return False
     # Check if source section exist
     source_section_dict = get_section(source_section_code, cd_form)
     if not source_section_dict:
-        print("******* Skipping cdes movement......Couldn't find source section with code=%s in 'ClinicalData' form: %s" % (source_section_code, cd_form))
+        print(f"{head}Couldn't find source section with code={source_section_code} in 'ClinicalData' form: {cd_form}")
         return False
     # Check if source section is multi-value
     if not source_section_dict['allow_multiple']:
-        print("******* Skipping cdes movement......Source section is not multi-value : %s " % (source_section_dict))
+        print(f"{head}Source section is not multi-value : {source_section_dict}")
         return False
     # Check if source section is not empty
     if not source_section_dict['cdes']:
-        print("******* Skipping cdes movement...... Source section is empty.")
+        print(f"{head}Source section is empty.")
         return False
     # Check if target section exist
     target_section_dict = get_section(target_section_code, cd_form)
     if not target_section_dict:
-        print("******* Skipping cdes movement......Couldn't find target section with code=%s in 'ClinicalData' form: %s" % (target_section_code, cd_form))
+        print(f"{head}Couldn't find target section with code={target_section_code} in 'ClinicalData' form: {cd_form}")
         return False
     # Check if target section is single-value
     if target_section_dict['allow_multiple']:
-        print("******* Skipping cdes movement......Target section is not single-value: %s " % (target_section_dict))
+        print(f"{head}Target section is not single-value: {target_section_dict}")
         return False
     # Check if cdes (CDE00016,FHCRP) are not in target Section
     cdes_found_in_target_section = [cde for cde in target_section_dict['cdes'] if cde['code'] in cde_codes]
     if cdes_found_in_target_section:
-        print("******* Skipping cdes movement...... Cdes=%s already exist in Target Section." % cdes_found_in_target_section)
+        print(f"{head} Cdes={cdes_found_in_target_section} already exist in Target Section.")
         return False
     return True
 
 
 def transform_cd_dict(cde_codes, source_section_code, target_section_code, cd_data_dict):
-    print("@@@@@@@ Moving Cdes=%s from source section=%s to target section=%s in ClinicalData form @@@@@@@" % (cde_codes, source_section_code, target_section_code))
+    print("@@@@@@@ Moving Cdes=%s from source section=%s to target section=%s in ClinicalData form @@@@@@@" %
+          (cde_codes, source_section_code, target_section_code))
     print(" Getting ClinicalData form ......")
     # Get clinical data form
     cd_form = get_cd_form(cd_data_dict)

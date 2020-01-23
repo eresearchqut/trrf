@@ -6,7 +6,8 @@ import sys
 django.setup()
 
 # VERY DANGEROUS SCRIPT ALERT!
-# This script is intended to be used to delete ( really delete not archive) 'testing" patients in ALL registries on a site prior to launch.
+# This script is intended to be used to delete ( really delete not archive) 'testing" patients
+# in ALL registries on a site prior to launch.
 # It should never be used on a site that has gone live.
 
 prompt = ">> "

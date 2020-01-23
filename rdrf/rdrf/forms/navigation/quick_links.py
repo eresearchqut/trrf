@@ -236,7 +236,11 @@ class MenuConfig:
             Links.STAGES = Links.ENABLED_STAGES
 
     def verification_links(self):
-        Links.VERIFICATION = self.per_registry_links('Verifications', 'verifications_list', RegistryFeatures.VERIFICATION)
+        Links.VERIFICATION = self.per_registry_links(
+            'Verifications',
+            'verifications_list',
+            RegistryFeatures.VERIFICATION
+        )
 
     def consent_links(self):
         return {}

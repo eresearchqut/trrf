@@ -16,7 +16,8 @@ class PatientCentres(DataSource):
     """
     centres = working groups
     We default to working groups if metadata on the registry doesn't have override
-    questionnaire_context is a string like au or nz ( ophg wanted different centre dropdowns for DM1 in au vs nz for example)
+    questionnaire_context is a string like au or nz
+    (ophg wanted different centre dropdowns for DM1 in au vs nz for example)
     """
 
     def values(self):

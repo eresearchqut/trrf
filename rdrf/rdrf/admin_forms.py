@@ -6,7 +6,8 @@ from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget
 from django.utils.translation import gettext as _
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section,\
+    DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
@@ -196,7 +197,8 @@ class ContextFormGroupItemAdminForm(ModelForm):
         form = self.cleaned_data['registry_form']
 
         if cfg.registry != form.registry:
-            raise ValidationError(_(f"Form's registry ({cfg.registry.code}) must be the same as the Context Form Group's registry ({form.registry.code})"))
+            raise ValidationError(_(f"Form's registry ({cfg.registry.code}) must be the same as the "
+                                    f"Context Form Group's registry ({form.registry.code})"))
 
 
 class FormTitleAdminForm(ModelForm):

@@ -24,13 +24,8 @@ class Notifier(object):
             notification.link = link
             notification.save()
         except Exception as ex:
-            logger.error(
-                _("Could not create notification for %(from_username)s to %(to_username)s with message %(message)s and link '%(link)s': %(ex)s") % {
-                    "from_username": from_user_name,
-                    "to_username": to_username,
-                    "message": message,
-                    "link": link,
-                    "ex": ex})
+            logger.error(_(f"Could not create notification for {from_user_name} to {to_username} "
+                           f"with message {message} and link {link}: {ex}"))
             raise NotificationError(_("could not create notification"))
 
     def send_email(

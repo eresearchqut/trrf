@@ -284,7 +284,8 @@ class PatientAdmin(admin.ModelAdmin):
         """
         We override save_form to support saving (some) registry specific data to Mongo
         The wrinkle is that the instance has not yet been saved, so if the user is adding a patient
-        there will be no primary key ( all mongo data is linked to django via a primary key). We work around tbis, by tagging the data to be saved in Mongo
+        there will be no primary key ( all mongo data is linked to django via a primary key).
+        We work around this by tagging the data to be saved in Mongo
         on the instance and overriding save_model ( see below )
         """
         mongo_patient_data = {}

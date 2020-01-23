@@ -217,8 +217,10 @@ class PatientFormMixin:
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
         if registry_code == "fkrp":
-            personal_header += " " + \
-                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
+            personal_header += " "
+            personal_header += _("Here you can find an overview of all the "
+                                 "personal and contact details you have given us. "
+                                 "You can update your contact details by changing the information below.")
 
         personal_fields = [
             "family_name",

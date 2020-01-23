@@ -22,6 +22,10 @@ class FormTitleHelper:
 
     def all_titles_for_user(self, user):
         default_titles = {x[0]: _(x[1]) for x in FormTitle.FORM_TITLE_CHOICES}
-        custom_titles = dict(self.get_base_qs(user).order_by('default_title', '-order').values_list('default_title', 'custom_title'))
+        custom_titles = dict(
+            self.get_base_qs(user)
+                .order_by('default_title', '-order')
+                .values_list('default_title', 'custom_title')
+        )
 
         return {**default_titles, **custom_titles}

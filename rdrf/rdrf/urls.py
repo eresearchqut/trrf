@@ -134,7 +134,8 @@ normalpatterns += [
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
-    proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
+    proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'),
+                                                  namespace=None))),
     re_path(r'^constructors/(?P<form_name>\w+)/?$',
             form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -183,14 +184,16 @@ normalpatterns += [
 
     proms_only(re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page")),
     proms_only(re_path(r'^proms/?$', PromsView.as_view(), name="proms")),
-    proms_only(re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode")),
+    proms_only(re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(),
+                       name="promsqrcode")),
     proms_only(re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed")),
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
 
     # proms on the clinical side
-    proms_only(re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(), name="proms_clinical_view")),
+    proms_only(re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinicalproms/?$", PromsClinicalView.as_view(),
+                       name="proms_clinical_view")),
     # -------------------------------------------
 
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
@@ -225,7 +228,8 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/list/?$",
             form_view.FormListView.as_view(), name='registry_form_list'),
 
-    re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/history/?$",
+    re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/"
+            r"(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/history/?$",
             form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
 
     re_path(r"^forms/dsl-help$",
@@ -284,7 +288,8 @@ normalpatterns += [
 
     re_path(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
             form_view.QuestionnaireView.as_view(), name='questionnaire'),
-    re_path(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
+    re_path(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$',
+            form_view.QuestionnaireHandlingView.as_view(),
             name='questionnaire_response'),
     re_path(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
             form_view.FileUploadView.as_view(), name='file_upload'),
@@ -322,8 +327,10 @@ normalpatterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
     re_path(r'^health-check/?$', health_check, name='health_check'),
-    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
-    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
+    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(),
+            name='cde_widget_settings'),
+    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(),
+            name='cde_available_widgets'),
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
 ]
 

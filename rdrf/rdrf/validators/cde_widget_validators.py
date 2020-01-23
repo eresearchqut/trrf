@@ -19,11 +19,12 @@ class OtherPleaseSpecifyWidgetValidator:
         values = pv_group.members(get_code=False)
         valid_pv_group = any([v.lower().find('specify') > -1 for v in values])
         if not valid_pv_group:
-            valid_groups_qs = CDEPermittedValue.objects.filter(value__icontains='specify').values_list('pv_group', flat=True)
-            valid_groups = [g for g in valid_groups_qs]
+            valid_groups_qs = CDEPermittedValue.objects.filter(value__icontains='specify')
+            valid_groups = [g for g in valid_groups_qs.values_list('pv_group', flat=True)]
             if not valid_groups:
                 raise ValidationError({
-                    "pv_group": [_("There are no valid pv groups for {widget_name} widget ! A valid pv_group must contain a value with the text 'specify'")]
+                    "pv_group": [_("There are no valid pv groups for {widget_name} widget ! "
+                                   "A valid pv_group must contain a value with the text 'specify'")]
                 })
             else:
                 raise ValidationError({

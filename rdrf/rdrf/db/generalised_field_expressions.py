@@ -437,10 +437,11 @@ class AddressesExpression(GeneralisedFieldExpression):
         # postcode = models.CharField(max_length=50)
         # country = models.CharField(max_length=100)
 
-        # addresses = [OrderedDict([(u'State', u'AU-NSW'), (u'AddressType', u'AddressTypeHome'), (u'Address', u'11 Green Street'),
-        # (u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
+        # addresses = [OrderedDict([(u'State', u'AU-NSW'), (u'AddressType', u'AddressTypeHome'),
+        # (u'Address', u'11 Green Street'), (u'postcode', u'2042'), (u'SuburbTown', u'Newtown'),
         # (u'Country', u'AU')]), OrderedDict([(u'State', u'AU-NSW'),
-        # (u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'), (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
+        # (u'AddressType', u'AddressTypePostal'), (u'Address', u'23 Station Street'),
+        # (u'postcode', u'2000'), (u'SuburbTown', u'Sydney'), (u'Country', u'AU')])]
 
         # delete existing addresses ...
         from registry.patients.models import PatientAddress

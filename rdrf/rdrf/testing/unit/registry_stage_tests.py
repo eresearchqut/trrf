@@ -81,7 +81,7 @@ class RegistryStageTests(RDRFTestCase):
             importer.create_registry()
         self.assertEqual(
             str(e.exception),
-            "Cannot remove ['New test stage'] stages as there are patients associated with them !"
+            "Can't remove ['New test stage'] stages as there are associated patients"
         )
 
     def test_stage_import_export_rename_stage(self):

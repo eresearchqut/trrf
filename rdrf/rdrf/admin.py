@@ -324,7 +324,8 @@ class ConsentQuestionAdmin(admin.StackedInline):
     fieldsets = (
         (None, {
             'fields': (
-                'position', 'code', 'question_label', 'questionnaire_label', 'instructions', 'created_at', 'last_updated_at')}), )
+                'position', 'code', 'question_label', 'questionnaire_label', 'instructions', 'created_at',
+                'last_updated_at')}),)
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
@@ -418,7 +419,8 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
-    list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
+    list_display = ("patient_name", "survey_name", "patient_token", "created",
+                    "updated", "state", "error_detail", "user")
     search_fields = ("survey_name", "patient__family_name", "patient__given_names")
     list_display_links = None
 

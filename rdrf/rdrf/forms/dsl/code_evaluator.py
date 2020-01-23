@@ -27,8 +27,10 @@ class ConditionEvaluator:
             ">": operator.gt,
             "<": operator.lt,
             "is": lambda existing, current: bool(existing) if current == "set" else not bool(existing),
-            "includes": lambda existing, current: existing in [as_type(self.data_type, el) for el in current.split(",")],
-            "does not include": lambda existing, current: existing not in [as_type(self.data_type, el) for el in current.split(",")]
+            "includes": lambda existing, current: existing in [as_type(self.data_type, el)
+                                                               for el in current.split(",")],
+            "does not include": lambda existing, current: existing not in [as_type(self.data_type, el)
+                                                                           for el in current.split(",")]
         }
 
     @staticmethod

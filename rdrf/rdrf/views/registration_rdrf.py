@@ -50,7 +50,8 @@ class RdrfRegistrationView(RegistrationView):
 
     def is_form_valid(self):
         if not self.is_recaptcha_valid():
-            self.form.add_error(None, _("Please complete the I'm not a robot reCAPTCHA validation and try to Submit again"))
+            self.form.add_error(
+                None, _("Please complete the I'm not a robot reCAPTCHA validation and try to Submit again"))
             return False
 
         return self.form.is_valid()

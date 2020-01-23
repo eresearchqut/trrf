@@ -24,7 +24,8 @@ def is_patient_registered(registry, patient):
 
 
 def did_patient_provided_all_consent(registry, patient):
-    consent_questions = [q for sec in ConsentSection.objects.filter(registry=registry) if sec.applicable_to(patient) for q in sec.questions.all()]
+    consent_sections = ConsentSection.objects.filter(registry=registry)
+    consent_questions = [q for sec in consent_sections if sec.applicable_to(patient) for q in sec.questions.all()]
 
     def consent_answer(question):
         try:
@@ -53,7 +54,12 @@ class PatientStageFlow:
         return self.CONDITION_HANDLERS[condition](self.registry, patient)
 
     def handle(self, patient):
-        for rule in PatientStageRule.objects.filter(from_stage=patient.stage, registry=self.registry).order_by('order').all():
+        rules = PatientStageRule.objects.filter(
+            from_stage=patient.stage,
+            registry=self.registry
+        )
+
+        for rule in rules.order_by('order').all():
             if self.evaluate_condition(patient, rule.condition):
                 logger.info(f"Moving patient {patient.pk} in registry {self.registry} "
                             f"from stage {rule.from_stage} to {rule.to_stage} "

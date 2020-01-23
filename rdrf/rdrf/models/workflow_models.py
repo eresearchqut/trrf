@@ -23,8 +23,11 @@ class ClinicianSignupRequest(models.Model):
     clinician_email = models.CharField(max_length=80)
     state = models.CharField(max_length=80, choices=STATES, default="created")
     token = models.CharField(max_length=80, default=generate_token, unique=True)
+
+    # this is the model the parent creates with data about the clinician
     clinician_other = models.ForeignKey("patients.ClinicianOther",
-                                        on_delete=models.CASCADE)  # this is the model the parent creates with data about the clinician`1
+                                        on_delete=models.CASCADE)
+
     clinician = models.ForeignKey(CustomUser,
                                   blank=True,
                                   null=True,

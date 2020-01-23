@@ -449,7 +449,8 @@ class Exporter:
                         cdes.add(cde)
                     except CommonDataElement.DoesNotExist as dne:
                         logger.error("No CDE with code: %s" % cde_code)
-                        raise ExportException(f"Section {section_code} referes to CDE {cde_code} that does not exist", dne)
+                        raise ExportException(f"Section {section_code} referes to CDE {cde_code} that does not exist",
+                                              dne)
 
             except Section.DoesNotExist as sne:
                 if not sections_optional:

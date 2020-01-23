@@ -104,7 +104,8 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             (function(){ $("#%s").change();})();
 
         </script>
-        """ % (select_id, self.other_please_specify_value, specified_value_textbox_id, specified_value_textbox_id, select_id)
+        """ % (select_id, self.other_please_specify_value, specified_value_textbox_id,
+               specified_value_textbox_id, select_id)
 
         return super(OtherPleaseSpecifyWidget, self).render(name, value, attrs) + script
 
@@ -762,7 +763,9 @@ def _all_widgets():
     def is_name_ok(name):
         return name not in EXCLUDED_WIDGET_NAMES
 
-    return ((name, cls) for name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass) if is_widget(cls) and is_name_ok(name))
+    return ((name, cls)
+            for name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass)
+            if is_widget(cls) and is_name_ok(name))
 
 
 def get_all_widgets():

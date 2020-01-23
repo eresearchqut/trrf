@@ -8,7 +8,8 @@ class FormDSLValidationTestCase(FormTestCase):
         super().create_sections()
         self.sectionD = self.create_section(
             "sectionD", "Section D",
-            ["DM1Fatigue", "DM1FatigueSittingReading", "CDEfhDrugs", "CDEfhHistoryDrugIntolerance", "CDEfhIntolerantDrugs"],
+            ["DM1Fatigue", "DM1FatigueSittingReading", "CDEfhDrugs",
+             "CDEfhHistoryDrugIntolerance", "CDEfhIntolerantDrugs"],
             False
         )
         self.sectionE = self.create_section(
@@ -245,9 +246,9 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_three_or_conditions(self):
-        self.new_form.conditional_rendering_rules = '''
-        DM1Fatigue visible if DM1FatigueSittingReading == "Slight chance of dozing" or CDEfhDrugs == Ezetimibe or CDEfhHistoryDrugIntolerance == Yes
-        '''
+        self.new_form.conditional_rendering_rules = \
+            'DM1Fatigue visible if DM1FatigueSittingReading == "Slight chance of dozing" '\
+            'or CDEfhDrugs == Ezetimibe or CDEfhHistoryDrugIntolerance == Yes'
         self.new_form.save()
 
     def test_four_or_conditions(self):

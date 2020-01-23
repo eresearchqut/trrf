@@ -46,10 +46,15 @@ class PatientStageChanges:
             for new_stage in possible_new_stages:
                 import_new_stage = self.import_stages.get(new_stage, {})
                 existing_deleted_stage = self.existing_stages.get(deleted_stage, {})
-                same_prev_stages = import_new_stage.get("prev_stages", []) == existing_deleted_stage.get("prev_stages", [])
-                same_next_stages = import_new_stage.get("next_stages", []) == existing_deleted_stage.get("next_stages", [])
-                if same_next_stages and same_prev_stages:
+
+                imported_prev_stages = import_new_stage.get("prev_stages", [])
+                existing_prev_stages = existing_deleted_stage.get("prev_stages", [])
+                imported_next_stages = import_new_stage.get("next_stages", [])
+                existing_next_stages = existing_deleted_stage.get("next_stages", [])
+
+                if imported_prev_stages == existing_prev_stages and imported_next_stages == existing_next_stages:
                     self.renamed_stages[deleted_stage] = new_stage
+
         self.removed_stages = [p for p in possible_deleted_stages if p not in self.renamed_stages]
         self.added_stages = [p for p in possible_new_stages if p not in self.renamed_stages.values()]
         logger.info(f"To remove: {self.removed_stages}, renamed: {self.renamed_stages}, new: {self.added_stages}")

@@ -47,8 +47,9 @@ class NavigationWizard(object):
     # TODO: Refactor to meet cyclomatic complexity requirements
     def _construct_links(self):  # noqa: C901
         # aim is to construct a web ring of links:
-        # --> demographics --> consents --> fixed group 1 form 1 --> fixed group 1 form 2 --> ... --> --> multiple group 1 assessment 1 form 1 ---> ..
-        # ^<---  free form n <---  free form n -1 <--                                                                                    <--^
+        # --> demographics --> consents --> fixed group 1 form 1 -->
+        # fixed group 1 form 2 --> ... --> --> multiple group 1 assessment 1 form 1 ---> ..
+        # ^<---  free form n <---  free form n -1 <--<--^
         demographics_link = self._construct_demographics_link()
         self.links.append(demographics_link)
         consents_link = self._construct_consents_link()
@@ -146,8 +147,8 @@ class NavigationWizard(object):
                                                          object_id=self.patient_model.pk,
                                                          content_type__model="patient"))
 
-        num_contexts = len(context_models)
-        assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
+        contexts = len(context_models)
+        assert contexts == 1, f"There should only be one context model for this fixed context there are: {contexts}"
 
         context_model = context_models[0]
 

@@ -59,8 +59,8 @@ def check_user_activated(step):
     world.browser.get(world.site_url + "logout?next=/router/")
 
 
-@step(
-    'I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"')
+@step('I try to register as an "([^"]+)" user called "([^"]+)" using the email address '
+      '"([^"]+)" and the password "([^"]+)"')
 def try_to_register(step, registry, client_name, email_address, password):
     registry_code = ''
 
@@ -719,8 +719,10 @@ def scroll_to_section(step, section):
     from selenium.webdriver.common.action_chains import ActionChains
     mover = ActionChains(world.browser)
     print("scrolling to section %s" % section)
-    section_xpath = ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
-    section_element = world.browser.find_element_by_xpath(section_xpath)
+    section_element = world.browser.find_element_by_xpath(".//div[@class='panel panel-default' "
+                                                          "and contains(.,'%s') "
+                                                          "and not(contains(., '__prefix__')) "
+                                                          "and not(contains(.,'View previous values'))]" % section)
     if not section_element:
         raise Exception("could not find section %s" % section)
     y = utils.scroll_to(section_element)
@@ -730,8 +732,10 @@ def scroll_to_section(step, section):
 
 @step('I click the add button for multisection "(.*)"')
 def add_multisection_item(step, section):
-    xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
-    div = world.browser.find_element_by_xpath(xpath)
+    div = world.browser.find_element_by_xpath(".//div[@class='panel-heading' "
+                                              "and contains(.,'%s') "
+                                              "and not(contains(., '__prefix__')) "
+                                              "and not(contains(.,'View previous values'))]" % section)
     add_link_xpath = """.//a[starts-with(@onclick,"add_form(")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
     add_link.click()

@@ -121,7 +121,8 @@ def login_assistance_confirm(request, uidb64=None, token=None):  # noqa: C901
     if not can_user_self_unlock(user):
         messages.warning(
             request,
-            _("Unfortunately the system can't verify your identity. Please contact the registry owners for further information."))
+            _("Unfortunately the system can't verify your identity. "
+              "Please contact the registry owners for further information."))
         return TemplateResponse(request, template_name, error_context)
 
     # If the link is correct and the user hasn't been verified yet
@@ -147,7 +148,8 @@ def login_assistance_confirm(request, uidb64=None, token=None):  # noqa: C901
             if user_data is None:
                 messages.warning(
                     request,
-                    _("Unfortunately we don't have the required information to verify your identity. Please contact the registry owners for assistance."))
+                    _("Unfortunately we don't have the required information to verify your identity. "
+                      "Please contact the registry owners for assistance."))
                 return TemplateResponse(request, template_name, error_context)
             return verification_page()
 

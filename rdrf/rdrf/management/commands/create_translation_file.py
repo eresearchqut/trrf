@@ -18,7 +18,7 @@ The command has two modes:
 
 A) CDE labels and values translation: Extract strings from a yaml file and pump out to standard output:
 
-> django-admin create_translation_file --yaml_file=<yaml file path> [--system_po_file <app level po file> ]  > <output po file>
+> django-admin create_translation_file --yaml_file=<file path> [--system_po_file <app level po> ]  > <output po>
 
 NB. --system_po_file is the path the "standard po file" created by running django makemessages. By passing it
 in the script avoids creating duplicate message ids  which prevent compilation.
@@ -312,7 +312,8 @@ class Command(BaseCommand):
     def _yield_form_title_strings(self):
         titles = self.data.get("form_titles", [])
         result = [(t.get("default_title", ""), t.get("custom_title", "")) for t in titles]
-        valid_entries = [(default_title, custom_title) for default_title, custom_title in result if default_title and custom_title]
+        valid_entries = [(default_title, custom_title)
+                         for default_title, custom_title in result if default_title and custom_title]
         for default_title, custom_title in valid_entries:
             yield None, default_title
             yield None, custom_title

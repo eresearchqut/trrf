@@ -15,7 +15,8 @@ from rest_framework.views import APIView
 from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.definition.models import RegistryForm
-from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, \
+    CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
 
 

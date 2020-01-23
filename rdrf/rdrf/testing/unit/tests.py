@@ -16,6 +16,7 @@ from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ClinicalData
+from rdrf.testing.unit.cde_migration_data import INPUT_DATA
 from rdrf.views.form_view import FormView
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
@@ -39,7 +40,7 @@ class MigrateCDESTestCase(TestCase):
 
     def setUp(self):
         # source section with multi-value
-        self.input_data = {'forms': [{'name': 'ClinicalData', 'sections': [{'cdes': [{'code': 'CDEIndexOrRelative', 'value': 'fh_is_index'}, {'code': 'FHconsentDate', 'value': None}, {'code': 'DateOfAssessment', 'value': '2018-07-02'}, {'code': 'fhAgeAtConsent', 'value': 'NaN'}, {'code': 'fhAgeAtAssessment', 'value': '0'}], 'code': 'fhDateSection', 'allow_multiple': False}, {'cdes': [{'code': 'CDEfhDutchLipidClinicNetwork', 'value': ''}, {'code': 'CDE00024', 'value': ''}], 'code': 'SEC0007', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00003', 'value': 'fh2_n'}, {'code': 'FHFamilyHistoryChild', 'value': 'fh_n'}, {'code': 'CDE00004', 'value': 'fh2_n'}, {'code': 'FHFamHistTendonXanthoma', 'value': 'fh2_n'}, {'code': 'FHFamHistArcusCornealis', 'value': 'fh2_n'}], 'code': 'SEC0002', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00011', 'value': 'fhpremcvd_no'}, {'code': 'FHMyocardialInfarction', 'value': ''}, {'code': 'FHAgeAtMI', 'value': None}, {'code': 'FHCoronaryRevasc', 'value': ''}, {'code': 'FHAgeAtCV', 'value': None}, {'code': 'FHPersHistCerebralVD', 'value': 'fh2_n'}, {'code': 'FHAorticValveDisease', 'value': ''}, {'code': 'FHSupravalvularDisease', 'value': ''}, {'code': 'FHPremNonCoronary', 'value': ''}], 'code': 'SEC0004', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00001', 'value': 'n_'}, {'code': 'CDE00002', 'value': 'n_'}, {'code': 'FHXanthelasma', 'value': ''}], 'code': 'SEC0001', 'allow_multiple': False}, {'cdes': [{'code': 'CDE00013', 'value': None}, {'code': 'CDE00019', 'value': None}, {'code': 'PlasmaLipidTreatment', 'value': ''}, {'code': 'LDLCholesterolAdjTreatment', 'value': 'NaN'}], 'code': 'FHLDLforFHScore', 'allow_multiple': False}, {'cdes': [[{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.0}, {'code': 'FHLLDLconc', 'value': 2.0}, {'code': 'CDE00014', 'value': 2.0}, {'code': 'CDE00015', 'value': 2.0}, {'code': 'FHApoB', 'value': 2.0}, {'code': 'CDE00016', 'value': 2.0}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin40'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}], [{'code': 'FHLipidProfileUntreatedDate', 'value': '2018-07-02'}, {'code': 'CDE00012', 'value': 2.5}, {'code': 'FHLLDLconc', 'value': 2.5}, {'code': 'CDE00014', 'value': 2.5}, {'code': 'CDE00015', 'value': 2.5}, {'code': 'FHApoB', 'value': 2.5}, {'code': 'CDE00016', 'value': 2.5}, {'code': 'FHAST', 'value': 2}, {'code': 'FHALT', 'value': 2}, {'code': 'FHCK', 'value': 2}, {'code': 'FHCreatinine', 'value': 2}, {'code': 'FHCRP', 'value': 2.0}, {'code': 'PlasmaLipidTreatmentNone', 'value': 'Fluvastatin/Ezetimibe20'}, {'code': 'CDEfhOtherIntolerantDrug', 'value': ''}, {'code': 'FHCompliance', 'value': ''}]], 'code': 'SEC0005', 'allow_multiple': True}, {'cdes': [{'code': 'CDE00005', 'value': ''}, {'code': 'FHPackYears', 'value': None}, {'code': 'FHAlcohol', 'value': ''}, {'code': 'FHHypertriglycerd', 'value': ''}, {'code': 'CDE00006', 'value': ''}, {'code': 'CDE00008', 'value': None}, {'code': 'CDE00009', 'value': None}, {'code': 'FHHeartRate', 'value': None}, {'code': 'CDE00007', 'value': ''}, {'code': 'CDE00010', 'value': None}, {'code': 'HbA1c', 'value': None}, {'code': 'ChronicKidneyDisease', 'value': ''}, {'code': 'FHeGFR', 'value': ''}, {'code': 'FHHypothyroidism', 'value': ''}, {'code': 'FHTSH', 'value': None}, {'code': 'FHHepaticSteatosis', 'value': ''}, {'code': 'FHObesity', 'value': ''}, {'code': 'CDEHeight', 'value': None}, {'code': 'CDEWeight', 'value': None}, {'code': 'CDEBMI', 'value': 'NaN'}, {'code': 'FHWaistCirc', 'value': None}, {'code': 'FHCVDOther', 'value': 'test2 ddddddddd'}], 'code': 'SEC0003', 'allow_multiple': False}, {'cdes': [[{'code': 'FHClinicalTrialName', 'value': ''}, {'code': 'FHTrialLength', 'value': None}, {'code': 'FHTrialSTartDate', 'value': None}, {'code': 'FHTrialStatus', 'value': ''}]], 'code': 'FHClinicalTrials', 'allow_multiple': True}]}], 'django_id': 3, 'timestamp': '2018-07-19T15:14:04.887064', 'context_id': 3, 'django_model': 'Patient', 'ClinicalData_timestamp': '2018-07-19T15:14:04.887064'}
+        self.input_data = INPUT_DATA
 
     def test_migrate_cdes_clinicaldata(self):
         out_data = transform_cd_dict(["CDE00016", "FHCRP"], "SEC0005", "SEC0003", self.input_data)
@@ -227,8 +228,8 @@ class ExporterTestCase(RDRFTestCase):
         set__of_cdes_in_forms = self._get_cde_codes_from_registry_export_data(data)
         generic_cdes = set(self.registry.generic_cdes)
 
-        assert set__of_cdes_in_forms == (
-            set_of_cde_codes_in_cdes - generic_cdes), "Consistency check failed:\n%s" % self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+        diff = self._report_cde_diff(set_of_cde_codes_in_cdes, set__of_cdes_in_forms)
+        assert set__of_cdes_in_forms == (set_of_cde_codes_in_cdes - generic_cdes), f"Consistency check failed:\n{diff}"
 
         # consistency of values in groups - whats exported is whats there
 
@@ -302,7 +303,13 @@ class FormTestCase(RDRFTestCase):
         self.address_type, created = AddressType.objects.get_or_create(pk=1)
 
         self.patient_address, created = PatientAddress.objects.get_or_create(
-            address='1 Line St', address_type=self.address_type, suburb='Neverland', state=self.state.short_name, postcode='1111', patient=self.patient)
+            address='1 Line St',
+            address_type=self.address_type,
+            suburb='Neverland',
+            state=self.state.short_name,
+            postcode='1111',
+            patient=self.patient
+        )
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
@@ -582,31 +589,35 @@ class TimeStripperTestCase(TestCase):
     def setUp(self):
         super(TimeStripperTestCase, self).setUp()
 
-        self.data_with_date_cdes = {'django_model': 'Patient',
-                                    'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                    'context_id': 4,
-                                    'django_id': 3,
-                                    'forms': [{'name': 'ClinicalData',
-                                               'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                             'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
-                                                                      {'value': '1972-06-15T00:00:00.00', 'code': 'DateOfAssessment'},
-                                                                      {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
-                                                            {'code': 'SEC0007', 'allow_multiple': False,
-                                                             'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                      {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_with_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 4,
+            'django_id': 3,
+            'forms': [{'name': 'ClinicalData',
+                       'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                     'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'},
+                                              {'value': '1972-06-15T00:00:00.00', 'code': 'DateOfAssessment'},
+                                              {'value': '2015-01-05T10:23:10.601182', 'code': 'FHconsentDate'}]},
+                                    {'code': 'SEC0007', 'allow_multiple': False,
+                                     'cdes': [{'value': '', 'code': 'CDE00024'},
+                                              {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
+        }
 
         self.copy_of_initial_data = deepcopy(self.data_with_date_cdes)
 
-        self.data_without_date_cdes = {'django_model': 'Patient',
-                                       'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
-                                       'context_id': 40,
-                                       'django_id': 300,
-                                       'forms': [{'name': 'ClinicalData',
-                                                  'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                                                 'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
-                                                               {'code': 'SEC0007', 'allow_multiple': False,
-                                                                'cdes': [{'value': '', 'code': 'CDE00024'},
-                                                                         {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]}
+        self.data_without_date_cdes = {
+            'django_model': 'Patient',
+            'ClinicalData_timestamp': '2017-02-14T10:23:10.601182',
+            'context_id': 40,
+            'django_id': 300,
+            'forms': [{'name': 'ClinicalData',
+                      'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                    'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
+                                   {'code': 'SEC0007', 'allow_multiple': False,
+                                    'cdes': [{'value': '', 'code': 'CDE00024'},
+                                             {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
+        }
 
         self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
         self.m2 = FakeClinicalData(2, self.data_without_date_cdes)
@@ -1146,7 +1157,7 @@ class StructureChecker(TestCase):
             with self.assertRaises(SystemExit) as cm:
                 output = self._run_command(registry_code="foobar", collection=collection)
                 print("output = [%s]" % output)
-                assert output != "", "check_structure management command failed: Expected schema error for %s" % bad_example
+                assert output, f"check_structure management command failed: Expected schema error for {bad_example}"
                 parts = output.split(";")
                 bad_pk = int(parts[0])
                 self.assertEqual(m.pk, bad_pk)

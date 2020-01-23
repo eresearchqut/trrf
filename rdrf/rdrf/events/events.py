@@ -6,11 +6,17 @@ class EventType:
     ACCOUNT_VERIFIED = "account-verified"
     PASSWORD_EXPIRY_WARNING = "password-expiry-warning"
     REMINDER = "reminder"
-    CLINICIAN_SELECTED = "clinician-selected"  # existing clinician selected by patient as their clinician
-    CLINICIAN_SIGNUP_REQUEST = "clinician-signup-request"  # clinican email to sign up
-    CLINICIAN_ACTIVATION = "clinician-activation"  # clinican email to confirm registration
-    PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"  # participant ( parent) notified when clinician verifies
-    PATIENT_CONSENT_CHANGE = "patient-consent-change"   # clinician is notified of a patient changing consent values
+
+    # existing clinician selected by patient as their clinician
+    CLINICIAN_SELECTED = "clinician-selected"
+    # clinican email to sign up
+    CLINICIAN_SIGNUP_REQUEST = "clinician-signup-request"
+    # clinican email to confirm registration
+    CLINICIAN_ACTIVATION = "clinician-activation"
+    # participant (parent) notified when clinician verifies
+    PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"
+    # clinician is notified of a patient changing consent values
+    PATIENT_CONSENT_CHANGE = "patient-consent-change"
 
     REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
 

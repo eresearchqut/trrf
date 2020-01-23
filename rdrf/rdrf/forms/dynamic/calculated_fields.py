@@ -48,8 +48,8 @@ class CalculatedFieldParser(object):
         self.calculation = self.cde.calculation.strip()
         self.observer = self.cde.code
         self.script = None
-        # The following two instance variables are provided to allow calculations involving parts of the object model that are off-page and loaded via an ajax rpc mechanism
-        # see rpc_view
+        # The following two instance variables are provided to allow calculations involving parts of the
+        # object model that are off-page and loaded via an ajax rpc mechanism. see rpc_view
         self.injected_model = injected_model
         self.injected_model_id = injected_model_id
         self._parse_calculation()
@@ -138,6 +138,17 @@ class CalculatedFieldParser(object):
                     });
                 });
 
-            </script>""" % (prefix, observer_code, subject_codes_string, prefix, api_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
+            </script>""" % (
+            prefix,
+            observer_code,
+            subject_codes_string,
+            prefix,
+            api_url,
+            function_parameter_list,
+            calculation_body,
+            observer_code,
+            injected_model,
+            injected_model_id
+        )
 
         return javascript

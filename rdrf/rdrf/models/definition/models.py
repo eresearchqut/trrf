@@ -136,10 +136,6 @@ class Registry(models.Model):
     version = models.CharField(max_length=20, blank=True)
     # a section which holds registry specific patient information
     patient_data_section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank=True)
-    # metadata is a dictionary
-    # keys ( so far):
-    # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
-    # a dictionary of configuration data -  GUI visibility
     metadata_json = models.TextField(blank=True)
 
     def natural_key(self):
@@ -685,7 +681,8 @@ class CDEPermittedValueGroup(models.Model):
 
     @property
     def options(self):
-        return [{"code": pv.code, "text": pv.value} for pv in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
+        permitted_values = CDEPermittedValue.objects.filter(pv_group=self).order_by('position')
+        return [{"code": pv.code, "text": pv.value} for pv in permitted_values]
 
     def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
@@ -754,9 +751,14 @@ class CommonDataElement(models.Model):
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=DATA_TYPE_STRING)
+    datatype = models.CharField(
+        choices=DATA_TYPE_CHOICES,
+        max_length=50,
+        help_text="type of field",
+        default=DATA_TYPE_STRING)
     instructions = models.TextField(
-        blank=True, help_text="Used to indicate help text for field")
+        blank=True,
+        help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(
         CDEPermittedValueGroup,
         null=True,
@@ -795,12 +797,14 @@ class CommonDataElement(models.Model):
         help_text="If the widget needs additional settings add them here")
     calculation = models.TextField(
         blank=True,
-        help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
+        help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. "
+                  "Must use context.result to set output")
     questionnaire_text = models.TextField(
         blank=True,
         help_text="The text to use in any public facing questionnaires/registration forms")
-
-    important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
+    important = models.BooleanField(
+        default=False,
+        help_text="Indicate whether the field should be emphasised with a green asterisk")
 
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
@@ -1795,7 +1799,8 @@ class ContextFormGroup(models.Model):
             raise ValidationError("One Context Form Group must be chosen as the default")
 
         if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
-            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code "
+                                  "where all codes must exist")
 
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
@@ -2069,7 +2074,9 @@ class FormTitle(models.Model):
     )
     default_title = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
     custom_title = models.CharField(max_length=50)
-    order = models.PositiveIntegerField(help_text="When the user with multiple groups matches more than 1 customisation the title with the lower order number will be displayed.")
+    order = models.PositiveIntegerField(
+        help_text="When the user with multiple groups matches more than 1 customisation "
+                  "the title with the lower order number will be displayed.")
 
     class Meta:
         ordering = ('registry', 'default_title', 'order')

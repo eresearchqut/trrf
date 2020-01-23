@@ -182,6 +182,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_link": patient_link,
             "patient_blurb": patient_blurb}
 
+
 # TODO: Refactor to meet cyclomatic complexity requirements
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):  # noqa: C901
     from rdrf.models.definition.models import ContextFormGroup

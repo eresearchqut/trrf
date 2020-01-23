@@ -12,7 +12,7 @@ class Locator(object):
     def link(self):
         """
         return html with glyphicon
-        e.g. <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> XXXFred FLINTSTONE</i>
+        e.g. <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>BLAH</i>
         """
         if self.instance is None:
             return ""

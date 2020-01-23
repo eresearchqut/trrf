@@ -117,7 +117,8 @@ class Instruction:
             for c in conditions:
                 cde = c.cde
                 computation.append(
-                    f'results.push(test_cde_value(get_cde_name("{cde.element_name()}", idx), "{cde.element_name()}", "{c.operator}", "{c.actual_value}"));'
+                    f'results.push(test_cde_value(get_cde_name("{cde.element_name()}", idx), '
+                    f'"{cde.element_name()}", "{c.operator}", "{c.actual_value}"));'
                 )
 
             computations = "\n".join(computation)
@@ -151,7 +152,8 @@ class Instruction:
                 c.simple_condition_text() if isinstance(c, Condition) else c.to_js() for c in self.conditions
             ]
             condition = " ".join(cond_str_list)
-            return ConditionGenerator.generate_simple_condition(condition, action_assignments, inverse_action_assignments)
+            return ConditionGenerator.generate_simple_condition(condition, action_assignments,
+                                                                inverse_action_assignments)
 
     def conditional_visibility_assignments(self):
         return (
@@ -187,7 +189,8 @@ class Instruction:
                 return ''
         else:
             event_handler_cdes = [c.cde for c in self.conditions if isinstance(c, Condition)]
-            filtered_cde_infos = [cde.get_cde_info() for cde in event_handler_cdes if cde.get_cde_info().is_multi_section]
+            filtered_cde_infos = [cde.get_cde_info() for cde in event_handler_cdes
+                                  if cde.get_cde_info().is_multi_section]
             return "\n".join([self.change_handler_element(cde_info) for cde_info in filtered_cde_infos])
 
 
@@ -254,9 +257,8 @@ class CodeGenerator:
 
         def cde_mapping(cde_info):
             multiple = 'true' if cde_info.allow_multiple else 'false'
-            return f'''
-                "{cde_info.name}":{{ type: "{cde_info.type}", allow_multiple: {multiple}, formset: "{cde_info.formset_prefix}"}}
-            '''
+            return f'"{cde_info.name}":{{ type: "{cde_info.type}", ' \
+                   f'allow_multiple: {multiple}, formset: "{cde_info.formset_prefix}"}}'
 
         entries = ",".join([
             cde_mapping(cde_info) for cde_info in self.cde_helper.get_cde_names_dict(self.form).values()

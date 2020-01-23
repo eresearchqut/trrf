@@ -64,9 +64,8 @@ class Family(object):
     def working_groups(self):
         # all the working groups this family spans
         # we need this for checking security
-        wgs = [wg for wg in self.index.working_groups.all()]
-        wgs = wgs + [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
-        return wgs
+        return [wg for wg in self.index.working_groups.all()] + \
+               [wg for pr in self.relatives for wg in pr.relative_patient.working_groups.all() if pr.relative_patient]
 
 
 class Doctor(models.Model):
@@ -208,7 +207,8 @@ class Patient(models.Model):
     consent = models.BooleanField(
         null=False,
         blank=False,
-        help_text=_("The patient consents to be part of the registry and have data retained and shared in accordance with the information provided to them."),
+        help_text=_("The patient consents to be part of the registry and have data retained and "
+                    "shared in accordance with the information provided to them."),
         verbose_name=_("consent given"))
     consent_clinical_trials = models.BooleanField(
         null=False,

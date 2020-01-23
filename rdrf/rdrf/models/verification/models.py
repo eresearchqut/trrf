@@ -17,7 +17,7 @@ class Annotation(models.Model):
     section_code = models.CharField(max_length=100)
     item = models.IntegerField(null=True)
     cde_code = models.CharField(max_length=30)
-    cde_value = models.TextField()    # holds the corrected value if corrected by a clinician or the original value if verified
+    cde_value = models.TextField()    # holds corrected value if corrected by a clinician or original value if verified
     orig_value = models.TextField()   # holds the original patient value
     username = models.CharField(max_length=254)   # user who created this annotation
     timestamp = models.DateTimeField(auto_now_add=True)

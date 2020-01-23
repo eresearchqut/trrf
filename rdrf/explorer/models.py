@@ -61,7 +61,8 @@ class FieldValue(models.Model):
             return None
 
     @classmethod
-    def get_value(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0, display=False):
+    def get_value(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index=0,
+                  display=False):
         model = cls.get(registry_model, patient_model, context_model, form_model, section_model, cde_model, index)
         if model is not None:
             if display:

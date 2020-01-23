@@ -364,8 +364,9 @@ class DatabaseUtils(object):
     def _get_sql_metadata(self, cursor):
         # type_code is looked up in the oid map
         # cursor description gives list:
-        # [Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None, scale=None, null_ok=None),
-        # Column(name='family_name', type_code=1043, display_size=None, internal_size=100, precision=None, scale=None, null_ok=None),
+        # [Column(name='id', type_code=23, display_size=None, internal_size=4, precision=None,
+        # scale=None, null_ok=None), Column(name='family_name', type_code=1043, display_size=None,
+        # internal_size=100, precision=None, scale=None, null_ok=None),
         # Column(name='given_names', type_code=1043, display_size=None,
         # internal_size=100, precision=None, scale=None, null_ok=None),
         # Column(name='date_of_birth', type_code=1082, display_size=None,

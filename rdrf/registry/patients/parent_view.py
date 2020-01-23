@@ -95,7 +95,9 @@ class ParentView(BaseParentView):
             patients_objects = parent.patient.all()
             patients = []
 
-            forms_objects = RegistryForm.objects.filter(registry=registry).exclude(is_questionnaire=True).order_by('position')
+            forms_objects = RegistryForm.objects.filter(registry=registry) \
+                .exclude(is_questionnaire=True) \
+                .order_by('position')
 
             progress = form_progress.FormProgress(registry)
 

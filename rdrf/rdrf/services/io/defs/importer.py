@@ -373,7 +373,8 @@ class Importer(object):
                     data_type = CdeMappings.fix_data_type(cde_map.get('datatype', ''))
                     valid_widgets = get_widgets_for_data_type(data_type) + ['']
                     if import_value not in valid_widgets:
-                        raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} and CDE: {cde_map["code"]}')
+                        raise ValidationError(f'Invalid widget_name {cde_map[field]} for datatype {data_type} '
+                                              f'and CDE: {cde_map["code"]}')
 
                 if not created:
                     old_value = getattr(cde_model, field)
@@ -530,7 +531,7 @@ class Importer(object):
             renames = changes.get_renamed_stages()
             associated_patients = Patient.objects.filter(rdrf_registry__in=[r], stage__name__in=to_remove).exists()
             if associated_patients:
-                raise RegistryImportError(f"Cannot remove {to_remove} stages as there are patients associated with them !")
+                raise RegistryImportError(f"Can't remove {to_remove} stages as there are associated patients")
 
             for stage_name in to_remove:
                 logger.info(f"Removing stage: {stage_name}")

@@ -36,7 +36,9 @@ def find_sections(doc, form_name=None, section_code=None, formp=None, sectionp=N
     for f, form in enumerate(doc.get("forms") or []):
         if (form_name is None or (form.get("name") == form_name and formp(form, f))):
             for s, section in enumerate(form.get("sections") or []):
-                if (section_code is None or section.get("code") == section_code) and bool(multisection) == bool(section.get("allow_multiple")):
+                matching_section = (section_code is None or section.get("code") == section_code)
+                matching_multisection = bool(multisection) == bool(section.get("allow_multiple"))
+                if matching_section and matching_multisection:
                     if multisection:
                         for s2, section2 in enumerate(section.get("cdes") or []):
                             product = dict(section)
@@ -384,7 +386,8 @@ class FormDataParser(object):
             # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingNever',
             #  u'testform____testmultisection____DM1FatigueDrug': u'd1'},
             #
-            # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingSlightChance', u'testform____testmultisection____DM1FatigueDrug': u'd2'}]}
+            # {u'DELETE': False, u'testform____testmultisection____DM1FatigueTV': u'DM1FatigueDozingSlightChance',
+            # u'testform____testmultisection____DM1FatigueDrug': u'd2'}]}
 
             multisection_code = self._get_multisection_code()
 

@@ -500,7 +500,6 @@ class MongoFieldSelector(object):
         projection_data = []
 
         def create_value_dict(checkbox_id):
-            # <input type="checkbox" name="cb_fh_39_104_CarotidUltrasonography" id="cb_fh_39_104_CarotidUltrasonography">
             _, registry_code, form_pk, section_pk, cde_code = checkbox_id.split(
                 "_")
 

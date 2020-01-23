@@ -27,14 +27,14 @@ def migrate_cdes_clinicaldata():
         with transaction.atomic():
             # cd is object instance of ClinicalData model
             for cd in cds:
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 print("******* Patient id=%s *******" % cd.django_id)
                 if structure_valid(cde_codes, source_section_code, target_section_code, cd.data):
                     print(" Structure validated and now transforming clinicaldata dictionary......")
                     cd.data = transform_cd_dict(cde_codes, source_section_code, target_section_code, cd.data)
                     print("Saving ClinicalData....")
                     cd.save()
-                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
     except Exception as ex:
         print("******* Rolling back......CDE migration FAILED with an exception: %s *******" % ex)
 

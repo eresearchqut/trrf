@@ -416,7 +416,8 @@ class FormView(View):
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
+            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version,
+                                                                                    patient_model, registry_code)
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
@@ -428,7 +429,8 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
+        context = self._build_context(user=request.user, patient_model=patient_model,
+                                      changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -467,15 +469,17 @@ class FormView(View):
 
         context["my_contexts_url"] = patient_model.get_contexts_url(self.registry)
         context["context_id"] = rdrf_context_id
-        context["delete_form_url"] = reverse(
-            "registry_form",
-            kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
-        ) if context_id != 'add' else ''
-        code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
-        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
-        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
+        context["delete_form_url"] = reverse("registry_form", kwargs={
+            "registry_code": registry_code,
+            "patient_id": patient_id,
+            "form_id": form_id,
+            "context_id": context_id
+        }) if context_id != 'add' else ''
+        gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
+        context["generated_code"] = gen.generate_code() or '' if not changes_since_version else ''
+        context["visibility_handler"] = gen.generate_visibility_handler() or '' if not changes_since_version else ''
+        context["change_targets"] = gen.generate_change_targets() or '' if not changes_since_version else ''
+        context["generated_declarations"] = gen.generate_declarations() or '' if not changes_since_version else ''
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
@@ -824,7 +828,8 @@ class FormView(View):
 
             patient.mark_changed_timestamp()
 
-            success_message = _(f"Patient {patient_name} saved successfully. Please now use the blue arrow on the right to continue.")
+            success_message = _(f"Patient {patient_name} saved successfully. "
+                                "Please now use the blue arrow on the right to continue.")
             messages.add_message(request,
                                  messages.SUCCESS,
                                  success_message)
@@ -977,11 +982,14 @@ class FormView(View):
         for s in remove_sections:
             sections.remove(s)
 
+        current_form_name = self.registry_form.display_name if self.registry_form.display_name else \
+            de_camelcase(self.registry_form.name)
+
         context = {
             'CREATE_MODE': self.CREATE_MODE,
             'old_style_demographics': self.registry.code != 'fkrp',
             'current_registry_name': self.registry.name,
-            'current_form_name': self.registry_form.display_name if self.registry_form.display_name else de_camelcase(self.registry_form.name),
+            'current_form_name': current_form_name,
             'registry': self.registry.code,
             'registry_code': self.registry.code,
             'form_name': self.form_id,
@@ -1984,16 +1992,16 @@ class CustomConsentFormView(View):
                 patient_signature_form.save()
             get_registry_stage_flow(registry_model).handle(patient_model)
             patient_name = "%s %s" % (patient_model.given_names, patient_model.family_name)
-            messages.success(
-                self.request,
-                _("Patient %(patient_name)s saved successfully. Please now use the blue arrow on the right to continue.") % {
-                    "patient_name": patient_name})
+            messages.success(self.request, _(f"Patient {patient_name} saved successfully. "
+                                             f"Please now use the blue arrow on the right to continue."))
             return HttpResponseRedirect(self._get_success_url(registry_model, patient_model))
         else:
             try:
                 parent = ParentGuardian.objects.get(user=request.user)
             except ParentGuardian.DoesNotExist:
                 parent = None
+
+            archive_patient_url = patient_model.get_archive_url(registry_model) if request.user.can_archive else ""
 
             context = dict({
                 "location": "Consents",
@@ -2006,7 +2014,7 @@ class CustomConsentFormView(View):
                 "registry_code": registry_code,
                 "show_archive_button": request.user.can_archive,
                 "not_linked": not patient_model.is_linked,
-                "archive_patient_url": patient_model.get_archive_url(registry_model) if request.user.can_archive else "",
+                "archive_patient_url": archive_patient_url,
                 "next_form_link": wizard.next_link,
                 "previous_form_link": wizard.previous_link,
                 "context_launcher": context_launcher.html,
@@ -2045,7 +2053,11 @@ class CdeWidgetSettingsView(View):
                 {}
               </div>
             </div>
-        """.format(display, 'hidden' if is_hidden else '', hidden_input if is_hidden else admin_form['widget_settings'].as_widget())
+        """.format(
+            display,
+            'hidden' if is_hidden else '',
+            hidden_input if is_hidden else admin_form['widget_settings'].as_widget(),
+        )
         return HttpResponse(mark_safe(ret_val))
 
 
