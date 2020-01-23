@@ -57,6 +57,10 @@ class LinkDefs:
 
     DemographicsFields = make_link("admin:rdrf_demographicfields_changelist", _("Registry Demographics Fields"))
     ConsentRules = make_link("admin:rdrf_consentrule_changelist", _("Consent Rules"))
+    Reviews = make_link("admin:rdrf_review_changelist", _("Reviews"))
+    PatientReviews = make_link("admin:rdrf_patientreview_changelist", _("Patient Reviews"))
+    Verifications = make_link("admin:rdrf_verification_changelist", _("Verifications"))
+
     Surveys = make_link("admin:rdrf_survey_changelist", _("Surveys"))
     SurveyAssignments = make_link("admin:rdrf_surveyassignment_changelist", _("Survey Assignments"))
     SurveyRequest = make_link("admin:rdrf_surveyrequest_changelist", _("Survey Request"))
@@ -156,7 +160,10 @@ class RegularLinks(Links):
         LinkDefs.NextOfKinRelationship,
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
-        LinkDefs.FormTitlesConfig
+        LinkDefs.FormTitlesConfig,
+        LinkDefs.Reviews,
+        LinkDefs.PatientReviews,
+        LinkDefs.Verifications,
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)
@@ -165,7 +172,9 @@ class RegularLinks(Links):
 
 
 class PromsLinks(Links):
-    OTHER = make_entries(LinkDefs.Importer)
+    OTHER = make_entries(
+        LinkDefs.Importer,
+    )
 
 
 class MenuConfig:
