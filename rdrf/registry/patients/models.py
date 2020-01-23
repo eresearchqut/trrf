@@ -1442,6 +1442,7 @@ class ConsentFileField(models.FileField):
     Without this each time you change the Default Storage class in settings, Django
     considers it a model change and wants you to create a migration.
     """
+
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         if 'storage' in kwargs:

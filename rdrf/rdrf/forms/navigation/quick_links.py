@@ -172,6 +172,7 @@ class MenuConfig:
     """
     Class to store the menu configuration. Defined for namespace purposes
     """
+
     def __init__(self, registries):
         self.registries = registries
         self.patient = {}

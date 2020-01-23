@@ -612,11 +612,11 @@ class TimeStripperTestCase(TestCase):
             'context_id': 40,
             'django_id': 300,
             'forms': [{'name': 'ClinicalData',
-                      'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
-                                    'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
-                                   {'code': 'SEC0007', 'allow_multiple': False,
-                                    'cdes': [{'value': '', 'code': 'CDE00024'},
-                                             {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
+                       'sections': [{'code': 'fhDateSection', 'allow_multiple': False,
+                                     'cdes': [{'value': 'fh_is_index', 'code': 'CDEIndexOrRelative'}]},
+                                    {'code': 'SEC0007', 'allow_multiple': False,
+                                     'cdes': [{'value': '', 'code': 'CDE00024'},
+                                              {'value': '', 'code': 'CDEfhDutchLipidClinicNetwork'}]}]}]
         }
 
         self.m1 = FakeClinicalData(1, self.data_with_date_cdes)
