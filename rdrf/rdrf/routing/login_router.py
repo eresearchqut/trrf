@@ -1,19 +1,17 @@
+from django.conf import settings
 from django.contrib import messages
-from django.urls import reverse
+from django.http import Http404
 from django.shortcuts import redirect
-from django.views.generic.base import View
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _, ungettext
-
+from django.views.generic.base import View
 from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
 
-from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
-from rdrf.workflows.verification import verifications_apply
-from django.conf import settings
-from django.http import Http404
-
+from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.system_role import SystemRoles
+from rdrf.workflows.verification import verifications_apply
 
 
 # todo update ophg registries to use new demographics and patients listing

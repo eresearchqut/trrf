@@ -1,9 +1,9 @@
-import yaml
 import json
 
+import yaml
 from django.http import HttpResponse
-from django.views.generic.base import View
 from django.shortcuts import render
+from django.views.generic.base import View
 
 
 class MigrationView(View):

@@ -1,6 +1,8 @@
 import types
+
 from django.conf.urls import url
 from rest_framework import routers, viewsets
+
 
 # Based on http://stackoverflow.com/questions/18818179/routing-api-views-in-django-rest-framework
 # Changed solution to allow for function views

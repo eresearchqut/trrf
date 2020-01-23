@@ -1,4 +1,5 @@
 import hashlib
+
 from django.db import connection
 from django.db.migrations.recorder import MigrationRecorder
 

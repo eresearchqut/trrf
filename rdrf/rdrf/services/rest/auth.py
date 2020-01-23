@@ -1,9 +1,10 @@
+import logging
+
 from rest_framework import authentication
 from rest_framework import exceptions
+
 from registry.groups.models import CustomUser
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

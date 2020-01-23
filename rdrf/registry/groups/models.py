@@ -1,18 +1,17 @@
+import logging
 import re
 
-from django.core import validators
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
-from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.core import validators
 from django.db import models
 from django.dispatch import receiver
-
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from registration.signals import user_activated
 
 from rdrf.models.definition.models import Registry
 from registry.groups import GROUPS as RDRF_GROUPS
 
-import logging
 logger = logging.getLogger(__name__)
 
 

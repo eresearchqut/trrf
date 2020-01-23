@@ -1,20 +1,18 @@
-from decimal import Decimal
+import datetime
 import json
 import logging
+from decimal import Decimal
 from operator import attrgetter
+
 import yaml
-
-
 from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
 
+from explorer.models import Query
 from rdrf import VERSION
-import datetime
 from rdrf.models.definition.models import DemographicFields, RegistryForm
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule
-
-from explorer.models import Query
 
 logger = logging.getLogger(__name__)
 

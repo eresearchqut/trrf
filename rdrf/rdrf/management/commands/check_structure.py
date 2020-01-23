@@ -1,11 +1,13 @@
-import sys
-from django.core.management import BaseCommand
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import ClinicalData
-import yaml
-import jsonschema
 import errno
 import os
+import sys
+
+import jsonschema
+import yaml
+from django.core.management import BaseCommand
+
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import Registry
 
 SCHEMA_FILE = "modjgo.yaml"
 

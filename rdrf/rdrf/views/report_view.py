@@ -1,17 +1,18 @@
-from django.shortcuts import render
-from django.views.generic.base import View
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.http import HttpResponseRedirect
-from django.http import Http404
-from django.http import HttpResponse
-from django.urls import reverse
-
-from explorer.models import Query
-
-from rdrf.services.io.reporting.reporting_table import ReportTable
 import json
 import logging
+
+from django.contrib.auth.decorators import login_required
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic.base import View
+
+from explorer.models import Query
+from rdrf.services.io.reporting.reporting_table import ReportTable
+
 logger = logging.getLogger(__name__)
 
 

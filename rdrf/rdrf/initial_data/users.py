@@ -7,8 +7,8 @@ Includes users:
     - clinical
 '''
 from django.contrib.auth.models import Group
-from registry.groups import models
 
+from registry.groups import models
 
 deps = ['groups']
 

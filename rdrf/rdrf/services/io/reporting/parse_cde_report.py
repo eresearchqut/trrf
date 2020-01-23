@@ -1,6 +1,8 @@
-from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue, CommonDataElement
-from lxml import etree
 import sys
+
+from lxml import etree
+
+from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue, CommonDataElement
 
 
 class NINDSReportParser:

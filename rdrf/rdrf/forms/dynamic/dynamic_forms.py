@@ -1,6 +1,6 @@
+import logging
 from collections import OrderedDict
 from datetime import datetime as dt
-import logging
 
 from django.conf import settings
 from django.forms import BaseForm

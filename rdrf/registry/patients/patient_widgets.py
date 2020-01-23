@@ -1,5 +1,6 @@
-from django.forms import widgets
 import logging
+
+from django.forms import widgets
 from django.urls import reverse
 
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -8,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class PatientRelativeLinkWidget(widgets.Widget):
-
     """
     This provides a link to the patient created from the relative
     Before the patient is created , it provides a checkbox

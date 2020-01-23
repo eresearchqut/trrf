@@ -1,17 +1,16 @@
 import logging
-import requests
 
+import requests
 from django.db import models
 from django.urls import reverse
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.services.io.notifications.notifications import Notifier
-from rdrf.services.io.notifications.notifications import NotificationError
-from registry.patients.models import Patient
-from rdrf.helpers.utils import generate_token
-
 from rest_framework import status
+
+from rdrf.helpers.utils import generate_token
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import Registry
+from rdrf.services.io.notifications.notifications import NotificationError
+from rdrf.services.io.notifications.notifications import Notifier
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 

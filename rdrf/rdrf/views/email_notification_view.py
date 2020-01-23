@@ -1,17 +1,16 @@
-import logging
 import json
+import logging
 
-from django.views.generic.base import View
-from django.shortcuts import redirect
-from django.urls import reverse
 from django.apps import apps
 from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils import timezone
+from django.views.generic.base import View
 
-from rdrf.services.io.notifications.email_notification import RdrfEmail
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import EmailNotificationHistory
-
+from rdrf.services.io.notifications.email_notification import RdrfEmail
 
 logger = logging.getLogger(__name__)
 

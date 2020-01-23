@@ -1,10 +1,11 @@
-from django.core.mail import send_mail
-from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
-from registry.groups.models import CustomUser
-from django.template import Context, Template
-
 import json
 import logging
+
+from django.core.mail import send_mail
+from django.template import Context, Template
+
+from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
+from registry.groups.models import CustomUser
 
 logger = logging.getLogger(__name__)
 

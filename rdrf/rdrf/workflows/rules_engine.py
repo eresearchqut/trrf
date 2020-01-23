@@ -1,6 +1,7 @@
-from rdrf.models.definition.models import Section
-from rdrf.helpers.utils import get_full_path
 import logging
+
+from rdrf.helpers.utils import get_full_path
+from rdrf.models.definition.models import Section
 
 logger = logging.getLogger(__name__)
 

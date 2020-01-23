@@ -1,19 +1,18 @@
-from collections import OrderedDict
 import json
+import logging
+from collections import OrderedDict
 
 from django.db import ProgrammingError
 from django.db import connection
 
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
-from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData
-
-from .models import Query
-from .models import FieldValue
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from .forms import QueryForm
+from .models import FieldValue
+from .models import Query
 
-import logging
 logger = logging.getLogger(__name__)
 
 

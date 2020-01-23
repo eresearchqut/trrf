@@ -1,7 +1,7 @@
-from rdrf.models.definition import models
-from registry.patients import models as patientmodels
 from explorer import models as explorermodels
+from rdrf.models.definition import models
 from registry.groups import models as groupmodels
+from registry.patients import models as patientmodels
 from .catalogue import ModelExporterCatalogue
 from .exporters import ModelExporter
 

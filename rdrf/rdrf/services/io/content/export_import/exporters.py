@@ -1,13 +1,14 @@
-from collections import defaultdict, OrderedDict
 import os
-from django.core import serializers
+from collections import defaultdict, OrderedDict
+from functools import reduce
+
 from django.apps import apps
+from django.core import serializers
 
 from .utils import DelegateMixin
 from .utils import app_schema_version
 from .utils import file_checksum
 from .utils import maybe_indent
-from functools import reduce
 
 
 class DataGroupExporter(DelegateMixin):

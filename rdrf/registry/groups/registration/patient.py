@@ -6,7 +6,6 @@ from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import \
     process_notification
 from registry.groups import GROUPS
-
 from .base import BaseRegistration
 
 logger = logging.getLogger(__name__)

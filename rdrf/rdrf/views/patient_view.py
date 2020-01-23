@@ -1,49 +1,44 @@
+import logging
 from collections import OrderedDict
 
-from django.shortcuts import render, redirect
-from django.views.generic.base import View
-from django.views.generic import CreateView
-from django.urls import reverse
+from django.core.exceptions import PermissionDenied
+from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils.html import strip_tags
+from django.utils.translation import ugettext as _
+from django.views.generic import CreateView
+from django.views.generic.base import View
 
 from rdrf.admin_forms import DemographicFieldsAdminForm
-from rdrf.models.definition.models import Registry, RegistryFeatures
-from rdrf.models.definition.models import CdePolicy, DemographicFields
-from rdrf.helpers.utils import consent_status_for_patient
-
-from django.forms.models import inlineformset_factory
-from django.utils.html import strip_tags
-
-from registry.patients.models import ParentGuardian
-from registry.patients.models import Patient
-from registry.patients.models import PatientAddress
-from registry.patients.models import PatientDoctor
-from registry.patients.models import PatientRelative
-from registry.patients.admin_forms import PatientAddressForm
-from registry.patients.admin_forms import PatientDoctorForm
-from registry.patients.admin_forms import PatientForm
-from registry.patients.admin_forms import PatientRelativeForm
-from django.utils.translation import ugettext as _
-
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.forms.components import FamilyLinkagePanel
+from rdrf.forms.components import RDRFContextLauncherComponent
+from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.dynamic.registry_specific_fields import RegistrySpecificFieldsHandler
+from rdrf.forms.form_title_helper import FormTitleHelper
+from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.helpers.constants import (
     PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
     PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
     PATIENT_PERSONAL_DETAILS_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
 )
+from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.utils import get_error_messages
-from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
-from rdrf.forms.components import RDRFContextLauncherComponent
-from rdrf.forms.components import RDRFPatientInfoComponent
-from rdrf.forms.components import FamilyLinkagePanel
-from rdrf.forms.form_title_helper import FormTitleHelper
-from rdrf.db.contexts_api import RDRFContextManager
-
+from rdrf.models.definition.models import CdePolicy, DemographicFields
+from rdrf.models.definition.models import Registry, RegistryFeatures
 from rdrf.security.security_checks import security_check_user_patient
-from django.core.exceptions import PermissionDenied
+from registry.patients.admin_forms import PatientAddressForm
+from registry.patients.admin_forms import PatientDoctorForm
+from registry.patients.admin_forms import PatientForm
+from registry.patients.admin_forms import PatientRelativeForm
+from registry.patients.models import ParentGuardian
+from registry.patients.models import Patient
+from registry.patients.models import PatientAddress
+from registry.patients.models import PatientDoctor
+from registry.patients.models import PatientRelative
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

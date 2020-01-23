@@ -1,31 +1,30 @@
-from datetime import datetime
-from itertools import product
 import logging
 import re
+from datetime import datetime
+from itertools import product
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 
 from explorer import __version__
-from .forms import QueryForm
-from .models import Query
-from .utils import DatabaseUtils
+from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.helpers.utils import mongo_key_from_models
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
-from registry.groups.models import WorkingGroup
-from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
-
-from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from registry.groups.models import WorkingGroup
+from .forms import QueryForm
+from .models import Query
+from .utils import DatabaseUtils
 
 logger = logging.getLogger(__name__)
 

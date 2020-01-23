@@ -1,13 +1,13 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth import get_user_model
+import logging
 
+from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from useraudit.models import UserDeactivation
+
+from rdrf.helpers.registry_features import RegistryFeatures
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from useraudit.models import UserDeactivation
-from rdrf.helpers.registry_features import RegistryFeatures
-
-import logging
 
 logger = logging.getLogger(__name__)
 

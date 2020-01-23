@@ -1,23 +1,20 @@
 import logging
 
 from django import forms
-
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
-from django.conf import settings
 from django.forms import ValidationError
-from django.utils.translation import ugettext as _
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-
+from django.utils.translation import ugettext as _
 from useraudit import models as uam
 from useraudit.middleware import get_request
 
 from rdrf.auth import can_user_self_unlock
-
 
 logger = logging.getLogger(__name__)
 

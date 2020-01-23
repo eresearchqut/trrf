@@ -6,8 +6,6 @@ Includes:
     - users and groups
     - sample registry
 '''
-from registry.groups import models
-
 
 deps = [
     'reference_data',

@@ -1,6 +1,6 @@
 from django import template
-from registry.patients.models import Patient
 
+from registry.patients.models import Patient
 
 register = template.Library()
 

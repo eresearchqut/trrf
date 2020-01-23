@@ -1,10 +1,10 @@
-from django.shortcuts import render
-from django.views.generic.base import View
-from django.template.context_processors import csrf
-from django.core.exceptions import ObjectDoesNotExist
 import logging
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render
+from django.template.context_processors import csrf
 from django.utils.translation import ugettext as _
+from django.views.generic.base import View
 
 from rdrf.models.definition.models import Registry
 

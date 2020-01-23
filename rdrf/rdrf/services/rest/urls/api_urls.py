@@ -1,7 +1,7 @@
 from django.urls import re_path
-from rdrf.services.rest.views import api_views
-from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
 
+from rdrf.routing.custom_rest_router import DefaultRouterWithSimpleViews
+from rdrf.services.rest.views import api_views
 
 router = DefaultRouterWithSimpleViews()
 router.register(r'registries', api_views.RegistryList, basename='registry')

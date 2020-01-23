@@ -1,13 +1,10 @@
 import logging
 
 from rdrf.helpers.registry_features import RegistryFeatures
-
 from rdrf.models.definition.models import ConsentSection
 from registry.patients.models import ConsentValue
-
 from .constants import PatientState
 from .models import PatientStageRule
-
 
 logger = logging.getLogger(__name__)
 

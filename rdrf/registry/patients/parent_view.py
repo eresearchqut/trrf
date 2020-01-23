@@ -1,22 +1,20 @@
 import logging
 
-from django.views.generic.base import View
-from django.shortcuts import render, redirect
-from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-
-from registry.groups.models import WorkingGroup
-from registry.patients.admin_forms import ParentGuardianForm
-from registry.patients.models import AddressType, ParentGuardian, Patient, PatientAddress
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.generic.base import View
 
 from rdrf.db.contexts_api import RDRFContextManager, RDRFContextError
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress import form_progress
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
-from rdrf.helpers.registry_features import RegistryFeatures
-
+from registry.groups.models import WorkingGroup
+from registry.patients.admin_forms import ParentGuardianForm
+from registry.patients.models import AddressType, ParentGuardian, Patient, PatientAddress
 from .mixins import LoginRequiredMixin
 
 logger = logging.getLogger("registry_log")

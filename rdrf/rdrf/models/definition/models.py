@@ -1,33 +1,31 @@
 import datetime
 import json
-import jsonschema
 import logging
 import os.path
-import yaml
 
+import jsonschema
+import yaml
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.urls import reverse
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+from django.urls import reverse
 from django.utils.formats import date_format, time_format
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
 
-
-from rdrf.helpers.utils import check_calculation
-from rdrf.helpers.utils import format_date, parse_iso_datetime
 from rdrf.events.events import EventType
-
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import check_calculation
+from rdrf.helpers.utils import format_date, parse_iso_datetime
 
 logger = logging.getLogger(__name__)
 

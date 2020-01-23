@@ -1,6 +1,8 @@
+from django.db import transaction
+
 from rdrf.helpers.transform_cd_dict import structure_valid, transform_cd_dict
 from rdrf.models.definition.models import ClinicalData
-from django.db import transaction
+
 """
 Custom Script
 GitHub Repo: rdrf

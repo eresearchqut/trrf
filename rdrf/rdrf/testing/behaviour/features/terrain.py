@@ -1,10 +1,12 @@
-import os
 import logging
+import os
 from contextlib import contextmanager
+
 from aloe import before, after, around, world
-from selenium import webdriver
-from . import utils
 from django.conf import settings
+from selenium import webdriver
+
+from . import utils
 
 logger = logging.getLogger(__name__)
 

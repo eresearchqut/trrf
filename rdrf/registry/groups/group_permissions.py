@@ -1,6 +1,6 @@
 import logging
-from django.contrib.auth.models import Permission
 
+from django.contrib.auth.models import Permission
 
 logger = logging.getLogger(__name__)
 

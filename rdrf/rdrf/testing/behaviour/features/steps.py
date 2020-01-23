@@ -1,19 +1,16 @@
 import logging
+import time
+from collections import OrderedDict
 
 from aloe import step, world
 from aloe.registry import STEP_REGISTRY
 from aloe_webdriver.webdriver import contains_content
-
 from nose.tools import assert_true, assert_equal
-
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.common.keys import Keys
 
 from . import utils
 from .terrain import TEST_WAIT
-
-from collections import OrderedDict
-import time
 
 logger = logging.getLogger(__name__)
 

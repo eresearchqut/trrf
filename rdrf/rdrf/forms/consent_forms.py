@@ -1,11 +1,12 @@
+import logging
 from collections import OrderedDict
+
 from django import forms
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
 from django.utils.translation import ugettext as _
 
-import logging
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger(__name__)
 

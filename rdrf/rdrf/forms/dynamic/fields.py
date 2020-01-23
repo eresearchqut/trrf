@@ -1,13 +1,15 @@
 # Custom Fields
-from itertools import zip_longest
 import datetime
+from itertools import zip_longest
+
+from django.core.exceptions import ValidationError
 from django.forms import CharField
 from django.forms import ChoiceField
+from django.forms import DateField
 from django.forms import FileField
 from django.forms import URLField
-from django.forms import DateField
+
 from rdrf.forms.widgets.widgets import MultipleFileInput
-from django.core.exceptions import ValidationError
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):

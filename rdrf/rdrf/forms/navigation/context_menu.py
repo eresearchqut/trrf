@@ -1,8 +1,10 @@
-from django.urls import reverse
 from django.template import loader, Context
+from django.urls import reverse
 from django.utils.html import escape
-from rdrf.models.definition.models import RegistryForm
+
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import RegistryForm
+
 
 # NB "Context" is not the same as RDRF Context, it's just a "normal" context menu that pops up
 

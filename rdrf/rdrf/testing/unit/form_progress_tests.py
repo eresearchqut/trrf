@@ -1,12 +1,11 @@
-from rdrf.forms.progress.form_progress import FormProgressCalculator
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ClinicalData
-from rdrf.views.form_view import FormView
+import logging
 
+from rdrf.forms.progress.form_progress import FormProgressCalculator
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.views.form_view import FormView
 from .tests import FormFiller, FormTestCase
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

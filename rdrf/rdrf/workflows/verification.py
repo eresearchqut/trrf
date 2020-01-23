@@ -1,9 +1,10 @@
+import logging
+
 from explorer.views import Humaniser
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.verification.models import Annotation
 from registry.patients.models import Patient
-from rdrf.helpers.registry_features import RegistryFeatures
 
-import logging
 logger = logging.getLogger(__name__)
 
 

@@ -1,4 +1,5 @@
 from collections import namedtuple
+
 import django.apps as apps
 
 from . import model_exporters, datagroup_exporters

@@ -1,19 +1,21 @@
-from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
-from explorer.views import Humaniser
-from django.urls import reverse
+import logging
 from collections import OrderedDict
-from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
-from django.core.exceptions import ValidationError
-from registry.patients.models import Patient
-from registry.patients.models import PatientAddress, AddressType
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from django.conf import settings
-from registry.groups.models import WorkingGroup
 from datetime import date
 from datetime import datetime
-import pycountry
 
-import logging
+import pycountry
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.urls import reverse
+
+from explorer.views import Humaniser
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
+from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+from registry.groups.models import WorkingGroup
+from registry.patients.models import Patient
+from registry.patients.models import PatientAddress, AddressType
+
 logger = logging.getLogger(__name__)
 
 CONSENTS_SECTION = "custom_consent_data"

@@ -1,9 +1,9 @@
 from django import template
 from django.conf import settings
-from rdrf.models.definition.models import Registry
-from django.urls import reverse
 from django.contrib.auth.models import AnonymousUser
+from django.urls import reverse
 
+from rdrf.models.definition.models import Registry
 
 DEFAULT_NAME = settings.PROJECT_TITLE
 

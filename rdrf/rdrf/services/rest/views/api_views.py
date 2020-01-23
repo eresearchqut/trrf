@@ -1,26 +1,25 @@
+import logging
 from operator import attrgetter
-import pycountry
 
+import pycountry
 from django.db.models import Q
 from rest_framework import generics
-from rest_framework import viewsets
+from rest_framework import serializers
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import serializers
 from rest_framework.views import APIView
 
-from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
-from registry.groups.models import CustomUser, WorkingGroup
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import RegistryForm
 from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, \
     CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
-from rdrf.helpers.registry_features import RegistryFeatures
+from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

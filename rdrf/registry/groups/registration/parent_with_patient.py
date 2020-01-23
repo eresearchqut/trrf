@@ -8,7 +8,6 @@ from rdrf.services.io.notifications.email_notification import \
     process_notification
 from registry.groups import GROUPS
 from registry.patients.models import ParentGuardian
-
 from .base import BaseRegistration
 
 logger = logging.getLogger(__name__)

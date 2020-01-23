@@ -1,16 +1,15 @@
+import logging
 from collections import namedtuple
 from functools import reduce
-import logging
 from operator import attrgetter
 
-from django.urls import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
-from django.urls.exceptions import NoReverseMatch
 from django.conf import settings
+from django.urls import reverse_lazy
+from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import ugettext_lazy as _
 
-from registry import groups
 from rdrf.helpers.registry_features import RegistryFeatures
-
+from registry import groups
 
 logger = logging.getLogger(__name__)
 

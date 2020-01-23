@@ -1,8 +1,7 @@
 import logging
 
-from .parse_utils import CDEHelper, SectionHelper
 from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
-
+from .parse_utils import CDEHelper, SectionHelper
 
 logger = logging.getLogger(__name__)
 

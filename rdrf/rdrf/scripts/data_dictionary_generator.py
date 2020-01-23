@@ -1,8 +1,9 @@
 # encoding: utf-8
-import yaml
+import codecs
 import sys
 from string import strip
-import codecs
+
+import yaml
 
 
 def decode(l):

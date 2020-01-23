@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic import View
-from django.http import Http404
+
 from .models import PatientConsent
 
 

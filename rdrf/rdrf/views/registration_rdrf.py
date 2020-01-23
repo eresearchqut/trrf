@@ -1,17 +1,16 @@
 import logging
-import requests
 
+import requests
 from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
-
+from django.utils.translation import gettext as _
 from registration.backends.default.views import RegistrationView
 
-from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_preferred_languages
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger(__name__)
 

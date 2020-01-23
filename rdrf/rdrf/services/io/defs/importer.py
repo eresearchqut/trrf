@@ -1,39 +1,30 @@
 import json
 import logging
+
 import yaml
-
-
-from rdrf.helpers.registry_features import RegistryFeatures
-
-from rdrf.models.data_fixes import CdeMappings
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentConfiguration
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import DemographicFields
-from rdrf.models.definition.models import FormTitle
-
-from rdrf.forms.widgets.widgets import get_widgets_for_data_type
-
-from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient, PatientStage, PatientStageRule
-
-from explorer.models import Query
-
 from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
-
+from explorer.models import Query
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import create_permission
+from rdrf.models.data_fixes import CdeMappings
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentConfiguration
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from registry.groups.models import WorkingGroup
+from registry.patients.models import Patient, PatientStage, PatientStageRule
 from .patient_stage_changes import PatientStageChanges
-
 
 logger = logging.getLogger(__name__)
 

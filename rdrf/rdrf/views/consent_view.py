@@ -1,22 +1,20 @@
-from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.views.generic.base import View
-from django.shortcuts import render
-from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
+from django.views.generic.base import View
 
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import Registry
+from rdrf.security.security_checks import security_check_user_patient
 from registry.patients.models import ConsentValue
 from registry.patients.models import Patient, ParentGuardian
-
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import Registry
-
-from rdrf.security.security_checks import security_check_user_patient
 
 
 class ConsentList(View):

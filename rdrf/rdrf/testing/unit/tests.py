@@ -1,37 +1,36 @@
 # -*- encoding: utf-8 -*-
+import json
 import logging
 import os
-import yaml
+from copy import deepcopy
 from datetime import datetime
 from datetime import timedelta
+
+import yaml
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.forms.models import model_to_dict
 from django.test import TestCase, RequestFactory
 
+from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from rdrf.helpers.utils import de_camelcase, check_calculation, TimeStripper
+from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailNotificationHistory
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ClinicalData
 from rdrf.testing.unit.cde_migration_data import INPUT_DATA
 from rdrf.views.form_view import FormView
+from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient
 from registry.patients.models import State, PatientAddress, AddressType
-from django.contrib.auth.models import Group
-from registry.groups.models import WorkingGroup, CustomUser
-from rdrf.helpers.utils import de_camelcase, check_calculation, TimeStripper
-from copy import deepcopy
-
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotificationHistory
-from django.core.management import call_command
-import json
-
-from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
 
 logger = logging.getLogger(__name__)
 

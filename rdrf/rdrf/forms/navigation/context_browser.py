@@ -1,9 +1,9 @@
 from operator import itemgetter
+
 from rdrf.forms.navigation.context_menu import PatientContextMenu
+from rdrf.helpers.registry_features import RegistryFeatures
 # todo this must be dead code - remove!
 from rdrf.rdrf import context_defnitions as definitions
-
-from rdrf.helpers.registry_features import RegistryFeatures
 
 
 class ContextBrowserError(Exception):

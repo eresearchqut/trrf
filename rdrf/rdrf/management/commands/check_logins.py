@@ -1,10 +1,11 @@
 import sys
 from datetime import datetime, timedelta
-from django.core.management import BaseCommand
-from rdrf.models.definition.models import Registry
-from rdrf.services.io.notifications.reminders import ReminderProcessor
-from rdrf.services.io.notifications.email_notification import process_notification
 
+from django.core.management import BaseCommand
+
+from rdrf.models.definition.models import Registry
+from rdrf.services.io.notifications.email_notification import process_notification
+from rdrf.services.io.notifications.reminders import ReminderProcessor
 from registry.groups.models import CustomUser
 
 

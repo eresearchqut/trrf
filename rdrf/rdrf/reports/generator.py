@@ -1,19 +1,21 @@
-import sqlalchemy as alc
-from sqlalchemy import create_engine, MetaData
-from django.conf import settings
-from rdrf.models.definition.models import ContextFormGroup
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ClinicalData
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from rdrf.forms.progress.form_progress import FormProgress
-from rdrf.helpers.utils import cached
-from registry.patients.models import Patient
 import logging
-from django.contrib.auth.models import Group
-from django.contrib.contenttypes.models import ContentType
 import re
 from functools import lru_cache
 from operator import attrgetter
+
+import sqlalchemy as alc
+from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
+from sqlalchemy import create_engine, MetaData
+
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.helpers.utils import cached
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ContextFormGroup
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 

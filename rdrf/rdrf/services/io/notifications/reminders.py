@@ -1,8 +1,9 @@
-from rdrf.services.io.notifications.email_notification import process_notification
-from rdrf.services.io.notifications.email_notification import EmailNotificationHistory
 import json
-from datetime import datetime
 import logging
+from datetime import datetime
+
+from rdrf.services.io.notifications.email_notification import EmailNotificationHistory
+from rdrf.services.io.notifications.email_notification import process_notification
 
 logger = logging.getLogger(__name__)
 

@@ -3,9 +3,7 @@ import yaml
 from rdrf.models.definition.models import Registry
 from rdrf.services.io.defs.exporter import Exporter
 from rdrf.services.io.defs.importer import Importer, ImportState, RegistryImportError
-
 from registry.patients.models import Patient, PatientStage, PatientStageRule
-
 from .tests import RDRFTestCase
 
 

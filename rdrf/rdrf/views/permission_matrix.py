@@ -1,14 +1,16 @@
-from django.views.generic import View
-from rdrf.models.definition.models import Registry
-from django.shortcuts import render
-from django.http import Http404
-from registry.groups.models import CustomUser
+import logging
+
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
-from django.contrib.auth.decorators import login_required
+from django.http import Http404
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
-import logging
+from django.views.generic import View
+
+from rdrf.models.definition.models import Registry
+from registry.groups.models import CustomUser
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ class MatrixRow(object):
 
     def __init__(self, permission, groups):
         self.permission = permission
-        self.groups = groups   # auth groups
+        self.groups = groups  # auth groups
 
     @property
     def name(self):

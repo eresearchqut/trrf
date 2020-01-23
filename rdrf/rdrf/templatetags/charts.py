@@ -1,4 +1,5 @@
 import json
+
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 

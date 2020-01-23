@@ -1,17 +1,16 @@
-from django.http import HttpResponse
-from django.views.generic import View
-from django.urls import reverse
-from django.utils.decorators import method_decorator
+import json
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-
-import json
-
-from registry.patients.models import Patient
+from django.http import HttpResponse
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 from rdrf.helpers.registry_features import RegistryFeatures
+from registry.patients.models import Patient
 
-import logging
 logger = logging.getLogger(__name__)
 
 

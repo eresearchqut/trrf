@@ -1,35 +1,32 @@
-from collections import namedtuple
 import datetime
 import json
 import logging
-from operator import attrgetter
-import pycountry
 import random
+from collections import namedtuple
+from operator import attrgetter
 
-from django.core.exceptions import ValidationError
+import pycountry
 from django.core import serializers
+from django.core.exceptions import ValidationError
 from django.core.files.storage import DefaultStorage
-from django.urls import reverse
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from simple_history.models import HistoricalRecords
 
+import registry.groups.models
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.services.io.notifications.email_notification import process_notification
-
-import registry.groups.models
-from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
-from django.utils.translation import ugettext_lazy as _
-
-from simple_history.models import HistoricalRecords
-
+from registry.utils import get_working_groups, get_registries, stripspaces
 from .constants import PatientState
 
 logger = logging.getLogger(__name__)

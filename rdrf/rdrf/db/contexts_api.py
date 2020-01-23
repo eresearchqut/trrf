@@ -1,9 +1,10 @@
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RDRFContext
-from django.contrib.contenttypes.models import ContentType
-from rdrf.helpers.registry_features import RegistryFeatures
-
 import logging
+
+from django.contrib.contenttypes.models import ContentType
+
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import RDRFContext
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger(__name__)
 

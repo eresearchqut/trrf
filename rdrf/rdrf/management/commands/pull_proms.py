@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from rdrf.models.definition.models import Registry
 
+from rdrf.models.definition.models import Registry
 from rdrf.services.rest.views.proms_api import PromsProcessor
 
 

@@ -1,12 +1,14 @@
-import yaml
-import sys
 import os.path
 import re
-from rdrf.helpers.utils import de_camelcase
+import sys
 from tempfile import TemporaryDirectory
+
+import yaml
 from django.core.management import BaseCommand
-from django.core.management.base import CommandError
 from django.core.management import call_command
+from django.core.management.base import CommandError
+
+from rdrf.helpers.utils import de_camelcase
 
 sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
 explanation = """

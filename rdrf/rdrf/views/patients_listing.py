@@ -1,28 +1,29 @@
-from itertools import chain
 import json
-from django.views.generic.base import View
-from django.template.context_processors import csrf
+import logging
+from itertools import chain
+
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
-from django.shortcuts import redirect, get_object_or_404
+from django.core.paginator import Paginator, InvalidPage
+from django.db.models import Q
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
-from django.db.models import Q
-from django.core.paginator import Paginator, InvalidPage
-from rdrf.models.definition.models import Registry
-from rdrf.forms.progress.form_progress import FormProgress
-from rdrf.db.contexts_api import RDRFContextManager
-from rdrf.forms.components import FormGroupButton
-from registry.patients.models import Patient
-from rdrf.helpers.utils import MinType
-from rdrf.helpers.utils import consent_check
+from django.template.context_processors import csrf
+from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
+from django.views.generic.base import View
 
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.forms.components import FormGroupButton
+from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import MinType
+from rdrf.helpers.utils import consent_check
+from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
 
-import logging
 logger = logging.getLogger(__name__)
 
 

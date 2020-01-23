@@ -2,9 +2,9 @@
 Initial treatment phases:
 """
 
-from registry.patients import models
-from rdrf.models.definition.models import Registry
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import Registry
+from registry.patients import models
 
 
 def load_data(**kwargs):

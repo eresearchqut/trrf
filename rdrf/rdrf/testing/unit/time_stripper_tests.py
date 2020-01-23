@@ -1,7 +1,9 @@
-from rdrf.helpers.utils import TimeStripper
-from rdrf.helpers.utils import HistoryTimeStripper
-from django.test import TestCase
 from copy import deepcopy
+
+from django.test import TestCase
+
+from rdrf.helpers.utils import HistoryTimeStripper
+from rdrf.helpers.utils import TimeStripper
 
 
 class FakeClinicalData(object):

@@ -1,14 +1,13 @@
 import logging
 import math
 
-from django.urls import reverse
 from django.templatetags.static import static
+from django.urls import reverse
 
 from rdrf.forms.dsl.code_evaluator import CodeEvaluator
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import de_camelcase, parse_iso_datetime
 from rdrf.models.definition.models import ClinicalData
-from rdrf.helpers.registry_features import RegistryFeatures
-
 from ..dynamic.value_fetcher import DynamicValueFetcher
 
 logger = logging.getLogger(__name__)

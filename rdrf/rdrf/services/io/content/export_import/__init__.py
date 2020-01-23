@@ -1,7 +1,7 @@
 
+from . import definitions
 from .main_exporters import Exporter, RegistryExporter, RegistryDefExporter
 from .main_importers import ZipFileImporter
-from . import definitions
 
 
 def export_registry(registry_code, filename=None, verbose=False, indented_logs=True):

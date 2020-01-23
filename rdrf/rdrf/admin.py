@@ -1,57 +1,53 @@
-from django.utils.translation import ugettext as _
+import io
+import logging
+from functools import reduce
+from wsgiref.util import FileWrapper
+
+from django.conf import settings
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import QuestionnaireResponse
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import Notification
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import ConsentConfiguration
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import DemographicFields
-from rdrf.models.definition.models import CdePolicy
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotificationHistory
-from rdrf.models.definition.models import ContextFormGroup
-from rdrf.models.definition.models import ContextFormGroupItem
-from rdrf.models.definition.models import CDEFile
-from rdrf.models.definition.models import ConsentRule
-from rdrf.models.definition.models import ClinicalData
-from rdrf.models.definition.models import FormTitle
-from rdrf.models.proms.models import Survey
-from rdrf.models.proms.models import SurveyQuestion
-from rdrf.models.proms.models import Precondition
-from rdrf.models.proms.models import SurveyAssignment
-from rdrf.models.proms.models import SurveyRequest
-from rdrf.system_role import SystemRoles
-
-
+from django.utils.translation import ugettext as _
 from reversion.admin import VersionAdmin
 
-import logging
-from django.http import HttpResponse
-from wsgiref.util import FileWrapper
-import io
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.conf import settings
-
-from django.contrib.auth import get_user_model
-
-from rdrf.admin_forms import ConsentConfigurationAdminForm
-from rdrf.admin_forms import RegistryFormAdminForm
-from rdrf.admin_forms import EmailTemplateAdminForm
-from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import ConsentConfigurationAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
+from rdrf.admin_forms import DemographicFieldsAdminForm
+from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import FormTitleAdminForm
-
-from functools import reduce
+from rdrf.admin_forms import RegistryFormAdminForm
+from rdrf.models.definition.models import CDEFile
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentConfiguration
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentRule
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import ContextFormGroupItem
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailNotificationHistory
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import Notification
+from rdrf.models.definition.models import QuestionnaireResponse
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from rdrf.models.proms.models import Precondition
+from rdrf.models.proms.models import Survey
+from rdrf.models.proms.models import SurveyAssignment
+from rdrf.models.proms.models import SurveyQuestion
+from rdrf.models.proms.models import SurveyRequest
+from rdrf.system_role import SystemRoles
 
 logger = logging.getLogger(__name__)
 

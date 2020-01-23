@@ -1,21 +1,21 @@
-from django.shortcuts import render
-from django.utils.decorators import method_decorator
+import logging
+
 from django.contrib.auth.decorators import login_required
-from django.views.generic.base import View
-from django.template.context_processors import csrf
-from django.http import Http404
-from django.urls import reverse
-from django.http import HttpResponse
 from django.db import transaction
+from django.http import Http404
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.template.context_processors import csrf
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic.base import View
 
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.form_title_helper import FormTitleHelper
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient, PatientRelative
-from rdrf.helpers.registry_features import RegistryFeatures
-
-import logging
 
 logger = logging.getLogger(__name__)
 

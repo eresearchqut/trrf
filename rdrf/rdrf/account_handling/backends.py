@@ -1,8 +1,9 @@
+import logging
+
 from useraudit.signals import login_failure_limit_reached
 
 from rdrf.events.events import EventType
 
-import logging
 logger = logging.getLogger(__name__)
 
 

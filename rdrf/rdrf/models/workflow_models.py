@@ -1,22 +1,23 @@
+import logging
+from datetime import datetime
+
 from django.db import models
+from django.urls import reverse
+
+from rdrf.events.events import EventType
+from rdrf.helpers.utils import generate_token
 from rdrf.models.definition.models import Registry
 from registry.groups.models import CustomUser
-from datetime import datetime
-from rdrf.helpers.utils import generate_token
-from django.urls import reverse
-from rdrf.events.events import EventType
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ClinicianSignupRequest(models.Model):
-    STATES = (("emailed", "Emailed"),      # clinician emailed
+    STATES = (("emailed", "Emailed"),  # clinician emailed
               ("signed-up", "Signed Up"),  # the clinician accepted the request and a user object was created
-              ("created", "Created"),      # request created but nothing sent yet
-              ("error", "Error"),          # error
-              ("rejected", "Rejected"))    # the clinician received the request but rejected it
+              ("created", "Created"),  # request created but nothing sent yet
+              ("error", "Error"),  # error
+              ("rejected", "Rejected"))  # the clinician received the request but rejected it
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     patient_id = models.IntegerField()   # the patient id whose clinician it is ( had import issues with Patient)

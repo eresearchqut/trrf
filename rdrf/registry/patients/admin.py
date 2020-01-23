@@ -1,13 +1,19 @@
+import datetime
+import json
+import logging
+import os
+
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse
-import os
-import json
-import datetime
-from rdrf.models.definition.models import Registry
+
+from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import Registry
+from registry.patients.models import ConsentValue
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from .admin_forms import (
@@ -31,10 +37,6 @@ from .models import (
     PatientRelative,
     PatientConsent,
     NextOfKinRelationship)
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from django.contrib.auth import get_user_model
-import logging
-from registry.patients.models import ConsentValue
 
 logger = logging.getLogger(__name__)
 

@@ -1,21 +1,21 @@
+import datetime
+import logging
+import os.path
+import re
+import subprocess
+import uuid
+from functools import total_ordering
+
+import dateutil.parser
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-from django.urls import reverse
 from django.db import IntegrityError
 from django.db import transaction
-from django.utils.html import strip_tags
+from django.urls import reverse
 from django.utils.encoding import smart_bytes
-from functools import total_ordering
-
-import datetime
-import dateutil.parser
-import logging
-import re
-import os.path
-import subprocess
-import uuid
+from django.utils.html import strip_tags
 
 from .registry_features import RegistryFeatures
 

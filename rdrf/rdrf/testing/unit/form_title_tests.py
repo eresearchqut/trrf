@@ -1,8 +1,7 @@
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from django.contrib.auth.models import Group
 from rdrf.models.definition.models import FormTitle
-
 from .registration_tests import RegistrationTest
 
 

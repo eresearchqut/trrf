@@ -10,7 +10,6 @@ from django.forms import ChoiceField
 from rdrf.helpers.utils import get_supported_languages
 from registry.groups import GROUPS as RDRF_GROUPS
 
-
 logger = logging.getLogger(__name__)
 
 

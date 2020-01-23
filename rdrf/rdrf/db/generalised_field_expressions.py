@@ -1,12 +1,12 @@
-from rdrf.services.io.reporting import report_field_functions
-from registry.patients.models import Patient, PatientAddress
-from rdrf.models.definition.models import ConsentSection, ConsentQuestion
-from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
-from rdrf.helpers.utils import get_cde_value
+import collections
+import logging
 from collections import OrderedDict
 
-import logging
-import collections
+from rdrf.helpers.utils import get_cde_value
+from rdrf.models.definition.models import ConsentSection, ConsentQuestion
+from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+from rdrf.services.io.reporting import report_field_functions
+from registry.patients.models import Patient, PatientAddress
 
 logger = logging.getLogger(__name__)
 

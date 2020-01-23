@@ -2,38 +2,30 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.messages.storage import default_storage
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in
-
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.messages.storage import default_storage
 from django.dispatch import receiver
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
-from django.utils.safestring import mark_safe
 from django.utils.http import urlsafe_base64_decode
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
-
+from django_otp import devices_for_user
 from two_factor import views as tfv
 from two_factor.utils import default_device
-from django_otp import devices_for_user
-from django.shortcuts import redirect
-
 from useraudit.models import UserDeactivation
 from useraudit.password_expiry import is_password_expired
 
-from registry.patients.models import Patient, ParentGuardian
-
 from rdrf.auth import can_user_self_unlock, is_user_privileged
-
-
+from registry.patients.models import Patient, ParentGuardian
 from .forms import UserVerificationForm, ReactivateAccountForm
-
 
 logger = logging.getLogger(__name__)
 

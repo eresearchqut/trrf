@@ -1,9 +1,9 @@
 import logging
 
+from django.conf import settings
 from django.utils.translation import ugettext as _
 
 from rdrf.helpers.utils import get_user
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 

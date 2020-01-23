@@ -1,9 +1,10 @@
-from functools import wraps
 import logging
-from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.urls import reverse
+from functools import wraps
+
 from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
 

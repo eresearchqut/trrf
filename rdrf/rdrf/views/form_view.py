@@ -1,70 +1,61 @@
-from django.shortcuts import render, get_object_or_404
-from django.views.generic.base import View, TemplateView
-from django.template.context_processors import csrf
+import json
+import logging
+import os
+from collections import OrderedDict
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
+from django.forms.formsets import formset_factory
+from django.forms.models import inlineformset_factory
+from django.http import Http404
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.forms.formsets import formset_factory
+from django.shortcuts import redirect
+from django.shortcuts import render, get_object_or_404
+from django.template.context_processors import csrf
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
-from django.contrib.auth.decorators import login_required
-
-from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
-from rdrf.models.definition.models import Section, CommonDataElement
-from registry.patients.models import Patient, ParentGuardian, PatientSignature
-from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from django.http import Http404
-from rdrf.forms.dsl.code_generator import CodeGenerator
-from rdrf.forms.file_upload import wrap_fs_data_for_form
-from rdrf.forms.file_upload import wrap_file_cdes
-from rdrf.db import filestorage
-from rdrf.helpers.utils import de_camelcase, location_name, is_multisection, make_index_map
-from rdrf.helpers.utils import parse_iso_date
-from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
-from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
-from rdrf.models.definition.models import RDRFContext
-
-from rdrf.forms.consent_forms import CustomConsentFormGenerator
-from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import consent_status_for_patient
-
-
-from rdrf.db.contexts_api import RDRFContextManager
-from rdrf.db.contexts_api import RDRFContextError
-from explorer.utils import create_field_values
-
-
-from django.shortcuts import redirect
-from django.forms.models import inlineformset_factory
-from registry.patients.models import PatientConsent
-from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from django.utils.translation import ugettext as _
+from django.views.generic.base import View, TemplateView
 
-import json
-import os
-from collections import OrderedDict
-from django.conf import settings
-from rdrf.services.rpc.actions import ActionExecutor
-from rdrf.helpers.utils import FormLink
-from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
-from rdrf.forms.dynamic.form_changes import FormChangesExtractor
-from rdrf.forms.progress.form_progress import FormProgress
-
-from rdrf.forms.navigation.locators import PatientLocator
+from explorer.utils import create_field_values
+from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.db import filestorage
+from rdrf.db.contexts_api import RDRFContextError
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
-from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
-
-from registry.patients.patient_stage_flows import get_registry_stage_flow
-
-from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.forms.consent_forms import CustomConsentFormGenerator
+from rdrf.forms.dsl.code_generator import CodeGenerator
+from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
+from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
+from rdrf.forms.dynamic.form_changes import FormChangesExtractor
+from rdrf.forms.file_upload import wrap_file_cdes
+from rdrf.forms.file_upload import wrap_fs_data_for_form
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
+from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
-
-import logging
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import FormLink
+from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import de_camelcase, location_name, is_multisection, make_index_map
+from rdrf.helpers.utils import parse_iso_date
+from rdrf.models.definition.models import RDRFContext
+from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
+from rdrf.models.definition.models import Section, CommonDataElement
+from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
+from rdrf.services.rpc.actions import ActionExecutor
+from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
+from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
+from registry.patients.models import Patient, ParentGuardian, PatientSignature
+from registry.patients.models import PatientConsent
+from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 logger = logging.getLogger(__name__)
 login_required_method = method_decorator(login_required)

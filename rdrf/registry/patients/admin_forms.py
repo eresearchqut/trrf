@@ -1,13 +1,20 @@
 import base64
 import binascii
-from itertools import chain
 import json
 import logging
+from itertools import chain
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
+from django.utils.translation import ugettext as _
 
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
+from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from .models import (
     Patient,
     PatientAddress,
@@ -20,13 +27,6 @@ from .models import (
     PatientSignature,
     PatientStageRule
 )
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
-from rdrf.helpers.registry_features import RegistryFeatures
-from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.patient_widgets import PatientRelativeLinkWidget
-from django.utils.translation import ugettext as _
 
 logger = logging.getLogger(__name__)
 

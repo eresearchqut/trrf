@@ -5,8 +5,8 @@ from enum import Enum
 from django.core.exceptions import ValidationError
 
 from .constants import INCLUDE_OPERATORS
-from .parse_utils import CDEHelper, SectionHelper, is_iterable
 from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
+from .parse_utils import CDEHelper, SectionHelper, is_iterable
 
 logger = logging.getLogger(__name__)
 

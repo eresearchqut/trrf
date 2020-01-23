@@ -1,12 +1,12 @@
+import logging
 from collections import defaultdict
 
 from django.urls import reverse
+
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
-from rdrf.helpers.registry_features import RegistryFeatures
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

@@ -1,5 +1,7 @@
-from django.forms import BaseForm
 from collections import OrderedDict
+
+from django.forms import BaseForm
+
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 
 

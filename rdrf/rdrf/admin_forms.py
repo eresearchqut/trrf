@@ -1,27 +1,24 @@
-from functools import reduce
 import logging
 import re
+from functools import reduce
 
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget
 from django.utils.translation import gettext as _
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section,\
-    DemographicFields
-from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
-from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
-from registry.patients.models import Patient
-
-
+from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.helpers.constants import (
     PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
     PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
     PATIENT_RELATIVE_SECTION_NAME
 )
-
+from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, \
+    DemographicFields
 from rdrf.validators.cde_widget_settings_validators import get_validator
 from rdrf.validators.cde_widget_validators import OtherPleaseSpecifyWidgetValidator
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 

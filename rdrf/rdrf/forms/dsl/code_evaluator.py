@@ -1,13 +1,12 @@
-from itertools import chain
 import logging
 import operator
+from itertools import chain
 
-from ..dynamic.value_fetcher import DynamicValueFetcher
 from .constants import VISIBLE, HIDDEN
 from .parse_operations import BooleanOp, Condition, parse_dsl, transform_tree
 from .parse_utils import CDEHelper, SectionHelper
 from .utils import DATE_TYPE, INTEGER_TYPE, parse_date, parse_int, as_type
-
+from ..dynamic.value_fetcher import DynamicValueFetcher
 
 logger = logging.getLogger(__name__)
 

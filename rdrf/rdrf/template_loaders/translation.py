@@ -1,7 +1,9 @@
 import logging
+
 from django.template import Origin
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
+
 from rdrf.helpers.utils import get_registry_definition_value
 
 logger = logging.getLogger(__name__)

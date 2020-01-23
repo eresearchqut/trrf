@@ -1,10 +1,12 @@
 # Django settings for rdrf project.
 import os
+
 # A wrapper around environment which has been populated from
 # /etc/rdrf/rdrf.conf in production. Also does type conversion of values
 from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+
 import rdrf
 from rdrf.system_role import SystemRoles
 

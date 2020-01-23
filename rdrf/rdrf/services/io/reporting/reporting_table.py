@@ -1,10 +1,12 @@
-import sqlalchemy as alc
-from sqlalchemy import create_engine, MetaData
-from rdrf.helpers.utils import timed
-from datetime import datetime
-from django.conf import settings
-
 import logging
+from datetime import datetime
+
+import sqlalchemy as alc
+from django.conf import settings
+from sqlalchemy import create_engine, MetaData
+
+from rdrf.helpers.utils import timed
+
 logger = logging.getLogger(__name__)
 
 

@@ -1,52 +1,47 @@
-from django.urls import re_path, include, path
-from django.contrib import admin
-from django.shortcuts import render
-from django.views.generic.base import TemplateView
-from django.contrib.auth import views as auth_views
-from django.views.i18n import JavaScriptCatalog
-from django.conf import settings
-from django.utils.translation import ugettext as _
-
-from django_js_reverse.views import urls_js
-
-from two_factor import views as twv
-
-from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
-from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
-
-import rdrf.views.form_view as form_view
-import rdrf.views.registry_view as registry_view
-import rdrf.views.landing_view as landing_view
-import rdrf.views.import_registry_view as import_registry_view
-import rdrf.views.patient_view as patient_view
-import rdrf.routing.login_router as login_router
-import rdrf.views.report_view as report_view
-import rdrf.views.consent_view as consent_view
-from rdrf.views.health_check import health_check
-from rdrf.views.registration_rdrf import RdrfRegistrationView
-from rdrf.views.registry_list_view import RegistryListView
-from rdrf.views.lookup_views import FamilyLookup
-from rdrf.views.lookup_views import PatientLookup
-from registration.backends.default.views import ActivationView
-from rdrf.views.family_linkage import FamilyLinkageView
-from rdrf.views.email_notification_view import ResendEmail
-from rdrf.views.permission_matrix import PermissionMatrixView
-from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
-from rdrf.views import patients_listing
-from rdrf.views import clinician_view
-from rdrf.views.verification_views import PatientsRequiringVerificationView
-from rdrf.views.verification_views import PatientVerificationView
-from rdrf.views.proms_views import PromsView
-from rdrf.views.proms_views import PromsLandingPageView
-from rdrf.views.proms_views import PromsCompletedPageView
-from rdrf.views.proms_views import PromsClinicalView
-from rdrf.views.proms_views import PromsQRCodeImageView
-from rdrf.system_role import SystemRoles
-from rdrf.views.copyright_view import CopyrightView
-
-
 import logging
 
+from django.conf import settings
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from django.shortcuts import render
+from django.urls import re_path, include, path
+from django.utils.translation import ugettext as _
+from django.views.generic.base import TemplateView
+from django.views.i18n import JavaScriptCatalog
+from django_js_reverse.views import urls_js
+from registration.backends.default.views import ActivationView
+from two_factor import views as twv
+
+import rdrf.routing.login_router as login_router
+import rdrf.views.consent_view as consent_view
+import rdrf.views.form_view as form_view
+import rdrf.views.import_registry_view as import_registry_view
+import rdrf.views.landing_view as landing_view
+import rdrf.views.patient_view as patient_view
+import rdrf.views.registry_view as registry_view
+import rdrf.views.report_view as report_view
+from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
+from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
+from rdrf.system_role import SystemRoles
+from rdrf.views import clinician_view
+from rdrf.views import patients_listing
+from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
+from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.email_notification_view import ResendEmail
+from rdrf.views.family_linkage import FamilyLinkageView
+from rdrf.views.health_check import health_check
+from rdrf.views.lookup_views import FamilyLookup
+from rdrf.views.lookup_views import PatientLookup
+from rdrf.views.permission_matrix import PermissionMatrixView
+from rdrf.views.proms_views import PromsClinicalView
+from rdrf.views.proms_views import PromsCompletedPageView
+from rdrf.views.proms_views import PromsLandingPageView
+from rdrf.views.proms_views import PromsQRCodeImageView
+from rdrf.views.proms_views import PromsView
+from rdrf.views.registration_rdrf import RdrfRegistrationView
+from rdrf.views.registry_list_view import RegistryListView
+from rdrf.views.verification_views import PatientVerificationView
+from rdrf.views.verification_views import PatientsRequiringVerificationView
 
 logger = logging.getLogger(__name__)
 

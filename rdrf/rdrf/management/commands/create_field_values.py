@@ -1,8 +1,9 @@
 from django.core.management import BaseCommand
-from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient
+
 from explorer.models import FieldValue
 from explorer.utils import create_field_values
+from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
 
 
 class Command(BaseCommand):

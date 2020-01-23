@@ -1,28 +1,26 @@
-from django.views.generic.base import View
-from django.utils.decorators import method_decorator
+import logging
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-from django.urls import reverse
 from django.template.context_processors import csrf
-from django.contrib import messages
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RDRFContext
-from rdrf.workflows.verification import get_verifications
-from rdrf.workflows.verification import VerificationStatus
-from rdrf.workflows.verification import VerifiableCDE
-from rdrf.workflows.verification import create_annotations
-from rdrf.workflows.verification import send_participant_notification
-from rdrf.workflows.verification import get_diagnosis
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic.base import View
 
 from rdrf.forms.dynamic.verification_form import make_verification_form
 from rdrf.forms.navigation.locators import PatientLocator
-from registry.patients.models import Patient
-
 from rdrf.helpers.registry_features import RegistryFeatures
-
-import logging
+from rdrf.models.definition.models import RDRFContext
+from rdrf.models.definition.models import Registry
+from rdrf.workflows.verification import VerifiableCDE
+from rdrf.workflows.verification import VerificationStatus
+from rdrf.workflows.verification import create_annotations
+from rdrf.workflows.verification import get_diagnosis
+from rdrf.workflows.verification import get_verifications
+from rdrf.workflows.verification import send_participant_notification
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 

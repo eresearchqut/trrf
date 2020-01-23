@@ -1,6 +1,6 @@
 from operator import attrgetter
-import pycountry
 
+import pycountry
 from django import template
 
 register = template.Library()

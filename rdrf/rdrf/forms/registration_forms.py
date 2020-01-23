@@ -1,10 +1,11 @@
 from operator import attrgetter
+
 import pycountry
 from django.forms import CharField, ChoiceField, DateField, BooleanField
 from django.forms.widgets import RadioSelect, Select, EmailInput
 from django.utils.translation import gettext as _
-
 from registration.forms import RegistrationForm
+
 from rdrf.helpers.utils import get_preferred_languages
 from registry.patients.models import Patient
 

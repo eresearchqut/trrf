@@ -1,10 +1,11 @@
+import sys
+
 from django.core.management.base import BaseCommand
-from rdrf.models.definition.models import Registry
-from registry.patients.models import Patient
+
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
-
-import sys
+from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
 
 
 class Command(BaseCommand):

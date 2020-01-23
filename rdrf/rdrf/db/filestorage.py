@@ -1,7 +1,8 @@
 import logging
 import re
-from rdrf.models.definition.models import Registry, CDEFile
+
 from rdrf.helpers.utils import models_from_mongo_key
+from rdrf.models.definition.models import Registry, CDEFile
 
 logger = logging.getLogger(__name__)
 

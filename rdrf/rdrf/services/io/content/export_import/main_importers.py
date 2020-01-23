@@ -1,22 +1,22 @@
 import contextlib
-import dateutil.parser
 import json
 import logging
 import os
 import shutil
 import tempfile
+from functools import reduce
 from zipfile import ZipFile
 
+import dateutil.parser
 from django.db import transaction
 
-from rdrf.models.definition.models import Registry
 from rdrf.db.db import reset_sql_sequences
+from rdrf.models.definition.models import Registry
+from . import definitions
 from .catalogue import DataGroupImporterCatalogue, ModelImporterCatalogue
 from .exceptions import ImportError
 from .importers import get_meta_value, allow_if_forced
-from . import definitions
 from .utils import DelegateMixin, IndentedLogger, app_schema_version
-from functools import reduce
 
 logger = logging.getLogger(__name__)
 

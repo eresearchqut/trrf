@@ -1,7 +1,8 @@
 from django.urls import re_path
+
+from explorer.views import DeleteQueryView, DownloadQueryView
 from explorer.views import MainView
 from explorer.views import QueryView, NewQueryView
-from explorer.views import DeleteQueryView, DownloadQueryView
 from explorer.views import SqlQueryView
 
 app_name = 'rdrf'

@@ -1,32 +1,30 @@
-from django.urls import reverse_lazy
-from django.forms import ModelForm
-from django.views.generic.base import View
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.urls import reverse
-from django.http import HttpResponseRedirect
-from django.contrib.contenttypes.models import ContentType
+import logging
 
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RDRFContext
-from rdrf.models.definition.models import ContextFormGroup
+from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
+from django.forms import ModelForm
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic.base import View
+
+from rdrf.forms.components import RDRFContextLauncherComponent
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import get_error_messages
 from rdrf.helpers.utils import get_form_links
-from rdrf.forms.navigation.locators import PatientLocator
-from rdrf.forms.components import RDRFContextLauncherComponent
-
-from registry.patients.models import Patient
+from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import RDRFContext
+from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
-from rdrf.helpers.registry_features import RegistryFeatures
-
-import logging
+from registry.patients.models import Patient
 
 logger = logging.getLogger("registry_log")
 
 
 class ContextForm(ModelForm):
-
     class Meta:
         model = RDRFContext
         fields = ['display_name']

@@ -1,19 +1,19 @@
-from django.db import models
-from django.urls import reverse
-from django.contrib.auth.models import Group
-from django.core.exceptions import ValidationError
+import json
+import logging
 from contextlib import suppress
 
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.urls import reverse
+
+from rdrf.helpers.utils import parse_iso_date
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.helpers.utils import parse_iso_date
 from registry.patients.models import Patient
-import json
-
-import logging
 
 logger = logging.getLogger(__name__)
 

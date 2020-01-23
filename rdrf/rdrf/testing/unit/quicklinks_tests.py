@@ -3,7 +3,6 @@ from django.test import override_settings
 from rdrf.forms.navigation.quick_links import QuickLinks, PromsLinks, RegularLinks
 from rdrf.system_role import SystemRoles
 from registry.groups import GROUPS as RDRF_GROUPS
-
 from .tests import RDRFTestCase
 
 

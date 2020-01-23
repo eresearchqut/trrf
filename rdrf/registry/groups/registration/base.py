@@ -8,7 +8,6 @@ from django.urls import reverse
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import AddressType, Patient, PatientAddress
-
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 logger = logging.getLogger(__name__)

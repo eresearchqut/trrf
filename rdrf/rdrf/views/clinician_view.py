@@ -1,33 +1,33 @@
-from django.views.generic.base import View
+import logging
+
+from django import forms
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.forms import ChoiceField
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from django.template.context_processors import csrf
 from django.utils.decorators import method_decorator
-from django.shortcuts import render
-from django import forms
 from django.utils.translation import ugettext_lazy as _
-from django.forms import ChoiceField
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import Group
-from django.contrib import messages
-from django.db import transaction
+from django.views.generic.base import View
 
-from registry.patients.models import Patient
-from registry.patients.models import ParentGuardian
-from registry.patients.models import ClinicianOther
-from registry.groups.models import CustomUser
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.workflow_models import ClinicianSignupRequest
-from rdrf.security.security_checks import security_check_user_patient
 from rdrf.forms.components import RDRFContextLauncherComponent, RDRFPatientInfoComponent
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import Registry
+from rdrf.models.workflow_models import ClinicianSignupRequest
+from rdrf.security.security_checks import security_check_user_patient
+from registry.groups.models import CustomUser
+from registry.patients.models import ClinicianOther
+from registry.patients.models import ParentGuardian
+from registry.patients.models import Patient
 
-import logging
 logger = logging.getLogger(__name__)
 
 

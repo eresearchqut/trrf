@@ -1,11 +1,10 @@
+import logging
+
 from django.shortcuts import render
 from django.views.generic.base import View
 
 from rdrf.models.definition.models import Registry
 from rdrf.models.proms.models import Survey
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 

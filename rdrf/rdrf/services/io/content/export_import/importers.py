@@ -1,12 +1,12 @@
-from functools import wraps
 import logging
 import os
-from django.core import serializers
+from functools import wraps
+
 from django.apps import apps
+from django.core import serializers
 
-from .utils import file_checksum, maybe_indent
 from .exceptions import ImportError
-
+from .utils import file_checksum, maybe_indent
 
 logger = logging.getLogger(__name__)
 

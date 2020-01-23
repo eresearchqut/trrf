@@ -1,22 +1,22 @@
 import json
+import logging
 import re
-import django.forms
-from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
-from django.forms.widgets import CheckboxSelectMultiple
-from django.utils.safestring import mark_safe
-from django.urls import reverse
 from collections import OrderedDict
 
+import django.forms
+from django.conf import settings
+from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
+from django.forms.widgets import CheckboxSelectMultiple
+from django.urls import reverse
+from django.utils.functional import lazy
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+
 from rdrf.forms.dynamic import fields
-from rdrf.forms.widgets import widgets
-import logging
 from rdrf.forms.dynamic.calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from rdrf.forms.dynamic.validation import ValidatorFactory
+from rdrf.forms.widgets import widgets
 from rdrf.models.definition.models import CommonDataElement
-
-from django.utils.functional import lazy
-from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 
 mark_safe_lazy = lazy(mark_safe, str)
 

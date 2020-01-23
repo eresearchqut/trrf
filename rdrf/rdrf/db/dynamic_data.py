@@ -1,14 +1,15 @@
 import datetime
-from operator import itemgetter
-from itertools import zip_longest
 import logging
+from itertools import zip_longest
+from operator import itemgetter
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from rdrf.db import filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
-from rdrf.models.definition.models import Registry, ClinicalData
 from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
+from rdrf.models.definition.models import Registry, ClinicalData
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,7 @@
 from django import template
+
 from rdrf.models.definition.models import ConsentSection
+
 register = template.Library()
 
 
