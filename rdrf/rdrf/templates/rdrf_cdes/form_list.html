@@ -72,7 +72,11 @@
         });
 
         function clickClose(link) {
-            window.opener.location.href = link;
+            if (window.opener) {
+                window.opener.location.href = link;
+            } else {
+                alert("Couldn't find parent window");
+            }
             window.close()
         }
     </script>
