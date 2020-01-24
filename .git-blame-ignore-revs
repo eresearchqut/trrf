@@ -1,0 +1,14 @@
+###############################################################################
+#                     Systematic code formatting changes                      #
+###############################################################################
+# Systematic code formatting changes that took place in January 2020.         #
+#                                                                             #
+# These changes were made after reverting a change to the linting script that #
+# disabled line-length and cyclomatic complexity warnings. Additional changes #
+# were made to make the code more pep8-like.                                  #
+###############################################################################
+36c78387d16e16f99cd5b2154168b534bba04e87 # Ignore existing complexity failures
+d0a9fa807d8f8974248b120e873c7203b69e4977 # Fix line-length warnings
+7e15459a58ebe39a77c3cc4e7b2dafdf1da5e413 # autopep8 changes
+6d3852f024b7f1056aed470d0a1e8daa263e4435 # autopep8 aggressive changes
+9165f2d14a94348be00de2d6b24be04c83deab5b # Optimise imports
