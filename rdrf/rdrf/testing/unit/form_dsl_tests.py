@@ -16,7 +16,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.sectionF = self.create_section(
             "sectionF", "Section F", ["DM1Apathy", "DM1BestMotorLevel"], True)
         self.sectionG = self.create_section(
-            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol"], False)
+            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol", "CardiacImplant"], False)
 
     def create_forms(self):
         super().create_forms()
@@ -268,3 +268,9 @@ class FormDSLValidationTestCase(FormTestCase):
             1,
             ['The conditions repeat or contradict on line 1']
         )
+
+    def test_simple_value_condition_containing_comma(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1ChronicInfection visible if CardiacImplant == "Yes, not specified further"
+        '''
+        self.new_form.save()
