@@ -16,11 +16,15 @@
 {% block formlinks %}
 {% endblock %}
 
-{% block sidebar %}
-    List view
+{% block formbtns %}
 {% endblock %}
 
-{% block formbtns %}
+{% block extrastyle %}
+    <style>
+        .navbar a {
+            pointer-events: none;
+        }
+    </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -72,6 +76,9 @@
             window.close()
         }
     </script>
+{% endblock %}
+
+{% block navbar_links %}
 {% endblock %}
 
 {% block content %}
