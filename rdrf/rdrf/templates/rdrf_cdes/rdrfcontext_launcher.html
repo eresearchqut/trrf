@@ -10,11 +10,6 @@
         var popupTop = window.screenTop + (window.outerHeight / 2) - (popupHeight / 2);
         var popupLeft = window.screenLeft + (window.outerWidth / 2) - (popupWidth / 2);
 
-        /* Debug positioning
-        console.log(`popupWidth=${popupWidth} popupHeight=${popupHeight} popupTop=${popupTop} popupLeft=${popupLeft}`);
-        console.log(`window.screenTop=${window.screenTop} window.screenLeft=${window.screenLeft} window.outerWidth=${window.outerWidth} window.outerHeight=${window.outerHeight}`)
-        */
-
         var newWindow = window.open(url, title, 'scrollbars=yes, width=' + popupWidth + ', height=' + popupHeight + ', top=' + popupTop + ', left=' + popupLeft);
         if (window.focus) newWindow.focus();
     }
