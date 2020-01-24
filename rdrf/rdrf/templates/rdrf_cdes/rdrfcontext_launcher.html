@@ -3,25 +3,21 @@
 {% load translate %}
 {% load lookup %}
 <script>
-  // Taken from https://stackoverflow.com/a/16861050
-  function popupCenter(url, title) {
-      var w = window.screen.width * 0.25;
-      var h = window.screen.height * 0.5;
+    function popupCenter(url, title) {
+        var popupWidth = window.outerWidth > 1600 ? window.outerWidth * 0.25 : 400;
+        var popupHeight = window.outerHeight > 900 ? window.outerHeight * 0.5 : 450;
 
-      var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
-      var dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
+        var popupTop = window.screenTop + (window.outerHeight / 2) - (popupHeight / 2);
+        var popupLeft = window.screenLeft + (window.outerWidth / 2) - (popupWidth / 2);
 
-      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
-      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+        /* Debug positioning
+        console.log(`popupWidth=${popupWidth} popupHeight=${popupHeight} popupTop=${popupTop} popupLeft=${popupLeft}`);
+        console.log(`window.screenTop=${window.screenTop} window.screenLeft=${window.screenLeft} window.outerWidth=${window.outerWidth} window.outerHeight=${window.outerHeight}`)
+        */
 
-      var systemZoom = width / window.screen.availWidth;
-      var left = (width - w) / 2 / systemZoom + dualScreenLeft;
-      var top = (height - h) / 2 / systemZoom + dualScreenTop;
-      var newWindow = window.open(url, title, 'scrollbars=yes, width=' + w / systemZoom + ', height=' + h / systemZoom + ', top=' + top + ', left=' + left);
-
-      // Puts focus on the newWindow
-      if (window.focus) newWindow.focus();
-  }
+        var newWindow = window.open(url, title, 'scrollbars=yes, width=' + popupWidth + ', height=' + popupHeight + ', top=' + popupTop + ', left=' + popupLeft);
+        if (window.focus) newWindow.focus();
+    }
 </script>
 
 <style>
