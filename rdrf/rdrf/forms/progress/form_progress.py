@@ -361,42 +361,42 @@ class FormProgress:
         current_form_name = forms[0]["name"] if forms else ""
 
         for form_model in self.registry_model.forms:
+            if form_model.is_questionnaire or not self._applicable(form_model):
+                continue
             form_name = form_model.name
-            if not form_model.is_questionnaire and self._applicable(form_model):
-                if form_name != current_form_name and form_name in existing_form_dyn_data:
-                    # Load existing data from previously saved forms because dynamic_data
-                    # contains data only for the currently submitted form. As progress is cummulative
-                    # we need existing data to properly compute it
-                    fpc = FormProgressCalculator(
-                        self.registry_model, form_model, existing_form_dyn_data[form_name], self.progress_cdes_map
+            if form_name != current_form_name and form_name in existing_form_dyn_data:
+                # Load existing data from previously saved forms because dynamic_data
+                # contains data only for the currently submitted form. As progress is cummulative
+                # we need existing data to properly compute it
+                form_dynamic_data = existing_form_dyn_data[form_name]
+            else:
+                form_dynamic_data = dynamic_data
+            fpc = FormProgressCalculator(self.registry_model, form_model, form_dynamic_data, self.progress_cdes_map)
+            fpc.calculate_progress()
+            forms_progress[form_model.name] = fpc.progress_as_dict()
+
+            for progress_group in progress_metadata:
+                if form_model.name in progress_metadata[progress_group]:
+
+                    if progress_group not in groups_progress:
+                        groups_progress[progress_group] = {
+                            ProgressMetric.REQUIRED: 0,
+                            ProgressMetric.FILLED: 0,
+                            ProgressMetric.PERCENTAGE: 0,
+                            ProgressMetric.CURRENT: True,
+                            ProgressMetric.HAS_DATA: False
+                        }
+
+                    groups_progress[progress_group][ProgressMetric.REQUIRED] += (
+                        fpc.form_progress_dict[ProgressMetric.REQUIRED]
                     )
-                else:
-                    fpc = FormProgressCalculator(self.registry_model, form_model, dynamic_data, self.progress_cdes_map)
-                fpc.calculate_progress()
-                forms_progress[form_model.name] = fpc.progress_as_dict()
-
-                for progress_group in progress_metadata:
-                    if form_model.name in progress_metadata[progress_group]:
-
-                        if progress_group not in groups_progress:
-                            groups_progress[progress_group] = {
-                                ProgressMetric.REQUIRED: 0,
-                                ProgressMetric.FILLED: 0,
-                                ProgressMetric.PERCENTAGE: 0,
-                                ProgressMetric.CURRENT: True,
-                                ProgressMetric.HAS_DATA: False
-                            }
-
-                        groups_progress[progress_group][ProgressMetric.REQUIRED] += (
-                            fpc.form_progress_dict[ProgressMetric.REQUIRED]
-                        )
-                        groups_progress[progress_group][ProgressMetric.FILLED] += (
-                            fpc.form_progress_dict[ProgressMetric.FILLED]
-                        )
-                        groups_progress[progress_group][ProgressMetric.CURRENT] = groups_progress[
-                            progress_group][ProgressMetric.CURRENT] or fpc.form_currency
-                        groups_progress[progress_group][ProgressMetric.HAS_DATA] = groups_progress[
-                            progress_group][ProgressMetric.HAS_DATA] or fpc.form_has_data
+                    groups_progress[progress_group][ProgressMetric.FILLED] += (
+                        fpc.form_progress_dict[ProgressMetric.FILLED]
+                    )
+                    groups_progress[progress_group][ProgressMetric.CURRENT] = groups_progress[
+                        progress_group][ProgressMetric.CURRENT] or fpc.form_currency
+                    groups_progress[progress_group][ProgressMetric.HAS_DATA] = groups_progress[
+                        progress_group][ProgressMetric.HAS_DATA] or fpc.form_has_data
 
         for group_name in groups_progress:
             groups_progress[group_name][ProgressMetric.PERCENTAGE] = percentage(
