@@ -1353,7 +1353,7 @@ class ParentGuardian(models.Model):
         return other_patient in self.children
 
     def save(self, *args, **kwargs):
-        if self.patient:
+        if self.id:
             for patient in self.patient.all():
                 patient.last_updated_overall_at = timezone.now()
                 patient.save()

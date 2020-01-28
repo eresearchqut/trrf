@@ -30,10 +30,6 @@ class ParentWithPatientRegistration(BaseRegistration):
         patient = self._create_patient(registry, working_group, user, set_link_to_user=False)
         logger.debug("Registration process - created patient")
 
-        address = self._create_patient_address(patient)
-        address.save()
-        logger.debug("Registration process - created patient address")
-
         parent_guardian = self._create_parent()
 
         parent_guardian.patient.add(patient)
@@ -59,12 +55,7 @@ class ParentWithPatientRegistration(BaseRegistration):
             last_name=form_data["parent_guardian_last_name"],
             date_of_birth=form_data["parent_guardian_date_of_birth"],
             gender=form_data["parent_guardian_gender"],
-            address=form_data["parent_guardian_address"],
-            suburb=form_data["parent_guardian_suburb"],
-            state=form_data["parent_guardian_state"],
-            postcode=form_data["parent_guardian_postcode"],
-            country=form_data["parent_guardian_country"],
-            phone=form_data["parent_guardian_phone"],
+            phone=form_data["phone_number"],
         )
         return parent_guardian
 

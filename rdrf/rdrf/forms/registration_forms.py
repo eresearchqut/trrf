@@ -71,13 +71,13 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
         'parent_guardian_last_name': _("Parent/Guardian Surname"),
         'parent_guardian_date_of_birth': _("Parent/Guardian Date of Birth"),
         'parent_guardian_gender': _("Parent/Guardian gender"),
-        'parent_guardian_phone': _('Parent/Guardian Phone Number')
+        'phone_number': _('Parent/Guardian Phone Number')
     })
 
-    PatientRegistrationForm.no_placeholder_fields.extend(['parent_guardian_gender', 'same_address'])
+    PatientRegistrationForm.no_placeholder_fields.extend(['parent_guardian_gender'])
 
     tooltip_info = {
-        'parent_guardian_phone': _('''Please enter a phone number through which we can contact you,
+        'phone_number': _('''Please enter a phone number through which we can contact you,
                                       including the country code (e.g. +61 for Australia)''')
     }
 
@@ -92,4 +92,3 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
     parent_guardian_last_name = CharField(required=True)
     parent_guardian_date_of_birth = DateField(required=True)
     parent_guardian_gender = ChoiceField(choices=Patient.SEX_CHOICES, widget=RadioSelect, required=True)
-    parent_guardian_phone = CharField(required=True, max_length=30)

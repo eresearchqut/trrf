@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
-from registry.patients.models import AddressType, Patient, PatientAddress
+from registry.patients.models import AddressType, Patient
 
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
@@ -37,19 +37,6 @@ class BaseRegistration(abc.ABC):
 
     def _get_unallocated_working_group(self, registry):
         return WorkingGroup.objects.get_unallocated(registry)
-
-    def _create_patient_address(self, patient, address_type="Postal"):
-        form_data = self.form.cleaned_data
-        same_address = form_data.get("same_address", False)
-        return PatientAddress.objects.create(
-            patient=patient,
-            address_type=self.get_address_type(address_type),
-            address=form_data["parent_guardian_address"] if same_address else form_data["address"],
-            suburb=form_data["parent_guardian_suburb"] if same_address else form_data["suburb"],
-            state=form_data["parent_guardian_state"] if same_address else form_data["state"],
-            postcode=form_data["parent_guardian_postcode"] if same_address else form_data["postcode"],
-            country=form_data["parent_guardian_country"] if same_address else form_data["country"]
-        )
 
     def _create_patient(self, registry, working_group, user, set_link_to_user=True):
 
