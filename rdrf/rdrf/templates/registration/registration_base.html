@@ -5,196 +5,196 @@
 <html>
 
 <head>
-    <title>{% project_title %} | Registration</title>
+  <title>{% project_title %} | Registration</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
 
-    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-    <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
-    <script src='https://www.google.com/recaptcha/api.js'></script>
-    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+  <script src='https://www.google.com/recaptcha/api.js'></script>
+  <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
-    <style>
-        body {
-            background-color: #edeff1;
+  <style>
+    body {
+      background-color: #edeff1;
+    }
+    .error {
+      color: red;
+      font-style: italic;
+      font-size: small;
+    }
+    .top-separator {
+      border-top: dotted 1px #bbb;
+      padding-top: 20px;
+    }
+    :required  {
+      background: url({% static 'images/red-asterisk-16.png' %}) no-repeat;
+      background-size: 8px;
+      background-position:right top;
+      background-clip: padding-box;
+      background-origin: content-box;
+    }
+  </style>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#registration-submit").prop("disabled", true);
+
+      var registry_code = "{{registry_code}}"
+
+      var dateOptions = {
+        'dateFormat': 'yy-mm-dd',
+        'showAnim': 'blind',
+        'changeMonth': true,
+        'changeYear': true,
+        'minDate': '-100Y',
+        'maxDate': '0',
+        'yearRange': '-100:+0',
+        'defaultDate': '-30Y'
+      }
+
+      function lookupStatesForCountry(country, stateSelector, currentStateValueSelector) {
+        if (typeof currentStateValueSelector === 'undefined') { currentStateValueSelector = ''; }
+        var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
+        var states = $(stateSelector);
+        states.removeAttr("required");
+        states.empty();
+        states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
+        if (country === "") {
+          return;
         }
-        .error {
-            color: red;
-            font-style: italic;
-            font-size: small;
-        }
-        .top-separator {
-            border-top: dotted 1px #bbb;
-            padding-top: 20px;
-        }
-        :required  {
-            background: url({% static 'images/red-asterisk-16.png' %}) no-repeat;
-            background-size: 8px;
-            background-position:right top;
-            background-clip: padding-box;
-            background-origin: content-box;
-        }
-    </style>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $("#registration-submit").prop("disabled", true);
-
-            var registry_code = "{{registry_code}}"
-
-            var dateOptions = {
-                'dateFormat': 'yy-mm-dd',
-                'showAnim': 'blind',
-                'changeMonth': true,
-                'changeYear': true,
-                'minDate': '-100Y',
-                'maxDate': '0',
-                'yearRange': '-100:+0',
-                'defaultDate': '-30Y'
+        $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
+          if (data && data.length > 0) {
+            states.attr("required", "");
+          }
+          $.each( data, function( key, val ) {
+            states.append($('<option>', { value : val.code }).text(val.name));
+          });
+          if (currentStateValueSelector !== '') {
+            var current_state_value = $(currentStateValueSelector).val();
+            if (current_state_value !== '') {
+              $(stateSelector).val(current_state_value);
             }
+          }
+        });
+      }
 
-            function lookupStatesForCountry(country, stateSelector, currentStateValueSelector) {
-                if (typeof currentStateValueSelector === 'undefined') { currentStateValueSelector = ''; }
-                var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
-                var states = $(stateSelector);
-                states.removeAttr("required");
-                states.empty();
-                states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
-                if (country === "") {
-                    return;
-                }
-                $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
-                    if (data && data.length > 0) {
-                        states.attr("required", "");
-                    }
-                    $.each( data, function( key, val ) {
-                        states.append($('<option>', { value : val.code }).text(val.name));
-                    });
-                    if (currentStateValueSelector !== '') {
-                        var current_state_value = $(currentStateValueSelector).val();
-                        if (current_state_value !== '') {
-                            $(stateSelector).val(current_state_value);
-                        }
-                    }
-                });
-            }
-
-            function setStatesOnLoad(countrySelector, stateSelector, currentStateValueSelector) {
-                var country = $(countrySelector).val();
-                if (country !== "") {
-                    lookupStatesForCountry(country, stateSelector, currentStateValueSelector);
-                }
-            }
-
-
-            function setUpStateOnCountryChange(countrySelector, stateSelector) {
-                $(countrySelector).change(function() {
-                    lookupStatesForCountry(this.value, stateSelector)
-                });
-            }
-
-            $("#registration-submit").click(function() {
-                var registration_form = $("#registration-form");
-                onBeforeSubmit();
-                if (registration_form.valid()) {
-                    registration_form.submit();
-                } else {
-                    var msg = $("#form-invalid");
-                    msg.slideDown("slow", function() {
-                        setTimeout(function() {
-                            msg.slideUp("slow")
-                            }, 2000);
-                    });
-
-                    onValidationError();
-                }
-            });
-
-            $('[data-toggle="tooltip"]').tooltip();
-
-            {% if not is_mobile %}
-                $("#patient-form").accordion({
-                    heightStyle: "content",
-                    collapsible: true
-                });
-                if ($("#guardian-form").length > 0) {
-                    $("#guardian-form").accordion({
-                        heightStyle: "content",
-                        collapsible: true
-                    });
-                }
-            {% endif %}
-
-            $('input:radio[required]').parent('fieldset').before('<span style="color:red">*</span>')
-
-            {% block extra_js_init %}
-            {% endblock %}
-
-        }); // $(document).ready ...
-
-        function reCaptchaCallback(response) {
-            $("#registration-submit").prop("disabled", false);
+      function setStatesOnLoad(countrySelector, stateSelector, currentStateValueSelector) {
+        var country = $(countrySelector).val();
+        if (country !== "") {
+          lookupStatesForCountry(country, stateSelector, currentStateValueSelector);
         }
+      }
 
-        function reCaptchaExpiredCallback() {
-            $("#registration-submit").prop("disabled", true);
+
+      function setUpStateOnCountryChange(countrySelector, stateSelector) {
+        $(countrySelector).change(function() {
+          lookupStatesForCountry(this.value, stateSelector)
+        });
+      }
+
+      $("#registration-submit").click(function() {
+        var registration_form = $("#registration-form");
+        onBeforeSubmit();
+        if (registration_form.valid()) {
+          registration_form.submit();
+        } else {
+          var msg = $("#form-invalid");
+          msg.slideDown("slow", function() {
+            setTimeout(function() {
+              msg.slideUp("slow")
+            }, 2000);
+          });
+
+          onValidationError();
         }
+      });
 
-        // Overwrite these in specific template if needed.
+      $('[data-toggle="tooltip"]').tooltip();
 
-        // Custom code to be called if the validation fails (on the client-side)
-        function onValidationError() {}
-
-        function onBeforeSubmit() {
-            $("#id_email").val($("#id_username").val());
-            $("#patient-form").accordion("option", "active" ,0);
-            if ($("#guardian-form").length > 0) {
-                $("#guardian-form").accordion('option', 'active' ,0);
-            }
+      {% if not is_mobile %}
+        $("#patient-form").accordion({
+          heightStyle: "content",
+          collapsible: true
+        });
+        if ($("#guardian-form").length > 0) {
+          $("#guardian-form").accordion({
+            heightStyle: "content",
+            collapsible: true
+          });
         }
-    </script>
+      {% endif %}
 
-    {% block extrahead %}
-    {% endblock %}
+      $('input:radio[required]').parent('fieldset').before('<span style="color:red">*</span>')
+
+      {% block extra_js_init %}
+      {% endblock %}
+
+    }); // $(document).ready ...
+
+    function reCaptchaCallback(response) {
+      $("#registration-submit").prop("disabled", false);
+    }
+
+    function reCaptchaExpiredCallback() {
+      $("#registration-submit").prop("disabled", true);
+    }
+
+    // Overwrite these in specific template if needed.
+
+    // Custom code to be called if the validation fails (on the client-side)
+    function onValidationError() {}
+
+    function onBeforeSubmit() {
+      $("#id_email").val($("#id_username").val());
+      $("#patient-form").accordion("option", "active" ,0);
+      if ($("#guardian-form").length > 0) {
+        $("#guardian-form").accordion('option', 'active' ,0);
+      }
+    }
+  </script>
+
+  {% block extrahead %}
+  {% endblock %}
 </head>
 
 <body>
-    <div class="container">
-        <br>
+<div class="container">
+  <br>
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {% for err in form.non_field_errors %}
-                    <p class="form-error">{{ err }}</p>
-                {% endfor %}
-            </div>
-        {% elif form.errors %}
-            <div class="alert alert-danger">
-                {% for field in form %}
-                    {% if field.errors %}
-                        <p><strong>{{field.label}}</strong>:
-                        <ul>
-                            {% for err in field.errors %}
-                                <li>{{ err|striptags }}</li>
-                            {% endfor %}
-                        </ul>
-                        </p>
-                    {% endif %}
-                {% endfor %}
-            </div>
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {% for err in form.non_field_errors %}
+        <p class="form-error">{{ err }}</p>
+      {% endfor %}
+    </div>
+  {% elif form.errors %}
+    <div class="alert alert-danger">
+      {% for field in form %}
+        {% if field.errors %}
+          <p><strong>{{field.label}}</strong>:
+          <ul>
+            {% for err in field.errors %}
+              <li>{{ err|striptags }}</li>
+            {% endfor %}
+          </ul>
+          </p>
         {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
 
-        {% block content %}
-        {% endblock %}
+  {% block content %}
+  {% endblock %}
 
-   </div>
+</div>
 
 </body>
 

@@ -12,223 +12,223 @@
 {% load translate %}
 
 {% block extrastyle %}
-    {{ block.super }}
-    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+  {{ block.super }}
+  <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/generic_validator.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
+  <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
 
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
+  <!--[if IE 8]>
+  <script type="text/javascript" src="ie_expand_select_width.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('select').ieExpandSelectWidth();
+    });
+  </script>
     <![endif]-->
 
 
-    <script type="text/javascript">
-        window.IMAGES_URL = "{% static 'images/' %}";
-    </script>
+  <script type="text/javascript">
+    window.IMAGES_URL = "{% static 'images/' %}";
+  </script>
 
-    <style>
-        .ui-autocomplete {
-            max-height: 100px;
-            overflow-y: auto;
-            /* prevent horizontal scrollbar */
-            overflow-x: hidden;
-        }
-          /* IE 6 doesn't support max-height
+  <style>
+    .ui-autocomplete {
+      max-height: 100px;
+      overflow-y: auto;
+      /* prevent horizontal scrollbar */
+      overflow-x: hidden;
+    }
+    /* IE 6 doesn't support max-height
            * we use height instead, but this forces the menu to always be this tall
            */
-          * html .ui-autocomplete {
-            height: 100px;
-        }
+    * html .ui-autocomplete {
+      height: 100px;
+    }
 
-        ul {
-            list-style-type: none;
-            margin-left: 0;
-        }
+    ul {
+      list-style-type: none;
+      margin-left: 0;
+    }
 
-        table {
-            table-layout: fixed;
-        }
+    table {
+      table-layout: fixed;
+    }
 
-        .progress {
-            margin-bottom: 0px;
-        }
+    .progress {
+      margin-bottom: 0px;
+    }
 
-        .badge {
-            border-radius: 0px;
-        }
+    .badge {
+      border-radius: 0px;
+    }
 
-        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
-            border-top: 0;
-        }
-    </style>
+    .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
+      border-top: 0;
+    }
+  </style>
 
-    <script>
-        function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
+  <script>
+    function goBack() {
+      var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+      if (warning == true) {
+        window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+      }
+    }
+  </script>
 
-    <script>
+  <script>
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
-        var target = $(id);
-        var inst = this._getInst(target[0]);
-        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
-                inst.selectedDay = inst.currentDay;
-                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
-                inst.drawYear = inst.selectedYear = inst.currentYear;
-        }
-        else {
-                var date = new Date();
-                inst.selectedDay = date.getDate();
-                inst.drawMonth = inst.selectedMonth = date.getMonth();
-                inst.drawYear = inst.selectedYear = date.getFullYear();
-                // the below two lines are new
-                this._setDateDatepicker(target, date);
-                this._selectDate(id, this._getDateDatepicker(target));
-        }
-        this._notifyChange(inst);
-        this._adjustDate(target);
+      var target = $(id);
+      var inst = this._getInst(target[0]);
+      if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+        inst.selectedDay = inst.currentDay;
+        inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+        inst.drawYear = inst.selectedYear = inst.currentYear;
+      }
+      else {
+        var date = new Date();
+        inst.selectedDay = date.getDate();
+        inst.drawMonth = inst.selectedMonth = date.getMonth();
+        inst.drawYear = inst.selectedYear = date.getFullYear();
+        // the below two lines are new
+        this._setDateDatepicker(target, date);
+        this._selectDate(id, this._getDateDatepicker(target));
+      }
+      this._notifyChange(inst);
+      this._adjustDate(target);
     }
 
     {% if user.is_superuser and has_form_progress %}
-        $(function() {
-            $( "#form-progress" ).progressbar({
-                value: {{form_progress}}
-            });
+      $(function() {
+        $( "#form-progress" ).progressbar({
+          value: {{form_progress}}
         });
+      });
     {% endif %}
 
     $(document).ready(function(){
-        $("#form-progress-cdes").hide();
+      $("#form-progress-cdes").hide();
 
-        $("#show-cdes-btn").click(function() {
-            $("#form-progress-cdes").toggle("fast");
-        });
+      $("#show-cdes-btn").click(function() {
+        $("#form-progress-cdes").toggle("fast");
+      });
 
-        $(document).find( ".datepicker" ).each(function() {
-            $(this).on("mouseover", function() {
-                $(this).datepicker({
-                    changeMonth: true,
-                    changeYear: true,
-                    dateFormat: 'dd-mm-yy',
-                    yearRange: '-100:+0',
-                    buttonImage: "{% static 'images/calendar.gif' %}",
-                    buttonImageOnly: true,
-                });
-            });
+      $(document).find( ".datepicker" ).each(function() {
+        $(this).on("mouseover", function() {
+          $(this).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            yearRange: '-100:+0',
+            buttonImage: "{% static 'images/calendar.gif' %}",
+            buttonImageOnly: true,
+          });
         });
+      });
     });
 
     function add_form(prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var empty_form = $("#empty_" + prefix);
-        var forms = $("#forms_" + prefix);
+      var mgmt_form = $("#mgmt_" + prefix);
+      var empty_form = $("#empty_" + prefix);
+      var forms = $("#forms_" + prefix);
 
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+      var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
 
-        var new_form = empty_form.clone(true, true);
+      var new_form = empty_form.clone(true, true);
 
-        new_form.find(":input").each(function() {
-            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+      new_form.find(":input").each(function() {
+        $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+        $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
 
-            if ($(this).hasClass("datepicker")) {
-                $(this).datepicker({
-                    changeMonth: true,
-                    changeYear: true,
-                    dateFormat: 'dd-mm-yy',
-                    yearRange: '-100:+0',
-                    buttonImage: "{% static 'images/calendar.gif' %}",
-                    buttonImageOnly: true,
-                });
-            }
-        });
+        if ($(this).hasClass("datepicker")) {
+          $(this).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            yearRange: '-100:+0',
+            buttonImage: "{% static 'images/calendar.gif' %}",
+            buttonImageOnly: true,
+          });
+        }
+      });
 
-        var total_forms_inc = parseInt(total_forms.val()) + 1;
-        total_forms.attr("value", total_forms_inc);
+      var total_forms_inc = parseInt(total_forms.val()) + 1;
+      total_forms.attr("value", total_forms_inc);
 
-        $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-        new_form.appendTo(forms).show("fast");
+      $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+      new_form.appendTo(forms).show("fast");
     }
 
     function delete_form(form_div, prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-        var total_forms_dec = parseInt(total_forms.val()) - 1;
-        total_forms.attr("value", total_forms_dec);
+      var mgmt_form = $("#mgmt_" + prefix);
+      var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+      var total_forms_dec = parseInt(total_forms.val()) - 1;
+      total_forms.attr("value", total_forms_dec);
 
-        $(form_div).parent().parent().parent().remove();
+      $(form_div).parent().parent().parent().remove();
     }
 
-    </script>
+  </script>
 {% endblock %}
 
 {% block content %}
-    {{ block.super }}
-    <br>
-        <div class="row">
-            <div class="col-md-10">
+  {{ block.super }}
+  <br>
+  <div class="row">
+    <div class="col-md-10">
 
-                 <div class="panel panel-info">
+      <div class="panel panel-info">
 
-                    <div class="panel-heading">
-                       {{matrix_wrapper.name}}
-                    </div>
-
-                    <div class="panel-body">
-                        <table class="table table-striped">
-                            <thead>
-                            {% for header in matrix_wrapper.matrix.headers %}
-                                <th>{{header|translate}}</th>
-                            {% endfor %}
-                            </thead>
-                            <tbody>
-                            {% for row in matrix_wrapper.matrix.rows %}
-                                   <tr>
-                                       <td>
-                                           {{row.name}}
-                                       </td>
-                                       {% for column in row.columns %}
-                                            {% if column %}
-                                                 <td><span class="glyphicon glyphicon-large glyphicon-ok" style="color: green;font-size:1.5em;" aria-hidden="true"></span></td>
-                                            {% else %}
-                                                  <td><span class="glyphicon glyphicon-large glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
-                                            {% endif %}
-                                       {% endfor %}
-                                   </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                 </div>
-            </div>
+        <div class="panel-heading">
+          {{matrix_wrapper.name}}
         </div>
+
+        <div class="panel-body">
+          <table class="table table-striped">
+            <thead>
+            {% for header in matrix_wrapper.matrix.headers %}
+              <th>{{header|translate}}</th>
+            {% endfor %}
+            </thead>
+            <tbody>
+            {% for row in matrix_wrapper.matrix.rows %}
+              <tr>
+                <td>
+                  {{row.name}}
+                </td>
+                {% for column in row.columns %}
+                  {% if column %}
+                    <td><span class="glyphicon glyphicon-large glyphicon-ok" style="color: green;font-size:1.5em;" aria-hidden="true"></span></td>
+                  {% else %}
+                    <td><span class="glyphicon glyphicon-large glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
 
 <script>
-    $(document).ready(function () {
-        $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-        $("textarea").addClass("form-control");
-        $("select").addClass("form-control");
-        $("label[for*='-clear']").removeClass();
-    })
+  $(document).ready(function () {
+    $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+    $("textarea").addClass("form-control");
+    $("select").addClass("form-control");
+    $("label[for*='-clear']").removeClass();
+  })
 </script>
 
 

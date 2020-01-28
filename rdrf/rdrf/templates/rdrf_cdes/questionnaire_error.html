@@ -2,11 +2,11 @@
 {% load i18n %}
 
 {% block title %}
-    {{registry|upper}} {% trans 'Questionnaire Problem' %}
+  {{registry|upper}} {% trans 'Questionnaire Problem' %}
 {% endblock %}
 
 {% block content %}
-    <div class="alert alert-danger">
+  <div class="alert alert-danger">
     {{error_msg}}
-    </div>
+  </div>
 {% endblock %}

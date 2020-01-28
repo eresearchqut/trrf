@@ -3,20 +3,20 @@
 {% load translate %}
 
 {% for form in forms %}
-	<li>
-	  <a href="{{form.link}}">
-		{% if form.is_current %}
-		  <img src="{% static 'images/tick.png' %}">
-		{% else %}
-		  <img src="{% static 'images/cross.png' %}">
-		  {% endif %}
-          {% if form.has_progress %}
-		  <b>{{form.progress_percentage}}%</b>
-          {% endif %}
-		  {{form.title|translate}}</a>
-	</li>
+  <li>
+    <a href="{{form.link}}">
+      {% if form.is_current %}
+        <img src="{% static 'images/tick.png' %}">
+      {% else %}
+        <img src="{% static 'images/cross.png' %}">
+      {% endif %}
+      {% if form.has_progress %}
+        <b>{{form.progress_percentage}}%</b>
+      {% endif %}
+      {{form.title|translate}}</a>
+  </li>
 {% endfor %}
 {% if add_link %}
-     <li><a href="{{add_link}}">{% trans add_link_text %}</a></li>
+  <li><a href="{{add_link}}">{% trans add_link_text %}</a></li>
 {% endif %}
 	

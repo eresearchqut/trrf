@@ -10,98 +10,98 @@
 {% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
 
 {% if not is_popup %}
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
-&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
-&rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
-&rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
-</div>
-{% endblock %}
+  {% block breadcrumbs %}
+    <div class="breadcrumbs">
+      <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+      &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ app_label|capfirst|escape }}</a>
+      &rsaquo; {% if has_change_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+      &rsaquo; {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+    </div>
+  {% endblock %}
 {% endif %}
 
 {% block content %}<div id="content-main">
-{% block object-tools %}
-{% if change %}{% if not is_popup %}
-  <ul class="object-tools list-group">
-    {% block object-tools-items %}
-    <li class="list-group-item">
-        {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
-        <a href="{% add_preserved_filters history_url %}" class="historylink">{% trans "History" %}</a>
-    </li>
-    {% if has_absolute_url %}<li class="list-group-item"><a href="{% url 'admin:view_on_site' content_type_id original.pk %}" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
-    {% endblock %}
-  </ul>
-{% endif %}{% endif %}
-{% endblock %}
-<form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
-<div>
-{% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
-{% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
-{% if errors %}
-    <p class="errornote">
-    {% if errors|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
-    </p>
-  {% if adminform.form.non_field_errors %}
-    <div class="alert alert-danger">
-    {{ adminform.form.non_field_errors }}
+  {% block object-tools %}
+    {% if change %}{% if not is_popup %}
+      <ul class="object-tools list-group">
+        {% block object-tools-items %}
+          <li class="list-group-item">
+            {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+            <a href="{% add_preserved_filters history_url %}" class="historylink">{% trans "History" %}</a>
+          </li>
+          {% if has_absolute_url %}<li class="list-group-item"><a href="{% url 'admin:view_on_site' content_type_id original.pk %}" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
+        {% endblock %}
+      </ul>
+    {% endif %}{% endif %}
+  {% endblock %}
+  <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.model_name }}_form">{% csrf_token %}{% block form_top %}{% endblock %}
+    <div>
+      {% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+      {% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
+      {% if errors %}
+        <p class="errornote">
+          {% if errors|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+        </p>
+        {% if adminform.form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ adminform.form.non_field_errors }}
+          </div>
+        {% endif %}
+      {% endif %}
+
+      {% block field_sets %}
+        {% for fieldset in adminform %}
+          {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
+      {% endblock %}
+
+      {% block after_field_sets %}{% endblock %}
+
+      {% block inline_field_sets %}
+        {% for inline_admin_formset in inline_admin_formsets %}
+          {% include inline_admin_formset.opts.template %}
+        {% endfor %}
+      {% endblock %}
+
+      {% block after_related_objects %}{% endblock %}
+
+      {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+
+      {% if adminform.first_field and add %}
+        <script type="text/javascript">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>
+      {% endif %}
+
+      {# JavaScript for prepopulated fields #}
+      {% prepopulated_fields_js %}
+
     </div>
-  {% endif %}
-{% endif %}
+  </form></div>
+  <script type="text/javascript">
 
-{% block field_sets %}
-{% for fieldset in adminform %}
-  {% include "admin/includes/fieldset.html" %}
-{% endfor %}
-{% endblock %}
-
-{% block after_field_sets %}{% endblock %}
-
-{% block inline_field_sets %}
-{% for inline_admin_formset in inline_admin_formsets %}
-    {% include inline_admin_formset.opts.template %}
-{% endfor %}
-{% endblock %}
-
-{% block after_related_objects %}{% endblock %}
-
-{% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
-
-{% if adminform.first_field and add %}
-   <script type="text/javascript">document.getElementById("{{ adminform.first_field.id_for_label }}").focus();</script>
-{% endif %}
-
-{# JavaScript for prepopulated fields #}
-{% prepopulated_fields_js %}
-
-</div>
-</form></div>
-<script type="text/javascript">
-
-function widgetNameChangeHandler() {
-    var code = $("#id_code").val() == '' ? 'Unset' : $("#id_code").val();
-    var widgetName = $("#id_widget_name").val() == '' ? 'Unset' : $("#id_widget_name").val();
-    var url = "/admin/cde/" + code + "/" + widgetName + "/settings";
-    $.get(url, function(data) {
+    function widgetNameChangeHandler() {
+      var code = $("#id_code").val() == '' ? 'Unset' : $("#id_code").val();
+      var widgetName = $("#id_widget_name").val() == '' ? 'Unset' : $("#id_widget_name").val();
+      var url = "/admin/cde/" + code + "/" + widgetName + "/settings";
+      $.get(url, function(data) {
         $(".field-widget_settings").remove();
         $(".field-widget_name").after(data);
         $(".field-widget_settings").removeClass('hidden');
-    });
-}
-
-function dataTypeChangeHandler() {
-    var dataType = $("#id_datatype").val();
-    var url = "/admin/cde/widgets/" + dataType + "/";
-    var widgetNameSelect = $("#id_widget_name")
-    widgetNameSelect.find('option').remove();
-    widgetNameSelect.append("<option value=\"\">Default widget</option>");
-    $.get(url, function(data) {
-      $.each(data.widgets, function (i, item) {
-        widgetNameSelect.append("<option value=" + item.value +">"+ item.name +"</option>");
       });
-      widgetNameSelect.trigger('change');
-    });
-}
+    }
 
-</script>
+    function dataTypeChangeHandler() {
+      var dataType = $("#id_datatype").val();
+      var url = "/admin/cde/widgets/" + dataType + "/";
+      var widgetNameSelect = $("#id_widget_name")
+      widgetNameSelect.find('option').remove();
+      widgetNameSelect.append("<option value=\"\">Default widget</option>");
+      $.get(url, function(data) {
+        $.each(data.widgets, function (i, item) {
+          widgetNameSelect.append("<option value=" + item.value +">"+ item.name +"</option>");
+        });
+        widgetNameSelect.trigger('change');
+      });
+    }
+
+  </script>
 {% endblock %}

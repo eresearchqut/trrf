@@ -4,45 +4,45 @@
 <html lang="en">
 
 <head>
-    <title>PROMS Survey</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
+  <title>PROMS Survey</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="col-md-8">
-                    <div class="promsheader">
-                        {% proms_logo as PL %}
-                        {% if PL %}
-                        {% static "" as baseUrl %}
-                        <img src="{{ baseUrl }}/{{ PL }}" class="promslogo" />
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="col-md-12 promstitle">
-                    <h1>{{ survey_name }}</h1>
-                </div>
-
-                <div class="col-md-12">
-                    <form method="post" action="" class="form" id="start-survey-form">
-                        {% csrf_token %}
-                        <div class="preambletext">
-                            {{ preamble_text }}
-                        </div>
-                        <div class="submit">
-                            <input type="submit" value="Begin Survey" class="btn btn-success" />
-                        </div>
-                    </form>
-                </div>
-
-            </div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="col-md-8">
+        <div class="promsheader">
+          {% proms_logo as PL %}
+          {% if PL %}
+            {% static "" as baseUrl %}
+            <img src="{{ baseUrl }}/{{ PL }}" class="promslogo" />
+          {% endif %}
         </div>
+      </div>
+
+      <div class="col-md-12 promstitle">
+        <h1>{{ survey_name }}</h1>
+      </div>
+
+      <div class="col-md-12">
+        <form method="post" action="" class="form" id="start-survey-form">
+          {% csrf_token %}
+          <div class="preambletext">
+            {{ preamble_text }}
+          </div>
+          <div class="submit">
+            <input type="submit" value="Begin Survey" class="btn btn-success" />
+          </div>
+        </form>
+      </div>
+
     </div>
+  </div>
+</div>
 </body>
 
 </html>

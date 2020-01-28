@@ -2,73 +2,73 @@
 {% load static %}
 {% load i18n admin_static %}
 {% block extrastyle %}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
-    <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
-    <script>
-        function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
-  <script>
-  $(function() {
-    $( ".datepicker" ).datepicker({
-      showOn: "button",
-      buttonImage: '{% static 'images/calendar.gif' %}',
-      buttonImageOnly: true,
-      showButtonPanel: true,
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'dd-mm-yy',
-      yearRange: '-100:+0',
+  <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+  <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/ie_select.js' %}"></script>
+  <!--[if IE 8]>
+  <script type="text/javascript" src="ie_expand_select_width.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('select').ieExpandSelectWidth();
     });
-  });
+  </script>
+    <![endif]-->
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
+  <script>
+    function goBack() {
+      var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
+      if (warning == true) {
+        window.location.replace('{% url 'admin:patients_patient_changelist' %}');
+      }
+    }
+  </script>
+  <script>
+    $(function() {
+      $( ".datepicker" ).datepicker({
+        showOn: "button",
+        buttonImage: '{% static 'images/calendar.gif' %}',
+        buttonImageOnly: true,
+        showButtonPanel: true,
+        changeMonth: true,
+        changeYear: true,
+        dateFormat: 'dd-mm-yy',
+        yearRange: '-100:+0',
+      });
+    });
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
     // clicking the today button
     $.datepicker._gotoToday = function(id) {
-    var target = $(id);
-    var inst = this._getInst(target[0]);
-    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
-            inst.selectedDay = inst.currentDay;
-            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
-            inst.drawYear = inst.selectedYear = inst.currentYear;
+      var target = $(id);
+      var inst = this._getInst(target[0]);
+      if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+        inst.selectedDay = inst.currentDay;
+        inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+        inst.drawYear = inst.selectedYear = inst.currentYear;
+      }
+      else {
+        var date = new Date();
+        inst.selectedDay = date.getDate();
+        inst.drawMonth = inst.selectedMonth = date.getMonth();
+        inst.drawYear = inst.selectedYear = date.getFullYear();
+        // the below two lines are new
+        this._setDateDatepicker(target, date);
+        this._selectDate(id, this._getDateDatepicker(target));
+      }
+      this._notifyChange(inst);
+      this._adjustDate(target);
     }
-    else {
-            var date = new Date();
-            inst.selectedDay = date.getDate();
-            inst.drawMonth = inst.selectedMonth = date.getMonth();
-            inst.drawYear = inst.selectedYear = date.getFullYear();
-            // the below two lines are new
-            this._setDateDatepicker(target, date);
-            this._selectDate(id, this._getDateDatepicker(target));
-    }
-    this._notifyChange(inst);
-    this._adjustDate(target);
-}
   </script>
 {% endblock %}
 
 {% block content %}
-    <div class="alert alert-success">
+  <div class="alert alert-success">
     <h3>Information: {% trans message %}</h3>
-    </div>
+  </div>
 {% endblock %}

@@ -1,126 +1,126 @@
 {% extends "rdrf_cdes/base.html" %}
 {% load static  %}
 {%  block htmltype %}
-    <!doctype html>
-    <html lang="en">
+  <!doctype html>
+  <html lang="en">
 {%  endblock %}
 {% block extrastyle %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/datatables.min.css' %}"/>
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'datatables-1.10.12\/css\/datatables.min.css' %}"/>
 
 {% endblock %}
 
 {% block extrahead %}
-<script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'datatables-1.10.12\/js\/datatables.min.js' %}"></script>
 
 
 
 
-    <script>
+  <script>
     $.fn.dataTable.ext.errMode = 'throw';
     var COLUMNS = {{columns|safe }};
     var TABLE_ID = "report_table";
     var TABLE_LENGTH_SELECT = "report_table_length";
 
     var Report = function(registryCode, columns, length) {
-        this.registryCode = registryCode;
-        this.baseApiUrl = "{{ api_url  }}";
-        this.length = length;
-        var tableHeight = Math.floor(screen.height / 2).toString() + "px";
-        this.table = $("#" + TABLE_ID).DataTable({"processing": true,
-                                                   "serverSide": true,
-                                                    ajax: {
-                                                        url: this.getUrl(),
-                                                        dataSrc: "rows",
-                                                        type: "POST"
-                                                    },
-                                                    columns: columns,
-                                                    dom: 'Brt',
-                                                    colReorder: true,
-                                                    stateSave: true,
-                                                    sScrollX: "100%",
-                                                    sScrollY: tableHeight,
-                                                    buttons: ['colvis',
-                                                                {
-                                                                   extend: 'copy',
-                                                                            exportOptions: {
-                                                                                columns: ':visible'
-                                                                            }
-                                                                },
-                                                                {
-                                                                   extend: 'csv',
-                                                                            exportOptions: {
-                                                                                columns: ':visible'
-                                                                            }
-                                                                }
-                                                    ],
-                                                    fixedHeader: true
-                                                   });
+      this.registryCode = registryCode;
+      this.baseApiUrl = "{{ api_url  }}";
+      this.length = length;
+      var tableHeight = Math.floor(screen.height / 2).toString() + "px";
+      this.table = $("#" + TABLE_ID).DataTable({"processing": true,
+        "serverSide": true,
+        ajax: {
+          url: this.getUrl(),
+          dataSrc: "rows",
+          type: "POST"
+        },
+        columns: columns,
+        dom: 'Brt',
+        colReorder: true,
+        stateSave: true,
+        sScrollX: "100%",
+        sScrollY: tableHeight,
+        buttons: ['colvis',
+          {
+            extend: 'copy',
+            exportOptions: {
+              columns: ':visible'
+            }
+          },
+          {
+            extend: 'csv',
+            exportOptions: {
+              columns: ':visible'
+            }
+          }
+        ],
+        fixedHeader: true
+      });
     };
 
     Report.prototype.getApiUrl = function(registryCode) {
-        return  this.baseApiUrl + "?registry_code=" + registryCode + "&length=" + this.length;
+      return  this.baseApiUrl + "?registry_code=" + registryCode + "&length=" + this.length;
     };
 
     Report.prototype.getUrl = function () {
-        return this.getApiUrl(this.registryCode);
+      return this.getApiUrl(this.registryCode);
     };
 
 
     Report.prototype.load = function() {
-        var url = this.getUrl();
-        this.table.ajax.url(url).load();
+      var url = this.getUrl();
+      this.table.ajax.url(url).load();
     }
 
     function setUpCSRFToken() {
-         $.ajaxSetup({beforeSend: function (xhr) {
-                    var csrfToken = '{{ csrf_token }}';
-                    xhr.setRequestHeader('X-CSRFToken', csrfToken);
-                }});
+      $.ajaxSetup({beforeSend: function (xhr) {
+          var csrfToken = '{{ csrf_token }}';
+          xhr.setRequestHeader('X-CSRFToken', csrfToken);
+        }});
     }
 
     $(document).ready(
-            function () {
-                setUpCSRFToken();
-                var registryCode = "{{ registry_code }}";
-                var initial_length = 10;
-                var resizeExpand = "glyphicon-resize-full";
-                var resizeContract = "glyphicon-resize-small";
-                var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
-                var containerState = ContainerStates.CONTRACTED;
-                $(".container").addClass("container-fluid").removeClass("container");
-                var report = new Report(registryCode, COLUMNS, initial_length);
-           }); 
-    </script>
+        function () {
+          setUpCSRFToken();
+          var registryCode = "{{ registry_code }}";
+          var initial_length = 10;
+          var resizeExpand = "glyphicon-resize-full";
+          var resizeContract = "glyphicon-resize-small";
+          var ContainerStates = { CONTRACTED: 0, EXPANDED: 1};
+          var containerState = ContainerStates.CONTRACTED;
+          $(".container").addClass("container-fluid").removeClass("container");
+          var report = new Report(registryCode, COLUMNS, initial_length);
+        });
+  </script>
 
 {% endblock %}
 
 {% block content %}
 
-    <div class="row">
-        <div class="col-md-12">
-          <p>
-	    <h3>
-	      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
-	    </h3>
-	    <i> Note: Only the first {{max_items}} items in a multiple section are shown </i>
-	  </p>
-        </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>
+      <h3>
+      <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Report - {{ report_title }}
+    </h3>
+      <i> Note: Only the first {{max_items}} items in a multiple section are shown </i>
+      </p>
     </div>
+  </div>
 
-    <br>
+  <br>
 
-    <div class="well">
-        <table id="report_table" class="display table table-striped table-hover">
-        <thead>
-            <tr>
-                {% for column in columns %}
-                    <th>{{ column.label|safe }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        </table>
+  <div class="well">
+    <table id="report_table" class="display table table-striped table-hover">
+      <thead>
+      <tr>
+        {% for column in columns %}
+          <th>{{ column.label|safe }}</th>
+        {% endfor %}
+      </tr>
+      </thead>
+    </table>
 
-    </div>
+  </div>
 
 {% endblock %}

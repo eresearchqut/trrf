@@ -1,25 +1,25 @@
 {% load i18n %}
 
 <div id="login_details">
-    <div class="form-group">
-        <div class="alert alert-info">
-            {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
-        </div>
+  <div class="form-group">
+    <div class="alert alert-info">
+      {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
     </div>
-    <div class="form-group">
-        <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
-        {{form.username}}
-    </div>
-    <div class="form-group">
-        {{form.password1}}
-    </div>
-    <div class="form-group">
-        {{form.password2}}
-    </div>
+  </div>
+  <div class="form-group">
+    <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
+    {{form.username}}
+  </div>
+  <div class="form-group">
+    {{form.password1}}
+  </div>
+  <div class="form-group">
+    {{form.password2}}
+  </div>
 
-    {% if preferred_languages %}
-        <div class="form-group">
-            {{form.preferred_languages}}
-        </div>
-    {% endif %}
+  {% if preferred_languages %}
+    <div class="form-group">
+      {{form.preferred_languages}}
+    </div>
+  {% endif %}
 </div>

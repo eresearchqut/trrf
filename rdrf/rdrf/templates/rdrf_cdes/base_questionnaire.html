@@ -4,98 +4,98 @@
 {% load admin_urls %}
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
+<head>
 
-        <title>{% block title %}Registry Title{% endblock %}</title>
+  <title>{% block title %}Registry Title{% endblock %}</title>
     
-        <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
-        <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}" ></script>
+  <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
     
-        <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}" />
-        <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap-theme.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap-theme.min.css' %}" />
 
-        <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/dynamic_formsets_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
 
-        <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
         
-        {% block extrastyle %}
-            <style>
-                ul {
-                    list-style-type: none;
-                    margin-left: 0;
-                }
+  {% block extrastyle %}
+    <style>
+      ul {
+        list-style-type: none;
+        margin-left: 0;
+      }
                 
-                table {
-                    table-layout: fixed;
-                }
+      table {
+        table-layout: fixed;
+      }
 
-		ul.errorlist {
-		    display: block;
-		    padding: 15px;
-		    margin-bottom: 20px;
-		    border: 1px solid transparent;
-		    border-radius: 4px;
-		    color: #a94442;
-		    background-color: #f2dede;
-		    border-color: #ebccd1;
-		}
-            </style>
+      ul.errorlist {
+        display: block;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: #a94442;
+        background-color: #f2dede;
+        border-color: #ebccd1;
+      }
+    </style>
 
-        {% endblock %}
+  {% endblock %}
         
-    </head>
-    <script>
-        $(document).ready(function() {
+</head>
+<script>
+  $(document).ready(function() {
 
-            var delay = 0;
-            var offset = 150;
+    var delay = 0;
+    var offset = 150;
 
-            document.addEventListener('invalid', function(e) {
-                $(e.target).addClass("invalid");
-                $('html, body').animate({
-                    scrollTop: $($(".invalid")[0]).offset().top - offset
-                }, delay);
-            }, true);
+    document.addEventListener('invalid', function(e) {
+      $(e.target).addClass("invalid");
+      $('html, body').animate({
+        scrollTop: $($(".invalid")[0]).offset().top - offset
+      }, delay);
+    }, true);
 
-            document.addEventListener('change', function(e) {
-                $(e.target).removeClass("invalid")
-            }, true);
+    document.addEventListener('change', function(e) {
+      $(e.target).removeClass("invalid")
+    }, true);
 
-            // if we're posting back Django errors - scroll to errorlist
-	    try {
-                $('html, body').animate({
-                    scrollTop: $($(".errorlist")[0]).offset().top - offset
-                }, delay);
-	    }
-	    catch(err) {
-	    };
-        });
-    </script>
+    // if we're posting back Django errors - scroll to errorlist
+    try {
+      $('html, body').animate({
+        scrollTop: $($(".errorlist")[0]).offset().top - offset
+      }, delay);
+    }
+    catch(err) {
+    };
+  });
+</script>
 
-    <body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
+<body style="background-color: #edeff1; padding-top: 80px; padding-bottom: 30px;">
 
-        <div class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-                <div class="navbar-header">
-                    <div class="navbar-brand">
-                        <div id="branding" class="branding">
-                            {{registry|upper}} Registry | <i>Patient Questionnaire</i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <div class="navbar-brand">
+        <div id="branding" class="branding">
+          {{registry|upper}} Registry | <i>Patient Questionnaire</i>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <div class="container">
-            {% block content %}
-            {% endblock %}
+<div class="container">
+  {% block content %}
+  {% endblock %}
             
-            {% block approval %}
-            {% endblock %}
-        </div>
+  {% block approval %}
+  {% endblock %}
+</div>
 
-    </body>
+</body>
 
 </html>

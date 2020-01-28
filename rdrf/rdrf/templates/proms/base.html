@@ -5,51 +5,51 @@
 
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    {% block head_meta_viewport %}
+  <meta charset="utf-8"/>
+  {% block head_meta_viewport %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="IE=11">
-    {% endblock %}
+  {% endblock %}
 
-    {% block title %}
+  {% block title %}
     <title>TRRF Proms Page</title>
-    {% endblock title %}
+  {% endblock title %}
 
-    <link rel="icon" href="{% static 'proms-logos/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'proms-logos/favicon.ico' %}" type="image/x-icon">
 
-    <link rel="stylesheet" type="text/css" href="{% static 'proms/css/proms.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'proms/css/proms.css' %}"/>
 
-    {% block extra_head %}
-    {% endblock %}
+  {% block extra_head %}
+  {% endblock %}
 </head>
 
 <body>
-        <div class="content-div">
-            {% csrf_token %}
+<div class="content-div">
+  {% csrf_token %}
 
-            {% block content %}
-            {% endblock %}
-        </div>
+  {% block content %}
+  {% endblock %}
+</div>
 
-        {% if cic_system_role %}  
-            <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-            <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
-        {% endif %}
+{% if cic_system_role %}
+  <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+  <script src="{% static 'proms/js/vendors-bundle.min.js' %}"></script>
+{% endif %}
 
-      <script>
-	var questions = JSON.parse('{{ questions | safe }}');
-	window.proms_config = {
-	   patient_token: '{{ patient_token }}',
-	   questions: questions,
-	   registry_code: '{{ registry_code }}',
-	   survey_endpoint: "{% url 'proms:survey_endpoint' %}",
-	   survey_name: '{{ survey_name }}',
-	   completed_page: '{{ completed_page }}',
-	};
-      </script>
+<script>
+  var questions = JSON.parse('{{ questions | safe }}');
+  window.proms_config = {
+    patient_token: '{{ patient_token }}',
+    questions: questions,
+    registry_code: '{{ registry_code }}',
+    survey_endpoint: "{% url 'proms:survey_endpoint' %}",
+    survey_name: '{{ survey_name }}',
+    completed_page: '{{ completed_page }}',
+  };
+</script>
 
-    {% if cic_system_role %}
-      <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-    {% endif %}
+{% if cic_system_role %}
+  <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+{% endif %}
 </body>
 </html>

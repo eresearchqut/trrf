@@ -3,49 +3,49 @@
 {% load i18n %}
 
 {% block extrastyle %}
-    {{ block.super }}
+  {{ block.super }}
 {% endblock %}
 
 {% block content %}
 
-    <div class="row">
-        <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'TRRF Reports' %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
-        </div>
+  <div class="row">
+    <div class="col-md-12">
+      <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'TRRF Reports' %}</h3></p>
+      <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
     </div>
+  </div>
 
-    <br>
+  <br>
 
-    <div class="well">
-        {% if reports %}
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th><i>{% trans "Registry" %}</i></th>
-                    <th><i>{% trans "Report name" %}</i></th>
-                    <th><i>{% trans "Download" %}</i></th>
-                    <th><i>{% trans "View" %}</i></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for report in reports %}
-                    <tr>
-                        <td>{{report.registry.name}}</td>
-                        <td>{{report.title}}</td>
-                        <td><a href="{% url 'rdrf:explorer_query_download' report.id 'download' %}" target="_blank"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
-			{% if  report.mongo_search_type != "M" %}
-                            <td><a href="{% url 'rdrf:explorer_query_download' report.id 'view' %}" target="_blank"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
-			{% else %}
-                            <td><span class="glyphicon glyphicon glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
-			{% endif %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <h4><i>{% trans 'No reports' %}</i></h4>
-        {% endif %}
-    </div>
+  <div class="well">
+    {% if reports %}
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th><i>{% trans "Registry" %}</i></th>
+          <th><i>{% trans "Report name" %}</i></th>
+          <th><i>{% trans "Download" %}</i></th>
+          <th><i>{% trans "View" %}</i></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for report in reports %}
+          <tr>
+            <td>{{report.registry.name}}</td>
+            <td>{{report.title}}</td>
+            <td><a href="{% url 'rdrf:explorer_query_download' report.id 'download' %}" target="_blank"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span></a></td>
+            {% if  report.mongo_search_type != "M" %}
+              <td><a href="{% url 'rdrf:explorer_query_download' report.id 'view' %}" target="_blank"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+            {% else %}
+              <td><span class="glyphicon glyphicon glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <h4><i>{% trans 'No reports' %}</i></h4>
+    {% endif %}
+  </div>
 
 {% endblock %}

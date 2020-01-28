@@ -18,345 +18,345 @@
 <head>
   <title>{% project_title %}</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
-    <link rel="stylesheet" type="text/css" href="{% static 'timepicki/css/timepicki.css' %}">
+  <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
+  <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
+  <link rel="stylesheet" type="text/css" href="{% static 'timepicki/css/timepicki.css' %}">
 
-    {% if cic_system_role %}
-        <!-- test typescript / webpack -->
-        {% if production %}
-        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-        {% else %}
-        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-        {% endif %}
+  {% if cic_system_role %}
+    <!-- test typescript / webpack -->
+    {% if production %}
+      <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+      <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
+    {% else %}
+      <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
+      <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
     {% endif %}
+  {% endif %}
 
-    {% project_stylesheet as PSS %}
-    {% if PSS %}
+  {% project_stylesheet as PSS %}
+  {% if PSS %}
     {% static "" as baseUrl %}
     <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
-    {% endif %}
+  {% endif %}
 
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
 
-    {% if request.LANGUAGE_CODE.lower != "en" %}
+  {% if request.LANGUAGE_CODE.lower != "en" %}
     {% static "" as baseUrl %}
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
-    {% endif %}
+  {% endif %}
 
-    <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
-    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-    <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/collapsing_panels.js' %}"></script>
-    <script type="text/javascript" src="{% static 'timepicki/js/timepicki.js' %}"></script>
-    <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
+  <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
+  <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/collapsing_panels.js' %}"></script>
+  <script type="text/javascript" src="{% static 'timepicki/js/timepicki.js' %}"></script>
+  <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
-    {% block extrastyle %}
-    {% endblock %}
+  {% block extrastyle %}
+  {% endblock %}
 
-    {% block extrahead %}
-    {% endblock %}
+  {% block extrahead %}
+  {% endblock %}
 
-    <script>
-        $(document).ready(function () {
-            var hasErrors = {{ error_messages|length }} > 0;
+  <script>
+    $(document).ready(function () {
+      var hasErrors = {{ error_messages|length }} > 0;
 
-            adjustContentTopPadding();
+      adjustContentTopPadding();
 
-            $("#submit-btn").click(function () {
-                $("#main-form").submit();
-            });
+      $("#submit-btn").click(function () {
+        $("#main-form").submit();
+      });
 
-            hide_empty_menu();
+      hide_empty_menu();
 
-            CollapsingPanels.setUp();
-            if (hasErrors) {
-                CollapsingPanels.expandAll();
-            } else {
-                CollapsingPanels.expandFirst();
-            }
-        });
-    </script>
+      CollapsingPanels.setUp();
+      if (hasErrors) {
+        CollapsingPanels.expandAll();
+      } else {
+        CollapsingPanels.expandFirst();
+      }
+    });
+  </script>
 
-    {% if HIGHLIGHT_FORM_CHANGES_ENABLED %}
-        <script type="text/javascript" src="{% static 'js/highlight_changes.js' %}"></script>
-    {% endif %}
+  {% if HIGHLIGHT_FORM_CHANGES_ENABLED %}
+    <script type="text/javascript" src="{% static 'js/highlight_changes.js' %}"></script>
+  {% endif %}
 
-    {% include "rdrf_cdes/auto_logout.html" %}
+  {% include "rdrf_cdes/auto_logout.html" %}
 </head>
 
 <body>
 
-    <div id="wrap">
+<div id="wrap">
 
-        <nav class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-10 col-md-offset-1">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
 
-                           <a class="navbar-brand project_title" href="{% project_title_link %}">
-                                {% project_logo as PL %}
-                                {% project_title as PT %}
-                                {% if PL %}
-                                    <img src="{% static PL %}" class="project_logo">
-                                    &nbsp;
-                                {% endif %}
-                                {% if PT %}
-                                    <span>
-                                        {% project_title %}
-                                    </span>
-                                {% endif %}
-                            </a>
-                        </div>
+            <a class="navbar-brand project_title" href="{% project_title_link %}">
+              {% project_logo as PL %}
+              {% project_title as PT %}
+              {% if PL %}
+                <img src="{% static PL %}" class="project_logo">
+                &nbsp;
+              {% endif %}
+              {% if PT %}
+                <span>
+                  {% project_title %}
+                </span>
+              {% endif %}
+            </a>
+          </div>
 
-                        <!-- Collect the nav links, forms, and other content for toggling -->
-                        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                            <ul class="nav navbar-nav navbar-right">
-                                {% if request.user.is_authenticated %}
-                                {% block parent_menu %}
-                                {% endblock %}
-
-
-                                {% if request.user.registry_code %}
-                                {% if request.user.is_parent %}
-                                <li><a href="{% url 'registry:parent_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
-                                        {% trans "Home Page" %}</a></li>
-                                {% elif request.user.is_patient %}
-                                <li><a href="{% url 'registry:patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
-                                        {% trans "Home Page" %}</a></li>
-                                {% endif %}
-                                {% endif %}
-
-                                {% block actions %}
-                                {% endblock %}
-
-                                {% block formlinks %}
-                                {% endblock %}
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+              {% if request.user.is_authenticated %}
+                {% block parent_menu %}
+                {% endblock %}
 
 
-                                <li class="dropdown dropdown-menu-button">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                                        aria-expanded="false">
-                                        <span class="glyphicon glyphicon-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
-                                    </a>
-                                    <ul class="dropdown-menu" role="menu">
-                                        {% for quick_link in request.user.menu_links %}
-                                        <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
-                                        {% endfor %}
-                                        {% block extra_menu %}
-                                        {% endblock %}
-                                    </ul>
-                                </li>
+                {% if request.user.registry_code %}
+                  {% if request.user.is_parent %}
+                    <li><a href="{% url 'registry:parent_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
+                      {% trans "Home Page" %}</a></li>
+                  {% elif request.user.is_patient %}
+                    <li><a href="{% url 'registry:patient_page' request.user.registry_code %}"><span class="glyphicon glyphicon-home"></span>
+                      {% trans "Home Page" %}</a></li>
+                  {% endif %}
+                {% endif %}
 
-                                {% if request.user.is_superuser %}
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                                        aria-expanded="false">
-                                        <span class="glyphicon glyphicon-wrench"></span> {% trans 'Settings' %}<span
-                                            class="caret"></span>
-                                    </a>
-                                    <ul class="dropdown-menu" role="menu">
-                                        {% for quick_link in request.user.settings_links %}
-                                        <li><a href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
-                                        {% endfor %}
-                                    </ul>
-                                </li>
-                                {% endif %}
+                {% block actions %}
+                {% endblock %}
 
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                                        aria-expanded="false">
-                                        {% if request.user.is_parent %}
-                                        <span class="glyphicon glyphicon-user"></span> {{ parent.first_name }}
-                                        {{ parent.last_name }} <span class="caret"></span></a>
-                                    {% else %}
-                                    <span class="glyphicon glyphicon-user"></span>
-                                    {{ request.user.first_name }} {{ request.user.last_name }}
-                                    <span class="caret"></span></a>
-                                    {% endif %}
-                                    <ul class="dropdown-menu" role="menu">
-                                        {% if request.user.is_superuser %}
-                                        <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span>
-                                                {% trans 'Admin Page' %}</a></li>
-                                        <li class="divider"></li>
-                                        {% endif %}
-                                        {% if request.user.is_parent and registry_code %}
-                                        <li><a href="{% url 'registry:parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span>
-                                                {% trans 'Account' %}</a></li>
-                                        {% endif %}
-                                        <li><a href="{% url 'password_change' %}"><span class="glyphicon glyphicon-random"></span>
-                                                {% trans 'Change Password' %}</a></li>
+                {% block formlinks %}
+                {% endblock %}
 
-                                        {% if user.is_verified %}
-                                        <li><a href="{% url 'two_factor:disable' %}"><span class="glyphicon glyphicon-remove"></span>
-                                                {% trans "Disable two-factor auth" %}</a></li>
-                                        {% else %}
-                                        <li><a href="{% url 'two_factor:setup' %}"><span class="glyphicon glyphicon-ok"></span>
-                                                {% trans "Enable two-factor auth" %}</a></li>
-                                        {% endif %}
 
-                                        <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-out"></span>
-                                                {% trans 'Logout' %}</a></li>
-                                    </ul>
-                                </li>
-                                {% else %}
-                                <li><a href="{% url 'two_factor:login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span>
-                                        {% trans 'Log in' %}</a></li>
-                                {% endif %}
-                            </ul>
-                        </div><!-- /.navbar-collapse -->
-                    </div><!-- /.container-fluid -->
-                </div>
-            </div>
-        </nav>
+                <li class="dropdown dropdown-menu-button">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                     aria-expanded="false">
+                    <span class="glyphicon glyphicon-tasks"></span> {% trans 'Menu' %}<span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu" role="menu">
+                    {% for quick_link in request.user.menu_links %}
+                      <li><a href="{{quick_link.url}}">{% trans quick_link.text %}</a></li>
+                    {% endfor %}
+                    {% block extra_menu %}
+                    {% endblock %}
+                  </ul>
+                </li>
 
-        {% if location %}
-        <div class="banner">
-            <!-- base 2 cols banner -->
-            <div class="container">
-                    <!-- name row -->
-                        <div class="row">
-                            <div class="col-sm-12">
-                            <h3>
-                                {% if patient_link %}
-                                    {{ patient_link | safe}}
-                                {% elif patient %}
-                                    <i class="text-muted">
-                                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                                        {{patient}}
-                                    </i>
-                                {% endif %}
-                            </h3>
-                        </div>
-                        </div>
-                        {{ patient_info }}
+                {% if request.user.is_superuser %}
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                       aria-expanded="false">
+                      <span class="glyphicon glyphicon-wrench"></span> {% trans 'Settings' %}<span
+                        class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                      {% for quick_link in request.user.settings_links %}
+                        <li><a href="{{quick_link.url}}">{{quick_link.text|translate}}</a></li>
+                      {% endfor %}
+                    </ul>
+                  </li>
+                {% endif %}
 
-                <div class="row">
-                    <!-- command button row -->
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
-                        {% if show_archive_button %}
-                        <div class="btn-group" role="group" aria-label="...">
-                            <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
-                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                {% trans "Delete " %}
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if not changes_since_version %}
-                        <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
-                            {% block formbtns %}
-                            {% endblock %}
-                        </div>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                     aria-expanded="false">
+                    {% if request.user.is_parent %}
+                      <span class="glyphicon glyphicon-user"></span> {{ parent.first_name }}
+                      {{ parent.last_name }} <span class="caret"></span></a>
+                    {% else %}
+                      <span class="glyphicon glyphicon-user"></span>
+                      {{ request.user.first_name }} {{ request.user.last_name }}
+                      <span class="caret"></span></a>
                     {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div id="content" class="container-fluid" style="padding-top: 150px;">
-            {% if messages %}
-            <div class="header">
-                <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
-                        {% for message in messages %}
-                        <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
-                            {{ message }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="row">
-                <div class="col-md-offset-1 col-md-2">
-                    <div class="well" style="background-color: #eeeeee;">
-                        {% block sidebar %}
-                        {% endblock %}
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    {% block content %}
-
-                    {% include 'rdrf_cdes/archive_modal.html' %}
-                    {% include 'rdrf_cdes/form_modal.html' %}
-                    {% if header %}
-                        <div class="panel panel-info trrf-page-header">
-                            <div class="panel-body">
-                                {% include header_expression %}
-                                {% if has_previous_data %}
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            {% trans "View Changes Since" %}
-                                            <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            {% for version in previous_versions %}
-                                               <li><a class="dropdown-item" href="?changes_since_version={{version.id}}">{{version.name}}</a></li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    {% if changes_since_version %}
-                                        <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
-                                        <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
-                                            <h4>{% trans "Compare mode" %}</h4>
-                                            <p>
-                                            {% blocktrans with since_version=selected_version_name %}
-                                            Displaying fields that changed since <strong>{{ since_version }}</strong>.
-                                            Please hover over the fields to see their previous value.
-                                            {% endblocktrans %}
-                                            </p>
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-                                {% if delete_form_url and not changes_since_version and is_multi_context %}
-                                    <div class="btn-group" role="group" aria-label="...">
-                                        <a class="btn btn-danger" href="" data-toggle="modal" data-target="#form_modal" target="_blank">
-                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                            {% trans "Delete " %}
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
+                  <ul class="dropdown-menu" role="menu">
+                    {% if request.user.is_superuser %}
+                      <li><a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-wrench"></span>
+                        {% trans 'Admin Page' %}</a></li>
+                      <li class="divider"></li>
                     {% endif %}
-                    {% endblock%}
-                </div>
-            </div>
-        </div>
+                    {% if request.user.is_parent and registry_code %}
+                      <li><a href="{% url 'registry:parent_edit' registry_code parent.id %}"><span class="glyphicon glyphicon-wrench"></span>
+                        {% trans 'Account' %}</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'password_change' %}"><span class="glyphicon glyphicon-random"></span>
+                      {% trans 'Change Password' %}</a></li>
+
+                    {% if user.is_verified %}
+                      <li><a href="{% url 'two_factor:disable' %}"><span class="glyphicon glyphicon-remove"></span>
+                        {% trans "Disable two-factor auth" %}</a></li>
+                    {% else %}
+                      <li><a href="{% url 'two_factor:setup' %}"><span class="glyphicon glyphicon-ok"></span>
+                        {% trans "Enable two-factor auth" %}</a></li>
+                    {% endif %}
+
+                    <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-out"></span>
+                      {% trans 'Logout' %}</a></li>
+                  </ul>
+                </li>
+              {% else %}
+                <li><a href="{% url 'two_factor:login' %}?next={% url 'login_router' %}"><span class="glyphicon glyphicon-log-in"></span>
+                  {% trans 'Log in' %}</a></li>
+              {% endif %}
+            </ul>
+          </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+      </div>
     </div>
+  </nav>
 
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $('#exit-compare-mode-btn').click(function() {
-                window.location.href=window.location.pathname;
-            });
-        })
-    </script>
+  {% if location %}
+    <div class="banner">
+      <!-- base 2 cols banner -->
+      <div class="container">
+        <!-- name row -->
+        <div class="row">
+          <div class="col-sm-12">
+            <h3>
+              {% if patient_link %}
+                {{ patient_link | safe}}
+              {% elif patient %}
+                <i class="text-muted">
+                  <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                  {{patient}}
+                </i>
+              {% endif %}
+            </h3>
+          </div>
+        </div>
+        {{ patient_info }}
 
-    {% block footer %}
-    {% include 'rdrf_cdes/footer.html' %}
-    {% endblock %}
+        <div class="row">
+          <!-- command button row -->
+          <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+            {% if show_archive_button %}
+              <div class="btn-group" role="group" aria-label="...">
+                <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
+                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                  {% trans "Delete " %}
+                </a>
+              </div>
+            {% endif %}
+          </div>
+          {% if not changes_since_version %}
+            <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+              {% block formbtns %}
+              {% endblock %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div id="content" class="container-fluid" style="padding-top: 150px;">
+    {% if messages %}
+      <div class="header">
+        <div class="row">
+          <div class="col-md-offset-3 col-md-6">
+            {% for message in messages %}
+              <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-offset-1 col-md-2">
+        <div class="well" style="background-color: #eeeeee;">
+          {% block sidebar %}
+          {% endblock %}
+        </div>
+      </div>
+      <div class="col-md-8">
+        {% block content %}
+
+          {% include 'rdrf_cdes/archive_modal.html' %}
+          {% include 'rdrf_cdes/form_modal.html' %}
+          {% if header %}
+            <div class="panel panel-info trrf-page-header">
+              <div class="panel-body">
+                {% include header_expression %}
+                {% if has_previous_data %}
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {% trans "View Changes Since" %}
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      {% for version in previous_versions %}
+                        <li><a class="dropdown-item" href="?changes_since_version={{version.id}}">{{version.name}}</a></li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% if changes_since_version %}
+                    <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
+                    <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
+                      <h4>{% trans "Compare mode" %}</h4>
+                      <p>
+                        {% blocktrans with since_version=selected_version_name %}
+                          Displaying fields that changed since <strong>{{ since_version }}</strong>.
+                          Please hover over the fields to see their previous value.
+                        {% endblocktrans %}
+                      </p>
+                    </div>
+                  {% endif %}
+                {% endif %}
+                {% if delete_form_url and not changes_since_version and is_multi_context %}
+                  <div class="btn-group" role="group" aria-label="...">
+                    <a class="btn btn-danger" href="" data-toggle="modal" data-target="#form_modal" target="_blank">
+                      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                      {% trans "Delete " %}
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        {% endblock%}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('#exit-compare-mode-btn').click(function() {
+      window.location.href=window.location.pathname;
+    });
+  })
+</script>
+
+{% block footer %}
+  {% include 'rdrf_cdes/footer.html' %}
+{% endblock %}
 
 </body>
 

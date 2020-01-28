@@ -2,17 +2,17 @@
 
 
 {% if request.user.is_authenticated %}
-    {% if request.user.registry_code %}
-        {% if request.user.is_parent  %}
-            <a href="{% url 'registry:parent_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
-        {% elif request.user.is_patient %}
-            <a href="{% url 'registry:patient_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
-        {% else %}
-            <a href="{% url 'patientslisting' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
-        {% endif %}
-    {% elif cancel_url %}
-        <a href="{{ cancel_url }}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+  {% if request.user.registry_code %}
+    {% if request.user.is_parent  %}
+      <a href="{% url 'registry:parent_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+    {% elif request.user.is_patient %}
+      <a href="{% url 'registry:patient_page' request.user.registry_code %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+    {% else %}
+      <a href="{% url 'patientslisting' %}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
     {% endif %}
+  {% elif cancel_url %}
+    <a href="{{ cancel_url }}" class="btn btn-link pull-right">{% trans "Cancel" %}</a>
+  {% endif %}
 {% endif %}
 
 

@@ -16,80 +16,80 @@
 
 
 {% block extrastyle %}
-    {{block.super}}
-    <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
+  {{block.super}}
+  <link rel="stylesheet" href="{% static 'css/jquery-1.11.4/themes/smoothness/jquery-ui.min.css' %}">
 
-    <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jSignature.min.js' %}"></script>
+  <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
+  <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/jSignature.min.js' %}"></script>
 
-    <script>
+  <script>
 
-        function add_form(prefix) {
-            var mgmt_form = $("#mgmt_" + prefix);
-            var empty_form = $("#empty_" + prefix);
-            var forms = $("#forms_" + prefix);
+    function add_form(prefix) {
+      var mgmt_form = $("#mgmt_" + prefix);
+      var empty_form = $("#empty_" + prefix);
+      var forms = $("#forms_" + prefix);
 
-            var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
+      var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
 
-            var new_form = empty_form.clone(true, true);
+      var new_form = empty_form.clone(true, true);
 
-            new_form.find(":input").each(function() {
-                $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-                $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+      new_form.find(":input").each(function() {
+        $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
+        $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
 
-                if ($(this).attr('id').match(/date/)) {
-                    $(this).datepicker({
-                        changeMonth: true,
-                        changeYear: true,
-                        dateFormat: 'dd-mm-yy',
-                        yearRange: '-100:+0',
-                        buttonImage: "{% static 'images/calendar.gif' %}",
-                        buttonImageOnly: true,
-                    });
-                }
-            });
-
-            var total_forms_inc = parseInt(total_forms.val()) + 1;
-            total_forms.attr("value", total_forms_inc);
-
-            $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
-            new_form.appendTo(forms).show("fast");
+        if ($(this).attr('id').match(/date/)) {
+          $(this).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            yearRange: '-100:+0',
+            buttonImage: "{% static 'images/calendar.gif' %}",
+            buttonImageOnly: true,
+          });
         }
+      });
 
-        function delete_form(form_div, prefix) {
-            var mgmt_form = $("#mgmt_" + prefix);
-            var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
-            var total_forms_dec = parseInt(total_forms.val()) - 1;
-            total_forms.attr("value", total_forms_dec);
+      var total_forms_inc = parseInt(total_forms.val()) + 1;
+      total_forms.attr("value", total_forms_inc);
 
-            $(form_div).parent().parent().parent().remove();
+      $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
+      new_form.appendTo(forms).show("fast");
+    }
+
+    function delete_form(form_div, prefix) {
+      var mgmt_form = $("#mgmt_" + prefix);
+      var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
+      var total_forms_dec = parseInt(total_forms.val()) - 1;
+      total_forms.attr("value", total_forms_dec);
+
+      $(form_div).parent().parent().parent().remove();
+    }
+
+    $(document).ready(function(){
+      $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
+      $("textarea").addClass("form-control");
+      $("select").addClass("form-control");
+      $('#main-form').data('serialize', $('#main-form').serialize());
+
+      $(window).bind('beforeunload', function(e){
+        if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
+          return "{% trans 'You have unsaved changes!' %}";
+        } else {
+          e=null;
         }
+      });
 
-        $(document).ready(function(){
-            $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
-            $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
-            $('#main-form').data('serialize', $('#main-form').serialize());
-
-            $(window).bind('beforeunload', function(e){
-                if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
-                    return "{% trans 'You have unsaved changes!' %}";
-                } else {
-                    e=null;
-                }
-            });
-
-            $("#main-form").submit(function() {
-                $(window).unbind("beforeunload");
-            });
-            {% if not can_sign_consent %}
-                if (typeof disable_signature === "function") {
-                    disable_signature();
-                }
-            {% endif %}
-        });
-    </script>
+      $("#main-form").submit(function() {
+        $(window).unbind("beforeunload");
+      });
+      {% if not can_sign_consent %}
+        if (typeof disable_signature === "function") {
+          disable_signature();
+        }
+      {% endif %}
+    });
+  </script>
 
 {% endblock %}
 
@@ -97,260 +97,260 @@
 {% endblock %}
 
 {% block sidebar %}
-<!-- Sidebar -->
-	{{ context_launcher | safe }}
-<!-- /#sidebar-wrapper -->
+  <!-- Sidebar -->
+  {{ context_launcher | safe }}
+  <!-- /#sidebar-wrapper -->
 {% endblock %}
 
 {% block formbtns %}
-	<div class="btn-group" role="group" aria-label="...">
-		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
-		</button>
+  <div class="btn-group" role="group" aria-label="...">
+    <button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+      <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
+    </button>
 
-		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
-		</a>
+    <a href="" class="btn btn-danger">
+      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+    </a>
 
-		{% if False and show_print_button %}
-			<a class="btn btn-warning" href="{% url 'rdrf:registry_form_print' registry_code form_name patient_id  %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans 'Print' %}
-			</a>
-		{% endif %}
-	</div>
+    {% if False and show_print_button %}
+      <a class="btn btn-warning" href="{% url 'rdrf:registry_form_print' registry_code form_name patient_id  %}" target="_blank">
+        <span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans 'Print' %}
+      </a>
+    {% endif %}
+  </div>
 {% endblock %}
 
 {% block content %}
-        {% include 'rdrf_cdes/archive_modal.html' %}
+  {% include 'rdrf_cdes/archive_modal.html' %}
 
-	{% if patient|has_feature:"consent_lock" %}
-		{% if consent %}
-			<a class="previous-form" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-			</a>
+  {% if patient|has_feature:"consent_lock" %}
+    {% if consent %}
+      <a class="previous-form" href="{{ previous_form_link }}">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+      </a>
 
-			<a class="next-form" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-			</a>
-		{% endif %}
-	{% else %}
-		<a class="previous-form" href="{{ previous_form_link }}">
-			<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-		</a>
+      <a class="next-form" href="{{ next_form_link }}">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+      </a>
+    {% endif %}
+  {% else %}
+    <a class="previous-form" href="{{ previous_form_link }}">
+      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+    </a>
 
-		<a class="next-form" href="{{ next_form_link }}">
-			<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-		</a>
-	{% endif %}
+    <a class="next-form" href="{{ next_form_link }}">
+      <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+    </a>
+  {% endif %}
 
-    <div class="row">
-        <div class="col-md-12">
-            {% if message %}
-                <div class="alert alert-success" role="alert">
-                    {{ message }}
-                </div>
+  <div class="row">
+  <div class="col-md-12">
+    {% if message %}
+      <div class="alert alert-success" role="alert">
+        {{ message }}
+      </div>
+    {% endif %}
+
+    <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
+
+      {% csrf_token %}
+
+      {% if errors %}
+        <div class="alert alert-danger" role="alert">
+          {% trans 'Please correct errors below' %}:<br>
+          {% for error_message in error_messages %}
+            {{ error_message }}<br>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% for form, sections in forms %}
+        {% if form|is_formset_obj %}
+          <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
+          <div style="display: none;" id="empty_{{form.prefix}}">
+          <div class="form-group">
+            <div class="col-sm-9 col-sm-offset-3">
+              <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
+                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
+              </a>
+            </div>
+          </div>
+          {% for element in form.empty_form %}
+            {% if element.errors %}
+              <div class="form-group has-error">
+            {% else %}
+              <div class="form-group">
             {% endif %}
+          {% if element.label == "Delete" %}
+          {% else %}
+            <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+              {{ element.label|translate }}
+              {% if  element.field.required %}
+                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+              {% endif %}
+            </label>
+            <div class="col-sm-9">
+              {{ element|safe }}
+              {% if not element.is_hidden %}
+                <small class="text-muted">
+                  {{ element.help_text|translate }}
+                </small>
+              {% endif %}
+              {% if element.errors %}
+                <span class="label label-danger">{{ element.errors.as_text }}</span>
+              {% endif %}
+            </div>
+          {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+          {% for name, section in sections %}
+            <div class="panel panel-default">
+            <div class="panel-heading">
+              <strong>{{name|translate}}</strong>
+              <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
+              </a>
+            </div>
+            <div class="panel-body">
+              <div id="section_{{form.prefix}}">
+                <div id="forms_{{form.prefix}}">
+                  {% for f in form %}
+                    {% with secs=section|default:f.fields %}
+                      {% for s in secs %}
+                        {% get_form_element f s as element %}
+                        {% if element %}
+                          {% if element.label == "Delete" and form.can_delete == False %}
+                            <!-- Empty in order to skip adding delete field in case of can_delete == False -->
+                          {% else %}
+                            {% if element.errors %}
+                              <div class="form-group has-error">
+                            {% else %}
+                              <div class="form-group">
+                            {% endif %}
+                          <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                            {% if element.label == "Delete" %}
+                              {% trans 'Mark for deletion' %}
+                            {% else %}
+                              {{ element.label|translate }}
+                              {% if  element.field.required %}
+                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                              {% endif %}
+                            {% endif %}
+                          </label>
+                          <div class="col-sm-9">
+                            {% if not element|is_checkbox %}
+                              {% if element|is_patient_relative_widget %}
+                                {{ element | add_attr:"class,form-control" | safe}}
+                              {% else %}
 
-            <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
+                                {{ element | add_attr:"class,form-control" }}
 
-                {% csrf_token %}
+                              {% endif %}
+                            {% else %}
+                              {{ element }}
 
-                {% if errors %}
-                    <div class="alert alert-danger" role="alert">
-                        {% trans 'Please correct errors below' %}:<br>
-                        {% for error_message in error_messages %}
-                            {{ error_message }}<br>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                            {% endif %}
+                            {% if not element.is_hidden %}
+                              <small class="text-muted">
+                                {{ element.help_text|translate }}
+                              </small>
+                            {% endif %}
+                            {% if element.errors %}
+                              <span class="label label-danger">{{ element.errors.as_text }}</span>
+                            {% endif %}
+                          </div>
+                          </div>
+                          {% endif %}
 
-                {% for form, sections in forms %}
-                    {% if form|is_formset_obj %}
-                        <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
-                        <div style="display: none;" id="empty_{{form.prefix}}">
-                            <div class="form-group">
-                                <div class="col-sm-9 col-sm-offset-3">
-                                    <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
-                                    </a>
-                                </div>
-                            </div>
-                            {% for element in form.empty_form %}
-                                {% if element.errors %}
-                                    <div class="form-group has-error">
-                                {% else %}
-                                    <div class="form-group">
-                                {% endif %}
-                                        {% if element.label == "Delete" %}
-                                        {% else %}
-                                            <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                {{ element.label|translate }}
-                                                {% if  element.field.required %}
-                                                    <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
-                                                {% endif %}
-                                            </label>
-                                            <div class="col-sm-9">
-                                                {{ element|safe }}
-						{% if not element.is_hidden %}
-                                                <small class="text-muted">
-                                                    {{ element.help_text|translate }}
-                                                </small>
-						{% endif %}
-                                                {% if element.errors %}
-                                                    <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                            {% endfor %}
-                        </div>
-                        {% for name, section in sections %}
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                    <strong>{{name|translate}}</strong>
-                                    <a class="btn btn-info btn-xs pull-right" onclick="add_form('{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
-                                    </a>
-                                </div>
-                                <div class="panel-body">
-                                    <div id="section_{{form.prefix}}">
-                                    <div id="forms_{{form.prefix}}">
-                                    {% for f in form %}
-                                        {% with secs=section|default:f.fields %}
-                                            {% for s in secs %}
-                                                {% get_form_element f s as element %}
-                                                    {% if element %}
-                                                        {% if element.label == "Delete" and form.can_delete == False %}
-                                                            <!-- Empty in order to skip adding delete field in case of can_delete == False -->
-                                                        {% else %}
-                                                                {% if element.errors %}
-                                                                    <div class="form-group has-error">
-                                                                {% else %}
-                                                                    <div class="form-group">
-                                                                {% endif %}
-                                                                <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
-                                                                    {% if element.label == "Delete" %}
-                                                                        {% trans 'Mark for deletion' %}
-                                                                    {% else %}
-                                                                        {{ element.label|translate }}
-                                                                        {% if  element.field.required %}
-                                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
-                                                                        {% endif %}
-                                                                    {% endif %}
-                                                                </label>
-                                                                <div class="col-sm-9">
-                                                                    {% if not element|is_checkbox %}
-                                                                        {% if element|is_patient_relative_widget %}
-                                                                            {{ element | add_attr:"class,form-control" | safe}}
-                                                                        {% else %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endwith %}
+                    <hr>
+                  {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          {% for name, section in sections %}
+            <div class="panel panel-default">
+            <div class="panel-heading"><strong>{{name|translate}}</strong>
+              {% with link=section|get_information_link %}
+                {% with info_text_expression=section|get_info_text_expression %}
+                  {% with docfile=link|add_language_modifier %}
+                    {% with doc="docs/"|add:docfile %}
 
-                                                                             {{ element | add_attr:"class,form-control" }}
-
-                                                                        {% endif %}
-                                                                    {% else %}
-                                                                        {{ element }}
-
-                                                                    {% endif %}
-								    {% if not element.is_hidden %}
-                                                                    <small class="text-muted">
-                                                                        {{ element.help_text|translate }}
-                                                                    </small>
-								    {% endif %}
-                                                                    {% if element.errors %}
-                                                                        <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                                    {% endif %}
-                                                                </div>
-                                                            </div>
-                                                        {% endif %}
-
-                                                    {% endif %}
-                                            {% endfor %}
-                                        {% endwith %}
-                                        <hr>
-                                    {% endfor %}
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
+                      {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
+                      {% if info_text_expression %}
+                        <br>
+                        <hr>
+                        {% include info_text_expression %}
+                      {% endif %}
+                    {% endwith %}
+                  {% endwith %}
+                {% endwith %}
+                </div>
+                <div class="panel-body">
+                {% for s in section %}
+                  {% get_form_element form s as element %}
+                  {% if element %}
+                    {% if element.errors %}
+                      <div class="form-group has-error">
                     {% else %}
-                        {% for name, section in sections %}
-                            <div class="panel panel-default">
-                                <div class="panel-heading"><strong>{{name|translate}}</strong>
-                                {% with link=section|get_information_link %}
-                                {% with info_text_expression=section|get_info_text_expression %}
-                                {% with docfile=link|add_language_modifier %}
-				{% with doc="docs/"|add:docfile %}
-
-                                {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
-                                    {% if info_text_expression %}
-                                        <br>
-                                        <hr>
-                                            {% include info_text_expression %}
-                                    {% endif %}
-                                {% endwith %}
-                                {% endwith %}
-		                {% endwith %}
-                                </div>
-                                <div class="panel-body">
-                                    {% for s in section %}
-                                        {% get_form_element form s as element %}
-                                        {% if element %}
-                                            {% if element.errors %}
-                                                <div class="form-group has-error">
-                                            {% else %}
-                                                <div class="form-group">
-                                            {% endif %}
-                                                {% if link %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
-                                                        {{ element.label|translate }}
-                                                        {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
-                                                        {% endif %}
-                                                    </label>
-                                                    {% if name == "Patient signature" %}
-                                                        <div class="col-sm-12 col-md-9">
-                                                    {% else %}
-                                                        <div class="col-sm-1">
-                                                    {% endif %}
-                                                {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
-                                                        {{ element.label|translate }}
-							                            <br>
-						                                {% if not element.is_hidden %}
-                                                            <small class="text-muted">
-                                                                {{ element.help_text|translate }}
-                                                            </small>
-						                                {% endif %}
-                                                        {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
-                                                        {% endif %}
-                                                    </label>
-                                                    {% if name == "Patient signature" %}
-                                                        <div class="col-sm-12 col-md-9">
-                                                    {% else %}
-                                                        <div class="col-sm-1">
-                                                    {% endif %}
-                                                {% endif %}
-                                                    {% if not element|is_checkbox %}
-                                                        {{ element | add_attr:"class,form-control" }}
-                                                    {% else %}
-                                                        {{ element }}
-                                                    {% endif %}
-                                                    {% if element.errors %}
-                                                        <span class="label label-danger">{{ element.errors.as_text }}</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                                {% endwith %}
-                            </div>
-                        {% endfor %}
+                      <div class="form-group">
                     {% endif %}
+                    {% if link %}
+                      <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
+                        {{ element.label|translate }}
+                        {% if  element.field.required %}
+                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                        {% endif %}
+                      </label>
+                      {% if name == "Patient signature" %}
+                        <div class="col-sm-12 col-md-9">
+                      {% else %}
+                        <div class="col-sm-1">
+                      {% endif %}
+                    {% else %}
+                      <label for="{{ element.id_for_label}}" style="text-align: left; display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-11 control-label">
+                        {{ element.label|translate }}
+                        <br>
+                        {% if not element.is_hidden %}
+                          <small class="text-muted">
+                            {{ element.help_text|translate }}
+                          </small>
+                        {% endif %}
+                        {% if  element.field.required %}
+                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                        {% endif %}
+                      </label>
+                      {% if name == "Patient signature" %}
+                        <div class="col-sm-12 col-md-9">
+                      {% else %}
+                        <div class="col-sm-1">
+                      {% endif %}
+                    {% endif %}
+                  {% if not element|is_checkbox %}
+                    {{ element | add_attr:"class,form-control" }}
+                  {% else %}
+                    {{ element }}
+                  {% endif %}
+                  {% if element.errors %}
+                    <span class="label label-danger">{{ element.errors.as_text }}</span>
+                  {% endif %}
+                  </div>
+                  </div>
+                  {% endif %}
                 {% endfor %}
-			</div>
-        </form>
-    </div>
+              </div>
+              {% endwith %}
+              </div>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      </div>
+    </form>
+  </div>
 {% endblock %}
