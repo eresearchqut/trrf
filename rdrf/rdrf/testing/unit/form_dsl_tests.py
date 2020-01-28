@@ -16,7 +16,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.sectionF = self.create_section(
             "sectionF", "Section F", ["DM1Apathy", "DM1BestMotorLevel"], True)
         self.sectionG = self.create_section(
-            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol", "CardiacImplant"], False)
+            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol", "CardiacImplant", "CDEAge"], False)
 
     def create_forms(self):
         super().create_forms()
@@ -274,3 +274,39 @@ class FormDSLValidationTestCase(FormTestCase):
         DM1ChronicInfection visible if CardiacImplant == "Yes, not specified further"
         '''
         self.new_form.save()
+
+    def test_simple_condition_with_section_prefix_target(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Cholesterol:DM1ChronicInfection visible if CardiacImplant == "Yes, not specified further"
+        '''
+        self.new_form.save()
+
+    def test_simple_condition_with_section_prefix_different_sections(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Cholesterol:DM1ChronicInfection visible if sectionA:CDEAge == 18
+        '''
+        self.new_form.save()
+
+    def test_simple_condition_with_section_prefix_invalid_cde(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1Cholesterol:DM1ChronicInfection visible if sectionA:CDEAge2 == 18
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['Invalid condition specified on line 1 : CDEAge2']
+        )
+
+    def test_simple_condition_with_section_prefix_invalid_section_prefix(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1:DM1ChronicInfection visible if sectionA:CDEAge == 18
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['Invalid CDEs specified on line 1 : DM1ChronicInfection']
+        )

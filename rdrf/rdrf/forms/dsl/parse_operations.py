@@ -19,19 +19,27 @@ class Target:
             return sections - valid_sections
 
         cdes = set(target.cde for target in self.target_cdes)
-        valid_cdes = set(target.cde for target in self.target_cdes if target.cde in self.cde_helper.cde_names_dict)
+        valid_cdes = set(target.cde for target in self.target_cdes if target.is_valid_cde())
         return set(cdes) - valid_cdes
+
+    def get_section_name(self):
+        if self.has_qualifier:
+            return self.target_cdes[0].cde
+        return None
 
     def __eq__(self, other):
         if isinstance(other, Target):
-            my_cdes = set(cde.cde for cde in self.target_cdes)
-            other_cdes = set(cde.cde for cde in other.target_cdes)
+            my_cdes = set(cde.get_key() for cde in self.target_cdes)
+            other_cdes = set(cde.get_key() for cde in other.target_cdes)
             return len(my_cdes - other_cdes) == 0
         return False
 
     def __hash__(self):
-        cde_tuples = tuple(cde.cde for cde in self.target_cdes)
+        cde_tuples = tuple(cde.get_key() for cde in self.target_cdes)
         return hash(cde_tuples)
+
+    def __repr__(self):
+        return f"{self.target_cdes}"
 
 
 class Action:
@@ -47,6 +55,9 @@ class Action:
 
     def __hash__(self):
         return hash((self.action, ))
+
+    def __repr__(self):
+        return self.action
 
 
 class Condition:
@@ -65,9 +76,8 @@ class Condition:
         return f'''test_cde_value_simple("{self.cde.element_name()}", "{self.operator}", "{self.actual_value}")'''
 
     def invalid_cdes(self):
-        cde = self.cde.cde
-        cdes = {cde}
-        valid_cdes = {cde} if cde in self.cde_helper.cde_names_dict else set()
+        cdes = {self.cde}
+        valid_cdes = {self.cde} if self.cde.is_valid_cde() else set()
         return cdes - valid_cdes
 
     def is_valid_value(self):
@@ -78,11 +88,14 @@ class Condition:
 
     def __eq__(self, other):
         if isinstance(other, Condition):
-            return self.cde.cde == other.cde.cde and self.operator == other.operator and self.value == other.value
+            return self.cde.get_key() == other.cde.get_key() and self.operator == other.operator and self.value == other.value
         return False
 
     def __hash__(self):
-        return hash((self.cde.cde, self.operator, self.value))
+        return hash((self.cde.get_key(), self.operator, self.value))
+
+    def __repr__(self):
+        return f"{self.cde.get_key()} {self.operator} {self.value}"
 
 
 class BooleanOp:
