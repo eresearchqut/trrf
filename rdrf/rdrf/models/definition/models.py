@@ -155,9 +155,10 @@ class Registry(models.Model):
     def remove_feature(self, feature):
         metadata = self.metadata
         features = metadata.get("features", [])
-        features.remove(feature)
-        metadata["features"] = features
-        self.metadata_json = json.dumps(metadata)
+        if feature in features:
+            features.remove(feature)
+            metadata["features"] = features
+            self.metadata_json = json.dumps(metadata)
 
     @property
     def features(self):
