@@ -1,0 +1,14 @@
+<p>Dear {{ patient.given_names }} {{ patient.family_name|title }},</p>
+
+<p>Thank you for registering.</p>
+
+<p>Please click the following activation link to verify your account, or copy and paste into a web browser.</p>
+
+<p><a href="{{ activation_url }}">Activation link</a></p>
+
+<p>This link will expire in 2 days.</p>
+
+<p>If needed, we will contact you by e-mail at {{ patient.user.email }}.</p>
+
+<p>Yours sincerely,<br>
+  The Registry Team</p>

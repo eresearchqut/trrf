@@ -1,7 +1,15 @@
+from importlib import import_module
+
+from django.contrib.auth.models import Group
+from django.core.cache import caches
+from django.db import connection
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse, re_path
 
+from rdrf.events.events import EventType
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
@@ -110,7 +118,8 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 class RegistryAdmin(admin.ModelAdmin):
     actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action',
-               'setup_registration_action']
+               'setup_registration_action', 'enable_registration_action', 'disable_registration_action',
+               'create_notifications_action']
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -228,6 +237,7 @@ class RegistryAdmin(admin.ModelAdmin):
     def generate_questionnaire_action(self, request, registry_models_selected):
         for registry in registry_models_selected:
             registry.generate_questionnaire()
+
     generate_questionnaire_action.short_description = _("Generate Questionnaire")
 
     def setup_registration_action(self, request, registry_models_selected):
@@ -237,7 +247,92 @@ class RegistryAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(reverse('admin:setup_registration', kwargs={
                 'registry_code': registry_models_selected[0].code,
             }))
+
     setup_registration_action.short_description = _("Setup registration")
+
+    def enable_registration_action(self, request, registry_models_selected):
+        unchanged = []
+
+        for registry in registry_models_selected:
+            if registry.has_feature(RegistryFeatures.REGISTRATION):
+                unchanged.append(registry.code)
+
+            registry.add_feature(RegistryFeatures.REGISTRATION)
+            registry.save()
+
+            messages.success(request, f"Registration enabled for '{registry.code}'")
+
+            existing_notifications = EmailNotification.objects.filter(
+                registry=registry,
+                description__in=EventType.REGISTRATION_TYPES
+            )
+
+            if len(existing_notifications) == 0:
+                messages.warning(request, f"Notifications need to be created for registry '{registry.code}'. "
+                                          f"Use the 'Create notifications' action")
+
+        # Check for missing cache table
+        for cache_alias in settings.CACHES:
+            cache = caches[cache_alias]
+            if hasattr(cache, '_table') and cache._table not in connection.introspection.table_names():
+                messages.error(request, _(f"Missing cache table '{cache._table}'. Run django-admin createcachetable"))
+
+        if len(unchanged) > 0:
+            messages.info(request, f"'{', '.join(code for code in unchanged)}' already enabled registration")
+
+    enable_registration_action.short_description = _("Enable registration")
+
+    def disable_registration_action(self, request, registry_models_selected):
+        unchanged = []
+
+        for registry in registry_models_selected:
+            if not registry.has_feature(RegistryFeatures.REGISTRATION):
+                unchanged.append(registry.code)
+
+            registry.remove_feature(RegistryFeatures.REGISTRATION)
+            registry.save()
+
+            messages.success(request, f"Registration disabled for '{registry.code}'")
+
+        if len(unchanged) > 0:
+            messages.info(request, f"'{', '.join(code for code in unchanged)}' already had registration disabled")
+
+    disable_registration_action.short_description = _("Disable registration")
+
+    def create_notifications_action(self, request, registry_models_selected):
+        notifications_data = import_module(settings.REGISTRATION_NOTIFICATIONS).NOTIFICATIONS
+
+        for registry in registry_models_selected:
+            for notification_data in notifications_data:
+                group_name = notification_data.group_recipient
+                group_recipient = Group.objects.get(name=group_name) if group_name else None
+
+                notification = EmailNotification(
+                    description=EventType.NEW_PATIENT,
+                    registry=registry,
+                    email_from=notification_data.from_address,
+                    recipient=notification_data.recipient,
+                    group_recipient=group_recipient,
+                )
+                notification.save()
+
+                for template in notification_data.templates:
+                    notification.email_templates.create(
+                        language=template.language,
+                        description=template.description,
+                        subject=template.subject,
+                        body=template.body,
+                    )
+
+            messages.success(request, f"Notifications have been added to registry '{registry.code}'")
+            messages.info(request, render_to_string("admin/current_notification_table.html", {
+                "registry": registry.code,
+                "notifications": EmailNotification.objects.filter(
+                    registry=registry,
+                    description__in=EventType.REGISTRATION_TYPES)
+            }))
+
+    create_notifications_action.short_description = _("Create notifications")
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):

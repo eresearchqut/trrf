@@ -1,0 +1,54 @@
+{% load i18n admin_static %}
+
+<script>
+  $(document).ready(function () {
+    $('.collapser').click(function () {
+      $(this).next().collapse('toggle');
+    });
+  });
+</script>
+<h5>{% trans "Current patient registration notifications for" %} '{{ registry }}':</h5>
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th scope="col">{% trans "Link" %}</th>
+    <th scope="col">{% trans "Description" %}</th>
+    <th scope="col">{% trans "Enabled" %}</th>
+    <th scope="col">{% trans "From" %}</th>
+    <th scope="col">{% trans "Recipient" %}</th>
+    <th scope="col">{% trans "Group Recipient" %}</th>
+    <th scope="col">{% trans "Templates" %}</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for notification in notifications %}
+    <tr>
+      <td><a href="{% url 'admin:rdrf_emailnotification_change' notification.id %}">{% trans "Link" %}</a></td>
+      <td>{{ notification.description }}</td>
+      <td>
+        {% if notification.disabled %}
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        {% else %}
+          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+        {% endif %}
+      </td>
+      <td>{{ notification.email_from }}</td>
+      <td>{{ notification.recipient }}</td>
+      <td>{{ notification.group_recipient.name }}</td>
+      <td>
+        <ul>
+          {% for email_template in notification.email_templates.all %}
+            <li>
+              <a href="#" data-toggle="collapse"
+                 class="collapser">{{ email_template.subject }}
+                ({{ email_template.language }})
+              </a>
+              <pre class="collapse pre-scrollable"><code>{{ email_template.body }}</code></pre>
+            </li>
+          {% endfor %}
+        </ul>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

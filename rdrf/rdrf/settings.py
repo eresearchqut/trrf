@@ -5,6 +5,7 @@ import os
 from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
+
 import rdrf
 from rdrf.system_role import SystemRoles
 
@@ -581,6 +582,7 @@ ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS = env.get('account_authenticated_re
 # Patient Registration
 REGISTRATION_FORM = "rdrf.forms.registration_forms.PatientRegistrationForm"
 REGISTRATION_CLASS = "registry.groups.registration.patient.PatientRegistration"
+REGISTRATION_NOTIFICATIONS = "rdrf.helpers.notifications"
 
 # Parent Registration (also adding a patient at registration time)
 # REGISTRATION_FORM = "rdrf.forms.registration_forms.ParentWithPatientRegistrationForm"
