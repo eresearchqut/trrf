@@ -45,9 +45,7 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            $("#registration-submit").prop("disabled", true);
-
-            var registry_code = "{{registry_code}}"
+            var registry_code = "{{registry_code}}";
 
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -58,64 +56,26 @@
                 'maxDate': '0',
                 'yearRange': '-100:+0',
                 'defaultDate': '-30Y'
-            }
+            };
 
-            function lookupStatesForCountry(country, stateSelector, currentStateValueSelector) {
-                if (typeof currentStateValueSelector === 'undefined') { currentStateValueSelector = ''; }
-                var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
-                var states = $(stateSelector);
-                states.removeAttr("required");
-                states.empty();
-                states.append($('<option>', { value : "" }).text("State / County / Province / Region"));
-                if (country === "") {
-                    return;
-                }
-                $.getJSON( state_lookup_url.replace('XX', country), function( data ) {
-                    if (data && data.length > 0) {
-                        states.attr("required", "");
-                    }
-                    $.each( data, function( key, val ) {
-                        states.append($('<option>', { value : val.code }).text(val.name));
-                    });
-                    if (currentStateValueSelector !== '') {
-                        var current_state_value = $(currentStateValueSelector).val();
-                        if (current_state_value !== '') {
-                            $(stateSelector).val(current_state_value);
-                        }
+            $("#registration-submit")
+                .prop("disabled", true)
+                .click(function() {
+                    var registration_form = $("#registration-form");
+                    onBeforeSubmit();
+                    if (registration_form.valid()) {
+                        registration_form.submit();
+                    } else {
+                        var msg = $("#form-invalid");
+                        msg.slideDown("slow", function() {
+                            setTimeout(function() {
+                                msg.slideUp("slow")
+                                }, 2000);
+                        });
+
+                        onValidationError();
                     }
                 });
-            }
-
-            function setStatesOnLoad(countrySelector, stateSelector, currentStateValueSelector) {
-                var country = $(countrySelector).val();
-                if (country !== "") {
-                    lookupStatesForCountry(country, stateSelector, currentStateValueSelector);
-                }
-            }
-
-
-            function setUpStateOnCountryChange(countrySelector, stateSelector) {
-                $(countrySelector).change(function() {
-                    lookupStatesForCountry(this.value, stateSelector)
-                });
-            }
-
-            $("#registration-submit").click(function() {
-                var registration_form = $("#registration-form");
-                onBeforeSubmit();
-                if (registration_form.valid()) {
-                    registration_form.submit();
-                } else {
-                    var msg = $("#form-invalid");
-                    msg.slideDown("slow", function() {
-                        setTimeout(function() {
-                            msg.slideUp("slow")
-                            }, 2000);
-                    });
-
-                    onValidationError();
-                }
-            });
 
             $('[data-toggle="tooltip"]').tooltip();
 

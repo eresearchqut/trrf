@@ -6,12 +6,7 @@
 {% load recaptcha_site_key %}
 
 {% block extra_js_init %}
-
     $("#id_date_of_birth").datepicker(dateOptions);
-    setStatesOnLoad("#id_country", "#id_state", "#patient_state_value");
-    setUpStateOnCountryChange("#id_country", "#id_state");
-    $("#id_country").trigger("change");
-
 {% endblock %}
 
 {% block content %}
@@ -32,18 +27,18 @@
             <div class="col-md-6" >
                 <div id="patient-form" class="ui-accordion ui-widget ui-helper-reset" role="tablist">
                     {% include "registration/registration_patient_details.html" %}
-                    {% include "registration/registration_patient_address.html" %}
                 </div>
             </div>
-            <br/>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback' data-expired-callback='reCaptchaExpiredCallback'></div>
-                </div>
-                <div class="col-md-6">
-                    <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
-                </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-6">
+                <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback' data-expired-callback='reCaptchaExpiredCallback'></div>
             </div>
+            <div class="col-md-6">
+                <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+            </div>
+        </div>
     </form>
 
 {% endblock %}
