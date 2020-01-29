@@ -6,7 +6,7 @@ from django.db import connection
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.contrib import admin
-from django.urls import reverse, re_path
+from django.urls import reverse
 
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -62,8 +62,6 @@ from rdrf.admin_forms import FormTitleAdminForm
 
 from functools import reduce
 
-from rdrf.views.admin.setup_registration import SetupRegistrationView
-
 logger = logging.getLogger(__name__)
 
 
@@ -118,8 +116,7 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 class RegistryAdmin(admin.ModelAdmin):
     actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action',
-               'setup_registration_action', 'enable_registration_action', 'disable_registration_action',
-               'create_notifications_action']
+               'enable_registration_action', 'disable_registration_action', 'create_notifications_action']
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -142,16 +139,6 @@ class RegistryAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return False
-
-    def get_urls(self):
-        urls = super(RegistryAdmin, self).get_urls()
-        view_urls = [
-            re_path(r'^setup_registration/(?P<registry_code>\w+)?$',
-                    self.admin_site.admin_view(SetupRegistrationView.as_view()),
-                    name='setup_registration')
-        ]
-
-        return view_urls + urls
 
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
@@ -239,16 +226,6 @@ class RegistryAdmin(admin.ModelAdmin):
             registry.generate_questionnaire()
 
     generate_questionnaire_action.short_description = _("Generate Questionnaire")
-
-    def setup_registration_action(self, request, registry_models_selected):
-        if len(registry_models_selected) != 1:
-            messages.error(request, _("Registration must be configured individually"))
-        else:
-            return HttpResponseRedirect(reverse('admin:setup_registration', kwargs={
-                'registry_code': registry_models_selected[0].code,
-            }))
-
-    setup_registration_action.short_description = _("Setup registration")
 
     def enable_registration_action(self, request, registry_models_selected):
         unchanged = []
