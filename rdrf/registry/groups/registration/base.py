@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
-from registry.patients.models import AddressType, Patient
+from registry.patients.models import Patient
 
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
@@ -51,16 +51,11 @@ class BaseRegistration(abc.ABC):
 
         patient.rdrf_registry.add(registry)
         patient.working_groups.add(working_group)
-        patient.home_phone = form_data["phone_number"]
         patient.email = user.username
         patient.user = user if set_link_to_user else None
         get_registry_stage_flow(registry).handle(patient)
         patient.save()
         return patient
-
-    def get_address_type(self, address_type):
-        address_type_obj, created = AddressType.objects.get_or_create(type=address_type)
-        return address_type_obj
 
     def setup_django_user(self, django_user, registry, group, first_name, last_name):
         django_user.registry.set([registry, ] if registry else [])

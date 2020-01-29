@@ -80,7 +80,6 @@ def try_to_register(step, registry, client_name, email_address, password):
         ('id_parent_guardian_first_name', client_first_name),
         ('id_parent_guardian_last_name', client_last_name),
         ('id_parent_guardian_date_of_birth', '1980-09-01'),
-        ('id_phone_number', '98765432')
     ])
 
     # Populate plain text fields

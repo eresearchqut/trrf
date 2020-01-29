@@ -55,7 +55,6 @@ class ParentWithPatientRegistration(BaseRegistration):
             last_name=form_data["parent_guardian_last_name"],
             date_of_birth=form_data["parent_guardian_date_of_birth"],
             gender=form_data["parent_guardian_gender"],
-            phone=form_data["phone_number"],
         )
         return parent_guardian
 

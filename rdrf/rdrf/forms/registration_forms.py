@@ -1,5 +1,3 @@
-from operator import attrgetter
-import pycountry
 from django.forms import CharField, ChoiceField, DateField
 from django.forms.widgets import EmailInput, RadioSelect
 from django.utils.translation import gettext as _
@@ -11,12 +9,6 @@ from registry.patients.models import Patient
 
 def _tuple(code, name):
     return code, _(name)
-
-
-def _countries():
-    countries = sorted(pycountry.countries, key=attrgetter('name'))
-    result = [_tuple("", "Country")]
-    return result + [_tuple(c.alpha_2, c.name) for c in countries]
 
 
 def _preferred_languages():
@@ -33,7 +25,6 @@ class PatientRegistrationForm(RegistrationForm):
         'first_name': _("Given Names"),
         'surname': _("Surname"),
         'date_of_birth': _("Date of Birth"),
-        'phone_number': _('Phone Number')
     }
 
     no_placeholder_fields = ['gender']
@@ -41,6 +32,8 @@ class PatientRegistrationForm(RegistrationForm):
     language_choices = _preferred_languages()
 
     password_fields = ['password1', 'password2']
+
+    tooltip_info = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,13 +48,12 @@ class PatientRegistrationForm(RegistrationForm):
             if field in self.password_fields:
                 self.fields[field].widget.render_value = True
 
-    preferred_languages = ChoiceField(required=False, choices=language_choices)
+    registry_code = CharField(required=True)
     first_name = CharField(required=True, max_length=30)
     surname = CharField(required=True, max_length=30)
     date_of_birth = DateField(required=True)
     gender = ChoiceField(choices=Patient.SEX_CHOICES, widget=RadioSelect, required=True)
-    phone_number = CharField(required=True, max_length=30)
-    registry_code = CharField(required=True)
+    preferred_languages = ChoiceField(required=False, choices=language_choices)
 
 
 class ParentWithPatientRegistrationForm(PatientRegistrationForm):
@@ -71,15 +63,9 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
         'parent_guardian_last_name': _("Parent/Guardian Surname"),
         'parent_guardian_date_of_birth': _("Parent/Guardian Date of Birth"),
         'parent_guardian_gender': _("Parent/Guardian gender"),
-        'phone_number': _('Parent/Guardian Phone Number')
     })
 
     PatientRegistrationForm.no_placeholder_fields.extend(['parent_guardian_gender'])
-
-    tooltip_info = {
-        'phone_number': _('''Please enter a phone number through which we can contact you,
-                                      including the country code (e.g. +61 for Australia)''')
-    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
