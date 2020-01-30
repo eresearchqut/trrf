@@ -16,11 +16,15 @@
 {% block formlinks %}
 {% endblock %}
 
-{% block sidebar %}
-    List view
+{% block formbtns %}
 {% endblock %}
 
-{% block formbtns %}
+{% block extrastyle %}
+    <style>
+        .navbar a {
+            pointer-events: none;
+        }
+    </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -68,10 +72,17 @@
         });
 
         function clickClose(link) {
-            window.opener.location.href = link;
+            if (window.opener) {
+                window.opener.location.href = link;
+            } else {
+                alert("{% trans "Can't open form because parent window was closed!" %}");
+            }
             window.close()
         }
     </script>
+{% endblock %}
+
+{% block navbar_links %}
 {% endblock %}
 
 {% block content %}
