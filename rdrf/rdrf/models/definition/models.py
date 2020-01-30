@@ -29,11 +29,8 @@ from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
 
+
 logger = logging.getLogger(__name__)
-
-
-class InvalidStructureError(Exception):
-    pass
 
 
 class InvalidQuestionnaireError(Exception):
@@ -463,44 +460,6 @@ class Registry(models.Model):
                 raise ValidationError("metadata json field should be a valid json dictionary")
         except ValueError:
             raise ValidationError("metadata json field should be a valid json dictionary")
-
-    def _check_structure(self, structure):
-        # raise error if structure not valid
-
-        for k in ["name", "code", "version", "forms"]:
-            if k not in structure:
-                raise InvalidStructureError("Missing key: %s" % k)
-        for form_dict in structure["forms"]:
-            for k in ["name", "is_questionnaire", "position", "sections"]:
-                if k not in form_dict:
-                    raise InvalidStructureError("Form dict %s missing key %s" % (form_dict, k))
-
-            form_name = form_dict["name"]
-
-            for section_dict in form_dict["sections"]:
-                for k in [
-                        "code",
-                        "display_name",
-                        "allow_multiple",
-                        "extra",
-                        "elements",
-                        "questionnaire_help"]:
-                    if k not in section_dict:
-                        raise InvalidStructureError(
-                            "Section %s missing key %s" % (section_dict, k))
-
-                for pair in section_dict["elements"]:
-                    element_code = pair[0]
-
-                    logger.info("checking section %s code %s" %
-                                (section_dict["code"], element_code))
-                    try:
-                        CommonDataElement.objects.get(code=element_code)
-                    except CommonDataElement.DoesNotExist:
-                        section_code = section_dict["code"]
-                        raise InvalidStructureError(
-                            "Form %s Section %s refers to data element %s which does not exist" %
-                            (form_name, section_code, element_code))
 
     @property
     def proms_system_url(self):
