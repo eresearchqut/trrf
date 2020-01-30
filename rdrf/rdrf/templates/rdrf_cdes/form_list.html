@@ -75,7 +75,7 @@
             if (window.opener) {
                 window.opener.location.href = link;
             } else {
-                alert("Couldn't find parent window");
+                alert("{% trans "Can't open form because parent window was closed!" %}");
             }
             window.close()
         }
