@@ -4,17 +4,19 @@ import requests
 from django.db import models
 from django.urls import reverse
 
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ContextFormGroup
-from rdrf.services.io.notifications.notifications import Notifier
-from rdrf.services.io.notifications.notifications import NotificationError
 from registry.patients.models import Patient
 from rdrf.helpers.utils import generate_token
+from django.forms import ValidationError
+from rdrf.events.events import EventType
+from rdrf.services.io.notifications.email_notification import process_notification
 
 
 def clean(s):
+    if s is None:
+        return ""
     return s.replace("'", "").replace('"', "")
 
 
@@ -59,11 +61,19 @@ class Survey(models.Model):
         return "%s Survey: %s" % (self.registry.code, self.name)
 
     def clean(self):
-        for question in self.survey_questions.all():
-            logger.debug("checking survey q %s" % question.cde.code)
-            if question.cde.datatype != "range":
-                logger.debug("%s not a range" % question.cde.code)
-                # raise ValidationError("Survey questions must be ranges")
+        # Check the context group form is selected if the registry support context.
+        if self.registry.has_feature("contexts") and self.context_form_group is None:
+            raise ValidationError("You forgot to select the context form group.")
+        # Check that the selected form is in the correct form group
+        if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
+            raise ValidationError(
+                f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
+        # Check that the context group form match the followup checkbox
+        if self.registry.has_feature('contexts'):
+            has_bad_settings_for_module = self.context_form_group.context_type != 'M' and self.is_followup is True
+            has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
+            if has_bad_settings_for_followup or has_bad_settings_for_module:
+                raise ValidationError("The 'is followup' checkbox does not match the 'context form group' input.")
 
 
 class Precondition(models.Model):
@@ -80,6 +90,8 @@ class SurveyQuestion(models.Model):
     position = models.IntegerField(null=True, blank=True)
     survey = models.ForeignKey(Survey, related_name='survey_questions', on_delete=models.CASCADE)
     cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
+    cde_path = models.CharField(max_length=255, blank=True, null=True,
+                                help_text="Format: <i>/[form_name]/[section_code]/</i><br/>Example: <i>/BaselineTreatmentForm/BASELINETREATMENT/</i>")
     precondition = models.ForeignKey(Precondition,
                                      blank=True,
                                      null=True,
@@ -110,6 +122,18 @@ class SurveyQuestion(models.Model):
                     "spec": self._get_cde_specification()}
 
         else:
+            if "," in self.precondition.value:
+                def vals(s):
+                    return [x.strip() for x in s.split(",")]
+
+                cond_block = {"op": "or",
+                              "cde": self.precondition.cde.code,
+                              "value": vals(self.precondition.value)}
+            else:
+                cond_block = {"op": "=",
+                              "cde": self.precondition.cde.code,
+                              "value": self.precondition.value}
+
             return {"tag": "cond",
                     "cde": self.cde.code,
                     "instructions": self._clean_instructions(self.cde.instructions),
@@ -118,10 +142,7 @@ class SurveyQuestion(models.Model):
                     "survey_question_instruction": clean(self.instruction),
                     "copyright_text": self.copyright_text,
                     "source": self.source,
-                    "cond": {"op": "=",
-                             "cde": self.precondition.cde.code,
-                             "value": self.precondition.value
-                             }
+                    "cond": cond_block,
                     }
 
     def _get_options(self):
@@ -150,6 +171,71 @@ class SurveyQuestion(models.Model):
             return self.cde.name + " always"
         else:
             return self.cde.name + "  if " + self.precondition.cde.name + " = " + self.precondition.value
+
+    def clean(self):
+        if self.cde.code not in ("PROMSConsent", "PromsGender"):
+            if self.cde_path:
+                # Check that the cde_path is well formatted.
+                # Check that the form, section and cde are valid for this path.
+                self.validate_cde_path()
+            else:
+                # Check that a default form is selected for this survey.
+                self.validate_default_form_exists()
+
+                # Check the cde exists in the selected form.
+                # Check the cde is in one section only in the selected form.
+                self.validate_one_and_only_one_cde_exists()
+
+    def validate_cde_path(self):
+        # Extract form and section code from /FROM_NAME/SECTION_CODE/.
+        path_values = list(filter(None, self.cde_path.split("/")))
+
+        # Check the path contain a form_name and section_code, and only these exact two variables.
+        if len(path_values) != 2:
+            raise ValidationError(
+                f"[{self.cde.code}] The path '{self.cde_path}' is not properly formatted - it should contains exactly one form name and one section code separated by slashes: \"/FORM_NAME/SECTION_CODE/\"")
+        path_form_name, path_section_code = path_values
+
+        # Check that the form_name exist for the selected registry.
+        try:
+            path_form = RegistryForm.objects.get(name=path_form_name, registry=self.survey.registry)
+        except (RegistryForm.DoesNotExist, RegistryForm.MultipleObjectsReturned):
+            raise ValidationError(
+                f"[{self.cde.code}] The form '{path_form_name}' doesn't exist the selected registry {self.survey.registry.code}")
+
+        # Check that the section name exist for this form_name.
+        if path_section_code not in path_form.sections.split(","):
+            raise ValidationError(
+                f"[{self.cde.code}] The section '{path_section_code}' does not exist in the form '{path_form_name}'")
+
+        # Check that the cde exist for this section.
+        if self.cde.code not in Section.objects.get(code=path_section_code).get_elements():
+            raise ValidationError(
+                f"[{self.cde.code}] The cde {self.cde.code} does not exist in the form '{path_form_name}' / section '{path_section_code}'")
+
+    def validate_default_form_exists(self):
+        if self.survey.form is None:
+            raise ValidationError(
+                f"[{self.cde.code}] You must set the survey default form if you don't enter a cde path for this field.")
+
+    def validate_one_and_only_one_cde_exists(self):
+        is_cde_in_form = False
+        second_section_with_same_cde = False
+
+        for form_section_code in self.survey.form.sections.split(","):
+            if self.cde.code in Section.objects.get(code=form_section_code).get_elements():
+                if is_cde_in_form:
+                    second_section_with_same_cde = True
+                else:
+                    is_cde_in_form = True
+
+        if not is_cde_in_form:
+            raise ValidationError(
+                f"[{self.cde.code}] The cde is not in the selected survey default form. If the cde is part of a different form enter the cde path.")
+
+        if second_section_with_same_cde:
+            raise ValidationError(
+                f"[{self.cde.code}] The cde is in at least two different section in the selected default survey form. You must enter the cde path.")
 
 
 class SurveyStates:
@@ -220,12 +306,9 @@ class SurveyRequest(models.Model):
     communication_type = models.CharField(max_length=10, choices=COMMUNICATION_TYPES, default="qrcode")
 
     def send(self):
-        logger.debug("sending request ...")
         if self.state == SurveyRequestStates.REQUESTED:
             try:
                 self._send_proms_request()
-                logger.debug("sent request to PROMS system OK")
-
             except PromsRequestError as pre:
                 logger.error("Error sending survey request %s: %s" % (self.pk,
                                                                       pre))
@@ -234,9 +317,20 @@ class SurveyRequest(models.Model):
 
             if (self.communication_type == 'email'):
                 try:
-                    logger.debug("sending email to patient ...")
-                    self._send_email()
-                    logger.debug("sent email to patient OK")
+                    # As we don't know how friendly the message needs to be, admin can pick the name format.
+                    template_data = {
+                        "display_name": f"{self.patient.given_names} {self.patient.family_name}",
+                        "combined_name": self.patient.combined_name,
+                        "given_names": self.patient.given_names,
+                        "family_name": self.patient.family_name,
+                        "patient_email": self.patient.email,
+                        "email_link": self.email_link,
+                        "registry_name": self.registry.name,
+                        "survey_name": self.survey_name
+                    }
+                    process_notification(self.registry.code,
+                                         EventType.SURVEY_REQUEST,
+                                         template_data)
 
                     return True
                 except PromsEmailError as pe:
@@ -248,24 +342,18 @@ class SurveyRequest(models.Model):
     def _send_proms_request(self):
         from django.conf import settings
 
-        logger.debug("sending request to proms system")
         proms_system_url = self.registry.metadata.get("proms_system_url", None)
         if proms_system_url is None:
             raise PromsRequestError("No proms_system_url defined in registry metadata %s" % self.registry.code)
 
         api = "/api/proms/v1/surveyassignments"
         api_url = proms_system_url + api
-        logger.debug("api_url = %s" % api_url)
 
         survey_assignment_data = self._get_survey_assignment_data()
-        headers = {'PROMS_SECRET_TOKEN': settings.PROMS_SECRET_TOKEN}
+        survey_assignment_data = {**survey_assignment_data, 'proms_secret_token': settings.PROMS_SECRET_TOKEN}
 
-        response = requests.post(api_url,
-                                 data=survey_assignment_data,
-                                 headers=headers)
-        logger.debug("response code %s" % response.status_code)
+        response = requests.post(api_url, data=survey_assignment_data)
         self.check_response_for_error(response)
-        logger.debug("posted data")
 
     def _get_survey_assignment_data(self):
         packet = {}
@@ -277,27 +365,22 @@ class SurveyRequest(models.Model):
         return packet
 
     def _set_error(self, msg):
-        logger.debug("Error message %s" % msg)
         self.state = SurveyRequestStates.ERROR
         self.error_detail = msg
         self.save()
 
     def check_response_for_error(self, response):
         if (status.is_success(response.status_code) and response.status_code == status.HTTP_201_CREATED):
-            logger.debug("Survey request Created")
             return True
 
         if (status.is_success(response.status_code)):
-            logger.debug("Error with other status %s" % response.status_code)
             self._set_error("Error with other status %s" % response)
             raise PromsRequestError("Error with code %s" % response.status_code)
 
         if (status.is_client_error(response.status_code)):
-            logger.debug("Client Error %s" % response.status_code)
             self._set_error("Client Error %s" % response)
             raise PromsRequestError("Client Error with code %s" % response.status_code)
         elif (status.is_server_error(response.status_code)):
-            logger.debug("Server error %s" % response.status_code)
             self._set_error("Server error %s" % response)
             raise PromsRequestError("Server error with code %s" % response.status_code)
 
@@ -314,8 +397,8 @@ class SurveyRequest(models.Model):
 
     @property
     def name(self):
-        return "%s %s Survey" % (self.registry.name,
-                                 self.survey_name)
+        return "%s %s" % (self.registry.name,
+                          self.survey_name)
 
     @property
     def display_name(self):
@@ -325,31 +408,6 @@ class SurveyRequest(models.Model):
             return survey_model.display_name
 
         return self.survey_name
-
-    def _send_email(self):
-        logger.debug("sending email to user with link")
-        try:
-            emailer = Notifier()
-            subject_line = "%s %s Survey Request" % (self.registry.name,
-                                                     self.survey_name)
-            email_body = f"""You are receiving this email because you agreed to take part in the Continuous Improvement in Care - Cancer Project.
-
-We would appreciate if you could complete the following survey prior to your next appointment with the doctor.
-
-Your answers will help your doctor to identify any areas where you are having problems, so that these can be addressed promptly.
-
-Please click on the following link to begin the survey:
-
-{self.email_link}"""
-
-            emailer.send_email(self.patient.email,
-                               subject_line,
-                               email_body)
-
-        except NotificationError as nerr:
-            raise PromsEmailError(nerr)
-        except Exception as ex:
-            raise PromsEmailError(ex)
 
     @property
     def qrcode_link(self):

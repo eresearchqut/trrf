@@ -14,6 +14,7 @@ router.register(r'registries/(?P<registry_code>\w+)/indices',
                 api_views.LookupIndex, basename='index')
 router.register(r'registries/(?P<registry_code>\w+)/clinicians',
                 api_views.ListClinicians, basename='clinician')
+router.register(r'calculatedcdes', api_views.CalculatedCdeValue, basename='calculatedcde')
 
 urlpatterns = [
     re_path(r'registries/(?P<code>\w+)/$', api_views.RegistryDetail.as_view(), name='registry-detail'),

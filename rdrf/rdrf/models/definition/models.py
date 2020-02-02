@@ -9,7 +9,7 @@ from pyparsing import Word, nums, Optional, delimitedList, alphanums, Literal, L
 
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -33,10 +33,10 @@ from rdrf.helpers.registry_features import RegistryFeatures
 
 
 logger = logging.getLogger(__name__)
+
+
 class InvalidAbnormalityConditionError(Exception):
     pass
-
-
 
 
 class InvalidQuestionnaireError(Exception):
@@ -618,13 +618,13 @@ class CommonDataElement(models.Model):
     max_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         help_text="Only used for numeric fields")
     min_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         help_text="Only used for numeric fields")
     abnormality_condition = models.TextField(
@@ -768,10 +768,23 @@ class CommonDataElement(models.Model):
             abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if
                                            rule.strip()]
 
-            return any([eval(line, {'x': value}) for line in abnormality_condition_lines])
+            try:
+                typed_value = self._get_typed_value(value)
+            except ValueError:
+                return False
+
+            return any([eval(line, {'x': typed_value}) for line in abnormality_condition_lines])
 
         # no abnormality condition
         return False
+
+    def _get_typed_value(self, value):
+        if self.datatype == "integer":
+            return int(value)
+
+        if self.datatype == "float":
+            return float(value)
+        return value
 
 
 def validate_abnormality_condition(abnormality_condition, datatype):
@@ -793,7 +806,8 @@ def validate_rule(rule, datatype):
     parsing_formats = None
     if datatype in ["range", "string"]:
         string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
-        string_list_expression = 'x' + Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
+        string_list_expression = 'x' + \
+            Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
         parsing_formats = string_equality_expression | string_list_expression
 
     if datatype in ["integer", "float"]:
@@ -1451,6 +1465,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
         (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
+        (EventType.SURVEY_REQUEST, "Survey Request"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
@@ -1715,7 +1730,8 @@ class ContextFormGroup(models.Model):
             raise ValidationError("One Context Form Group must be chosen as the default")
 
         if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
-            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+            raise ValidationError(
+                "Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
 
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
@@ -1852,6 +1868,7 @@ class ClinicalData(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, null=True)
     last_updated_by = models.IntegerField(db_index=True, blank=True, null=True)
+    metadata = models.TextField(blank=True, null=True)
 
     objects = ClinicalDataQuerySet.as_manager()
 
@@ -1868,6 +1885,38 @@ class ClinicalData(models.Model):
 
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
+
+    def get_metadata_locking(self, form_name):
+        # the clinical metadata are only stored with the cdes collection
+        if self.collection != "cdes":
+            raise Exception("coding error: metadata are stored in the cdes collection")
+
+        if self.metadata:
+            metadata = json.loads(self.metadata)
+            if form_name in metadata["forms"].keys():
+                return metadata["forms"][form_name]['locking']
+        return False
+
+    def switch_metadata_locking(self, form_name):
+        # the clinical metadata are only stored with the cdes collection
+        if self.collection != "cdes":
+            raise Exception("coding error: metadata are stored in the cdes collection")
+
+        # Set default value when no metadata exist yet.
+        metadata = {"forms": {form_name: {'locking': True}}}
+
+        if self.metadata:
+            metadata = json.loads(self.metadata)
+            if form_name in metadata["forms"].keys():
+                metadata["forms"][form_name]['locking'] = not metadata["forms"][form_name]['locking']
+            else:
+                # Some metadata existed for other forms, but not for this form_name.
+                metadata["forms"] = {form_name: {'locking': True}}
+
+        logger.debug(f"Switching to {form_name} locking to: {metadata['forms'][form_name]['locking']}")
+
+        self.metadata = json.dumps(metadata)
+        self.save()
 
     def cde_val(self, form_name, section_code, cde_code):
         forms = self.data.get("forms", [])
@@ -1997,3 +2046,49 @@ class FormTitle(models.Model):
     @property
     def group_names(self):
         return ', '.join(group.name for group in self.groups.order_by('name').all())
+
+
+class CustomAction(models.Model):
+    """
+    Represents actions with a button in the GUI - can be run
+    data associated with the action is parsed and the action executed
+    """
+    ACTION_TYPES = (("PR", "Patient Report"),)
+
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    groups_allowed = models.ManyToManyField(Group, blank=True)
+    code = models.CharField(max_length=80)
+    name = models.CharField(max_length=80, blank=True, null=True)
+    action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
+    data = models.TextField(null=True)
+
+    def execute(self, user, patient_model):
+        """
+        This should return a HttpResponse of some sort
+        """
+        logger.debug("executing action %s" % self.code)
+        if not self.check_security(user, patient_model):
+            raise PermissionDenied
+        if self.action_type == "PR":
+            from rdrf.services.io.actions import patient_report
+            result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
+            logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
+                                                                          self.name,
+                                                                          user.username,
+                                                                          patient_model.pk))
+            return result
+        else:
+            raise NotImplementedError("Unknown action type: %s" % self.action_type)
+
+    @property
+    def text(self):
+        return self.name
+
+    def check_security(self, user, patient_model):
+        from rdrf.security.security_checks import security_check_user_patient
+        try:
+            security_check_user_patient(user, patient_model)
+        except PermissionDenied:
+            return False
+
+        return True

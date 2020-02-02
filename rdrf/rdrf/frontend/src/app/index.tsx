@@ -71,51 +71,51 @@ class App extends React.Component<AppInterface, object> {
         let submitButton;
         let progressBar;
         let source;
-        const style = { height:"100%" };
+        const style = { height: "100%" };
 
         if (this.atEnd()) {
-            !isMobile ? 
-            nextButton = (<Col sm={{ size: 4, order: 2, offset: 1 }}>
-                <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
-            </Col>)
-            :
-            submitButton = (
-                <div className="text-center">
+            !isMobile ?
+                nextButton = (<Col sm={{ size: 4, order: 2, offset: 1 }}>
                     <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
-                </div>
-            )
+                </Col>)
+                :
+                submitButton = (
+                    <div className="text-center">
+                        <Button onClick={this.props.submitAnswers} color="success" size="sm">Submit Answers</Button>
+                    </div>
+                )
         }
         else {
-            nextButton = !isMobile ? 
-              (<Col sm={{ size: 1 }}>
-                <Button onClick={this.moveNext} size="sm" color="info">Next</Button>
-            </Col>) :
-              (<i onClick={this.moveNext}> <GoChevronRight style={{fontSize: '56px'}} /> </i>)
+            nextButton = !isMobile ?
+                (<Col sm={{ size: 2 }} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button onClick={this.moveNext} size="sm" color="info" style={{ minWidth: '90px' }}>Next</Button>
+                </Col>) :
+                (<i onClick={this.moveNext}> <GoChevronRight style={{ fontSize: '56px' }} /> </i>)
         }
 
         if (this.atBeginning()) {
-            backButton = !isMobile ? 
-              (<Col sm={{ size: 1 }}>
-                <Button onClick={this.movePrevious} color="info" size="sm" disabled={true} >Previous</Button>
-               </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{fontSize: '56px'}} /> </i>)
+            backButton = !isMobile ?
+                (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
+                    <Button onClick={this.movePrevious} color="info" size="sm" disabled={true} style={{ minWidth: '90px' }}>Previous</Button>
+                </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
         } else {
-            backButton = !isMobile ? 
-              (<Col sm={{ size: 1 }}>
-                <Button onClick={this.movePrevious} color="info" size="sm">Previous</Button>
-               </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{fontSize: '56px'}} /> </i>)
+            backButton = !isMobile ?
+                (<Col sm={{ size: 2 }} style={{ display: 'flex' }}>
+                    <Button onClick={this.movePrevious} color="info" size="sm" style={{ minWidth: '90px' }}>Previous</Button>
+                </Col>) : (<i onClick={this.movePrevious}> <GoChevronLeft style={{ fontSize: '56px' }} /> </i>)
         }
 
         if (!this.atEnd()) {
             progressBar = (
-                <Col>
+                <Col sm={{ size: 8 }}>
                     <Progress color="info" value={this.getProgress()}>{this.getProgress()}%</Progress>
                 </Col>
             )
         }
 
-        if (this.props.questions[this.props.stage].source){
+        if (this.props.questions[this.props.stage].source) {
             source = (
-                <div className="text-center text-muted" style={{fontSize: '12px'}}> Source:
+                <div className="text-center text-muted" style={{ fontSize: '12px' }}> Source:
                     {this.props.questions[this.props.stage].source}
                 </div>
             )
@@ -124,33 +124,33 @@ class App extends React.Component<AppInterface, object> {
 
         return (
             <div className="App" style={style}>
-                <Container style={style}>
+                <Container>
                     <div className="mb-4">
-                            <Row>
-                                <Col>
-                                    <Instruction stage={this.props.stage} />
-                                </Col>
-                            </Row>
-
-                            <Row>
-                                <Col>
-                                    <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
-                                </Col>
-                            </Row>
-                        </div>
-
-                        <div className="mb-4">
                         <Row>
+                            <Col>
+                                <Instruction stage={this.props.stage} />
+                            </Col>
+                        </Row>
+
+                        <Row>
+                            <Col>
+                                <Question title={this.props.title} stage={this.props.stage} questions={this.props.questions} />
+                            </Col>
+                        </Row>
+                    </div>
+
+                    <div className="mb-4">
+                        <Row className="navigationinputs">
                             {backButton}
                             {progressBar}
                             {nextButton}
                         </Row>
-                        </div>
-                        {submitButton}
+                    </div>
+                    {submitButton}
                 </Container>
-                <footer className="footer" style={{height: 'auto'}}>
+                <footer className="footer" style={{ height: 'auto' }}>
                     {source}
-                    <div className="text-center text-muted" style={{fontSize: '12px'}}>
+                    <div className="text-center text-muted" style={{ fontSize: '12px' }}>
                         {this.props.questions[this.props.stage].copyright_text}
                     </div>
                 </footer>

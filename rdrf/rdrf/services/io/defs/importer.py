@@ -298,7 +298,7 @@ class Importer(object):
                             (pvg.code, value.code))
                         value.delete()
                     except CDEPermittedValue.DoesNotExist:
-                        logger.info("value does not exist?")
+                        logger.warning(f"CDEPermittedValue value does not exist for pvg {pvg.code} value {value_code}")
 
                     except Exception as ex:
                         logger.error("err: %s" % ex)
@@ -454,8 +454,7 @@ class Importer(object):
                 raise ValueError("Not a dictionary")
             return True
         except ValueError as verr:
-            logger.info("invalid metadata ( should be json dictionary): %s Error %s" %
-                        (metadata_json, verr))
+            logger.error("invalid metadata ( should be json dictionary): %s Error %s" % (metadata_json, verr))
             return False
 
     def _create_registry_objects(self):
@@ -643,6 +642,11 @@ class Importer(object):
             permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
 
+            # Create can unlock permission.
+            can_lock_permission_code_name = "form_%s_can_lock" % f.id
+            can_lock_permission_name = "Form '%s' can be locked (%s)" % (f.name, f.registry.code.upper())
+            create_permission("rdrf", "registryform", can_lock_permission_code_name, can_lock_permission_name)
+
             f.name = frm_map["name"]
             if "header" in frm_map:
                 f.header = frm_map["header"]
@@ -737,6 +741,10 @@ class Importer(object):
             self._create_reviews(r)
             logger.info("imported reviews OK")
 
+        if "custom_actions" in self.data:
+            self._create_custom_actions(r)
+            logger.info("imported custom actions OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -806,6 +814,7 @@ class Importer(object):
                 sq_model.instruction = sq.get("instruction", None)
                 sq_model.copyright_text = sq.get("copyright_text", None)
                 sq_model.source = sq.get("source", None)
+                sq_model.cde_path = sq.get("cde_path", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()
@@ -832,9 +841,7 @@ class Importer(object):
             instance, created = klass.objects.get_or_create(**kwargs)
             return instance
 
-        logger.debug("getting codes from reviews")
         review_codes = [r["code"] for r in self.data["reviews"]]
-        logger.debug("got codes from reviews")
 
         for review_model in Review.objects.filter(registry=registry_model):
             if review_model.code not in review_codes:
@@ -879,6 +886,25 @@ class Importer(object):
                     review_item.section = section_model
 
                 review_item.save()
+
+    def _create_custom_actions(self, registry):
+        from rdrf.models.definition.models import CustomAction
+        CustomAction.objects.filter(registry=registry).delete()
+        for action_dict in self.data["custom_actions"]:
+            action = CustomAction(registry=registry)
+            action.code = action_dict["code"]
+            action.name = action_dict["name"]
+            action.action_type = action_dict["action_type"]
+            action.data = action_dict["data"]
+            action.save()
+
+            groups = []
+            for group_name in action_dict["groups_allowed"]:
+                group = Group.objects.get(name=group_name)
+                groups.append(group)
+
+            action.groups_allowed.set(groups)
+            action.save()
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification

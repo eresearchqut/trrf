@@ -151,6 +151,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_parent(self):
+        # Check that the parent feature is available.
+        # This is currently a hardcoded angelman check.
+        # Checking import has a low performance impact.
+        # 50ms the is_parent() first call, 3ms the following calls.
+        try:
+            __import__('angelman.parent_view')
+        except ImportError:
+            return False
         return self.in_group(RDRF_GROUPS.PARENT)
 
     @property
@@ -259,6 +267,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             links = qlinks.admin_page_links()
 
         return links
+
+    def custom_actions(self, registry_model):
+        # return all custom actions applicable
+        from rdrf.models.definition.models import CustomAction
+        return [action for action in CustomAction.objects.filter(registry=registry_model)]
 
 
 @receiver(user_activated)

@@ -13,7 +13,7 @@ from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
-from rdrf.models.definition.models import Section, CommonDataElement
+from rdrf.models.definition.models import Section, CommonDataElement, ClinicalData
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -63,6 +63,10 @@ from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
+
+from rdrf.helpers.utils import annotate_form_with_verifications
+from rdrf.views.custom_actions import CustomActionWrapper
+
 
 import logging
 
@@ -196,6 +200,36 @@ class SectionInfo(object):
         return form_instance
 
 
+class FormSwitchLockingView(View):
+    @login_required_method
+    def get(self, request, registry_code, form_id, patient_id, context_id=None):
+
+        # Switch the locking.
+        context_model = RDRFContext.objects.get(id=context_id)
+        form_model = RegistryForm.objects.get(id=form_id)
+        form_name = form_model.name
+
+        if not request.user.is_authenticated or not request.user.has_perm("rdrf.form_%s_can_lock" % form_model.name):
+            logger.warning(f"User {request.user.id} ({request.user}) is trying to lock/unlock the form {form_model.name} \
+                for context {context_model.id} - patient {patient_id} without the permission!")
+            raise Exception("You don't have the permission to lock/unlock this form.")
+
+        # the clinical metadata are only stored with the cdes collection
+        try:
+            clinical_data = ClinicalData.objects.get(
+                registry_code=registry_code,
+                collection="cdes",
+                django_id=patient_id,
+                django_model="Patient",
+                context_id=context_id)
+            clinical_data.switch_metadata_locking(form_name)
+        except ClinicalData.DoesNotExist:
+            # Not ClinicalData means the form is not save yet, just ignore the command.
+            pass
+
+        return HttpResponseRedirect(reverse("registry_form", args=[registry_code, form_id, patient_id, context_id]))
+
+
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
@@ -248,7 +282,8 @@ class FormView(View):
         except RDRFContextError as ex:
             logger.error(
                 "Error setting rdrf context id %s for patient %s in %s: %s" %
-                (context_id, patient_model, self.registry, ex))
+                (context_id, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), self.registry, ex))
+
             raise RDRFContextSwitchError
 
     def _evaluate_form_rules(self, form_rules, evaluation_context):
@@ -390,6 +425,12 @@ class FormView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
+        custom_actions = [CustomActionWrapper(self.registry,
+                                              self.user,
+                                              custom_action,
+                                              patient_model) for custom_action in
+                          self.user.custom_actions(self.registry)]
+
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -427,6 +468,22 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
+        # Retrieve locking information
+        if self.rdrf_context:
+            try:
+                clinical_data = ClinicalData.objects.get(
+                    registry_code=self.registry.code,
+                    collection="cdes",
+                    django_id=patient_model.id,
+                    django_model="Patient",
+                    context_id=self.rdrf_context.id)
+                metadata_locking = clinical_data.get_metadata_locking(self.registry_form.name)
+            except ClinicalData.DoesNotExist:
+                # The form has not been saved yet, so it is unlock.
+                metadata_locking = False
+        else:
+            # Not context (for example clicking on add a FollowUp)
+            metadata_locking = False
         context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
@@ -434,6 +491,10 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
         context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
+        context["registry_has_locking"] = self.registry.has_feature("form_locking")
+        context["metadata_locking"] = metadata_locking
+        context["can_lock"] = self.user and self.user.has_perm("rdrf.form_%s_can_lock" % self.registry_form.name)
+
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
@@ -476,12 +537,19 @@ class FormView(View):
         context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
         context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
         context["selected_version_name"] = selected_version_name
+        context["custom_actions"] = custom_actions
 
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
         context.update(csrf(request))
-        return render(request, self._get_template(), context)
+
+        if context['metadata_locking']:
+            template = "rdrf_cdes/form_readonly.html"
+        else:
+            template = self._get_template()
+
+        return render(request, template, context)
 
     def _get_field_ids(self, form_class):
         # the ids of each cde on the form
@@ -672,16 +740,14 @@ class FormView(View):
 
             # save report friendly field values
             try:
-                logger.debug("trying to create field values for %s" % patient)
                 if self.rdrf_context:
                     create_field_values(registry,
                                         patient,
                                         self.rdrf_context,
                                         remove_existing=True,
                                         form_model=form_obj)
-                logger.debug("created field values for patient %s" % patient)
             except Exception as ex:
-                logger.debug("error creating field values: %s" % ex)
+                logger.warning("error creating field values: %s" % ex)
                 raise
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
@@ -697,8 +763,9 @@ class FormView(View):
                                         newly_created_context,
                                         remove_existing=True,
                                         form_model=form_obj)
+                # TODO: the following line is smelly - it is eating all exceptions.
                 except Exception as ex:
-                    logger.debug("Error creating field values for new context: %s" % ex)
+                    logger.warning("Error creating field values for new context: %s" % ex)
 
                 return HttpResponseRedirect(
                     reverse(
@@ -715,8 +782,6 @@ class FormView(View):
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
                 rules_block = registry.metadata.get("rules", {})
                 form_rules = rules_block.get(form_obj.name, [])
-                logger.debug("checking rules for %s" % form_obj.name)
-                logger.debug("form_rules = %s" % form_rules)
                 if len(form_rules) > 0:
                     # this may redirect or produce side effects
                     rules_evaluation_context = {"patient_model": patient,
@@ -727,8 +792,6 @@ class FormView(View):
                     action_result = self._evaluate_form_rules(form_rules, rules_evaluation_context)
                     if isinstance(action_result, HttpResponseRedirect):
                         return action_result
-                else:
-                    logger.debug("No evaluation rules to apply")
 
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
@@ -748,6 +811,12 @@ class FormView(View):
                                                         registry_form=self.registry_form)
 
         patient_info_component = RDRFPatientInfoComponent(registry, patient, request.user)
+
+        custom_actions = [CustomActionWrapper(registry,
+                                              request.user,
+                                              custom_action,
+                                              patient) for custom_action in
+                          request.user.custom_actions(registry)]
 
         context = {
             'CREATE_MODE': self.CREATE_MODE,
@@ -787,6 +856,7 @@ class FormView(View):
             "has_previous_data": self.has_previous_contexts,
             "previous_versions": self.previous_versions,
             "changes_since_version": changes_since_version,
+            'custom_actions': custom_actions,
         }
 
         if request.user.is_parent:
@@ -926,6 +996,14 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
+                if self.registry.has_feature("verification"):
+                    annotate_form_with_verifications(patient_model,
+                                                     self.rdrf_context,
+                                                     self.registry,
+                                                     self.registry_form,
+                                                     section_model,
+                                                     initial_data,
+                                                     form_section[s])
 
             else:
                 # Ensure that we can have multiple formsets on the one page

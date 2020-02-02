@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 from rdrf.helpers.utils import is_authorised
 
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,18 +30,18 @@ class ReviewWizardLandingView(View):
 
     def _get_wizard_view(self, request, token, args, kwargs, initialise=False):
         from rdrf.models.definition.review_models import PatientReview
+        review_user = request.user
         patient_review_model = get_object_or_404(PatientReview, token=token)
 
         if not is_authorised(request.user,
                              patient_review_model.patient):
             raise PermissionDenied
 
-        logger.debug("initialise = %s" % initialise)
-        wizard_view = patient_review_model.create_wizard_view(initialise)
+        wizard_view = patient_review_model.create_wizard_view(initialise,
+                                                              review_user=review_user)
         return wizard_view(request, *args, **kwargs)
 
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         token = self._get_token(request)
-        logger.debug("token = %s" % token)
-        return self._get_wizard_view(request, token, args, kwargs)
+        return self._get_wizard_view(request, token, args, kwargs, initialise=True)

@@ -470,7 +470,7 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group rdrf-cde-field invisibutton-container">
+                                <div class="form-group rdrf-cde-field invisibutton-container
                                        {% if field|is_abnormal %}
                                         rdrf-cde-abnormal
                                        {% endif %}">

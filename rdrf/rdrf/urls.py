@@ -14,6 +14,7 @@ from two_factor import views as twv
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 
+
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
@@ -44,6 +45,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.review_views import ReviewWizardLandingView
+from rdrf.views.custom_actions import CustomActionView
 
 from rdrf.views.actions import ActionExecutorView
 import logging
@@ -132,6 +134,7 @@ proms_patterns = [
 
     re_path(r"^(?P<registry_code>\w+)/?$",
             registry_view.RegistryView.as_view(), name='registry'),
+    re_path(r'session_security/', include('session_security.urls')),
 ]
 
 normalpatterns += [
@@ -139,6 +142,8 @@ normalpatterns += [
     re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
+    re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
+            CustomActionView.as_view(), name='custom_action'),
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
@@ -225,6 +230,9 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormView.as_view(), name='registry_form'),
+
+    re_path(r"^(?P<registry_code>\w+)/forms/switchlock/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+            form_view.FormSwitchLockingView.as_view(), name='registry_form_switchlock'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormPrintView.as_view(), name='registry_form_print'),
@@ -332,6 +340,8 @@ normalpatterns += [
     re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
     re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
+    re_path(r'session_security/', include('session_security.urls')),
+
 ]
 
 

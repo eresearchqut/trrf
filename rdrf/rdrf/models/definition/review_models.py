@@ -10,8 +10,10 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import generate_token
 from rdrf.helpers.utils import check_models
 from rdrf.helpers.utils import models_from_mongo_key
-from django.core.exceptions import ValidationError
+from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import get_normal_fields
 
+from django.core.exceptions import ValidationError
 
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
@@ -20,6 +22,27 @@ from registry.patients.models import ParentGuardian
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def get_field_value(patient_model,
+                    registry_model,
+                    context_model,
+                    form_model,
+                    section_model,
+                    cde_model,
+                    data,
+                    raw):
+    raw_value = patient_model.get_form_value(registry_model.code,
+                                             form_model.name,
+                                             section_model.code,
+                                             cde_model.code,
+                                             False,
+                                             context_model.pk,
+                                             data)
+    if raw:
+        return raw_value
+    else:
+        return cde_model.get_display_value(raw_value)
 
 
 class InvalidItemType(Exception):
@@ -33,6 +56,23 @@ class Missing:
 
 REVIEW_TYPE_CHOICES = (("R", "Caregiver Review"),
                        ("V", "Clinician Verification"))
+
+
+ADDRESS_FIELD_MAP = {"address_type": "Demographics____PatientDataAddressSection____AddressType",
+                     "address": "Demographics____PatientDataAddressSection____Address",
+                     "suburb": "Demographics____PatientDataAddressSection____SuburbTown",
+                     "state": "Demographics____PatientDataAddressSection____State",
+                     "postcode": "Demographics____PatientDataAddressSection____postcode",
+                     "country": "Demographics____PatientDataAddressSection____Country"}
+
+ADDRESS_VALUE_MAP = {"Home": "AddressTypeHome",
+                     "Postal": "AddressTypePostal"}
+
+
+def get_state(state_code):
+    s = state_code.upper()
+    if s.startswith("AU-"):
+        return s.split("-")[1]
 
 
 def generate_reviews(registry_model):
@@ -50,6 +90,9 @@ class Review(models.Model):
     review_type = models.CharField(max_length=1,
                                    choices=REVIEW_TYPE_CHOICES,
                                    default="R")
+
+    def __str__(self):
+        return self.code
 
     def create_for_patient(self, patient, context_model=None):
         if context_model is None:
@@ -179,6 +222,9 @@ class ReviewItem(models.Model):
     target_code = models.CharField(max_length=80, blank=True, null=True)  # the cde or section code or consent code
     target_metadata = models.TextField(blank=True, null=True)  # form,section, cde json??
 
+    def __str__(self):
+        return self.code
+
     def load_metadata(self):
         import json
         if not self.target_metadata:
@@ -207,10 +253,8 @@ class ReviewItem(models.Model):
     def _update_consent_data(self, patient_model, form_data, user):
         from rdrf.models.definition.models import ConsentQuestion
         for field_key in form_data:
-            logger.debug("field_key = %s" % field_key)
             if field_key.startswith("customconsent"):
                 answer = form_data[field_key]
-                logger.debug("consent %s = %s" % (field_key, answer))
                 key_parts = field_key.split("_")
                 question_pk = int(key_parts[3])
                 consent_question_model = ConsentQuestion.objects.get(id=question_pk)
@@ -223,7 +267,6 @@ class ReviewItem(models.Model):
             updater.update(patient_model, context_model, answer)
 
     def _update_section_data(self, patient_model, context_model, form_data, user):
-        logger.debug("updating section data for %s ..." % self.code)
         registry_model = self.review.registry
         if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             # set_form_value requires this
@@ -237,13 +280,12 @@ class ReviewItem(models.Model):
         form_name = form_model.name
         section_model = self.section
         section_code = section_model.code
-        codes = [cde.code for cde in section_model.cde_models]
+        codes = [cde.code for cde in get_normal_fields(section_model)]
         error_msg = "Bad field in %s" % self.code
         for field_id in form_data:
             if field_id.startswith("metadata_"):
                 # bookkeeping field not part of section
                 continue
-            logger.debug("updating %s" % field_id)
             field_form_model, field_section_model, field_cde_model = models_from_mongo_key(registry_model,
                                                                                            field_id)
             if field_form_model.name != form_model.name:
@@ -263,14 +305,8 @@ class ReviewItem(models.Model):
                                          context_to_use,
                                          save_snapshot=True,
                                          user=user)
-            logger.debug("%s.%s.%s set to %s" % (form_name,
-                                                 section_code,
-                                                 cde_code,
-                                                 answer))
 
     def _update_demographics_data(self, patient_model, form_data, user):
-        logger.debug("demographics form data = %s" % form_data)
-        logger.debug("update demographics data : todo!")
         from registry.patients.models import AddressType, PatientAddress
         # {'metadata_condition_changed': '1',
         # 'Demographics____PatientDataAddressSection____AddressType': 'AddressTypeHome',
@@ -316,27 +352,44 @@ class ReviewItem(models.Model):
         patient_address.state = patient_address.country + "-" + address_map.get("State", "")
         patient_address.postcode = address_map.get("postcode", "")
         patient_address.save()
-        logger.debug("patient address saved ok")
 
+    # TODO: do we still need this function? It is called by update_data().
     def _add_multisection_data(self, patient_model, context_model, form_data, user):
-        logger.debug("update multisection data : todo!")
+        pass
 
-    def get_data(self, patient_model, context_model):
+    def get_data(self, patient_model, context_model, raw=False):
         # get previous responses so they can be displayed
+
         if self.item_type == ReviewItemTypes.CONSENT_FIELD:
-            return self._get_consent_data(patient_model)
+            return self._get_consent_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.DEMOGRAPHICS_FIELD:
-            return self._get_demographics_data(patient_model)
+            return self._get_demographics_data(patient_model, raw=raw)
         elif self.item_type == ReviewItemTypes.SECTION_CHANGE:
-            return self._get_section_data(patient_model, context_model)
+            return self._get_section_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.MULTI_TARGET:
-            return self._get_multitarget_data(patient_model, context_model)
+            return self._get_multitarget_data(patient_model, context_model, raw=raw)
         elif self.item_type == ReviewItemTypes.VERIFICATION:
-            return []
+            return self._get_verification_data(patient_model, context_model, raw=raw)
 
         raise Exception("Unknown Review Type: %s" % self.item_type)
 
-    def _get_consent_data(self, patient_model):
+    def _get_verification_data(self, patient_model, context_model, raw):
+        if raw:
+            if self.fields:
+                use_fields = True
+            else:
+                use_fields = False
+
+            if not self.form and not self.section:
+                return []
+            return self._get_section_data(patient_model,
+                                          context_model,
+                                          raw,
+                                          use_fields=use_fields)
+        else:
+            return []
+
+    def _get_consent_data(self, patient_model, raw=False):
         from rdrf.models.definition.models import ConsentSection
         from rdrf.models.definition.models import ConsentQuestion
         from registry.patients.models import ConsentValue
@@ -360,28 +413,42 @@ class ReviewItem(models.Model):
 
         return [(field_label, answer)]
 
-    def _get_demographics_data(self, patient_model):
+    def _get_demographics_data(self, patient_model, raw=False):
         is_address = self.fields.lower().strip() in ["postal_address", "home_address", "address"]
         if is_address:
-            return self._get_address_data(patient_model)
+            return self._get_address_data(patient_model, raw)
         else:
-            return self._get_demographics_fields(patient_model)
+            return self._get_demographics_fields(patient_model, raw)
 
-    def _get_address_data(self, patient_model):
+    def _get_address_data(self, patient_model, raw=False):
         from registry.patients.models import PatientAddress
         from registry.patients.models import AddressType
         pairs = []
         field = self.fields.lower().strip()
         if field == "postal_address":
             address_type = AddressType.objects.get(type="Postal")
-        else:
+        elif field == 'home_address':
             address_type = AddressType.objects.get(type="Home")
+        else:
+            address_type = ''
 
         try:
             address = PatientAddress.objects.get(patient=patient_model,
                                                  address_type=address_type)
         except PatientAddress.DoesNotExist:
+            if raw:
+                return {}
             return []
+
+        if raw:
+            m = ADDRESS_FIELD_MAP
+            raw_map = {m["address_type"]: ADDRESS_VALUE_MAP.get(address_type.type, ""),
+                       m["suburb"]: address.suburb,
+                       m["address"]: address.address,
+                       m["country"]: address.country,
+                       m["postcode"]: address.postcode,
+                       m["state"]: get_state(address.state)}
+            return raw_map
 
         pairs.append(("Address Type", address_type.description))
         pairs.append(("Address", address.address))
@@ -391,44 +458,91 @@ class ReviewItem(models.Model):
         pairs.append(("Postcode", address.postcode))
         return pairs
 
-    def _get_demographics_fields(self, patient_model):
+    def _get_demographics_fields(self, patient_model, raw):
         return []
 
-    def _get_section_data(self, patient_model, context_model, raw=False):
+    def _get_section_data(self, patient_model, context_model, raw=False, use_fields=False):
         # we need raw values for initial data
         # display values for the read only
-        assert not self.section.allow_multiple
+        if self.section:
+            assert not self.section.allow_multiple
+
         pairs = []
         data = patient_model.get_dynamic_data(self.review.registry,
                                               collection="cdes",
                                               context_id=context_model.pk,
                                               flattened=True)
+        if raw:
+            if use_fields:
+                allowed_cde_codes = [x.strip() for x in self.fields.strip().split(",")]
 
-        def get_field_value(cde_model):
-            # closure to make things easier ...
-            # this assumes the section in form in registry selected ..
-            # ( we should enforce this as a validation rule )
-            # the data is passed in once to avoid reloading multiple
-            # times
-            raw_value = patient_model.get_form_value(self.review.registry.code,
-                                                     self.form.name,
-                                                     self.section.code,
-                                                     cde_model.code,
-                                                     False,
-                                                     context_model.pk,
-                                                     data)
-            if raw:
-                return raw_value
+                def get_fields_iterator():
+                    for cde_model in self.section.cde_models:
+                        if cde_model.code in allowed_cde_codes:
+                            yield cde_model
+
+                def get_fields_from_anywhere():
+                    for section_model in self.form.section_models:
+                        if not section_model.allow_multiple:
+                            for cde_model in section_model.cde_models:
+                                if cde_model.code in allowed_cde_codes:
+                                    yield self.form, section_model, cde_model
+
+                if self.section:
+                    cde_iterator = get_fields_iterator
+                else:
+                    cde_iterator = get_fields_from_anywhere
             else:
-                return cde_model.get_display_value(raw_value)
+                def section_iterator():
+                    for cde_model in get_normal_fields(self.section):
+                        yield cde_model
 
-        for cde_model in self.section.cde_models:
+                cde_iterator = section_iterator
+
+            # return a dictionary
+            d = {}
+            for thing in cde_iterator():
+                if type(thing) is tuple:
+                    form_model, section_model, cde_model = thing
+                else:
+                    form_model = self.form
+                    section_model = self.section
+                    cde_model = thing
+
+                delimited_key = mongo_key_from_models(form_model,
+                                                      section_model,
+                                                      cde_model)
+                try:
+                    raw_value = get_field_value(patient_model,
+                                                self.review.registry,
+                                                context_model,
+                                                form_model,
+                                                section_model,
+                                                cde_model,
+                                                data,
+                                                raw)
+                    d[delimited_key] = raw_value
+                except KeyError:
+                    pass
+
+            return d
+
+        # if not raw return a list of pairs of display values
+
+        for cde_model in get_normal_fields(self.section):
             if raw:
                 field = cde_model.code
             else:
                 field = cde_model.name
             try:
-                value = get_field_value(cde_model)
+                value = get_field_value(patient_model,
+                                        self.review.registry,
+                                        context_model,
+                                        self.form,
+                                        self.section,
+                                        cde_model,
+                                        data,
+                                        raw)
             except KeyError:
                 if raw:
                     value = Missing.VALUE
@@ -509,31 +623,21 @@ class ReviewItem(models.Model):
 
     @property
     def verification_triples(self):
-        logger.debug("ver triples ..")
         if self.form:
-            logger.debug("form set ...")
             if self.section:
-                logger.debug("section set ...")
                 if self.fields:
                     codes = [x.strip() for x in self.fields.split(",")]
-                    cde_models = [cde_model for cde_model in self.section.cde_models if cde_model.code in codes]
+                    cde_models = [cde_model for cde_model in get_normal_fields(self.section) if cde_model.code in codes]
                 else:
-                    cde_models = self.section.cde_models
+                    cde_models = get_normal_fields(self.section.cde_models)
 
                 for cde_model in cde_models:
-                    logger.debug("yielding %s %s %s" % (self.form.name,
-                                                        self.section.code,
-                                                        cde_model.code))
                     yield self.form, self.section, cde_model
             else:
                 for section_model in self.form.section_models:
-                    for cde_model in section_model.cde_models:
-                        logger.debug("yielding %s %s %s" % (self.form.name,
-                                                            section_model.code,
-                                                            cde_model.code))
+                    for cde_model in get_normal_fields(section_model):
                         yield self.form, section_model, cde_model
         else:
-            logger.debug("returning []")
             return []  # ??
 
 
@@ -548,6 +652,7 @@ class VerificationStatus:
     VERIFIED = "V"
     NOT_VERIFIED = "N"
     UNKNOWN = "U"
+    CORRECTED = "C"
 
 
 class HasChangedStates:
@@ -581,6 +686,11 @@ class PatientReview(models.Model):
     completed_date = models.DateTimeField(blank=True, null=True)
     state = models.CharField(max_length=1, default=ReviewStates.CREATED)
 
+    @property
+    def moniker(self):
+        return "%s for %s" % (self.review.code,
+                              self.patient)
+
     def email_link(self):
         pass
 
@@ -593,7 +703,7 @@ class PatientReview(models.Model):
     def reset(self):
         self.state = ReviewStates.CREATED
         self.completed_date = None
-        self .save()
+        self.save()
         for item in self.items.all():
             item.state = PatientReviewItemStates.CREATED
             item.has_changed = None
@@ -602,22 +712,20 @@ class PatientReview(models.Model):
             item.data = None
             item.save()
 
-    def create_wizard_view(self, initialise=False):
+    def create_wizard_view(self, initialise=False, review_user=None):
         from rdrf.views.wizard_views import ReviewWizardGenerator
-        generator = ReviewWizardGenerator(self)
+        generator = ReviewWizardGenerator(self, review_user)
         wizard_class = generator.create_wizard_class()
         if initialise:
             initial_data = self._get_initial_data()
-            logger.debug("initial data = %s" % initial_data)
+            wizard_class.initial_dict = initial_data
             return wizard_class.as_view()
         else:
             return wizard_class.as_view()
 
     def _get_initial_data(self):
-        logger.debug("getting initial data")
         d = {}
-        for item_index, review_item in enumerate(self.review.items.all()):
-            logger.debug("looking at index %s item %s" % (item_index, review_item))
+        for item_index, review_item in enumerate(self.review.items.all().order_by("id")):
             d[str(item_index)] = self._get_initial_data_for_review_item(review_item)
         return d
 
@@ -626,7 +734,17 @@ class PatientReview(models.Model):
         d["metadata_condition_changed"] = ConditionStates.UNKNOWN
         if review_item.item_type in [ReviewItemTypes.SECTION_CHANGE]:
             d["metadata_current_status"] = ConditionStates.UNKNOWN
+
+        # get initial filled in data from rdrf form
+        self._load_initial_form_data_for_review_item(review_item, d)
         return d
+
+    def _load_initial_form_data_for_review_item(self, review_item, data_dict):
+        # update data_dict
+        patient_model = self.patient
+        context_model = self.context
+        review_item_data = review_item.get_data(patient_model, context_model, raw=True)
+        data_dict.update(review_item_data)
 
 
 class PatientReviewItem(models.Model):
@@ -648,18 +766,14 @@ class PatientReviewItem(models.Model):
     data = models.TextField(blank=True, null=True)  # json data
 
     def update_data(self, cleaned_data, user):
-        logger.debug("updating %s if needed" % self.review_item.code)
         self.data = self._encode_data(cleaned_data)
         self.state = PatientReviewItemStates.DATA_COLLECTED
         self.save()
         # fan out the review data from a patient to the correct place
         # the model knows how to update the data
         self.has_changed = cleaned_data.get("metadata_condition_changed", None)
-        logger.debug("self.has_changed = %s" % self.has_changed)
         self.current_status = cleaned_data.get("metadata_current_status", None)
-        logger.debug("self.current_status = %s" % self.current_status)
         if self.has_changed == HasChangedStates.YES:
-            logger.debug("%s has changed" % self.review_item.code)
             self.review_item.update_data(self.patient_review.patient,
                                          self.patient_review.parent,
                                          self.patient_review.context,
@@ -668,45 +782,29 @@ class PatientReviewItem(models.Model):
         else:
             if self.review_item.review.review_type == "V":
                 self._update_verifications(cleaned_data, user)
-            else:
-                logger.debug("condition hasn't changed - no updates done!")
 
         self.state = PatientReviewItemStates.FINISHED
         self.save()
 
     def _update_verifications(self, form_data, user):
-        logger.debug("creating verifications for user %s" % user)
-        logger.debug("form data = %s" % form_data)
         from rdrf.models.definition.verification_models import Verification
         patient_model = self.patient_review.patient
         context_model = self.patient_review.context
         registry_model = self.patient_review.review.registry
-        logger.debug("patient is %s" % patient_model)
         pri = self
-        logger.debug("pri is %s" % pri)
         if user is not None:
             username = user.username
         else:
             username = ""
 
-        logger.debug("username = %s" % username)
-
         for form_model, section_model, cde_model in self.review_item.verification_triples:
-            logger.debug("%s %s %s .." % (form_model.name,
-                                          section_model.code,
-                                          cde_model.code))
             value_key = "%s____%s____%s" % (form_model.name,
                                             section_model.code,
                                             cde_model.code)
-            logger.debug("value key = %s" % value_key)
             ver_key = "ver/%s" % value_key
-            logger.debug("ver key = %s" % ver_key)
             if ver_key in form_data:
-                logger.debug("found ver key %s" % ver_key)
                 status = form_data[ver_key]
-                logger.debug("ver status = %s" % status)
                 value = form_data[value_key]
-                logger.debug("form value = %s" % value)
 
                 verification_model = Verification(patient=patient_model,
                                                   patient_review_item=pri,
@@ -721,7 +819,6 @@ class PatientReviewItem(models.Model):
 
                 verification_model.create_summary()
                 verification_model.save()
-                logger.debug("created verification ok")
 
     def _encode_data(self, data):
         import json

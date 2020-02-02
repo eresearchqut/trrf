@@ -17,7 +17,7 @@ def get_triple(registry_model, form_name, section_code, cde_code):
 class Command(BaseCommand):
     help = 'Creates longitudinal report'
 
-    option_list = BaseCommand.option_list[1:] + (make_option(
+    option_list = getattr(BaseCommand, 'option_list', ()) + (make_option(
         '-r',
         '--registry',
         action='store',

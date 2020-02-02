@@ -6,6 +6,7 @@ from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import get_normal_fields
 
 from django import forms
 from django.utils.translation import ugettext as _
@@ -29,7 +30,8 @@ CONDITION_CHOICES = (("1", _("Yes")),
 
 VERIFICATION_CHOICES = (("V", "Verified"),
                         ("N", "Not Verified"),
-                        ("U", "Unknown"))
+                        ("U", "Unknown"),
+                        ('C', 'Corrected'))
 
 
 class PseudoForm:
@@ -135,14 +137,12 @@ class ReviewFormGenerator:
         if section_model is None:
             return {}
         d = {}
-        for cde_model in section_model.cde_models:
+        for cde_model in get_normal_fields(section_model):
             field_name, field = self.create_cde_field((form_model, section_model, cde_model))
             field.rdrf_tag = FieldTags.DATA_ENTRY
             if include_verification:
                 ver_field_name, ver_field = self.generate_verification_field(field_name)
                 d[ver_field_name] = ver_field
-                logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
-            logger.debug("added tag %s to field %s" % (FieldTags.DATA_ENTRY, field))
 
             d.update({field_name: field})
         return d
@@ -262,7 +262,6 @@ class DemographicsReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
         form_model = PseudoForm("Demographics")
         section_field_map = self.generate_fields_from_section(form_model, self.review_item.section)
-        logger.debug("section_field_map = %s" % section_field_map)
         return section_field_map
 
     def generate_metadata_fields(self):
@@ -290,18 +289,12 @@ class SectionMonitorReviewFormGenerator(ReviewFormGenerator):
 
 class MultiTargetReviewFormGenerator(ReviewFormGenerator):
     def generate_data_entry_fields(self):
-        logger.debug("Multitarget")
         d = {}
         metadata = self.review_item.load_metadata()
-        logger.debug("metadata = %s" % metadata)
-        logger.debug("number of fields = %s" % len(metadata))
 
         for field_dict in metadata:
             field_name, field_object = self.create_cde_field(field_dict)
             d[field_name] = field_object
-            logger.debug("created field for multitarget %s %s" % (field_name, field_object))
-
-        logger.debug("d = %s" % d)
 
         return d
 
@@ -323,7 +316,6 @@ class VerificationReviewFormGenerator(ReviewFormGenerator):
         form_model = self.review_item.form
         section_model = self.review_item.section
         if form_model is None and section_model is None:
-            logger.debug("returning ad hoc fields")
             return self._ad_hoc_data_entry_fields(self.review_item.target_metadata)
 
         if self.review_item.fields:
@@ -366,15 +358,12 @@ GENERATOR_MAP = {
 
 def create_review_forms(patient_review_model):
     review_model = patient_review_model.review
-    logger.debug("review_model = %s" % review_model.name)
     # for each review "item" we create the form _class_ to collect data for it
     # the resulting set of forms is sent to a wizard
     forms_list = []
-    logger.debug("creating review form classes ...")
 
     for review_item in review_model.items.all().order_by("position"):
         if review_item.is_applicable_to(patient_review_model):
-            logger.debug("creating review form class for %s" % review_item.name)
             generator_class = GENERATOR_MAP.get(review_item.item_type, None)
             if generator_class is None:
                 forms_list.append(DummyFormClass)
@@ -383,5 +372,4 @@ def create_review_forms(patient_review_model):
                 review_form_class = generator.create_form_class()
                 forms_list.append(review_form_class)
 
-    logger.debug("forms list = %s" % forms_list)
     return forms_list

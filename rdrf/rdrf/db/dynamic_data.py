@@ -3,6 +3,9 @@ from operator import itemgetter
 from itertools import zip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
+
+from rdrf.helpers.utils import BadKeyError
 
 from rdrf.db import filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
@@ -169,7 +172,8 @@ def parse_form_data(registry,
                     existing_record=None,
                     is_multisection=False,
                     parse_all_forms=False,
-                    django_instance=None):
+                    django_instance=None,
+                    skip_bad_key=False):
     """
     This class takes a bag of values with keys like:
     Takes a bag of values with keys like:
@@ -180,7 +184,7 @@ def parse_form_data(registry,
     This is more or less the opposite of `build_form_data`.
     """
     return FormDataParser(registry, form, data, existing_record, is_multisection, parse_all_forms,
-                          django_instance).nested_data
+                          django_instance, skip_bad_key).nested_data
 
 
 class FormDataParser(object):
@@ -199,7 +203,8 @@ class FormDataParser(object):
                  existing_record=None,
                  is_multisection=False,
                  parse_all_forms=False,
-                 django_instance=None):
+                 django_instance=None,
+                 skip_bad_key=False):
         self.registry_model = registry_model
         self.form_data = form_data
         self.parsed_data = {}
@@ -213,6 +218,7 @@ class FormDataParser(object):
         self.custom_consents = None
         self.address_data = None
         self.parse_all_forms = parse_all_forms
+        self.skip_bad_key = skip_bad_key
 
         if django_instance:
             self.django_id = django_instance.pk
@@ -373,7 +379,13 @@ class FormDataParser(object):
                 elif key == "PatientDataAddressSection":
                     self.address_data = self.form_data[key]
                 elif is_delimited_key(key):
-                    form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                    if self.skip_bad_key is True:
+                        try:
+                            form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
+                        except BadKeyError:
+                            logger.info(f"we are skipping the form data key '{key}'")
+                    else:
+                        form_model, section_model, cde_model = models_from_mongo_key(self.registry_model, key)
                     value = self.form_data[key]
                     self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
         else:
@@ -689,7 +701,8 @@ class DynamicDataWrapper(object):
                           multisection=False,
                           parse_all_forms=False,
                           index_map=None,
-                          additional_data=None):
+                          additional_data=None,
+                          skip_bad_key=False):
         self._convert_date_to_datetime(form_data)
 
         if self.CREATE_MODE:
@@ -716,7 +729,8 @@ class DynamicDataWrapper(object):
             existing_record=record.data,
             is_multisection=multisection,
             parse_all_forms=parse_all_forms,
-            django_instance=self.obj)
+            django_instance=self.obj,
+            skip_bad_key=skip_bad_key)
 
         if additional_data is not None:
             nested_data.update(additional_data)
@@ -756,7 +770,9 @@ class DynamicDataWrapper(object):
             history = self._make_record(registry_code, "history", data=snapshot)
             history.save()
         except Exception as ex:
-            logger.error("Couldn't add to history for patient %s: %s" % (patient_id, ex))
+            from registry.patients.models import Patient
+            patient_model = Patient.objects.get(id=patient_id)
+            logger.error("Couldn't add to history for patient %s: %s" % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), ex))
 
     def save_snapshot(self, registry_code, collection_name, form_name=None, form_user=None):
         record = self._get_record(registry_code, collection_name).first()

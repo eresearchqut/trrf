@@ -37,6 +37,7 @@ from rdrf.models.definition.verification_models import Verification
 
 from rdrf.system_role import SystemRoles
 
+from rdrf.models.definition.models import CustomAction
 
 from reversion.admin import VersionAdmin
 
@@ -413,7 +414,8 @@ class SurveyAdmin(admin.ModelAdmin):
 
 class SurveyRequestAdmin(admin.ModelAdmin):
     model = SurveyRequest
-    list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
+    list_display = ("patient_name", "survey_name", "patient_token",
+                    "created", "updated", "state", "error_detail", "user")
     search_fields = ("survey_name", "patient__family_name", "patient__given_names")
     list_display_links = None
 
@@ -462,7 +464,8 @@ class PatientReviewItemAdmin(admin.StackedInline):
 
 class PatientReviewAdmin(admin.ModelAdmin):
     model = PatientReview
-    list_display = ("patient",
+    list_display = ("moniker",
+                    "patient",
                     "parent",
                     "token",
                     "created_date",
@@ -488,6 +491,14 @@ class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
     form = FormTitleAdminForm
     list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
+
+
+class CustomActionAdmin(admin.ModelAdmin):
+    model = CustomAction
+    list_display = ("registry",
+                    "code",
+                    "name",
+                    "action_type")
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
@@ -551,6 +562,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Review, ReviewAdmin),
     (PatientReview, PatientReviewAdmin),
     (Verification, VerificationAdmin),
+    (CustomAction, CustomActionAdmin),
 ]
 
 ADMIN_COMPONENTS = []

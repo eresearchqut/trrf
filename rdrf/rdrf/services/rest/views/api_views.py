@@ -1,3 +1,4 @@
+from datetime import datetime
 from operator import attrgetter
 import pycountry
 
@@ -270,3 +271,23 @@ class PatientStages(generics.ListAPIView):
 
     def get_queryset(self):
         return PatientStage.objects.filter(registry_id=self.kwargs.get('registry_id'))
+
+
+class CalculatedCdeValue(APIView):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get(self, request, format=None):
+        return Response("Use the POST method")
+
+    def post(self, request, format=None):
+        # curl -H 'Content-Type: application/json' -X POST -u admin:admin http://localhost:8000/api/v1/calculatedcdes/ -d '{"cde_code":"DDAgeAtDiagnosis", "form_values":{"DateOfDiagnosis":"2019-05-01"},"patient_sex":1, "patient_date_of_birth":"2000-05-17"}'
+
+        patient_values = {'date_of_birth': datetime.strptime(request.data["patient_date_of_birth"], '%Y-%m-%d').date(),
+                          'sex': str(request.data["patient_sex"])}
+        form_values = request.data["form_values"]
+        mod = __import__('rdrf.forms.fields.calculated_functions', fromlist=['object'])
+        func = getattr(mod, request.data["cde_code"])
+        if func:
+            return Response(func(patient_values, form_values))
+        else:
+            raise Exception(f"Trying to call unknown calculated function {request.data['cde_code']}()")

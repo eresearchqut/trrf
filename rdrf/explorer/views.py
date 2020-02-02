@@ -25,7 +25,7 @@ from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
 from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.helpers.utils import mongo_key_from_models
+from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +277,12 @@ class SqlQueryView(View):
             else:
                 results = {"success_msg": "Report config field is correct structure"}
         else:
-            results = database_utils.run_sql().result
+            # Check for dangerous sql queries.
+            securityerrors = check_suspicious_sql(form.data["sql_query"], request.user.id)
+            if securityerrors:
+                results = {"error_msg": ' | '.join(securityerrors)}
+            else:
+                results = database_utils.run_sql().result
 
         return JsonResponse(results, safe=False)
 
@@ -413,9 +418,9 @@ class MultisectionHandler(object):
         self.reverse_map = reverse_column_map
         self.row_count = 0
 
+    # TODO: This function seems to be unused. Confirm it, and delete this function.
     def unroll_wide(self, row_dict):
-        for key in row_dict:
-            logger.debug("unroll_wide key = %s  value = %s" % (key, row_dict[key]))
+        pass
 
     def unroll(self, row):
         """
