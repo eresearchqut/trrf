@@ -322,22 +322,11 @@ class PositiveIntegerInput(widgets.TextInput):
 
 
 class RadioSelect(widgets.RadioSelect):
-    # def __init__(self, name, value, attrs, renderer):
-    #     super(RadioSelect, self).__init__(renderer=renderer)
+    template_name = "rdrf_cdes/radio_select.html"
 
     @staticmethod
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_RANGE}
-
-    def render(self, name, value, attrs=None, renderer=None):
-        html = super().render(name, value, attrs, renderer)
-        return self._transform(html)
-
-    def _transform(self, html):
-        #  make horizontal
-        html = re.sub(r'\<ul.+\>', '', html)
-        new_html = html.replace("<li>", "").replace("</li>", "").replace("</ul>", "")
-        return new_html
 
 
 class ReadOnlySelect(widgets.Select):
