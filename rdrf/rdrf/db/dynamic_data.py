@@ -665,7 +665,7 @@ class DynamicDataWrapper(object):
         # locate the multiple form group this form (must) be in
         form_group = None
         for cfg in registry_model.multiple_form_groups:
-            form_models = cfg.form_models
+            form_models = cfg.forms
             if len(form_models) == 1:
                 if form_models[0].pk == self.current_form_model.pk:
                     form_group = cfg

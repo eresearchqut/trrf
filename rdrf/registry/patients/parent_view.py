@@ -10,12 +10,11 @@ from registry.groups.models import WorkingGroup
 from registry.patients.admin_forms import ParentGuardianForm
 from registry.patients.models import AddressType, ParentGuardian, Patient, PatientAddress
 
-from rdrf.db.contexts_api import RDRFContextManager, RDRFContextError
+from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
-from rdrf.helpers.registry_features import RegistryFeatures
 
 from .mixins import LoginRequiredMixin
 
@@ -28,9 +27,9 @@ class RDRFContextSwitchError(Exception):
 
 class BaseParentView(View, LoginRequiredMixin):
 
-    def __init__(self,):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.registry = None
-        self.rdrf_context = None
         self.rdrf_context_manager = None
 
     _OTHER_CLINICIAN = "clinician-other"
@@ -53,37 +52,10 @@ class BaseParentView(View, LoginRequiredMixin):
 
         return clinician, working_group
 
-    def set_rdrf_context(self, patient_model, context_id):
-        # Ensure we always have a context , otherwise bail
-        self.rdrf_context = None
-        try:
-            if context_id is None:
-                if self.registry.has_feature(RegistryFeatures.CONTEXTS):
-                    raise RDRFContextError("Registry %s supports contexts but no context id  passed in url" %
-                                           self.registry)
-                else:
-                    self.rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient_model)
-            else:
-                self.rdrf_context = self.rdrf_context_manager.get_context(context_id, patient_model)
-
-            if self.rdrf_context is None:
-                raise RDRFContextSwitchError
-            else:
-                logger.debug("switched context for patient %s to context %s" % (patient_model,
-                                                                                self.rdrf_context.id))
-
-        except RDRFContextError as ex:
-            logger.error("Error setting rdrf context id %s for patient %s in %s: %s" % (context_id,
-                                                                                        patient_model,
-                                                                                        self.registry,
-                                                                                        ex))
-
-            raise RDRFContextSwitchError
-
 
 class ParentView(BaseParentView):
 
-    def get(self, request, registry_code, context_id=None):
+    def get(self, request, registry_code):
         context = {}
         if request.user.is_authenticated:
             parent = ParentGuardian.objects.get(user=request.user)
@@ -111,11 +83,11 @@ class ParentView(BaseParentView):
                         "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
                     })
 
-                self.set_rdrf_context(patient, context_id)
+                rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient)
                 patients.append({
                     "patient": patient,
                     "consent": consent_status_for_patient(registry_code, patient),
-                    "context_id": self.rdrf_context.pk,
+                    "context_id": rdrf_context.pk,
                     "forms": forms
                 })
 
@@ -123,14 +95,12 @@ class ParentView(BaseParentView):
             context['patients'] = patients
             context['registry_code'] = registry_code
 
-            self.set_rdrf_context(parent, context_id)
-            context['context_id'] = self.rdrf_context.pk
             fth = FormTitleHelper(self.registry, "")
             context['form_titles'] = fth.all_titles_for_user(request.user)
 
         return render(request, 'rdrf_cdes/parent.html', context)
 
-    def post(self, request, registry_code, context_id=None):
+    def post(self, request, registry_code):
         parent = ParentGuardian.objects.get(user=request.user)
         registry = Registry.objects.get(code=registry_code)
 
@@ -191,7 +161,7 @@ class ParentEditView(BaseParentView):
             user.last_name = last_name
             user.save()
 
-    def get(self, request, registry_code, parent_id, context_id=None):
+    def get(self, request, registry_code, parent_id):
         context = {}
         parent = ParentGuardian.objects.get(user=request.user)
 
@@ -201,7 +171,7 @@ class ParentEditView(BaseParentView):
 
         return render(request, "rdrf_cdes/parent_edit.html", context)
 
-    def post(self, request, registry_code, parent_id, context_id=None):
+    def post(self, request, registry_code, parent_id):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
 

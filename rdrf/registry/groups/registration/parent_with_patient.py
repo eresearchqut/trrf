@@ -26,13 +26,9 @@ class ParentWithPatientRegistration(BaseRegistration):
         user.working_groups.set([working_group])
         user.save()
 
-        logger.debug("Registration process - created user")
+        logger.info("Registration process - created user")
         patient = self._create_patient(registry, working_group, user, set_link_to_user=False)
-        logger.debug("Registration process - created patient")
-
-        address = self._create_patient_address(patient)
-        address.save()
-        logger.debug("Registration process - created patient address")
+        logger.info("Registration process - created patient")
 
         parent_guardian = self._create_parent()
 
@@ -50,7 +46,7 @@ class ParentWithPatientRegistration(BaseRegistration):
         }
 
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)
-        logger.debug("Registration process - sent notification for NEW_PATIENT")
+        logger.info("Registration process - sent notification for NEW_PATIENT")
 
     def _create_parent(self):
         form_data = self.form.cleaned_data
@@ -59,12 +55,6 @@ class ParentWithPatientRegistration(BaseRegistration):
             last_name=form_data["parent_guardian_last_name"],
             date_of_birth=form_data["parent_guardian_date_of_birth"],
             gender=form_data["parent_guardian_gender"],
-            address=form_data["parent_guardian_address"],
-            suburb=form_data["parent_guardian_suburb"],
-            state=form_data["parent_guardian_state"],
-            postcode=form_data["parent_guardian_postcode"],
-            country=form_data["parent_guardian_country"],
-            phone=form_data["parent_guardian_phone"],
         )
         return parent_guardian
 

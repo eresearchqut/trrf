@@ -61,7 +61,7 @@ class NavigationWizard(object):
 
         # there is one context per fixed group (always)
         for fixed_form_group in self._fixed_form_groups():
-            for form_model in fixed_form_group.form_models:
+            for form_model in fixed_form_group.forms:
                 if self.user.can_view(form_model):
                     form_groups_dict[fixed_form_group.sort_order].append(
                         self._construct_fixed_form_link(fixed_form_group, form_model)
@@ -71,7 +71,7 @@ class NavigationWizard(object):
         # in form order
         for multiple_form_group in self._multiple_form_groups():
             for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
-                for form_model in multiple_form_group.form_models:
+                for form_model in multiple_form_group.forms:
                     if self.user.can_view(form_model):
                         form_groups_dict[multiple_form_group.sort_order].append(
                             self._form_link(form_model, context_model)

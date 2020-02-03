@@ -26,16 +26,6 @@ SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
 SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
-# iprestrict config https://github.com/muccg/django-iprestrict
-IPRESRICT_TRUSTED_PROXIES = env.getlist("iprestrict_trusted_proxies", [])
-IPRESTRICT_RELOAD_RULES = env.get("iprestrict_reload_rules", True)
-IPRESTRICT_IGNORE_PROXY_HEADER = env.get("iprestrict_ignore_proxy_header", False)
-
-# If iprestrict by location is enabled then the MaxMind database needs
-# to be available.
-IPRESTRICT_GEOIP_ENABLED = env.get("iprestrict_geoip_enabled", False)
-GEOIP_PATH = env.get("geoip_path", os.path.join(WEBAPP_ROOT, "geoip"))
-
 DEBUG = env.get("debug", not PRODUCTION)
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
@@ -153,7 +143,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'iprestrict.middleware.IPRestrictMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -183,7 +172,6 @@ INSTALLED_APPS = [
     'explorer',
     'useraudit',
     'templatetag_handlebars',
-    'iprestrict',
     'rest_framework',
     'anymail',
     'registry.groups',

@@ -8,6 +8,13 @@ def is_iterable(el):
     return isinstance(el, Iterable) and not isinstance(el, str)
 
 
+def unquote(val):
+    if val and len(val) >= 2:
+        if val[0] == '"' and val[-1] == '"':
+            return unquote(val[1:-1])
+    return val
+
+
 class SectionHelper:
 
     def __init__(self, form):
@@ -149,8 +156,10 @@ class CDEHelper:
                 return False
             return is_valid
 
-        stripped_val = value.strip('"')
-        values = stripped_val.split(",")
+        def valid_code_or_value(v):
+            return v.lower() in values_dict or v.strip() in codes_list
+
+        stripped_val = unquote(value)
         valid = True
         cde_dict = self.cde_values_dict.get(cde, {})
         values_dict = cde_dict.get('values', {})
@@ -162,15 +171,10 @@ class CDEHelper:
                 return validate_range(stripped_val, cde_dict.get('min_value'), cde_dict.get('max_value'))
             elif cde_dict.get('max_length'):
                 return len(stripped_val) <= cde_dict.get('max_length')
-            else:
-                return valid
+            return valid
         else:
-            for v in values:
-                valid_value = values_dict.get(v.strip().lower()) is not None
-                valid_code = v.strip() in codes_list
-                valid = valid and (valid_value or valid_code)
-
-        return valid
+            valid = valid_code_or_value(stripped_val)
+            return valid or all(valid_code_or_value(v) for v in stripped_val.split(","))
 
 
 class EnrichedCDE:
@@ -198,7 +202,9 @@ class EnrichedCDE:
             values = []
             for part in parts:
                 values.append(self.cde_helper.get_actual_value(self.cde, part.strip()))
-            return ", ".join(values)
+            ret_val = ", ".join(values)
+            if ret_val != unquote(value):
+                return ret_val
         return self.cde_helper.get_actual_value(self.cde, value)
 
     def element_name(self):

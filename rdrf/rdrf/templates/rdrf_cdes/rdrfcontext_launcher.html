@@ -3,24 +3,26 @@
 {% load translate %}
 {% load lookup %}
 <script>
-  /*
-  var USE_ACCORDION = false;
-  var START_COLLAPSED = false;
-  $(function() {
-  if(USE_ACCORDION) {
-  $(".collapsible" ).accordion({
-  collapsible: true,
-  active: !START_COLLAPSED
-  }}
-  );
-  });
-  */
-  </script>
+    function popupCenter(url, title) {
+        var popupWidth = window.outerWidth > 1600 ? window.outerWidth * 0.25 : 400;
+        var popupHeight = window.outerHeight > 900 ? window.outerHeight * 0.5 : 450;
+
+        var popupTop = window.screenTop + (window.outerHeight / 2) - (popupHeight / 2);
+        var popupLeft = window.screenLeft + (window.outerWidth / 2) - (popupWidth / 2);
+
+        var newWindow = window.open(url, title, 'scrollbars=yes, width=' + popupWidth + ', height=' + popupHeight + ', top=' + popupTop + ', left=' + popupLeft);
+        if (window.focus) newWindow.focus();
+    }
+</script>
 
 <style>
   .panel-body  {
     word-break:break-word
-}
+  }
+  .panel-footer {
+    text-align: right;
+    font-weight: bold;
+  }
 </style>
 
 <div width="100%" class="panel panel-default collapsible">
@@ -113,6 +115,7 @@
                {% endif %}
             </div>
             <div id="existing_{{context.id}}" class="panel-body">
+
               {% for link in context.existing_links %}
                   {% if not link.current %}
                      <a href="{{link.url}}">{% trans link.text %}</a><br>
@@ -121,6 +124,19 @@
                   {% endif %}
               {% endfor %}
             </div>
+            {% if not context.all_existing_links_shown %}
+                <div class="panel-footer">
+                  <span>
+                    <a href="{{ context.list_link }}" target="popup" onclick="popupCenter('{{ context.list_link }}', '{{context.heading}}'); return false;">
+                      {% if context.existing_links_index == -1 %}
+                          {% trans "Show all" %} ({{ context.existing_links_len }})
+                      {% else %}
+                          {% trans "Show all" %} ({{ context.existing_links_index|add:1 }}/{{ context.existing_links_len }})
+                      {% endif %}
+                    </a>
+                  </span>
+                </div>
+            {% endif %}
          </div>
     {% endif %}
 {% endfor %}
@@ -136,7 +152,7 @@
   {% endif %}
   </div>
 </div>
-  
+
 {% endif %}
 
 <!-- end demographics form launcher -->

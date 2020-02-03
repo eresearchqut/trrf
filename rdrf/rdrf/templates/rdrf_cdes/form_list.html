@@ -1,0 +1,109 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+
+{% load add_attr %}
+{% load static from staticfiles %}
+{% load get_patient %}
+{% load has_feature %}
+{% load get_form_element %}
+{% load is_patient_relative_widget %}
+{% load is_formset_obj %}
+{% load get_information_link %}
+{% load get_info_text_expression %}
+{% load i18n %}
+{% load translate %}
+
+
+{% block formlinks %}
+{% endblock %}
+
+{% block sidebar %}
+    List view
+{% endblock %}
+
+{% block formbtns %}
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript">
+        var formLinks = JSON.parse("{{form_links|escapejs}}");
+        var formLinkElements = [];
+        formLinks.forEach(function (linkItem) {
+            var linkElement = document.createElement("a");
+            linkElement.href = linkItem["url"];
+            linkElement.onclick = function () {
+                clickClose(linkItem["url"]);
+            };
+
+            var listElement = document.createElement("li");
+            listElement.innerHTML = linkItem["text"];
+
+            linkElement.appendChild(listElement);
+            formLinkElements.push(linkElement);
+        });
+
+        function listLinks(query) {
+            var linkList = document.getElementById("link-list");
+            if (linkList === null) {
+                return;
+            }
+            linkList.innerHTML = "";
+
+            formLinkElements.forEach(function (linkItem) {
+                if (linkItem.textContent.includes(query)) {
+                    linkList.appendChild(linkItem);
+                }
+            })
+        }
+
+        $(window).on('load', function () {
+            listLinks("");
+
+            $("#search").keyup(function () {
+                listLinks(this.value);
+            });
+
+            $("#search-button").click(function () {
+                listLinks($("#search").val());
+            });
+        });
+
+        function clickClose(link) {
+            window.opener.location.href = link;
+            window.close()
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-info trrf-page-header">
+                <div class="panel-body">
+                    <h2>{% trans form_title %}</h2>
+                    <div class="input-group">
+                        <input type="text" id="search" class="form-control" placeholder="Search for..."
+                               aria-label="Search" autofocus="autofocus">
+                        <span class="input-group-btn">
+                            <button id="search-button" class="btn btn-default" type="button">
+                                <i class="glyphicon glyphicon-search" aria-hidden="true"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    {% if no_form_links %}
+                        <span>{% trans "No forms available" %}</span>
+                    {% else %}
+                        <ul id="link-list">
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

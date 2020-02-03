@@ -446,22 +446,19 @@ class ColumnCodeField(Column):
     sort_fields = []
 
 
-class ColumnNonContexts(Column):
+class ColumnOptionalContext(Column):
     sort_fields = []
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
-        if supports_contexts:
-            # if registry supports contexts, should use the context browser
-            return None
-        return self.cell_non_contexts(patient, form_progress, context_manager)
+        return self.cell_optional_contexts(patient, form_progress, context_manager)
 
     def fmt(self, val):
-        return self.icon(None) if val is None else self.fmt_non_contexts(val)
+        return self.icon(None) if val is None else self.fmt_optional_contexts(val)
 
-    def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
+    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
         pass
 
-    def fmt_non_contexts(self, val):
+    def fmt_optional_contexts(self, val):
         return val
 
     def icon(self, tick):
@@ -476,26 +473,28 @@ class ColumnWorkingGroups(Column):
     sort_fields = ["working_groups__name"]
 
 
-class ColumnDiagnosisProgress(ColumnNonContexts):
+class ColumnDiagnosisProgress(ColumnOptionalContext):
     field = "diagnosis_progress"
 
-    def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
-        return form_progress.get_group_progress("diagnosis", patient)
+    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
+        default_ctx = context_manager.get_or_create_default_context(patient) if context_manager else None
+        return form_progress.get_group_progress("diagnosis", patient, default_ctx)
 
-    def fmt_non_contexts(self, progress_number):
+    def fmt_optional_contexts(self, progress_number):
         template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" \
                    " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" \
                    "<span class='progress-label'>%s%%</span></div></div>"
         return template % (progress_number, progress_number, progress_number)
 
 
-class ColumnDiagnosisCurrency(ColumnNonContexts):
+class ColumnDiagnosisCurrency(ColumnOptionalContext):
     field = "diagnosis_currency"
 
-    def cell_non_contexts(self, patient, form_progress=None, context_manager=None):
-        return form_progress.get_group_currency("diagnosis", patient)
+    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
+        default_ctx = context_manager.get_or_create_default_context(patient) if context_manager else None
+        return form_progress.get_group_currency("diagnosis", patient, default_ctx)
 
-    def fmt_non_contexts(self, diagnosis_currency):
+    def fmt_optional_contexts(self, diagnosis_currency):
         return self.icon(diagnosis_currency)
 
 
