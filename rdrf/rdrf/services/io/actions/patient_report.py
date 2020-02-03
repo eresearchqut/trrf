@@ -7,6 +7,8 @@ from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.utils import format_date
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -162,7 +164,7 @@ class ReportParser:
                                  self.patient_model.pk)
 
     def _load(self):
-        if not self.registry_model.has_feature("contexts"):
+        if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
             return self.patient_model.get_dynamic_data(self.registry_model)
         else:
             for context_model in self.patient_model.context_models:

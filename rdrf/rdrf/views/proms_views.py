@@ -1,13 +1,18 @@
+import json
+import logging
+import qrcode
+
+from django.conf import settings
+from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.generic.base import View
+
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyStates
 from rdrf.models.definition.models import Registry
-from django.http import HttpResponseRedirect
-from django.http import Http404
-from django.urls import reverse
 from rdrf.forms.components import RDRFContextLauncherComponent
 from registry.patients.models import Patient
 from rdrf.forms.components import RDRFPatientInfoComponent
@@ -15,13 +20,9 @@ from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.proms_forms import SurveyRequestForm
 from rdrf.models.proms.models import SurveyRequest
 from rdrf.models.proms.models import SurveyRequestStates
-from django.http import JsonResponse
-from django.conf import settings
-import json
-import qrcode
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +90,7 @@ class PromsLandingPageView(View):
             raise Http404
 
         registry_model = get_object_or_404(Registry, code=registry_code)
-        check_login = registry_model.has_feature("proms_landing_login")
+        check_login = registry_model.has_feature(RegistryFeatures.PROMS_LANDING_LOGIN)
 
         survey_assignment = get_object_or_404(SurveyAssignment,
                                               patient_token=patient_token,

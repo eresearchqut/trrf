@@ -17,3 +17,6 @@ class RegistryFeatures:
     PATIENT_FORM_DOCTORS = "patient_form_doctors"
     PATIENT_GUID = "patient_guid"
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
+    USE_FIELD_VALUES = "use_field_values"
+    FORM_LOCKING = "form_locking"
+    PROMS_LANDING_LOGIN = "proms_landing_login"

@@ -859,7 +859,7 @@ def annotate_form_with_verifications(patient_model,
                                      section_model,
                                      initial_data,
                                      section_form):
-    if not registry_model.has_feature("verification"):
+    if not registry_model.has_feature(RegistryFeatures.VERIFICATION):
         return
 
     def get_cde_model(django_field):

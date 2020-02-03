@@ -12,6 +12,7 @@ from rdrf.helpers.utils import generate_token
 from django.forms import ValidationError
 from rdrf.events.events import EventType
 from rdrf.services.io.notifications.email_notification import process_notification
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
 def clean(s):
@@ -62,14 +63,14 @@ class Survey(models.Model):
 
     def clean(self):
         # Check the context group form is selected if the registry support context.
-        if self.registry.has_feature("contexts") and self.context_form_group is None:
+        if self.registry.has_feature(RegistryFeatures.CONTEXTS) and self.context_form_group is None:
             raise ValidationError("You forgot to select the context form group.")
         # Check that the selected form is in the correct form group
-        if self.registry.has_feature("contexts") and self.form and self.form not in self.context_form_group.forms:
+        if self.registry.has_feature(RegistryFeatures.CONTEXTS) and self.form and self.form not in self.context_form_group.forms:
             raise ValidationError(
                 f"The selected form {self.form.name} is not in the form group {self.context_form_group.name}")
         # Check that the context group form match the followup checkbox
-        if self.registry.has_feature('contexts'):
+        if self.registry.has_feature(RegistryFeatures.CONTEXTS):
             has_bad_settings_for_module = self.context_form_group.context_type != 'M' and self.is_followup is True
             has_bad_settings_for_followup = self.context_form_group.context_type == 'M' and self.is_followup is False
             if has_bad_settings_for_followup or has_bad_settings_for_module:

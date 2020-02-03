@@ -491,7 +491,7 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
         context["settings"] = settings
         context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
-        context["registry_has_locking"] = self.registry.has_feature("form_locking")
+        context["registry_has_locking"] = self.registry.has_feature(RegistryFeatures.FORM_LOCKING)
         context["metadata_locking"] = metadata_locking
         context["can_lock"] = self.user and self.user.has_perm("rdrf.form_%s_can_lock" % self.registry_form.name)
 
@@ -996,7 +996,7 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
-                if self.registry.has_feature("verification"):
+                if self.registry.has_feature(RegistryFeatures.VERIFICATION):
                     annotate_form_with_verifications(patient_model,
                                                      self.rdrf_context,
                                                      self.registry,

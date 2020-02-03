@@ -4,6 +4,8 @@ from rdrf.helpers.utils import timed
 from datetime import datetime
 from django.conf import settings
 
+from rdrf.helpers.registry_features import RegistryFeatures
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -346,7 +348,7 @@ class ReportingTableGenerator(object):
     def use_field_values(self):
         # field values were meant as a caching technique to speed
         # up reports
-        return self.registry_model.has_feature("use_field_values")
+        return self.registry_model.has_feature(RegistryFeatures.USE_FIELD_VALUES)
 
     @timed
     def run_explorer_query(self, database_utils):
