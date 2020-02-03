@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load translate %}
 {% load lookup %}
+{% load has_feature %}
+
 <script>
     function popupCenter(url, title) {
         var popupWidth = window.outerWidth > 1600 ? window.outerWidth * 0.25 : 400;
@@ -117,10 +119,18 @@
             <div id="existing_{{context.id}}" class="panel-body">
 
               {% for link in context.existing_links %}
-                  {% if not link.current %}
-                     <a href="{{link.url}}">{% trans link.text %}</a><br>
+				{% if not link.current %}
+					<a href="{{link.url}}">{% trans link.text %}</a>
+					{% if registry|has_feature:"form_locking" and link.locking %}
+						<i class="rdrf-lockicon rdrf-form_lock_icon fas fa-lock"></i>
+					{% endif %}
+					<br>
                   {% else %}
-                    <i>{{link.text}}</i><br>
+                    <i>{{link.text}}</i>
+					{% if registry|has_feature:"form_locking" and link.locking %}
+						<i class="rdrf-lockicon rdrf-form_lock_icon fas fa-lock"></i>
+					{% endif %}
+					<br>
                   {% endif %}
               {% endfor %}
             </div>
