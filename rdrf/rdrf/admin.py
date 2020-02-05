@@ -301,12 +301,8 @@ class RegistryAdmin(admin.ModelAdmin):
                         body=template.body,
                     )
 
-            messages.success(request, f"Notifications have been added to registry '{registry.code}'")
-            messages.info(request, render_to_string("admin/current_notification_table.html", {
-                "registry": registry.code,
-                "notifications": EmailNotification.objects.filter(
-                    registry=registry,
-                    description__in=EventType.REGISTRATION_TYPES)
+            messages.success(request, render_to_string("admin/notifications_added.html", {
+                "registry": registry,
             }))
 
     create_notifications_action.short_description = _("Create notifications")
@@ -441,10 +437,23 @@ class CdePolicyAdmin(admin.ModelAdmin):
     groups.short_description = _("Allowed Groups")
 
 
+class RegistryRegistrationNotificationFilter(admin.SimpleListFilter):
+    title = _("Registry registration notifications")
+    parameter_name = 'registry_registration'
+
+    def lookups(self, request, model_admin):
+        return [(reg.code, reg.name) for reg in Registry.objects.all()]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            registry = Registry.objects.get(code=self.value())
+            return queryset.filter(registry=registry, description__in=EventType.REGISTRATION_TYPES)
+
+
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient", "disabled", "registry")
-    list_filter = ("registry",)
+    list_filter = (RegistryRegistrationNotificationFilter, )
 
     def get_changeform_initial_data(self, request):
         from django.conf import settings
