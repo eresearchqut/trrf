@@ -310,3 +310,9 @@ class FormDSLValidationTestCase(FormTestCase):
             1,
             ['Invalid CDEs specified on line 1 : DM1ChronicInfection']
         )
+
+    def test_multi_section_condition_and_targets_same_section_with_section_prefix(self):
+        self.new_form.conditional_rendering_rules = '''
+        sectionF:DM1BestMotorLevel visible if DM1Apathy == Yes
+        '''
+        self.new_form.save()

@@ -22,7 +22,7 @@ class Target:
         valid_cdes = set(target.cde for target in self.target_cdes if target.is_valid_cde())
         return set(cdes) - valid_cdes
 
-    def get_section_name(self):
+    def get_section_code(self):
         if self.has_qualifier:
             return self.target_cdes[0].cde
         return None

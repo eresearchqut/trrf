@@ -165,13 +165,13 @@ class ConditionChecker:
     def check_condition(self, conditions, action, target):
         expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.get_key() for cde in target.target_cdes])
         multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
-        section_name = None
+        section_code = None
         if target.has_qualifier:
-            section_name = target.get_section_name()
+            section_code = target.get_section_code()
         # if the target is a section make sure we search for CDES in the condition
         # within the same section if it's not specified, to address the situation
         # in which a CDE is in multiple sections
-        condition_cdes = [c.cde.get_key(section_name) for c in conditions if isinstance(c, Condition)]
+        condition_cdes = [c.cde.get_key(section_code) for c in conditions if isinstance(c, Condition)]
 
         overlap_condition = any([c for c in condition_cdes if c in expanded_cdes])
 
