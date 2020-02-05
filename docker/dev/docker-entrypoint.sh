@@ -151,12 +151,20 @@ function _django_fixtures {
     set +x
 }
 
+function _django_create_cache_table {
+    info "creating cache table if it doesn't exist"
+    set -x
+    django-admin.py createcachetable --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-createcachetable.log
+    set +x
+}
+
 
 function _runserver() {
     : "${RUNSERVER_OPTS=${RUNSERVER_CMD} 0.0.0.0:${RUNSERVERPORT} --settings=${DJANGO_SETTINGS_MODULE}}"
 
     _django_migrate
     _django_fixtures
+    _django_create_cache_table
 
     info "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
     set -x
