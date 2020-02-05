@@ -233,3 +233,13 @@ class EnrichedCDE:
 
     def is_valid_cde(self):
         return self.get_key() in self.cde_helper.cde_names_dict
+
+    def __eq__(self, other):
+        if isinstance(other, EnrichedCDE):
+            return (
+                self.cde == other.cde and self.section == other.section and self.has_qualifier == other.has_qualifier
+            )
+        return False
+
+    def __hash__(self):
+        return hash((self.cde, self.section, self.has_qualifier))

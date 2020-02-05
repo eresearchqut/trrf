@@ -29,9 +29,7 @@ class Target:
 
     def __eq__(self, other):
         if isinstance(other, Target):
-            my_cdes = set(cde.get_key() for cde in self.target_cdes)
-            other_cdes = set(cde.get_key() for cde in other.target_cdes)
-            return len(my_cdes - other_cdes) == 0
+            return self.target_cdes == other.target_cdes
         return False
 
     def __hash__(self):
@@ -54,7 +52,7 @@ class Action:
         return False
 
     def __hash__(self):
-        return hash((self.action, ))
+        return hash(self.action)
 
     def __repr__(self):
         return self.action
