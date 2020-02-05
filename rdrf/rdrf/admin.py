@@ -237,19 +237,21 @@ class RegistryAdmin(admin.ModelAdmin):
                 registry.add_feature(RegistryFeatures.REGISTRATION)
                 registry.save()
 
-                messages.success(request, f"Registration enabled for '{registry.name}' ({registry.code})")
+                messages.success(request, _(f"Registration enabled for '{registry.name}' ({registry.code})"))
 
             existing_notifications = EmailNotification.objects.filter(
                 registry=registry,
-                description__in=EventType.REGISTRATION_TYPES
+                description__in=EventType.REGISTRATION_TYPES,
             )
 
-            if len(existing_notifications) == 0:
-                messages.warning(
-                    request,
-                    f"Notifications need to be created for registry '{registry.name}' ({registry.code}). "
-                    f"Use the 'Create notifications' action"
-                )
+            if len(existing_notifications) > 0 and len(existing_notifications.filter(disabled=False)) == 0:
+                messages.warning(request, render_to_string("admin/notifications_disabled.html", {
+                    "registry": registry
+                }))
+            elif len(existing_notifications) == 0:
+                messages.warning(request, render_to_string("admin/notifications_needed.html", {
+                    "registry": registry
+                }))
 
         # Check for missing cache table
         for cache_alias in settings.CACHES:

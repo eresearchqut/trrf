@@ -1,7 +1,6 @@
 {% load i18n %}
 
-<p>
-  {% trans "Registry " %}'{{ registry.name }}'({{ registry.code }}){% trans " has disabled notifications that need to be enabled for registration to work" %}</p>
+<p>{% trans "Notifications have been added to registry " %}'{{ registry.name }}' ({{ registry.code }}).</p>
 <p>
   {% trans "Current registration notifications belonging to the registry: " %}
   <a href="{% url "admin:rdrf_emailnotification_changelist" %}?registry_registration={{ registry.code }}">Link</a>
