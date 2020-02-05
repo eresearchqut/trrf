@@ -1,8 +1,6 @@
 from importlib import import_module
 
 from django.contrib.auth.models import Group
-from django.core.cache import caches
-from django.db import connection
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.contrib import admin
@@ -243,12 +241,6 @@ class RegistryAdmin(admin.ModelAdmin):
                 messages.warning(request, render_to_string("admin/notifications_needed.html", {
                     "registry": registry
                 }))
-
-        # Check for missing cache table
-        for cache_alias in settings.CACHES:
-            cache = caches[cache_alias]
-            if hasattr(cache, '_table') and cache._table not in connection.introspection.table_names():
-                messages.error(request, _(f"Missing cache table '{cache._table}'. Run django-admin createcachetable"))
 
         if len(unchanged) > 0:
             messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already enabled registration"))
