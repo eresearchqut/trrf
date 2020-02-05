@@ -308,7 +308,7 @@ class RegistryAdmin(admin.ModelAdmin):
                 "registry": registry,
             }))
 
-    create_notifications_action.short_description = _("Create notifications")
+    create_notifications_action.short_description = _("Create default registration notifications")
 
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
