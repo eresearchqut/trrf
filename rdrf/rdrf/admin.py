@@ -443,7 +443,8 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+    list_display = ("description", "registry", "email_from", "recipient", "group_recipient", "disabled", "registry")
+    list_filter = ("registry",)
 
     def get_changeform_initial_data(self, request):
         from django.conf import settings
