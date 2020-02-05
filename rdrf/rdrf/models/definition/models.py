@@ -28,11 +28,8 @@ from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
 
+
 logger = logging.getLogger(__name__)
-
-
-class InvalidStructureError(Exception):
-    pass
 
 
 class InvalidQuestionnaireError(Exception):
@@ -407,121 +404,6 @@ class Registry(models.Model):
         else:
             return False
 
-    @property
-    def structure(self):
-        """
-        Return a dictionary that shows the nested form structure of this registry
-        """
-        s = {}
-        s["name"] = self.name
-        s["code"] = self.code
-        s["desc"] = self.desc
-        s["version"] = self.version
-        s["forms"] = []
-        s["metadata_json"] = self.metadata_json
-        for form in self.forms:
-            if form.name == self.generated_questionnaire_name:
-                # we don't need to "design" a generated form so we skip
-                continue
-            form_dict = {}
-            form_dict["name"] = form.name
-            form_dict["questionnaire_display_name"] = form.questionnaire_display_name
-            form_dict["sections"] = []
-            form_dict["is_questionnaire"] = form.is_questionnaire
-            form_dict["position"] = form.position
-            form_dict["questionnaire_questions"] = form.questionnaire_questions
-            qcodes = form.questionnaire_questions.split(",")
-
-            for section in form.section_models:
-                section_dict = {}
-                section_dict["code"] = section.code
-                section_dict["display_name"] = section.display_name
-                section_dict["questionnaire_display_name"] = section.questionnaire_display_name
-                section_dict["allow_multiple"] = section.allow_multiple
-                section_dict["extra"] = section.extra
-                section_dict["questionnaire_help"] = section.questionnaire_help
-                elements = []
-                for element_code in section.get_elements():
-                    question_code = section.code + "." + element_code
-                    in_questionnaire = question_code in qcodes
-                    # NB. We capture each cde code in a section and whether it is used in the
-                    # questionnaire
-                    elements.append([element_code, in_questionnaire])
-
-                section_dict["elements"] = elements  # codes + whether in questionnaire
-                form_dict["sections"].append(section_dict)
-            s["forms"].append(form_dict)
-
-        return s
-
-    @structure.setter
-    def structure(self, new_structure):
-        """
-        Update this registry to the new structure
-        """
-        self._check_structure(new_structure)
-
-        logger.info("updating structure for registry %s pk %s" % (self, self.pk))
-        logger.info("old structure = %s" % self.structure)
-        logger.info("new structure = %s" % new_structure)
-
-        # don't include generated form
-        original_forms = [
-            f for f in self.forms if f.name != f.registry.generated_questionnaire_name]
-        logger.info("original forms = %s" % original_forms)
-
-        self.name = new_structure["name"]
-        self.code = new_structure["code"]
-        self.desc = new_structure["desc"]
-        self.version = new_structure["version"]
-        if "metadata_json" in new_structure:
-            self.metadata_json = new_structure["metadata_json"]
-        self.save()
-
-        new_forms = []
-        for form_dict in new_structure["forms"]:
-            form_name = form_dict["name"]
-            form, created = RegistryForm.objects.get_or_create(name=form_name, registry=self)
-            form.questionnaire_display_name = form_dict["questionnaire_display_name"]
-            form.is_questionnaire = form_dict["is_questionnaire"]
-            form.position = form_dict["position"]
-            questionnaire_questions = []
-            form.sections = ",".join([s["code"] for s in form_dict["sections"]])
-            new_forms.append(form)
-            # update sections
-            for section_dict in form_dict["sections"]:
-                section, created = Section.objects.get_or_create(code=section_dict["code"])
-                section.display_name = section_dict["display_name"]
-                section.questionnaire_display_name = section_dict["questionnaire_display_name"]
-                section.allow_multiple = section_dict["allow_multiple"]
-                section.extra = section_dict["extra"]
-                section.questionnaire_help = section_dict["questionnaire_help"]
-                element_pairs = section_dict["elements"]
-                section_elements = []
-                for pair in element_pairs:
-                    element_code = pair[0]
-                    in_questionnaire = pair[1]
-                    section_elements.append(element_code)
-                    if in_questionnaire:
-                        questionnaire_questions.append(
-                            section_dict["code"] + "." + element_code)
-                section.elements = ",".join(section_elements)
-                section.save()
-
-            form.questionnaire_questions = ",".join(questionnaire_questions)
-            for qq in questionnaire_questions:
-                logger.info(
-                    "registry %s form %s is exposing questionnaire question: %s" %
-                    (self.code, form_name, qq))
-
-            form.save()
-
-        # delete forms which are in original forms but not in new_forms
-        forms_to_delete = set(original_forms) - set(new_forms)
-        for form in forms_to_delete:
-            logger.warning("%s not in new forms - deleting!" % form)
-            form.delete()
-
     def clean(self):
         self._check_metadata()
         self._check_dupes()
@@ -578,44 +460,6 @@ class Registry(models.Model):
                 raise ValidationError("metadata json field should be a valid json dictionary")
         except ValueError:
             raise ValidationError("metadata json field should be a valid json dictionary")
-
-    def _check_structure(self, structure):
-        # raise error if structure not valid
-
-        for k in ["name", "code", "version", "forms"]:
-            if k not in structure:
-                raise InvalidStructureError("Missing key: %s" % k)
-        for form_dict in structure["forms"]:
-            for k in ["name", "is_questionnaire", "position", "sections"]:
-                if k not in form_dict:
-                    raise InvalidStructureError("Form dict %s missing key %s" % (form_dict, k))
-
-            form_name = form_dict["name"]
-
-            for section_dict in form_dict["sections"]:
-                for k in [
-                        "code",
-                        "display_name",
-                        "allow_multiple",
-                        "extra",
-                        "elements",
-                        "questionnaire_help"]:
-                    if k not in section_dict:
-                        raise InvalidStructureError(
-                            "Section %s missing key %s" % (section_dict, k))
-
-                for pair in section_dict["elements"]:
-                    element_code = pair[0]
-
-                    logger.info("checking section %s code %s" %
-                                (section_dict["code"], element_code))
-                    try:
-                        CommonDataElement.objects.get(code=element_code)
-                    except CommonDataElement.DoesNotExist:
-                        section_code = section_dict["code"]
-                        raise InvalidStructureError(
-                            "Form %s Section %s refers to data element %s which does not exist" %
-                            (form_name, section_code, element_code))
 
     @property
     def proms_system_url(self):
@@ -930,7 +774,7 @@ class CdePolicy(models.Model):
             return True
         # need to think about safety here
 
-        context = {"patient": patient_model}
+        context = {"patient": patient_model.as_dto()}
         result = eval(self.condition, {"__builtins__": None}, context)
         return result
 
@@ -1137,7 +981,7 @@ class RegistryForm(models.Model):
         if not self.applicability_condition:
             return True
 
-        evaluation_context = {"patient": patient}
+        evaluation_context = {"patient": patient.as_dto()}
 
         try:
             is_applicable = eval(self.applicability_condition,
@@ -1347,7 +1191,7 @@ class ConsentSection(models.Model):
             except ParentGuardian.DoesNotExist:
                 pass
 
-            function_context = {"patient": patient, "self_patient": self_patient}
+            function_context = {"patient": patient.as_dto(), "self_patient": self_patient.as_dto()}
 
             is_applicable = eval(
                 self.applicability_condition, {"__builtins__": None}, function_context)
@@ -1672,11 +1516,11 @@ class ContextFormGroup(models.Model):
         if not self.supports_direct_linking:
             return self.name
 
-        return self.form_models[0].nice_name
+        return self.forms[0].nice_name
 
     @property
     def supports_direct_linking(self):
-        return len(self.form_models) == 1
+        return len(self.forms) == 1
 
     @property
     def is_ordered_by_name(self):
@@ -1847,11 +1691,11 @@ class ContextFormGroup(models.Model):
 
     def get_add_action(self, patient_model):
         if self.patient_can_add(patient_model):
-            num_forms = len(self.form_models)
+            num_forms = len(self.forms)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
             from rdrf.helpers.utils import de_camelcase as dc
             action_title = "Add %s" % dc(
-                self.form_models[0].name) if num_forms == 1 else "Add %s" % dc(
+                self.forms[0].name) if num_forms == 1 else "Add %s" % dc(
                 self.name)
 
             if not self.supports_direct_linking:
@@ -1863,7 +1707,7 @@ class ContextFormGroup(models.Model):
                                                            str(self.pk)))
 
             else:
-                form_model = self.form_models[0]
+                form_model = self.forms[0]
                 # provide a link to the create view for a clinical form
                 # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
 
@@ -1875,11 +1719,6 @@ class ContextFormGroup(models.Model):
             return action_link, action_title
         else:
             return None
-
-    @property
-    def form_models(self):
-        return sorted([item.registry_form for item in self.items.all()],
-                      key=lambda f: f.position)
 
 
 class ContextFormGroupItem(models.Model):

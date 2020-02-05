@@ -1,5 +1,5 @@
 import logging
-from collections import defaultdict
+from collections import defaultdict, deque, namedtuple
 
 from django.contrib.contenttypes.models import ContentType
 from django.template import Context, loader
@@ -15,23 +15,16 @@ from rdrf.models.definition.models import (ContextFormGroup, RDRFContext,
                                            RegistryType)
 from rdrf.security.security_checks import user_is_patient_type
 
-
 logger = logging.getLogger("registry_log")
 
-
-class Link(object):
-
-    def __init__(self, url, text, current):
-        self.url = url
-        self.text = text
-        self.current = current
+Link = namedtuple('Link', ['url', 'text', 'current'])
 
 
 class LauncherError(Exception):
     pass
 
 
-class _Form(object):
+class _Form:
 
     def __init__(self, url, text, current=False, add_link_url=None, add_link_text=None):
         self.id = None
@@ -41,20 +34,30 @@ class _Form(object):
         self.add_link_url = add_link_url
         self.add_link_text = add_link_text
         self.heading = ""
-        self.existing_links = []  # for multiple contexts
+
+        # Multiple contexts
+        self.existing_links = []
+        self.existing_links_index = -1
+        self.existing_links_len = 0
+
+        self.list_link = ""
 
     def __str__(self):
         return "Form %s %s %s" % (self.text, self.url, self.current)
 
+    @property
+    def all_existing_links_shown(self):
+        return self.existing_links_len == len(self.existing_links)
 
-class _FormGroup(object):
+
+class _FormGroup:
 
     def __init__(self, name):
         self.name = name
         self.forms = []
 
 
-class RDRFComponent(object):
+class RDRFComponent:
     TEMPLATE = ""
 
     @property
@@ -266,7 +269,9 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form.heading = _(context_form_group.direct_name)
 
                 form.id = context_form_group.pk
-                form.existing_links = self._get_existing_links(context_form_group)
+                form.existing_links, form.existing_links_index, form.existing_links_len = \
+                    self._get_existing_links(context_form_group)
+                form.list_link = self._get_form_list_link(form)
                 return form
 
         cfg_qs = ContextFormGroup.objects.filter(
@@ -282,23 +287,57 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         return form_links
 
-    def _get_existing_links(self, context_form_group):
-        links = []
+    def _get_form_list_link(self, form):
+        return reverse("registry_form_list", args=[
+            self.registry_model.code,
+            form.id,
+            self.patient_model.pk,
+        ])
 
-        def is_current(url):
-            parts = url.split("/")
-            context_id = int(parts[-1])
-            if self.current_rdrf_context_model:
-                return context_id == self.current_rdrf_context_model.pk
-            else:
-                return False
+    def _get_existing_links(self, context_form_group, slice_len=5):
+        """
+        Create a subset of context form links of slice_len length, where the
+        currently-selected context form (if one is selected) is as central as
+        possible:
 
-        for url, text in self.patient_model.get_forms_by_group(context_form_group):
-            if not text:
-                text = "Not set"
-            link_obj = Link(url, text, is_current(url))
+          01234.6789 (slice_len=5)
+        = 34.67
+
+          01234.6 (slice_len=4)
+        = 34.6
+
+          0123456 (slice_len=3)
+        = 012
+
+        :return: links, current_index, total_forms
+        """
+        links = deque(maxlen=slice_len)
+        current_index = -1
+        index_found = False
+
+        is_current_form = self.current_rdrf_context_model and \
+            context_form_group.items.filter(registry_form=self.registry_form).exists()
+        current_context_id = self.current_rdrf_context_model.pk if is_current_form else None
+
+        forms = self.patient_model.get_forms_by_group(context_form_group)
+        total_forms = len(forms)
+        if not current_context_id:
+            forms = forms[:slice_len]
+
+        for index, (context_id, url, text) in enumerate(forms):
+            is_current = context_id == current_context_id
+            if is_current:
+                current_index = index
+                index_found = True
+
+            if (index - current_index) > (slice_len / 2) and len(links) == slice_len and index_found:
+                break
+
+            text = text or _("Not set")
+            link_obj = Link(url, text, is_current)
             links.append(link_obj)
-        return links
+
+        return list(links), current_index, total_forms
 
     def _get_current_multiple_context(self):
         # def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
@@ -390,7 +429,7 @@ class FormsButton(RDRFComponent):
     TEMPLATE = "rdrf_cdes/forms_button.html"
     MULTIPLE_LIMIT = 10  # Only show the last <MULTIPLE_LIMIT> items for multiple context form groups
 
-    class FormWrapper(object):
+    class FormWrapper:
 
         def __init__(
                 self,

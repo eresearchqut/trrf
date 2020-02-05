@@ -47,7 +47,6 @@ from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 import io
 from django.contrib import messages
-from django.http import HttpResponseRedirect
 from django.conf import settings
 
 from django.contrib.auth import get_user_model
@@ -115,8 +114,8 @@ class RegistryFormAdmin(admin.ModelAdmin):
 
 
 class RegistryAdmin(admin.ModelAdmin):
-    actions = ['export_registry_action', 'design_registry_action', 'generate_questionnaire_action',
-               'enable_registration_action', 'disable_registration_action', 'create_notifications_action']
+    actions = ['export_registry_action', 'generate_questionnaire_action', 'enable_registration_action',
+               'disable_registration_action', 'create_notifications_action']
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -143,14 +142,6 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
         return () if obj is None else ("code",)
-
-    def design_registry_action(self, request, registry_models_selected):
-        if len(registry_models_selected) != 1:
-            return
-        else:
-            registry = [r for r in registry_models_selected][0]
-            return HttpResponseRedirect(reverse('rdrf_designer', args=(registry.pk,)))
-    design_registry_action.short_description = _("Design")
 
     @staticmethod
     def export_registry(registry, request):

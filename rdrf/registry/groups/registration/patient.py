@@ -24,14 +24,9 @@ class PatientRegistration(BaseRegistration):
         user.working_groups.set([working_group])
         user.save()
 
-        logger.debug("Registration process - created user")
+        logger.info("Registration process - created user")
         patient = self._create_patient(registry, working_group, user)
-        logger.debug("Registration process - created patient")
-
-        address = self._create_patient_address(patient)
-        address.save()
-
-        logger.debug("Registration process - created patient address")
+        logger.info("Registration process - created patient")
 
         registration = RegistrationProfile.objects.get(user=user)
         template_data = {
@@ -41,7 +36,7 @@ class PatientRegistration(BaseRegistration):
         }
 
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)
-        logger.debug("Registration process - sent notification for NEW_PATIENT")
+        logger.info("Registration process - sent notification for NEW_PATIENT")
 
     def update_django_user(self, django_user, registry):
         form_data = self.form.cleaned_data

@@ -80,13 +80,6 @@ def try_to_register(step, registry, client_name, email_address, password):
         ('id_parent_guardian_first_name', client_first_name),
         ('id_parent_guardian_last_name', client_last_name),
         ('id_parent_guardian_date_of_birth', '1980-09-01'),
-        # Gender radio button
-        ('id_parent_guardian_address', 'Australia'),
-        ('id_parent_guardian_suburb', 'Australia'),
-        # Country dropdown
-        # State dropdown
-        ('id_parent_guardian_postcode', '6000'),
-        ('id_parent_guardian_phone', '98765432')
     ])
 
     # Populate plain text fields
@@ -153,7 +146,6 @@ def sleep_for_admin(step):
 @step('development fixtures')
 def load_development_fixtures(step):
     utils.django_init_dev()
-    utils.django_reloadrules()
 
 
 @step('export "(.*)"')
@@ -566,11 +558,6 @@ def click_cancel(step):
     link = world.browser.find_element_by_xpath(
         '//a[@class="btn btn-danger" and contains(., "Cancel")]')
     utils.click(link)
-
-
-@step('I reload iprestrict')
-def reload_iprestrict(step):
-    utils.django_reloadrules()
 
 
 @step('enter value "(.*)" for "(.*)"')
