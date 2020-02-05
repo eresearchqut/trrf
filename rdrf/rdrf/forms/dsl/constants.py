@@ -3,7 +3,7 @@ start: instruction+
 instruction: (target~1 action~1 "if" condition (boolean_operator~1 condition)*)
 condition.3: (VARIABLE OPERATOR ID_OR_CONSTANT)
 VARIABLE: CDE
-ID_OR_CONSTANT: "unset" | "set" | /\\w+/ | /"[\\w\\s,-]+"/
+ID_OR_CONSTANT: "unset" | "set" | /\\w+/ | /"[()\\w\\s,-]+"/
 FORM_OR_SECTION: "form\\s" | "section\\s"
 CDE:SECTION_PREFIX? /\\w+/
 SECTION_PREFIX:/\\w+/":"
