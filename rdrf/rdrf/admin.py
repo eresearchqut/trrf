@@ -232,12 +232,12 @@ class RegistryAdmin(admin.ModelAdmin):
 
         for registry in registry_models_selected:
             if registry.has_feature(RegistryFeatures.REGISTRATION):
-                unchanged.append(registry.code)
+                unchanged.append(f"'{registry.name}' ({registry.code})")
 
             registry.add_feature(RegistryFeatures.REGISTRATION)
             registry.save()
 
-            messages.success(request, f"Registration enabled for '{registry.code}'")
+            messages.success(request, f"Registration enabled for '{registry.name}' ({registry.code})")
 
             existing_notifications = EmailNotification.objects.filter(
                 registry=registry,
@@ -245,8 +245,11 @@ class RegistryAdmin(admin.ModelAdmin):
             )
 
             if len(existing_notifications) == 0:
-                messages.warning(request, f"Notifications need to be created for registry '{registry.code}'. "
-                                          f"Use the 'Create notifications' action")
+                messages.warning(
+                    request,
+                    f"Notifications need to be created for registry '{registry.name}' ({registry.code}). "
+                    f"Use the 'Create notifications' action"
+                )
 
         # Check for missing cache table
         for cache_alias in settings.CACHES:
@@ -255,7 +258,7 @@ class RegistryAdmin(admin.ModelAdmin):
                 messages.error(request, _(f"Missing cache table '{cache._table}'. Run django-admin createcachetable"))
 
         if len(unchanged) > 0:
-            messages.info(request, f"'{', '.join(code for code in unchanged)}' already enabled registration")
+            messages.info(request, f"'{', '.join(desc for desc in unchanged)}' already enabled registration")
 
     enable_registration_action.short_description = _("Enable registration")
 
@@ -264,15 +267,15 @@ class RegistryAdmin(admin.ModelAdmin):
 
         for registry in registry_models_selected:
             if not registry.has_feature(RegistryFeatures.REGISTRATION):
-                unchanged.append(registry.code)
+                unchanged.append(f"'{registry.name}' ({registry.code})")
 
             registry.remove_feature(RegistryFeatures.REGISTRATION)
             registry.save()
 
-            messages.success(request, f"Registration disabled for '{registry.code}'")
+            messages.success(request, f"Registration disabled for '{registry.name}' ({registry.code})")
 
         if len(unchanged) > 0:
-            messages.info(request, f"'{', '.join(code for code in unchanged)}' already had registration disabled")
+            messages.info(request, f"'{', '.join(desc for desc in unchanged)}' already had registration disabled")
 
     disable_registration_action.short_description = _("Disable registration")
 
