@@ -221,12 +221,12 @@ class RegistryAdmin(admin.ModelAdmin):
 
         for registry in registry_models_selected:
             if registry.has_feature(RegistryFeatures.REGISTRATION):
-                unchanged.append(f"'{registry.name}' ({registry.code})")
+                unchanged.append(str(registry))
             else:
                 registry.add_feature(RegistryFeatures.REGISTRATION)
                 registry.save()
 
-                messages.success(request, _(f"Registration enabled for '{registry.name}' ({registry.code})"))
+                messages.success(request, _(f"Registration enabled for {registry}"))
 
             existing_notifications = EmailNotification.objects.filter(
                 registry=registry,
@@ -252,12 +252,12 @@ class RegistryAdmin(admin.ModelAdmin):
 
         for registry in registry_models_selected:
             if not registry.has_feature(RegistryFeatures.REGISTRATION):
-                unchanged.append(f"'{registry.name}' ({registry.code})")
+                unchanged.append(str(registry))
             else:
                 registry.remove_feature(RegistryFeatures.REGISTRATION)
                 registry.save()
 
-                messages.success(request, _(f"Registration disabled for '{registry.name}' ({registry.code})"))
+                messages.success(request, _(f"Registration disabled for {registry}"))
 
         if len(unchanged) > 0:
             messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already had registration disabled"))
