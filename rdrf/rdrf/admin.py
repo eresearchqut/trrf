@@ -260,7 +260,7 @@ class RegistryAdmin(admin.ModelAdmin):
                 messages.error(request, _(f"Missing cache table '{cache._table}'. Run django-admin createcachetable"))
 
         if len(unchanged) > 0:
-            messages.info(request, f"'{', '.join(desc for desc in unchanged)}' already enabled registration")
+            messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already enabled registration"))
 
     enable_registration_action.short_description = _("Enable registration")
 
@@ -274,10 +274,10 @@ class RegistryAdmin(admin.ModelAdmin):
                 registry.remove_feature(RegistryFeatures.REGISTRATION)
                 registry.save()
 
-                messages.success(request, f"Registration disabled for '{registry.name}' ({registry.code})")
+                messages.success(request, _(f"Registration disabled for '{registry.name}' ({registry.code})"))
 
         if len(unchanged) > 0:
-            messages.info(request, f"'{', '.join(desc for desc in unchanged)}' already had registration disabled")
+            messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already had registration disabled"))
 
     disable_registration_action.short_description = _("Disable registration")
 
