@@ -137,18 +137,6 @@ form .aligned ul.errorlist {
 }
 
 /**************************************************************************
- * RadioSelect CDEs                                                       */
-
-.large-radio-select {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 200px);
-}
-
-.compact-radio-select > li {
-  display: inline-block;
-}
-
-/**************************************************************************
  * Project Title and Logo                                                 */
 
 .project_title {

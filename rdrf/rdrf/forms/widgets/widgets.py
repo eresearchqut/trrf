@@ -328,11 +328,6 @@ class RadioSelect(widgets.RadioSelect):
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_RANGE}
 
-    def get_context(self, name, value, attrs):
-        context = super().get_context(name, value, attrs)
-        context["size_class"] = "large-radio-select" if len(self.choices) > 3 else "compact-radio-select"
-        return context
-
 
 class ReadOnlySelect(widgets.Select):
 
