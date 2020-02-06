@@ -116,7 +116,7 @@ class BooleanOp:
         return False
 
     def __hash__(self):
-        return hash((self.operator, ))
+        return hash(self.operator)
 
 
 class TreeTransformer(Transformer):

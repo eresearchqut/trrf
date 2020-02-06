@@ -316,3 +316,15 @@ class FormDSLValidationTestCase(FormTestCase):
         sectionF:DM1BestMotorLevel visible if DM1Apathy == Yes
         '''
         self.new_form.save()
+
+    def test_with_condition_value_containing_colons_and_parantheses(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1BestMotorLevel visible if CardiacImplant == "Test with ; on: 'and (this)' with quotes"
+        '''
+        self.new_form.save()
+
+    def test_with_multiple_quoted_conditions(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1BestMotorLevel visible if CardiacImplant == "Test with ; on: 'and (this)' with quotes" or CardiacImplant == "Yes, not specified further"
+        '''
+        self.new_form.save()
