@@ -15,6 +15,10 @@ def unquote(val):
     return val
 
 
+def make_key(section, cde):
+    return f"{section}:{cde}"
+
+
 class SectionHelper:
 
     def __init__(self, form):
@@ -30,12 +34,12 @@ class SectionHelper:
     def get_section_cdes(self, section_code):
         s = [s for s in self.form.section_models if s.code == section_code]
         if s and s[0]:
-            return [m.code for m in s[0].cde_models]
+            return [make_key(s[0].code, m.code) for m in s[0].cde_models]
         return []
 
     def get_cde_to_section_dict(self):
         return {
-            m.code: (s.code, s.allow_multiple)
+            make_key(s.code, m.code): (s.code, s.allow_multiple)
             for s in self.form.section_models
             for m in s.cde_models
         }
@@ -81,7 +85,7 @@ class CDEHelper:
     def get_cde_names_dict(form):
 
         return {
-            m.code: (
+            make_key(s.code, m.code): (
                 CDEInfo(
                     name=f"{s.code}____{m.code}",
                     type=m.widget_name,
@@ -129,7 +133,7 @@ class CDEHelper:
         return self.section_names_dict.get(section, default_info)
 
     def get_actual_value(self, cde, value):
-        stripped_val = value.strip('"')
+        stripped_val = unquote(value)
         return self.cde_values_dict.get(cde, {}).get('values', {}).get(stripped_val.lower(), stripped_val)
 
     def get_data_type(self, cde):
@@ -180,12 +184,26 @@ class CDEHelper:
 class EnrichedCDE:
 
     def __init__(self, cde, cde_helper, has_qualifier=False):
-        self.cde = cde
+        parts = cde.split(":")
+        self.section = None
+        if len(parts) == 2:
+            self.section, self.cde = parts
+        else:
+            self.cde = cde
         self.cde_helper = cde_helper
         self.has_qualifier = has_qualifier
 
+    def __repr__(self):
+        return f"EnrichedCDE: section={self.section}, cde={self.cde}, qualifier={self.has_qualifier}"
+
+    def get_key(self, input_section=None):
+        if self.section:
+            return make_key(self.section, self.cde)
+        section = input_section or self.cde_helper.section_dict.get(self.cde)
+        return make_key(section, self.cde)
+
     def get_cde_info(self):
-        return self.cde_helper.get_cde_info(self.cde)
+        return self.cde_helper.get_cde_info(self.get_key())
 
     def get_section_info(self):
         return self.cde_helper.get_section_info(self.cde)
@@ -203,7 +221,7 @@ class EnrichedCDE:
             for part in parts:
                 values.append(self.cde_helper.get_actual_value(self.cde, part.strip()))
             ret_val = ", ".join(values)
-            if ret_val != unquote(value):
+            if unquote(ret_val) != unquote(value):
                 return ret_val
         return self.cde_helper.get_actual_value(self.cde, value)
 
@@ -212,3 +230,16 @@ class EnrichedCDE:
 
     def is_multi_section(self):
         return self.get_cde_info().is_multi_section
+
+    def is_valid_cde(self):
+        return self.get_key() in self.cde_helper.cde_names_dict
+
+    def __eq__(self, other):
+        if isinstance(other, EnrichedCDE):
+            return (
+                self.cde == other.cde and self.section == other.section and self.has_qualifier == other.has_qualifier
+            )
+        return False
+
+    def __hash__(self):
+        return hash((self.cde, self.section, self.has_qualifier))

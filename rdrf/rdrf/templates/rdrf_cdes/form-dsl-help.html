@@ -17,7 +17,9 @@
         <strong>{% trans "condition" %}</strong>
     <br/>
     <br/>
-    <strong>{% trans "target" %}</strong>&nbsp;{% trans "It can be either a CDE code, a list of CDEs, a section or a list of sections" %}
+    <strong>{% trans "target" %}</strong>&nbsp;
+    {% trans "It can be either a CDE code, a list of CDEs, a section or a list of sections" %}</br>
+    {% trans "A CDE can be specified by the CDE code or a CDE code prefixed by section code like sectionCode:cdeCode" %}
     <br/>
     <br/>
     <strong>{% trans "visibility" %}</strong>&nbsp;{% trans "Specifies the visibility of the target(s) if the condition holds" %}
@@ -110,10 +112,10 @@
         {% trans "This rule states that" %} ANGAllergySpecify {%trans "CDE" %}  {% trans "should be hidden if " %} ANGAllergiesType {%trans "does not include the values" %} Other {%trans "or" %} Food
         <br/>
     </p>
-
-
-
-
-
+    <code>section1:ANGAllergySpecify hidden if section2:ANGAllergiesType == Other</code>
+    <p>
+        {% trans "This rule states that" %} ANGAllergySpecify {%trans "CDE" %} {% trans "from section" %} section1 {% trans "should be hidden if " %} ANGAllergiesType {%trans "from section" %} section2 {%trans "does not equal to" %} Other
+        <br/>
+    </p>
 </p>
 {% endblock %}
