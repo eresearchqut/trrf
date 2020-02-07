@@ -1,6 +1,4 @@
-from importlib import import_module
-
-from django.contrib.auth.models import Group
+from django.db import transaction, IntegrityError
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.contrib import admin
@@ -265,33 +263,28 @@ class RegistryAdmin(admin.ModelAdmin):
     disable_registration_action.short_description = _("Disable registration")
 
     def create_notifications_action(self, request, registry_models_selected):
-        notifications_data = import_module(settings.REGISTRATION_NOTIFICATIONS).NOTIFICATIONS
-
         for registry in registry_models_selected:
-            for notification_data in notifications_data:
-                group_name = notification_data.group_recipient
-                group_recipient = Group.objects.get(name=group_name) if group_name else None
-
-                notification = EmailNotification(
-                    description=EventType.NEW_PATIENT,
-                    registry=registry,
-                    email_from=notification_data.from_address,
-                    recipient=notification_data.recipient,
-                    group_recipient=group_recipient,
-                )
-                notification.save()
-
-                for template in notification_data.templates:
-                    notification.email_templates.create(
-                        language=template.language,
-                        description=template.description,
-                        subject=template.subject,
-                        body=template.body,
+            # TODO: Add default notifications for all registration types. Needs different recipients.
+            try:
+                with transaction.atomic():
+                    notification = EmailNotification(
+                        description=EventType.NEW_PATIENT,
+                        registry=registry,
+                        recipient="{{ patient.user.email }}",
                     )
+                    notification.save()
 
-            messages.success(request, render_to_string("admin/notifications_added.html", {
-                "registry": registry,
-            }))
+                    notification.email_templates.set(
+                        EmailTemplate.objects.filter(default_for_notification=EventType.NEW_PATIENT)
+                    )
+                    notification.save()
+
+                    messages.success(request, render_to_string("admin/notifications_added.html", {
+                        "registry": registry,
+                    }))
+            except IntegrityError as e:
+                logger.error("Failed to create default registration notifications: %s", e)
+                messages.error(request, _("Failed to create default registration notifications"))
 
     create_notifications_action.short_description = _("Create default registration notifications")
 
@@ -448,10 +441,20 @@ class EmailNotificationAdmin(admin.ModelAdmin):
         return {'email_from': settings.DEFAULT_FROM_EMAIL}
 
 
+def default_and_lang(email_template):
+    if email_template.default_for_notification:
+        return f"{email_template.default_for_notification} ({email_template.language})"
+    else:
+        return "-"
+
+
+default_and_lang.short_description = "Default for notification"
+
+
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
     form = EmailTemplateAdminForm
-    list_display = ("subject", "language", "description")
+    list_display = ("subject", "language", "description", default_and_lang)
 
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
