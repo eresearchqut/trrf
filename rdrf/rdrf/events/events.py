@@ -17,3 +17,19 @@ class EventType:
     @classmethod
     def is_registration(cls, evt):
         return evt in cls.REGISTRATION_TYPES
+
+
+EMAIL_NOTIFICATIONS = (
+    (EventType.ACCOUNT_LOCKED, "Account Locked"),
+    (EventType.OTHER_CLINICIAN, "Other Clinician"),
+    (EventType.NEW_PATIENT, "New Patient Registered"),
+    (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
+    (EventType.ACCOUNT_VERIFIED, "Account Verified"),
+    (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
+    (EventType.REMINDER, "Reminder"),
+    (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
+    (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
+    (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
+    (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
+    (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
+)

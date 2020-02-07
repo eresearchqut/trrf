@@ -22,7 +22,7 @@ from django.utils.translation import ugettext as _
 
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
-from rdrf.events.events import EventType
+from rdrf.events.events import EventType, EMAIL_NOTIFICATIONS
 
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
@@ -1353,27 +1353,16 @@ class EmailTemplate(models.Model):
     description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()
+    default_for_notification = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS, null=True, default=None)
+
+    class Meta:
+        unique_together = [['language', 'default_for_notification']]  # unique across non-null values
 
     def __str__(self):
         return "%s (%s)" % (self.description, dict(settings.ALL_LANGUAGES)[self.language])
 
 
 class EmailNotification(models.Model):
-    EMAIL_NOTIFICATIONS = (
-        (EventType.ACCOUNT_LOCKED, "Account Locked"),
-        (EventType.OTHER_CLINICIAN, "Other Clinician"),
-        (EventType.NEW_PATIENT, "New Patient Registered"),
-        (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
-        (EventType.ACCOUNT_VERIFIED, "Account Verified"),
-        (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
-        (EventType.REMINDER, "Reminder"),
-        (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
-        (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
-        (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
-        (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
-        (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
-    )
-
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     email_from = models.EmailField(default='no-reply@trrf.registryframework.net')
