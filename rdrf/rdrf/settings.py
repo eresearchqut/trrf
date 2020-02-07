@@ -570,7 +570,6 @@ ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS = env.get('account_authenticated_re
 # Patient Registration
 REGISTRATION_FORM = "rdrf.forms.registration_forms.PatientRegistrationForm"
 REGISTRATION_CLASS = "registry.groups.registration.patient.PatientRegistration"
-REGISTRATION_NOTIFICATIONS = "rdrf.helpers.notifications"
 
 # Parent Registration (also adding a patient at registration time)
 # REGISTRATION_FORM = "rdrf.forms.registration_forms.ParentWithPatientRegistrationForm"
