@@ -331,17 +331,12 @@ class RadioSelect(widgets.RadioSelect):
     def _get_item_size(self):
         size = 2 if len(self.choices) <= 3 else 3
 
-        def set_size(value):
-            nonlocal size
-            if value > size:
-                size = value
-
         for choice in self.choices:
             choice_text = choice[1]
             if len(choice_text) > 50:
-                set_size(4)
+                size = max(size, 4)
             elif len(choice_text) > 10:
-                set_size(3)
+                size = max(size, 3)
 
         return f"col-sm-{size} col-md-{size+1} col-lg-{size}"
 
