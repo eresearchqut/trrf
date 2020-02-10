@@ -1429,11 +1429,16 @@ class RDRFCtxManager(models.Manager):
         return self.all_contexts().filter(active=False)
 
     def get_for_patient(self, patient, registry):
-        return self.get_queryset().filter(
-            registry=registry,
-            content_type=ContentType.objects.get_for_model(patient),
-            object_id=patient.pk,
-        )
+        filters = {
+            'registry': registry,
+            'content_type': ContentType.objects.get_for_model(patient),
+            'object_id': patient.pk
+        }
+        if registry.is_normal:
+            filters.update({
+                'context_form_group__isnull': True
+            })
+        return self.get_queryset().filter(**filters)
 
 
 class RDRFContext(models.Model):

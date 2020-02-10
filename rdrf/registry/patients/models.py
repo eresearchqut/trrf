@@ -1061,18 +1061,15 @@ class Patient(models.Model):
             date_of_birth=str(self.date_of_birth)
         )
 
-    @property
-    def context_models(self):
+    def context_models(self, registry=None):
         from django.contrib.contenttypes.models import ContentType
         from rdrf.models.definition.models import RDRFContext
-        contexts = []
         content_type = ContentType.objects.get_for_model(self)
 
-        for context_model in RDRFContext.objects.filter(
-                content_type=content_type,
-                object_id=self.pk).order_by("created_at"):
-            contexts.append(context_model)
-        return contexts
+        qs = RDRFContext.objects.filter(content_type=content_type, object_id=self.pk).order_by("created_at")
+        if registry and registry.is_normal:
+            qs = qs.filter(context_form_group__isnull=True)
+        return [cm for cm in qs]
 
     def get_multiple_contexts(self, multiple_form_group):
         # Return all context models in 1 multiple context form group
@@ -1115,7 +1112,7 @@ class Patient(models.Model):
             def key_func(c):
                 return c.created_at
 
-        contexts = [c for c in self.context_models
+        contexts = [c for c in self.context_models(registry_model)
                     if c.context_form_group is not None and c.context_form_group.pk == multiple_form_group.pk]
 
         return sorted(contexts, key=key_func, reverse=True)
@@ -1134,7 +1131,7 @@ class Patient(models.Model):
         def matches_context_form_group(cm):
             return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
 
-        context_models = sorted([cm for cm in self.context_models if matches_context_form_group(
+        context_models = sorted([cm for cm in self.context_models(context_form_group.registry) if matches_context_form_group(
             cm)], key=lambda cm: cm.context_form_group.get_ordering_value(self, cm), reverse=True)
 
         def link_text(cm):
@@ -1152,7 +1149,7 @@ class Patient(models.Model):
         from rdrf.models.definition.models import RegistryType
         registry_type = registry_model.registry_type
         if registry_type == RegistryType.NORMAL:
-            my_contexts = self.context_models
+            my_contexts = self.context_models(registry_model)
             num_contexts = len(my_contexts)
             if num_contexts == 1:
                 return my_contexts[0]

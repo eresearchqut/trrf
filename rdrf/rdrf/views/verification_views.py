@@ -107,7 +107,7 @@ class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
         patient_verifications = []
 
         for patient_model in Patient.objects.filter(clinician=user):
-            for context_model in patient_model.context_models:
+            for context_model in patient_model.context_models(registry_model):
                 verifications = get_verifications(user, registry_model, patient_model, context_model)
                 if len(verifications) > 0:
                     patient_verifications.append(PatientVerification(user,

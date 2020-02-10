@@ -6,6 +6,7 @@ from django.template import Context, loader
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -246,7 +247,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         return patient_context_menu.actions
 
     def _get_multiple_contexts(self):
-        if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
+        if not (self.registry_model.has_feature(RegistryFeatures.CONTEXTS) and self.registry_model.has_groups):
             return {}
 
         # provide links to filtered view of the existing data
@@ -391,7 +392,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
             return fixed_contexts
 
     def _get_normal_form_links(self):
-        default_context = self.patient_model.default_context(self.registry_model)
+        ctx_mgr = RDRFContextManager(self.registry_model)
+        default_context = ctx_mgr.get_or_create_default_context(self.patient_model)
         if default_context is None:
             raise LauncherError("Expected a default context for patient")
         else:
@@ -514,7 +516,8 @@ class FormsButton(RDRFComponent):
 
     def _get_form_link_wrappers(self):
         if self.context_form_group is None:
-            default_context = self.patient_model.default_context(self.registry_model)
+            ctx_mgr = RDRFContextManager(self.registry_model)
+            default_context = ctx_mgr.get_or_create_default_context(self.patient_model)
             return [self.FormWrapper(self.registry_model,
                                      self.patient_model,
                                      form_model,

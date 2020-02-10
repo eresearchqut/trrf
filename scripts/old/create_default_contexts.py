@@ -11,7 +11,7 @@ def display(p):
 
 
 def num_contexts(patient_model, registry_model):
-    return len([c for c in patient_model.context_models if c.registry.code == registry_model.code])
+    return len([c for c in patient_model.context_models(registry_model) if c.registry.code == registry_model.code])
 
 
 if __name__ == "__main__":

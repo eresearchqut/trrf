@@ -407,6 +407,24 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
+        self.registry_form = self.get_registry_form(form_id)
+        wizard = None
+        try:
+            wizard = NavigationWizard(self.user,
+                                      self.registry,
+                                      patient_model,
+                                      NavigationFormType.CLINICAL,
+                                      context_id,
+                                      self.registry_form)
+        except Exception:
+            # If there's an error here it means that registry context feature
+            # might have been changed in the meantime, or context form group might
+            # have been deleted, redirect to demographics page
+            if not self.CREATE_MODE:
+                return redirect('patient_edit', registry_code, int(patient_id))
+            else:
+                redirect('patient_add')
+
         self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
         if changes_since_version:
@@ -456,13 +474,6 @@ class FormView(View):
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
             context["show_archive_button"] = False
-
-        wizard = NavigationWizard(self.user,
-                                  self.registry,
-                                  patient_model,
-                                  NavigationFormType.CLINICAL,
-                                  context_id,
-                                  self.registry_form)
 
         context["next_form_link"] = wizard.next_link
         context["context_id"] = context_id
@@ -528,6 +539,24 @@ class FormView(View):
                 self.set_rdrf_context(patient, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
+
+        form_obj = self.get_registry_form(form_id)
+        wizard = None
+        try:
+            wizard = NavigationWizard(self.user,
+                                      self.registry,
+                                      patient,
+                                      NavigationFormType.CLINICAL,
+                                      context_id,
+                                      form_obj)
+        except Exception:
+            # If there's an error here it means that registry context feature
+            # might have been changed in the meantime, or context form group might
+            # have been deleted, redirect to demographics page
+            if not self.CREATE_MODE:
+                return redirect('patient_edit', registry_code, int(patient_id))
+            else:
+                redirect('patient_add')
 
         if not self.CREATE_MODE:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
@@ -737,12 +766,6 @@ class FormView(View):
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
-        wizard = NavigationWizard(self.user,
-                                  registry,
-                                  patient,
-                                  NavigationFormType.CLINICAL,
-                                  context_id,
-                                  form_obj)
 
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry,

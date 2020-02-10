@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.urls import reverse
+from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import RegistryForm
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -41,6 +42,8 @@ class NavigationWizard(object):
         self.links = []
         self.current_index = None  # set by method below
         self.has_clinician_form = self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM)
+        self.has_context_form_groups = self.registry_model.has_groups
+        self.supports_contexts = self.registry_model.has_feature(RegistryFeatures.CONTEXTS)
 
         self._construct_links()
 
@@ -58,24 +61,24 @@ class NavigationWizard(object):
             self.links.append(clinician_form_link)
 
         form_groups_dict = defaultdict(list)
-
-        # there is one context per fixed group (always)
-        for fixed_form_group in self._fixed_form_groups():
-            for form_model in fixed_form_group.forms:
-                if self.user.can_view(form_model):
-                    form_groups_dict[fixed_form_group.sort_order].append(
-                        self._construct_fixed_form_link(fixed_form_group, form_model)
-                    )
-
-        # for each multiple group, link through each assessment created for that group
-        # in form order
-        for multiple_form_group in self._multiple_form_groups():
-            for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
-                for form_model in multiple_form_group.forms:
+        if self.supports_contexts and self.has_context_form_groups:
+            # there is one context per fixed group (always)
+            for fixed_form_group in self._fixed_form_groups():
+                for form_model in fixed_form_group.forms:
                     if self.user.can_view(form_model):
-                        form_groups_dict[multiple_form_group.sort_order].append(
-                            self._form_link(form_model, context_model)
+                        form_groups_dict[fixed_form_group.sort_order].append(
+                            self._construct_fixed_form_link(fixed_form_group, form_model)
                         )
+
+            # for each multiple group, link through each assessment created for that group
+            # in form order
+            for multiple_form_group in self._multiple_form_groups():
+                for context_model in self.patient_model.get_multiple_contexts(multiple_form_group):
+                    for form_model in multiple_form_group.forms:
+                        if self.user.can_view(form_model):
+                            form_groups_dict[multiple_form_group.sort_order].append(
+                                self._form_link(form_model, context_model)
+                            )
 
         for _, links in sorted(form_groups_dict.items()):
             self.links.extend(links)
@@ -146,10 +149,14 @@ class NavigationWizard(object):
                                                          content_type__model="patient"))
 
         num_contexts = len(context_models)
+        if num_contexts == 0:
+            ctx_mgr = RDRFContextManager(self.registry_model)
+            context_model = ctx_mgr.get_or_create_default_context(self.patient_model)
+            num_contexts = 1
+        else:
+            context_model = context_models[0]
+
         assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
-
-        context_model = context_models[0]
-
         return self._form_link(form_model, context_model)
 
     def _free_forms(self):
@@ -170,10 +177,9 @@ class NavigationWizard(object):
             return 2
         else:
             # we're on some form
+            special_names = ['demographic', 'consents']
             if self.has_clinician_form:
-                special_names = ['demographic', 'consents', 'clinician']
-            else:
-                special_names = ['demographic', 'consents']
+                special_names.append('clinician')
 
             for index, (name, form_id, link) in enumerate(self.links):
                 if name in special_names:

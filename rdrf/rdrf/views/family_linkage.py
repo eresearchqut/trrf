@@ -222,7 +222,7 @@ class FamilyLinkageManager(object):
     def _get_main_context(self, patient_model):
         # return the correct context which contains the clinical form we need to update
         main_context_group = self.registry_model.default_context_form_group
-        for context_model in patient_model.context_models:
+        for context_model in patient_model.context_models(self.registry_model):
             if context_model.context_form_group and context_model.context_form_group.pk == main_context_group.pk:
                 return context_model
 

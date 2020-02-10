@@ -184,7 +184,7 @@ class DatabaseUtils(object):
                      .prefetch_related("cde"))
 
                 if patient_model:
-                    for context_model in patient_model.context_models:
+                    for context_model in patient_model.context_models(self.registry_model):
                         context_id = context_model.pk
                         row = copy(row_dict)
                         # row["context_id"] = context_id
