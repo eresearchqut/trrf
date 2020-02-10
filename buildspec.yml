@@ -3,8 +3,6 @@ version: 0.2
 phases:
   install:
     commands:
-      #- printenv
-
       # CodePipeline has no support for git submodules:
       #
       # https://forums.aws.amazon.com/thread.jspa?threadID=248267
@@ -37,22 +35,6 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-
-      # CodePipeline loses the file permissions while copying artifacts
-      # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
-      - chmod +x scripts/*.sh
-      - chmod +x docker/dev/*.sh
-      # Makes the following chmod work both in TRRF or when TRRF is a submodule at rdrf
-      # - chmod +x rdrf/rdrf/scripts/check-calculation.js
-      - |
-        if [ -f rdrf/rdrf/scripts/check-calculation.js ]; then
-          chmod +x rdrf/rdrf/scripts/check-calculation.js
-        fi
-      - |
-        if [ -f rdrf/rdrf/rdrf/scripts/check-calculation.js ]; then
-          chmod +x rdrf/rdrf/rdrf/scripts/check-calculation.js
-        fi
-
       #- docker-compose build
       #- echo Running tests...
       #- scripts/lint.sh
@@ -67,7 +49,6 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
       - docker push $IMAGE_REPO:qa
-
   post_build:
     commands:
       - |
@@ -244,22 +225,7 @@ phases:
                   ContainerName: "$CONTAINER_NAME"
                   ContainerPort: 9443
         EOF
-      - pwd
-      - ls -la
-      - cat taskdef.json
-      - cat appspec.yaml
 artifacts:
   files:
     - 'taskdef.json'
     - 'appspec.yaml'
-
-
-# TODO: create a secondary artifact in CloudFormation for CodeBuild, selenium_screenshots that maps
-# to this configuration to get the selenium screenshots uploaded to S3
-#
-#  secondary-artifacts:
-#    selenium_screenshots:
-#      files:
-#        - data/aloe/dev/scratch/*
-#      discard-paths: yes
-#      name: seleniumScreenshots
