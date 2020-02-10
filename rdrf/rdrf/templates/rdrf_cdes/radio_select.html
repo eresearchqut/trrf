@@ -8,7 +8,7 @@
         <ul{% if id %} id="{{ id }}_{{ index }}"{% endif %}>
       {% endif %}
     {% for option in options %}
-      <li class="col-sm-3">{% include option.template_name with widget=option %}</li>
+      <li class="{{ item_size }}">{% include option.template_name with widget=option %}</li>
     {% endfor %}
     {% if group %}
       </ul></li>

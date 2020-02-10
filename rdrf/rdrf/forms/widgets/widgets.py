@@ -328,6 +328,28 @@ class RadioSelect(widgets.RadioSelect):
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_RANGE}
 
+    def _get_item_size(self):
+        size = 2 if len(self.choices) <= 3 else 3
+
+        def set_size(value):
+            nonlocal size
+            if value > size:
+                size = value
+
+        for choice in self.choices:
+            choice_text = choice[1]
+            if len(choice_text) > 50:
+                set_size(4)
+            elif len(choice_text) > 10:
+                set_size(3)
+
+        return f"col-sm-{size} col-md-{size+1} col-lg-{size}"
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["item_size"] = self._get_item_size()
+        return context
+
 
 class ReadOnlySelect(widgets.Select):
 
