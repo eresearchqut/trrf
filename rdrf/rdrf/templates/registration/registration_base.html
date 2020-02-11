@@ -114,10 +114,12 @@
 
         function onBeforeSubmit() {
             $("#id_email").val($("#id_username").val());
-            $("#patient-form").accordion("option", "active" ,0);
-            if ($("#guardian-form").length > 0) {
-                $("#guardian-form").accordion('option', 'active' ,0);
-            }
+            {% if not is_mobile %}
+                $("#patient-form").accordion("option", "active" ,0);
+                if ($("#guardian-form").length > 0) {
+                    $("#guardian-form").accordion('option', 'active' ,0);
+                }
+            {% endif %}
         }
     </script>
 
