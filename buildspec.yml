@@ -42,7 +42,7 @@ phases:
       #- scripts/unit-tests.sh
       #- scripts/end2end-tests.sh
       #- echo Building and tagging the Docker image...
-      - export GIT_TAG="${GIT_COMMIT_ID:0:8}"
+      - export GIT_TAG="$(echo $GIT_COMMIT_ID | cut -c1-8)"
       - echo "Building image from commit ${GIT_COMMIT_ID} ${GIT_COMMIT_URL}"
       - docker build -f docker/production/Dockerfile --label "release-id=${RELEASE_ID}" -t "${IMAGE_REPO}:${GIT_TAG}" -t "${IMAGE_REPO}:${GIT_BRANCH_NAME}" .
 
