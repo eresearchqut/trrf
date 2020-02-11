@@ -1447,7 +1447,7 @@ class RDRFContext(models.Model):
     context_form_group = models.ForeignKey("ContextFormGroup",
                                            null=True,
                                            blank=True,
-                                           on_delete=models.SET_NULL)
+                                           on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     created_at = models.DateTimeField(auto_now_add=True)
