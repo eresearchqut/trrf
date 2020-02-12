@@ -84,24 +84,39 @@
         </p>
         {{ cl.formset.non_form_errors }}
     {% endif %}
+
     <div id="changelist">
       {% block search %}{% search_form cl %}
       {% endblock %}
       {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
 
-      <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
-      {% if cl.formset %}
-        <div>{{ cl.formset.management_form }}</div>
-      {% endif %}
+      <div>
+        {% block filters %}
+          {% if cl.has_filters %}
+          <div id="changelist-filter" style="position: relative">
+            <h2>{% trans 'Filter' %}</h2>
+            {% if cl.preserved_filters %}<h3 id="changelist-filter-clear">
+              <a href="?{% if cl.is_popup %}_popup=1{% endif %}">&#10006; {% trans "Clear all filters" %}</a>
+            </h3>{% endif %}
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+          </div>
+          {% endif %}
+        {% endblock %}
+        <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+        {% if cl.formset %}
+          <div>{{ cl.formset.management_form }}</div>
+        {% endif %}
 
-      {% block result_list %}
-          {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
-          {% result_list cl %}
-          {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
-      {% endblock %}
-      
-      {% block pagination %}{% pagination cl %}{% endblock %}
-      </form>
+        {% block result_list %}
+            {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
+            {% result_list cl %}
+            {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+        {% endblock %}
+
+        {% block pagination %}{% pagination cl %}{% endblock %}
+        </form>
+
+      </div>
     </div>
   </div>
 

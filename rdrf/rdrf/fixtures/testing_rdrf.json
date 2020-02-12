@@ -4693,6 +4693,18 @@
     }
   },
   {
+    "pk": 353,
+    "model": "rdrf.cdepermittedvalue",
+    "fields": {
+      "pv_group": "CardiacImplants",
+      "code": "CardiacImplantstest",
+      "questionnaire_value": null,
+      "value": "Test with ; on: 'and (this)' with quotes",
+      "position": null,
+      "desc": "Test with ; on: 'and (this)' with quotes"
+    }
+  },
+  {
     "pk": "Address",
     "model": "rdrf.commondataelement",
     "fields": {
