@@ -2,6 +2,7 @@ import base64
 import datetime
 import inspect
 import logging
+import math
 import re
 import sys
 from operator import attrgetter
@@ -328,21 +329,23 @@ class RadioSelect(widgets.RadioSelect):
     def usable_for_types():
         return {CommonDataElement.DATA_TYPE_RANGE}
 
-    def _get_item_size(self):
-        size = 2 if len(self.choices) <= 3 else 3
+    def _get_column_width(self):
+        no_of_choices = len(self.choices)
+        longest_choice_text = max(len(choice[1]) for choice in self.choices)
+        has_long_text = longest_choice_text > 50
+        has_short_texts_only = longest_choice_text < 5
 
-        for choice in self.choices:
-            choice_text = choice[1]
-            if len(choice_text) > 50:
-                size = max(size, 4)
-            elif len(choice_text) > 10:
-                size = max(size, 3)
+        cols_per_row = 3
+        if has_long_text:
+            cols_per_row = 4
+        elif has_short_texts_only and no_of_choices <= 3:
+            cols_per_row = 2
 
-        return f"col-sm-{size} col-md-{size+1} col-lg-{size}"
+        return f"col-xs-12 col-sm-{math.ceil((cols_per_row + 2) / 2) * 2} col-md-{cols_per_row}"
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context["item_size"] = self._get_item_size()
+        context["column_width"] = self._get_column_width()
         return context
 
 
