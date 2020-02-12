@@ -147,6 +147,7 @@ function _django_fixtures {
     info "loading fixtures ${DJANGO_FIXTURES}"
     set -x
     django-admin.py init ${DJANGO_FIXTURES}
+    django-admin.py reload_rules
     set +x
 }
 
