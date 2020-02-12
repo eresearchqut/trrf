@@ -1,5 +1,5 @@
 # FROM muccg/rdrf-builder
-FROM python:3.8.0 as builder
+FROM python:3.8 as builder
 
 ENV PYTHONUNBUFFERED 1
 
@@ -41,7 +41,7 @@ RUN pip install -r test-requirements.txt
 
 VOLUME ["/data"]
 
-FROM python:3.8.0-slim
+FROM python:3.8-slim
 
 ENV PYTHONPATH="/app/rdrf/:${PYTHONPATH}"
 ENV DJANGO_SETTINGS_MODULE rdrf.settings

@@ -203,6 +203,29 @@ if [ "$1" = 'uwsgi_ssl' ]; then
     exec uwsgi --master --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
+# prod uwsgi HTTPS entrypoint
+if [ "$1" = 'uwsgi_ssl_fargate' ]; then
+    info "[Run] Starting prod uwsgi on HTTPS"
+
+    _django_check_deploy
+
+    info "running collectstatic"
+    set -x
+    django-admin.py collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1
+
+    # Only run New Relic monitoring if its configuration exists
+    if [ -n "${NEW_RELIC_MONITOR_MODE}" ] && [ "${NEW_RELIC_MONITOR_MODE}" == 'true' ]; then
+        nr_command='newrelic-admin run-program'
+    else
+        nr_command=''
+    fi
+
+    set -x
+    # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
+    exec ${nr_command} uwsgi --master --enable-threads --single-interpreter --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+fi
+
+
 
 # runserver entrypoint
 if [ "$1" = 'runserver' ]; then

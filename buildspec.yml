@@ -3,8 +3,6 @@ version: 0.2
 phases:
   install:
     commands:
-      #- printenv
-
       # CodePipeline has no support for git submodules:
       #
       # https://forums.aws.amazon.com/thread.jspa?threadID=248267
@@ -37,49 +35,199 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-
-      # CodePipeline loses the file permissions while copying artifacts
-      # https://docs.aws.amazon.com/codepipeline/latest/userguide/troubleshooting.html#troubleshooting-file-permissions
-      - chmod +x scripts/*.sh
-      - chmod +x docker/dev/*.sh
-      # Makes the following chmod work both in TRRF or when TRRF is a submodule at rdrf
-      # - chmod +x rdrf/rdrf/scripts/check-calculation.js
-      - |
-        if [ -f rdrf/rdrf/scripts/check-calculation.js ]; then
-          chmod +x rdrf/rdrf/scripts/check-calculation.js
-        fi
-      - |
-        if [ -f rdrf/rdrf/rdrf/scripts/check-calculation.js ]; then
-          chmod +x rdrf/rdrf/rdrf/scripts/check-calculation.js
-        fi
-
       - docker-compose build
       - echo Running tests...
       - scripts/lint.sh
       - scripts/check-migrations.sh
       - scripts/unit-tests.sh
       - scripts/end2end-tests.sh
-      - echo Building and tagging the Docker image...
-      - docker build -f docker/production/Dockerfile -t $IMAGE_REPO:$APPLICATION_VERSION .
+      - export GIT_TAG="$(echo $GIT_COMMIT_ID | cut -c1-8)"
+      - echo "Building image from commit ${GIT_COMMIT_ID} ${GIT_COMMIT_URL}"
+      - docker build -f docker/production/Dockerfile --label "release-id=${RELEASE_ID}" -t "${IMAGE_REPO}:${GIT_TAG}" -t "${IMAGE_REPO}:${GIT_BRANCH_NAME}" .
 
       # docker push used to be in post_build, but post_build is executed even on build failure.
       # We don't want to push the docker image if the build failed for any reason, so we can't do the docker push in post_build.
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $IMAGE_REPO:$APPLICATION_VERSION
-
+      - docker push "${IMAGE_REPO}:${GIT_TAG}"
+      - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
+  post_build:
+    commands:
+      - |
+        cat << EOF > taskdef.json
+        {
+          "containerDefinitions": [
+            {
+              "command": [
+                "$COMMAND"
+              ],
+              "environment": [
+                {
+                  "name": "ENVIRONMENT_NAME",
+                  "value": "$ENVIRONMENT_NAME"
+                },
+                {
+                  "name": "APPLICATION_NAME",
+                  "value": "$APPLICATION_NAME"
+                },
+                {
+                  "name": "DBDATABASE",
+                  "value": "$DBDATABASE"
+                },
+                {
+                  "name": "DESIGN_MODE",
+                  "value": "$DESIGN_MODE"
+                },
+                {
+                  "name": "DJANGO_FIXTURES",
+                  "value": "$DJANGO_FIXTURES"
+                },
+                {
+                  "name": "FILE_STORAGE",
+                  "value": "$FILE_STORAGE"
+                },
+                {
+                  "name": "TRRF_SITE_NAME",
+                  "value": "$TRRF_SITE_NAME"
+                },
+                {
+                  "name": "DBPORT",
+                  "value": "$DBPORT"
+                },
+                {
+                  "name": "DBSERVER",
+                  "value": "$DBSERVER"
+                },
+                {
+                  "name": "CLINICAL_DBNAME",
+                  "value": "$CLINICAL_DBNAME"
+                },
+                {
+                  "name": "CSRF_TRUSTED_ORIGINS",
+                  "value": "$CSRF_TRUSTED_ORIGINS"
+                },
+                {
+                  "name": "DBNAME",
+                  "value": "$DBNAME"
+                },
+                {
+                  "name": "DBUSER",
+                  "value": "$DBUSER"
+                },
+                {
+                  "name": "REPORTING_DBNAME",
+                  "value": "$REPORTING_DBNAME"
+                },
+                {
+                  "name": "RRF_SITE_DOMAIN",
+                  "value": "$RRF_SITE_DOMAIN"
+                },
+                {
+                  "name": "AWS_STORAGE_BUCKET_NAME",
+                  "value": "$AWS_STORAGE_BUCKET_NAME"
+                },
+                {
+                  "name": "ALLOWED_HOSTS",
+                  "value": "$ALLOWED_HOSTS"
+                },
+                {
+                  "name": "IPRESTRICT_IGNORE_PROXY_HEADER",
+                  "value": "$IPRESTRICT_IGNORE_PROXY_HEADER"
+                },
+                {
+                  "name": "SECURE_SSL_REDIRECT",
+                  "value": "$SECURE_SSL_REDIRECT"
+                },
+                {
+                  "name": "PRODUCTION",
+                  "value": "$PRODUCTION"
+                },
+                {
+                  "name": "DEBUG",
+                  "value": "$DEBUG"
+                },
+                {
+                  "name": "NEW_RELIC_APP_NAME",
+                  "value": "$NEW_RELIC_APP_NAME"
+                },
+                {
+                  "name": "NEW_RELIC_MONITOR_MODE",
+                  "value": "$NEW_RELIC_MONITOR_MODE"
+                }
+              ],
+              "image": "${IMAGE_REPO}:${GIT_TAG}",
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-create-group": "true",
+                  "awslogs-group": "$AWSLOGS_GROUP",
+                  "awslogs-region": "$AWS_DEFAULT_REGION",
+                  "awslogs-stream-prefix": "$AWSLOGS_STREAM_PREFIX"
+                }
+              },
+              "name": "$ENVIRONMENT_NAME-$APPLICATION_NAME",
+              "essential": true,
+              "portMappings": [
+                {
+                  "containerPort": $CONTAINER_PORT,
+                  "hostPort": $CONTAINER_PORT
+                }
+              ],
+              "secrets": [
+                {
+                  "name": "AWS_SES_ACCESS_KEY_ID",
+                  "valueFrom": "$AWS_SES_ACCESS_KEY_ID"
+                },
+                {
+                  "name": "AWS_SES_SECRET_ACCESS_KEY",
+                  "valueFrom": "$AWS_SES_SECRET_ACCESS_KEY"
+                },
+                {
+                  "name": "SECRET_KEY",
+                  "valueFrom": "$SECRET_KEY"
+                },
+                {
+                  "name": "RECAPTCHA_SECRET_KEY",
+                  "valueFrom": "$RECAPTCHA_SECRET_KEY"
+                },
+                {
+                  "name": "RECAPTCHA_SITE_KEY",
+                  "valueFrom": "$RECAPTCHA_SITE_KEY"
+                },
+                {
+                  "name": "DBPASS",
+                  "valueFrom": "$DBPASS"
+                },
+                {
+                  "name": "NEW_RELIC_LICENSE_KEY",
+                  "valueFrom": "$NEW_RELIC_LICENSE_KEY"
+                }
+              ]
+            }
+          ],
+          "cpu": "1024",
+          "executionRoleArn": "$EXECUTION_ROLE_ARN",
+          "memory": "2048",
+          "networkMode": "awsvpc",
+          "family": "$TASK_DEF_NAME",
+          "requiresCompatibilities": [
+            "FARGATE"
+          ]
+        }
+        EOF
+      - |
+        cat << EOF > appspec.yaml
+        version: 0.0
+        Resources:
+          - TargetService:
+              Type: AWS::ECS::Service
+              Properties:
+                TaskDefinition: <TASK_DEFINITION>
+                LoadBalancerInfo:
+                  ContainerName: "$CONTAINER_NAME"
+                  ContainerPort: 9443
+        EOF
 artifacts:
   files:
-    - '*'
-    - 'docker/**/*'
-    - 'scripts/**/*'
-
-# TODO: create a secondary artifact in CloudFormation for CodeBuild, selenium_screenshots that maps
-# to this configuration to get the selenium screenshots uploaded to S3
-#
-#  secondary-artifacts:
-#    selenium_screenshots:
-#      files:
-#        - data/aloe/dev/scratch/*
-#      discard-paths: yes
-#      name: seleniumScreenshots
+    - 'taskdef.json'
+    - 'appspec.yaml'
