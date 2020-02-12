@@ -7,7 +7,6 @@ services:
       dockerfile: docker/dev/Dockerfile
     image: ${APP_IMAGE_NAME}
     working_dir: /data
-    command: runserver
     environment:
       - CONSOLE_LOG_LEVEL=DEBUG
     env_file:
