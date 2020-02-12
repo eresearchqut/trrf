@@ -35,13 +35,12 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      #- docker-compose build
-      #- echo Running tests...
-      #- scripts/lint.sh
-      #- scripts/check-migrations.sh
-      #- scripts/unit-tests.sh
-      #- scripts/end2end-tests.sh
-      #- echo Building and tagging the Docker image...
+      - docker-compose build
+      - echo Running tests...
+      - scripts/lint.sh
+      - scripts/check-migrations.sh
+      - scripts/unit-tests.sh
+      - scripts/end2end-tests.sh
       - export GIT_TAG="$(echo $GIT_COMMIT_ID | cut -c1-8)"
       - echo "Building image from commit ${GIT_COMMIT_ID} ${GIT_COMMIT_URL}"
       - docker build -f docker/production/Dockerfile --label "release-id=${RELEASE_ID}" -t "${IMAGE_REPO}:${GIT_TAG}" -t "${IMAGE_REPO}:${GIT_BRANCH_NAME}" .
