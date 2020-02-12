@@ -46,6 +46,7 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var registry_code = "{{registry_code}}";
+            var is_mobile = {{ is_mobile|yesno:"true,false" }};
 
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -79,7 +80,7 @@
 
             $('[data-toggle="tooltip"]').tooltip();
 
-            {% if not is_mobile %}
+            if (!is_mobile) {
                 $("#patient-form").accordion({
                     heightStyle: "content",
                     collapsible: true
@@ -90,7 +91,7 @@
                         collapsible: true
                     });
                 }
-            {% endif %}
+            }
 
             $('input:radio[required]').parent('fieldset').before('<span style="color:red">*</span>')
 
@@ -112,12 +113,21 @@
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
 
+        function expandAccordion(formSelector) {
+            if ($(formSelector).length === 0) {
+                return;
+            }
+            var accordion = $(formSelector).accordion("instance");
+            if (typeof(accordion) === "undefined") {
+                return;
+            }
+            accordion.option("active", 0);
+        }
+
         function onBeforeSubmit() {
             $("#id_email").val($("#id_username").val());
-            $("#patient-form").accordion("option", "active" ,0);
-            if ($("#guardian-form").length > 0) {
-                $("#guardian-form").accordion('option', 'active' ,0);
-            }
+            expandAccordion("#patient-form");
+            expandAccordion("#guardian-form");
         }
     </script>
 
