@@ -13,16 +13,23 @@
   {{ media.css }}
   {% if not actions_on_top and not actions_on_bottom %}
     <style>
-       #changelist table thead th:first-child {width: inherit}
-        #changelist .paginator {
-          color: #666;
-          border-top: 1px solid #eee;
-          border-bottom: 1px solid #eee;
-          /* background: white url(../img/nav-bg.gif) 0 180% repeat-x; */
-          overflow: hidden;
-        }
+      #changelist table thead th:first-child {
+        width: inherit
+      }
+      #changelist .paginator {
+        color: #666;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        overflow: hidden;
+      }
     </style>
   {% endif %}
+  <style>
+  #changelist-filter {
+    z-index: initial;
+    position: initial;
+  }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -90,32 +97,35 @@
       {% endblock %}
       {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
 
-      <div>
+      <div class="row">
+        <div class="{% if cl.has_filters %}col-md-9{% else %}col-md-12{% endif %}">
+          <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %}
+                enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+            {% if cl.formset %}
+              <div>{{ cl.formset.management_form }}</div>
+            {% endif %}
+
+            {% block result_list %}
+              {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
+              {% result_list cl %}
+              {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+            {% endblock %}
+
+            {% block pagination %}{% pagination cl %}{% endblock %}
+          </form>
+        </div>
+
         {% block filters %}
           {% if cl.has_filters %}
-          <div id="changelist-filter" style="position: relative">
-            <h2>{% trans 'Filter' %}</h2>
-            {% if cl.preserved_filters %}<h3 id="changelist-filter-clear">
-              <a href="?{% if cl.is_popup %}_popup=1{% endif %}">&#10006; {% trans "Clear all filters" %}</a>
-            </h3>{% endif %}
-            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
-          </div>
+            <div id="changelist-filter" class="col-md-3">
+              <h2>{% trans 'Filter' %}</h2>
+              {% if cl.preserved_filters %}<h3 id="changelist-filter-clear">
+                <a href="?{% if cl.is_popup %}_popup=1{% endif %}">&#10006; {% trans "Clear all filters" %}</a>
+              </h3>{% endif %}
+              {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+            </div>
           {% endif %}
         {% endblock %}
-        <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
-        {% if cl.formset %}
-          <div>{{ cl.formset.management_form }}</div>
-        {% endif %}
-
-        {% block result_list %}
-            {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
-            {% result_list cl %}
-            {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
-        {% endblock %}
-
-        {% block pagination %}{% pagination cl %}{% endblock %}
-        </form>
-
       </div>
     </div>
   </div>
