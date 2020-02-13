@@ -1,12 +1,12 @@
-{% load i18n admin_static %}
+{% load i18n admin_static admin_list %}
 {% if result_hidden_fields %}
 <div class="hiddenfields">{# DIV for HTML validation #}
 {% for item in result_hidden_fields %}{{ item }}{% endfor %}
 </div>
 {% endif %}
 {% if results %}
-<div class="results">
-    <div class="well">
+<div class="results row">
+    <div class="well {% if cl.has_filters %}col-md-9{% else %}col-md-12{% endif %}">
     <table class="table table-striped">
         <thead>
             <tr>
@@ -16,14 +16,27 @@
             </tr>
         </thead>
         <tbody>
-            {% for result in results %}
-                {% if result.form.non_field_errors %}
-                    <tr><td>{{ result.form.non_field_errors }}</td></tr>
-                {% endif %}
-                    <tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
-            {% endfor %}
+        {% for result in results %}
+          {% if result.form.non_field_errors %}
+            <tr>
+              <td>{{ result.form.non_field_errors }}</td>
+            </tr>
+          {% endif %}
+          <tr class="{% cycle 'row1' 'row2' %}">{% for item in result %}{{ item }}{% endfor %}</tr>
+        {% endfor %}
         </tbody>
     </table>
     </div>
+    {% block filters %}
+      {% if cl.has_filters %}
+        <div id="changelist-filter" class="col-md-3">
+          <h2>{% trans 'Filter' %}</h2>
+          {% if cl.preserved_filters %}<h3 id="changelist-filter-clear">
+            <a href="?{% if cl.is_popup %}_popup=1{% endif %}">&#10006; {% trans "Clear all filters" %}</a>
+          </h3>{% endif %}
+          {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+        </div>
+      {% endif %}
+    {% endblock %}
 </div>
 {% endif %}
