@@ -226,21 +226,22 @@ class RegistryAdmin(admin.ModelAdmin):
 
                 messages.success(request, _(f"Registration enabled for {registry}"))
 
-            existing_notifications = EmailNotification.objects.filter(
+            notifications = EmailNotification.objects.filter(
                 registry=registry,
                 description__in=EventType.REGISTRATION_TYPES,
             )
+            all_notifications_disabled = not notifications.filter(disabled=False).exists()
 
-            if len(existing_notifications) > 0 and len(existing_notifications.filter(disabled=False)) == 0:
-                messages.warning(request, render_to_string("admin/notifications_disabled.html", {
-                    "registry": registry
-                }))
-            elif len(existing_notifications) == 0:
+            if not notifications.exists():
                 messages.warning(request, render_to_string("admin/notifications_needed.html", {
                     "registry": registry
                 }))
+            elif all_notifications_disabled:
+                messages.warning(request, render_to_string("admin/notifications_disabled.html", {
+                    "registry": registry
+                }))
 
-        if len(unchanged) > 0:
+        if unchanged:
             messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already enabled registration"))
 
     enable_registration_action.short_description = _("Enable registration")
@@ -257,7 +258,7 @@ class RegistryAdmin(admin.ModelAdmin):
 
                 messages.success(request, _(f"Registration disabled for {registry}"))
 
-        if len(unchanged) > 0:
+        if unchanged:
             messages.info(request, _(f"'{', '.join(desc for desc in unchanged)}' already had registration disabled"))
 
     disable_registration_action.short_description = _("Disable registration")
