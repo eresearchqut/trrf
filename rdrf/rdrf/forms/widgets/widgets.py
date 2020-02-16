@@ -755,10 +755,41 @@ class TimeWidget(widgets.TextInput):
             $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
         '''
         return f'''
-        {html}
-        <script>
-            {js}
-        </script>
+            {html}
+            <script>
+                {js}
+            </script>
+        '''
+
+
+class DurationWidget(widgets.TextInput):
+
+    @staticmethod
+    def usable_for_types():
+        return {CommonDataElement.DATA_TYPE_DURATION}
+
+    def render(self, name, value, attrs=None, renderer=None):
+        if not value:
+            value = "P0Y0M0DT0H0M0S"  # default ISO-8601 duration
+
+        return f'''
+            <input id="id_{name}_text" type="text" value="{value}" readonly/>
+            <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
+            <script>
+                $("#id_{name}_text").timeDurationPicker({{
+                    seconds: true,
+                    defaultValue: function() {{
+                        return $("#id_{name}_duration").val();
+                    }},
+                    onSelect: function(element, seconds, duration, text) {{
+                        $("#id_{name}_duration").val(duration);
+                        $("#id_{name}_text").val(text);
+                        $("#main-form").trigger('change');
+                        $("#id_{name}_duration").trigger('change');
+                    }}
+                }});
+                $("#id_{name}_text").addClass("form-control");
+            </script>
         '''
 
 

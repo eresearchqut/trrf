@@ -104,6 +104,58 @@ function date_compare(actual_value, value, operator) {
     }
 }
 
+function humanized2duration(value) {
+    // Format humanized duration into a moment.duration
+    // Input can look like "3 years, 2 days and 4 months"
+
+    function transform(d, val) {
+        if (val.indexOf(",") != -1) {
+            var transformed = val.split(",");
+            for (var i=0; i< transformed.length; i++) {
+                transform(d, transformed[i].trim());
+            }
+        } else if (val.indexOf("and") != -1) {
+            newsplit = val.split("and")
+            for (j=0; j<newsplit.length; j++) {
+                transform(d, newsplit[j].trim());
+            }
+        } else {
+            values = val.split(" ");
+            if (values.length > 1) {
+                i = 0;
+                while (i < values.length) {
+                    d.add(Number(values[i].trim()), values[i+1].trim());
+                    i += 2;
+                }
+            }
+        }
+    }
+
+    var d = moment.duration(0, "seconds");
+    transform(d, value);
+    return d;
+}
+
+function duration_compare(actual_value, value, operator) {
+    var first_duration = moment.duration(actual_value).asSeconds();
+    var second_duration = humanized2duration(value).asSeconds();
+    switch(operator) {
+        case "==":
+            return first_duration == second_duration;
+        case "!=":
+            return first_duration != second_duration;
+        case ">=":
+            return first_duration >= second_duration;
+        case "<=":
+            return first_duration <= second_duration;
+        case ">":
+            return first_duration > second_duration;
+        case "<":
+            return first_duration < second_duration;
+    }
+}
+
+
 function set_unset_test(actual_value, value) {
     switch (value) {
         case "set": return actual_value !== undefined && actual_value.trim() != '';
@@ -121,6 +173,8 @@ function test_cde_value(name, base_name, op, value) {
         }
         if (entry.type == "DateWidget") {
             return date_compare(actual_value, value, op);
+        } else if (entry.type == "DurationWidget") {
+            return duration_compare(actual_value, value, op);
         } else {
             switch(op) {
                 case "==":

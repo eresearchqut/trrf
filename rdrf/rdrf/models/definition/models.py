@@ -580,6 +580,7 @@ class CommonDataElement(models.Model):
     DATA_TYPE_RANGE = 'range'
     DATA_TYPE_STRING = 'string'
     DATA_TYPE_TIME = 'time'
+    DATA_TYPE_DURATION = 'duration'
 
     DATA_TYPE_CHOICES = [
         (DATA_TYPE_BOOL, 'Boolean'),
@@ -590,7 +591,8 @@ class CommonDataElement(models.Model):
         (DATA_TYPE_INTEGER, 'Integer'),
         (DATA_TYPE_RANGE, 'Range'),
         (DATA_TYPE_STRING, 'String'),
-        (DATA_TYPE_TIME, 'Time')
+        (DATA_TYPE_TIME, 'Time'),
+        (DATA_TYPE_DURATION, 'Duration')
     ]
 
     code = models.CharField(max_length=30, primary_key=True)

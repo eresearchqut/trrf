@@ -163,6 +163,25 @@ class CDEHelper:
         def valid_code_or_value(v):
             return v.lower() in values_dict or v.strip() in codes_list
 
+        def validate_humanized_duration(v):
+            valid_intervals = [
+                "years", "year", "months", "month", "days", "day", "hours", "hour",
+                "minutes", "minute", "seconds", "second"
+            ]
+
+            def valid_str(s):
+                if "," in s:
+                    return all(valid_str(v.strip()) for v in s.split(","))
+                if "and" in s:
+                    return all(valid_str(v.strip()) for v in s.split("and"))
+                values = s.split(" ")
+                if len(values) % 2 != 0:
+                    return False
+                result = [(values[i], values[i + 1]) for i in range(0, len(values), 2)]
+                return all(r[0].isdigit and r[1].lower() in valid_intervals for r in result)
+
+            return valid_str(v)
+
         stripped_val = unquote(value)
         valid = True
         cde_dict = self.cde_values_dict.get(cde, {})
@@ -171,6 +190,8 @@ class CDEHelper:
         if not values_dict:
             if cde_dict.get('type') == 'date':
                 return validate_date(stripped_val)
+            elif cde_dict.get('type') == 'duration':
+                return validate_humanized_duration(stripped_val)
             elif cde_dict.get('min_value') or cde_dict.get('max_value'):
                 return validate_range(stripped_val, cde_dict.get('min_value'), cde_dict.get('max_value'))
             elif cde_dict.get('max_length'):
