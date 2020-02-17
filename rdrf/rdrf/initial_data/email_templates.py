@@ -11,7 +11,7 @@ def load_data(**kwargs):
 def load_default_patient_registration_template():
     EmailTemplate.objects.get_or_create(
         language="en",
-        description="trrf_default_patient_registration_en",
+        description="Default patient registration notification",
         subject="Welcome to the registry",
         body=get_template("registration/default_patient_registration_en.html").template.source,
         default_for_notification=EventType.NEW_PATIENT
