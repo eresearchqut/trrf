@@ -433,7 +433,7 @@ class RegistryRegistrationNotificationFilter(admin.SimpleListFilter):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "email_from", "recipient", "group_recipient", "disabled", "registry")
+    list_display = ("description", "registry", "email_from", "recipient", "group_recipient", "disabled")
     list_filter = (RegistryRegistrationNotificationFilter, )
 
     def get_changeform_initial_data(self, request):
