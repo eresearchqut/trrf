@@ -1353,7 +1353,7 @@ class EmailTemplate(models.Model):
     description = models.TextField()
     subject = models.CharField(max_length=50)
     body = models.TextField()
-    default_for_notification = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS, null=True, default=None)
+    default_for_notification = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS, null=True, blank=True)
 
     class Meta:
         unique_together = [['language', 'default_for_notification']]  # unique across non-null values
