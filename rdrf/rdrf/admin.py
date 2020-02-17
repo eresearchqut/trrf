@@ -289,8 +289,8 @@ class RegistryAdmin(admin.ModelAdmin):
                         "registry": registry,
                     }))
             except IntegrityError as e:
-                logger.error("Failed to create default registration notifications: %s", e)
-                messages.error(request, _("Failed to create default registration notifications"))
+                logger.error("Failed to create default registration notifications for %s: %s", registry, e)
+                messages.error(request, _(f"Failed to create default registration notifications for {registry}"))
 
     create_notifications_action.short_description = _("Create default registration notifications")
 
