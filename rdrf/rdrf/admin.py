@@ -441,20 +441,19 @@ class EmailNotificationAdmin(admin.ModelAdmin):
         return {'email_from': settings.DEFAULT_FROM_EMAIL}
 
 
-def default_and_lang(email_template):
-    if email_template.default_for_notification:
-        return f"{email_template.default_for_notification} ({email_template.language})"
-    else:
-        return "-"
-
-
-default_and_lang.short_description = "Default for notification"
-
-
 class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
     form = EmailTemplateAdminForm
-    list_display = ("subject", "language", "description", default_and_lang)
+
+    def __init__(self, model, admin_site):
+        self.list_display = ("subject", "language", "description", self._default_and_lang)
+        super().__init__(model, admin_site)
+
+    def _default_and_lang(self, email_template):
+        return f"{email_template.default_for_notification} ({email_template.language})" \
+            if email_template.default_for_notification else "-"
+
+    _default_and_lang.short_description = _("Default for notification")
 
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
