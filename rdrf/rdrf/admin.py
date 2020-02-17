@@ -263,6 +263,14 @@ class RegistryAdmin(admin.ModelAdmin):
     disable_registration_action.short_description = _("Disable registration")
 
     def create_notifications_action(self, request, registry_models_selected):
+        patient_registration_templates = EmailTemplate.objects.filter(
+            default_for_notification=EventType.NEW_PATIENT
+        )
+
+        if not patient_registration_templates.exists():
+            messages.error(request, _("Default email templates have not been created"))
+            return
+
         for registry in registry_models_selected:
             # TODO: Add default notifications for all registration types. Needs different recipients.
             try:
@@ -274,9 +282,7 @@ class RegistryAdmin(admin.ModelAdmin):
                     )
                     notification.save()
 
-                    notification.email_templates.set(
-                        EmailTemplate.objects.filter(default_for_notification=EventType.NEW_PATIENT)
-                    )
+                    notification.email_templates.set(patient_registration_templates)
                     notification.save()
 
                     messages.success(request, render_to_string("admin/notifications_added.html", {
