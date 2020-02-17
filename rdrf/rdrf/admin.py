@@ -424,27 +424,41 @@ class CdePolicyAdmin(admin.ModelAdmin):
     groups.short_description = _("Allowed Groups")
 
 
-class RegistryRegistrationNotificationFilter(admin.SimpleListFilter):
-    title = _("Registry registration notifications")
-    parameter_name = 'registry_registration'
-
-    def lookups(self, request, model_admin):
-        return [(reg.code, reg.name) for reg in Registry.objects.all()]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            registry = Registry.objects.get(code=self.value())
-            return queryset.filter(registry=registry, description__in=EventType.REGISTRATION_TYPES)
-
-
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient", "disabled")
-    list_filter = (RegistryRegistrationNotificationFilter, )
+
+    def __init__(self, model, admin_site):
+        self.list_filter = (self.RegistryFilter, self.RegistrationNotificationFilter)
+        super().__init__(model, admin_site)
 
     def get_changeform_initial_data(self, request):
         from django.conf import settings
         return {'email_from': settings.DEFAULT_FROM_EMAIL}
+
+    class RegistrationNotificationFilter(admin.SimpleListFilter):
+        title = _("registration notifications")
+        parameter_name = 'registration_notifications'
+
+        def lookups(self, request, model_admin):
+            return [
+                ("1", _("Yes")),
+            ]
+
+        def queryset(self, request, queryset):
+            if self.value() == "1":
+                return queryset.filter(description__in=EventType.REGISTRATION_TYPES)
+
+    class RegistryFilter(admin.SimpleListFilter):
+        title = _("registry")
+        parameter_name = 'registry'
+
+        def lookups(self, request, model_admin):
+            return [(reg.code, reg.name) for reg in Registry.objects.all()]
+
+        def queryset(self, request, queryset):
+            if self.value():
+                return queryset.filter(registry__code=self.value())
 
 
 class EmailTemplateAdmin(admin.ModelAdmin):

@@ -2,5 +2,5 @@
 
 <p>{% trans "Notifications have been added to registry " %}'{{ registry.name }}' ({{ registry.code }}).</p>
 <p>
-  {% trans "Click " %}<a href="{% url "admin:rdrf_emailnotification_changelist" %}?registry_registration={{ registry.code }}">{% trans "here " %}</a>{% trans " to edit the notifications belonging to this registry." %}
+  {% trans "Click " %}<a href="{% url "admin:rdrf_emailnotification_changelist" %}?registration_notifications=1&registry={{ registry.code }}">{% trans "here " %}</a>{% trans " to edit the notifications belonging to this registry." %}
 </p>
