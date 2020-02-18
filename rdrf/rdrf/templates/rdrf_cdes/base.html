@@ -86,8 +86,6 @@
 </head>
 
 <body>
-
-
     <div id="wrap">
 
         {% block sidebar %}
@@ -235,12 +233,10 @@
             {% endblock%}
         </div>
         {% endblock content_wrapper %}
+        {% block footer %}
+        {% include 'rdrf_cdes/footer.html' %}
+        {% endblock %}
     </div>
-
-    {% block footer %}
-    {% include 'rdrf_cdes/footer.html' %}
-    {% endblock %}
-
 </body>
 
 </html>
