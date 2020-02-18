@@ -231,6 +231,11 @@ class EnrichedCDE:
     def is_multi_section(self):
         return self.get_cde_info().is_multi_section
 
+    def has_valid_section(self):
+        if self.section:
+            return self.section in self.cde_helper.section_names_dict
+        return True
+
     def is_valid_cde(self):
         return self.get_key() in self.cde_helper.cde_names_dict
 

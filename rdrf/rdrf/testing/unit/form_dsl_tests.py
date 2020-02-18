@@ -296,7 +296,19 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(
             exc_info,
             1,
-            ['Invalid condition specified on line 1 : CDEAge2']
+            ['Invalid condition cdes specified on line 1 : CDEAge2']
+        )
+
+    def test_simple_condition_with_invalid_section_prefix(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1Cholesterol:DM1ChronicInfection visible if section:CDEAge == 18
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['Invalid condition cdes specified on line 1 : Invalid section "section" in section:CDEAge']
         )
 
     def test_simple_condition_with_section_prefix_invalid_section_prefix(self):
@@ -308,7 +320,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(
             exc_info,
             1,
-            ['Invalid CDEs specified on line 1 : DM1ChronicInfection']
+            ['Invalid CDEs specified on line 1 : Invalid section "DM1" in DM1:DM1ChronicInfection']
         )
 
     def test_multi_section_condition_and_targets_same_section_with_section_prefix(self):
