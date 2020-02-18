@@ -1127,7 +1127,8 @@ class FormFieldHistoryView(TemplateView):
             patient_id,
             context_id,
             section_code,
-            cde_code):
+            cde_code,
+            formset_index=None):
         context = super(FormFieldHistoryView, self).get_context_data()
 
         # find database objects from url route params
@@ -1140,9 +1141,9 @@ class FormFieldHistoryView(TemplateView):
         # grab snapshot values out of mongo documents
         dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=rdrf_context.id)
         val = dyn_patient.get_cde_val(registry_code, reg_form.name,
-                                      section_code, cde_code)
+                                      section_code, cde_code, formset_index)
         history = dyn_patient.get_cde_history(registry_code, reg_form.name,
-                                              section_code, cde_code)
+                                              section_code, cde_code, formset_index)
 
         context.update({
             "cde": cde,

@@ -502,16 +502,16 @@ class DynamicDataWrapper(object):
         else:
             return nested_data
 
-    def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes"):
+    def get_cde_val(self, registry_code, form_name, section_code, cde_code, collection="cdes", formset_index=None):
         modjgo_queryset = self._get_record(registry_code, collection)
         if modjgo_queryset:
             # NB data is a ClinicalData queryset
             modjgo_object = modjgo_queryset.first()
-            return modjgo_object.cde_val(form_name, section_code, cde_code)
+            return modjgo_object.cde_val(form_name, section_code, cde_code, formset_index)
         else:
             return None
 
-    def get_cde_history(self, registry_code, form_name, section_code, cde_code):
+    def get_cde_history(self, registry_code, form_name, section_code, cde_code, formset_index=None):
         from rdrf.helpers.utils import get_cde_value
         from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
         registry_model = Registry.objects.get(code=registry_code)
@@ -522,7 +522,7 @@ class DynamicDataWrapper(object):
         def fmt(snapshot, snapshot_number):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
-                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"], formset_index),
                 "user": snapshot.get("username", ""),
                 "id": str(snapshot_number),
             }

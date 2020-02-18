@@ -1805,13 +1805,21 @@ class ClinicalData(models.Model):
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
 
-    def cde_val(self, form_name, section_code, cde_code):
+    def cde_val(self, form_name, section_code, cde_code, formset_index=None):
         forms = self.data.get("forms", [])
         form_map = {f.get("name"): f for f in forms}
         sections = form_map.get(form_name, {}).get("sections", [])
         section_map = {s.get("code"): s for s in sections}
         cdes = section_map.get(section_code, {}).get("cdes", [])
-        cde_map = {c.get("code"): c for c in cdes}
+
+        logger.info(f"cdes={cdes}")
+        cde_map = {}
+        for c in cdes:
+            if isinstance(c, dict):
+                cde_map[c.get("code")] = c
+            else:
+                index = formset_index or 0
+                cde_map[c[index].get("code")] = c[index]
         return cde_map.get(cde_code, {}).get("value")
 
     def save(self, *args, **kwargs):
