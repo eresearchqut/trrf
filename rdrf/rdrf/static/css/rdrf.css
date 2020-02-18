@@ -17,6 +17,10 @@ html, body {
     min-height: 100%;
 }
 
+#wrap > #content {
+    width: 100%;
+}
+
 .next-form {
     position: fixed;
     width: 2%;
