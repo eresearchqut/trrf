@@ -147,7 +147,9 @@ class RadioSelectSettings(Widget):
 
     def generate_inputs(self, parsed):
         rows = [
-            self.generate_input('force_vertical', _('Force vertical layout'), parsed),
+            self.generate_input(
+                'force_vertical', _('Force vertical layout'), parsed,
+                info=_('Always display each radio button on its own separate row')),
         ]
         return "<br/>".join(rows)
 
