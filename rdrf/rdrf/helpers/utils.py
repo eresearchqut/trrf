@@ -360,9 +360,8 @@ def get_cde_value(form_model, section_model, cde_model, patient_record, form_ind
                             if idx < len(cde_dict_list):
                                 for d in cde_dict_list[idx]:
                                     if d["code"] == cde_model.code:
-                                        return  d["value"]
-                            else:
-                                return None
+                                        return d["value"]
+                            return None
                         else:
                             values = []
                             items = section_dict["cdes"]

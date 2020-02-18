@@ -1811,15 +1811,13 @@ class ClinicalData(models.Model):
         sections = form_map.get(form_name, {}).get("sections", [])
         section_map = {s.get("code"): s for s in sections}
         cdes = section_map.get(section_code, {}).get("cdes", [])
-
-        logger.info(f"cdes={cdes}")
         cde_map = {}
+        index = formset_index or 0
         for c in cdes:
-            if isinstance(c, dict):
-                cde_map[c.get("code")] = c
-            else:
-                index = formset_index or 0
-                cde_map[c[index].get("code")] = c[index]
+            is_list = isinstance(c, list)
+            key = c[index].get("code") if is_list else c.get("code")
+            value = c[index] if is_list else c
+            cde_map[key] = value
         return cde_map.get(cde_code, {}).get("value")
 
     def save(self, *args, **kwargs):
