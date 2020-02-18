@@ -124,3 +124,57 @@ class TimeWidgetSettings(Widget):
             <script>
                 {javascript}
             </script>""")
+
+
+class RadioSelectSettings(Widget):
+    @staticmethod
+    def get_allowed_fields():
+        return {'force_vertical'}
+
+    def generate_input(self, name, title, parsed, info=None):
+        value = parsed.get(name, False)
+
+        input_str = f'''
+            <input type="checkbox" name="{name}" id="{name}" onchange="saveJSON()" {"checked" if value else ""}>
+            '''
+        help_text = f'<div class="help">{info}</div>' if info else ''
+        return f"""
+            <div>
+                <label for="{name}">{title}</label>
+                {input_str}
+                {help_text}
+            </div>"""
+
+    def generate_inputs(self, parsed):
+        rows = [
+            self.generate_input(
+                'force_vertical', _('Force vertical layout'), parsed,
+                info=_('Always display each radio button on its own separate row')),
+        ]
+        return "<br/>".join(rows)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        parsed = {}
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            pass
+
+        html = """
+             <div style="display:inline-grid" id="id_{name}">
+                {inputs}
+                <input type="hidden" name="{name}" value='{value}'/>
+             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
+        javascript = """
+            function saveJSON() {
+                var value = $('#id_%s input').prop("checked");
+                var obj = { force_vertical: value };
+                $("input[name='%s']").val(JSON.stringify(obj));
+            }
+            saveJSON();
+        """ % (name, name)
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+            </script>""")
