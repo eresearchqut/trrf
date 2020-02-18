@@ -565,6 +565,8 @@ class FormView(View):
                 is_superuser=self.user.is_superuser,
                 user_groups=self.user.groups.all(),
                 patient_model=patient)
+            if not form_class:
+                continue
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -915,7 +917,7 @@ class FormView(View):
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
                 self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
-            if not form_class and changes_since_version:
+            if not form_class:
                 remove_sections.append(s)
                 continue
             section_elements = section_model.get_elements()
