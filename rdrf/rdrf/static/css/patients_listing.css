@@ -1,0 +1,4 @@
+/* Make the patients table non full-width as it looks strange on large displays. */
+#wrap > #content {
+    width: auto;
+}

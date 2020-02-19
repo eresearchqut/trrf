@@ -86,8 +86,6 @@
 </head>
 
 <body>
-
-
     <div id="wrap">
 
         {% block sidebar %}
@@ -215,8 +213,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <p>
-                        <h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {{
-                            location|translate|safe }}</h3>
+                        <h3>
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> { location|translate|safe }}
+                        </h3>
                     </p>
                     {{ patient_link | safe}}
                 </div>
@@ -235,12 +234,9 @@
             {% endblock%}
         </div>
         {% endblock content_wrapper %}
+        {% block footer %}
+        {% include 'rdrf_cdes/footer.html' %}
+        {% endblock %}
     </div>
-
-    {% block footer %}
-    {% include 'rdrf_cdes/footer.html' %}
-    {% endblock %}
-
 </body>
-
 </html>
