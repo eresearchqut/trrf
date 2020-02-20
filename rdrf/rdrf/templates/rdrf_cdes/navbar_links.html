@@ -1,8 +1,11 @@
 {% load i18n %}
 {% load translate %}
+{% load project_title %}
+{% load project_title_link %}
 
 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
     <ul class="nav navbar-nav navbar-right">
+      <li><a class="visible-xs" href="{% project_title_link %}">{% project_title %}</a></li>
         {% if request.user.is_authenticated %}
             {% block parent_menu %}
             {% endblock %}
