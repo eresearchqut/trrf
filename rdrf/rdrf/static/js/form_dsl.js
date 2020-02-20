@@ -115,14 +115,14 @@ function humanized2duration(value) {
                 transform(d, transformed[i].trim());
             }
         } else if (val.indexOf("and") != -1) {
-            newsplit = val.split("and")
-            for (j=0; j<newsplit.length; j++) {
+            var newsplit = val.split("and")
+            for (var j=0; j<newsplit.length; j++) {
                 transform(d, newsplit[j].trim());
             }
         } else {
-            values = val.split(" ");
+            var values = val.split(" ");
             if (values.length > 1) {
-                i = 0;
+                var i = 0;
                 while (i < values.length) {
                     d.add(Number(values[i].trim()), values[i+1].trim());
                     i += 2;

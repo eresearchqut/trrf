@@ -763,6 +763,10 @@ class TimeWidget(widgets.TextInput):
 
 
 class DurationWidget(widgets.TextInput):
+    """
+    Time duration picker component used:
+    https://digaev.github.io/jquery-time-duration-picker/
+    """
 
     @staticmethod
     def usable_for_types():
@@ -777,6 +781,9 @@ class DurationWidget(widgets.TextInput):
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
             <script>
                 $("#id_{name}_text").timeDurationPicker({{
+                    css: {{
+                        "width":"200px"
+                    }},
                     seconds: true,
                     defaultValue: function() {{
                         return $("#id_{name}_duration").val();
