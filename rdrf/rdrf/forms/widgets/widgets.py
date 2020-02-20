@@ -17,6 +17,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
+from rdrf.forms.dynamic.validation import iso_8601_validator
 
 logger = logging.getLogger(__name__)
 
@@ -773,8 +774,8 @@ class DurationWidget(widgets.TextInput):
         return {CommonDataElement.DATA_TYPE_DURATION}
 
     def render(self, name, value, attrs=None, renderer=None):
-        if not value:
-            value = "P0Y0M0DT0H0M0S"  # default ISO-8601 duration
+        if not value or not iso_8601_validator(value):
+            value = "PT0S"  # default ISO-8601 duration
 
         return f'''
             <input id="id_{name}_text" type="text" value="{value}" readonly/>
