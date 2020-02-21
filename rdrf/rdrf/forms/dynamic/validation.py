@@ -57,6 +57,7 @@ def make_validation_func(val_type, cde):
     else:
         raise Exception(_("Unknown ValidationType %s") % val_type)
 
+
 def iso_8601_validator(value):
     iso_8601_pattern = r"^P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d+)S)?)?$"
     m = re.match(iso_8601_pattern, value)
