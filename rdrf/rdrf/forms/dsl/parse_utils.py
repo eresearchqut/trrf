@@ -2,6 +2,7 @@ from collections import namedtuple
 from collections.abc import Iterable
 from datetime import datetime
 from decimal import Decimal
+import re
 
 
 def is_iterable(el):
@@ -163,6 +164,26 @@ class CDEHelper:
         def valid_code_or_value(v):
             return v.lower() in values_dict or v.strip() in codes_list
 
+        def validate_humanised_duration(v):
+            valid_intervals = {
+                "years", "year", "months", "month", "days", "day", "hours", "hour",
+                "minutes", "minute", "seconds", "second"
+            }
+
+            def valid_str(s):
+                if "," in s:
+                    return all(valid_str(v.strip()) for v in s.split(","))
+                if "and" in s:
+                    return all(valid_str(v.strip()) for v in s.split("and"))
+                values = re.split(r"\s+", s)
+                return (
+                    len(values) % 2 == 0
+                    and all(s.isdecimal() for s in values[::2])
+                    and all(s.lower() in valid_intervals for s in values[1::2])
+                )
+
+            return valid_str(v)
+
         stripped_val = unquote(value)
         valid = True
         cde_dict = self.cde_values_dict.get(cde, {})
@@ -171,6 +192,8 @@ class CDEHelper:
         if not values_dict:
             if cde_dict.get('type') == 'date':
                 return validate_date(stripped_val)
+            elif cde_dict.get('type') == 'duration':
+                return validate_humanised_duration(stripped_val)
             elif cde_dict.get('min_value') or cde_dict.get('max_value'):
                 return validate_range(stripped_val, cde_dict.get('min_value'), cde_dict.get('max_value'))
             elif cde_dict.get('max_length'):
