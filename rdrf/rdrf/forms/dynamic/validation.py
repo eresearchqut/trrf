@@ -4,6 +4,8 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+from rdrf.helpers.cde_data_types import CDEDataTypes
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,16 +86,16 @@ class ValidatorFactory(object):
         self.cde = cde
 
     def _is_numeric(self):
-        return self.cde.datatype.lower() in ["integer", "float"]
+        return self.cde.datatype.lower() in [CDEDataTypes.INTEGER, CDEDataTypes.FLOAT]
 
     def _is_string(self):
-        return self.cde.datatype.lower() in ["string", "alphanumeric"]
+        return self.cde.datatype.lower() == CDEDataTypes.STRING
 
     def _is_range(self):
         return self.cde.pv_group is not None
 
     def _is_duration(self):
-        return self.cde.datatype.lower() == "duration"
+        return self.cde.datatype.lower() == CDEDataTypes.DURATION
 
     def create_validators(self):
         validators = []

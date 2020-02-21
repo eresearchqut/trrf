@@ -1,16 +1,20 @@
+from rdrf.helpers.cde_data_types import CDEDataTypes
+
+
 class CdeMappings:
 
     DATA_TYPE_MAPPING = {
-        "Boolean": "boolean",
-        "Calculated": "calculated",
-        "calculation": "calculated",
-        "Date": "date",
-        "File": "file",
-        "Float": "float",
-        "Integer": "integer",
-        "Range": "range",
-        "String": "string",
-        "text": "string"
+        "Boolean": CDEDataTypes.BOOL,
+        "Calculated": CDEDataTypes.CALCULATED,
+        "calculation": CDEDataTypes.CALCULATED,
+        "Date": CDEDataTypes.DATE,
+        "File": CDEDataTypes.FILE,
+        "Float": CDEDataTypes.FLOAT,
+        "Integer": CDEDataTypes.INTEGER,
+        "Range": CDEDataTypes.RANGE,
+        "String": CDEDataTypes.STRING,
+        "text": CDEDataTypes.STRING,
+        "Email": CDEDataTypes.EMAIL,
     }
 
     WIDGET_NAME_MAPPING = {

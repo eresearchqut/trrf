@@ -18,6 +18,7 @@ from django.utils.translation import gettext as _
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
 from rdrf.forms.dynamic.validation import iso_8601_validator
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +34,14 @@ class TextAreaWidget(Textarea):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
         self.main_choices = main_choices
@@ -115,7 +116,7 @@ class CalculatedFieldWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_CALCULATED}
+        return {CDEDataTypes.CALCULATED}
 
     def __init__(self, script, attrs={}):
         attrs['readonly'] = 'readonly'
@@ -131,7 +132,7 @@ class LookupWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         return """
@@ -148,7 +149,7 @@ class DateWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_DATE}
+        return {CDEDataTypes.DATE}
 
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
@@ -168,7 +169,7 @@ class CountryWidget(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
@@ -194,7 +195,7 @@ class StateWidget(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         try:
@@ -268,7 +269,7 @@ class StateListWidget(ParameterisedSelectWidget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
@@ -306,7 +307,7 @@ class PositiveIntegerInput(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_INTEGER}
+        return {CDEDataTypes.INTEGER}
 
     def render(self, name, value, attrs, renderer=None):
         min_value, max_value = self._get_value_range(name)
@@ -328,7 +329,7 @@ class RadioSelect(widgets.RadioSelect):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_RANGE}
+        return {CDEDataTypes.RANGE}
 
     def _get_column_width(self):
         no_of_choices = len(self.choices)
@@ -355,7 +356,7 @@ class ReadOnlySelect(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_RANGE}
+        return {CDEDataTypes.RANGE}
 
     def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
@@ -388,7 +389,7 @@ class MultipleFileInput(Widget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_FILE}
+        return {CDEDataTypes.FILE}
 
     @staticmethod
     def input_name(base_name, i):
@@ -466,7 +467,7 @@ class ConsentFileInput(widgets.ClearableFileInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_FILE}
+        return {CDEDataTypes.FILE}
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -509,7 +510,7 @@ class SliderWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_INTEGER, CommonDataElement.DATA_TYPE_FLOAT}
+        return {CDEDataTypes.INTEGER, CDEDataTypes.FLOAT}
 
     def render(self, name, value, attrs=None, renderer=None):
         if not (value and isinstance(value, float) or isinstance(value, int)):
@@ -556,7 +557,7 @@ class SignatureWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs=None, renderer=None):
 
@@ -661,7 +662,7 @@ class AllConsentWidget(widgets.CheckboxInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_BOOL}
+        return {CDEDataTypes.BOOL}
 
     def render(self, name, value, attrs=None, renderer=None):
 
@@ -687,7 +688,7 @@ class TimeWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_TIME}
+        return {CDEDataTypes.TIME}
 
     def _parse_value(self, value, fmt):
         '''
@@ -771,7 +772,7 @@ class DurationWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_DURATION}
+        return {CDEDataTypes.DURATION}
 
     def render(self, name, value, attrs=None, renderer=None):
         if not value or not iso_8601_validator(value):

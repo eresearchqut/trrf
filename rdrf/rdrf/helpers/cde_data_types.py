@@ -1,0 +1,12 @@
+class CDEDataTypes:
+    BOOL = 'boolean'
+    CALCULATED = 'calculated'
+    DATE = 'date'
+    DURATION = 'duration'
+    EMAIL = 'email'
+    FILE = 'file'
+    FLOAT = 'float'
+    INTEGER = 'integer'
+    RANGE = 'range'
+    STRING = 'string'
+    TIME = 'time'
