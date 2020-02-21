@@ -4,6 +4,8 @@ import sys
 from string import strip
 import codecs
 
+from rdrf.helpers.cde_data_types import CDEDataTypes
+
 
 def decode(l):
     return map(lambda s: s.decode('utf-8'), l)
@@ -72,12 +74,12 @@ class DemographicField(object):
         self.datatype = datatype
         self.required = str(required)
 
-        if self.datatype == "DATE":
+        if self.datatype == CDEDataTypes.DATE.upper():
             self.validation = "dd/mm/yyyy"
 
     @property
     def members(self):
-        if self.datatype == "RANGE":
+        if self.datatype == CDEDataTypes.RANGE.upper():
             return RANGE_DELIMITER.join(decode(self._members))
         return ""
 
@@ -102,7 +104,7 @@ class CDEWrapper(object):
 
     @property
     def members(self):
-        if self.datatype == "RANGE":
+        if self.datatype == CDEDataTypes.RANGE.upper():
             return RANGE_DELIMITER.join(self._get_allowed_values())
         else:
             return ""
@@ -110,13 +112,13 @@ class CDEWrapper(object):
     @property
     def validation(self):
         vals = []
-        if self.datatype == "STRING":
+        if self.datatype == CDEDataTypes.STRING.upper():
             if self.cde_dict["max_length"]:
                 vals.append("Length <= %s" % self.cde_dict["max_length"])
             if self.cde_dict["pattern"]:
                 vals.append("Must conform to regular expression %s" %
                             self.cde_dict["pattern"])
-        elif self.datatype == "INTEGER":
+        elif self.datatype == CDEDataTypes.INTEGER.upper():
             if self.cde_dict["min_value"]:
                 vals.append("Minimum value = %s" % self.cde_dict["min_value"])
             if self.cde_dict["max_value"]:

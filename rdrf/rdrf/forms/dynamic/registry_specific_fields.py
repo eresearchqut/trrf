@@ -6,6 +6,7 @@ from rdrf.helpers.utils import is_uploaded_file
 from rdrf.db import filestorage
 
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 import logging
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class RegistrySpecificFieldsHandler(object):
         if self.registry_model.patient_fields and self.allowed_to_write_data():
             mongo_patient_data = {self.registry_model.code: {}}
             for cde_model, field_object in self.registry_model.patient_fields:
-                if not cde_model.datatype == "file":
+                if not cde_model.datatype == CDEDataTypes.FILE:
                     try:
                         if isinstance(field_object, MultipleChoiceField):
                             field_value = request.POST.getlist(cde_model.code)

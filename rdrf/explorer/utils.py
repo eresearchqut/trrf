@@ -4,6 +4,7 @@ import json
 from django.db import ProgrammingError
 from django.db import connection
 
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.models.definition.models import Registry, RegistryForm, Section
@@ -213,21 +214,21 @@ class DatabaseUtils(object):
                 yield d
 
     def _get_fvs_by_datatype(self, query, row):
-        for fv in query.filter(datatype='string'):
+        for fv in query.filter(datatype=CDEDataTypes.STRING):
             row[fv.column_name] = fv.raw_value
-        for fv in query.filter(datatype='range'):
+        for fv in query.filter(datatype=CDEDataTypes.RANGE):
             row[fv.column_name] = fv.display_value
-        for fv in query.filter(datatype='integer'):
+        for fv in query.filter(datatype=CDEDataTypes.INTEGER):
             row[fv.column_name] = fv.raw_integer
-        for fv in query.filter(datatype='float'):
+        for fv in query.filter(datatype=CDEDataTypes.FLOAT):
             row[fv.column_name] = fv.raw_float
-        for fv in query.filter(datatype='file'):
+        for fv in query.filter(datatype=CDEDataTypes.FILE):
             row[fv.column_name] = fv.file_name
-        for fv in query.filter(datatype='boolean'):
+        for fv in query.filter(datatype=CDEDataTypes.BOOL):
             row[fv.column_name] = fv.raw_boolean
-        for fv in query.filter(datatype='date'):
+        for fv in query.filter(datatype=CDEDataTypes.DATE):
             row[fv.column_name] = fv.raw_date
-        for fv in query.filter(datatype='calculated'):
+        for fv in query.filter(datatype=CDEDataTypes.CALCULATED):
             row[fv.column_name] = fv.get_calculated_value()
 
     @timed
@@ -551,13 +552,13 @@ class DatabaseUtils(object):
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
-        if datatype == "calculated" and stored_value == "NaN":
+        if datatype == CDEDataTypes.CALCULATED and stored_value == "NaN":
             return None
-        if datatype != 'string' and stored_value in ['', ' ', None]:
+        if datatype != CDEDataTypes.STRING and stored_value in ['', ' ', None]:
             # ensure we don't pass empty string back for numeric fields.
             # range fields will always be non-blank, non-whitespace
             return None
-        if datatype == "file":
+        if datatype == CDEDataTypes.FILE:
             return "FILE"
         return cde_model.get_display_value(stored_value)
 
