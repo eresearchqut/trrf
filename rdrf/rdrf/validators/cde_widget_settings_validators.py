@@ -5,10 +5,9 @@ from django.forms import ValidationError
 from django.utils.translation import gettext as _
 
 from rdrf.forms.widgets.settings_widgets import (
-    DurationWidgetSettings, SliderWidgetSettings, 
+    DurationWidgetSettings, SliderWidgetSettings,
     TimeWidgetSettings, RadioSelectSettings
 )
-    
 
 
 class BaseValidator:
@@ -92,6 +91,7 @@ class TimeWidgetSettingsValidator(BaseValidator):
 class RadioSelectSettingsValidator(BaseValidator):
     pass
 
+
 class DurationWidgetSettingsValidator(BaseValidator):
     pass
 
@@ -104,6 +104,6 @@ def get_validator(widget_instance, cleaned_data):
         DurationWidgetSettings: DurationWidgetSettingsValidator
     }
     for cls, validator in validators.items():
-        if isinstance(widget_instance,cls):
+        if isinstance(widget_instance, cls):
             return validator(widget_instance, cleaned_data)
     return None

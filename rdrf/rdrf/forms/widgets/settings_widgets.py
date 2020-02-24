@@ -179,6 +179,7 @@ class RadioSelectSettings(Widget):
                 {javascript}
             </script>""")
 
+
 class DurationWidgetSettings(Widget):
 
     @staticmethod
@@ -231,7 +232,7 @@ class DurationWidgetSettings(Widget):
                 var obj = {};
                 for (var i = 0; i < inputs.length; i++) {
                     obj[inputs[i].name] = inputs[i].checked;
-                }    
+                }
                 $("input[name='%s']").val(JSON.stringify(obj));
             }
 

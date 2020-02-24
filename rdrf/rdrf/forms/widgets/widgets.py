@@ -779,7 +779,8 @@ class DurationWidget(widgets.TextInput):
             value = "PT0S"  # default ISO-8601 duration
 
         def get_attribute(name):
-            return "true" if self.attrs.get(name, True) else "false"
+            default = True if name != "weeks_only" else False
+            return "true" if self.attrs.get(name, default) else "false"
 
         return f'''
             <input id="id_{name}_text" type="text" value="{value}" readonly/>
@@ -804,7 +805,8 @@ class DurationWidget(widgets.TextInput):
                     days: {get_attribute('days')},
                     hours: {get_attribute('hours')},
                     minutes: {get_attribute('minutes')},
-                    seconds: {get_attribute('seconds')}
+                    seconds: {get_attribute('seconds')},
+                    weeks: {get_attribute('weeks_only')}
                 }});
                 $("#id_{name}_text").addClass("form-control");
             </script>

@@ -64,7 +64,10 @@ def iso_8601_validator(value):
     iso_8601_pattern = r"^P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d+)S)?)?$"
     m = re.match(iso_8601_pattern, value)
     has_groups = m and any(x for x in m.groups() if x is not None and x != 'T')
-    return has_groups
+    iso_8601_week_pattern = r"^P(\d+)W"
+    wm = re.match(iso_8601_week_pattern, value)
+    has_week_pattern_groups = wm and any(x for x in wm.groups() if x is not None)
+    return has_groups or has_week_pattern_groups
 
 
 def make_duration_validator(cde):

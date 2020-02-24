@@ -14,6 +14,7 @@
       position: "absolute"
     },
     years: true,
+    weeks: false,
     months: true,
     days: true,
     hours: true,
@@ -33,6 +34,7 @@
       en_US: {
         years: "Years",
         months: "Months",
+        weeks: "Weeks",
         days: "Days",
         hours: "Hours",
         minutes: "Minutes",
@@ -47,6 +49,10 @@
           month: {
             one: "month",
             other: "months"
+          },
+          week: {
+            one: "week",
+            other: "weeks"
           },
           day: {
             one: "day",
@@ -135,6 +141,7 @@
 
   var YEAR = 12 * 30 * 24 * 60 * 60;
   var MONTH = 30 * 24 * 60 * 60;
+  var WEEK = 7 * 24 * 60 * 60;
   var DAY = 24 * 60 * 60;
   var HOUR = 60 * 60;
   var MINUTE = 60;
@@ -145,6 +152,7 @@
     _create: function() {
       var self = this;
 
+      this.units = ["years", "months", "weeks", "days", "hours", "minutes", "seconds"];
       this.options = $.extend(
         true, {}, $.timeDurationPicker.defaults(), this.options
       );
@@ -168,8 +176,7 @@
 
       instances.push( this );
     },
-
-    _on_change: function() {
+    _on_change: function(unit) {
       this._save();
       if ( this.options.onSelect ) {
         this.options.onSelect.call(
@@ -188,15 +195,10 @@
       this._content.div.remove();
     },
     _initUnits: function() {
-      var units = [
-        "years", "months", "days", "hours", "minutes", "seconds"
-      ];
-
-      for ( var i = 0; i < units.length; ++i ) {
-        var u = units[ i ];
-
+      for ( var i = 0; i < this.units.length; ++i ) {
+        var u = this.units[ i ];
         if ( this.options[ u ] ) {
-          this._content[ u ] = this._createNumberInput( 0, 0 );
+          this._content[ u ] = u == "weeks" ? this._createNumberInput(u, 0, 0, 53): this._createNumberInput(u, 0, 0);
           this._appendRow( this._t( u ), this._content[ u ] );
         }
       }
@@ -225,7 +227,7 @@
         this.element.val( this.translate() );
       }
     },
-    _createNumberInput: function( value, min, max ) {
+    _createNumberInput: function(unit, value, min, max) {
       var input = $( "<input type='number' />" );
 
       value = parseInt( value, 10 );
@@ -250,8 +252,9 @@
       }
 
       var self = this;
+      var u = unit;
       input.change(function() {
-        self._on_change();
+        self._on_change(u);
       });
 
       return input;
@@ -289,6 +292,10 @@
         this._duration.months = this.months();
       }
 
+      if (this.options.weeks) {
+        this._duration.weeks = this.weeks();
+      }
+
       if ( this.options.days ) {
         this._duration.days = this.days();
       }
@@ -316,6 +323,10 @@
 
       if ( this.options.months ) {
         this.months( this._duration.months || 0 );
+      }
+
+      if ( this.options.weeks ) {
+        this.weeks( this._duration.weeks || 0 );
       }
 
       if ( this.options.days ) {
@@ -360,6 +371,13 @@
         this._content.days.val( val );
       } else {
         return parseInt( this._content.days.val(), 10 );
+      }
+    },
+    weeks: function( val ) {
+      if ( !isNaN( val = parseInt( val, 10 ) ) ) {
+        this._content.weeks.val( val );
+      } else {
+        return parseInt( this._content.weeks.val(), 10 );
       }
     },
     months: function( val ) {
@@ -414,6 +432,10 @@
         duration = duration.substr( 0, duration.length - 1 );
       }
 
+      if (this.options.weeks && this.weeks()) {
+        var weeks = this.weeks();
+        return duration === "P" ? weeks > 0 ? "P" + weeks + "W": "PT0S" : duration;
+      }
       return duration === "P" ? "PT0S" : duration;
     },
 
@@ -446,9 +468,8 @@
         // PnW
         re: /^P(\d+)W$/,
         parse: function( value ) {
-          var days = this.re.exec( value )[ 1 ] * 7;
-
-          return { years: 0, months: 0, days: days, hours: 0, minutes: 0, seconds: 0 };
+          var weeks = this.re.exec( value )[ 1 ];
+          return { years: 0, months: 0, weeks: weeks, days: 0, hours: 0, minutes: 0, seconds: 0 };
         },
         validate: function( value ) {
           return this.re.test( value );
@@ -463,6 +484,7 @@
           return {
             years: date.getFullYear(),
             months: date.getMonth() + 1,
+            weeks: 0,
             days: date.getDate(),
             hours: date.getHours(),
             minutes: date.getMinutes(),
@@ -495,6 +517,10 @@
 
       if ( this.options.months ) {
         this._content.months.val( duration.months );
+      }
+
+      if ( this.options.weeks ) {
+        this._content.weeks.val( duration.weeks );
       }
 
       if ( this.options.days ) {
@@ -533,6 +559,14 @@
         }
         value -= i * MONTH;
         this._content.months.val( i );
+      }
+      if ( this.options.weeks ) {
+        i = Math.floor( value / WEEK );
+        if ( i >= 54 ) { // Max 53 weeks based on ISO 8061 (should start from 1 based on the same ISO)
+          i = 0;
+        }
+        value -= i * WEEK;
+        this._content.weeks.val( i );
       }
       if ( this.options.days ) {
         i = Math.floor( value / DAY );
@@ -580,6 +614,9 @@
       if ( this.options.days ) {
         seconds += this.days() * DAY;
       }
+      if ( this.options.weeks ) {
+        seconds += this.weeks() * WEEK;
+      }
       if ( this.options.months ) {
         seconds += this.months() * MONTH;
       }
@@ -595,6 +632,9 @@
       }
       if ( this.options.months && this.months() > 0 ) {
         units.push( this._t( "units.month", this.months() ) );
+      }
+      if ( this.options.weeks && this.weeks() > 0 ) {
+        units.push( this._t( "units.week", this.weeks() ) );
       }
       if ( this.options.days && this.days() > 0 ) {
         units.push( this._t( "units.day", this.days() ) );
