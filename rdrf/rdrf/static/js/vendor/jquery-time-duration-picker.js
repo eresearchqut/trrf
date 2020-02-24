@@ -164,37 +164,20 @@
       ).appendTo( this._content.div );
       this._content.tableBody = $( "tbody", this._content.table );
 
-      this._content.button = $( "<input type='button' />" )
-        .val( this._t( "button_ok" ) );
-      this._content.button.addClass(
-        "ui-button ui-widget ui-state-default ui-corner-all"
-      );
-      this._content.button.css( {
-        display: "block",
-        margin: "0.5em auto",
-        padding: "0.5em 1em"
-      } );
-      this._content.button.hover( function() {
-        $( this ).addClass( "ui-state-hover" );
-      }, function() {
-        $( this ).removeClass( "ui-state-hover" );
-      } );
-      this._content.button.on( "click", function() {
-        self._content.div.fadeOut();
-        self._save();
-
-        if ( self.options.onSelect ) {
-          self.options.onSelect.call(
-            self, self.element, self.getSeconds(), self.getDuration(), self.translate()
-          );
-        }
-      } );
-      this._content.button.appendTo( this._content.div );
-
       this._initUnits();
 
       instances.push( this );
     },
+
+    _on_change: function() {
+      this._save();
+      if ( this.options.onSelect ) {
+        this.options.onSelect.call(
+          this, this.element, this.getSeconds(), this.getDuration(), this.translate()
+        );
+      }
+    },
+
     _destroy: function() {
       var i = instances.indexOf( this );
 
@@ -265,6 +248,11 @@
       if ( !isNaN( max ) ) {
         input.attr( "max", max );
       }
+
+      var self = this;
+      input.change(function() {
+        self._on_change();
+      });
 
       return input;
     },
