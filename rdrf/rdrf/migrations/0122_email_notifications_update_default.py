@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0119_remove_ip_restrict_tables'),
+        ('rdrf', '0121_cde_add_email_datatype'),
     ]
 
     operations = [

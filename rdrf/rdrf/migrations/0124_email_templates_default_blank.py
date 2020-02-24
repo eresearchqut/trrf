@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0121_email_template_defaults'),
+        ('rdrf', '0123_email_template_defaults'),
     ]
 
     operations = [

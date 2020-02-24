@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0120_email_notifications_update_default'),
+        ('rdrf', '0122_email_notifications_update_default'),
     ]
 
     operations = [
