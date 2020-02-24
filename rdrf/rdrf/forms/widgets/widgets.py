@@ -778,6 +778,9 @@ class DurationWidget(widgets.TextInput):
         if not value or not iso_8601_validator(value):
             value = "PT0S"  # default ISO-8601 duration
 
+        def get_attribute(name):
+            return "true" if self.attrs.get(name, True) else "false"
+
         return f'''
             <input id="id_{name}_text" type="text" value="{value}" readonly/>
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
@@ -795,7 +798,13 @@ class DurationWidget(widgets.TextInput):
                         $("#id_{name}_text").val(text);
                         $("#main-form").trigger('change');
                         $("#id_{name}_duration").trigger('change');
-                    }}
+                    }},
+                    years: {get_attribute('years')},
+                    months: {get_attribute('months')},
+                    days: {get_attribute('days')},
+                    hours: {get_attribute('hours')},
+                    minutes: {get_attribute('minutes')},
+                    seconds: {get_attribute('seconds')}
                 }});
                 $("#id_{name}_text").addClass("form-control");
             </script>
