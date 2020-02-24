@@ -2,11 +2,13 @@
 {% load static from staticfiles %}
 {% load has_feature %}
 {% load i18n %}
+
 {% load translate %}
 
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/patients_listing.css' %}">
     <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jSignature.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>

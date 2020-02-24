@@ -232,11 +232,19 @@ class DSLValidator:
         self.section_helper = SectionHelper(form)
 
     @staticmethod
+    def invalid_cdes_to_str_set(invalid_cdes):
+        return set([
+            el.cde if el.has_valid_section()
+            else f"Invalid section \"{el.section}\" in {el.get_key()}"
+            for el in invalid_cdes
+        ])
+
+    @staticmethod
     def validate_condition_cdes(cond, idx):
         cond_validation = cond.invalid_cdes()
         if cond_validation:
-            cdes = set([el.cde for el in cond_validation])
-            return [f'Invalid condition specified on line {idx} : {" ".join(cdes)}']
+            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cond_validation))
+            return [f'Invalid condition cdes specified on line {idx} : {errors_str}']
         return []
 
     @staticmethod
@@ -280,12 +288,17 @@ class DSLValidator:
         multiple_conditions = len(conditions) > 1
         cde_validation = target.invalid_cdes()
         if cde_validation:
-            errors.append(f'Invalid CDEs specified on line {idx} : {" ".join(cde_validation)}')
+            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cde_validation))
+            errors.append(f'Invalid CDEs specified on line {idx} : {errors_str}')
             return errors
 
         if not multiple_conditions:
             errors.extend(self.validate_condition_cdes(conditions[0], idx))
+            if errors:
+                return errors
             errors.extend(self.validate_condition_values(conditions[0], idx))
+            if errors:
+                return errors
             errors.extend(self.check_condition(checker, conditions, action, target, idx))
         else:
             only_conditions = [c for c in conditions if isinstance(c, Condition)]

@@ -16,7 +16,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.sectionF = self.create_section(
             "sectionF", "Section F", ["DM1Apathy", "DM1BestMotorLevel"], True)
         self.sectionG = self.create_section(
-            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol", "CardiacImplant", "CDEAge"], False)
+            "DM1Cholesterol", "Section G", ["DM1ChronicInfection", "DM1Cholesterol", "CardiacImplant", "CDEAge", "TestDuration"], False)
 
     def create_forms(self):
         super().create_forms()
@@ -296,7 +296,19 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(
             exc_info,
             1,
-            ['Invalid condition specified on line 1 : CDEAge2']
+            ['Invalid condition cdes specified on line 1 : CDEAge2']
+        )
+
+    def test_simple_condition_with_invalid_section_prefix(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            DM1Cholesterol:DM1ChronicInfection visible if section:CDEAge == 18
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['Invalid condition cdes specified on line 1 : Invalid section "section" in section:CDEAge']
         )
 
     def test_simple_condition_with_section_prefix_invalid_section_prefix(self):
@@ -308,7 +320,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(
             exc_info,
             1,
-            ['Invalid CDEs specified on line 1 : DM1ChronicInfection']
+            ['Invalid CDEs specified on line 1 : Invalid section "DM1" in DM1:DM1ChronicInfection']
         )
 
     def test_multi_section_condition_and_targets_same_section_with_section_prefix(self):
@@ -328,3 +340,21 @@ class FormDSLValidationTestCase(FormTestCase):
         DM1BestMotorLevel visible if CardiacImplant == "Test with ; on: 'and (this)' with quotes" or CardiacImplant == "Yes, not specified further"
         '''
         self.new_form.save()
+
+    def test_duration_valid_condition_value(self):
+        self.new_form.conditional_rendering_rules = '''
+        CDEAge visible if TestDuration == "3 years, 2 months, 3 days and 16 hours"
+        '''
+        self.new_form.save()
+
+    def test_duration_invalid_condition_value(self):
+        with self.assertRaises(ValidationError) as exc_info:
+            self.new_form.conditional_rendering_rules = '''
+            CDEAge visible if TestDuration == "3 years and"
+            '''
+            self.new_form.save()
+        self.check_error_messages(
+            exc_info,
+            1,
+            ['Invalid value:"3 years and" for CDE: TestDuration on line 1']
+        )

@@ -5,10 +5,6 @@
 
 {% block extrahead %}
     {{ block.super }}
-    
-    <style>
-        .modal .modal-dialog { width: 60%; }
-    </style>
 
     <link rel="stylesheet" href="{% static 'datatables-1.10.12/css/jquery.dataTables.min.css' %}">
     <script type="text/javascript" src="{% static 'datatables-1.10.12/js/jquery.dataTables.min.js' %}"></script>
@@ -91,7 +87,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

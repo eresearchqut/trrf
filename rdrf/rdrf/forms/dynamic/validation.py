@@ -4,6 +4,8 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+from rdrf.helpers.cde_data_types import CDEDataTypes
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,19 +60,42 @@ def make_validation_func(val_type, cde):
         raise Exception(_("Unknown ValidationType %s") % val_type)
 
 
+def iso_8601_validator(value):
+    iso_8601_pattern = r"^P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d+)S)?)?$"
+    m = re.match(iso_8601_pattern, value)
+    has_groups = m and any(x for x in m.groups() if x is not None and x != 'T')
+    return has_groups
+
+
+def make_duration_validator(cde):
+
+    def vf(value):
+        if not iso_8601_validator(value):
+            raise ValidationError(
+                _(f"Value of '%(value)s' for %(cdename)s is not in ISO-8601 format !") % {
+                    "value": value,
+                    "cdename": cde.name,
+                })
+
+    return vf
+
+
 class ValidatorFactory(object):
 
     def __init__(self, cde):
         self.cde = cde
 
     def _is_numeric(self):
-        return self.cde.datatype.lower() in ["integer", "float"]
+        return self.cde.datatype.lower() in [CDEDataTypes.INTEGER, CDEDataTypes.FLOAT]
 
     def _is_string(self):
-        return self.cde.datatype.lower() in ["string", "alphanumeric"]
+        return self.cde.datatype.lower() == CDEDataTypes.STRING
 
     def _is_range(self):
         return self.cde.pv_group is not None
+
+    def _is_duration(self):
+        return self.cde.datatype.lower() == CDEDataTypes.DURATION
 
     def create_validators(self):
         validators = []
@@ -83,6 +108,9 @@ class ValidatorFactory(object):
             if self.cde.min_value is not None:
                 validate_min = make_validation_func(ValidationType.MIN, self.cde)
                 validators.append(validate_min)
+
+        if self._is_duration():
+            validators.append(make_duration_validator(self.cde))
 
         if self._is_string():
             if self.cde.pattern:

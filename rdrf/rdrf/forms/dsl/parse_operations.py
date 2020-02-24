@@ -14,12 +14,12 @@ class Target:
 
     def invalid_cdes(self):
         if self.has_qualifier:
-            sections = set(s.cde for s in self.target_cdes)
-            valid_sections = set(s.cde for s in self.target_cdes if s.cde in self.section_helper.get_section_codes())
+            sections = set(s for s in self.target_cdes)
+            valid_sections = set(s for s in self.target_cdes if s.cde in self.section_helper.get_section_codes())
             return sections - valid_sections
 
-        cdes = set(target.cde for target in self.target_cdes)
-        valid_cdes = set(target.cde for target in self.target_cdes if target.is_valid_cde())
+        cdes = set(target for target in self.target_cdes)
+        valid_cdes = set(target for target in self.target_cdes if target.is_valid_cde())
         return set(cdes) - valid_cdes
 
     def get_section_code(self):

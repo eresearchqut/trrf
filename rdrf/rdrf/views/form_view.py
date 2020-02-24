@@ -63,6 +63,7 @@ from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 import logging
 
@@ -565,6 +566,8 @@ class FormView(View):
                 is_superuser=self.user.is_superuser,
                 user_groups=self.user.groups.all(),
                 patient_model=patient)
+            if not form_class:
+                continue
             section_elements = section_model.get_elements()
             section_element_map[s] = section_elements
             section_field_ids_map[s] = self._get_field_ids(form_class)
@@ -915,7 +918,7 @@ class FormView(View):
             section_model = Section.objects.get(code=s)
             form_class = self._get_form_class_for_section(
                 self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
-            if not form_class and changes_since_version:
+            if not form_class:
                 remove_sections.append(s)
                 continue
             section_elements = section_model.get_elements()
@@ -1053,7 +1056,7 @@ class FormView(View):
                     cde = CommonDataElement.objects.filter(code=cde_code).first()
                     if cde:
                         cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                        if cde.datatype.lower() == "date":
+                        if cde.datatype.lower() == CDEDataTypes.DATE:
                             # date widgets are complex
                             metadata[cde_code_on_page] = {}
                             metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"

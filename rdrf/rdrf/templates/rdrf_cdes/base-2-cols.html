@@ -61,6 +61,7 @@
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/collapsing_panels.js' %}"></script>
     <script type="text/javascript" src="{% static 'timepicki/js/timepicki.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-time-duration-picker.min.js' %}"></script>
     <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
 
     {% block extrastyle %}
@@ -98,9 +99,7 @@
 </head>
 
 <body>
-
     <div id="wrap">
-
         <nav class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
                 <div class="row">
@@ -158,7 +157,7 @@
 
                 <div class="row">
                     <!-- command button row -->
-                    <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: left">
+                    <div class="col-xs-3" style="text-align: left">
                         {% if show_archive_button %}
                         <div class="btn-group" role="group" aria-label="...">
                             <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
@@ -169,7 +168,7 @@
                         {% endif %}
                     </div>
                     {% if not changes_since_version %}
-                        <div class="col-md-6 col-sm-6 col-xs-6" style="text-align: right">
+                        <div class="col-xs-9" style="text-align: right">
                             {% block formbtns %}
                             {% endblock %}
                         </div>
@@ -250,6 +249,9 @@
                 </div>
             </div>
         </div>
+        {% block footer %}
+        {% include 'rdrf_cdes/footer.html' %}
+        {% endblock %}
     </div>
 
     <script type="text/javascript">
@@ -259,11 +261,6 @@
             });
         })
     </script>
-
-    {% block footer %}
-    {% include 'rdrf_cdes/footer.html' %}
-    {% endblock %}
-
 </body>
 
 </html>

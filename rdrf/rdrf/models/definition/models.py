@@ -27,6 +27,7 @@ from rdrf.events.events import EventType, EMAIL_NOTIFICATIONS
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 
 logger = logging.getLogger(__name__)
@@ -571,32 +572,24 @@ class CDEPermittedValue(models.Model):
 
 class CommonDataElement(models.Model):
 
-    DATA_TYPE_BOOL = 'boolean'
-    DATA_TYPE_CALCULATED = 'calculated'
-    DATA_TYPE_DATE = 'date'
-    DATA_TYPE_FILE = 'file'
-    DATA_TYPE_FLOAT = 'float'
-    DATA_TYPE_INTEGER = 'integer'
-    DATA_TYPE_RANGE = 'range'
-    DATA_TYPE_STRING = 'string'
-    DATA_TYPE_TIME = 'time'
-
     DATA_TYPE_CHOICES = [
-        (DATA_TYPE_BOOL, 'Boolean'),
-        (DATA_TYPE_CALCULATED, 'Calculated'),
-        (DATA_TYPE_DATE, 'Date'),
-        (DATA_TYPE_FILE, 'File'),
-        (DATA_TYPE_FLOAT, 'Float'),
-        (DATA_TYPE_INTEGER, 'Integer'),
-        (DATA_TYPE_RANGE, 'Range'),
-        (DATA_TYPE_STRING, 'String'),
-        (DATA_TYPE_TIME, 'Time')
+        (CDEDataTypes.BOOL, 'Boolean'),
+        (CDEDataTypes.CALCULATED, 'Calculated'),
+        (CDEDataTypes.DATE, 'Date'),
+        (CDEDataTypes.DURATION, 'Duration'),
+        (CDEDataTypes.EMAIL, 'Email'),
+        (CDEDataTypes.FILE, 'File'),
+        (CDEDataTypes.FLOAT, 'Float'),
+        (CDEDataTypes.INTEGER, 'Integer'),
+        (CDEDataTypes.RANGE, 'Range'),
+        (CDEDataTypes.STRING, 'String'),
+        (CDEDataTypes.TIME, 'Time'),
     ]
 
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=DATA_TYPE_STRING)
+    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=CDEDataTypes.STRING)
     instructions = models.TextField(
         blank=True, help_text="Used to indicate help text for field")
     pv_group = models.ForeignKey(
@@ -665,7 +658,7 @@ class CommonDataElement(models.Model):
         if stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
             return None
-        elif self.datatype.lower() == "date":
+        elif self.datatype.lower() == CDEDataTypes.DATE:
             try:
                 return parse_iso_datetime(stored_value).date()
             except ValueError:
@@ -691,7 +684,7 @@ class CommonDataElement(models.Model):
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
                                                               ex))
-        elif self.datatype.lower() == "date":
+        elif self.datatype.lower() == CDEDataTypes.DATE:
             try:
                 return parse_iso_datetime(stored_value).date()
             except ValueError:

@@ -1,22 +1,25 @@
+from collections import OrderedDict
 import json
+import logging
 import re
+
+
+from django.conf import settings
 import django.forms
 from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
 from django.forms.widgets import CheckboxSelectMultiple
-from django.utils.safestring import mark_safe
 from django.urls import reverse
-from collections import OrderedDict
+from django.utils.functional import lazy
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from rdrf.forms.dynamic import fields
-from rdrf.forms.widgets import widgets
-import logging
 from rdrf.forms.dynamic.calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from rdrf.forms.dynamic.validation import ValidatorFactory
+from rdrf.forms.widgets import widgets
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.models.definition.models import CommonDataElement
 
-from django.utils.functional import lazy
-from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 
 mark_safe_lazy = lazy(mark_safe, str)
 
@@ -50,13 +53,12 @@ class FieldFactory(object):
     # NB options can be added as pair as in the alphanumeric case  - don't return _instances here
     # updated before return
     DATATYPE_DICTIONARY = {
-        "string": django.forms.CharField,
-        "alphanumeric": (django.forms.RegexField, {"regex": r'^[a-zA-Z0-9]*$'}),
-        "integer": django.forms.IntegerField,
-        "date": (fields.IsoDateField, {"help_text": _("DD-MM-YYYY"), "input_formats": ["%d-%m-%Y"]}),
-        "boolean": django.forms.BooleanField,
-        "float": django.forms.FloatField,
-        "email": django.forms.EmailField,
+        CDEDataTypes.STRING: django.forms.CharField,
+        CDEDataTypes.INTEGER: django.forms.IntegerField,
+        CDEDataTypes.DATE: (fields.IsoDateField, {"help_text": _("DD-MM-YYYY"), "input_formats": ["%d-%m-%Y"]}),
+        CDEDataTypes.BOOL: django.forms.BooleanField,
+        CDEDataTypes.FLOAT: django.forms.FloatField,
+        CDEDataTypes.EMAIL: django.forms.EmailField,
     }
 
     UNSET_CHOICE = ""

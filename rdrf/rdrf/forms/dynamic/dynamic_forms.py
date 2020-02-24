@@ -8,6 +8,7 @@ from django.utils.formats import date_format
 
 from rdrf.forms.dynamic.field_lookup import FieldFactory
 from rdrf.models.definition.models import CdePolicy, CommonDataElement
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,7 @@ def create_form_class_for_section(
             else:
                 cde_field.previous_value = values.get(prev_value.lower())
 
-        if cde.datatype == CommonDataElement.DATA_TYPE_DATE and cde_field.previous_value:
+        if cde.datatype == CDEDataTypes.DATE and cde_field.previous_value:
             previous = cde_field.previous_value
             is_list = isinstance(previous, list)
             cde_field.previous_value = [format_date(el) for el in previous] if is_list else format_date(previous)

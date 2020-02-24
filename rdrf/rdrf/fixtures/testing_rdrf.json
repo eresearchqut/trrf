@@ -10285,6 +10285,26 @@
     }
   },
   {
+    "pk": "TestDuration",
+    "model": "rdrf.commondataelement",
+    "fields": {
+      "pv_group": null,
+      "allow_multiple": false,
+      "name": "Duration",
+      "datatype": "duration",
+      "max_value": null,
+      "min_value": 0,
+      "widget_name": "",
+      "questionnaire_text": "",
+      "calculation": "",
+      "max_length": null,
+      "pattern": "",
+      "desc": "",
+      "is_required": false,
+      "instructions": "Duration test"
+    }
+  },
+  {
     "pk": 5,
     "model": "rdrf.registryform",
     "fields": {
