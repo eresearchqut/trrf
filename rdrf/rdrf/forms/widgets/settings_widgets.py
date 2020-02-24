@@ -178,3 +178,84 @@ class RadioSelectSettings(Widget):
             <script>
                 {javascript}
             </script>""")
+
+class DurationWidgetSettings(Widget):
+
+    @staticmethod
+    def get_allowed_fields():
+        return {'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only'}
+
+    def generate_input(self, name, title, parsed, info=None):
+        value = parsed.get(name, '')
+        on_change = "update_weeks_only()" if name != "weeks_only" else "update_other_checkboxes()"
+        checked = "checked" if value else ""
+        input_str = f'''
+            <input type="checkbox" name="{name}" id="{name}" {checked} onchange="{on_change}"/>
+        '''
+        help_text = f'<div class="help">{info}</div>' if info else ''
+        return f"""
+            <div>
+                <label for="{name}" style="width:175px">{title}</label>
+                {input_str}
+                {help_text}
+            </div>"""
+
+    def generate_inputs(self, parsed):
+        rows = [
+            self.generate_input('years', _("Display years input"), parsed),
+            self.generate_input('months', _("Display months input"), parsed),
+            self.generate_input('days', _("Display days input"), parsed),
+            self.generate_input('hours', _("Display hours input"), parsed),
+            self.generate_input('minutes', _("Display minutes input"), parsed),
+            self.generate_input('seconds', _("Display seconds input"), parsed),
+            '<span style="margin-bottom:5px;height:10px;border-bottom:1px solid #ccc"></span>',
+            self.generate_input('weeks_only', _("Display only weeks input"), parsed),
+        ]
+        return "<br/>".join(rows)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        parsed = {}
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            pass
+
+        html = """
+             <div style="display:inline-grid" id="id_{name}">
+                {inputs}
+                <input type="hidden" name="{name}" value='{value}'/>
+             </div>""".format(inputs=self.generate_inputs(parsed), name=name, value=value)
+        javascript = """
+            function saveJSON() {
+                var inputs = $('#id_%s input[type=checkbox]');
+                var obj = {};
+                for (var i = 0; i < inputs.length; i++) {
+                    obj[inputs[i].name] = inputs[i].checked;
+                }    
+                $("input[name='%s']").val(JSON.stringify(obj));
+            }
+
+            function update_weeks_only() {
+                var value = $('#id_%s input[type=checkbox][name!="weeks_only"]').filter(function(idx, el) { return el.checked;});
+                if (value.length) {
+                    $("#weeks_only").prop("checked", false);
+                }
+                saveJSON();
+            }
+
+
+            function update_other_checkboxes() {
+                var value = $("#weeks_only").prop("checked");
+                if (value) {
+                    $('#id_%s input[type=checkbox][name!="weeks_only"]').prop("checked", !value);
+                }
+                saveJSON();
+            }
+
+            saveJSON();
+        """ % (name, name, name, name)
+        return mark_safe(f"""
+            {html}
+            <script>
+                {javascript}
+            </script>""")
