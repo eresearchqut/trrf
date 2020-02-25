@@ -5,6 +5,8 @@ import logging
 import math
 import re
 import sys
+
+from itertools import groupby
 from operator import attrgetter
 
 import pycountry
@@ -775,12 +777,95 @@ class DurationWidget(widgets.TextInput):
         return {CDEDataTypes.DURATION}
 
     def render(self, name, value, attrs=None, renderer=None):
-        if not value or not iso_8601_validator(value):
-            value = "PT0S"  # default ISO-8601 duration
 
-        def get_attribute(name):
+        def get_attribute(name, as_string=True):
             default = True if name != "weeks_only" else False
-            return "true" if self.attrs.get(name, default) else "false"
+            if as_string:
+                return "true" if self.attrs.get(name, default) else "false"
+            return self.attrs.get(name, default)
+
+        def current_format_default():
+            '''
+            Returns the current format default value
+            Ex: If years months and hours are selected the default value is P0Y0MT0H
+            '''
+            if get_attribute("weeks_only", as_string=False):
+                return "P0W"
+            default_values = {
+                "years": "0Y",
+                "months": "0M",
+                "days": "0D",
+                "hours": "0H",
+                "minutes": "0M",
+                "seconds": "0S"
+            }
+            existing = [attr for attr in default_values.keys() if get_attribute(attr, as_string=False)]
+            time_separator = False
+            fmt = "P"
+            for attr in existing:
+                if attr in ["hours", "minutes", "seconds"] and not time_separator:
+                    time_separator = True
+                    fmt += "T"
+                fmt += default_values[attr]
+            return fmt
+
+        def value_default_format(value):
+            '''
+            Returns the default format for the current value
+            Ex: P3Y2M30D => P0Y0M0D
+            '''
+            if not value:
+                return current_format_default()
+            pre_processed = ["0" if v.isdigit() else v for v in value]
+            return "".join([k for k, _ in groupby("".join(pre_processed))])
+
+        def compatible_formats(src, dst):
+            '''
+            Checks if two default formats are compatible
+            Ex: src: P0Y0M0D  dest:P0Y => these are compatible
+            '''
+            def extract_fields(format):
+                mappings = {
+                    "Y": "years",
+                    "M": "months",
+                    "D": "days",
+                    "W": "weeks",
+                    "H": "hours",
+                    "S": "seconds"
+                }
+                result = set()
+                idx = 1
+                processing_time = False
+                while idx < len(format):
+                    if format[idx] == 'T':
+                        processing_time = True
+                    elif format[idx] == "0":
+                        idx += 1
+                        value = mappings[format[idx]]
+                        if processing_time:
+                            value = "minutes" if value == "months" else value
+                        result.add(value)
+                    idx += 1
+                return result
+
+            src_fields = extract_fields(src)
+            dst_fields = extract_fields(dst)
+            common_fields = src_fields & dst_fields
+            if len(src_fields) > len(dst_fields):
+                return bool(common_fields)
+            elif len(src_fields) == len(dst_fields):
+                return len(common_fields) == len(src_fields)
+            else:
+                return False
+
+        current_default_fmt = current_format_default()
+        value_default_fmt = value_default_format(value)
+        compatible = compatible_formats(current_default_fmt, value_default_fmt)
+        logger.info(f"name={name}, value={value}")
+        logger.info(f"default fmt={current_default_fmt}, value fmt={value_default_fmt}, compatible={compatible}")
+
+        if not value or not iso_8601_validator(value) or not compatible:
+            value = current_format_default()
 
         return f'''
             <input id="id_{name}_text" type="text" value="{value}" readonly/>
