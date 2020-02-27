@@ -127,6 +127,10 @@ phases:
                   "value": "$AWS_STORAGE_BUCKET_NAME"
                 },
                 {
+                  "name": "AWS_STATIC_BUCKET_NAME",
+                  "value": "$AWS_STATIC_BUCKET_NAME"
+                },
+                {
                   "name": "ALLOWED_HOSTS",
                   "value": "$ALLOWED_HOSTS"
                 },
