@@ -6,6 +6,7 @@ import math
 import re
 import sys
 
+from functools import reduce
 from operator import attrgetter
 
 import pycountry
@@ -765,6 +766,95 @@ class TimeWidget(widgets.TextInput):
         '''
 
 
+class DurationWidgetHelper:
+
+    def __init__(self, attrs):
+        self.attrs = attrs
+
+    def _get_attribute(self, name):
+        default = name != "weeks_only"
+        return self.attrs.get(name, default)
+
+    def get_attribute_js(self, name):
+        return "true" if self._get_attribute(name) else "false"
+
+    def current_format_default(self):
+        '''
+        Returns the current format default value
+        Ex: If years months and hours are selected the default value is P0Y0MT0H
+        '''
+        if self._get_attribute("weeks_only"):
+            return "P0W"
+
+        default_values = {
+            "years": "0Y",
+            "months": "0M",
+            "days": "0D",
+            "hours": "0H",
+            "minutes": "0M",
+            "seconds": "0S"
+        }
+
+        def reduce_fn(acc, curr):
+            if curr in ["hours", "minutes", "seconds"] and 'T' not in acc:
+                acc.append("T")
+            acc.append(default_values[curr])
+            return acc
+
+        existing = [attr for attr in default_values.keys() if self._get_attribute(attr)]
+        return "".join(reduce(reduce_fn, existing, ['P']))
+
+    def value_default_format(self, value):
+        '''
+        Returns the default format for the current value
+        Ex: P3Y2M30D => P0Y0M0D
+        '''
+        if not value:
+            return self.current_format_default()
+        return re.sub(r"\d+", "0", value)
+
+    @staticmethod
+    def extract_fields(format):
+        '''
+        Extract the field names from a duration format
+        Ex: P0Y0M => {'years', 'months'}
+        '''
+        no_zeroes = re.sub(r"\d+", "", format)
+        date_mappings = {"Y": "years", "M": "months", "D": "days", "W": "weeks"}
+        time_mappings = {"H": "hours", "M": "minutes", "S": "seconds"}
+
+        def reduce_fn(acc, curr):
+            if curr == 'T':
+                acc.add(curr)
+            else:
+                mapping = time_mappings[curr] if 'T' in acc else date_mappings[curr]
+                acc.add(mapping)
+            return acc
+
+        result = reduce(reduce_fn, no_zeroes[1:], set())
+        return result - set(['T'])
+
+    @staticmethod
+    def compatible_formats(src, dst):
+        '''
+        Checks if two default formats are compatible
+        Ex: src: P0Y0M0D  dest:P0Y => these are compatible
+        '''
+        valid_src = iso_8601_validator(src)
+        valid_dest = iso_8601_validator(dst)
+        if not (valid_src and valid_dest):
+            return False
+        src_fields = DurationWidgetHelper.extract_fields(src)
+        dst_fields = DurationWidgetHelper.extract_fields(dst)
+        common_fields = src_fields & dst_fields
+        if len(src_fields) > len(dst_fields):
+            return bool(common_fields)
+        elif len(src_fields) == len(dst_fields):
+            return len(common_fields) == len(src_fields)
+        else:
+            return False
+
+
 class DurationWidget(widgets.TextInput):
     """
     Time duration picker component used:
@@ -777,92 +867,14 @@ class DurationWidget(widgets.TextInput):
 
     def render(self, name, value, attrs=None, renderer=None):
 
-        def get_attribute(name):
-            default = name != "weeks_only"
-            return self.attrs.get(name, default)
+        widget_helper = DurationWidgetHelper(self.attrs)
 
-        def get_attribute_js(name):
-            return "true" if get_attribute(name) else "false"
-
-        def current_format_default():
-            '''
-            Returns the current format default value
-            Ex: If years months and hours are selected the default value is P0Y0MT0H
-            '''
-            if get_attribute("weeks_only"):
-                return "P0W"
-            default_values = {
-                "years": "0Y",
-                "months": "0M",
-                "days": "0D",
-                "hours": "0H",
-                "minutes": "0M",
-                "seconds": "0S"
-            }
-            existing = [attr for attr in default_values.keys() if get_attribute(attr)]
-            time_separator = False
-            fmt = "P"
-            for attr in existing:
-                if attr in ["hours", "minutes", "seconds"] and not time_separator:
-                    time_separator = True
-                    fmt += "T"
-                fmt += default_values[attr]
-            return fmt
-
-        def value_default_format(value):
-            '''
-            Returns the default format for the current value
-            Ex: P3Y2M30D => P0Y0M0D
-            '''
-            if not value:
-                return current_format_default()
-            return re.sub(r"\d+", "0", value)
-
-        def compatible_formats(src, dst):
-            '''
-            Checks if two default formats are compatible
-            Ex: src: P0Y0M0D  dest:P0Y => these are compatible
-            '''
-            def extract_fields(format):
-                mappings = {
-                    "Y": "years",
-                    "M": "months",
-                    "D": "days",
-                    "W": "weeks",
-                    "H": "hours",
-                    "S": "seconds"
-                }
-                result = set()
-                idx = 1
-                processing_time = False
-                while idx < len(format):
-                    if format[idx] == 'T':
-                        processing_time = True
-                    elif format[idx] == "0":
-                        idx += 1
-                        value = mappings[format[idx]]
-                        if processing_time:
-                            value = "minutes" if value == "months" else value
-                        result.add(value)
-                    idx += 1
-                return result
-
-            src_fields = extract_fields(src)
-            dst_fields = extract_fields(dst)
-            common_fields = src_fields & dst_fields
-            if len(src_fields) > len(dst_fields):
-                return bool(common_fields)
-            elif len(src_fields) == len(dst_fields):
-                return len(common_fields) == len(src_fields)
-            else:
-                return False
-
-        current_default_fmt = current_format_default()
-        value_default_fmt = value_default_format(value)
-        compatible = compatible_formats(current_default_fmt, value_default_fmt)
+        current_default_fmt = widget_helper.current_format_default()
+        value_default_fmt = widget_helper.value_default_format(value)
+        compatible = widget_helper.compatible_formats(current_default_fmt, value_default_fmt)
 
         if not value or not iso_8601_validator(value) or not compatible:
-            value = current_format_default()
+            value = widget_helper.current_format_default()
 
         return f'''
             <input id="id_{name}_text" type="text" value="{value}" readonly/>
@@ -882,13 +894,13 @@ class DurationWidget(widgets.TextInput):
                         $("#main-form").trigger('change');
                         $("#id_{name}_duration").trigger('change');
                     }},
-                    years: {get_attribute_js('years')},
-                    months: {get_attribute_js('months')},
-                    days: {get_attribute_js('days')},
-                    hours: {get_attribute_js('hours')},
-                    minutes: {get_attribute_js('minutes')},
-                    seconds: {get_attribute_js('seconds')},
-                    weeks: {get_attribute_js('weeks_only')}
+                    years: {widget_helper.get_attribute_js('years')},
+                    months: {widget_helper.get_attribute_js('months')},
+                    days: {widget_helper.get_attribute_js('days')},
+                    hours: {widget_helper.get_attribute_js('hours')},
+                    minutes: {widget_helper.get_attribute_js('minutes')},
+                    seconds: {widget_helper.get_attribute_js('seconds')},
+                    weeks: {widget_helper.get_attribute_js('weeks_only')}
                 }});
                 $("#id_{name}_text").addClass("form-control");
             </script>
