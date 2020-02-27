@@ -93,7 +93,12 @@ class RadioSelectSettingsValidator(BaseValidator):
 
 
 class DurationWidgetSettingsValidator(BaseValidator):
-    pass
+
+    def validate(self):
+        super().validate()
+        all_unset = all([not v for v in self.settings.values()])
+        if all_unset:
+            raise ValidationError(_("You need to select at least one duration field !"))
 
 
 def get_validator(widget_instance, cleaned_data):

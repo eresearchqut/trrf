@@ -6,7 +6,6 @@ import math
 import re
 import sys
 
-from itertools import groupby
 from operator import attrgetter
 
 import pycountry
@@ -778,18 +777,19 @@ class DurationWidget(widgets.TextInput):
 
     def render(self, name, value, attrs=None, renderer=None):
 
-        def get_attribute(name, as_string=True):
-            default = True if name != "weeks_only" else False
-            if as_string:
-                return "true" if self.attrs.get(name, default) else "false"
+        def get_attribute(name):
+            default = name != "weeks_only"
             return self.attrs.get(name, default)
+
+        def get_attribute_js(name):
+            return "true" if get_attribute(name) else "false"
 
         def current_format_default():
             '''
             Returns the current format default value
             Ex: If years months and hours are selected the default value is P0Y0MT0H
             '''
-            if get_attribute("weeks_only", as_string=False):
+            if get_attribute("weeks_only"):
                 return "P0W"
             default_values = {
                 "years": "0Y",
@@ -799,7 +799,7 @@ class DurationWidget(widgets.TextInput):
                 "minutes": "0M",
                 "seconds": "0S"
             }
-            existing = [attr for attr in default_values.keys() if get_attribute(attr, as_string=False)]
+            existing = [attr for attr in default_values.keys() if get_attribute(attr)]
             time_separator = False
             fmt = "P"
             for attr in existing:
@@ -816,8 +816,7 @@ class DurationWidget(widgets.TextInput):
             '''
             if not value:
                 return current_format_default()
-            pre_processed = ["0" if v.isdigit() else v for v in value]
-            return "".join([k for k, _ in groupby("".join(pre_processed))])
+            return re.sub(r"\d+", "0", value)
 
         def compatible_formats(src, dst):
             '''
@@ -861,8 +860,6 @@ class DurationWidget(widgets.TextInput):
         current_default_fmt = current_format_default()
         value_default_fmt = value_default_format(value)
         compatible = compatible_formats(current_default_fmt, value_default_fmt)
-        logger.info(f"name={name}, value={value}")
-        logger.info(f"default fmt={current_default_fmt}, value fmt={value_default_fmt}, compatible={compatible}")
 
         if not value or not iso_8601_validator(value) or not compatible:
             value = current_format_default()
@@ -885,13 +882,13 @@ class DurationWidget(widgets.TextInput):
                         $("#main-form").trigger('change');
                         $("#id_{name}_duration").trigger('change');
                     }},
-                    years: {get_attribute('years')},
-                    months: {get_attribute('months')},
-                    days: {get_attribute('days')},
-                    hours: {get_attribute('hours')},
-                    minutes: {get_attribute('minutes')},
-                    seconds: {get_attribute('seconds')},
-                    weeks: {get_attribute('weeks_only')}
+                    years: {get_attribute_js('years')},
+                    months: {get_attribute_js('months')},
+                    days: {get_attribute_js('days')},
+                    hours: {get_attribute_js('hours')},
+                    minutes: {get_attribute_js('minutes')},
+                    seconds: {get_attribute_js('seconds')},
+                    weeks: {get_attribute_js('weeks_only')}
                 }});
                 $("#id_{name}_text").addClass("form-control");
             </script>

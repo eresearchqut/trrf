@@ -186,8 +186,8 @@ class DurationWidgetSettings(Widget):
     def get_allowed_fields():
         return {'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only'}
 
-    def generate_input(self, name, title, parsed, info=None):
-        value = parsed.get(name, '')
+    def generate_input(self, name, title, parsed, info=None, default_value=False):
+        value = parsed.get(name, default_value)
         on_change = "update_weeks_only()" if name != "weeks_only" else "update_other_checkboxes()"
         checked = "checked" if value else ""
         input_str = f'''
@@ -202,13 +202,14 @@ class DurationWidgetSettings(Widget):
             </div>"""
 
     def generate_inputs(self, parsed):
+        is_empty = len(parsed) == 0
         rows = [
-            self.generate_input('years', _("Display years input"), parsed),
-            self.generate_input('months', _("Display months input"), parsed),
-            self.generate_input('days', _("Display days input"), parsed),
-            self.generate_input('hours', _("Display hours input"), parsed),
-            self.generate_input('minutes', _("Display minutes input"), parsed),
-            self.generate_input('seconds', _("Display seconds input"), parsed),
+            self.generate_input('years', _("Display years input"), parsed, info=None, default_value=is_empty),
+            self.generate_input('months', _("Display months input"), parsed, info=None, default_value=is_empty),
+            self.generate_input('days', _("Display days input"), parsed, info=None, default_value=is_empty),
+            self.generate_input('hours', _("Display hours input"), parsed, info=None, default_value=is_empty),
+            self.generate_input('minutes', _("Display minutes input"), parsed, info=None, default_value=is_empty),
+            self.generate_input('seconds', _("Display seconds input"), parsed, info=None, default_value=is_empty),
             '<span style="margin-bottom:5px;height:10px;border-bottom:1px solid #ccc"></span>',
             self.generate_input('weeks_only', _("Display only weeks input"), parsed),
         ]
