@@ -166,8 +166,9 @@ class CDEHelper:
 
         def validate_humanised_duration(v):
             valid_intervals = {
-                "years", "year", "months", "month", "days", "day", "hours", "hour",
-                "minutes", "minute", "seconds", "second"
+                "years", "year", "months", "month", "week", "weeks",
+                "days", "day", "hours", "hour", "minutes", "minute",
+                "seconds", "second"
             }
 
             def valid_str(s):

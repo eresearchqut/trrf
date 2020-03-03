@@ -4,7 +4,10 @@ import json
 from django.forms import ValidationError
 from django.utils.translation import gettext as _
 
-from rdrf.forms.widgets.settings_widgets import SliderWidgetSettings, TimeWidgetSettings, RadioSelectSettings
+from rdrf.forms.widgets.settings_widgets import (
+    DurationWidgetSettings, SliderWidgetSettings,
+    TimeWidgetSettings, RadioSelectSettings
+)
 
 
 class BaseValidator:
@@ -89,11 +92,23 @@ class RadioSelectSettingsValidator(BaseValidator):
     pass
 
 
+class DurationWidgetSettingsValidator(BaseValidator):
+
+    def validate(self):
+        super().validate()
+        all_unset = all([not v for v in self.settings.values()])
+        if all_unset:
+            raise ValidationError(_("You need to select at least one duration field !"))
+
+
 def get_validator(widget_instance, cleaned_data):
-    if isinstance(widget_instance, TimeWidgetSettings):
-        return TimeWidgetSettingsValidator(widget_instance, cleaned_data)
-    if isinstance(widget_instance, SliderWidgetSettings):
-        return SliderWidgetSettingsValidator(widget_instance, cleaned_data)
-    if isinstance(widget_instance, RadioSelectSettings):
-        return RadioSelectSettingsValidator(widget_instance, cleaned_data)
+    validators = {
+        TimeWidgetSettings: TimeWidgetSettingsValidator,
+        SliderWidgetSettings: SliderWidgetSettingsValidator,
+        RadioSelectSettings: RadioSelectSettingsValidator,
+        DurationWidgetSettings: DurationWidgetSettingsValidator
+    }
+    for cls, validator in validators.items():
+        if isinstance(widget_instance, cls):
+            return validator(widget_instance, cleaned_data)
     return None
