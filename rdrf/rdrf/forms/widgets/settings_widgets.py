@@ -8,10 +8,16 @@ from django.utils.translation import gettext as _
 from .widgets import TimeWidget
 
 
-class JSONWidget(Widget):
+class JSONWidgetSettings(Widget):
 
     def get_allowed_fields(self):
-        pass
+        raise NotImplementedError()
+
+    def generate_inputs(self):
+        raise NotImplementedError()
+
+    def set_extra_js(self, javascript):
+        self.javascript = javascript
 
     def parse_value(self, value):
         self.parsed = {}
@@ -45,15 +51,9 @@ class JSONWidget(Widget):
         self.parsed[name]['input_type'] = 'select'
         self.parsed[name]['options'] = kwargs.get('options', [])
 
-    def generate_inputs(self):
-        pass
-
     def render(self, name, value, attrs=None, renderer=None):
         self.parse_value(value)
         self.generate_inputs()
-        return self.render_widget(name, value, renderer)
-
-    def render_widget(self, name, value, renderer=None, javascript=None):
         if not renderer:
             renderer = get_default_renderer()
         context = {
@@ -61,13 +61,13 @@ class JSONWidget(Widget):
             "name": name,
             "value": value,
         }
-        if javascript:
-            context.update({"extra_js": mark_safe(javascript)})
+        if self.javascript:
+            context.update({"extra_js": mark_safe(self.javascript)})
 
         return renderer.render("widgets/widget_settings.html", context)
 
 
-class SliderWidgetSettings(JSONWidget):
+class SliderWidgetSettings(JSONWidgetSettings):
 
     def get_allowed_fields(self):
         return {'min', 'max', 'left_label', 'right_label', 'step'}
@@ -80,7 +80,7 @@ class SliderWidgetSettings(JSONWidget):
         self.generate_text_input('step', _('Step')),
 
 
-class TimeWidgetSettings(JSONWidget):
+class TimeWidgetSettings(JSONWidgetSettings):
 
     def get_allowed_fields(self):
         return {'format'}
@@ -103,7 +103,7 @@ class TimeWidgetSettings(JSONWidget):
         self.generate_input('format', _('Format'), _("Format of time: 12-hour or 24-hour")),
 
 
-class RadioSelectSettings(JSONWidget):
+class RadioSelectSettings(JSONWidgetSettings):
 
     def get_allowed_fields(self):
         return {'force_vertical'}
@@ -120,7 +120,7 @@ class RadioSelectSettings(JSONWidget):
         )
 
 
-class DurationWidgetSettings(JSONWidget):
+class DurationWidgetSettings(JSONWidgetSettings):
 
     def get_allowed_fields(self):
         return {'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only'}
@@ -142,9 +142,6 @@ class DurationWidgetSettings(JSONWidget):
         self.generate_input('weeks_only', _("Display only weeks input")),
 
     def render(self, name, value, attrs=None, renderer=None):
-        self.parse_value(value)
-        self.generate_inputs()
-
         javascript = """
             function update_weeks_only() {
                 var value = $('#id_%s input[type=checkbox][name!="weeks_only"]').filter(function(idx, el) { return el.checked;});
@@ -162,5 +159,5 @@ class DurationWidgetSettings(JSONWidget):
                 saveJSON();
             }
         """ % (name, name)
-
-        return self.render_widget(name, value, renderer, javascript)
+        self.set_extra_js(javascript)
+        return super().render(name, value, attrs, renderer)
