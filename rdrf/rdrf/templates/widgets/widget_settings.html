@@ -1,0 +1,45 @@
+<div style="display:inline-grid" id="id_{{name}}">
+    {% for key, item in settings.items %}
+        <div>
+            <label for="{{item.name}}">{{item.title}}</label>
+            {% if item.input_type == "text" %}
+                <input type="text" name="{{item.name}}" id="{{item.name}}" value="{{item.value}}" {% if item.onchange %} onchange="{{item.onchange}}" {% endif %}/>
+            {% elif item.input_type == "checkbox" %}
+                <input type="checkbox" name="{{item.name}}" id="{{item.name}}" {{item.checked}} {% if item.onchange %} onchange="{{item.onchange}}" {% endif %}/>
+            {% elif item.input_type == "select" %}
+                <select name="{{item.name}}" id="{{item.name}}" {% if item.onchange %} onchange="{{item.onchange}}" {% endif %}>
+                    {% for opt in item.options %}
+                        <option value="{{opt.value}}" {{opt.selected}}>{{opt.text}}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            {% if item.info %}
+                <div class="help">{{item.info}}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <input type="hidden" name="{{name}}" value='{{value}}'/>
+</div>
+<script>
+    function saveJSON() {
+        var obj = {};
+        {% for key, item in settings.items %}
+            {% if item.input_type == "text" %}
+                var value = $("#id_{{name}} #{{item.name}}").val();
+                if (value != '' && value.trim() != '') {
+                    obj["{{item.name}}"] = value;
+                }
+            {% elif item.input_type == "checkbox" %}
+                obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}}").prop("checked");
+            {% elif item.input_type == "select" %}
+                obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}} option:selected").val();
+            {% endif %}
+        {% endfor %}
+        $("input[name='{{name}}']").val(JSON.stringify(obj));
+    }
+
+    {{extra_js}}
+
+    saveJSON();
+
+</script>
