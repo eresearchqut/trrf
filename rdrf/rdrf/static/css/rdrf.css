@@ -73,6 +73,44 @@ html, body {
     }
 }
 
+@media only screen and (max-width: 992px) {
+    #sidebar {
+        position: fixed;
+
+        height: 100%;
+        width: 300px;
+        padding: 0;
+
+        top: 51px;
+
+        z-index: 100000;
+    }
+
+    #sidebar .well {
+        height: 95%;
+        overflow-y: auto;
+    }
+
+    .sidebar-show {
+        transition: 0.3s;
+        left: 0;
+    }
+
+    .sidebar-hide {
+        transition: 0.3s;
+        left: -300px;
+    }
+}
+
+#sidebar-button {
+    float: left;
+    font-size: 20pt;
+    margin-top: 10px;
+    color: #9d9d9d;
+    cursor: pointer;
+}
+
+
 /**************************************************************************
  * CSS button utils                                                       */
 

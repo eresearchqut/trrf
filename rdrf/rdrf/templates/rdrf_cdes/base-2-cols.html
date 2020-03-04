@@ -88,6 +88,22 @@
                 CollapsingPanels.expandFirst();
             }
         });
+
+        var sidebarHidden = true;
+        function toggleSidebar() {
+            var sidebarDivClasses = document.getElementById("sidebar").classList;
+            if (sidebarHidden) {
+                sidebarDivClasses.remove("sidebar-hide");
+                sidebarDivClasses.add("sidebar-show");
+            } else {
+                sidebarDivClasses.remove("sidebar-show");
+                sidebarDivClasses.add("sidebar-hide");
+            }
+
+            document.getElementById("sidebar-button").style.color = sidebarHidden ? "#ffffff" : "#9d9d9d";
+
+            sidebarHidden = !sidebarHidden;
+        }
     </script>
 
     {% if HIGHLIGHT_FORM_CHANGES_ENABLED %}
@@ -104,6 +120,7 @@
                 <div class="row">
                     <div class="col-md-10 col-md-offset-1">
                         <div class="navbar-header">
+                            <span id="sidebar-button" onclick="toggleSidebar()" class="glyphicon glyphicon-list navbar-left hidden-lg hidden-md"></span>
                             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
                                 <span class="sr-only">Toggle navigation</span>
                                 <span class="icon-bar"></span>
@@ -193,7 +210,7 @@
             {% endif %}
 
             <div class="row">
-                <div class="col-md-offset-1 col-md-2">
+                <div id="sidebar" class="col-md-offset-1 col-md-2 sidebar-hide">
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
