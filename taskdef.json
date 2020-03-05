@@ -70,8 +70,8 @@
                     "value": "$AWS_STORAGE_BUCKET_NAME"
                 },
                 {
-                    "name": "AWS_STATIC_BUCKET_NAME",
-                    "value": "$AWS_STATIC_BUCKET_NAME"
+                    "name": "GIT_COMMIT_HASH",
+                    "value": "$GIT_TAG"
                 },
                 {
                     "name": "AWS_STATIC_CONTENT_URL",
@@ -106,7 +106,7 @@
                     "value": "$NEW_RELIC_MONITOR_MODE"
                 }
             ],
-            "image": "${IMAGE_REPO}:${GIT_TAG}",
+            "image": "${IMAGE_REPO}:${IMAGE_TAG}",
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
