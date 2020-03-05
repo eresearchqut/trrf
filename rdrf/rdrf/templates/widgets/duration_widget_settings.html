@@ -1,0 +1,148 @@
+<div style="display:grid;" id="id_{{name}}">
+    <div>
+        <div style="float:left;">
+            <label for="years">Display years input</label>
+            <input type="checkbox" name="years" id="years" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="years_min" style="width:80px">Min value </label>
+            <input type="number" name="years_min" id="years_min" min="0" style="width:50px" value="{{settings.years_min}}" onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="years_max" style="width:80px;">Max value </label>
+            <input type="number" name="years_max" id="years_max" min="1" style="width:50px" value="{{settings.years_max}}" onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="months">Display months input</label>
+            <input type="checkbox" name="months" id="months" checked="" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="months_min" style="width:80px">Min value </label>
+            <input type="number" name="months_min" id="months_min" min="0" style="width:50px" value="{{settings.months_min}}"  onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="months_max" style="width:80px;">Max value </label>
+            <input type="number" name="months_max" id="months_max" min="1" style="width:50px" value="{{settings.months_max}}"  onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="days">Display days input</label>
+            <input type="checkbox" name="days" id="days" checked="" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="days_min" style="width:80px">Min value </label>
+            <input type="number" name="days_min" id="days_min" min="0" style="width:50px" value="{{settings.days_min}}" onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="days_max" style="width:80px;">Max value </label>
+            <input type="number" name="days_max" id="days_max" min="1" style="width:50px" value="{{settings.days_max}}"  onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="hours">Display hours input</label>
+            <input type="checkbox" name="hours" id="hours" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="hours_min" style="width:80px">Min value </label>
+            <input type="number" name="hours_min" id="hours_min" min="0" style="width:50px" value="{{settings.hours_min}}"  onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="hours_max" style="width:80px;">Max value </label>
+            <input type="number" name="hours_max" id="hours_max" min="1" style="width:50px" value="{{settings.hours_max}}"  onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="minutes">Display minutes input</label>
+            <input type="checkbox" name="minutes" id="minutes" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="minutes_min" style="width:80px">Min value </label>
+            <input type="number" name="minutes_min" id="minutes_min" min="0" style="width:50px" value="{{settings.minutes_min}}"  onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="minutes_max" style="width:80px;">Max value </label>
+            <input type="number" name="minutes_max" id="minutes_max" min="1" style="width:50px" value="{{settings.minutes_max}}"  onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="seconds">Display seconds input</label>
+            <input type="checkbox" name="seconds" id="seconds" onchange="update_weeks_only()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="seconds_min" style="width:80px">Min value </label>
+            <input type="number" name="seconds_min" id="seconds_min" min="0" style="width:50px" value="{{settings.seconds_min}}"  onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="seconds_max" style="width:80px;">Max value </label>
+            <input type="number" name="seconds_max" id="seconds_max" min="1" style="width:50px" value="{{settings.seconds_max}}"  onchange="saveJSON()"> 
+        </div>
+    </div>
+    <div>
+        <div style="float:left;">
+            <label for="weeks_only">Display only weeks input</label>
+            <input type="checkbox" name="weeks_only" id="weeks_only" onchange="update_other_checkboxes()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="weeks_only_min" style="width:80px">Min value </label>
+            <input type="number" name="weeks_only_min" id="weeks_only_min" min="0" style="width:50px" value="{{settings.weeks_only_min}}"  onchange="saveJSON()">
+        </div>
+        <div style="float:left;margin-left:10px;">
+            <label for="weeks_only_max" style="width:80px;">Max value </label>
+            <input type="number" name="weeks_only_max" id="weeks_only_max" min="1" style="width:50px" value="{{settings.weeks_only_max}}" onchange="saveJSON()"> 
+        </div>
+    </div>
+    <input type="hidden" name="{{name}}" value='{{value}}'/>
+</div>
+<script>
+    function saveJSON() {
+        var obj = {
+            "years": $("#id_{{name}} #years").prop("checked"),
+            "years_min": $("#id_{{name}} #years_min").val(),
+            "years_max": $("#id_{{name}} #years_max").val(),
+            "months": $("#id_{{name}} #months").prop("checked"),
+            "months_min": $("#id_{{name}} #months_min").val(),
+            "months_max": $("#id_{{name}} #months_max").val(),
+            "days": $("#id_{{name}} #days").prop("checked"),
+            "days_min": $("#id_{{name}} #days_min").val(),
+            "days_max": $("#id_{{name}} #days_max").val(),
+            "hours": $("#id_{{name}} #hours").prop("checked"),
+            "hours_min": $("#id_{{name}} #hours_min").val(),
+            "hours_max": $("#id_{{name}} #hours_max").val(),
+            "minutes": $("#id_{{name}} #minutes").prop("checked"),
+            "minutes_min": $("#id_{{name}} #minutes_min").val(),
+            "minutes_max": $("#id_{{name}} #minutes_max").val(),
+            "seconds": $("#id_{{name}} #seconds").prop("checked"),
+            "seconds_min": $("#id_{{name}} #seconds_min").val(),
+            "seconds_max": $("#id_{{name}} #seconds_max").val(),
+            "weeks_only": $("#id_{{name}} #weeks_only").prop("checked"),
+            "weeks_only_min": $("#id_{{name}} #weeks_only_min").val(),
+            "weeks_only_max": $("#id_{{name}} #weeks_only_max").val(),
+        };
+        $("input[name='{{name}}']").val(JSON.stringify(obj));
+    }
+
+    function update_weeks_only() {
+        var value = $('#id_{{name}} input[type=checkbox][name!="weeks_only"]').filter(function(idx, el) { return el.checked;});
+        if (value.length) {
+            $("#weeks_only").prop("checked", false);
+        }
+        saveJSON();
+    }
+
+    function update_other_checkboxes() {
+        var value = $("#weeks_only").prop("checked");
+        if (value) {
+            $('#id_{{name}} input[type=checkbox][name!="weeks_only"]').prop("checked", !value);
+        }
+        saveJSON();
+    }
+
+    saveJSON();
+
+</script>

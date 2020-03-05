@@ -19,6 +19,9 @@ class JSONWidgetSettings(Widget):
     def set_extra_js(self, javascript):
         self.javascript = javascript
 
+    def set_template(self, template):
+        self.template = template
+
     def parse_value(self, value):
         self.parsed = {}
         try:
@@ -64,7 +67,9 @@ class JSONWidgetSettings(Widget):
         if hasattr(self, 'javascript'):
             context.update({"extra_js": mark_safe(self.javascript)})
 
-        return renderer.render("widgets/widget_settings.html", context)
+        template = getattr(self, 'template', None) or "widgets/widget_settings.html"
+
+        return renderer.render(template, context)
 
 
 class SliderWidgetSettings(JSONWidgetSettings):
@@ -123,41 +128,16 @@ class RadioSelectSettings(JSONWidgetSettings):
 class DurationWidgetSettings(JSONWidgetSettings):
 
     def get_allowed_fields(self):
-        return {'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only'}
-
-    def generate_input(self, name, title, info=None, default_value=False):
-        value = self.parsed.get(name, default_value)
-        on_change = "update_weeks_only()" if name != "weeks_only" else "update_other_checkboxes()"
-        checked = "checked" if value else ""
-        self.generate_checkbox_input(name, title, info=info, checked=checked, onchange=on_change)
+        return {
+            'years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only',
+            'years_min', 'years_max', 'months_min', 'months_max', 'days_min', 'days_max',
+            'hours_min', 'hours_max', 'minutes_min', 'minutes_max', 'seconds_min', 'seconds_max',
+            'weeks_only_min', 'weeks_only_max'
+        }
 
     def generate_inputs(self):
-        is_empty = len(self.parsed) == 0
-        self.generate_input('years', _("Display years input"), info=None, default_value=is_empty),
-        self.generate_input('months', _("Display months input"), info=None, default_value=is_empty),
-        self.generate_input('days', _("Display days input"), info=None, default_value=is_empty),
-        self.generate_input('hours', _("Display hours input"), info=None, default_value=is_empty),
-        self.generate_input('minutes', _("Display minutes input"), info=None, default_value=is_empty),
-        self.generate_input('seconds', _("Display seconds input"), info=None, default_value=is_empty),
-        self.generate_input('weeks_only', _("Display only weeks input")),
+        pass
 
     def render(self, name, value, attrs=None, renderer=None):
-        javascript = """
-            function update_weeks_only() {
-                var value = $('#id_%s input[type=checkbox][name!="weeks_only"]').filter(function(idx, el) { return el.checked;});
-                if (value.length) {
-                    $("#weeks_only").prop("checked", false);
-                }
-                saveJSON();
-            }
-
-            function update_other_checkboxes() {
-                var value = $("#weeks_only").prop("checked");
-                if (value) {
-                    $('#id_%s input[type=checkbox][name!="weeks_only"]').prop("checked", !value);
-                }
-                saveJSON();
-            }
-        """ % (name, name)
-        self.set_extra_js(javascript)
+        self.set_template("widgets/duration_widget_settings.html")
         return super().render(name, value, attrs, renderer)
