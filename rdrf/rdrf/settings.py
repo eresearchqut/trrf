@@ -234,8 +234,8 @@ MANAGERS = ADMINS
 
 
 STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
-EXTERNAL_BASE_URL = env.get(f'AWS_STATIC_CONTENT_URL', None)
-GIT_COMMIT_HASH = env.get('GIT_COMMIT_HASH', None)
+EXTERNAL_BASE_URL = env.get(f'AWS_STATIC_CONTENT_URL', "")
+GIT_COMMIT_HASH = env.get('GIT_COMMIT_HASH', "")
 STATIC_URL = f"{EXTERNAL_BASE_URL}/{GIT_COMMIT_HASH}/" if EXTERNAL_BASE_URL and GIT_COMMIT_HASH else '{0}/static/'.format(SCRIPT_NAME)
 
 # TODO AH I can't see how this setting does anything
