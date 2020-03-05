@@ -80,10 +80,10 @@ html, body {
         height: 100%;
         width: 300px;
         padding: 0;
-
         top: 51px;
-
         z-index: 100000;
+
+        box-shadow: 5px 0 5px -5px #888888;
     }
 
     #sidebar .well {
@@ -98,7 +98,7 @@ html, body {
 
     .sidebar-hide {
         transition: 0.3s;
-        left: -300px;
+        left: -305px;
     }
 }
 
