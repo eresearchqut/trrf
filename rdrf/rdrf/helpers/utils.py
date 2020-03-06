@@ -18,6 +18,7 @@ import subprocess
 import uuid
 
 from .registry_features import RegistryFeatures
+from .cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
 
@@ -520,7 +521,7 @@ class TimeStripper(object):
             from rdrf.models.definition.models import CommonDataElement
             try:
                 cde_model = CommonDataElement.objects.get(code=code)
-                value = cde_model.datatype == "date"
+                value = cde_model.datatype == CDEDataTypes.DATE
                 if value:
                     return value
 

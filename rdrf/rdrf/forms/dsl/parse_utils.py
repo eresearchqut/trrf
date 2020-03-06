@@ -2,6 +2,7 @@ from collections import namedtuple
 from collections.abc import Iterable
 from datetime import datetime
 from decimal import Decimal
+import re
 
 
 def is_iterable(el):
@@ -13,6 +14,10 @@ def unquote(val):
         if val[0] == '"' and val[-1] == '"':
             return unquote(val[1:-1])
     return val
+
+
+def make_key(section, cde):
+    return f"{section}:{cde}"
 
 
 class SectionHelper:
@@ -30,12 +35,12 @@ class SectionHelper:
     def get_section_cdes(self, section_code):
         s = [s for s in self.form.section_models if s.code == section_code]
         if s and s[0]:
-            return [m.code for m in s[0].cde_models]
+            return [make_key(s[0].code, m.code) for m in s[0].cde_models]
         return []
 
     def get_cde_to_section_dict(self):
         return {
-            m.code: (s.code, s.allow_multiple)
+            make_key(s.code, m.code): (s.code, s.allow_multiple)
             for s in self.form.section_models
             for m in s.cde_models
         }
@@ -81,7 +86,7 @@ class CDEHelper:
     def get_cde_names_dict(form):
 
         return {
-            m.code: (
+            make_key(s.code, m.code): (
                 CDEInfo(
                     name=f"{s.code}____{m.code}",
                     type=m.widget_name,
@@ -129,7 +134,7 @@ class CDEHelper:
         return self.section_names_dict.get(section, default_info)
 
     def get_actual_value(self, cde, value):
-        stripped_val = value.strip('"')
+        stripped_val = unquote(value)
         return self.cde_values_dict.get(cde, {}).get('values', {}).get(stripped_val.lower(), stripped_val)
 
     def get_data_type(self, cde):
@@ -159,6 +164,27 @@ class CDEHelper:
         def valid_code_or_value(v):
             return v.lower() in values_dict or v.strip() in codes_list
 
+        def validate_humanised_duration(v):
+            valid_intervals = {
+                "years", "year", "months", "month", "week", "weeks",
+                "days", "day", "hours", "hour", "minutes", "minute",
+                "seconds", "second"
+            }
+
+            def valid_str(s):
+                if "," in s:
+                    return all(valid_str(v.strip()) for v in s.split(","))
+                if "and" in s:
+                    return all(valid_str(v.strip()) for v in s.split("and"))
+                values = re.split(r"\s+", s)
+                return (
+                    len(values) % 2 == 0
+                    and all(s.isdecimal() for s in values[::2])
+                    and all(s.lower() in valid_intervals for s in values[1::2])
+                )
+
+            return valid_str(v)
+
         stripped_val = unquote(value)
         valid = True
         cde_dict = self.cde_values_dict.get(cde, {})
@@ -167,6 +193,8 @@ class CDEHelper:
         if not values_dict:
             if cde_dict.get('type') == 'date':
                 return validate_date(stripped_val)
+            elif cde_dict.get('type') == 'duration':
+                return validate_humanised_duration(stripped_val)
             elif cde_dict.get('min_value') or cde_dict.get('max_value'):
                 return validate_range(stripped_val, cde_dict.get('min_value'), cde_dict.get('max_value'))
             elif cde_dict.get('max_length'):
@@ -180,12 +208,26 @@ class CDEHelper:
 class EnrichedCDE:
 
     def __init__(self, cde, cde_helper, has_qualifier=False):
-        self.cde = cde
+        parts = cde.split(":")
+        self.section = None
+        if len(parts) == 2:
+            self.section, self.cde = parts
+        else:
+            self.cde = cde
         self.cde_helper = cde_helper
         self.has_qualifier = has_qualifier
 
+    def __repr__(self):
+        return f"EnrichedCDE: section={self.section}, cde={self.cde}, qualifier={self.has_qualifier}"
+
+    def get_key(self, input_section=None):
+        if self.section:
+            return make_key(self.section, self.cde)
+        section = input_section or self.cde_helper.section_dict.get(self.cde)
+        return make_key(section, self.cde)
+
     def get_cde_info(self):
-        return self.cde_helper.get_cde_info(self.cde)
+        return self.cde_helper.get_cde_info(self.get_key())
 
     def get_section_info(self):
         return self.cde_helper.get_section_info(self.cde)
@@ -203,7 +245,7 @@ class EnrichedCDE:
             for part in parts:
                 values.append(self.cde_helper.get_actual_value(self.cde, part.strip()))
             ret_val = ", ".join(values)
-            if ret_val != unquote(value):
+            if unquote(ret_val) != unquote(value):
                 return ret_val
         return self.cde_helper.get_actual_value(self.cde, value)
 
@@ -212,3 +254,21 @@ class EnrichedCDE:
 
     def is_multi_section(self):
         return self.get_cde_info().is_multi_section
+
+    def has_valid_section(self):
+        if self.section:
+            return self.section in self.cde_helper.section_names_dict
+        return True
+
+    def is_valid_cde(self):
+        return self.get_key() in self.cde_helper.cde_names_dict
+
+    def __eq__(self, other):
+        if isinstance(other, EnrichedCDE):
+            return (
+                self.cde == other.cde and self.section == other.section and self.has_qualifier == other.has_qualifier
+            )
+        return False
+
+    def __hash__(self):
+        return hash((self.cde, self.section, self.has_qualifier))

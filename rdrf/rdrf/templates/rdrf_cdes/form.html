@@ -41,10 +41,10 @@
     <![endif]-->
 
     <style>
-        .modal .modal-dialog { width: 60%;
-                               max-height: 600px;
-                               overflow-y: auto;
-                }
+        .modal .modal-dialog {
+            max-height: 600px;
+            overflow-y: auto;
+        }
 
         .highlight {
             background-color: lightgray;
@@ -300,11 +300,11 @@
 {% block content %}
     {{ block.super }}
 
-	<a class="previous-form" href="{{ previous_form_link }}">
+	<a class="previous-form hidden-sm hidden-xs" href="{{ previous_form_link }}">
 		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 	</a>
 
-	<a class="next-form" href="{{ next_form_link }}">
+	<a class="next-form hidden-sm hidden-xs" href="{{ next_form_link }}">
 		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 	</a>
 

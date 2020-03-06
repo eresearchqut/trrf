@@ -156,16 +156,22 @@ class ConditionChecker:
             if self.section_helper.is_section(cde.cde):
                 expanded_cdes.extend(self.section_helper.get_section_cdes(cde.cde))
             else:
-                expanded_cdes.append(cde.cde)
+                expanded_cdes.append(cde.get_key())
         return tuple(expanded_cdes)
 
     def check_includes_cde(self, condition):
         return condition.cde.get_cde_info().allow_multiple
 
     def check_condition(self, conditions, action, target):
-        expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.cde for cde in target.target_cdes])
+        expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.get_key() for cde in target.target_cdes])
         multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
-        condition_cdes = [c.cde.cde for c in conditions if isinstance(c, Condition)]
+        section_code = None
+        if target.has_qualifier:
+            section_code = target.get_section_code()
+        # if the target is a section make sure we search for CDES in the condition
+        # within the same section if it's not specified, to address the situation
+        # in which a CDE is in multiple sections
+        condition_cdes = [c.cde.get_key(section_code) for c in conditions if isinstance(c, Condition)]
 
         overlap_condition = any([c for c in condition_cdes if c in expanded_cdes])
 
@@ -195,7 +201,7 @@ class ConditionChecker:
 
         cde_section_dict = self.section_helper.get_cde_to_section_dict()
         condition_entries = {cde: cde_section_dict.get(cde) for cde in condition_cdes}
-        target_entries = {cde.cde: cde_section_dict.get(cde.cde) for cde in target.target_cdes}
+        target_entries = {cde.get_key(): cde_section_dict.get(cde.get_key()) for cde in target.target_cdes}
         for _, cond_value in condition_entries.items():
             for target_key, target_value in target_entries.items():
                 if cond_value and target_value:
@@ -226,10 +232,19 @@ class DSLValidator:
         self.section_helper = SectionHelper(form)
 
     @staticmethod
+    def invalid_cdes_to_str_set(invalid_cdes):
+        return set([
+            el.cde if el.has_valid_section()
+            else f"Invalid section \"{el.section}\" in {el.get_key()}"
+            for el in invalid_cdes
+        ])
+
+    @staticmethod
     def validate_condition_cdes(cond, idx):
         cond_validation = cond.invalid_cdes()
         if cond_validation:
-            return [f'Invalid condition specified on line {idx} : {" ".join(cond_validation)}']
+            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cond_validation))
+            return [f'Invalid condition cdes specified on line {idx} : {errors_str}']
         return []
 
     @staticmethod
@@ -273,12 +288,17 @@ class DSLValidator:
         multiple_conditions = len(conditions) > 1
         cde_validation = target.invalid_cdes()
         if cde_validation:
-            errors.append(f'Invalid CDEs specified on line {idx} : {" ".join(cde_validation)}')
+            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cde_validation))
+            errors.append(f'Invalid CDEs specified on line {idx} : {errors_str}')
             return errors
 
         if not multiple_conditions:
             errors.extend(self.validate_condition_cdes(conditions[0], idx))
+            if errors:
+                return errors
             errors.extend(self.validate_condition_values(conditions[0], idx))
+            if errors:
+                return errors
             errors.extend(self.check_condition(checker, conditions, action, target, idx))
         else:
             only_conditions = [c for c in conditions if isinstance(c, Condition)]

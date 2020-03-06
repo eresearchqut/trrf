@@ -2,8 +2,11 @@ import base64
 import datetime
 import inspect
 import logging
+import math
 import re
 import sys
+
+from functools import reduce
 from operator import attrgetter
 
 import pycountry
@@ -16,6 +19,8 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
+from rdrf.forms.dynamic.validation import iso_8601_validator
+from rdrf.helpers.cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +36,14 @@ class TextAreaWidget(Textarea):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
         self.main_choices = main_choices
@@ -113,7 +118,7 @@ class CalculatedFieldWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_CALCULATED}
+        return {CDEDataTypes.CALCULATED}
 
     def __init__(self, script, attrs={}):
         attrs['readonly'] = 'readonly'
@@ -129,7 +134,7 @@ class LookupWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         return """
@@ -146,7 +151,7 @@ class DateWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_DATE}
+        return {CDEDataTypes.DATE}
 
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
@@ -166,7 +171,7 @@ class CountryWidget(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
@@ -192,7 +197,7 @@ class StateWidget(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         try:
@@ -266,7 +271,7 @@ class StateListWidget(ParameterisedSelectWidget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
@@ -304,7 +309,7 @@ class PositiveIntegerInput(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_INTEGER}
+        return {CDEDataTypes.INTEGER}
 
     def render(self, name, value, attrs, renderer=None):
         min_value, max_value = self._get_value_range(name)
@@ -322,29 +327,38 @@ class PositiveIntegerInput(widgets.TextInput):
 
 
 class RadioSelect(widgets.RadioSelect):
-    # def __init__(self, name, value, attrs, renderer):
-    #     super(RadioSelect, self).__init__(renderer=renderer)
+    template_name = "rdrf_cdes/radio_select.html"
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_RANGE}
+        return {CDEDataTypes.RANGE}
 
-    def render(self, name, value, attrs=None, renderer=None):
-        html = super().render(name, value, attrs, renderer)
-        return self._transform(html)
+    def _get_column_width(self):
+        no_of_choices = len(self.choices)
+        longest_choice_text = max(len(choice[1]) for choice in self.choices)
+        has_long_text = longest_choice_text > 50
+        has_short_texts_only = longest_choice_text < 5
 
-    def _transform(self, html):
-        #  make horizontal
-        html = re.sub(r'\<ul.+\>', '', html)
-        new_html = html.replace("<li>", "").replace("</li>", "").replace("</ul>", "")
-        return new_html
+        cols_per_row = 3
+        if has_long_text:
+            cols_per_row = 4
+        elif has_short_texts_only and no_of_choices <= 3:
+            cols_per_row = 2
+
+        return f"col-xs-12 col-sm-{math.ceil((cols_per_row + 2) / 2) * 2} col-md-{cols_per_row}"
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        force_vertical = self.attrs.pop("force_vertical") if "force_vertical" in self.attrs else False
+        context["column_width"] = "col-sm-12" if force_vertical else self._get_column_width()
+        return context
 
 
 class ReadOnlySelect(widgets.Select):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_RANGE}
+        return {CDEDataTypes.RANGE}
 
     def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
@@ -377,7 +391,7 @@ class MultipleFileInput(Widget):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_FILE}
+        return {CDEDataTypes.FILE}
 
     @staticmethod
     def input_name(base_name, i):
@@ -455,7 +469,7 @@ class ConsentFileInput(widgets.ClearableFileInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_FILE}
+        return {CDEDataTypes.FILE}
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -498,7 +512,7 @@ class SliderWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_INTEGER, CommonDataElement.DATA_TYPE_FLOAT}
+        return {CDEDataTypes.INTEGER, CDEDataTypes.FLOAT}
 
     def render(self, name, value, attrs=None, renderer=None):
         if not (value and isinstance(value, float) or isinstance(value, int)):
@@ -545,7 +559,7 @@ class SignatureWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_STRING}
+        return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs=None, renderer=None):
 
@@ -650,7 +664,7 @@ class AllConsentWidget(widgets.CheckboxInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_BOOL}
+        return {CDEDataTypes.BOOL}
 
     def render(self, name, value, attrs=None, renderer=None):
 
@@ -676,7 +690,7 @@ class TimeWidget(widgets.TextInput):
 
     @staticmethod
     def usable_for_types():
-        return {CommonDataElement.DATA_TYPE_TIME}
+        return {CDEDataTypes.TIME}
 
     def _parse_value(self, value, fmt):
         '''
@@ -745,10 +759,151 @@ class TimeWidget(widgets.TextInput):
             $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
         '''
         return f'''
-        {html}
-        <script>
-            {js}
-        </script>
+            {html}
+            <script>
+                {js}
+            </script>
+        '''
+
+
+class DurationWidgetHelper:
+
+    def __init__(self, attrs):
+        self.attrs = attrs
+
+    def _get_attribute(self, name):
+        default = name != "weeks_only"
+        return self.attrs.get(name, default)
+
+    def get_attribute_js(self, name):
+        return "true" if self._get_attribute(name) else "false"
+
+    def current_format_default(self):
+        '''
+        Returns the current format default value
+        Ex: If years months and hours are selected the default value is P0Y0MT0H
+        '''
+        if self._get_attribute("weeks_only"):
+            return "P0W"
+
+        default_values = {
+            "years": "0Y",
+            "months": "0M",
+            "days": "0D",
+            "hours": "0H",
+            "minutes": "0M",
+            "seconds": "0S"
+        }
+
+        def reduce_fn(acc, curr):
+            if curr in ["hours", "minutes", "seconds"] and 'T' not in acc:
+                acc.append("T")
+            acc.append(default_values[curr])
+            return acc
+
+        existing = [attr for attr in default_values.keys() if self._get_attribute(attr)]
+        return "".join(reduce(reduce_fn, existing, ['P']))
+
+    def value_default_format(self, value):
+        '''
+        Returns the default format for the current value
+        Ex: P3Y2M30D => P0Y0M0D
+        '''
+        if not value:
+            return self.current_format_default()
+        return re.sub(r"\d+", "0", value)
+
+    @staticmethod
+    def extract_fields(format):
+        '''
+        Extract the field names from a duration format
+        Ex: P0Y0M => {'years', 'months'}
+        '''
+        no_zeroes = re.sub(r"\d+", "", format)
+        date_mappings = {"Y": "years", "M": "months", "D": "days", "W": "weeks"}
+        time_mappings = {"H": "hours", "M": "minutes", "S": "seconds"}
+
+        def reduce_fn(acc, curr):
+            if curr == 'T':
+                acc.add(curr)
+            else:
+                mapping = time_mappings[curr] if 'T' in acc else date_mappings[curr]
+                acc.add(mapping)
+            return acc
+
+        result = reduce(reduce_fn, no_zeroes[1:], set())
+        return result - set(['T'])
+
+    @staticmethod
+    def compatible_formats(src, dst):
+        '''
+        Checks if two default formats are compatible
+        Ex: src: P0Y0M0D  dest:P0Y => these are compatible
+        '''
+        valid_src = iso_8601_validator(src)
+        valid_dest = iso_8601_validator(dst)
+        if not (valid_src and valid_dest):
+            return False
+        src_fields = DurationWidgetHelper.extract_fields(src)
+        dst_fields = DurationWidgetHelper.extract_fields(dst)
+        common_fields = src_fields & dst_fields
+        if len(src_fields) > len(dst_fields):
+            return bool(common_fields)
+        elif len(src_fields) == len(dst_fields):
+            return len(common_fields) == len(src_fields)
+        else:
+            return False
+
+
+class DurationWidget(widgets.TextInput):
+    """
+    Time duration picker component used:
+    https://digaev.github.io/jquery-time-duration-picker/
+    """
+
+    @staticmethod
+    def usable_for_types():
+        return {CDEDataTypes.DURATION}
+
+    def render(self, name, value, attrs=None, renderer=None):
+
+        widget_helper = DurationWidgetHelper(self.attrs)
+
+        current_default_fmt = widget_helper.current_format_default()
+        value_default_fmt = widget_helper.value_default_format(value)
+        compatible = widget_helper.compatible_formats(current_default_fmt, value_default_fmt)
+
+        if not value or not iso_8601_validator(value) or not compatible:
+            value = widget_helper.current_format_default()
+
+        return f'''
+            <input id="id_{name}_text" type="text" value="{value}" readonly/>
+            <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
+            <script>
+                $("#id_{name}_text").timeDurationPicker({{
+                    css: {{
+                        "width":"200px"
+                    }},
+                    seconds: true,
+                    defaultValue: function() {{
+                        return $("#id_{name}_duration").val();
+                    }},
+                    onSelect: function(element, seconds, duration, text) {{
+                        $("#id_{name}_duration").val(duration);
+                        $("#id_{name}_text").val(text);
+                        $("#main-form").trigger('change');
+                        $("#id_{name}_duration").trigger('change');
+                    }},
+                    years: {widget_helper.get_attribute_js('years')},
+                    months: {widget_helper.get_attribute_js('months')},
+                    days: {widget_helper.get_attribute_js('days')},
+                    hours: {widget_helper.get_attribute_js('hours')},
+                    minutes: {widget_helper.get_attribute_js('minutes')},
+                    seconds: {widget_helper.get_attribute_js('seconds')},
+                    weeks: {widget_helper.get_attribute_js('weeks_only')}
+                }});
+                $("#id_{name}_text").addClass("form-control");
+            </script>
         '''
 
 

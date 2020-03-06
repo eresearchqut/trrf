@@ -1,6 +1,7 @@
 from registry.patients.models import Patient
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Registry
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from django.db import transaction
 import csv
 import sys
@@ -238,7 +239,7 @@ class PatientUpdater:
             if converter is not None:
                 return converter(value)
 
-            if field_info.datatype == "float":
+            if field_info.datatype == CDEDataTypes.FLOAT:
                 try:
                     return float(value)
                 except BaseException:
@@ -246,7 +247,7 @@ class PatientUpdater:
                         info("%s error converting [%s] to float - returning None" % (field_info,
                                                                                      value))
                     return None
-            elif field_info.datatype == "integer":
+            elif field_info.datatype == CDEDataTypes.INTEGER:
                 try:
                     return int(value)
                 except BaseException:
@@ -255,7 +256,7 @@ class PatientUpdater:
                             "%s error converting [%s] to integer - returning None" %
                             (field_info, value))
                     return None
-            elif field_info.datatype == "date":
+            elif field_info.datatype == CDEDataTypes.DATE:
                 return value
             else:
                 return value

@@ -6,6 +6,7 @@ from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ClinicalData
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import cached
 from registry.patients.models import Patient
 import logging
@@ -80,7 +81,7 @@ class TableType:
 
 
 def fix_display_value(datatype, value):
-    if value == "" and datatype != "string":
+    if value == "" and datatype != CDEDataTypes.STRING:
         return None
     else:
         return value
@@ -367,7 +368,7 @@ class MultiSectionExtractor:
 
             for cde_code in item_dict:
                 cde_model = CommonDataElement.objects.get(code=cde_code)
-                is_file = lower_strip(cde_model.datatype) == "file"
+                is_file = lower_strip(cde_model.datatype) == CDEDataTypes.FILE
                 # column_name = no_space_lower(cde_code)
                 column_name = unambigious_name(self.clinical_table.section_model.code, cde_code)
                 raw_value = item_dict[cde_code]

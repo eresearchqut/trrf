@@ -4693,6 +4693,18 @@
     }
   },
   {
+    "pk": 353,
+    "model": "rdrf.cdepermittedvalue",
+    "fields": {
+      "pv_group": "CardiacImplants",
+      "code": "CardiacImplantstest",
+      "questionnaire_value": null,
+      "value": "Test with ; on: 'and (this)' with quotes",
+      "position": null,
+      "desc": "Test with ; on: 'and (this)' with quotes"
+    }
+  },
+  {
     "pk": "Address",
     "model": "rdrf.commondataelement",
     "fields": {
@@ -10270,6 +10282,26 @@
       "desc": "",
       "is_required": false,
       "instructions": "If using wheelchair specify age at start of wheelchair use"
+    }
+  },
+  {
+    "pk": "TestDuration",
+    "model": "rdrf.commondataelement",
+    "fields": {
+      "pv_group": null,
+      "allow_multiple": false,
+      "name": "Duration",
+      "datatype": "duration",
+      "max_value": null,
+      "min_value": 0,
+      "widget_name": "",
+      "questionnaire_text": "",
+      "calculation": "",
+      "max_length": null,
+      "pattern": "",
+      "desc": "",
+      "is_required": false,
+      "instructions": "Duration test"
     }
   },
   {

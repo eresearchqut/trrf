@@ -140,6 +140,8 @@ class CommonDataElementAdminForm(ModelForm):
         settings_dict = {
             'SliderWidget': lambda: settings_widgets.SliderWidgetSettings(),
             'TimeWidget': lambda: settings_widgets.TimeWidgetSettings(),
+            'RadioSelect': lambda: settings_widgets.RadioSelectSettings(),
+            'DurationWidget': lambda: settings_widgets.DurationWidgetSettings(),
         }
         self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
 
