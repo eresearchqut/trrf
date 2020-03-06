@@ -49,6 +49,7 @@ phases:
       - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
   post_build:
     commands:
+      - aws ssm put-parameter --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
       - envsubst < taskdef.json > out && mv out taskdef.json
       - envsubst < appspec.yaml > out && mv out appspec.yaml
 artifacts:

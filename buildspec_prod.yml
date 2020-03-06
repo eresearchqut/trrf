@@ -1,0 +1,14 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+      - export GIT_TAG=$(aws ssm get-parameter --name /app/qa/$APPLICATION_NAME/RELEASE_ID | jq -r ".Parameter.Value")
+      - export IMAGE_TAG="${GIT_TAG:-latest}"
+  post_build:
+    commands:
+      - envsubst < taskdef.json > out && mv out taskdef.json
+      - envsubst < appspec.yaml > out && mv out appspec.yaml
+artifacts:
+  files:
+    - taskdef.json
+    - appspec.yaml
