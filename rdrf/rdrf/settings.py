@@ -252,9 +252,9 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 # Use filesystem storage by default.
 # But the plan is to use "s3" on all servers deployed to AWS.
 if env.get("file_storage", "s3" if PRODUCTION else "fs") == "s3":
-    DEFAULT_FILE_STORAGE = env.get("storage_backend", "storages.backends.s3boto3.S3Boto3Storage")
+    DEFAULT_FILE_STORAGE = env.get("STORAGE_BACKEND", "storages.backends.s3boto3.S3Boto3Storage")
 else:
-    DEFAULT_FILE_STORAGE = env.get("storage_backend", "django.core.files.storage.FileSystemStorage")
+    DEFAULT_FILE_STORAGE = env.get("STORAGE_BACKEND", "django.core.files.storage.FileSystemStorage")
 
 # Configure different aspects of file uploads to S3
 
@@ -265,7 +265,7 @@ AWS_DEFAULT_ACL = None
 # To test locally set these values in your .env_local file
 # .env_local is in .gitignore so it can have your local settings without being checked in
 
-AWS_STORAGE_BUCKET_NAME = env.get("aws_storage_bucket_name", "")  # set to trrf-storage-dev in local dev
+AWS_STORAGE_BUCKET_NAME = env.get("AWS_STORAGE_BUCKET_NAME", "")  # set to trrf-storage-dev in local dev
 
 # Set these to an IAM user's keys when testing locally.
 # On the servers EC2 roles will take care of this.
