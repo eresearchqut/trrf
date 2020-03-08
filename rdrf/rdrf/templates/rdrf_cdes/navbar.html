@@ -1,0 +1,36 @@
+{% load static from staticfiles %}
+{% load project_logo %}
+{% load project_title %}
+{% load project_title_link %}
+{% load i18n %}
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapsing-links">
+            <span class="sr-only">{% trans "Toggle navigation" %}</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand project_title" href="{% project_title_link %}">
+            {% project_logo as PL %}
+            {% project_title as PT %}
+            {% if PL %}
+              <img src="{% static PL %}" class="project_logo" alt="{% trans "Project logo" %}">
+              &nbsp;
+            {% endif %}
+            {% if PT %}
+              <span class="hidden-xs">{% project_title %}</span>
+            {% endif %}
+          </a>
+        </div>
+        {% block navbar_links %}
+          {% include "rdrf_cdes/navbar_links.html" %}
+        {% endblock %}
+      </div>
+    </div>
+  </div>
+</nav>
