@@ -727,7 +727,22 @@ class DurationWidgetHelper:
         return self.attrs.get(name, default)
 
     def get_attribute_js(self, name):
-        return "true" if self._get_attribute(name) else "false"
+        mappings = {
+            "years": ("years_min", "years_max"),
+            "months": ("months_min", "months_max"),
+            "weeks_only": ("weeks_only_min", "weeks_only_max"),
+            "days": ("days_min", "days_max"),
+            "hours": ("hours_min", "hours_max"),
+            "minutes": ("minutes_min", "minutes_max"),
+            "seconds": ("seconds_min", "seconds_max"),
+        }
+        min_val_field, max_val_field = mappings[name]
+        str_active = "true" if self._get_attribute(name) else "false"
+        return f'''{{
+            active: {str_active},
+            min: {self.attrs.get(min_val_field, -1)},
+            max: {self.attrs.get(max_val_field, -1)}
+        }}'''
 
     def current_format_default(self):
         '''

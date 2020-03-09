@@ -13,13 +13,13 @@
     css: {
       position: "absolute"
     },
-    years: true,
-    weeks: false,
-    months: true,
-    days: true,
-    hours: true,
-    minutes: true,
-    seconds: false
+    years: {active:true, min: -1, max: -1},
+    weeks: {active:false, min: -1, max: - 1},
+    months: {active:true, min: -1, max: -1},
+    days: {active: true, min: -1, max: -1},
+    hours: {active:true, min: -1, max: -1},
+    minutes: {active:true, min: -1, max: -1},
+    seconds: {active:false, min: -1, max: -1}
   };
   $.timeDurationPicker = {
     defaults: function( options ) {
@@ -197,8 +197,13 @@
     _initUnits: function() {
       for ( var i = 0; i < this.units.length; ++i ) {
         var u = this.units[ i ];
-        if ( this.options[ u ] ) {
-          this._content[ u ] = u == "weeks" ? this._createNumberInput(u, 0, 0, 53): this._createNumberInput(u, 0, 0);
+        if ( this.options[ u ] && this.options[u].active) {
+          var min_val = this.options[u].min == -1 ? 0: this.options[u].min;
+          var max_val = this.options[u].max == -1 ? 0: this.options[u].max;
+          if (max_val == 0 && u == "weeks") {
+            max_val = 53;
+          }
+          this._content[ u ] = this._createNumberInput(u, 0, min_val, max_val);
           this._appendRow( this._t( u ), this._content[ u ] );
         }
       }
@@ -284,31 +289,31 @@
     _save: function() {
       this._duration = {};
 
-      if ( this.options.years ) {
+      if ( this.options.years && this.options.years.active ) {
         this._duration.years = this.years();
       }
 
-      if ( this.options.months ) {
+      if ( this.options.months && this.options.months.active ) {
         this._duration.months = this.months();
       }
 
-      if (this.options.weeks) {
+      if (this.options.weeks && this.options.weeks.active) {
         this._duration.weeks = this.weeks();
       }
 
-      if ( this.options.days ) {
+      if ( this.options.days && this.options.days.active) {
         this._duration.days = this.days();
       }
 
-      if ( this.options.hours ) {
+      if ( this.options.hours && this.options.hours.active ) {
         this._duration.hours = this.hours();
       }
 
-      if ( this.options.minutes ) {
+      if ( this.options.minutes && this.options.minutes.active ) {
         this._duration.minutes = this.minutes();
       }
 
-      if ( this.options.seconds ) {
+      if ( this.options.seconds && this.options.seconds.active ) {
         this._duration.seconds = this.seconds();
       }
     },
@@ -317,31 +322,31 @@
         this._duration = {};
       }
 
-      if ( this.options.years ) {
+      if ( this.options.years && this.options.years.active ) {
          this.years( this._duration.years || 0 );
       }
 
-      if ( this.options.months ) {
+      if ( this.options.months && this.options.months.active ) {
         this.months( this._duration.months || 0 );
       }
 
-      if ( this.options.weeks ) {
+      if ( this.options.weeks && this.options.weeks.active ) {
         this.weeks( this._duration.weeks || 0 );
       }
 
-      if ( this.options.days ) {
+      if ( this.options.days && this.options.days.active) {
         this.days( this._duration.days || 0 );
       }
 
-      if ( this.options.hours ) {
+      if ( this.options.hours && this.options.hours.active) {
         this.hours( this._duration.hours || 0 );
       }
 
-      if ( this.options.minutes ) {
+      if ( this.options.minutes && this.options.minutes.active) {
         this.minutes( this._duration.minutes || 0 );
       }
 
-      if ( this.options.seconds ) {
+      if ( this.options.seconds && this.options.seconds.active) {
         this.seconds( this._duration.seconds || 0 );
       }
     },
@@ -400,31 +405,31 @@
     getDuration: function() {
       var duration = "P";
 
-      if ( this.options.years && this.years() ) {
+      if ( this.options.years && this.options.years.active && this.years() ) {
         duration += this.years() + "Y";
       }
 
-      if ( this.options.months && this.months() ) {
+      if ( this.options.months && this.options.months.active && this.months() ) {
         duration += this.months() + "M";
       }
 
-      if ( this.options.days && this.days() ) {
+      if ( this.options.days && this.options.days.active && this.days() ) {
         duration += this.days() + "D";
       }
 
-      if ( this.options.hours || this.options.minutes || this.options.seconds ) {
+      if ( (this.options.hours && this.options.hours.active) || (this.options.minutes && this.options.minutes.active) || (this.options.seconds && this.options.seconds.active) ) {
         duration += "T";
       }
 
-      if ( this.options.hours && this.hours() ) {
+      if ( this.options.hours && this.options.hours.active && this.hours() ) {
         duration += this.hours() + "H";
       }
 
-      if ( this.options.minutes && this.minutes() ) {
+      if ( this.options.minutes &&  this.options.minutes.active && this.minutes() ) {
         duration += this.minutes() + "M";
       }
 
-      if ( this.options.seconds && this.seconds() ) {
+      if ( this.options.seconds && this.options.seconds.active && this.seconds() ) {
         duration += this.seconds() + "S";
       }
 
@@ -432,7 +437,7 @@
         duration = duration.substr( 0, duration.length - 1 );
       }
 
-      if (this.options.weeks && this.weeks()) {
+      if (this.options.weeks &&  this.options.weeks.active && this.weeks()) {
         var weeks = this.weeks();
         return duration === "P" ? weeks > 0 ? "P" + weeks + "W": "PT0S" : duration;
       }
@@ -511,31 +516,31 @@
         throw new Error( "Invalid format" );
       }
 
-      if ( this.options.years ) {
+      if ( this.options.years && this.options.years.active ) {
         this._content.years.val( duration.years );
       }
 
-      if ( this.options.months ) {
+      if ( this.options.months && this.options.months.active  ) {
         this._content.months.val( duration.months );
       }
 
-      if ( this.options.weeks ) {
+      if ( this.options.weeks && this.options.weeks.active  ) {
         this._content.weeks.val( duration.weeks );
       }
 
-      if ( this.options.days ) {
+      if ( this.options.days && this.options.days.active  ) {
         this._content.days.val( duration.days );
       }
 
-      if ( this.options.hours ) {
+      if ( this.options.hours  && this.options.hours.active ) {
         this._content.hours.val( duration.hours );
       }
 
-      if ( this.options.minutes ) {
+      if ( this.options.minutes && this.options.minutes.active  ) {
         this._content.minutes.val( duration.minutes );
       }
 
-      if ( this.options.seconds ) {
+      if ( this.options.seconds && this.options.seconds.active  ) {
         this._content.seconds.val( duration.seconds );
       }
     },
@@ -547,12 +552,12 @@
       }
 
       var i;
-      if ( this.options.years ) {
+      if ( this.options.years && this.options.years.active ) {
         i = Math.floor( value / YEAR );
         value -= i * YEAR;
         this._content.years.val( i );
       }
-      if ( this.options.months ) {
+      if ( this.options.months && this.options.months.active) {
         i = Math.floor( value / MONTH );
         if ( i >= 12 ) {
           i = 0;
@@ -560,7 +565,7 @@
         value -= i * MONTH;
         this._content.months.val( i );
       }
-      if ( this.options.weeks ) {
+      if ( this.options.weeks && this.options.weeks.active) {
         i = Math.floor( value / WEEK );
         if ( i >= 54 ) { // Max 53 weeks based on ISO 8061 (should start from 1 based on the same ISO)
           i = 0;
@@ -568,7 +573,7 @@
         value -= i * WEEK;
         this._content.weeks.val( i );
       }
-      if ( this.options.days ) {
+      if ( this.options.days && this.options.days.active) {
         i = Math.floor( value / DAY );
         if ( i >= 30 ) {
           i = 0;
@@ -576,7 +581,7 @@
         value -= i * DAY;
         this._content.days.val( i );
       }
-      if ( this.options.hours ) {
+      if ( this.options.hours && this.options.hours.active) {
         i = Math.floor( value / HOUR );
         if ( i >= 24 ) {
           i = 0;
@@ -584,7 +589,7 @@
         value -= i * HOUR;
         this._content.hours.val( i );
       }
-      if ( this.options.minutes ) {
+      if ( this.options.minutes && this.options.minutes.active) {
         i = Math.floor( value / MINUTE );
         if ( i >= 60 ) {
           i = 0;
@@ -592,7 +597,7 @@
         value -= i * MINUTE;
         this._content.minutes.val( i );
       }
-      if ( this.options.seconds ) {
+      if ( this.options.seconds && this.options.seconds.active) {
         i = Math.floor( value );
         if ( i >= 60 ) {
           i = 0;
@@ -602,50 +607,50 @@
     },
     getSeconds: function() {
       var seconds = 0;
-      if ( this.options.seconds ) {
+      if ( this.options.seconds && this.options.seconds.active ) {
         seconds += this.seconds();
       }
-      if ( this.options.minutes ) {
+      if ( this.options.minutes && this.options.minutes.active) {
         seconds += this.minutes() * MINUTE;
       }
-      if ( this.options.hours ) {
+      if ( this.options.hours && this.options.hours.active ) {
         seconds += this.hours() * HOUR;
       }
-      if ( this.options.days ) {
+      if ( this.options.days && this.options.days.active ) {
         seconds += this.days() * DAY;
       }
-      if ( this.options.weeks ) {
+      if ( this.options.weeks && this.options.active ) {
         seconds += this.weeks() * WEEK;
       }
-      if ( this.options.months ) {
+      if ( this.options.months && this.options.months.active ) {
         seconds += this.months() * MONTH;
       }
-      if ( this.options.years ) {
+      if ( this.options.years && this.options.years.active ) {
         seconds += this.years() * YEAR;
       }
       return seconds;
     },
     translate: function() {
       var units = [];
-      if ( this.options.years && this.years() > 0 ) {
+      if ( this.options.years && this.options.years.active && this.years() > 0 ) {
         units.push( this._t( "units.year", this.years() ) );
       }
-      if ( this.options.months && this.months() > 0 ) {
+      if ( this.options.months && this.options.months.active && this.months() > 0 ) {
         units.push( this._t( "units.month", this.months() ) );
       }
-      if ( this.options.weeks && this.weeks() > 0 ) {
+      if ( this.options.weeks && this.options.weeks.active && this.weeks() > 0 ) {
         units.push( this._t( "units.week", this.weeks() ) );
       }
-      if ( this.options.days && this.days() > 0 ) {
+      if ( this.options.days && this.options.days.active && this.days() > 0 ) {
         units.push( this._t( "units.day", this.days() ) );
       }
-      if ( this.options.hours && this.hours() > 0 ) {
+      if ( this.options.hours && this.options.hours.active && this.hours() > 0 ) {
         units.push( this._t( "units.hour", this.hours() ) );
       }
-      if ( this.options.minutes && this.minutes() > 0 ) {
+      if ( this.options.minutes && this.options.minutes.active && this.minutes() > 0 ) {
         units.push( this._t( "units.minute", this.minutes() ) );
       }
-      if ( this.options.seconds && this.seconds() > 0 ) {
+      if ( this.options.seconds && this.options.seconds.active && this.seconds() > 0 ) {
         units.push( this._t( "units.second", this.seconds() ) );
       }
 
