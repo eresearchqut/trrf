@@ -115,40 +115,7 @@
 
 <body>
     <div id="wrap">
-        <nav class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-10 col-md-offset-1">
-                        <div class="navbar-header">
-                            <span id="sidebar-button" onclick="toggleSidebar()" class="glyphicon glyphicon-list navbar-left visible-xs visible-sm"></span>
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                            </button>
-
-                           <a class="navbar-brand project_title" href="{% project_title_link %}">
-                                {% project_logo as PL %}
-                                {% project_title as PT %}
-                                {% if PL %}
-                                    <img src="{% static PL %}" class="project_logo">
-                                    &nbsp;
-                                {% endif %}
-                                {% if PT %}
-                                    <span>
-                                        {% project_title %}
-                                    </span>
-                                {% endif %}
-                            </a>
-                        </div>
-                        {% block navbar_links %}
-                            {% include "rdrf_cdes/navbar_links.html" %}
-                        {% endblock %}
-                    </div><!-- /.container-fluid -->
-                </div>
-            </div>
-        </nav>
+        {% include "rdrf_cdes/navbar.html" %}
 
         {% if location %}
         <div class="banner">

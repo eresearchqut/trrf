@@ -61,7 +61,7 @@ class JSONWidgetSettings(Widget):
             "name": name,
             "value": value,
         }
-        if self.javascript:
+        if hasattr(self, 'javascript'):
             context.update({"extra_js": mark_safe(self.javascript)})
 
         return renderer.render("widgets/widget_settings.html", context)

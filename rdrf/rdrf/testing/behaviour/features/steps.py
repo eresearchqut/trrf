@@ -336,13 +336,13 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
 
 @step('press the navigate back button')
 def press_back_button(step):
-    button = world.browser.find_element_by_xpath('//a[@class="previous-form"]')
+    button = world.browser.find_element_by_css_selector('a.previous-form')
     utils.click(button)
 
 
 @step('press the navigate forward button')
 def press_forward_button(step):
-    button = world.browser.find_element_by_xpath('//a[@class="next-form"]')
+    button = world.browser.find_element_by_css_selector('a.next-form')
     utils.click(button)
 
 
