@@ -249,12 +249,11 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 #
 #       File Uploads
 
-# Use filesystem storage by default.
-# But the plan is to use "s3" on all servers deployed to AWS.
-if env.get("FILE_STORAGE", "S3" if PRODUCTION else "FS") == "S3":
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-else:
+# Use S3 by default to avoid writing sensitive data to FS in production
+if env.get("FILE_STORAGE", "S3") == "FS":
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+else:
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # Configure different aspects of file uploads to S3
 
