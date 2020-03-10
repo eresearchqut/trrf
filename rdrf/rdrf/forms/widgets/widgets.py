@@ -738,10 +738,12 @@ class DurationWidgetHelper:
         }
         min_val_field, max_val_field = mappings[name]
         str_active = "true" if self._get_attribute(name) else "false"
+        min_val = self.attrs.get(min_val_field, -1)
+        max_val = self.attrs.get(max_val_field, -1)
         return f'''{{
             active: {str_active},
-            min: {self.attrs.get(min_val_field, -1)},
-            max: {self.attrs.get(max_val_field, -1)}
+            min: {min_val or -1},
+            max: {max_val or -1}
         }}'''
 
     def current_format_default(self):
