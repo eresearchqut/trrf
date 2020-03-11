@@ -119,6 +119,12 @@ html, body {
     -webkit-backdrop-filter: blur(5px);
 }
 
+@media only screen and (min-width: 992px) {
+    .blur {
+        display: none !important;
+    }
+}
+
 
 /**************************************************************************
  * CSS button utils                                                       */
