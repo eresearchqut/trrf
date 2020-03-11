@@ -10,7 +10,7 @@
       <div class="col-md-10">
         <div class="navbar-header">
           {% if show_sidebar_button %}
-            <span id="sidebar-button" onclick="toggleSidebar()" class="glyphicon glyphicon-list navbar-left visible-xs visible-sm"></span>
+            <span id="sidebar-button" onclick="$('#sidebar').toggleClass('sidebar-hide')" class="glyphicon glyphicon-list navbar-left visible-xs visible-sm"></span>
           {% endif %}
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapsing-links">
             <span class="sr-only">{% trans "Toggle navigation" %}</span>

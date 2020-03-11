@@ -74,7 +74,7 @@ html, body {
 }
 
 @media only screen and (max-width: 992px) {
-    #sidebar {
+    .sidebar {
         position: fixed;
 
         height: 100%;
@@ -84,16 +84,14 @@ html, body {
         z-index: 100000;
 
         box-shadow: 5px 0 5px -5px #888888;
+
+        left: 0;
+        transition: 0.3s;
     }
 
-    #sidebar .well {
+    .sidebar .well {
         height: 95%;
         overflow-y: auto;
-    }
-
-    .sidebar-show {
-        transition: 0.3s;
-        left: 0;
     }
 
     .sidebar-hide {

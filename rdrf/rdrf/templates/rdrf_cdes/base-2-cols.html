@@ -88,22 +88,6 @@
                 CollapsingPanels.expandFirst();
             }
         });
-
-        var sidebarHidden = true;
-        function toggleSidebar() {
-            var sidebarDivClasses = document.getElementById("sidebar").classList;
-            if (sidebarHidden) {
-                sidebarDivClasses.remove("sidebar-hide");
-                sidebarDivClasses.add("sidebar-show");
-            } else {
-                sidebarDivClasses.remove("sidebar-show");
-                sidebarDivClasses.add("sidebar-hide");
-            }
-
-            document.getElementById("sidebar-button").style.color = sidebarHidden ? "#ffffff" : "#9d9d9d";
-
-            sidebarHidden = !sidebarHidden;
-        }
     </script>
 
     {% if HIGHLIGHT_FORM_CHANGES_ENABLED %}
@@ -177,7 +161,7 @@
             {% endif %}
 
             <div class="row">
-                <div id="sidebar" class="col-md-offset-1 col-md-2 sidebar-hide">
+                <div id="sidebar" class="col-md-offset-1 col-md-2 sidebar sidebar-hide">
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
