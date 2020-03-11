@@ -233,10 +233,9 @@ ADMINS = [
 MANAGERS = ADMINS
 
 
-STATIC_ROOT = env.get('static_root', os.path.join(WEBAPP_ROOT, 'static'))
-AWS_STATIC_CONTENT_URL = env.get(f'AWS_STATIC_CONTENT_URL', "")
-GIT_COMMIT_HASH = env.get('GIT_COMMIT_HASH', "")
-STATIC_URL = f"{AWS_STATIC_CONTENT_URL}/{GIT_COMMIT_HASH}/" if AWS_STATIC_CONTENT_URL and GIT_COMMIT_HASH else '{0}/static/'.format(SCRIPT_NAME)
+STATIC_ROOT = env.get('STATIC_ROOT', os.path.join(WEBAPP_ROOT, 'static'))
+GIT_COMMIT_HASH = env.get('GIT_COMMIT_HASH', '')
+STATIC_URL = env.get('STATIC_URL', '{0}/static/'.format(SCRIPT_NAME))
 
 # TODO AH I can't see how this setting does anything
 # for local development, this is set to the static serving directory. For

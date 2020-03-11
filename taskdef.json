@@ -74,7 +74,7 @@
                     "value": "$GIT_TAG"
                 },
                 {
-                    "name": "STATIC_CONTENT_URL",
+                    "name": "STATIC_URL",
                     "value": "$AWS_STATIC_CONTENT_URL/$GIT_TAG"
                 },
                 {
