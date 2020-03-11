@@ -107,6 +107,18 @@ html, body {
     cursor: pointer;
 }
 
+.blur {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+
+    /* Supported by modern browsers but users may need to enable a config flag. */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
 
 /**************************************************************************
  * CSS button utils                                                       */

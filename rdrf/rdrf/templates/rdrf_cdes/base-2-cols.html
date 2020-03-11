@@ -87,6 +87,13 @@
             } else {
                 CollapsingPanels.expandFirst();
             }
+
+            function toggleSidebar() {
+                $('#sidebar').toggleClass('sidebar-hide');
+                $('.blur').toggle();
+            }
+            $("#sidebar-button").click(toggleSidebar);
+            $(".blur").click(toggleSidebar);
         });
     </script>
 
@@ -98,6 +105,7 @@
 </head>
 
 <body>
+    <div class="blur"></div>
     <div id="wrap">
         {% include "rdrf_cdes/navbar.html" with show_sidebar_button=True %}
 
