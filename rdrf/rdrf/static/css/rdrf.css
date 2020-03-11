@@ -95,7 +95,6 @@ html, body {
     }
 
     .sidebar-hide {
-        transition: 0.3s;
         left: -305px;
     }
 }
