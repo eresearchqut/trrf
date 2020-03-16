@@ -73,6 +73,59 @@ html, body {
     }
 }
 
+@media only screen and (max-width: 992px) {
+    .sidebar {
+        position: fixed;
+
+        height: 100%;
+        width: 300px;
+        padding: 0;
+        top: 51px;
+        z-index: 100000;
+
+        box-shadow: 5px 0 5px -5px #888888;
+
+        left: 0;
+        transition: 0.3s;
+    }
+
+    .sidebar .well {
+        height: 95%;
+        overflow-y: auto;
+    }
+
+    .sidebar-hide {
+        left: -305px;
+    }
+}
+
+#sidebar-button {
+    float: left;
+    font-size: 20pt;
+    margin-top: 10px;
+    color: #9d9d9d;
+    cursor: pointer;
+}
+
+.blur {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+
+    /* Supported by modern browsers but users may need to enable a config flag. */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+@media only screen and (min-width: 992px) {
+    .blur {
+        display: none !important;
+    }
+}
+
+
 /**************************************************************************
  * CSS button utils                                                       */
 

@@ -23,7 +23,6 @@
     <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/simple-sidebar.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'timepicki/css/timepicki.css' %}">
 
     {% if cic_system_role %}
@@ -88,6 +87,17 @@
             } else {
                 CollapsingPanels.expandFirst();
             }
+
+            function toggleSidebar() {
+                $('#sidebar').toggleClass('sidebar-hide');
+                $('.blur').toggle();
+                var selectedLink = $('.selected-link');
+                if (selectedLink.length) {
+                    selectedLink.parents('.panel')[0].scrollIntoView();
+                }
+            }
+            $("#sidebar-button").click(toggleSidebar);
+            $(".blur").click(toggleSidebar);
         });
     </script>
 
@@ -99,8 +109,9 @@
 </head>
 
 <body>
+    <div class="blur"></div>
     <div id="wrap">
-        {% include "rdrf_cdes/navbar.html" %}
+        {% include "rdrf_cdes/navbar.html" with show_sidebar_button=True %}
 
         {% if location %}
         <div class="banner">
@@ -162,7 +173,7 @@
             {% endif %}
 
             <div class="row">
-                <div class="col-md-offset-1 col-md-2">
+                <div id="sidebar" class="col-md-offset-1 col-md-2 sidebar sidebar-hide">
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
