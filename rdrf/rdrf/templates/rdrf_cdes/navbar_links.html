@@ -87,6 +87,8 @@
                         <li><a href="{% url 'two_factor:setup' %}"><span class="glyphicon glyphicon-ok"></span>
                             {% trans "Enable two-factor auth" %}</a></li>
                     {% endif %}
+                    {% block patient_menu %}
+                    {% endblock %}
                     <li><a href="{% url 'logout' %}?next={% url 'login_router' %}"><span
                             class="glyphicon glyphicon-log-out"></span>
                         {% trans 'Logout' %}</a></li>

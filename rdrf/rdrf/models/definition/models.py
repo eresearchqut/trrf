@@ -469,16 +469,28 @@ class Registry(models.Model):
         except KeyError:
             return None
 
-    def registration_allowed(self):
+    def _registration_check(self, event_types, check_all=False):
         registration_enabled = self.has_feature(RegistryFeatures.REGISTRATION)
-        registration_notifications_configured = (
+        registration_notifications_qs = (
             EmailNotification.objects.filter(
                 registry=self,
                 disabled=False,
-                description__in=EventType.REGISTRATION_TYPES
-            ).exists()
+                description__in=event_types
+            )
         )
-        return registration_enabled and registration_notifications_configured
+        if check_all:
+            return registration_enabled and registration_notifications_qs.count() == len(event_types)
+        else:
+            return registration_enabled and registration_notifications_qs.exists()
+
+    def registration_allowed(self):
+        return self._registration_check(EventType.REGISTRATION_TYPES)
+
+    def carer_registration_allowed(self):
+        return self._registration_check(EventType.CARER_REGISTRATION_TYPES, check_all=True)
+
+    def has_email_notification(self, event_type):
+        return self._registration_check([event_type])
 
 
 def get_owner_choices():
@@ -1365,6 +1377,11 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
         (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
+        (EventType.NEW_CARER, "Patient Carer Registered"),
+        (EventType.CARER_INVITED, "Patient Carer Invited"),
+        (EventType.CARER_ASSIGNED, "Patient Carer Assigned"),
+        (EventType.CARER_ACTIVATED, "Patient Carer Activated"),
+        (EventType.CARER_DEACTIVATED, "Patient Carer Deactivated")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)

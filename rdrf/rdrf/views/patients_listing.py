@@ -338,6 +338,8 @@ class PatientsListingView(View):
                 self.patients = self.patients_for_clinician()
             elif self.user.is_patient:
                 self.patients = self.patients.filter(user=self.user)
+            elif self.user.is_carer:
+                self.patients = self.patients.filter(carer=self.user)
             else:
                 self.patients = self.patients.none()
         else:

@@ -51,7 +51,9 @@ class RouterView(View):
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_curator:
                 redirect_url = reverse(_PATIENTS_LISTING)
-            elif user.is_parent or user.is_patient or user.is_carrier:
+            elif user.is_carer and user.patients_in_care.count() != 1:
+                redirect_url = reverse(_PATIENTS_LISTING)
+            elif user.is_parent or user.is_patient or user.is_carrier or user.is_carer:
                 if user.num_registries == 1:
                     registry_code = user.get_registries()[0].code
                     redirect_url = reverse(
@@ -62,9 +64,12 @@ class RouterView(View):
         else:
             redirect_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
 
-        self._maybe_warn_about_password_expiry(request)
+        self._additional_checks(request)
 
         return redirect(redirect_url)
+
+    def _additional_checks(self, request):
+        self._maybe_warn_about_password_expiry(request)
 
     def _maybe_warn_about_password_expiry(self, request):
         user = request.user

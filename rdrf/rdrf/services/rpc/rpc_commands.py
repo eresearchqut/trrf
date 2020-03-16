@@ -187,7 +187,7 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     from rdrf.models.definition.models import ContextFormGroup
     from rdrf.models.definition.models import Registry
     from registry.patients.models import Patient
-    from rdrf.security.security_checks import security_check_user_patient
+    from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
     from django.core.exceptions import PermissionDenied
     from rdrf.forms.components import FormsButton
     from django.utils.translation import ugettext as _
@@ -201,7 +201,7 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
         return fail_response
 
     try:
-        patient_model = Patient.objects.get(id=patient_id)
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
     except Patient.DoesNotExist:
         return fail_response
 

@@ -158,6 +158,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.in_group(RDRF_GROUPS.CARRIER)
 
     @property
+    def is_carer(self):
+        return self.in_group(RDRF_GROUPS.CARER)
+
+    @property
     def is_clinician(self):
         return self.in_group(RDRF_GROUPS.CLINICAL)
 

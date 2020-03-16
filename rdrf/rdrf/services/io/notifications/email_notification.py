@@ -36,6 +36,7 @@ class RdrfEmail(object):
             self.email_notification = self._get_email_notification()
 
     def send(self):
+        success = False
         try:
             notification_record_saved = []
             recipients = self._get_recipients()
@@ -63,13 +64,13 @@ class RdrfEmail(object):
                     notification_record_saved.append(language)
             logger.info("Sent email(s) %s" % self.description)
             logger.info("Email %s saved in history table" % self.description)
+            success = True
         except RdrfEmailException as rdrfex:
             logger.error("RdrfEmailException: %s" % rdrfex)
             logger.warning(
                 "No notification available for %s (%s)" %
                 (self.reg_code, self.description))
-        # except Exception as e:
-        #    logger.exception("Email has failed to send")
+        return success
 
     def _get_preferred_language(self, email_address):
         def pref_lang():
@@ -175,12 +176,17 @@ class RdrfEmail(object):
 
 def process_notification(reg_code=None, description=None, template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
+    has_disabled = False
+    sent_successfully = True
     for note in notes:
         if note.disabled:
             logger.warning("Email %s disabled" % note)
+            has_disabled = True
         else:
             logger.info("Sending email %s" % note)
             email = RdrfEmail(email_notification=note)
             email.template_data = template_data
             logger.debug("template_data = %s" % template_data)
-            email.send()
+            send_result = email.send()
+            sent_successfully = sent_successfully and send_result
+    return sent_successfully, has_disabled

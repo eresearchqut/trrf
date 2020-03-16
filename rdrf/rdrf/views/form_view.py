@@ -57,7 +57,10 @@ from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
-from rdrf.security.security_checks import security_check_user_patient, can_sign_consent
+from rdrf.security.security_checks import (
+    security_check_user_patient, can_sign_consent,
+    get_object_or_permission_denied
+)
 
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
@@ -338,7 +341,7 @@ class FormView(View):
     def delete(self, request, registry_code, form_id, patient_id, context_id=None):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
-        patient_model = get_object_or_404(Patient, pk=patient_id)
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
         self.registry = self._get_registry(registry_code)
         if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
@@ -377,8 +380,7 @@ class FormView(View):
         self.form_id = form_id
         self.patient_id = patient_id
 
-        patient_model = get_object_or_404(Patient, pk=patient_id)
-
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
 
         self.registry = self._get_registry(registry_code)
@@ -514,8 +516,7 @@ class FormView(View):
         registry = Registry.objects.get(code=registry_code)
         self.registry = registry
 
-        patient = Patient.objects.get(pk=patient_id)
-
+        patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient)
 
         self.patient_id = patient_id
@@ -1087,7 +1088,7 @@ class FormListView(TemplateView):
 
     @login_required_method
     def get(self, request, **kwargs):
-        patient_model = get_object_or_404(Patient, pk=kwargs.get('patient_id'))
+        patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
         security_check_user_patient(request.user, patient_model)
 
         return super().get(request, **kwargs)
@@ -1693,7 +1694,7 @@ class CustomConsentFormView(View):
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
-        patient_model = Patient.objects.get(pk=patient_id)
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
 
         security_check_user_patient(request.user, patient_model)
 
@@ -1830,8 +1831,7 @@ class CustomConsentFormView(View):
             return redirect("%s?next=%s" % (login_url, consent_form_url))
 
         registry_model = Registry.objects.get(code=registry_code)
-        patient_model = Patient.objects.get(id=patient_id)
-
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
 
         context_launcher = RDRFContextLauncherComponent(request.user,

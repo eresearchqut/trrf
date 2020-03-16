@@ -18,3 +18,4 @@ def create_group(name):
 def load_data(**kwargs):
     create_group('Working Group Curators')
     create_group('Clinical Staff')
+    create_group('Carer')
