@@ -236,7 +236,7 @@
 
       input.css( {
         display: "block",
-        width: "3.5em"
+        width: "4.5em"
       } );
 
       if ( !isNaN( value ) ) {
