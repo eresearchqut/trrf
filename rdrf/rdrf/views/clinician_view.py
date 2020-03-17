@@ -1,6 +1,5 @@
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.template.context_processors import csrf
@@ -194,8 +193,7 @@ class ClinicianFormView(View):
             self.parent = None
         self.patient_model = get_object_or_404(Patient, pk=patient_id)
 
-        if not security_check_user_patient(self.user, self.patient_model):
-            raise PermissionDenied
+        security_check_user_patient(self.user, self.patient_model)
         self.registry_model = get_object_or_404(Registry, code=registry_code)
         if not self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM):
             raise Http404

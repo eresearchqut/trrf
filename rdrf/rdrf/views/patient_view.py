@@ -39,7 +39,7 @@ from rdrf.forms.components import FamilyLinkagePanel
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.db.contexts_api import RDRFContextManager
 
-from rdrf.security.security_checks import security_check_user_patient
+from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
 from django.core.exceptions import PermissionDenied
 
 
@@ -359,7 +359,7 @@ class PatientFormMixin:
         if patient_id is None:
             patient = None
         else:
-            patient = Patient.objects.get(id=patient_id)
+            patient = get_object_or_permission_denied(Patient, pk=patient_id)
 
         registry = Registry.objects.get(code=registry_code)
 
@@ -700,7 +700,7 @@ class PatientEditView(PatientFormMixin, View):
 
     def post(self, request, registry_code, patient_id):
         user = request.user
-        patient = Patient.objects.get(id=patient_id)
+        patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(user, patient)
 
         actions = []

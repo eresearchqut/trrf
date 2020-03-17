@@ -317,6 +317,13 @@ class Patient(models.Model):
         related_name="user_object",
         on_delete=models.SET_NULL)
 
+    carer = models.ForeignKey(
+        CustomUser,
+        blank=True,
+        null=True,
+        related_name="patients_in_care",
+        on_delete=models.SET_NULL)
+
     living_status = models.CharField(
         choices=LivingStates.CHOICES,
         max_length=80,
@@ -391,12 +398,16 @@ class Patient(models.Model):
 
     @property
     def patient_info(self):
+        supports_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in self.rdrf_registry.all())
+        patient_guid = None
+        if supports_guid and hasattr(self, 'patientguid'):
+            patient_guid = self.patientguid.guid
         return {
             'dob': self.date_of_birth.strftime("%Y-%m-%d"),
             'gender': dict(self.SEX_CHOICES).get(self.sex),
             'ancestry': self.ethnic_origin,
             'age': self.age,
-            'guid': self.patientguid.guid if hasattr(self, 'patientguid') else None,
+            'guid': patient_guid,
         }
 
     @property

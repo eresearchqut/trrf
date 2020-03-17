@@ -21,8 +21,8 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
             'two_factor:setup',
             'two_factor:qr',
             'logout',
-            'javascript-catalog')
-        logger.debug([reverse(v) for v in whitelisted_views])
+            'javascript-catalog',
+            'js_reverse')
         if any([reverse(v) in request.path_info for v in whitelisted_views]):
             return None
 

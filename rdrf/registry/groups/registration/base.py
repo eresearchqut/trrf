@@ -65,13 +65,16 @@ class BaseRegistration(abc.ABC):
         django_user.last_name = last_name
         return django_user
 
-    def get_registration_activation_url(self, registration_profile):
+    @staticmethod
+    def get_base_url():
         domain = Site.objects.get_current().domain
-        activation_url = reverse(
-            "registration_activate",
-            kwargs={"activation_key": registration_profile.activation_key}).lstrip("/")
         protocol = "https"
         if domain == "localhost:8000":
             protocol = "http"
-        activation_full_url = f"{protocol}://{domain}/{activation_url}"
-        return activation_full_url
+        return f"{protocol}://{domain}"
+
+    def get_registration_activation_url(self, registration_profile):
+        activation_url = reverse(
+            "registration_activate",
+            kwargs={"activation_key": registration_profile.activation_key}).lstrip("/")
+        return f"{self.get_base_url()}/{activation_url}"

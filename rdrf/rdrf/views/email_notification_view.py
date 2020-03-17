@@ -38,9 +38,10 @@ class ResendEmail(View):
         )
         for key, value in self.template_data.items():
             email.append(key, value)
-        email.send()
-
-        messages.add_message(request, messages.SUCCESS, "Email resend")
+        if email.send():
+            messages.add_message(request, messages.SUCCESS, "Email resend")
+        else:
+            messages.add_message(request, messages.ERROR, "Failure while resending email")
 
         return redirect(reverse("admin:rdrf_emailnotificationhistory_changelist"))
 

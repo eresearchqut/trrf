@@ -23,15 +23,22 @@
     text-align: right;
     font-weight: bold;
   }
+  .selected-link {
+    font-style: italic;
+    color: #333;
+    cursor: default;
+  }
+  .selected-link:hover {
+    color: #333;
+    text-decoration: none;
+  }
 </style>
 
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if current_form_name == "Demographics" %}
-     <i>{{ form_titles.Demographics  }}</i>
-  {% else %}
-     <a href="{{demographics_link}}">{{ form_titles.Demographics }}</a>
-  {% endif %}
+     <a href="{{demographics_link}}" class="{% if current_form_name == "Demographics" %}selected-link{% endif %}">
+       {{ form_titles.Demographics }}
+     </a>
   </div>
 </div>
 
@@ -39,11 +46,9 @@
 {% if not consent_locked %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if current_form_name == "Consents" %}
-     <i>{{ form_titles.Consents }}</i>
-  {% else %}
-     <a href="{{consents_link}}">{{ form_titles.Consents }}</a>
-  {% endif %}
+     <a href="{{consents_link}}" class="{% if current_form_name == "Consents" %}selected-link{% endif %}">
+       {{ form_titles.Consents }}
+     </a>
   </div>
 </div>
 
@@ -51,11 +56,9 @@
 {% if clinician_form_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if current_form_name == "Clinician" %}
-     <i>{{ form_titles.Clinician }}</i>
-  {% else %}
-     <a href="{{clinician_form_link}}">{{ form_titles.Clinician }}</a>
-  {% endif %}
+     <a href="{{clinician_form_link}}" class="{% if current_form_name == "Clinician" %}selected-link{% endif %}">
+       {{ form_titles.Clinician }}
+     </a>
   </div>
 </div>
 {% endif %}
@@ -63,11 +66,9 @@
 {% if proms_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if current_form_name == "Proms" %}
-     <i>{{ form_titles.Proms }}</i>
-  {% else %}
-     <a href="{{proms_link}}">{{ form_titles.Proms }}</a>
-  {% endif %}
+     <a href="{{proms_link}}" class="{% if current_form_name == "Proms" %}selected-link{% endif %}">
+       {{ form_titles.Proms }}
+     </a>
   </div>
 </div>
 {% endif %}
@@ -76,11 +77,9 @@
 {% if family_linkage_link %}
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-      {% if current_form_name == "Family Linkage" %}
-        <i>{{ form_titles|lookup:"Family linkage" }}</i>
-      {% else %}
-        <a href="{{family_linkage_link}}">{{ form_titles|lookup:"Family linkage" }}</a>
-      {% endif %}
+      <a href="{{family_linkage_link}}" class="{% if current_form_name == "Family Linkage" %}selected-link{% endif %}">
+          {{ form_titles|lookup:"Family linkage" }}
+      </a>
   </div>
 </div>
 {% endif %}
@@ -94,11 +93,7 @@
             <div class="panel-body">
                 {% for form in context.forms %}
                     <p>
-                        {% if form.current %}
-                            <i>{{form.text|translate}}</i>
-                        {% else %}
-                            <a href="{{form.url}}">{{form.text|translate}}</a>
-                        {% endif %}
+                        <a href="{{form.url}}" class="{% if form.current %}selected-link{% endif %}">{{form.text|translate}}</a>
                     </p>
             {% endfor %}
             </div>
@@ -117,11 +112,7 @@
             <div id="existing_{{context.id}}" class="panel-body">
 
               {% for link in context.existing_links %}
-                  {% if not link.current %}
-                     <a href="{{link.url}}">{% trans link.text %}</a><br>
-                  {% else %}
-                    <i>{{link.text}}</i><br>
-                  {% endif %}
+                 <a href="{{link.url}}" class="{% if link.current %}selected-link{% endif %}">{% trans link.text %}</a><br>
               {% endfor %}
             </div>
             {% if not context.all_existing_links_shown %}
@@ -145,11 +136,9 @@
 <!-- consent locked -->
 <div width="100%" class="panel panel-default collapsible">
   <div class="panel-body">
-    {% if current_form_name == "Consents" %}
-     <i>{% trans "Consents" %}</i>
-  {% else %}
-     <a href="{{consents_link}}">{% trans 'Consents' %}</a>
-  {% endif %}
+     <a href="{{consents_link}}" class="{% if current_form_name == "Consents" %}selected-link{% endif %}">
+       {% trans 'Consents' %}
+     </a>
   </div>
 </div>
 

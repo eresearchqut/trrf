@@ -12,17 +12,21 @@ GROUP_ATTR_NAMES = (
     'WORKING_GROUP_CURATOR',
     'SUPER_USER',
     'CARRIER',
+    'CARER',
 )
 
 
 GroupLookup = namedtuple('GroupLookup', GROUP_ATTR_NAMES)
-GROUPS = GroupLookup('patients',
-                     'parents',
-                     'clinical staff',
-                     'working group staff',
-                     'working group curators',
-                     '__super_user__',
-                     'carriers')
+GROUPS = GroupLookup(
+    'patients',
+    'parents',
+    'clinical staff',
+    'working group staff',
+    'working group curators',
+    '__super_user__',
+    'carriers',
+    'carer',
+)
 
 
 def reverse_lookup(group_name):

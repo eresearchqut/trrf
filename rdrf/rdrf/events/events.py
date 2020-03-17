@@ -11,8 +11,14 @@ class EventType:
     CLINICIAN_ACTIVATION = "clinician-activation"  # clinican email to confirm registration
     PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"  # participant ( parent) notified when clinician verifies
     PATIENT_CONSENT_CHANGE = "patient-consent-change"   # clinician is notified of a patient changing consent values
+    NEW_CARER = "new-carer"
+    CARER_INVITED = "carer-invited"
+    CARER_ASSIGNED = "carer-assigned"
+    CARER_ACTIVATED = "carer-activated"
+    CARER_DEACTIVATED = "carer-deactivated"
 
     REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
+    CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]
 
     @classmethod
     def is_registration(cls, evt):
