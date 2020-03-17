@@ -222,7 +222,7 @@ ANYMAIL = {
     "AMAZON_SES_CLIENT_PARAMS": {
         "aws_access_key_id": env.get("aws_ses_access_key_id", env.get("aws_access_key_id", "")),
         "aws_secret_access_key": env.get("aws_ses_secret_access_key", env.get("aws_secret_access_key", "")),
-        "region_name": env.get("aws_ses_region_name", "us-east-1"),
+        "region_name": env.get("aws_ses_region_name", "ap-southeast-2"),
     },
 }
 
