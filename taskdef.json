@@ -62,8 +62,8 @@
                     "value": "$REPORTING_DBNAME"
                 },
                 {
-                    "name": "RRF_SITE_DOMAIN",
-                    "value": "$RRF_SITE_DOMAIN"
+                    "name": "TRRF_SITE_DOMAIN",
+                    "value": "$TRRF_SITE_DOMAIN"
                 },
                 {
                     "name": "AWS_STORAGE_BUCKET_NAME",
