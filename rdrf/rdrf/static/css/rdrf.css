@@ -106,6 +106,9 @@ html, body {
     color: #9d9d9d;
     cursor: pointer;
 }
+#sidebar-button.sidebar-active {
+    color: #fff;
+}
 
 .blur {
     display: none;

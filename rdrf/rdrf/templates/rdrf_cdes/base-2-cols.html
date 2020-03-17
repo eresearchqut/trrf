@@ -90,6 +90,7 @@
 
             function toggleSidebar() {
                 $('#sidebar').toggleClass('sidebar-hide');
+                $('#sidebar-button').toggleClass('sidebar-active');
                 $('.blur').toggle();
                 var selectedLink = $('.selected-link');
                 if (selectedLink.length) {
