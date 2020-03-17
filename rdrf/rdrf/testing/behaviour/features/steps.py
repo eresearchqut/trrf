@@ -463,7 +463,7 @@ def the_page_header_should_be(step, header):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     panel_body = sidebar.find_element_by_xpath('//div[@class="panel-body"]')
-    panel_body.find_element_by_xpath('//i[contains(., "%s")]' % header)
+    panel_body.find_element_by_xpath('//a[contains(., "%s")][@class="selected-link"]' % header)
 
 
 @step('I am logged in as (.*)')
