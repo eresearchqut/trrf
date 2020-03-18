@@ -1,7 +1,7 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
-from registry.patients.models import ParentGuardian
+from registry.patients.models import ParentGuardian, Patient
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,11 @@ def security_check_user_patient(user, patient_model):
         if patient_check_result:
             return patient_check_result
         _security_violation(user, patient_model)
+
+    if user.is_clinician:
+        registry = patient_model.rdrf_registry.first()
+        if not Patient.objects.get_by_clinician(user, registry).filter(pk=patient_model.pk).exists():
+            _security_violation(user, patient_model)
 
     # user is staff of some sort
     patient_wg_ids = set([wg.id for wg in patient_model.working_groups.all()])
