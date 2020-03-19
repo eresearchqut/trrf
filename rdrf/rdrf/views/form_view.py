@@ -1090,6 +1090,7 @@ class FormListView(TemplateView):
     def get(self, request, **kwargs):
         patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
         security_check_user_patient(request.user, patient_model)
+        self.user = request.user
 
         return super().get(request, **kwargs)
 
@@ -1102,7 +1103,7 @@ class FormListView(TemplateView):
             {
                 "url": url,
                 "text": text or _("Not set"),
-            } for context_id, url, text in patient.get_forms_by_group(cfg)
+            } for context_id, url, text in patient.get_forms_by_group(cfg, self.user)
         ]
 
     def get_context_data(self, **kwargs):
