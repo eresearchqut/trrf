@@ -25,10 +25,23 @@
     </style>
   {% endif %}
   <style>
-  #changelist-filter {
-    z-index: initial;
-    position: initial;
-  }
+    #changelist-filter {
+      z-index: initial;
+      position: initial;
+    }
+    .admin-table {
+      max-width: 100%;
+    }
+    .admin-table > tbody td, .admin-table > tbody th {
+      max-width: 150px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .admin-table td:hover {
+      max-width: unset;
+      text-overflow: unset;
+    }
   </style>
 {% endblock %}
 
