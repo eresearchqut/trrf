@@ -279,7 +279,7 @@ class FormView(View):
             raise Http404
 
         if not user.can_view(form_model):
-            raise Http404
+            raise PermissionDenied
 
         # is this form the only member of a multiple form group?
         form_group = None
@@ -393,6 +393,10 @@ class FormView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
+        self.registry_form = self.get_registry_form(form_id)
+        if not self.user.can_view(self.registry_form):
+            raise PermissionDenied
+
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -401,7 +405,6 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        self.registry_form = self.get_registry_form(form_id)
         self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
         if changes_since_version:
