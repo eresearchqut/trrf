@@ -29,13 +29,13 @@
       z-index: initial;
       position: initial;
     }
-    .admin-table > tbody td, .admin-table > tbody th {
+    .admin-table td, .admin-table th {
       max-width: 150px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
-    .admin-table td:hover {
+    .admin-table td:hover, .admin-table th:hover {
       max-width: unset;
       text-overflow: unset;
     }
@@ -85,7 +85,7 @@
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
-    
+
     <br>
 
     {% block object-tools %}
