@@ -33,6 +33,21 @@ function get_cde_name(base_name, index) {
     return cdeNamePrefix + base_name;
 }
 
+function is_other_please_specify(name) {
+    var base_prefix = "#id_" + name;
+    if ($(base_prefix + "_0").length || $(base_prefix + "_1").length) {
+        return true;
+    }
+    return false;
+}
+
+function other_please_specify_value(name) {
+    var base_prefix = "#id_" + name;
+    var regular_elem = $(base_prefix + "_0");
+    var other_elem = $(base_prefix + "_1");
+    return other_elem.is(":visible") ? other_elem.val() : regular_elem.val();
+}
+
 function get_cde_value(name, type, allow_multiple) {
     if (type == 'RadioSelect') {
         return $("[name='" + name + "']:checked").val();
@@ -49,7 +64,7 @@ function get_cde_value(name, type, allow_multiple) {
     if (el.length && el[0].type == 'checkbox') {
         return el.is(":checked") ? "checked": "";
     }
-    return el.val();
+    return is_other_please_specify(name) ? other_please_specify_value(name) : el.val();
 }
 
 

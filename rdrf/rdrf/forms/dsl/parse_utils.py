@@ -162,7 +162,11 @@ class CDEHelper:
             return is_valid
 
         def valid_code_or_value(v):
-            return v.lower() in values_dict or v.strip() in codes_list
+            ret_val = v.lower() in values_dict or v.strip() in codes_list
+            allows_other_please_specify_values = any(
+                [True for k in values_dict.keys() if "specify" in k.lower()]
+            )
+            return ret_val or allows_other_please_specify_values
 
         def validate_humanised_duration(v):
             valid_intervals = {
