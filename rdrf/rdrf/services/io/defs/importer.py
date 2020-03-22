@@ -589,15 +589,22 @@ class Importer(object):
                 )
             logger.info("Patient stage rules imported")
 
+        consent_config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
+        consent_config.consent_locked = registry_consent_locked
         if "consent_configuration" in self.data and self.data["consent_configuration"]:
             config_map = self.data["consent_configuration"]
-            ConsentConfiguration.objects.get_or_create(
-                registry=r, consent_locked=config_map['consent_locked'], esignature=config_map['esignature']
-            )
-        else:
-            config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
-            config.consent_locked = registry_consent_locked
-            config.save()
+            esignature_status = config_map['esignature']
+            valid_choices = [v[0] for v in ConsentConfiguration.SIGNATURE_CHOICES]
+            if esignature_status not in valid_choices:
+                raise RegistryImportError(
+                    "Invalid consent configuration, esignature status: {}, valid values are: {}".format(
+                        esignature_status,
+                        ", ".join(valid_choices)
+                    )
+                )
+            consent_config.consent_locked = config_map['consent_locked']
+            consent_config.esignature = esignature_status
+        consent_config.save()
 
         if "form_titles" in self.data and self.data["form_titles"]:
             titles = self.data["form_titles"]
