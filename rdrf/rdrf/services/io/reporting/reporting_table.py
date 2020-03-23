@@ -510,6 +510,7 @@ class MongoFieldSelector(object):
             value_dict = {}
             value_dict["registryCode"] = form_model.registry.code
             value_dict["formName"] = form_model.name
+            value_dict["formPK"] = form_model.pk
             value_dict["sectionCode"] = section_model.code
             value_dict["cdeCode"] = cde_model.code
             # we only need to store the true / checked cdes

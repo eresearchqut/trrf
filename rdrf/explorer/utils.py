@@ -402,11 +402,16 @@ class DatabaseUtils(object):
 
         not_found_forms = set()
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.filter(
-                name=cde_dict["formName"], registry=self.registry_model
-            ).first()
+            if "formPK" in cde_dict:
+                form_model = RegistryForm.objects.filter(
+                    pl=cde_dict["formPK"], registry=self.registry_model
+                ).first()
+            else:
+                form_model = RegistryForm.objects.filter(
+                    name=cde_dict["formName"], registry=self.registry_model
+                ).first()
             if not form_model:
-                not_found_forms.add(cde_dict['formName'])
+                not_found_forms.add(cde_dict.get('formPK', cde_dict['formName']))
                 continue
             section_model = Section.objects.filter(code=cde_dict["sectionCode"]).first()
             if section_model:
