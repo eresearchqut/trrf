@@ -478,6 +478,7 @@ class MongoFieldSelector(object):
                                        cde_model.pk)
         field_label = cde_model.name
         self.field_info.append({"form": form_model.name,
+                                "formPK": form_model.pk,
                                 "sectionCode": section_model.code,
                                 "sectionName": section_model.display_name,
                                 "cdeCode": cde_model.code,
