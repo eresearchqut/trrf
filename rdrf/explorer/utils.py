@@ -400,15 +400,22 @@ class DatabaseUtils(object):
         if not self.projection:
             return data
 
+        not_found_forms = set()
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(
-                name=cde_dict["formName"], registry=self.registry_model)
+            form_model = RegistryForm.objects.filter(
+                name=cde_dict["formName"], registry=self.registry_model
+            ).first()
+            if not form_model:
+                not_found_forms.add(cde_dict['formName'])
+                continue
             section_model = Section.objects.filter(code=cde_dict["sectionCode"]).first()
             if section_model:
                 cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
                 column_name = self._get_database_column_name(form_model, section_model, cde_model)
                 data["multisection_column_map"][(
                     form_model, section_model, cde_model)] = column_name
+        if not_found_forms:
+            logger.warn(f"Could not find form(s): {', '.join(not_found_forms)} for registry {self.registry_model}")
         return data
 
     def _get_database_column_name(self, form_model, section_model, cde_model):
