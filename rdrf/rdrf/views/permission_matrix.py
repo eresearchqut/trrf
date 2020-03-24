@@ -6,6 +6,7 @@ from registry.groups.models import CustomUser
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 import logging
@@ -78,6 +79,8 @@ class PermissionMatrixView(View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code):
+        if not request.user.is_superuser:
+            raise PermissionDenied
         try:
             registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
