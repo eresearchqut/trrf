@@ -1102,7 +1102,7 @@ class Patient(models.Model):
 
         return sorted(contexts, key=key_func, reverse=True)
 
-    def get_forms_by_group(self, context_form_group):
+    def get_forms_by_group(self, context_form_group, user=None):
         """
         Return links (pair of url and text)
         to existing forms "of type" (ie being in a context with a link to)  context_form_group
@@ -1110,6 +1110,8 @@ class Patient(models.Model):
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
         form_model = context_form_group.forms[0]
+        if user and not user.can_view(form_model):
+            return []
 
         def matches_context_form_group(cm):
             return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk
