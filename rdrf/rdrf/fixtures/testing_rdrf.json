@@ -4705,6 +4705,18 @@
     }
   },
   {
+    "pk": 354,
+    "model": "rdrf.cdepermittedvalue",
+    "fields": {
+      "pv_group": "CardiacImplants",
+      "code": "CardiacImplantsOther",
+      "questionnaire_value": null,
+      "value": "If other please specify",
+      "position": null,
+      "desc": "If other please specify"
+    }
+  },
+  {
     "pk": "Address",
     "model": "rdrf.commondataelement",
     "fields": {

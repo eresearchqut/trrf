@@ -111,7 +111,12 @@ class OtherPleaseSpecifyWidget(MultiWidget):
         </script>
         """ % (select_id, self.other_please_specify_value, specified_value_textbox_id, specified_value_textbox_id, select_id)
 
-        return super(OtherPleaseSpecifyWidget, self).render(name, value, attrs) + script
+        return f'''
+            <div id="id_{name}" name="{name}">
+                {super().render(name, value, attrs)}
+            </div>
+            {script}
+        '''
 
 
 class CalculatedFieldWidget(widgets.TextInput):
