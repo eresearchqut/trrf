@@ -113,7 +113,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
 
         return f'''
             <div id="id_{name}" name="{name}">
-                {super(OtherPleaseSpecifyWidget, self).render(name, value, attrs)}
+                {super().render(name, value, attrs)}
             </div>
             {script}
         '''

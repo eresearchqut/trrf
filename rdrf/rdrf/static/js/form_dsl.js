@@ -35,10 +35,7 @@ function get_cde_name(base_name, index) {
 
 function is_other_please_specify(name) {
     var base_prefix = "#id_" + name;
-    if ($(base_prefix + "_0").length || $(base_prefix + "_1").length) {
-        return true;
-    }
-    return false;
+    return ($(base_prefix + "_0").length || $(base_prefix + "_1").length);
 }
 
 function other_please_specify_value(name) {
