@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.mail import send_mail
 from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
 from registry.groups.models import CustomUser
@@ -45,6 +46,7 @@ class RdrfEmail(object):
                 # true
                 logger.debug("no recipients")
                 return
+            sender_address = self.email_notification.email_from or settings.DEFAULT_FROM_EMAIL
             for recipient in recipients:
                 language = self._get_preferred_language(recipient)
                 if self.language and self.language != language:
@@ -56,7 +58,7 @@ class RdrfEmail(object):
                 send_mail(
                     email_subject,
                     email_body,
-                    self.email_notification.email_from,
+                    sender_address,
                     [recipient],
                     html_message=email_body)
                 if language not in notification_record_saved:
