@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic.base import View
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -18,6 +19,9 @@ class ImportRegistryView(View):
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def get(self, request):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         state = request.GET.get("state", "ready")
         user = get_user_model().objects.get(username=request.user)
         error_message = request.GET.get("error_message", None)
@@ -33,6 +37,9 @@ class ImportRegistryView(View):
     @method_decorator(staff_member_required)
     @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         registry_yaml = request.POST["registry_yaml"]
 
         from rdrf.services.io.defs.importer import Importer
