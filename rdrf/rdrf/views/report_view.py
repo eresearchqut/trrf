@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views.generic.base import View
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import HttpResponseRedirect
@@ -25,6 +26,7 @@ class LoginRequiredMixin(object):
 
 class ReportView(LoginRequiredMixin, View):
 
+    @method_decorator(staff_member_required)
     def get(self, request):
         user = request.user
 
@@ -47,6 +49,7 @@ class ReportView(LoginRequiredMixin, View):
 
 class ReportDataTableView(LoginRequiredMixin, View):
 
+    @method_decorator(staff_member_required)
     def get(self, request, query_model_id):
         user = request.user
         try:
@@ -73,6 +76,7 @@ class ReportDataTableView(LoginRequiredMixin, View):
         # todo sanity check
         return True
 
+    @method_decorator(staff_member_required)
     def post(self, request, query_model_id):
         user = request.user
         try:
