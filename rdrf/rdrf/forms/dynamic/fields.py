@@ -1,6 +1,8 @@
 # Custom Fields
 from itertools import zip_longest
 import datetime
+import magic
+
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
@@ -37,7 +39,22 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
             raise ValidationError("A value must be selected")
 
 
-class MultipleFileField(FileField):
+class FileTypeRestrictedFileField(FileField):
+
+    ALLOWED_TYPES = [
+        "application/pdf", "text/plain", "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ]
+
+    def validate(self, value):
+        mime_type = magic.from_buffer(value.file.read(2048), mime=True)
+        value.file.seek(0)
+        if mime_type not in self.ALLOWED_TYPES:
+            raise ValidationError("File type not allowed. Only pdf, doc, docx or plain text files are allowed.")
+        return super().validate(value)
+
+
+class MultipleFileField(FileTypeRestrictedFileField):
     """
     A field made from multiple file fields.
     Values go in and out as lists of files.

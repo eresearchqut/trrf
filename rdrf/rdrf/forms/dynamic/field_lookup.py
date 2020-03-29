@@ -6,7 +6,7 @@ import re
 
 from django.conf import settings
 import django.forms
-from django.forms import MultiValueField, MultiWidget, MultipleChoiceField, FileField
+from django.forms import MultiValueField, MultiWidget, MultipleChoiceField
 from django.forms.widgets import CheckboxSelectMultiple
 from django.urls import reverse
 from django.utils.functional import lazy
@@ -457,7 +457,7 @@ class FieldFactory(object):
         if self.cde.allow_multiple:
             return fields.MultipleFileField(**options)
         else:
-            return FileField(**options)
+            return fields.FileTypeRestrictedFileField(**options)
 
 
 class ComplexFieldParseError(Exception):
