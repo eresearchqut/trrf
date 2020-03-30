@@ -1377,11 +1377,11 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
         (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
-        (EventType.NEW_CARER, "Patient Carer Registered"),
-        (EventType.CARER_INVITED, "Patient Carer Invited"),
-        (EventType.CARER_ASSIGNED, "Patient Carer Assigned"),
-        (EventType.CARER_ACTIVATED, "Patient Carer Activated"),
-        (EventType.CARER_DEACTIVATED, "Patient Carer Deactivated")
+        (EventType.NEW_CARER, "Primary Caregiver Registered"),
+        (EventType.CARER_INVITED, "Primary Caregiver Invited"),
+        (EventType.CARER_ASSIGNED, "Primary Caregiver Assigned"),
+        (EventType.CARER_ACTIVATED, "Primary Caregiver Activated"),
+        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
