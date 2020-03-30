@@ -35,9 +35,9 @@
       white-space: nowrap;
       text-overflow: ellipsis;
     }
-    .admin-table td:hover, .admin-table th:hover {
-      max-width: unset;
-      text-overflow: unset;
+    div.tooltip-inner {
+      max-width: 350px;
+      word-wrap: break-word;
     }
   </style>
 {% endblock %}
@@ -57,6 +57,19 @@
 })(django.jQuery);
 </script>
 {% endif %}{% endif %}
+<script type="text/javascript">
+$(function () {
+  $('.admin-table td').each(function () {
+    $(this)
+      .attr("data-toggle", "tooltip")
+      .attr("data-placement", "top")
+      .attr("title", this.innerHTML)
+      .tooltip({
+        container: "body"
+      })
+  });
+});
+</script>
 {% endblock %}
 
 {% block bodyclass %}change-list{% endblock %}
