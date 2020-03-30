@@ -30,7 +30,7 @@
       position: initial;
     }
     .admin-table td, .admin-table th {
-      max-width: 150px;
+      max-width: 200px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -59,11 +59,11 @@
 {% endif %}{% endif %}
 <script type="text/javascript">
 $(function () {
-  $('.admin-table td').each(function () {
+  $('.admin-table tbody td, .admin-table tbody th').each(function () {
     $(this)
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "top")
-      .attr("title", this.innerHTML)
+      .attr("title", this.children.length === 0 ? this.innerHTML : this.children[0].innerHTML)
       .tooltip({
         container: "body"
       })
