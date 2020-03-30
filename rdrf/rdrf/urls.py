@@ -325,6 +325,8 @@ normalpatterns += [
     re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
     re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
+
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
 ]
 
 
