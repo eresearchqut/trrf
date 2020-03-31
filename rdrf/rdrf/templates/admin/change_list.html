@@ -33,7 +33,6 @@
       max-width: 200px;
       overflow: hidden;
       white-space: nowrap;
-      text-overflow: ellipsis;
     }
     div.tooltip-inner {
       max-width: 350px;
@@ -60,13 +59,21 @@
 <script type="text/javascript">
 $(function () {
   $('.admin-table tbody td, .admin-table tbody th').each(function () {
-    $(this)
+    var cell = $(this);
+    var textCell = this.children.length > 0 ? this.children[0] : cell[0];
+
+    if (cell[0].scrollWidth <= cell.innerWidth()) {
+      return
+    }
+
+    cell
       .attr("data-toggle", "tooltip")
       .attr("data-placement", "top")
-      .attr("title", this.children.length === 0 ? this.innerHTML : this.children[0].innerHTML)
+      .attr("title", textCell.innerHTML)
+      .css("text-overflow", "ellipsis")
       .tooltip({
         container: "body"
-      })
+      });
   });
 });
 </script>
