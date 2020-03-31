@@ -1858,6 +1858,10 @@ class CustomConsentFormView(View):
                                                                   request.FILES,
                                                                   instance=patient_model,
                                                                   prefix="patient_consent_file")
+        for f in patient_consent_file_forms:
+            if f.instance:
+                security_check_user_patient(request.user, f.instance.patient)
+
         patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
         patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])

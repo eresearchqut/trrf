@@ -1,8 +1,6 @@
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -17,14 +15,14 @@ from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import Registry
 
 from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
+from rdrf.security.mixins import StaffMemberRequiredMixin
 
 
-class ConsentList(View):
+class ConsentList(StaffMemberRequiredMixin, View):
 
     def _get_template(self):
         return 'rdrf_cdes/consent_list.html'
 
-    @method_decorator(login_required)
     def get(self, request, registry_code):
         if not (request.user.is_superuser or request.user.registry.filter(code=registry_code).exists()):
             raise PermissionDenied
@@ -82,9 +80,8 @@ class PrintConsentList(ConsentList):
         return 'rdrf_cdes/consent_list_print.html'
 
 
-class ConsentDetails(View):
+class ConsentDetails(StaffMemberRequiredMixin, View):
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, section_id, patient_id):
         patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
@@ -126,7 +123,6 @@ class ConsentDetails(View):
 
 class ConsentDetailsPrint(ConsentDetails):
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
         patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)

@@ -35,6 +35,9 @@ def _patient_checks(user, patient_model):
 
 
 def security_check_user_patient(user, patient_model):
+    if not (user.is_authenticated and user.is_active):
+        return False
+
     # either user is allowed to act on this record ( return True)
     # or not ( raise PermissionDenied error)
     if user.is_superuser:
