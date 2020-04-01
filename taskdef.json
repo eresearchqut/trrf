@@ -104,6 +104,10 @@
                 {
                     "name": "NEW_RELIC_MONITOR_MODE",
                     "value": "$NEW_RELIC_MONITOR_MODE"
+                },
+                {
+                    "name": "DEFAULT_FROM_EMAIL",
+                    "value": "$DEFAULT_FROM_EMAIL"
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
