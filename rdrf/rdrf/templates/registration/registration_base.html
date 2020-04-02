@@ -139,25 +139,26 @@
     <div class="container">
         <br>
 
-        {% if form.non_field_errors %}
+        {% if form.non_field_errors or form.errors %}
             <div class="alert alert-danger">
-                {% for err in form.non_field_errors %}
-                    <p class="form-error">{{ err }}</p>
-                {% endfor %}
-            </div>
-        {% elif form.errors %}
-            <div class="alert alert-danger">
-                {% for field in form %}
-                    {% if field.errors %}
-                        <p><strong>{{field.label}}</strong>:
-                        <ul>
-                            {% for err in field.errors %}
-                                <li>{{ err|striptags }}</li>
-                            {% endfor %}
-                        </ul>
-                        </p>
-                    {% endif %}
-                {% endfor %}
+                {% if form.non_field_errors %}
+                    {% for err in form.non_field_errors %}
+                        <p class="form-error">{{ err }}</p>
+                    {% endfor %}
+                {% endif %}
+                {% if form.errors %}
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <p><strong>{{field.label}}</strong>:
+                                <ul>
+                                    {% for err in field.errors %}
+                                        <li>{{ err|striptags }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
             </div>
         {% endif %}
 
