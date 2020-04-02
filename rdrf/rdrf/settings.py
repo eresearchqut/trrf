@@ -297,7 +297,7 @@ SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
 SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get(
-    "session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
+    "session_cookie_name", "trrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
 
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
