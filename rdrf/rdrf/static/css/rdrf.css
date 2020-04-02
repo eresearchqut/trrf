@@ -213,10 +213,6 @@ form .aligned ul.errorlist {
 /**************************************************************************
  * Project Title and Logo                                                 */
 
-.project_title {
-    padding-left: 31px;
-}
-
 .project_logo {
     height: 48px;
     margin-top: -16px;
