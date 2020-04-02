@@ -71,9 +71,12 @@ class PatientsListingView(View):
         return render(request, template, template_context)
 
     def get_template(self):
-        template = 'rdrf_cdes/patients_listing_no_registries.html' if len(
-            self.registries) == 0 else 'rdrf_cdes/patients_listing.html'
-        return template
+        if len(self.registries) == 0:
+            return 'rdrf_cdes/patients_listing_no_registries.html'
+        elif len(self.get_configure_columns()) == 0:
+            return '403.html'
+        else:
+            return 'rdrf_cdes/patients_listing.html'
 
     def build_context(self):
         return {
