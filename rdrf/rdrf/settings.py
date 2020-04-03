@@ -27,6 +27,7 @@ SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
+
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
 
@@ -370,9 +371,6 @@ LOGGING = {
         'verbose': {
             'format': '[%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s:%(funcName)s] %(message)s'
         },
-        'db': {
-            'format': '[%(duration)s:%(sql)s:%(params)s] %(message)s'
-        },
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
@@ -398,22 +396,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'console_simple': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simplest'
-        },
         'shell': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
-            'filename': os.path.join(LOG_DIRECTORY, 'registry.log'),
-            'when': 'midnight',
-            'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -424,8 +410,13 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False
+        },
+        'django': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
             'propagate': True
         },
         'parso': {
@@ -433,28 +424,13 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.security': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.db.backends': {
-            'handlers': ['mail_admins'],
-            'level': 'CRITICAL',
-            'propagate': True,
-        },
         'rdrf.management.commands': {
             'handlers': ['shell'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'rdrf.export_import': {
-            'handlers': ['console_simple'],
+            'handlers': ['shell'],
             'formatter': 'simplest',
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,

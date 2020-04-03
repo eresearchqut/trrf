@@ -62,7 +62,8 @@ def handler404(request, exception):
     return render(request, "404.html")
 
 
-def handler500(request):
+def handler500(request, exception=None):
+    logger.exception('Unhandled Exception!')
     return render(request, "500.html")
 
 
