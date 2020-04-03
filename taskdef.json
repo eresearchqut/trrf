@@ -75,7 +75,7 @@
                 },
                 {
                     "name": "STATIC_URL",
-                    "value": "$AWS_STATIC_CONTENT_URL/$GIT_TAG"
+                    "value": "$AWS_STATIC_CONTENT_URL/$GIT_TAG/"
                 },
                 {
                     "name": "ALLOWED_HOSTS",
@@ -104,6 +104,10 @@
                 {
                     "name": "NEW_RELIC_MONITOR_MODE",
                     "value": "$NEW_RELIC_MONITOR_MODE"
+                },
+                {
+                    "name": "DEFAULT_FROM_EMAIL",
+                    "value": "$DEFAULT_FROM_EMAIL"
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
