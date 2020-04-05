@@ -498,27 +498,49 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
-AUTH_PASSWORD_VALIDATORS = [{
-    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    'OPTIONS': {
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
             'min_length': 8,
-    }
-},
+        }
+    },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasLowercaseLetterValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasNumberValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
-},
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyRepeatingCharacterValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyIncreasingNumberValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyDecreasingNumberValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+    }
 ]
 
 # setup for PROMS
