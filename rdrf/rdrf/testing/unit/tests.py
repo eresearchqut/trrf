@@ -22,6 +22,7 @@ from registry.patients.models import State, PatientAddress, AddressType
 from django.contrib.auth.models import Group
 from registry.groups.models import WorkingGroup, CustomUser
 from rdrf.helpers.utils import de_camelcase, check_calculation, TimeStripper
+from registry.groups import GROUPS as RDRF_GROUPS
 from copy import deepcopy
 
 from rdrf.models.definition.models import EmailNotification
@@ -280,6 +281,7 @@ class FormTestCase(RDRFTestCase):
             self.wg.save()
 
         self.user = CustomUser.objects.get(username="curator")
+        self.user.add_group(RDRF_GROUPS.WORKING_GROUP_CURATOR)
         self.user.registry.set([self.registry])
         self.user.working_groups.add(self.wg)
 
