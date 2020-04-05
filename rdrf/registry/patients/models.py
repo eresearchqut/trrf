@@ -180,6 +180,24 @@ class PatientManager(models.Manager):
 
         return by_registry.filter(patients_created_by_clinician)
 
+    def get_by_user_and_registry(self, user, registry_model):
+        qs = self.get_queryset()
+        if user.is_superuser:
+            return qs.filter(rdrf_registry=registry_model)
+        if user.is_curator:
+            return qs.filter(
+                rdrf_registry=registry_model,
+                working_groups__in=user.working_groups.all())
+        if user.is_working_group_staff:
+            return qs.filter(working_groups__in=self.user.working_groups.all())
+        if user.is_clinician:
+            return self.get_by_clinician(user, registry_model)
+        if user.is_patient:
+            return qs.filter(user=user)
+        if user.is_carer:
+            return qs.filter(carer=self.user)
+        return qs.none()
+
 
 class LivingStates:
     ALIVE = 'Alive'

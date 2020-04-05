@@ -35,32 +35,13 @@ def _patient_checks(user, patient_model):
 
 
 def security_check_user_patient(user, patient_model):
-    if not (user.is_authenticated and user.is_active):
-        return False
-
     # either user is allowed to act on this record ( return True)
     # or not ( raise PermissionDenied error)
-    if user.is_superuser:
-        return True
-
-    if user_is_patient_type(user):
-        patient_check_result = _patient_checks(user, patient_model)
-        if patient_check_result:
-            return patient_check_result
+    if not (user.is_authenticated and user.is_active):
         _security_violation(user, patient_model)
 
-    if user.is_clinician:
-        registry = patient_model.rdrf_registry.first()
-        if not Patient.objects.get_by_clinician(user, registry).filter(pk=patient_model.pk).exists():
-            _security_violation(user, patient_model)
-
-    # user is staff of some sort
-    patient_wg_ids = set([wg.id for wg in patient_model.working_groups.all()])
-    user_wg_ids = set([wg.id for wg in user.working_groups.all()])
-
-    overlap = patient_wg_ids & user_wg_ids
-
-    if overlap:
+    registry = patient_model.rdrf_registry.first()
+    if Patient.objects.get_by_user_and_registry(user, registry).filter(pk=patient_model.pk).exists():
         return True
 
     _security_violation(user, patient_model)
