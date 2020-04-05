@@ -214,8 +214,7 @@ class PatientsListingView(LoginRequiredMixin, View):
         return sort_field, sort_direction
 
     def run_query(self):
-        self.get_initial_queryset()
-        self.filter_by_user_group()
+        self.patients = self.filter_by_user_and_registry()
         self.apply_ordering()
         self.record_total = self.patients.count()
         self.apply_search_filter()
@@ -290,39 +289,14 @@ class PatientsListingView(LoginRequiredMixin, View):
                     self.form_progress,
                     self.rdrf_context_manager)) for col in self.columns}
 
-    def get_initial_queryset(self):
-        self.registry_queryset = Registry.objects.filter(
-            code=self.registry_model.code)
-        self.patients = Patient.objects.all().prefetch_related(
-            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry=self.registry_model)
-
     def apply_search_filter(self):
         if self.search_term:
             name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
             stage_filter = Q(stage__name__istartswith=self.search_term)
             self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
-    def filter_by_user_group(self):
-        if not self.user.is_superuser:
-            is_working_group_staff = self.user.is_working_group_staff
-            if self.user.is_curator:
-                query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
-                    working_groups__in=self.user.working_groups.all())
-                self.patients = self.patients.filter(query_patients)
-            elif is_working_group_staff:
-                self.patients = self.patients.filter(
-                    working_groups__in=self.user.working_groups.all())
-            elif self.user.is_clinician:
-                self.patients = Patient.objects.get_by_clinician(self.user, self.registry_model)
-            elif self.user.is_patient:
-                self.patients = self.patients.filter(user=self.user)
-            elif self.user.is_carer:
-                self.patients = self.patients.filter(carer=self.user)
-            else:
-                self.patients = self.patients.none()
-        else:
-            self.patients = self.patients.filter(
-                rdrf_registry__in=self.registry_queryset)
+    def filter_by_user_and_registry(self):
+        return Patient.objects.get_by_user_and_registry(self.user, self.registry_model)
 
     def apply_ordering(self):
         if self.sort_field and self.sort_direction:
