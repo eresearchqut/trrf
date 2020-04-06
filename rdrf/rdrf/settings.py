@@ -556,3 +556,5 @@ RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
 # Including only the API urls for now, add more later if needed
 JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
+
+EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
