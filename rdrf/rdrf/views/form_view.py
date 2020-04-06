@@ -362,18 +362,18 @@ class FormView(View):
 
         return JsonResponse({"result": "Cannot delete form !"}, status=400)
 
-    def set_code_generator_data(self, context, changes_since_version=None):
-        if not changes_since_version:
+    def set_code_generator_data(self, context, empty_stubs=False):
+        if empty_stubs:
+            context["generated_code"] = ''
+            context["visibility_handler"] = ''
+            context["change_targets"] = ''
+            context["generated_declarations"] = ''
+        else:
             code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
             context["generated_code"] = code_gen.generate_code() or ''
             context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
             context["change_targets"] = code_gen.generate_change_targets() or ''
             context["generated_declarations"] = code_gen.generate_declarations() or ''
-        else:
-            context["generated_code"] = ''
-            context["visibility_handler"] = ''
-            context["change_targets"] = ''
-            context["generated_declarations"] = ''
 
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
@@ -489,7 +489,7 @@ class FormView(View):
             "registry_form",
             kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
         ) if context_id != 'add' else ''
-        self.set_code_generator_data(context, changes_since_version)
+        self.set_code_generator_data(context, empty_stubs=changes_since_version is not None)
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
