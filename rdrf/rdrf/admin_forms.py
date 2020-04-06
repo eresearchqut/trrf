@@ -10,6 +10,7 @@ from rdrf.models.definition.models import RegistryForm, CommonDataElement, Conte
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from registry.patients.models import Patient
 
 
@@ -145,7 +146,10 @@ class CommonDataElementAdminForm(ModelForm):
             'RadioSelect': lambda: settings_widgets.RadioSelectSettings(),
             'DurationWidget': lambda: settings_widgets.DurationWidgetSettings(),
         }
-        self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
+        if data_type == CDEDataTypes.FILE:
+            self.fields['widget_settings'].widget = settings_widgets.FileUploadWidgetSettings()
+        else:
+            self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
 
         default_choice = ('', _("Default widget"))
         choices = [default_choice]

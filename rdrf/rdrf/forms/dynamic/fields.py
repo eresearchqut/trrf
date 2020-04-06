@@ -2,7 +2,9 @@
 from itertools import zip_longest
 import datetime
 import magic
+import os
 
+from django.conf import settings
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
@@ -41,16 +43,22 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
 
 class FileTypeRestrictedFileField(FileField):
 
-    ALLOWED_TYPES = [
-        "application/pdf", "text/plain", "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ]
+    ALLOWED_TYPES = [s['mime-type'] for s in settings.ALLOWED_FILE_TYPES]
+    ALLOWED_TYPES_MAPPING = {
+        s['mime-type']: s['extension'] for s in settings.ALLOWED_FILE_TYPES
+    }
 
     def validate(self, value):
+        allowed_types = self.ALLOWED_TYPES
+        if getattr(self, 'cde', None):
+            allowed_types = self.cde.widget_settings.get('allowed_file_types', self.ALLOWED_TYPES)
+        __, ext = os.path.splitext(value._name)
         mime_type = magic.from_buffer(value.file.read(2048), mime=True)
         value.file.seek(0)
-        if mime_type not in self.ALLOWED_TYPES:
+        if mime_type not in allowed_types:
             raise ValidationError("File type not allowed. Only pdf, doc, docx or plain text files are allowed.")
+        if self.ALLOWED_TYPES_MAPPING[mime_type] != ext:
+            raise ValidationError("File extension does not match the file type !")
         return super().validate(value)
 
 

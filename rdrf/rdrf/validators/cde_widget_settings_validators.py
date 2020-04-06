@@ -6,7 +6,8 @@ from django.utils.translation import gettext as _
 
 from rdrf.forms.widgets.settings_widgets import (
     DurationWidgetSettings, SliderWidgetSettings,
-    TimeWidgetSettings, RadioSelectSettings
+    TimeWidgetSettings, RadioSelectSettings,
+    FileUploadWidgetSettings
 )
 
 
@@ -101,12 +102,17 @@ class DurationWidgetSettingsValidator(BaseValidator):
             raise ValidationError(_("You need to select at least one duration field !"))
 
 
+class FileUploadWidgetSettingsValidator(BaseValidator):
+    pass
+
+
 def get_validator(widget_instance, cleaned_data):
     validators = {
         TimeWidgetSettings: TimeWidgetSettingsValidator,
         SliderWidgetSettings: SliderWidgetSettingsValidator,
         RadioSelectSettings: RadioSelectSettingsValidator,
-        DurationWidgetSettings: DurationWidgetSettingsValidator
+        DurationWidgetSettings: DurationWidgetSettingsValidator,
+        FileUploadWidgetSettings: FileUploadWidgetSettingsValidator
     }
     for cls, validator in validators.items():
         if isinstance(widget_instance, cls):

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.forms import Widget
 from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
@@ -50,6 +51,9 @@ class JSONWidgetSettings(Widget):
         self._update_input(name, title, kwargs.get('info'), kwargs.get('onchange'))
         self.parsed[name]['input_type'] = 'select'
         self.parsed[name]['options'] = kwargs.get('options', [])
+        is_multiple = kwargs.get('multiple', False)
+        if is_multiple:
+            self.parsed[name]['multiple'] = True
 
     def render(self, name, value, attrs=None, renderer=None):
         self.parse_value(value)
@@ -161,3 +165,25 @@ class DurationWidgetSettings(JSONWidgetSettings):
         """ % (name, name)
         self.set_extra_js(javascript)
         return super().render(name, value, attrs, renderer)
+
+
+class FileUploadWidgetSettings(JSONWidgetSettings):
+
+    def get_allowed_fields(self):
+        return {'allowed_file_types'}
+
+    def generate_input(self, name, title, info=None):
+        value = self.parsed.get(name, '')
+        options = [{
+            "value": s['mime-type'],
+            "text": s['description'],
+            "selected": "selected" if s['mime-type'] in value else ""
+        } for s in settings.ALLOWED_FILE_TYPES]
+        self.generate_select_input(
+            name, title, info=info,
+            options=options,
+            multiple=True
+        )
+
+    def generate_inputs(self):
+        self.generate_input('allowed_file_types', _('Allowed file types'), _("Allowed file types")),
