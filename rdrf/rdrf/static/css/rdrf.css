@@ -199,8 +199,8 @@ form .aligned ul.errorlist {
  * RadioSelect CDEs                                                       */
 
 .radio-select label {
-    display: flex;
-    padding: 0;
+    display: block;
+    padding-top: 0;
 }
 
 .radio-select label > input {
@@ -208,6 +208,17 @@ form .aligned ul.errorlist {
     flex-shrink: 0;
     margin-bottom: auto;
     margin-top: 0;
+}
+
+.radio-select {
+    padding-top: 7px;
+}
+
+.radio-select input[type=radio] {
+    width: 15px;
+    height: 15px;
+    display: table-cell;
+    vertical-align: middle
 }
 
 /**************************************************************************
