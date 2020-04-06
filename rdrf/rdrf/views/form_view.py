@@ -362,6 +362,19 @@ class FormView(View):
 
         return JsonResponse({"result": "Cannot delete form !"}, status=400)
 
+    def set_code_generator_data(self, context, empty_stubs=False):
+        if empty_stubs:
+            context["generated_code"] = ''
+            context["visibility_handler"] = ''
+            context["change_targets"] = ''
+            context["generated_declarations"] = ''
+        else:
+            code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
+            context["generated_code"] = code_gen.generate_code() or ''
+            context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
+            context["change_targets"] = code_gen.generate_change_targets() or ''
+            context["generated_declarations"] = code_gen.generate_declarations() or ''
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -476,11 +489,7 @@ class FormView(View):
             "registry_form",
             kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
         ) if context_id != 'add' else ''
-        code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
-        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
-        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
+        self.set_code_generator_data(context, empty_stubs=changes_since_version is not None)
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
@@ -821,12 +830,6 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
 
         if error_count == 0:
-            code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-            context["generated_code"] = code_gen.generate_code() or ''
-            context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
-            context["change_targets"] = code_gen.generate_change_targets() or ''
-            context["generated_declarations"] = code_gen.generate_declarations() or ''
-
             patient.mark_changed_timestamp()
 
             success_message = _(f"Patient {patient_name} saved successfully. Please now use the blue arrow on the right to continue.")
@@ -841,6 +844,7 @@ class FormView(View):
                                  failure_message)
             context['error_messages'] = [failure_message]
 
+        self.set_code_generator_data(context)
         return render(request, self._get_template(), context)
 
     def _get_sections(self, form):
