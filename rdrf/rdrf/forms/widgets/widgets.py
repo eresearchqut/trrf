@@ -14,7 +14,7 @@ from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
 from django.utils.formats import date_format
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
@@ -570,7 +570,7 @@ class SignatureWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
         has_value = value and value != 'None'
         encoded_default_value = base64.b64encode('{"width":1, "data":[]}'.encode('utf-8')).decode('utf-8')
-        set_value = f'set_value("{value}");' if has_value else f'set_value("{encoded_default_value}");'
+        set_value = f'set_value("{conditional_escape(value)}");' if has_value else f'set_value("{encoded_default_value}");'
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
         hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
         html_value = value if has_value else encoded_default_value
