@@ -168,9 +168,9 @@ class DateWidget(widgets.TextInput):
                     return value
             else:
                 return value
-        return mark_safe("""
-            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker">
-        """ % (name, name, just_date(value) or ''))
+
+        output_val = conditional_escape(just_date(value) or '')
+        return f'<input type="text" name="{name}" id="id_{name}" value="{output_val}" class="datepicker">'
 
 
 class CountryWidget(widgets.Select):
