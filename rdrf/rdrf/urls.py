@@ -25,7 +25,6 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
-from rdrf.views.registry_list_view import RegistryListView
 from rdrf.views.lookup_views import FamilyLookup
 from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
@@ -122,7 +121,6 @@ proms_patterns = [
 
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
-    re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
@@ -198,7 +196,6 @@ normalpatterns += [
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
 
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
-    re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
