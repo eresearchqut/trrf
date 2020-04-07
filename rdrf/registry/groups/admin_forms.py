@@ -24,7 +24,7 @@ class UserMixin:
         username = self.cleaned_data["username"]
         if self.instance is not None and username == self.instance.username:
             return username
-        if get_user_model().objects.filter(username=username).exists():
+        if get_user_model().objects.filter(username__iexact=username.lower()).exists():
             raise forms.ValidationError("There is already a user with that username!")
         return username
 
