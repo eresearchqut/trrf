@@ -1,29 +1,19 @@
-from django.shortcuts import render
-from django.views.generic.base import View
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.http import HttpResponseRedirect
-from django.http import Http404
-from django.http import HttpResponse
-from django.urls import reverse
-
-from explorer.models import Query
-
-from rdrf.services.io.reporting.reporting_table import ReportTable
 import json
 import logging
+
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django.views.generic.base import View
+
+from explorer.models import Query
+from rdrf.security.mixins import StaffMemberRequiredMixin
+from rdrf.services.io.reporting.reporting_table import ReportTable
+
 logger = logging.getLogger(__name__)
 
 
-class LoginRequiredMixin(object):
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
-
-
-class ReportView(LoginRequiredMixin, View):
+class ReportView(StaffMemberRequiredMixin, View):
 
     def get(self, request):
         user = request.user
@@ -45,14 +35,11 @@ class ReportView(LoginRequiredMixin, View):
         return render(request, 'rdrf_cdes/reports.html', context)
 
 
-class ReportDataTableView(LoginRequiredMixin, View):
+class ReportDataTableView(StaffMemberRequiredMixin, View):
 
     def get(self, request, query_model_id):
         user = request.user
-        try:
-            query_model = Query.objects.get(pk=query_model_id)
-        except Query.DoesNotExist:
-            raise Http404("Report %s does not exist" % query_model_id)
+        query_model = get_object_or_404(Query, pk=query_model_id)
 
         if not self._sanity_check(query_model, user):
             return HttpResponseRedirect("/")

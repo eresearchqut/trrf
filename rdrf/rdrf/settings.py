@@ -27,6 +27,7 @@ SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
+
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
 
@@ -210,7 +211,7 @@ EMAIL_SUBJECT_PREFIX = env.get("email_subject_prefix", "DEV {0}".format(SCRIPT_N
 
 # Email Notifications
 # NB. This initialises the email notification form
-DEFAULT_FROM_EMAIL = env.get('default_from_email', 'Registry Framework (TRRF) <no-reply@registryframework.net>')
+DEFAULT_FROM_EMAIL = env.get('default_from_email', 'no-reply@registryframework.net')
 SERVER_EMAIL = env.get('server_email', DEFAULT_FROM_EMAIL)
 
 if env.get('ALL_EMAIL_JUST_PRINTED_TO_CONSOLE', False):
@@ -296,15 +297,18 @@ SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
 SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get(
-    "session_cookie_name", "rdrf_{0}".format(SCRIPT_NAME.replace("/", "")))
+    "session_cookie_name", "trrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
+SESSION_COOKIE_SAMESITE = "Strict"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
 CSRF_COOKIE_DOMAIN = env.get("csrf_cookie_domain", "") or SESSION_COOKIE_DOMAIN
 CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
+CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
-CSRF_COOKIE_AGE = env.get("csrf_cookie_age", 31449600)
+CSRF_COOKIE_AGE = None
 CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure")
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
@@ -370,9 +374,6 @@ LOGGING = {
         'verbose': {
             'format': '[%(levelname)s:%(asctime)s:%(filename)s:%(lineno)s:%(funcName)s] %(message)s'
         },
-        'db': {
-            'format': '[%(duration)s:%(sql)s:%(params)s] %(message)s'
-        },
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
@@ -398,22 +399,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'console_simple': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simplest'
-        },
         'shell': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'ccg_django_utils.loghandlers.ParentPathFileHandler',
-            'filename': os.path.join(LOG_DIRECTORY, 'registry.log'),
-            'when': 'midnight',
-            'formatter': 'verbose'
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -424,8 +413,13 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False
+        },
+        'django': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
             'propagate': True
         },
         'parso': {
@@ -433,28 +427,13 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.security': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'django.db.backends': {
-            'handlers': ['mail_admins'],
-            'level': 'CRITICAL',
-            'propagate': True,
-        },
         'rdrf.management.commands': {
             'handlers': ['shell'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'rdrf.export_import': {
-            'handlers': ['console_simple'],
+            'handlers': ['shell'],
             'formatter': 'simplest',
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
@@ -580,3 +559,5 @@ RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
 # Including only the API urls for now, add more later if needed
 JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
+
+EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )

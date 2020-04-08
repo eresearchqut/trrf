@@ -1,22 +1,19 @@
 from django.shortcuts import render
 from django.views.generic.base import View
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db import transaction
-from django.contrib.admin.views.decorators import staff_member_required
 
 import logging
 from django.contrib.auth import get_user_model
 
+from rdrf.security.mixins import SuperuserRequiredMixin
+
 logger = logging.getLogger(__name__)
 
 
-class ImportRegistryView(View):
+class ImportRegistryView(SuperuserRequiredMixin, View):
 
-    @method_decorator(staff_member_required)
-    @method_decorator(login_required)
     def get(self, request):
         state = request.GET.get("state", "ready")
         user = get_user_model().objects.get(username=request.user)
@@ -30,8 +27,6 @@ class ImportRegistryView(View):
 
         return render(request, 'rdrf_cdes/import_registry.html', context)
 
-    @method_decorator(staff_member_required)
-    @method_decorator(login_required)
     def post(self, request, *args, **kwargs):
         registry_yaml = request.POST["registry_yaml"]
 

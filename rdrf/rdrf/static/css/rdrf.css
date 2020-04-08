@@ -62,6 +62,7 @@ html, body {
     box-shadow: 0 -2px 30px #888888;
     text-align: center;
     font-size: 0.8em;
+    z-index: 1000;
 }
 
 @media only screen and (min-width: 990px) {
@@ -198,8 +199,8 @@ form .aligned ul.errorlist {
  * RadioSelect CDEs                                                       */
 
 .radio-select label {
-    display: flex;
-    padding: 0;
+    display: block;
+    padding-top: 0;
 }
 
 .radio-select label > input {
@@ -209,12 +210,19 @@ form .aligned ul.errorlist {
     margin-top: 0;
 }
 
+.radio-select {
+    padding-top: 7px;
+}
+
+.radio-select input[type=radio] {
+    width: 15px;
+    height: 15px;
+    display: table-cell;
+    vertical-align: middle
+}
+
 /**************************************************************************
  * Project Title and Logo                                                 */
-
-.project_title {
-    padding-left: 31px;
-}
 
 .project_logo {
     height: 48px;

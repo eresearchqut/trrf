@@ -206,7 +206,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         from django.contrib.auth.models import Group
         existing_groups = [g.name for g in self.groups.all()]
         if group_name not in existing_groups:
-            group = Group.objects.get(name=group_name)
+            group, __ = Group.objects.get_or_create(name=group_name)
             self.groups.add(group)
 
     def can_view(self, registry_form_model):

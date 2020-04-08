@@ -14,6 +14,7 @@ from two_factor import views as twv
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 
+from rdrf.views import favicon_view
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
@@ -62,7 +63,8 @@ def handler404(request, exception):
     return render(request, "404.html")
 
 
-def handler500(request):
+def handler500(request, exception=None):
+    logger.exception('Unhandled Exception!')
     return render(request, "500.html")
 
 
@@ -325,12 +327,17 @@ normalpatterns += [
     re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
     re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
+
 ]
 
+patterns = [
+    path('favicon.ico', favicon_view.redirect_to_static, name='favicon'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
+]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
-    patterns = proms_patterns
+    patterns += proms_patterns
 else:
-    patterns = normalpatterns
+    patterns += normalpatterns
 
 urlpatterns = [u for u in patterns if u is not None]

@@ -279,7 +279,7 @@ class FormView(View):
             raise Http404
 
         if not user.can_view(form_model):
-            raise Http404
+            raise PermissionDenied
 
         # is this form the only member of a multiple form group?
         form_group = None
@@ -362,6 +362,19 @@ class FormView(View):
 
         return JsonResponse({"result": "Cannot delete form !"}, status=400)
 
+    def set_code_generator_data(self, context, empty_stubs=False):
+        if empty_stubs:
+            context["generated_code"] = ''
+            context["visibility_handler"] = ''
+            context["change_targets"] = ''
+            context["generated_declarations"] = ''
+        else:
+            code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
+            context["generated_code"] = code_gen.generate_code() or ''
+            context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
+            context["change_targets"] = code_gen.generate_change_targets() or ''
+            context["generated_declarations"] = code_gen.generate_declarations() or ''
+
     @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
@@ -393,6 +406,10 @@ class FormView(View):
                                  "see_patient"):
                 raise PermissionDenied
 
+        self.registry_form = self.get_registry_form(form_id)
+        if not self.user.can_view(self.registry_form):
+            raise PermissionDenied
+
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -401,7 +418,6 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        self.registry_form = self.get_registry_form(form_id)
         self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
         if changes_since_version:
@@ -473,11 +489,7 @@ class FormView(View):
             "registry_form",
             kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
         ) if context_id != 'add' else ''
-        code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-        context["generated_code"] = code_gen.generate_code() or '' if not changes_since_version else ''
-        context["visibility_handler"] = code_gen.generate_visibility_handler() or '' if not changes_since_version else ''
-        context["change_targets"] = code_gen.generate_change_targets() or '' if not changes_since_version else ''
-        context["generated_declarations"] = code_gen.generate_declarations() or '' if not changes_since_version else ''
+        self.set_code_generator_data(context, empty_stubs=changes_since_version is not None)
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
@@ -818,12 +830,6 @@ class FormView(View):
         context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
 
         if error_count == 0:
-            code_gen = CodeGenerator(self.registry_form.conditional_rendering_rules, self.registry_form)
-            context["generated_code"] = code_gen.generate_code() or ''
-            context["visibility_handler"] = code_gen.generate_visibility_handler() or ''
-            context["change_targets"] = code_gen.generate_change_targets() or ''
-            context["generated_declarations"] = code_gen.generate_declarations() or ''
-
             patient.mark_changed_timestamp()
 
             success_message = _(f"Patient {patient_name} saved successfully. Please now use the blue arrow on the right to continue.")
@@ -838,6 +844,7 @@ class FormView(View):
                                  failure_message)
             context['error_messages'] = [failure_message]
 
+        self.set_code_generator_data(context)
         return render(request, self._get_template(), context)
 
     def _get_sections(self, form):
@@ -1090,6 +1097,7 @@ class FormListView(TemplateView):
     def get(self, request, **kwargs):
         patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
         security_check_user_patient(request.user, patient_model)
+        self.user = request.user
 
         return super().get(request, **kwargs)
 
@@ -1102,7 +1110,7 @@ class FormListView(TemplateView):
             {
                 "url": url,
                 "text": text or _("Not set"),
-            } for context_id, url, text in patient.get_forms_by_group(cfg)
+            } for context_id, url, text in patient.get_forms_by_group(cfg, self.user)
         ]
 
     def get_context_data(self, **kwargs):
@@ -1854,6 +1862,10 @@ class CustomConsentFormView(View):
                                                                   request.FILES,
                                                                   instance=patient_model,
                                                                   prefix="patient_consent_file")
+        for f in patient_consent_file_forms:
+            if f.instance:
+                security_check_user_patient(request.user, f.instance.patient)
+
         patient_section_consent_file = (_("Upload consent file (if requested)"), None)
 
         patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])

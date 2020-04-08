@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   # TODO check if requirements are needed
   # Base
   gettext \
+  git \
   libpcre3 \
   libpq5 \
   mime-support \
@@ -59,6 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   # Base
   # TODO check if requirements are needed
   gettext \
+  git \
   libpcre3 \
   libpq5 \
   mime-support \

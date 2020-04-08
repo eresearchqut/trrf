@@ -1,14 +1,15 @@
-from django.views.generic import View
-from rdrf.models.definition.models import Registry
-from django.shortcuts import render
-from django.http import Http404
-from registry.groups.models import CustomUser
+import logging
+
+from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
-import logging
+
+from rdrf.models.definition.models import Registry
+from rdrf.security.mixins import SuperuserRequiredMixin
+from registry.groups.models import CustomUser
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,18 +75,15 @@ class MatrixWrapper(object):
         self.name = _("Permission Matrix for %(registry)s") % {"registry": registry_model.name}
 
 
-class PermissionMatrixView(View):
+class PermissionMatrixView(SuperuserRequiredMixin, TemplateView):
+    template_name = "rdrf_cdes/permission_matrix.html"
 
-    @method_decorator(login_required)
-    def get(self, request, registry_code):
-        try:
-            registry_model = Registry.objects.get(code=registry_code)
-        except Registry.DoesNotExist:
-            return Http404(
-                _("Registry with code %(registry_code)s does not exist") % {
-                    "registry_code": registry_code})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-        return render(request, "rdrf_cdes/permission_matrix.html", {
+        registry_model = get_object_or_404(Registry, code=kwargs.get('registry_code'))
+        context.update({
             "location": "Permissions",
             "matrix_wrapper": MatrixWrapper(registry_model),
         })
+        return context

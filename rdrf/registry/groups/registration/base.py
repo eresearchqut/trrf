@@ -60,7 +60,7 @@ class BaseRegistration(abc.ABC):
     def setup_django_user(self, django_user, registry, group, first_name, last_name):
         django_user.registry.set([registry, ] if registry else [])
         django_user.groups.add(self._get_group(group))
-        django_user.is_staff = True
+        django_user.is_staff = False
         django_user.first_name = first_name
         django_user.last_name = last_name
         return django_user

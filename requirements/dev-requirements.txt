@@ -1,5 +1,9 @@
 sphinx
 sphinxcontrib-fulltoc
-Werkzeug
+# TODO intall Werkzeug from pypi package again later.
+# Currently there is a bug that prevents you accessing locals in the debugger
+# The fix is on master already: https://github.com/pallets/werkzeug/pull/1741/commits
+-e git://github.com/pallets/werkzeug.git#egg=Werkzeug
+# Werkzeug
 python-Levenshtein
 ipython

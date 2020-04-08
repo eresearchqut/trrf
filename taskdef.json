@@ -75,7 +75,7 @@
                 },
                 {
                     "name": "STATIC_URL",
-                    "value": "$AWS_STATIC_CONTENT_URL/$GIT_TAG"
+                    "value": "$AWS_STATIC_CONTENT_URL/$GIT_TAG/"
                 },
                 {
                     "name": "ALLOWED_HOSTS",

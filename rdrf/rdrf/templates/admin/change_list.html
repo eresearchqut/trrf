@@ -25,10 +25,19 @@
     </style>
   {% endif %}
   <style>
-  #changelist-filter {
-    z-index: initial;
-    position: initial;
-  }
+    #changelist-filter {
+      z-index: initial;
+      position: initial;
+    }
+    .admin-table td, .admin-table th {
+      max-width: 150px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    div.tooltip-inner {
+      max-width: 350px;
+      word-wrap: break-word;
+    }
   </style>
 {% endblock %}
 
@@ -47,6 +56,27 @@
 })(django.jQuery);
 </script>
 {% endif %}{% endif %}
+<script type="text/javascript">
+$(function () {
+  $('.admin-table tbody td, .admin-table tbody th').each(function () {
+    var cell = $(this);
+    var textCell = this.children.length > 0 ? this.children[0] : cell[0];
+
+    if (cell[0].scrollWidth <= cell.innerWidth()) {
+      return
+    }
+
+    cell
+      .attr("data-toggle", "tooltip")
+      .attr("data-placement", "top")
+      .attr("title", textCell.innerHTML)
+      .css("text-overflow", "ellipsis")
+      .tooltip({
+        container: "body"
+      });
+  });
+});
+</script>
 {% endblock %}
 
 {% block bodyclass %}change-list{% endblock %}
@@ -75,7 +105,7 @@
             <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
-    
+
     <br>
 
     {% block object-tools %}

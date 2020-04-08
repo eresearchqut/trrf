@@ -259,7 +259,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 self.registry_model.code, self.patient_model.pk, context_form_group.pk)
 
             link_pair = context_form_group.get_add_action(self.patient_model)
-            if link_pair:
+            can_view = self.user.can_view(context_form_group.forms[0])
+            if link_pair and can_view:
                 add_link_url, add_link_text = link_pair
                 form = _Form(filter_url,
                              name,
@@ -319,7 +320,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
             context_form_group.items.filter(registry_form=self.registry_form).exists()
         current_context_id = self.current_rdrf_context_model.pk if is_current_form else None
 
-        forms = self.patient_model.get_forms_by_group(context_form_group)
+        forms = self.patient_model.get_forms_by_group(context_form_group, self.user)
         total_forms = len(forms)
         if not current_context_id:
             forms = forms[:slice_len]

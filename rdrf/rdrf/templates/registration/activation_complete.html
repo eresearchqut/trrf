@@ -3,8 +3,14 @@
 {% load i18n %}
 
 {% block content %}
-    <div class="alert alert-success" role="alert">
-        <h3>{% trans 'You have successfully activated your account.' %}</h3><br>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <div class="alert alert-success" role="alert">
+          <h3>{% trans 'You have successfully activated your account.' %}</h3><br>
         {% trans 'Please proceed to' %} <a href="{% url 'two_factor:login' %}?next={% url 'login_router' %}">{% trans 'login page' %}</a>.
+        </div>
+      </div>
     </div>
+  </div>
 {% endblock %}

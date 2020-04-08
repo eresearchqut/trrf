@@ -1,3 +1,4 @@
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse
@@ -377,7 +378,7 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
 
     def resend(self, obj):
         email_url = reverse('resend_email', args=(obj.id,))
-        return "<a class='btn btn-info btn-xs' href='%s'>Resend</a>" % email_url
+        return mark_safe(f"<a class='btn btn-info btn-xs' href='{email_url}'>Resend</a>")
     resend.allow_tags = True
 
 

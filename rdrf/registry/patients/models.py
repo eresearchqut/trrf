@@ -11,6 +11,7 @@ from django.core import serializers
 from django.core.files.storage import DefaultStorage
 from django.urls import reverse
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
@@ -154,6 +155,48 @@ class PatientManager(models.Manager):
 
     def inactive(self):
         return self.really_all().filter(active=False)
+
+    def get_by_clinician(self, clinician, registry_model):
+        clinicians_have_patients = registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
+        ethical_clearance_needed = registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+
+        by_registry = self.model.objects.filter(rdrf_registry=registry_model)
+
+        normal = Q(working_groups__in=clinician.working_groups.all())
+        clinicians_patients = Q(clinician=clinician)
+        patients_created_by_clinician = Q(created_by=clinician)
+
+        base_qs = by_registry.filter(clinicians_patients if clinicians_have_patients else normal)
+
+        if not ethical_clearance_needed:
+            return base_qs
+
+        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(clinician__isnull=True))
+
+        if clinician.ethically_cleared:
+            if clinicians_have_patients:
+                return base_qs | unassigned_patients_created_by_clinician
+            return base_qs
+
+        return by_registry.filter(patients_created_by_clinician)
+
+    def get_by_user_and_registry(self, user, registry_model):
+        qs = self.get_queryset()
+        if user.is_superuser:
+            return qs.filter(rdrf_registry=registry_model)
+        if user.is_curator:
+            return qs.filter(
+                rdrf_registry=registry_model,
+                working_groups__in=user.working_groups.all())
+        if user.is_working_group_staff:
+            return qs.filter(working_groups__in=self.user.working_groups.all())
+        if user.is_clinician:
+            return self.get_by_clinician(user, registry_model)
+        if user.is_patient:
+            return qs.filter(user=user)
+        if user.is_carer:
+            return qs.filter(carer=self.user)
+        return qs.none()
 
 
 class LivingStates:
@@ -1077,7 +1120,7 @@ class Patient(models.Model):
 
         return sorted(contexts, key=key_func, reverse=True)
 
-    def get_forms_by_group(self, context_form_group):
+    def get_forms_by_group(self, context_form_group, user=None):
         """
         Return links (pair of url and text)
         to existing forms "of type" (ie being in a context with a link to)  context_form_group
@@ -1085,6 +1128,8 @@ class Patient(models.Model):
         """
         assert context_form_group.supports_direct_linking, "Context Form group must only contain one form"
         form_model = context_form_group.forms[0]
+        if user and not user.can_view(form_model):
+            return []
 
         def matches_context_form_group(cm):
             return cm.context_form_group and cm.context_form_group.pk == context_form_group.pk

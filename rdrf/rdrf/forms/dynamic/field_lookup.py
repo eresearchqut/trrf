@@ -350,7 +350,8 @@ class FieldFactory(object):
                     required=options.get("required", False),
                     help_text=_(self.cde.instructions),
                     widget=widget,
-                    label=_(self.cde.name))
+                    label=options.get('label', _(self.cde.name))
+                )
             else:
                 if self.cde.widget_name:
                     widget = self._widget_search(self.cde)

@@ -81,7 +81,9 @@ class DemographicFieldsAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        non_required_patient_fields = [f for f in Patient._meta.fields if f.blank]
+        non_required_patient_fields = [
+            f for f in Patient._meta.fields if f.blank or f.name in settings.EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS
+        ]
 
         field_choices = sorted([(self.section_name(s), f'{s} section') for s in self.sections])
         field_choices += sorted([(f.name, f.name) for f in non_required_patient_fields])

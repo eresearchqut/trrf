@@ -1377,16 +1377,16 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
         (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
         (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
-        (EventType.NEW_CARER, "Patient Carer Registered"),
-        (EventType.CARER_INVITED, "Patient Carer Invited"),
-        (EventType.CARER_ASSIGNED, "Patient Carer Assigned"),
-        (EventType.CARER_ACTIVATED, "Patient Carer Activated"),
-        (EventType.CARER_DEACTIVATED, "Patient Carer Deactivated")
+        (EventType.NEW_CARER, "Primary Caregiver Registered"),
+        (EventType.CARER_INVITED, "Primary Caregiver Invited"),
+        (EventType.CARER_ASSIGNED, "Primary Caregiver Assigned"),
+        (EventType.CARER_ACTIVATED, "Primary Caregiver Activated"),
+        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated")
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    email_from = models.EmailField(default='No Reply <no-reply@mg.ccgapps.com.au>')
+    email_from = models.EmailField(null=True, blank=True, help_text='Leave empty for default email address')
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     email_templates = models.ManyToManyField(EmailTemplate)

@@ -1,35 +1,34 @@
-from itertools import chain
 import json
-from django.views.generic.base import View
-from django.template.context_processors import csrf
+import logging
+from itertools import chain
+
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
-from django.shortcuts import redirect, get_object_or_404
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.core.paginator import InvalidPage, Paginator
 from django.db.models import Q
-from django.core.paginator import Paginator, InvalidPage
-from rdrf.models.definition.models import Registry
-from rdrf.forms.progress.form_progress import FormProgress
-from rdrf.db.contexts_api import RDRFContextManager
-from rdrf.forms.components import FormGroupButton
-from registry.patients.models import Patient
-from rdrf.helpers.utils import MinType
-from rdrf.helpers.utils import consent_check
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.context_processors import csrf
+from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
+from django.views.generic.base import View
 
+from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.forms.components import FormGroupButton
+from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import MinType, consent_check
+from rdrf.models.definition.models import Registry
+from registry.patients.models import Patient
 
-import logging
 logger = logging.getLogger(__name__)
 
 
-class PatientsListingView(View):
+class PatientsListingView(LoginRequiredMixin, View):
 
     def __init__(self, *args, **kwargs):
-        super(PatientsListingView, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.registry_model = None
         self.user = None
         self.registries = []
@@ -55,15 +54,15 @@ class PatientsListingView(View):
         # the protocol is the jquery DataTable
         # see http://datatables.net/manual/server-side
         self.user = request.user
-        if self.user and self.user.is_anonymous:
-            login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
-            return redirect(login_url)
 
         self.do_security_checks()
         self.set_csrf(request)
         self.set_registry(request)
         self.set_registries()  # for drop down
         self.patient_id = request.GET.get("patient_id", None)
+        self.columns = [col.to_dict(i) for i, col in enumerate(self.get_configure_columns())]
+        if not self.columns:
+            raise PermissionDenied()
 
         template_context = self.build_context()
         template = self.get_template()
@@ -71,9 +70,9 @@ class PatientsListingView(View):
         return render(request, template, template_context)
 
     def get_template(self):
-        template = 'rdrf_cdes/patients_listing_no_registries.html' if len(
-            self.registries) == 0 else 'rdrf_cdes/patients_listing.html'
-        return template
+        if not self.registries:
+            return 'rdrf_cdes/patients_listing_no_registries.html'
+        return 'rdrf_cdes/patients_listing.html'
 
     def build_context(self):
         return {
@@ -81,7 +80,7 @@ class PatientsListingView(View):
             "location": _("Patient Listing"),
             "patient_id": self.patient_id,
             "registry_code": self.registry_model.code if self.registry_model else None,
-            "columns": [col.to_dict(i) for (i, col) in enumerate(self.get_configure_columns())],
+            "columns": self.columns,
         }
 
     def get_columns(self):
@@ -215,8 +214,7 @@ class PatientsListingView(View):
         return sort_field, sort_direction
 
     def run_query(self):
-        self.get_initial_queryset()
-        self.filter_by_user_group()
+        self.patients = self.filter_by_user_and_registry()
         self.apply_ordering()
         self.record_total = self.patients.count()
         self.apply_search_filter()
@@ -291,60 +289,14 @@ class PatientsListingView(View):
                     self.form_progress,
                     self.rdrf_context_manager)) for col in self.columns}
 
-    def get_initial_queryset(self):
-        self.registry_queryset = Registry.objects.filter(
-            code=self.registry_model.code)
-        self.patients = Patient.objects.all().prefetch_related(
-            "working_groups").prefetch_related("rdrf_registry").filter(rdrf_registry=self.registry_model)
-
     def apply_search_filter(self):
         if self.search_term:
             name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
             stage_filter = Q(stage__name__istartswith=self.search_term)
             self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
-    def patients_for_clinician(self):
-        ethical_clearance_needed = self.registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
-
-        normal = Q(working_groups__in=self.user.working_groups.all())
-        clinicians_patients = Q(clinician=self.user)
-        patients_created_by_clinician = Q(created_by=self.user)
-
-        base_qs = self.patients.filter(clinicians_patients if self.clinicians_have_patients else normal)
-
-        if not ethical_clearance_needed:
-            return base_qs
-
-        unassigned_patients_created_by_clinician = self.patients.filter(patients_created_by_clinician & Q(clinician__isnull=True))
-
-        if self.user.ethically_cleared:
-            if self.clinicians_have_patients:
-                return base_qs | unassigned_patients_created_by_clinician
-            return base_qs
-
-        return self.patients.filter(patients_created_by_clinician)
-
-    def filter_by_user_group(self):
-        if not self.user.is_superuser:
-            is_working_group_staff = self.user.is_working_group_staff
-            if self.user.is_curator:
-                query_patients = Q(rdrf_registry__in=self.registry_queryset) & Q(
-                    working_groups__in=self.user.working_groups.all())
-                self.patients = self.patients.filter(query_patients)
-            elif is_working_group_staff:
-                self.patients = self.patients.filter(
-                    working_groups__in=self.user.working_groups.all())
-            elif self.user.is_clinician:
-                self.patients = self.patients_for_clinician()
-            elif self.user.is_patient:
-                self.patients = self.patients.filter(user=self.user)
-            elif self.user.is_carer:
-                self.patients = self.patients.filter(carer=self.user)
-            else:
-                self.patients = self.patients.none()
-        else:
-            self.patients = self.patients.filter(
-                rdrf_registry__in=self.registry_queryset)
+    def filter_by_user_and_registry(self):
+        return Patient.objects.get_by_user_and_registry(self.user, self.registry_model)
 
     def apply_ordering(self):
         if self.sort_field and self.sort_direction:

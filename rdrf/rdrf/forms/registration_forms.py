@@ -1,7 +1,8 @@
-from django.forms import CharField, ChoiceField, DateField
+from django.forms import CharField, ChoiceField, DateField, ValidationError
 from django.forms.widgets import EmailInput, RadioSelect
 from django.utils.translation import gettext as _
 
+from registration.users import UsernameField, UserModel
 from registration.forms import RegistrationForm
 from rdrf.helpers.utils import get_preferred_languages
 from registry.patients.models import Patient
@@ -16,7 +17,25 @@ def _preferred_languages():
     return [_tuple(l.code, l.name) for l in languages] if languages else [_tuple('en', 'English')]
 
 
-class PatientRegistrationForm(RegistrationForm):
+User = UserModel()
+
+
+class RegistrationFormCaseInsensitiveCheck(RegistrationForm):
+    """
+    A subclass of :class:`RegistrationForm` with insensitive check of usernames (emails)
+    """
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '')
+        search_dict = {
+            f"{UsernameField()}__iexact": username.lower()
+        }
+        if User.objects.filter(**search_dict).exists():
+            raise ValidationError(_('Email already exists !'))
+
+        return username
+
+
+class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
 
     placeholders = {
         'username': _("Username"),

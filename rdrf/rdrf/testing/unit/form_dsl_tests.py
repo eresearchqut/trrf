@@ -358,3 +358,9 @@ class FormDSLValidationTestCase(FormTestCase):
             1,
             ['Invalid value:"3 years and" for CDE: TestDuration on line 1']
         )
+
+    def test_other_please_specify_free_value(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1BestMotorLevel visible if CardiacImplant == "my made up value"
+        '''
+        self.new_form.save()

@@ -3,7 +3,13 @@
 {% load i18n %}
 
 {% block content %}
-    <div class="alert alert-danger" role="alert">
-        <h3>{% trans "An error occurred processing your registration - please try again." %}</h3>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <div class="alert alert-danger" role="alert">
+          <h3>{% trans "An error occurred processing your registration - please try again." %}</h3>
+        </div>
+      </div>
     </div>
+  </div>
 {% endblock %}
