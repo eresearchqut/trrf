@@ -733,7 +733,12 @@ class CommonDataElement(models.Model):
 
         if self.allow_multiple and self.widget_name == 'RadioSelect':
             raise ValidationError({
-                'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
+                'widget_name': [_("RadioSelect is not a valid choice if multiple values are allowed !")]
+            })
+
+        if self.datatype == CDEDataTypes.RANGE and not self.pv_group:
+            raise ValidationError({
+                'pv_group': [_("You need to have a Permissible Value Group set when using the range datatype !")]
             })
 
     def save(self, *args, **kwargs):
