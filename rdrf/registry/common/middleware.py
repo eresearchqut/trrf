@@ -38,6 +38,10 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
 
 
 class NoCacheMiddleware:
+    """
+    Disable browser-side caching of all views. Override with
+    :func:`~django.views.decorators.cache.cache_control` decorator
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
