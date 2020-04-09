@@ -144,6 +144,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'registry.common.middleware.NoCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
