@@ -47,14 +47,14 @@ var CollapsingPanels = function() {
         // Adding the collapse button works only if we have one and only one <hx> element in the page header.
         // Otherwise, we might mess up the layout. This can be further customise as needed later on (ie. pass in selector of the button etc.)
         var pageHeader = $('.trrf-page-header > .panel-body > :header');
-        if (pageHeader.size() != 1) {
+        if (pageHeader.length != 1) {
             return;
         }
         var collapseAllToggleBtn = $('<span class="badge pull-right"><span class="glyphicon glyphicon-sort"></span></span>');
 
         function onCollapseAll() {
             var panelBodies = $(collapsiblePanelsSelector +  ' > .panel-body');
-            var allCollapsed = panelBodies.filter('.collapse.in').size() == 0;
+            var allCollapsed = panelBodies.filter('.collapse.in').length == 0;
             if (allCollapsed) {
                 expandAll();
             } else {
@@ -71,7 +71,7 @@ var CollapsingPanels = function() {
         var header = panel.children(".panel-heading");
         var body = panel.children(".panel-body");
         var iconParent = header;
-        if (header.find(".panel-title").size() == 1) {
+        if (header.find(".panel-title").length == 1) {
             iconParent = header.find(".panel-title");
         }
 
@@ -115,7 +115,7 @@ var CollapsingPanels = function() {
     function setUp() {
         var collapsiblePanels = $(collapsiblePanelsSelector);
         // Apply only when we have more than 1 collapsible panel
-        // if (collapsiblePanels.size() <= 1)
+        // if (collapsiblePanels.length <= 1)
         //    return;
 
         collapsiblePanels.each(setUpCollapsiblePanel);
