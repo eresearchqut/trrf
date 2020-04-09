@@ -1,6 +1,7 @@
 import logging
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
@@ -34,3 +35,18 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
             return HttpResponseRedirect(reverse('two_factor:setup'))
 
         return None
+
+
+class NoCacheMiddleware:
+    """
+    Disable browser-side caching of all views. Override with
+    :func:`~django.views.decorators.cache.cache_control` decorator
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if not response.has_header('Cache-Control'):
+            add_never_cache_headers(response)
+        return response
