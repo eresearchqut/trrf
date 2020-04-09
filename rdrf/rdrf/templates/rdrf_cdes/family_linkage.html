@@ -210,7 +210,7 @@
                         },
 
                         success: function(result_json) {
-                            result  = jQuery.parseJSON(result_json);
+                            result  = JSON.parse(result_json);
                             original_index = result.index;
 
                             setIndexPatient(result.index);
@@ -237,7 +237,7 @@
                         },
 
                         success: function(result_json) {
-                            result  = jQuery.parseJSON(result_json);
+                            result  = JSON.parse(result_json);
                             var patient = result.index;
                             if (result.relatives.length == 0) {
                                 patient.relationship = "Unknown";

@@ -149,10 +149,11 @@ function rdrf_click_form_field_history(ev, a) {
 }
 
 function rdrf_form_field_history_init(modal, restoreCallback) {
+  alert('hi')
   var info = modal.find(".cde-history-data").remove();
   var label = info.attr("data-label");
   var datatype = info.attr("data-cde-datatype");
-  var data = $.parseJSON(info.text());
+  var data = JSON.parse(info.text());
   var chartCanvas = modal.find(".cde-history-chart");
 
   var parseIsoDatetime = function(str) {
