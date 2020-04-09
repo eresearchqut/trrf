@@ -61,90 +61,57 @@ class HasSpecialCharacterValidator(BaseHasCharacterValidator):
     pattern = re.compile(r'[!@#\$%\^&\*]')
 
 
-class ConsecutivelyRepeatingCharacterValidator(BaseHasCharacterValidator):
+class ConsecutivelyRepeatingCharacterValidator:
 
-    def __init__(self, length):
+    def __init__(self, length=3):
         self.length = length
-        assert self.length > 1, "Length should be at least 2 for consecutively repeating character validators !"
+        assert self.length > 1, "Length should be at least 2 for consecutively repeating character validators!"
 
     def validate(self, password, user=None):
-        for c in password:
-            if password.count(c) >= self.length:
-                to_check = c * self.length
-                if to_check in password:
-                    raise ValidationError(self.get_help_text())
+        for to_find in [ch * self.length for ch in set(password)]:
+            if password.find(to_find) > -1:
+                raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
-        return _(f"Your password must not contain {self.length} repeating characters")
+        return _(f"Your password must not contain {self.length} repeating characters.")
 
 
-class NumberRuleValidator(BaseHasCharacterValidator):
-
-    def __init__(self, length):
+class NumberRuleValidator:
+    def __init__(self, length=3):
         self.length = length
-        assert self.length > 1, "Length should be at least 2 for numbers related password validators !"
+        assert self.length > 1, "Length should be at least 2 for numbers related password validators!"
 
-    def validation_func(self, digits):
+    def validation_func(self, prev, cur):
         raise NotImplementedError("subclass responsibility")
 
-    def _validate_number_rule(self, password):
-        digits = []
-        for idx, c in enumerate(password):
-            if c.isdigit():
-                digits.append(int(c))
-            else:
-                if len(digits) >= self.length:
-                    self.validation_func(digits)
-                digits.clear()
-
-        if len(digits) >= self.length:
-            self.validation_func(digits)
-
     def validate(self, password, user=None):
-        return self._validate_number_rule(password)
+        digit_groups = re.findall(r'\d{%s,}' % self.length, password)
+        for digits in digit_groups:
+            self.validate_digits(digits)
+
+    def validate_digits(self, digits):
+        count = 1
+        for prev, cur in zip(digits, digits[1:]):
+            if self.validation_func(prev, cur):
+                count += 1
+                if count >= self.length:
+                    raise ValidationError(self.get_help_text())
+            else:
+                count = 1
+
+    def get_help_text(self):
+        return _(f"Your password must not contain {self.length} consecutively {self.name} numbers.")
 
 
 class ConsecutivelyIncreasingNumberValidator(NumberRuleValidator):
+    name = 'increasing'
 
-    def __init__(self, length):
-        super().__init__(length)
-
-    def validation_func(self, digits):
-        count = 1
-        prev = digits[0]
-        for idx in range(1, len(digits)):
-            d = digits[idx]
-            if d == prev + 1:
-                count += 1
-                prev = d
-                if count >= self.length:
-                    raise ValidationError(self.get_help_text())
-            else:
-                prev = d
-                count = 1
-
-    def get_help_text(self):
-        return _(f"Your password must not contain {self.length} consecutively increasing characters")
+    def validation_func(self, prev, cur):
+        return int(prev) + 1 == int(cur)
 
 
 class ConsecutivelyDecreasingNumberValidator(NumberRuleValidator):
+    name = 'decreasing'
 
-    def __init__(self, length):
-        super().__init__(length)
-
-    def validation_func(self, digits):
-        count = 1
-        prev = digits[0]
-        for idx in range(1, len(digits)):
-            d = digits[idx]
-            if d == prev - 1:
-                count += 1
-                prev = d
-                if count >= self.length:
-                    raise ValidationError(self.get_help_text())
-            else:
-                prev = d
-                count = 1
-
-    def get_help_text(self):
-        return _(f"Your password must not contain {self.length} consecutively decreasing characters")
+    def validation_func(self, prev, cur):
+        return int(prev) - 1 == int(cur)
