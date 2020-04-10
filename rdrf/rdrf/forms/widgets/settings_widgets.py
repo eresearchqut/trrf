@@ -6,6 +6,7 @@ from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
+from rdrf.models.definition.models import UploadFileType
 from .widgets import TimeWidget
 
 
@@ -174,11 +175,12 @@ class FileUploadWidgetSettings(JSONWidgetSettings):
 
     def generate_input(self, name, title, info=None):
         value = self.parsed.get(name, '')
+        allowed_file_types = UploadFileType.objects.all().values('mime_type', 'description')
         options = [{
-            "value": s['mime-type'],
+            "value": s['mime_type'],
             "text": s['description'],
-            "selected": "selected" if s['mime-type'] in value else ""
-        } for s in settings.ALLOWED_FILE_TYPES]
+            "selected": "selected" if s['mime_type'] in value else ""
+        } for s in allowed_file_types]
         self.generate_select_input(
             name, title, info=info,
             options=options,

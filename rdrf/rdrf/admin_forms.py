@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
+from rdrf.models.definition.models import UploadFileTypeCategory, UploadFileType
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from rdrf.helpers.cde_data_types import CDEDataTypes
@@ -223,3 +224,17 @@ class FormTitleAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = FormTitle
+
+
+class UploadFileTypeCategoryAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = UploadFileTypeCategory
+
+
+class UploadFileTypeAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = UploadFileType

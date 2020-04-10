@@ -75,6 +75,8 @@ class LinkDefs:
     ContextFormGroups = make_link("admin:rdrf_contextformgroup_changelist", _("Registry Context Form Groups"))
     ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
+    UploadFileTypesConfig = make_link("admin:rdrf_uploadfiletype_changelist", _("Upload File Types"))
+    UploadFileTypesCategoryConfig = make_link("admin:rdrf_uploadfiletypecategory_changelist", _("Upload File Type Categories"))
 
 
 class Links:
@@ -156,7 +158,9 @@ class RegularLinks(Links):
         LinkDefs.NextOfKinRelationship,
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
-        LinkDefs.FormTitlesConfig
+        LinkDefs.FormTitlesConfig,
+        LinkDefs.UploadFileTypesConfig,
+        LinkDefs.UploadFileTypesCategoryConfig
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)

@@ -587,26 +587,3 @@ RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
 
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
-
-ALLOWED_FILE_TYPES = [
-    {
-        "extension": ".pdf",
-        "mime-type": "application/pdf",
-        "description": "PDF documents"
-    },
-    {
-        "extension": ".txt",
-        "mime-type": "text/plain",
-        "description": "Plain text"
-    },
-    {
-        "extension": ".doc",
-        "mime-type": "application/msword",
-        "description": "Word document (.doc)"
-    },
-    {
-        "extension": ".docx",
-        "mime-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "description": "Word document (.docx)"
-    },
-]

@@ -4,14 +4,15 @@ import datetime
 import magic
 import os
 
-from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+
 from rdrf.forms.widgets.widgets import MultipleFileInput
-from django.core.exceptions import ValidationError
+from rdrf.models.definition.models import UploadFileType
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
@@ -43,21 +44,33 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
 
 class FileTypeRestrictedFileField(FileField):
 
-    ALLOWED_TYPES = [s['mime-type'] for s in settings.ALLOWED_FILE_TYPES]
-    ALLOWED_TYPES_MAPPING = {
-        s['mime-type']: s['extension'] for s in settings.ALLOWED_FILE_TYPES
-    }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.set_allowed_types(kwargs.get('allowed_types', []))
+
+    def set_allowed_types(self, allowed_types):
+        self.allowed_types = allowed_types
+        all_allowed_types = UploadFileType.objects.all()
+        if not self.allowed_types:
+            self.allowed_types = all_allowed_types
+        else:
+            all_allowed_mime_types = set(t.mime_type for t in all_allowed_types)
+            self.allowed_types = [t for t in allowed_types if t.mime_type in all_allowed_mime_types]
+        self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
+        self.allowed_extensions = [t.extension for t in self.allowed_types]
+        self.allowed_types_mapping = {t.mime_type: t.extension for t in self.allowed_types}
 
     def validate(self, value):
-        allowed_types = self.ALLOWED_TYPES
+        allowed_mime_types = self.allowed_mime_types
         if getattr(self, 'cde', None):
-            allowed_types = self.cde.widget_settings.get('allowed_file_types', self.ALLOWED_TYPES)
+            cde_mime_types = self.cde.widget_settings.get('allowed_file_types', self.allowed_mime_types)
+            allowed_mime_types = set(allowed_mime_types) & set(cde_mime_types)
         __, ext = os.path.splitext(value._name)
         mime_type = magic.from_buffer(value.file.read(2048), mime=True)
         value.file.seek(0)
-        if mime_type not in allowed_types:
-            raise ValidationError("File type not allowed. Only pdf, doc, docx or plain text files are allowed.")
-        if self.ALLOWED_TYPES_MAPPING[mime_type] != ext:
+        if mime_type not in allowed_mime_types:
+            raise ValidationError(f"File type not allowed. Only {', '.join(self.allowed_extensions)} files are allowed.")
+        if self.allowed_types_mapping[mime_type] != ext[1:]:
             raise ValidationError("File extension does not match the file type !")
         return super().validate(value)
 

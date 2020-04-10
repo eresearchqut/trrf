@@ -18,6 +18,8 @@ from rdrf.models.definition.models import ConsentConfiguration
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import DemographicFields
 from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import UploadFileType
+from rdrf.models.definition.models import UploadFileTypeCategory
 
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
@@ -591,7 +593,9 @@ class Importer(object):
 
         consent_config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
         consent_config.consent_locked = registry_consent_locked
-        if "consent_configuration" in self.data and self.data["consent_configuration"]:
+        has_consent_config = "consent_configuration" in self.data and self.data["consent_configuration"]
+        if has_consent_config:
+            logger.info("Importing consent configuration")
             config_map = self.data["consent_configuration"]
             esignature_status = config_map['esignature']
             valid_choices = [v[0] for v in ConsentConfiguration.SIGNATURE_CHOICES]
@@ -605,6 +609,27 @@ class Importer(object):
             consent_config.consent_locked = config_map['consent_locked']
             consent_config.esignature = esignature_status
         consent_config.save()
+        if has_consent_config:
+            logger.info("Importing allowed file types for consent configuration")
+            config_map = self.data["consent_configuration"]
+            allowed_file_types = config_map["allowed_file_types"]
+            allowed = []
+            for t in allowed_file_types:
+                category = None
+                if t['category']:
+                    category, __ = UploadFileTypeCategory.objects.get_or_create(name=t['category'])
+                file_type, created = UploadFileType.objects.get_or_create(mime_type=t['mime_type'], defaults={
+                    'extension': t['extension'],
+                    'description': t['description'],
+                    'enabled': t['enabled'],
+                    'category': category
+                })
+                if not created:
+                    file_type.enabled = t['enabled']
+                    file_type.category = category
+                    file_type.save()
+                allowed.append(file_type)
+            consent_config.allowed_file_types.set(allowed)
 
         if "form_titles" in self.data and self.data["form_titles"]:
             titles = self.data["form_titles"]

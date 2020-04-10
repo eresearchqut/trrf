@@ -21,7 +21,7 @@ from .models import (
     PatientStageRule
 )
 from rdrf.db.dynamic_data import DynamicDataWrapper
-from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
+from rdrf.models.definition.models import ConsentConfiguration, ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.dynamic.fields import FileTypeRestrictedFileField
 from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -149,6 +149,18 @@ class PatientConsentFileForm(forms.ModelForm):
         exclude = ["filename"]
 
     form = FileTypeRestrictedFileField(widget=ConsentFileInput, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['form'].set_allowed_types(self._consent_allowed_types())
+
+    def _consent_allowed_types(self):
+        if self.instance and self.instance.patient:
+            registry = self.instance.patient.rdrf_registry.first()
+            consent_config = ConsentConfiguration.objects.filter(registry=registry).first()
+            if consent_config:
+                return consent_config.allowed_file_types.all()
+        return []
 
     def save(self, commit=True):
         # remember the filename of the uploaded file
