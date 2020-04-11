@@ -66,11 +66,15 @@ class ConsecutivelyRepeatingCharacterValidator:
     def __init__(self, length=3):
         self.length = length
         assert self.length > 1, "Length should be at least 2 for consecutively repeating character validators!"
+        self.repeating_char = re.compile(r'''
+            (.)   # any character, in a group so we can backreference
+            \1    # backreference to the character
+            {%s,} # repeated length-1 times (subtract 1 for the initial match)
+        ''' % (self.length - 1), re.VERBOSE)
 
     def validate(self, password, user=None):
-        for to_find in [ch * self.length for ch in set(password)]:
-            if password.find(to_find) > -1:
-                raise ValidationError(self.get_help_text())
+        if re.search(self.repeating_char, password):
+            raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
         return _(f"Your password must not contain {self.length} repeating characters.")
@@ -92,12 +96,12 @@ class NumberRuleValidator:
     def validate_digits(self, digits):
         count = 1
         for prev, cur in zip(digits, digits[1:]):
-            if self.validation_func(prev, cur):
-                count += 1
-                if count >= self.length:
-                    raise ValidationError(self.get_help_text())
-            else:
+            if not self.validation_func(prev, cur):
                 count = 1
+                continue
+            count += 1
+            if count >= self.length:
+                raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
         return _(f"Your password must not contain {self.length} consecutively {self.name} numbers.")
@@ -107,11 +111,11 @@ class ConsecutivelyIncreasingNumberValidator(NumberRuleValidator):
     name = 'increasing'
 
     def validation_func(self, prev, cur):
-        return int(prev) + 1 == int(cur)
+        return int(prev) + 1 == int(cur) or prev == '9' and cur == '0'
 
 
 class ConsecutivelyDecreasingNumberValidator(NumberRuleValidator):
     name = 'decreasing'
 
     def validation_func(self, prev, cur):
-        return int(prev) - 1 == int(cur)
+        return int(prev) - 1 == int(cur) or prev == '0' and cur == '9'

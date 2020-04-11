@@ -14,9 +14,6 @@ from registry.groups.models import CustomUser
 
 class PasswordValidationTests(TestCase):
 
-    def setUp(self):
-        super().setUp()
-
     def test_consecutively_repeating_chars(self):
         validator = ConsecutivelyRepeatingCharacterValidator(3)
         with self.assertRaises(ValidationError):
@@ -38,6 +35,13 @@ class PasswordValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             # Four consecutive numbers raise an error
             validator.validate("12Test4567Cde")
+        with self.assertRaises(ValidationError):
+            # 0 is considered 10 in series like 890...
+            validator.validate("T2es3t4bde890")
+        with self.assertRaises(ValidationError):
+            # Special case, running up to 0 then continue from 0 ex. 89012.
+            validator = ConsecutivelyIncreasingNumberValidator(5)
+            validator.validate("T2es3t4bde89012")
 
     def test_decreasing_number_validation(self):
         validator = ConsecutivelyDecreasingNumberValidator(3)
@@ -49,6 +53,13 @@ class PasswordValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             # Four consecutive numbers raise an error
             validator.validate("T2es3t4b9876Cde")
+        with self.assertRaises(ValidationError):
+            # 0 is considered 10 in series like 098...
+            validator.validate("T2es3t4bde098")
+        with self.assertRaises(ValidationError):
+            # Special case, running down to 0 then continue from 9 ex. 21098.
+            validator = ConsecutivelyDecreasingNumberValidator(5)
+            validator.validate("T2es3t4bde21098")
 
     def test_has_number_validation(self):
         validator = HasNumberValidator(3)  # at least 3 numbers
