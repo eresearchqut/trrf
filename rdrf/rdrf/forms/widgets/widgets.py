@@ -10,7 +10,7 @@ from functools import reduce
 from operator import attrgetter
 
 import pycountry
-from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
+from django.forms import HiddenInput, MultiWidget, Textarea, Widget, SelectMultiple, widgets
 from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
 from django.utils.formats import date_format
@@ -831,6 +831,24 @@ class DurationWidget(widgets.TextInput):
                 $("#id_{name}_text").addClass("form-control");
             </script>
         '''
+
+
+class MultipleSelectWithDisabledOptions(SelectMultiple):
+
+    def __init__(self, *args, **kwargs):
+        disabled_choices_fn = kwargs.pop('disabled_choices')
+        super().__init__(*args, **kwargs)
+        self.disabled_choices = disabled_choices_fn()
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        if selected and value in self.disabled_choices:
+            selected = False
+        option_dict = super().create_option(
+            name, value, label, selected, index, subindex=subindex, attrs=attrs
+        )
+        if value in self.disabled_choices:
+            option_dict['attrs']['disabled'] = 'disabled'
+        return option_dict
 
 
 def _all_widgets():

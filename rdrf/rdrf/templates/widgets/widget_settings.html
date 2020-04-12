@@ -9,7 +9,7 @@
             {% elif item.input_type == "select" %}
                 <select name="{{item.name}}" id="{{item.name}}" {% if item.onchange %} onchange="{{item.onchange}}" {% endif %} {%if item.multiple %} multiple {% endif %}>
                     {% for opt in item.options %}
-                        <option value="{{opt.value}}" {{opt.selected}}>{{opt.text}}</option>
+                        <option value="{{opt.value}}" {{opt.selected}} {%if opt.disabled %} disabled {% endif %}>{{opt.text}}</option>
                     {% endfor %}
                 </select>
             {% endif %}

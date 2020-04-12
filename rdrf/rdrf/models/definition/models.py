@@ -1962,6 +1962,9 @@ class UploadFileTypeCategory(models.Model):
     name = models.CharField(max_length=32, choices=FILE_TYPE_CATEGORY_CHOICES, unique=True)
     enabled = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
 
 class UploadFileTypeManager(models.Manager):
 
@@ -1978,7 +1981,7 @@ class UploadFileTypeManager(models.Manager):
     def disabled_types(self):
         return (
             super().get_queryset()
-            .filter(enabled=False, category__enabled=False)
+            .filter(models.Q(enabled=False) | models.Q(category__enabled=False))
         )
 
 

@@ -128,9 +128,19 @@ class EmailTemplateAdminForm(ModelForm):
 
 class ConsentConfigurationAdminForm(ModelForm):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['allowed_file_types'].queryset = UploadFileType.objects.all_types()
+
     class Meta:
         fields = "__all__"
         model = ConsentConfiguration
+        widgets = {
+            'allowed_file_types': rdrf_widgets.MultipleSelectWithDisabledOptions(
+                attrs={'size': 10},
+                disabled_choices=lambda: UploadFileType.objects.disabled_types().values_list('pk', flat=True)
+            )
+        }
 
 
 class CommonDataElementAdminForm(ModelForm):

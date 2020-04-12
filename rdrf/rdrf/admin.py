@@ -332,7 +332,7 @@ class ConsentSectionAdmin(admin.ModelAdmin):
 
 class ConsentConfigurationAdmin(admin.ModelAdmin):
     models = ConsentConfiguration
-    forms = ConsentConfigurationAdminForm
+    form = ConsentConfigurationAdminForm
     list_display = ("registry", "esignature", "consent_locked")
 
 
@@ -453,6 +453,9 @@ class UploadFileTypeAdmin(admin.ModelAdmin):
     model = UploadFileType
     form = UploadFileTypeAdminForm
     list_display = ('extension', 'description')
+
+    def get_queryset(self, request):
+        return UploadFileType.objects.all_types()
 
 
 class UploadFileTypeCategoryAdmin(admin.ModelAdmin):

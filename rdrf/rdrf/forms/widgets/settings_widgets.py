@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.forms import Widget
 from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
@@ -174,13 +173,21 @@ class FileUploadWidgetSettings(JSONWidgetSettings):
         return {'allowed_file_types'}
 
     def generate_input(self, name, title, info=None):
+
+        def generate_option(ft, value):
+            enabled_category = ft['category__enabled']
+            enabled_file_type = ft['enabled']
+            enabled = enabled_file_type and enabled_category if enabled_category else enabled_file_type
+            return {
+                "value": ft['mime_type'],
+                "text": ft['description'],
+                "selected": "selected" if ft['mime_type'] in value and enabled else "",
+                "disabled": not enabled
+            }
+
         value = self.parsed.get(name, '')
-        allowed_file_types = UploadFileType.objects.all().values('mime_type', 'description')
-        options = [{
-            "value": s['mime_type'],
-            "text": s['description'],
-            "selected": "selected" if s['mime_type'] in value else ""
-        } for s in allowed_file_types]
+        file_types = UploadFileType.objects.all_types().values('mime_type', 'description', 'enabled', 'category__enabled')
+        options = [generate_option(ft, value) for ft in file_types]
         self.generate_select_input(
             name, title, info=info,
             options=options,
