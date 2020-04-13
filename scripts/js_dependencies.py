@@ -29,12 +29,11 @@ def verify_changes(deps):
 def save_deps(deps):
     for filename in ["package.json", "bower.json"]:
         with open(filename, "w") as f:
-            json.dump(
-                {"name": "trrf",
-                 "version": "0.0.0",
-                 "description": "This is a dummy file for js dependency management",
-                 "dependencies": {name: version for name, version in deps}
-                 }, f, indent=2)
+            json.dump({"name": "trrf",
+                       "version": "0.0.0",
+                       "description": "This is a dummy file for js dependency management",
+                       "dependencies": {name: version for name, version in deps}
+                       }, f, indent=2)
 
 
 if __name__ == "__main__":
@@ -43,7 +42,7 @@ if __name__ == "__main__":
 
     dependencies = set(collect_framework_deps() + collect_js_deps())
 
-    if len(sys.argv) > 1 and sys.argv[1] == "--lint":
+    if len(sys.argv) > 1 and sys.argv[1] == "--verify":
         verify_changes(dependencies)
     else:
         save_deps(dependencies)
