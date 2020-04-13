@@ -31,7 +31,7 @@ def save_deps(deps):
         with open(filename, "w") as f:
             json.dump({"name": "trrf",
                        "version": "0.0.0",
-                       "description": "This is a dummy file for js dependency management",
+                       "description": "This file MUST only be modified using scripts/js_dependencies.py",
                        "dependencies": {name: version for name, version in deps}
                        }, f, indent=2)
 

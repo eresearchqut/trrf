@@ -1,0 +1,20 @@
+{
+  "name": "trrf",
+  "version": "0.0.0",
+  "description": "This file MUST only be modified using scripts/js_dependencies.py",
+  "dependencies": {
+    "bootstrap": "3.4.1",
+    "jquery-time-duration-picker": "2.2.5",
+    "datatables": "1.10.12",
+    "jquery-validation": "1.19.1",
+    "chart.js": "2.0.2",
+    "jquery-userTimeout": "0.5.1",
+    "moment": "2.24.0",
+    "underscore": "1.5.2",
+    "jquery": "3.4.1",
+    "timepicki": "2.0.1",
+    "jquery-ui": "1.12.1",
+    "bootstrap-slider": "10.6.2",
+    "jsignature": "2.1.3"
+  }
+}
