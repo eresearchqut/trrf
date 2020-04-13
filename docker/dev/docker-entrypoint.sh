@@ -245,11 +245,13 @@ if [ "$1" = 'runtests' ]; then
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
 
     set -x
-    tests_to_run="rdrf"
+    args="rdrf/rdrf/testing/unit"
     if [ "$2" != "" ]; then
-        tests_to_run=$2
+        # pass through any arguments (if provided) to pytest
+        args="${@:2}"
     fi
-    exec django-admin.py test --noinput -v 3 --keepdb -p "*test*.py" "$tests_to_run"
+    cd /app
+    exec pytest $args
 fi
 
 # aloe entrypoint

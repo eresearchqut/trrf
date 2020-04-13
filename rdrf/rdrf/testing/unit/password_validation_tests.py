@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import (
     CommonPasswordValidator, MinimumLengthValidator, UserAttributeSimilarityValidator
 )
 from django.forms import ValidationError
-from django.test import TestCase
+from unittest import TestCase
 
 from rdrf.auth.password_validation import (
     ConsecutivelyRepeatingCharacterValidator, ConsecutivelyIncreasingNumberValidator,
