@@ -15,8 +15,11 @@ def collect_js_deps():
             if len(split := dep.replace(".min.js", "").rsplit("-", 1)) == 2 and not dep.endswith(".map")]
 
 
-def verify_changes(deps):
-    if os.path.isfile("package.json"):
+def deps_changed(deps):
+    """Check if the dependencies differ from those written to file"""
+    if not os.path.isfile("package.json"):
+        return True
+    else:
         with open("package.json", 'r') as f:
             data = json.load(f)
             old_deps = set(data["dependencies"].items())
@@ -24,7 +27,8 @@ def verify_changes(deps):
             if old_deps != deps:
                 print("JavaScript dependencies have changed:", file=sys.stderr)
                 print(old_deps.symmetric_difference(deps), file=sys.stderr)
-                exit(1)
+                return True
+    return False
 
 
 def save_deps(deps):
@@ -44,7 +48,9 @@ if __name__ == "__main__":
 
     dependencies = set(collect_framework_deps() + collect_js_deps())
 
+    changed = deps_changed(dependencies)
     if len(sys.argv) > 1 and sys.argv[1] == "--verify":
-        verify_changes(dependencies)
+        exit(changed)
     else:
-        save_deps(dependencies)
+        if changed:
+            save_deps(dependencies)
