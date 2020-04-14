@@ -11,9 +11,10 @@ from operator import attrgetter
 
 import pycountry
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
+from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
 from django.utils.formats import date_format
-from django.utils.html import format_html
+from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
@@ -167,9 +168,9 @@ class DateWidget(widgets.TextInput):
                     return value
             else:
                 return value
-        return mark_safe("""
-            <input type="text" name="%s" id="id_%s" value="%s" class="datepicker">
-        """ % (name, name, just_date(value) or ''))
+
+        output_val = conditional_escape(just_date(value) or '')
+        return f'<input type="text" name="{name}" id="id_{name}" value="{output_val}" class="datepicker">'
 
 
 class CountryWidget(widgets.Select):
@@ -567,102 +568,23 @@ class SignatureWidget(widgets.TextInput):
         return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs=None, renderer=None):
-
         has_value = value and value != 'None'
         encoded_default_value = base64.b64encode('{"width":1, "data":[]}'.encode('utf-8')).decode('utf-8')
-        set_value = f"set_value('{value}');" if has_value else f"set_value('{encoded_default_value}');"
+        set_value = f'set_value("{conditional_escape(value)}");' if has_value else f'set_value("{encoded_default_value}");'
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
         hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
-        clear_signature_text = _('Clear signature')
         html_value = value if has_value else encoded_default_value
 
-        html = f"""
-            <div id="signature" style="border: 1px solid black">
-            </div>
-            <input type="hidden" name="{name}" value='{html_value}'/>
-            <div class="pull-right">
-                <a class="btn btn-default" onclick="reset_signature();">
-                    <span class="glyphicon glyphicon-remove"></span> """ + clear_signature_text + """
-                </a>
-            </div>
-        """
-
-        javascript = """
-                var $sigdiv = $("#signature").jSignature({'UndoButton':true});
-                var disabled = false;
-                $sigdiv.change(function(e) {
-                    var isModified =  $sigdiv.jSignature('isModified');
-                    if (isModified) {
-                        var has_signature = $sigdiv.jSignature('getSettings').data.length > 0;
-                        var value = has_signature ? $sigdiv.jSignature('getData', 'native') : [];
-                        var obj = {
-                            width:$("#signature").width(),
-                            data:value
-                        }
-                        $("input[name='""" + name + """']").val(btoa(JSON.stringify(obj)));
-                    }
-                    if (disabled) {
-                        set_disabled_background();
-                        $sigdiv.find('input[type="button"][value="Undo last stroke"]').hide();
-                    }
-
-                });
-
-                function set_disabled_background() {
-                    $("#signature div").css('background-color','lightgray');
-                    $(".jSignature").css('background-color','lightgray');
-                    $("#signature").css('background-color', 'lightgray');
-                }
-
-                function disable_signature() {
-                    disabled = true;
-                    $sigdiv.jSignature('disable', true);
-                    set_disabled_background();
-                }
-
-                function reset_signature() {
-                    $sigdiv.jSignature('reset');
-                    $("input[name='""" + name + """']").val('""" + encoded_default_value + """');
-                    return false;
-                }
-
-                // function taken from: https://github.com/brinley/jSignature/blob/master/src/jSignature.js#L658
-                function scale_data(data, scale){
-                    var newData = [];
-                    var o, i, l, j, m, stroke;
-                    for ( i = 0, l = data.length; i < l; i++) {
-                        stroke = data[i];
-
-                        o = {'x':[],'y':[]};
-
-                        for ( j = 0, m = stroke.x.length; j < m; j++) {
-                            o.x.push(stroke.x[j] * scale);
-                            o.y.push(stroke.y[j] * scale);
-                        }
-
-                        newData.push(o);
-                    }
-                    return newData;
-                }
-
-                function set_value(input) {
-                    decoded = atob(input);
-                    var obj = JSON.parse(decoded);
-                    var current_width = $("#signature").width();
-                    var scale = current_width * 1.0 / obj.width;
-                    var data = scale_data(obj.data, scale);
-                    $sigdiv.jSignature('setData', data, 'native');
-                }
-        """
-
-        return mark_safe(f"""
-            {html}
-            <script>
-                {javascript}
-                {set_value}
-                {hide_undo_btn}
-            </script>
-         """)
+        context = {
+            "name": name,
+            "html_value": mark_safe(html_value),
+            "set_value": mark_safe(set_value),
+            "hide_undo_btn": mark_safe(hide_undo_btn),
+            "encoded_default_value":mark_safe(encoded_default_value)
+        }
+        if not renderer:
+            renderer = get_default_renderer()
+        return mark_safe(renderer.render("widgets/signature_widget.html", context))
 
 
 class AllConsentWidget(widgets.CheckboxInput):
