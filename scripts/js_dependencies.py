@@ -28,6 +28,8 @@ def verify_changes(deps):
 
 
 def save_deps(deps):
+    sorted_deps = sorted(deps, key=lambda d: d[0])
+
     with open("package.json", "w") as f:
         json.dump({"name": "trrf",
                    "version": "0.0.0",
