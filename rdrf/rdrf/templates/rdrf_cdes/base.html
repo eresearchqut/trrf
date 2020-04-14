@@ -19,10 +19,10 @@
     <title>{% project_title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'bootstrap-3.3.7/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.4.1/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
-    <link rel="stylesheet" type="text/css" href="{% static 'timepicki/css/timepicki.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'vendor/timepicki-2.0.1/css/timepicki.css' %}">
 
 
     {% project_stylesheet as PSS %}
@@ -31,26 +31,25 @@
     <link rel="stylesheet" type="text/css" href="{{ baseUrl }}/{{ PSS }}" media="all">
     {% endif %}
 
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-1.11.3.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.11.4.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery-3.4.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
 
     {% if request.LANGUAGE_CODE.lower != "en" %}
     {% static "" as baseUrl %}
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
     {% endif %}
 
-    <script type="text/javascript" src="{% static 'bootstrap-3.3.7/js/bootstrap.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery-validation-1.19.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/date_validation.js' %}"></script>
     <script type = "text/javascript" src = "{% static 'js/calculated_field_plugin.js' %}" ></script>
-    <script type="text/javascript" src="{% static 'js/toggle_disabled.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
-    <script type="text/javascript" src="{% static 'timepicki/js/timepicki.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/vendor/jquery-time-duration-picker.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/timepicki-2.0.1/js/timepicki.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vendor/jquery-time-duration-picker-2.2.5.min.js' %}"></script>
     <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
     {% block extrastyle %}
     <style>

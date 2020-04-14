@@ -91,7 +91,7 @@ def setup_test(cols, num, filename):
 
 
 def load_adsafe_js():
-    adsafe_path = "../rdrf/rdrf/static/js/vendor/adsafe-min.js"
+    adsafe_path = "../rdrf/rdrf/static/js/vendor/adsafe.min.js"
     return io.open(os.path.join(os.path.dirname(__file__), adsafe_path)).read()
 
 
