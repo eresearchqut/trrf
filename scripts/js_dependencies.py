@@ -35,11 +35,12 @@ def save_deps(deps):
     sorted_deps = sorted(deps, key=lambda d: d[0])
 
     with open("package.json", "w") as f:
-        json.dump({"name": "trrf",
-                   "version": "0.0.0",
-                   "description": "This file MUST ONLY be modified using scripts/js_dependencies.py",
-                   "dependencies": {name: version for name, version in sorted_deps}
-                   }, f, indent=2)
+        json.dump({
+            "name": "trrf",
+            "version": "0.0.0",
+            "description": "This file MUST ONLY be modified using scripts/js_dependencies.py",
+            "dependencies": {name: version for name, version in sorted_deps}
+        }, f, indent=2)
 
 
 if __name__ == "__main__":
