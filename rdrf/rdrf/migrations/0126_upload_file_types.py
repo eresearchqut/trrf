@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0124_primary_carer_terminology'),
+        ('rdrf', '0125_cde_file_user_and_patient_fks'),
     ]
 
     operations = [
