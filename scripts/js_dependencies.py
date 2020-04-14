@@ -27,13 +27,12 @@ def verify_changes(deps):
 
 
 def save_deps(deps):
-    for filename in ["package.json", "bower.json"]:
-        with open(filename, "w") as f:
-            json.dump({"name": "trrf",
-                       "version": "0.0.0",
-                       "description": "This file MUST only be modified using scripts/js_dependencies.py",
-                       "dependencies": {name: version for name, version in deps}
-                       }, f, indent=2)
+    with open("package.json", "w") as f:
+        json.dump({"name": "trrf",
+                   "version": "0.0.0",
+                   "description": "This file MUST only be modified using scripts/js_dependencies.py",
+                   "dependencies": {name: version for name, version in deps}
+                   }, f, indent=2)
 
 
 if __name__ == "__main__":
