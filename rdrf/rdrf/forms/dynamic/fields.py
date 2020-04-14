@@ -51,34 +51,52 @@ class FileTypeRestrictedFileField(FileField):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.allowed_types = []
+        self.allowed_mime_types = []
+        self.allowed_extensions = []
+        self.allowed_types_mapping = defaultdict(list)
         self.set_allowed_types(kwargs.get('allowed_types', []))
 
-    def set_allowed_types(self, allowed_types):
-        self.allowed_types = allowed_types
+    def _load_file_types(self):
         all_allowed_types = []
-        # this gets called at app module discovery for admin as it's used in PatientConsentFileForm
-        # so it might get called before the migrations to create
-        # the UploadFileType model get to run
         try:
             from rdrf.models.definition.models import UploadFileType
             all_allowed_types = list(UploadFileType.objects.all())
         except Exception as e:
             logger.error("Exception while loading allowed types: %s", e)
+        logger.info(f"all_allowed_types={all_allowed_types}")
+        return all_allowed_types
 
-        if not self.allowed_types:
-            self.allowed_types = all_allowed_types
-        else:
-            all_allowed_mime_types = set(t.mime_type for t in all_allowed_types)
-            self.allowed_types = [t for t in allowed_types if t.mime_type in all_allowed_mime_types]
+    def _init_structures(self):
         self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
         self.allowed_extensions = [t.extension for t in self.allowed_types]
         self.allowed_types_mapping = defaultdict(list)
         for t in self.allowed_types:
             self.allowed_types_mapping[t.mime_type].append(t.extension)
 
+    def set_allowed_types(self, allowed_types):
+        self.allowed_types = allowed_types
+        # this gets called at app module discovery for admin as it's used in PatientConsentFileForm
+        # so it might get called before the migrations to create
+        # the UploadFileType model get to run
+        all_allowed_types = self._load_file_types()
+        if not self.allowed_types:
+            self.allowed_types = all_allowed_types
+        else:
+            all_allowed_mime_types = set(t.mime_type for t in all_allowed_types)
+            self.allowed_types = [t for t in allowed_types if t.mime_type in all_allowed_mime_types]
+
+        self._init_structures()
+
+
     def validate(self, value):
         if not value:
             return super().validate(value)
+
+        if not self.allowed_types:
+            self.allowed_types = self._load_file_types()
+            self._init_structures()
+
         allowed_mime_types = self.allowed_mime_types
         if getattr(self, 'cde', None):
             widget_settings = json.loads(self.cde.widget_settings or '{}')
@@ -93,6 +111,9 @@ class FileTypeRestrictedFileField(FileField):
             if mime_type == t or mime_type.startswith(t):
                 matched_type = t
                 break
+        logger.info(f"mime_type={mime_type}, ext={ext}, matched_type={matched_type}")
+        logger.info(f"self.allowed_mime_types={self.allowed_mime_types}")
+        logger.info(f"self.allowed_types_mapping = {self.allowed_types_mapping}")
         if matched_type not in allowed_mime_types:
             allowed_extensions = {self.allowed_types_mapping[mime_type] for mime_type in allowed_mime_types}
             raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
