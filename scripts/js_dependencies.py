@@ -42,7 +42,7 @@ def save_deps(deps):
 
 
 if __name__ == "__main__":
-    if os.path.split(os.getcwd())[1] != "trrf":
+    if not os.path.exists(os.path.join(os.getcwd(), "scripts/js_dependencies.py")):
         raise RuntimeError("Script must be run from the root trrf directory")
 
     dependencies = set(collect_framework_deps() + collect_js_deps())
