@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+from operator import itemgetter
 
 
 def collect_framework_deps():
@@ -19,27 +20,24 @@ def deps_changed(deps):
     """Check if the dependencies differ from those written to file"""
     if not os.path.isfile("package.json"):
         return True
-    else:
-        with open("package.json", 'r') as f:
-            data = json.load(f)
-            old_deps = set(data["dependencies"].items())
+    with open("package.json", 'r') as f:
+        data = json.load(f)
+        old_deps = set(data["dependencies"].items())
 
-            if old_deps != deps:
-                print("JavaScript dependencies have changed:", file=sys.stderr)
-                print(old_deps.symmetric_difference(deps), file=sys.stderr)
-                return True
+        if old_deps != deps:
+            print("JavaScript dependencies have changed:", file=sys.stderr)
+            print(old_deps.symmetric_difference(deps), file=sys.stderr)
+            return True
     return False
 
 
 def save_deps(deps):
-    sorted_deps = sorted(deps, key=lambda d: d[0])
-
     with open("package.json", "w") as f:
         json.dump({
             "name": "trrf",
             "version": "0.0.0",
             "description": "This file MUST ONLY be modified using scripts/js_dependencies.py",
-            "dependencies": {name: version for name, version in sorted_deps}
+            "dependencies": dict(sorted(deps, key=itemgetter(0)))
         }, f, indent=2)
 
 
@@ -51,7 +49,7 @@ if __name__ == "__main__":
 
     changed = deps_changed(dependencies)
     if len(sys.argv) > 1 and sys.argv[1] == "--verify":
-        exit(changed)
+        sys.exit(changed)
     else:
         if changed:
             save_deps(dependencies)
