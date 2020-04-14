@@ -59,7 +59,7 @@ from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.security.security_checks import (
     security_check_user_patient, can_sign_consent,
-    get_object_or_permission_denied, user_is_patient_type
+    get_object_or_permission_denied
 )
 
 from registry.patients.patient_stage_flows import get_registry_stage_flow
