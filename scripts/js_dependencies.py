@@ -12,8 +12,12 @@ def collect_framework_deps():
 
 
 def collect_js_deps():
+
+    def valid_js(dep):
+        return not dep.endswith(".map") and not dep.endswith("-custom.js")
+
     return [tuple(split) for dep in os.listdir("rdrf/rdrf/static/js/vendor")
-            if len(split := dep.replace(".min.js", "").rsplit("-", 1)) == 2 and not dep.endswith(".map")]
+            if len(split := dep.replace(".min.js", "").rsplit("-", 1)) == 2 and valid_js(dep)]
 
 
 def deps_changed(deps):
