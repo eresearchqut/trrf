@@ -103,7 +103,7 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
     return None
 
 
-def update_multisection_file_cdes(registry_code, multisection_code, form_section_items, form_model,
+def update_multisection_file_cdes(registry_code, patient_record, user, multisection_code, form_section_items, form_model,
                                   existing_nested_data, index_map):
 
     updates = []
@@ -119,9 +119,9 @@ def update_multisection_file_cdes(registry_code, multisection_code, form_section
 
                 # antecedent here will never return true and the definition is not correct
                 if is_multiple_file_cde(cde_code):
-                    new_val = DynamicDataWrapper.handle_file_uploads(registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_uploads(registry_code, patient_record, user, key, value, existing_value)
                 else:
-                    new_val = DynamicDataWrapper.handle_file_upload(registry_code, key, value, existing_value)
+                    new_val = DynamicDataWrapper.handle_file_upload(registry_code, patient_record, user, key, value, existing_value)
                 updates.append((item_index, key, new_val))
 
     for index, key, value in updates:
@@ -577,7 +577,7 @@ class DynamicDataWrapper(object):
         return Section.objects.filter(code=code).exists()
 
     @staticmethod
-    def handle_file_upload(registry_code, key, value, current_value):
+    def handle_file_upload(registry_code, patient_record, uploaded_by, key, value, current_value):
         to_delete = False
         ret_value = value
         if value is False and current_value:
@@ -594,7 +594,7 @@ class DynamicDataWrapper(object):
             # A file was uploaded.
             # Store file and convert value into a file wrapper
             to_delete = False
-            ret_value = filestorage.store_file_by_key(registry_code, None, key, value)
+            ret_value = filestorage.store_file_by_key(registry_code, patient_record, uploaded_by, key, value)
 
         if to_delete:
             filestorage.delete_file_wrapper(file_ref)
@@ -602,25 +602,26 @@ class DynamicDataWrapper(object):
         return ret_value
 
     @classmethod
-    def handle_file_uploads(cls, registry_code, key, value, current_value):
+    def handle_file_uploads(cls, registry_code, patient_record, uploaded_by, key, value, current_value):
         updated = [
-            cls.handle_file_upload(registry_code, key, val, cur)
+            cls.handle_file_upload(registry_code, patient_record, uploaded_by, key, val, cur)
             for val, cur in zip_longest(value, current_value or [])
         ]
         return list(filter(bool, updated))
 
     def _update_files_in_fs(self, existing_record, registry, new_data, index_map):
+        patient_record = self.obj if self.django_model and self.django_model.__name__ == 'Patient' else None
         for key, value in new_data.items():
             cde_code = get_code(key)
             if is_file_cde(cde_code):
                 existing_value = get_mongo_value(registry, existing_record, key)
                 if is_multiple_file_cde(cde_code):
-                    new_data[key] = self.handle_file_uploads(registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_uploads(registry, patient_record, self.user, key, value, existing_value)
                 else:
-                    new_data[key] = self.handle_file_upload(registry, key, value, existing_value)
+                    new_data[key] = self.handle_file_upload(registry, patient_record, self.user, key, value, existing_value)
 
             elif (self._is_section_code(key) and self.current_form_model and index_map is not None):
-                new_data[key] = update_multisection_file_cdes(registry, key, value, self.current_form_model,
+                new_data[key] = update_multisection_file_cdes(registry, patient_record, self.user, key, value, self.current_form_model,
                                                               existing_record, index_map)
 
     def update_dynamic_data(self, registry_model, cdes_record):
