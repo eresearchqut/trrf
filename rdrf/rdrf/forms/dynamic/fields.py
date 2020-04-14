@@ -1,6 +1,9 @@
 # Custom Fields
+from collections import defaultdict
 from itertools import zip_longest
 import datetime
+import json
+import logging
 import magic
 import os
 
@@ -12,7 +15,9 @@ from django.forms import URLField
 from django.forms import DateField
 
 from rdrf.forms.widgets.widgets import MultipleFileInput
-from rdrf.models.definition.models import UploadFileType
+
+
+logger = logging.getLogger(__name__)
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
@@ -50,7 +55,16 @@ class FileTypeRestrictedFileField(FileField):
 
     def set_allowed_types(self, allowed_types):
         self.allowed_types = allowed_types
-        all_allowed_types = UploadFileType.objects.all()
+        all_allowed_types = []
+        # this gets called at app module discovery for admin as it's used in PatientConsentFileForm
+        # so it might get called before the migrations to create
+        # the UploadFileType model get to run
+        try:
+            from rdrf.models.definition.models import UploadFileType
+            all_allowed_types = list(UploadFileType.objects.all())
+        except Exception as e:
+            logger.error("Exception while loading allowed types: %s", e)
+
         if not self.allowed_types:
             self.allowed_types = all_allowed_types
         else:
@@ -58,19 +72,31 @@ class FileTypeRestrictedFileField(FileField):
             self.allowed_types = [t for t in allowed_types if t.mime_type in all_allowed_mime_types]
         self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
         self.allowed_extensions = [t.extension for t in self.allowed_types]
-        self.allowed_types_mapping = {t.mime_type: t.extension for t in self.allowed_types}
+        self.allowed_types_mapping = defaultdict(list)
+        for t in self.allowed_types:
+            self.allowed_types_mapping[t.mime_type].append(t.extension)
 
     def validate(self, value):
+        if not value:
+            return super().validate(value)
         allowed_mime_types = self.allowed_mime_types
         if getattr(self, 'cde', None):
-            cde_mime_types = self.cde.widget_settings.get('allowed_file_types', self.allowed_mime_types)
+            widget_settings = json.loads(self.cde.widget_settings or '{}')
+            cde_mime_types = widget_settings.get('allowed_file_types', self.allowed_mime_types)
             allowed_mime_types = set(allowed_mime_types) & set(cde_mime_types)
+
         __, ext = os.path.splitext(value._name)
         mime_type = magic.from_buffer(value.file.read(2048), mime=True)
         value.file.seek(0)
-        if mime_type not in allowed_mime_types:
-            raise ValidationError(f"File type not allowed. Only {', '.join(self.allowed_extensions)} files are allowed.")
-        if self.allowed_types_mapping[mime_type] != ext[1:]:
+        matched_type = mime_type
+        for t in allowed_mime_types:
+            if mime_type == t or mime_type.startswith(t):
+                matched_type = t
+                break
+        if matched_type not in allowed_mime_types:
+            allowed_extensions = {self.allowed_types_mapping[mime_type] for mime_type in allowed_mime_types}
+            raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
+        if ext[1:] not in self.allowed_types_mapping[matched_type]:
             raise ValidationError("File extension does not match the file type !")
         return super().validate(value)
 

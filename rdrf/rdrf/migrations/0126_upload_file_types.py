@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('extension', models.CharField(max_length=16)),
-                ('mime_type', models.CharField(max_length=256, unique=True)),
+                ('mime_type', models.CharField(max_length=256)),
                 ('description', models.TextField()),
                 ('enabled', models.BooleanField(default=True)),
                 ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rdrf.UploadFileTypeCategory')),

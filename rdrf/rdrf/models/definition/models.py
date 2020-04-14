@@ -1987,7 +1987,7 @@ class UploadFileTypeManager(models.Manager):
 
 class UploadFileType(models.Model):
     extension = models.CharField(max_length=16)
-    mime_type = models.CharField(max_length=256, unique=True)
+    mime_type = models.CharField(max_length=256)
     description = models.TextField()
     category = models.ForeignKey(UploadFileTypeCategory, null=True, blank=True, on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
