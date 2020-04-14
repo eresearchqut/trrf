@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('patients', '0053_patient_carer_link'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('rdrf', '0123_email_notification_email_from_update'),
+        ('rdrf', '0124_primary_carer_terminology'),
     ]
 
     operations = [
