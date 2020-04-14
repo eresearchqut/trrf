@@ -64,7 +64,6 @@ class FileTypeRestrictedFileField(FileField):
             all_allowed_types = list(UploadFileType.objects.all())
         except Exception as e:
             logger.error("Exception while loading allowed types: %s", e)
-        logger.info(f"all_allowed_types={all_allowed_types}")
         return all_allowed_types
 
     def _init_structures(self):
@@ -93,10 +92,6 @@ class FileTypeRestrictedFileField(FileField):
         if not value:
             return super().validate(value)
 
-        if not self.allowed_types:
-            self.allowed_types = self._load_file_types()
-            self._init_structures()
-
         allowed_mime_types = self.allowed_mime_types
         if getattr(self, 'cde', None):
             widget_settings = json.loads(self.cde.widget_settings or '{}')
@@ -111,12 +106,13 @@ class FileTypeRestrictedFileField(FileField):
             if mime_type == t or mime_type.startswith(t):
                 matched_type = t
                 break
-        logger.info(f"mime_type={mime_type}, ext={ext}, matched_type={matched_type}")
-        logger.info(f"self.allowed_mime_types={self.allowed_mime_types}")
-        logger.info(f"self.allowed_types_mapping = {self.allowed_types_mapping}")
+
         if matched_type not in allowed_mime_types:
             allowed_extensions = {self.allowed_types_mapping[mime_type] for mime_type in allowed_mime_types}
-            raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
+            if not allowed_extensions:
+                raise ValidationError(f"No file types allowed. Please check your configuration.")
+            else:
+                raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
         if ext[1:] not in self.allowed_types_mapping[matched_type]:
             raise ValidationError("File extension does not match the file type !")
         return super().validate(value)

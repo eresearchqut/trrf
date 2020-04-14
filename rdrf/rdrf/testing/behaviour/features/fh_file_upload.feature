@@ -43,7 +43,7 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I expand the "Laboratory Data" section
-    Then I should be able to download "authors.rst"
+    Then I should be able to download "authors.txt"
 
     When I upload file "/app/license.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
