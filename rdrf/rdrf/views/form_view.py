@@ -1568,9 +1568,8 @@ class FileUploadView(View):
         file_info = filestorage.get_file(file_id)
         if file_info.patient:
             security_check_user_patient(request.user, file_info.patient)
-        elif file_info.uploaded_by:
-            if user_is_patient_type(request.user) and request.user != file_info.uploaded_by:
-                raise PermissionDenied
+        else:
+            raise PermissionDenied
 
         if file_info.item is not None:
             response = FileResponse(file_info.item, content_type='application/octet-stream')

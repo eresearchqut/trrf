@@ -53,8 +53,11 @@ def store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_nam
 def store_file_by_key(registry_code, patient_record, user, key, file_obj):
     registry = Registry.objects.get(code=registry_code)
     form, section, cde = models_from_mongo_key(registry, key)
+    user_to_store = user
+    if not user and patient_record:
+        user_to_store = patient_record.user
     return store_file(registry_code,
-                      patient_record.user if patient_record else user,
+                      user_to_store,
                       patient_record,
                       cde.code,
                       file_obj,
