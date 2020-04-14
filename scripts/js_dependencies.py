@@ -19,19 +19,20 @@ def verify_changes(deps):
     if os.path.isfile("package.json"):
         with open("package.json", 'r') as f:
             data = json.load(f)
-            old_deps = set(((k, v) for k, v in data["dependencies"].items()))
+            old_deps = set(data["dependencies"].items())
 
             if old_deps != deps:
-                print(old_deps.symmetric_difference(deps))
-                raise Exception("JavaScript dependencies have changed")
+                print("JavaScript dependencies have changed:", file=sys.stderr)
+                print(old_deps.symmetric_difference(deps), file=sys.stderr)
+                exit(1)
 
 
 def save_deps(deps):
     with open("package.json", "w") as f:
         json.dump({"name": "trrf",
                    "version": "0.0.0",
-                   "description": "This file MUST only be modified using scripts/js_dependencies.py",
-                   "dependencies": {name: version for name, version in deps}
+                   "description": "This file MUST ONLY be modified using scripts/js_dependencies.py",
+                   "dependencies": {name: version for name, version in sorted_deps}
                    }, f, indent=2)
 
 
