@@ -58,13 +58,8 @@ class FileTypeRestrictedFileField(FileField):
         self.set_allowed_types(kwargs.get('allowed_types', []))
 
     def _load_file_types(self):
-        all_allowed_types = []
-        try:
-            from rdrf.models.definition.models import UploadFileType
-            all_allowed_types = list(UploadFileType.objects.all())
-        except Exception as e:
-            logger.error("Exception while loading allowed types: %s", e)
-        return all_allowed_types
+        from rdrf.models.definition.models import UploadFileType
+        return UploadFileType.objects.all()
 
     def _init_structures(self):
         self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
@@ -75,22 +70,19 @@ class FileTypeRestrictedFileField(FileField):
 
     def set_allowed_types(self, allowed_types):
         self.allowed_types = allowed_types
-        # this gets called at app module discovery for admin as it's used in PatientConsentFileForm
-        # so it might get called before the migrations to create
-        # the UploadFileType model get to run
+
+    def validate(self, value):
+        if not value:
+            return super().validate(value)
+
         all_allowed_types = self._load_file_types()
         if not self.allowed_types:
             self.allowed_types = all_allowed_types
         else:
             all_allowed_mime_types = set(t.mime_type for t in all_allowed_types)
-            self.allowed_types = [t for t in allowed_types if t.mime_type in all_allowed_mime_types]
+            self.allowed_types = [t for t in self.allowed_types if t.mime_type in all_allowed_mime_types]
 
         self._init_structures()
-
-
-    def validate(self, value):
-        if not value:
-            return super().validate(value)
 
         allowed_mime_types = self.allowed_mime_types
         if getattr(self, 'cde', None):
@@ -108,7 +100,9 @@ class FileTypeRestrictedFileField(FileField):
                 break
 
         if matched_type not in allowed_mime_types:
-            allowed_extensions = {self.allowed_types_mapping[mime_type] for mime_type in allowed_mime_types}
+            allowed_extensions = {
+                mt for mime_type in allowed_mime_types for mt in self.allowed_types_mapping[mime_type]
+            }
             if not allowed_extensions:
                 raise ValidationError(f"No file types allowed. Please check your configuration.")
             else:
