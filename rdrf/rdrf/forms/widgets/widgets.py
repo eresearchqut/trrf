@@ -16,7 +16,6 @@ from django.forms.utils import flatatt
 from django.utils.formats import date_format
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import PatientConsent
@@ -580,7 +579,7 @@ class SignatureWidget(widgets.TextInput):
             "html_value": mark_safe(html_value),
             "set_value": mark_safe(set_value),
             "hide_undo_btn": mark_safe(hide_undo_btn),
-            "encoded_default_value":mark_safe(encoded_default_value)
+            "encoded_default_value": mark_safe(encoded_default_value)
         }
         if not renderer:
             renderer = get_default_renderer()
