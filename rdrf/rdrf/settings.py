@@ -6,6 +6,7 @@ from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 import rdrf
+from rdrf.helpers.settings_helpers import get_static_url_domain
 from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
@@ -319,7 +320,7 @@ CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
 # Content Security Policy
-CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", env.get("AWS_STATIC_CONTENT_URL", ""))
+CSP_DEFAULT_SRC = tuple(filter(None, ["'self'", "'unsafe-inline'", get_static_url_domain(env.get("STATIC_URL", "https://example.com"))]))
 
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised.
