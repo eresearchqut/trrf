@@ -112,6 +112,10 @@
                 {
                     "name": "ALERT_EMAIL",
                     "value": "$ALERT_EMAIL"
+                },
+                {
+                    "name": "EMAIL_SUBJECT_PREFIX",
+                    "value": "$EMAIL_SUBJECT_PREFIX"
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
