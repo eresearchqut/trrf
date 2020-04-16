@@ -148,6 +148,7 @@ MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -317,6 +318,8 @@ CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
+# Content Security Policy
+CSP_DEFAULT_SRC = ("'self'", "'unsafe-inline'", env.get("AWS_STATIC_CONTENT_URL", ""))
 
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised.
