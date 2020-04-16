@@ -320,7 +320,7 @@ CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
 # Content Security Policy
-CSP_DEFAULT_SRC = tuple(filter(None, ["'self'", "'unsafe-inline'", get_static_url_domain(env.get("STATIC_URL", "https://example.com"))]))
+CSP_DEFAULT_SRC = tuple(filter(None, ["'self'", "'unsafe-inline'", get_static_url_domain(env.get("STATIC_URL", ""))]))
 
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised.
