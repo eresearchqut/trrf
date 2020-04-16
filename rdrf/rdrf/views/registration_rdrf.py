@@ -1,5 +1,6 @@
 import logging
 import requests
+from csp.decorators import csp_update
 
 from django.conf import settings
 from django.db import transaction
@@ -26,6 +27,7 @@ class RdrfRegistrationView(RegistrationView):
             registration_class = import_string(settings.REGISTRATION_CLASS)
             return registration_class(request, form)
 
+    @csp_update(DEFAULT_SRC=("https://www.google.com", "https://www.gstatic.com"))
     def dispatch(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
         form_class = self.get_form_class()
