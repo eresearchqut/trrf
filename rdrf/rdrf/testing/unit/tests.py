@@ -1,37 +1,37 @@
 # -*- encoding: utf-8 -*-
+import json
 import logging
 import os
+from copy import deepcopy
+from datetime import datetime, timedelta
+
 import yaml
-from datetime import datetime
-from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.core import management
+from django.core.management import call_command
 from django.forms.models import model_to_dict
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
+from rdrf.helpers.transform_cd_dict import (get_cd_form, get_section,
+                                            transform_cd_dict)
+from rdrf.helpers.utils import TimeStripper, check_calculation, de_camelcase
+from rdrf.models.definition.models import (CDEPermittedValue,
+                                           CDEPermittedValueGroup,
+                                           ClinicalData, CommonDataElement,
+                                           EmailNotification,
+                                           EmailNotificationHistory,
+                                           EmailTemplate, Registry,
+                                           RegistryForm, Section)
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
-from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CDEPermittedValueGroup, CDEPermittedValue
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ClinicalData
 from rdrf.views.form_view import FormView
-from registry.patients.models import Patient
-from registry.patients.models import State, PatientAddress, AddressType
-from django.contrib.auth.models import Group
-from registry.groups.models import WorkingGroup, CustomUser
-from rdrf.helpers.utils import de_camelcase, check_calculation, TimeStripper
 from registry.groups import GROUPS as RDRF_GROUPS
-from copy import deepcopy
-
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotificationHistory
-from django.core.management import call_command
-import json
-
-from rdrf.helpers.transform_cd_dict import get_cd_form, get_section, transform_cd_dict
+from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.models import (AddressType, Patient, PatientAddress,
+                                      State)
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +272,10 @@ class FormTestCase(RDRFTestCase):
     databases = ['default', 'clinical']
 
     def setUp(self):
-        super(FormTestCase, self).setUp()
+        super().setUp()
+        # For some reason pytest doesn't pick up the fixtures in the RDRFTestCase class
+        # so we have to load them manually here.
+        management.call_command('loaddata', *RDRFTestCase.fixtures, verbosity=0)
         self.registry = Registry.objects.get(code='fh')
         self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
                                                               registry=self.registry)
