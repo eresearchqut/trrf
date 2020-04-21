@@ -258,6 +258,6 @@ if __name__ == "__main__":
     excludes = args.exclude.split(",")
     print("excludes = %s" % excludes)
     with open(args.yaml_file) as f:
-        data = yaml.load(f)
+        data = yaml.load(f, Loader=yaml.FullLoader)
     spreadsheet = SpreadSheetCreator(data, args.output_file, args.nrows, excludes=excludes)
     spreadsheet.create()

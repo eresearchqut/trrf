@@ -1,3 +1,4 @@
+import pytest
 from django.core.exceptions import ValidationError
 from .tests import FormTestCase
 
@@ -25,7 +26,7 @@ class FormDSLValidationTestCase(FormTestCase):
 
     @staticmethod
     def get_exception_msgs(exc_info):
-        return exc_info.exception.message_dict['conditional_rendering_rules']
+        return [err.message for err in exc_info.value.error_dict['conditional_rendering_rules']]
 
     def check_error_messages(self, exc_info, expected_count, expected_messages, eq_comparison=True):
         error_messages = self.get_exception_msgs(exc_info)
@@ -33,15 +34,15 @@ class FormDSLValidationTestCase(FormTestCase):
         if expected_count > 1:
             errors = error_messages[0].split("\n")
             messages = errors
-            self.assertEqual(len(errors), expected_count)
+            assert len(errors) == expected_count
         else:
-            self.assertEqual(len(error_messages), expected_count)
+            assert len(error_messages) == expected_count
         idx = 0
         for msg in messages:
             if not eq_comparison:
-                self.assertTrue(msg.startswith(expected_messages[idx]))
+                assert msg.startswith(expected_messages[idx])
             else:
-                self.assertEqual(msg, expected_messages[idx])
+                assert msg == expected_messages[idx]
             idx += 1
 
     def test_simple_dsl(self):
@@ -63,7 +64,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_invalid_cde(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName1 visible if CDEAge == 10
             '''
@@ -71,7 +72,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['Invalid CDEs specified on line 1 : CDEName1'])
 
     def test_invalid_dsl(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName visible CDEAge == 10
             '''
@@ -79,7 +80,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['DSL parsing error:'], eq_comparison=False)
 
     def test_duplicate_condition(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName visible if CDEAge == 10
             CDEName visible if CDEAge == 10
@@ -88,7 +89,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['Duplicate condition on line 2: CDEAge == 10'])
 
     def test_inverse_condition(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName visible if CDEAge ==10
             CDEName visible if CDEAge != 10
@@ -97,7 +98,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['Opposite condition with same target on line 2: CDEAge != 10'])
 
     def test_overlap_with_section(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             section sectionA visible if CDEAge == 10
             '''
@@ -105,7 +106,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['The target CDEs and conditions CDEs overlap on line 1'])
 
     def test_multiple_errors(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName1 visible if CDEAge == 10
             DM1Fatigue visible if DM1Fatigue == No
@@ -118,7 +119,7 @@ class FormDSLValidationTestCase(FormTestCase):
         )
 
     def test_invalid_cde_value(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             section sectionA visible if DM1Fatigue == abc
             '''
@@ -138,7 +139,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_contradicting_conditions(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEName visible if CDEAge == 10 and CDEAge == 11
             CDEName visible if CDEAge > 10 and CDEAge < 10
@@ -157,7 +158,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_multi_section_condition_and_targets_different_sections(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1AffectedStatus visible if DM1Apathy == Yes
             '''
@@ -181,7 +182,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_cde_incompatible_set_unset(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1BestMotorLevel visible if DM1Apathy is set
             DM1BestMotorLevel visible if DM1Apathy is unset
@@ -191,7 +192,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.check_error_messages(exc_info, 1, ['Different condition with same target on line 2: DM1Apathy is unset'])
 
     def test_cde_includes_no_multiple_cde(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1BestMotorLevel visible if DM1Apathy includes "A, B"
             '''
@@ -203,7 +204,7 @@ class FormDSLValidationTestCase(FormTestCase):
         )
 
     def test_cde_does_not_include_no_multiple_cde(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1AffectedStatus visible if DM1Anxiety does not include A
             '''
@@ -227,7 +228,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_invalid_overlapping_section_and_cde_name_with_qualifier(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             section DM1Cholesterol visible if DM1ChronicInfection == Yes
             '''
@@ -258,7 +259,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_contradicting_multiple_or_conditions(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1Fatigue visible if CDEfhDrugs == Ezetimibe or CDEfhDrugs == Statin or CDEfhDrugs != Ezetimibe
             '''
@@ -288,7 +289,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_simple_condition_with_section_prefix_invalid_cde(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1Cholesterol:DM1ChronicInfection visible if sectionA:CDEAge2 == 18
             '''
@@ -300,7 +301,7 @@ class FormDSLValidationTestCase(FormTestCase):
         )
 
     def test_simple_condition_with_invalid_section_prefix(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1Cholesterol:DM1ChronicInfection visible if section:CDEAge == 18
             '''
@@ -312,7 +313,7 @@ class FormDSLValidationTestCase(FormTestCase):
         )
 
     def test_simple_condition_with_section_prefix_invalid_section_prefix(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             DM1:DM1ChronicInfection visible if sectionA:CDEAge == 18
             '''
@@ -348,7 +349,7 @@ class FormDSLValidationTestCase(FormTestCase):
         self.new_form.save()
 
     def test_duration_invalid_condition_value(self):
-        with self.assertRaises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             self.new_form.conditional_rendering_rules = '''
             CDEAge visible if TestDuration == "3 years and"
             '''
