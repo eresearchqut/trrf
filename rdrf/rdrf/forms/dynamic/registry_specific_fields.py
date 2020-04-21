@@ -75,6 +75,8 @@ class RegistrySpecificFieldsHandler(object):
         if is_uploaded_file(form_value):
             return filestorage.store_file(
                 self.registry_model.code,
+                self.patient_model.user,
+                self.patient_model,
                 file_cde_model.code, form_value,
                 form_name="reg_spec",
                 section_code="reg_spec")

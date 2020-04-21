@@ -1565,10 +1565,15 @@ class FileUploadView(View):
 
     @login_required_method
     def get(self, request, registry_code, file_id):
-        data, filename = filestorage.get_file(file_id)
-        if data is not None:
-            response = FileResponse(data, content_type='application/octet-stream')
-            response['Content-disposition'] = 'filename="%s"' % filename
+        file_info = filestorage.get_file(file_id)
+        if file_info.patient:
+            security_check_user_patient(request.user, file_info.patient)
+        else:
+            raise PermissionDenied
+
+        if file_info.item is not None:
+            response = FileResponse(file_info.item, content_type='application/octet-stream')
+            response['Content-disposition'] = 'filename="%s"' % file_info.filename
         else:
             response = HttpResponseNotFound()
         return response

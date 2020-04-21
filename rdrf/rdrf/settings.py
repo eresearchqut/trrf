@@ -24,6 +24,9 @@ SECURE_SSL_HOST = env.get("secure_ssl_host", False)
 SECURE_CONTENT_TYPE_NOSNIFF = env.get("secure_content_type_nosniff", PRODUCTION)
 SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
 SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
+SECURE_HSTS_SECONDS = env.get("SECURE_HSTS_SECONDS", 3600)  # TODO: Bump to 1 week, 1 month, 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
@@ -144,6 +147,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'registry.common.middleware.NoCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -497,27 +501,49 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
-AUTH_PASSWORD_VALIDATORS = [{
-    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    'OPTIONS': {
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
             'min_length': 8,
-    }
-},
+        }
+    },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasLowercaseLetterValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasNumberValidator',
-},
+    },
     {
         'NAME': 'rdrf.auth.password_validation.HasSpecialCharacterValidator',
-},
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyRepeatingCharacterValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyIncreasingNumberValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.ConsecutivelyDecreasingNumberValidator',
+        'OPTIONS': {
+            'length': 3
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+    }
 ]
 
 # setup for PROMS

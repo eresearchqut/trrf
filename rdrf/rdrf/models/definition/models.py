@@ -733,7 +733,12 @@ class CommonDataElement(models.Model):
 
         if self.allow_multiple and self.widget_name == 'RadioSelect':
             raise ValidationError({
-                'widget_name': ["RadioSelect is not a valid choice if multiple values are allowed !"]
+                'widget_name': [_("RadioSelect is not a valid choice if multiple values are allowed !")]
+            })
+
+        if self.datatype == CDEDataTypes.RANGE and not self.pv_group:
+            raise ValidationError({
+                'pv_group': [_("You need to have a Permissible Value Group set when using the range datatype !")]
             })
 
     def save(self, *args, **kwargs):
@@ -1870,6 +1875,8 @@ class CDEFile(models.Model):
     See filestorage.py for usage of this model.
     """
     registry_code = models.CharField(max_length=10)
+    uploaded_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.PROTECT)
+    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.PROTECT)
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
