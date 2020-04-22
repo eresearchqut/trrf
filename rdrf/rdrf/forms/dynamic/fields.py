@@ -99,16 +99,16 @@ class FileTypeRestrictedFileField(FileField):
                 matched_type = t
                 break
 
+        allowed_extensions = {
+            mt for mime_type in allowed_mime_types for mt in self.allowed_types_mapping[mime_type]
+        }
         if matched_type not in allowed_mime_types:
-            allowed_extensions = {
-                mt for mime_type in allowed_mime_types for mt in self.allowed_types_mapping[mime_type]
-            }
             if not allowed_extensions:
                 raise ValidationError(f"No file types allowed. Please check your configuration.")
             else:
                 raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
         if ext[1:] not in self.allowed_types_mapping[matched_type]:
-            raise ValidationError("File extension does not match the file type !")
+            raise ValidationError(f"File extension not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
         return super().validate(value)
 
 
