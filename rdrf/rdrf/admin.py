@@ -24,6 +24,7 @@ from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import BlacklistedMimeType
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -50,6 +51,7 @@ from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import FormTitleAdminForm
+from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
 
 from functools import reduce
 
@@ -328,7 +330,7 @@ class ConsentSectionAdmin(admin.ModelAdmin):
 
 class ConsentConfigurationAdmin(admin.ModelAdmin):
     models = ConsentConfiguration
-    forms = ConsentConfigurationAdminForm
+    form = ConsentConfigurationAdminForm
     list_display = ("registry", "esignature", "consent_locked")
 
 
@@ -445,6 +447,12 @@ class FormTitleAdmin(admin.ModelAdmin):
     list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
 
 
+class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
+    model = BlacklistedMimeType
+    form = BlacklistedMimeTypeAdminForm
+    list_display = ('mime_type', 'description')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -480,6 +488,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
+    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),
@@ -502,7 +511,8 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (Notification, NotificationAdmin),
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
-    (FormTitle, FormTitleAdmin)
+    (FormTitle, FormTitleAdmin),
+    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
 ]
 
 ADMIN_COMPONENTS = []

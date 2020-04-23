@@ -1,13 +1,17 @@
 # Custom Fields
 from itertools import zip_longest
 import datetime
+import magic
+import os
+
+from django.core.exceptions import ValidationError
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+
 from rdrf.forms.widgets.widgets import MultipleFileInput
-from django.core.exceptions import ValidationError
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
@@ -37,7 +41,26 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
             raise ValidationError("A value must be selected")
 
 
-class MultipleFileField(FileField):
+class FileTypeRestrictedFileField(FileField):
+
+    def _find_blacklisted_mime_type(self, mt):
+        from rdrf.models.definition.models import BlacklistedMimeType
+        return BlacklistedMimeType.objects.filter(mime_type=mt).first()
+
+    def validate(self, value):
+        if not value:
+            return super().validate(value)
+        __, ext = os.path.splitext(value._name)
+        mime_type = magic.from_buffer(value.file.read(2048), mime=True)
+        value.file.seek(0)
+
+        blacklisted_mime_type = self._find_blacklisted_mime_type(mime_type)
+        if blacklisted_mime_type:
+            raise ValidationError(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !")
+        return super().validate(value)
+
+
+class MultipleFileField(FileTypeRestrictedFileField):
     """
     A field made from multiple file fields.
     Values go in and out as lists of files.

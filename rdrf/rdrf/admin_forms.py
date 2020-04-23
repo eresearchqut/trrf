@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
+from rdrf.models.definition.models import BlacklistedMimeType
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
@@ -219,3 +220,10 @@ class FormTitleAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = FormTitle
+
+
+class BlacklistedMimeTypeAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = BlacklistedMimeType
