@@ -61,6 +61,10 @@ class FileTypeRestrictedFileField(FileField):
         from rdrf.models.definition.models import UploadFileType
         return UploadFileType.objects.all()
 
+    def _load_blacklisted_mime_types(self):
+        from rdrf.models.definition.models import BlacklistedMimeType
+        return BlacklistedMimeType.objects.values_list('mime_type', flat=True)
+
     def _init_structures(self):
         self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
         self.allowed_extensions = [t.extension for t in self.allowed_types]
@@ -93,6 +97,12 @@ class FileTypeRestrictedFileField(FileField):
         __, ext = os.path.splitext(value._name)
         mime_type = magic.from_buffer(value.file.read(2048), mime=True)
         value.file.seek(0)
+
+        logger.info(f"Mime type={mime_type}")
+
+        if mime_type in self._load_blacklisted_mime_types():
+            raise ValidationError(f"Mime type: {mime_type} is blacklisted !")
+
         matched_type = mime_type
         for t in allowed_mime_types:
             if mime_type == t or mime_type.startswith(t):

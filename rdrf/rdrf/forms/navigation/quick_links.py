@@ -77,6 +77,7 @@ class LinkDefs:
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
     UploadFileTypesConfig = make_link("admin:rdrf_uploadfiletype_changelist", _("Upload File Types"))
     UploadFileTypesCategoryConfig = make_link("admin:rdrf_uploadfiletypecategory_changelist", _("Upload File Type Categories"))
+    BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Blacklisted mime types"))
 
 
 class Links:
@@ -159,6 +160,7 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
+        LinkDefs.BlacklistedMimeTypesConfig,
         LinkDefs.UploadFileTypesConfig,
         LinkDefs.UploadFileTypesCategoryConfig
     )

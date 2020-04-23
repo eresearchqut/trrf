@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
-from rdrf.models.definition.models import UploadFileTypeCategory, UploadFileType
+from rdrf.models.definition.models import BlacklistedMimeType, UploadFileTypeCategory, UploadFileType
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from rdrf.helpers.cde_data_types import CDEDataTypes
@@ -245,6 +245,19 @@ class UploadFileTypeCategoryAdminForm(ModelForm):
 
 class UploadFileTypeAdminForm(ModelForm):
 
+    def clean_mime_type(self):
+        mt = self.cleaned_data['mime_type']
+        if mt in BlacklistedMimeType.objects.values_list('mime_type', flat=True):
+            raise ValidationError(_("Mime-type is blacklisted !"))
+        return mt
+
     class Meta:
         fields = "__all__"
         model = UploadFileType
+
+
+class BlacklistedMimeTypeAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = BlacklistedMimeType

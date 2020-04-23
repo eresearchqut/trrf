@@ -1996,3 +1996,11 @@ class UploadFileType(models.Model):
 
     def __str__(self):
         return self.description
+
+
+class BlacklistedMimeType(models.Model):
+    mime_type = models.CharField(max_length=256)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.mime_type} - {self.description}"

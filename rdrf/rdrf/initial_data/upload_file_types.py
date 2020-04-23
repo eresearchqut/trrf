@@ -3,7 +3,8 @@ Upload file types and categories
 """
 
 from rdrf.models.definition.models import (
-    ConsentConfiguration, Registry, UploadFileTypeCategory, UploadFileType
+    BlacklistedMimeType, ConsentConfiguration, 
+    Registry, UploadFileTypeCategory, UploadFileType
 )
 
 
@@ -69,8 +70,10 @@ def init_upload_file_types_and_categories():
         }
     )
 
-
-
+    BlacklistedMimeType.objects.get_or_create(
+        mime_type='application/octet-stream',
+        description = 'Prevent uploads for executables/archives'
+    )
 
 
 def update_consent_configuration(registry):

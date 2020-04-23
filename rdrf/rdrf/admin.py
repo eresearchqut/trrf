@@ -24,6 +24,7 @@ from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import BlacklistedMimeType
 from rdrf.models.definition.models import UploadFileType
 from rdrf.models.definition.models import UploadFileTypeCategory
 from rdrf.models.proms.models import Survey
@@ -52,6 +53,7 @@ from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import FormTitleAdminForm
+from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
 from rdrf.admin_forms import UploadFileTypeAdminForm
 from rdrf.admin_forms import UploadFileTypeCategoryAdminForm
 
@@ -464,6 +466,12 @@ class UploadFileTypeCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', )
 
 
+class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
+    model = BlacklistedMimeType
+    form = BlacklistedMimeTypeAdminForm
+    list_display = ('mime_type', 'description')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -499,6 +507,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
+    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
     (UploadFileType, UploadFileTypeAdmin),
     (UploadFileTypeCategory, UploadFileTypeCategoryAdmin),
     (Section, SectionAdmin),
@@ -524,6 +533,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
+    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
     (UploadFileType, UploadFileTypeAdmin),
     (UploadFileTypeCategory, UploadFileTypeCategoryAdmin),
 ]
