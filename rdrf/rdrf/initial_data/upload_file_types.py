@@ -48,16 +48,17 @@ def init_upload_file_types_and_categories():
     )
 
     UploadFileType.objects.all_types().get_or_create(
-        mime_type='image/jpeg', defaults={
-            'extension': 'jpeg',
+        mime_type='image/jpeg', extension='jpeg', defaults={
             'description': 'JPEG image(.jpeg)',
             'category': UploadFileTypeCategory.objects.get(name=UploadFileTypeCategory.IMAGE)
         }
     )
 
-    UploadFileType.objects.all_types().create(
-        mime_type='image/jpeg', extension='jpg', description ='JPEG image (.jpg)',
-        category=UploadFileTypeCategory.objects.get(name=UploadFileTypeCategory.IMAGE)
+    UploadFileType.objects.all_types().get_or_create(
+        mime_type='image/jpeg', extension='jpg', defaults = {
+            'description': 'JPEG image (.jpg)',
+            'category': UploadFileTypeCategory.objects.get(name=UploadFileTypeCategory.IMAGE)
+        }
     )
 
     UploadFileType.objects.all_types().get_or_create(
