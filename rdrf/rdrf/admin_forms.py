@@ -8,9 +8,10 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
-from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import BlacklistedMimeType, UploadFileTypeCategory, UploadFileType
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from registry.patients.models import Patient
 
 
@@ -127,9 +128,19 @@ class EmailTemplateAdminForm(ModelForm):
 
 class ConsentConfigurationAdminForm(ModelForm):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['allowed_file_types'].queryset = UploadFileType.objects.all_types()
+
     class Meta:
         fields = "__all__"
         model = ConsentConfiguration
+        widgets = {
+            'allowed_file_types': rdrf_widgets.MultipleSelectWithDisabledOptions(
+                attrs={'size': 10},
+                disabled_choices=lambda: UploadFileType.objects.disabled_types().values_list('pk', flat=True)
+            )
+        }
 
 
 class CommonDataElementAdminForm(ModelForm):
@@ -146,7 +157,10 @@ class CommonDataElementAdminForm(ModelForm):
             'RadioSelect': lambda: settings_widgets.RadioSelectSettings(),
             'DurationWidget': lambda: settings_widgets.DurationWidgetSettings(),
         }
-        self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
+        if data_type == CDEDataTypes.FILE:
+            self.fields['widget_settings'].widget = settings_widgets.FileUploadWidgetSettings()
+        else:
+            self.fields['widget_settings'].widget = settings_dict.get(widget_name, lambda: HiddenInput())()
 
         default_choice = ('', _("Default widget"))
         choices = [default_choice]
@@ -227,3 +241,23 @@ class BlacklistedMimeTypeAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = BlacklistedMimeType
+
+
+class UploadFileTypeCategoryAdminForm(ModelForm):
+
+    class Meta:
+        fields = "__all__"
+        model = UploadFileTypeCategory
+
+
+class UploadFileTypeAdminForm(ModelForm):
+
+    def clean_mime_type(self):
+        mt = self.cleaned_data['mime_type']
+        if mt in BlacklistedMimeType.objects.values_list('mime_type', flat=True):
+            raise ValidationError(_("Mime-type is blacklisted !"))
+        return mt
+
+    class Meta:
+        fields = "__all__"
+        model = UploadFileType

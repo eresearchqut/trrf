@@ -125,6 +125,20 @@ class PatientExporter(ModelExporter):
             rdrf_registry__code=self.exporter_context['registry_code'])
 
 
+class UploadFileTypeCategoryExporter(ModelExporter):
+
+    @property
+    def queryset(self):
+        return self.model.objects.all()
+
+
+class UploadFileTypeExporter(ModelExporter):
+
+    @property
+    def queryset(self):
+        return self.model.objects.all_types()
+
+
 registry_catalogue.register(models.Registry, RegistryExporter)
 registry_catalogue.register(groupmodels.WorkingGroup, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.RegistryForm, ModelExporterFilteredByRegistry)
@@ -139,6 +153,8 @@ registry_catalogue.register(models.CdePolicy, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.Wizard, WizardExporter)
 registry_catalogue.register(models.ContextFormGroup, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.ContextFormGroupItem, ContextFormGroupItemExporter)
+registry_catalogue.register(models.UploadFileTypeCategory, UploadFileTypeCategoryExporter)
+registry_catalogue.register(models.UploadFileType, UploadFileTypeExporter)
 
 registry_catalogue.register(groupmodels.CustomUser, CustomUserExporter)
 registry_catalogue.register(patientmodels.Patient, PatientExporter)

@@ -1,6 +1,8 @@
 # Custom Fields
+from collections import defaultdict
 from itertools import zip_longest
 import datetime
+import json
 import magic
 import os
 
@@ -48,6 +50,16 @@ class FileTypeRestrictedFileField(FileField):
         from rdrf.models.definition.models import BlacklistedMimeType
         return BlacklistedMimeType.objects.filter(mime_type=mt).first()
 
+    def _init_structures(self):
+        self.allowed_mime_types = [t.mime_type for t in self.allowed_types]
+        self.allowed_extensions = [t.extension for t in self.allowed_types]
+        self.allowed_types_mapping = defaultdict(list)
+        for t in self.allowed_types:
+            self.allowed_types_mapping[t.mime_type].append(t.extension)
+
+    def set_allowed_types(self, allowed_types):
+        self.allowed_types = allowed_types
+
     def validate(self, value):
         if not value:
             return super().validate(value)
@@ -58,6 +70,23 @@ class FileTypeRestrictedFileField(FileField):
         blacklisted_mime_type = self._find_blacklisted_mime_type(mime_type)
         if blacklisted_mime_type:
             raise ValidationError(_(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !"))
+
+        matched_type = mime_type
+        for t in allowed_mime_types:
+            if mime_type == t or mime_type.startswith(t):
+                matched_type = t
+                break
+
+        allowed_extensions = {
+            mt for mime_type in allowed_mime_types for mt in self.allowed_types_mapping[mime_type]
+        }
+        if matched_type not in allowed_mime_types:
+            if not allowed_extensions:
+                raise ValidationError(f"No file types allowed. Please check your configuration.")
+            else:
+                raise ValidationError(f"File type not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
+        if ext[1:] not in self.allowed_types_mapping[matched_type]:
+            raise ValidationError(f"File extension not allowed. Only {', '.join(allowed_extensions)} files are allowed.")
         return super().validate(value)
 
 

@@ -43,6 +43,8 @@ _REFDATA_GROUP = GroupDefinition(
         'patients.State',
         'patients.NextOfKinRelationship',
         'patients.AddressType',
+        'rdrf.UploadFileTypeCategory',
+        'rdrf.UploadFileType',
     ))
 
 _USERS_GROUP = GroupDefinition(

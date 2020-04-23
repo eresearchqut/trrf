@@ -7,9 +7,9 @@
             {% elif item.input_type == "checkbox" %}
                 <input type="checkbox" name="{{item.name}}" id="{{item.name}}" {{item.checked}} {% if item.onchange %} onchange="{{item.onchange}}" {% endif %}/>
             {% elif item.input_type == "select" %}
-                <select name="{{item.name}}" id="{{item.name}}" {% if item.onchange %} onchange="{{item.onchange}}" {% endif %}>
+                <select name="{{item.name}}" id="{{item.name}}" {% if item.onchange %} onchange="{{item.onchange}}" {% endif %} {%if item.multiple %} multiple {% endif %}>
                     {% for opt in item.options %}
-                        <option value="{{opt.value}}" {{opt.selected}}>{{opt.text}}</option>
+                        <option value="{{opt.value}}" {{opt.selected}} {%if opt.disabled %} disabled {% endif %}>{{opt.text}}</option>
                     {% endfor %}
                 </select>
             {% endif %}
@@ -32,7 +32,11 @@
             {% elif item.input_type == "checkbox" %}
                 obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}}").prop("checked");
             {% elif item.input_type == "select" %}
-                obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}} option:selected").val();
+                {% if item.multiple %}
+                    obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}}").val();
+                {% else %}
+                    obj["{{item.name}}"] = $("#id_{{name}} #{{item.name}} option:selected").val();
+                {% endif %}
             {% endif %}
         {% endfor %}
         $("input[name='{{name}}']").val(JSON.stringify(obj));

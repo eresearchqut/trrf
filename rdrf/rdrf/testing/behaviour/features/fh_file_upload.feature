@@ -22,11 +22,11 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
 
-    When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
+    When I upload file "/app/authors.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I expand the "Laboratory Data" section
-    And I should be able to download "README.rst"
+    And I should be able to download "authors.txt"
 
 
   Scenario: Update (replace) an existing file cde.
@@ -39,11 +39,11 @@ Feature: User uploads files.
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
 
-    When I upload file "/app/README.rst" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
+    When I upload file "/app/authors.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
     Then I should see "Patient John SMITH saved successfully"
     And I expand the "Laboratory Data" section
-    Then I should be able to download "README.rst"
+    Then I should be able to download "authors.txt"
 
     When I upload file "/app/license.txt" for multisection "Laboratory Data" cde "Laboratory Report" in item 1
     And I click the "Save" button
@@ -62,12 +62,12 @@ Feature: User uploads files.
 #    And I click the "Save" button
 #    Then I should see "Patient John SMITH saved successfully"
 #
-#    When I upload file "/app/rdrf/rdrf/features/fh_file_upload.feature" for multisection "Laboratory Data" cde "Laboratory Report"
+#    When I upload file "/app/license.txt" for multisection "Laboratory Data" cde "Laboratory Report"
 #    And I click the "Save" button
 #    Then I should see "Patient John SMITH saved successfully"
-#    Then I should be able to download "fh_file_upload.feature"
+#    Then I should be able to download "license.txt"
 #
-#    When I check the clear checkbox for multisection "Laboratory Data" cde "Laboratory Report" file "fh_file_upload.feature"
+#    When I check the clear checkbox for multisection "Laboratory Data" cde "Laboratory Report" file "license.txt"
 #    And I click the "Save" button
 #    Then I should see "Patient John SMITH saved successfully"
-#    #And I should not be able to download "fh_file_upload.feature"
+#    #And I should not be able to download "license.txt"

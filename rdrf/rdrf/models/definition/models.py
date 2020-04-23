@@ -1122,6 +1122,7 @@ class ConsentConfiguration(models.Model):
     registry = models.OneToOneField(Registry, related_name="consent_configuration", on_delete=models.CASCADE)
     esignature = models.CharField(choices=SIGNATURE_CHOICES, default=DISABLED, max_length=16)
     consent_locked = models.BooleanField(default=False)
+    allowed_file_types = models.ManyToManyField('rdrf.UploadFileType', related_name='+')
 
     @property
     def signature_disabled(self):
@@ -1947,3 +1948,63 @@ class BlacklistedMimeType(models.Model):
 
     class Meta:
         verbose_name = "Disallowed mime type"
+
+
+class UploadFileTypeCategory(models.Model):
+    ARCHIVE = "Archive"
+    AUDIO = "Audio"
+    DOCUMENT = "Document"
+    IMAGE = "Image"
+    SPREADSHEET = "Spreadsheet"
+    OTHER = "Other"
+    PRESENTATION = "Presentation"
+    TEXT = "Text"
+    VIDEO = "Video"
+    FILE_TYPE_CATEGORY_CHOICES = (
+        (ARCHIVE, ARCHIVE),
+        (AUDIO, AUDIO),
+        (DOCUMENT, DOCUMENT),
+        (IMAGE, IMAGE),
+        (SPREADSHEET, SPREADSHEET),
+        (OTHER, OTHER),
+        (PRESENTATION, PRESENTATION),
+        (TEXT, TEXT),
+        (VIDEO, VIDEO),
+    )
+    name = models.CharField(max_length=32, choices=FILE_TYPE_CATEGORY_CHOICES, unique=True)
+    enabled = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UploadFileTypeManager(models.Manager):
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .filter(enabled=True)
+            .filter(models.Q(category__isnull=True) | models.Q(category__enabled=True))
+        )
+
+    def all_types(self):
+        return super().get_queryset().all()
+
+    def disabled_types(self):
+        return (
+            super().get_queryset()
+            .filter(models.Q(enabled=False) | models.Q(category__enabled=False))
+        )
+
+
+class UploadFileType(models.Model):
+    extension = models.CharField(max_length=16)
+    mime_type = models.CharField(max_length=256)
+    description = models.TextField()
+    category = models.ForeignKey(UploadFileTypeCategory, null=True, blank=True, on_delete=models.CASCADE)
+    enabled = models.BooleanField(default=True)
+
+    objects = UploadFileTypeManager()
+
+    def __str__(self):
+        return self.description

@@ -5,6 +5,7 @@ from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
+from rdrf.models.definition.models import UploadFileType
 from .widgets import TimeWidget
 
 
@@ -50,6 +51,9 @@ class JSONWidgetSettings(Widget):
         self._update_input(name, title, kwargs.get('info'), kwargs.get('onchange'))
         self.parsed[name]['input_type'] = 'select'
         self.parsed[name]['options'] = kwargs.get('options', [])
+        is_multiple = kwargs.get('multiple', False)
+        if is_multiple:
+            self.parsed[name]['multiple'] = True
 
     def render(self, name, value, attrs=None, renderer=None):
         self.parse_value(value)
@@ -161,3 +165,34 @@ class DurationWidgetSettings(JSONWidgetSettings):
         """ % (name, name)
         self.set_extra_js(javascript)
         return super().render(name, value, attrs, renderer)
+
+
+class FileUploadWidgetSettings(JSONWidgetSettings):
+
+    def get_allowed_fields(self):
+        return {'allowed_file_types'}
+
+    def generate_input(self, name, title, info=None):
+
+        def generate_option(ft, value):
+            enabled_category = ft['category__enabled']
+            enabled_file_type = ft['enabled']
+            enabled = enabled_file_type and enabled_category if enabled_category else enabled_file_type
+            return {
+                "value": ft['mime_type'],
+                "text": ft['description'],
+                "selected": "selected" if ft['mime_type'] in value and enabled else "",
+                "disabled": not enabled
+            }
+
+        value = self.parsed.get(name, '')
+        file_types = UploadFileType.objects.all_types().values('mime_type', 'description', 'enabled', 'category__enabled')
+        options = [generate_option(ft, value) for ft in file_types]
+        self.generate_select_input(
+            name, title, info=info,
+            options=options,
+            multiple=True
+        )
+
+    def generate_inputs(self):
+        self.generate_input('allowed_file_types', _('Allowed file types'), _("Allowed file types")),

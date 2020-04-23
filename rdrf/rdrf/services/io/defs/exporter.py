@@ -411,9 +411,17 @@ class Exporter:
     def _get_consent_configuration(self):
         consent_config = getattr(self.registry, "consent_configuration", None)
         if consent_config:
+            allowed_types = [{
+                'extension': at.extension,
+                'mime_type': at.mime_type,
+                'enabled': at.enabled,
+                'category': at.category.name if at.category else '',
+                'description': at.description
+            } for at in consent_config.allowed_file_types.all()]
             return {
                 "consent_locked": consent_config.consent_locked,
                 "esignature": consent_config.esignature,
+                "allowed_file_types": allowed_types
             }
 
     def _get_consent_sections(self):

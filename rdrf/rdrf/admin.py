@@ -25,6 +25,8 @@ from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import FormTitle
 from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import UploadFileType
+from rdrf.models.definition.models import UploadFileTypeCategory
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -52,6 +54,8 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
+from rdrf.admin_forms import UploadFileTypeAdminForm
+from rdrf.admin_forms import UploadFileTypeCategoryAdminForm
 
 from functools import reduce
 
@@ -447,6 +451,21 @@ class FormTitleAdmin(admin.ModelAdmin):
     list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
 
 
+class UploadFileTypeAdmin(admin.ModelAdmin):
+    model = UploadFileType
+    form = UploadFileTypeAdminForm
+    list_display = ('extension', 'description')
+
+    def get_queryset(self, request):
+        return UploadFileType.objects.all_types()
+
+
+class UploadFileTypeCategoryAdmin(admin.ModelAdmin):
+    model = UploadFileTypeCategory
+    form = UploadFileTypeCategoryAdminForm
+    list_display = ('name', )
+
+
 class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
     model = BlacklistedMimeType
     form = BlacklistedMimeTypeAdminForm
@@ -489,6 +508,8 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (UploadFileType, UploadFileTypeAdmin),
+    (UploadFileTypeCategory, UploadFileTypeCategoryAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),
@@ -513,6 +534,8 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (UploadFileType, UploadFileTypeAdmin),
+    (UploadFileTypeCategory, UploadFileTypeCategoryAdmin),
 ]
 
 ADMIN_COMPONENTS = []
