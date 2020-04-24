@@ -1935,3 +1935,14 @@ class FormTitle(models.Model):
     @property
     def group_names(self):
         return ', '.join(group.name for group in self.groups.order_by('name').all())
+
+
+class BlacklistedMimeType(models.Model):
+    mime_type = models.CharField(max_length=256, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.mime_type} - {self.description}"
+
+    class Meta:
+        verbose_name = "Disallowed mime type"
