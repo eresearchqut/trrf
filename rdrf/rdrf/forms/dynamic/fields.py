@@ -10,6 +10,7 @@ from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+from django.utils.translation import gettext as _
 
 from rdrf.forms.widgets.widgets import MultipleFileInput
 
@@ -38,7 +39,7 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
 
     def validate(self, value):
         if not value:
-            raise ValidationError("A value must be selected")
+            raise ValidationError(_("A value must be selected"))
 
 
 class FileTypeRestrictedFileField(FileField):
@@ -56,7 +57,7 @@ class FileTypeRestrictedFileField(FileField):
 
         blacklisted_mime_type = self._find_blacklisted_mime_type(mime_type)
         if blacklisted_mime_type:
-            raise ValidationError(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !")
+            raise ValidationError(_(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !"))
         return super().validate(value)
 
 
