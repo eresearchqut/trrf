@@ -281,7 +281,7 @@ output_file = sys.argv[2]
 
 
 with open(yaml_file) as yf:
-    data = yaml.load(yf)
+    data = yaml.load(yf, Loader=yaml.FullLoader)
 
 f = codecs.open(output_file, mode="w", encoding="utf-8")
 ddr = DataDefinitionReport(data, f)

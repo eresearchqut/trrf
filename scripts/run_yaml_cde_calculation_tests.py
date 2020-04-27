@@ -48,7 +48,7 @@ Registry = namedtuple("Registry", ("names", "calculations"))
 def load_yaml(file_obj):
     calculations = {}
     names = {}
-    data = yaml.load(file_obj)
+    data = yaml.load(file_obj, Loader=yaml.FullLoader)
     for cde in data.get("cdes") or []:
         if cde.get("code"):
             calc = cde.get("calculation")

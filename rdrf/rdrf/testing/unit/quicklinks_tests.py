@@ -9,18 +9,18 @@ from .tests import RDRFTestCase
 
 class ExtraAssertionsMixin:
     def assertIsEmpty(self, xs, msg='Should be empty'):
-        self.assertEquals(len(xs), 0, msg)
+        assert len(xs) == 0, msg
 
     def assertNotEmpty(self, xs, msg='Should NOT be empty'):
-        self.assertNotEquals(len(xs), 0, msg)
+        assert len(xs) != 0, msg
 
     def assertContainsAll(self, values_dict, container):
         for value in values_dict.values():
-            self.assertIn(value, container)
+            assert value in container
 
     def assertContainsNoneOf(self, values_dict, container):
         for value in values_dict.values():
-            self.assertNotIn(value, container, f'{value} found unexpectedly in {container}')
+            assert value not in container, f'{value} found unexpectedly in {container}'
 
 
 @override_settings(SYSTEM_ROLE=SystemRoles.NORMAL_NO_PROMS)
