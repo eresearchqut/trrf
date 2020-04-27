@@ -5,7 +5,7 @@ from rdrf.models.definition.models import Registry
 
 
 class LandingView(View):
-    @csp_update(DEFAULT_SRC=('https://fonts.googleapis.com', 'https://fonts.gstatic.com'))
+    @csp_update(STYLE_SRC=['https://fonts.googleapis.com'], FONT_SRC=['https://fonts.gstatic.com'])
     def get(self, request):
         return render(request, 'rdrf_cdes/index.html', {
             "registries": list(Registry.objects.all())

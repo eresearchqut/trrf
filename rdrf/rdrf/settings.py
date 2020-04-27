@@ -6,7 +6,7 @@ from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 import rdrf
-from rdrf.helpers.settings_helpers import get_static_url_domain
+from rdrf.helpers.settings_helpers import get_static_url_domain, get_csp
 from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
@@ -320,7 +320,18 @@ CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
 # Content Security Policy
-CSP_DEFAULT_SRC = tuple(filter(None, ["'self'", "'unsafe-inline'", get_static_url_domain(env.get("STATIC_URL", ""))]))
+_CSP_STATIC_URL = get_static_url_domain(env.get("STATIC_URL", ""))
+
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_OBJECT_SRC = ["'none'"]
+CSP_SCRIPT_SRC = get_csp(
+    ["'self'", "'unsafe-inline'", "https://js-agent.newrelic.com", "https://bam.nr-data.net"],
+    [_CSP_STATIC_URL]
+)
+CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
+CSP_FONT_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
+CSP_IMG_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
+CSP_CONNECT_SRC = ["'self'", "https://bam.nr-data.net"]
 
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised.
