@@ -75,7 +75,7 @@ def make_duration_validator(cde):
     def vf(value):
         if not iso_8601_validator(value):
             raise ValidationError(
-                _(f"Value of '%(value)s' for %(cdename)s is not in ISO-8601 format !") % {
+                _("Value of '%(value)s' for %(cdename)s is not in ISO-8601 format !") % {
                     "value": value,
                     "cdename": cde.name,
                 })

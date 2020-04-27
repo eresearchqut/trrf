@@ -14,7 +14,7 @@ def _tuple(code, name):
 
 def _preferred_languages():
     languages = get_preferred_languages()
-    return [_tuple(l.code, l.name) for l in languages] if languages else [_tuple('en', 'English')]
+    return [_tuple(lang.code, lang.name) for lang in languages] if languages else [_tuple('en', 'English')]
 
 
 User = UserModel()

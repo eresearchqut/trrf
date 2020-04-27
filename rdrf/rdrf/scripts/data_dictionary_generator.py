@@ -7,8 +7,8 @@ import codecs
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
 
-def decode(l):
-    return map(lambda s: s.decode('utf-8'), l)
+def decode(string_list):
+    return map(lambda s: s.decode('utf-8'), string_list)
 
 
 RANGE_DELIMITER = "|"

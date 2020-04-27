@@ -831,7 +831,7 @@ class RegistryForm(models.Model):
     conditional_rendering_rules = models.TextField(
         blank=True,
         null=True,
-        help_text=f'''Use the conditional rendering DSL to add rules.
+        help_text='''Use the conditional rendering DSL to add rules.
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
 
