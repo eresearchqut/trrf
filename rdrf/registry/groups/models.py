@@ -89,6 +89,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         default="en",
         help_text=_("Preferred language (code) for communications"))
     ethically_cleared = models.BooleanField(null=False, blank=False, default=False)
+    untrusted_source_login = models.BooleanField(default=True)
+    untrusted_sources_lockout_expiration = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "username"
 

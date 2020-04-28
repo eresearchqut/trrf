@@ -76,6 +76,7 @@ class LinkDefs:
     ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
+    DeviceCookieConfig = make_link("admin:rdrf_devicecookie_changelist", _("Device cookies"))
 
 
 class Links:
@@ -158,7 +159,8 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.BlacklistedMimeTypesConfig
+        LinkDefs.BlacklistedMimeTypesConfig,
+        LinkDefs.DeviceCookieConfig
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)

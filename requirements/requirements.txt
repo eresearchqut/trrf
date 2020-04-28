@@ -23,6 +23,7 @@ polib==1.1.0
 psycopg2==2.8.4
 pycountry==19.8.18
 pyinotify==0.9.6
+pyjwt==1.7.1
 pyodbc==4.0.28
 pyparsing==2.4.6
 python-dateutil==2.8.1

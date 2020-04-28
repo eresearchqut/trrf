@@ -1947,3 +1947,15 @@ class BlacklistedMimeType(models.Model):
 
     class Meta:
         verbose_name = "Disallowed mime type"
+
+
+class DeviceCookie(models.Model):
+    user = models.ForeignKey('groups.CustomUser', on_delete=models.CASCADE)
+    cookie = models.TextField()
+    max_age = models.PositiveIntegerField()
+    expires = models.DateTimeField()
+    locked_out = models.BooleanField(default=False)
+    lock_out_expiration = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Device Cookie for user {self.user.username} expiring on {self.expires}"

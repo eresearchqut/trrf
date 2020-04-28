@@ -25,6 +25,7 @@ from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import FormTitle
 from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import DeviceCookie
 from rdrf.models.proms.models import Survey
 from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
@@ -52,6 +53,7 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
+from rdrf.admin_forms import DeviceCookieAdminForm
 
 from functools import reduce
 
@@ -453,6 +455,12 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
     list_display = ('mime_type', 'description')
 
 
+class DeviceCookieAdmin(admin.ModelAdmin):
+    model = DeviceCookie
+    form = DeviceCookieAdminForm
+    list_display = ('user', 'cookie', 'locked_out')
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -489,6 +497,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (DeviceCookie, DeviceCookieAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),
@@ -513,6 +522,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (DeviceCookie, DeviceCookieAdmin),
 ]
 
 ADMIN_COMPONENTS = []

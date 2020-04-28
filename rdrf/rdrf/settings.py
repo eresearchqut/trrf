@@ -206,7 +206,7 @@ INSTALLED_APPS = [
 AUTHENTICATION_BACKENDS = [
     'useraudit.password_expiry.AccountExpiryBackend',
     'django.contrib.auth.backends.ModelBackend',
-    'useraudit.backend.AuthFailedLoggerBackend',
+    'rdrf.auth.failed_logger_backend.FailedLoggerBackend',
 ]
 
 # email
@@ -640,3 +640,11 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'robots_txt',
     'js_reverse',
 )
+
+JWT_SECRET_KEY = env.get('jwt_secret_key')
+DEVICE_COOKIE_NAME = env.get('device_cookie_name', "DeviceCookie")
+DEVICE_COOKIE_MAX_AGE = env.get('device_cookie_max_age', 24 * 60 * 60 * 7)
+DEVICE_COOKIE_DOMAIN = env.get('device_cookie_domain', "") or None
+DEVICE_COOKIE_SECURE = env.get('device_cookie_secure', PRODUCTION)
+DEVICE_COOKIE_LOCKOUT_SECONDS = env.get('device_cookie_lockout_seconds', 300)
+USER_LOGIN_LOCKOUT_SECONDS = env.get('user_login_lockout_seconds', 600)

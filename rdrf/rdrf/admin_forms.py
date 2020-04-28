@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
-from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import BlacklistedMimeType, DeviceCookie
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
 from registry.patients.models import Patient
@@ -227,3 +227,18 @@ class BlacklistedMimeTypeAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = BlacklistedMimeType
+
+
+class DeviceCookieAdminForm(ModelForm):
+
+    def clean(self):
+        cleaned_data = super().clean()
+        locked_out = cleaned_data.get('locked_out')
+        lock_out_expiration = cleaned_data.get('lock_out_expiration')
+        if locked_out and not lock_out_expiration:
+            raise ValidationError(_("Lock out expiration must be specified !"))
+        return cleaned_data
+
+    class Meta:
+        fields = "__all__"
+        model = DeviceCookie

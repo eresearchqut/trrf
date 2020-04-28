@@ -70,6 +70,10 @@
               <label for="id_token-otp_token">Token:</label>
               <input type="number" name="token-otp_token" class="form-control" autofocus="autofocus" value="{{ form.otp_token.value|default:"" }}" min="1" max="99999999" id="id_token-otp_token">
             </div>
+          {% elif wizard.steps.current == 'rate_limited' %}
+            <div class="form-group">
+              <h3> Account temporarily locked out !</h3>
+            </div>
           {% else %}
             {% include "two_factor/_wizard_forms.html" %}
           {% endif %}
@@ -77,18 +81,22 @@
           {# hidden submit button to enable [enter] key #}
           <div style="display: none"><input type="submit" value=""/></div>
 
-          <div class="row">
-            <div class="col-sm-12">
-              {% include "two_factor/_wizard_actions.html" %}
+          {% if wizard.steps.current != 'rate_limited' %}
+            <div class="row">
+              <div class="col-sm-12">
+                {% include "two_factor/_wizard_actions.html" %}
+              </div>
             </div>
-          </div>
+          {% endif %}
       </div>
 
       {% block login_footer %}
-      <div class="panel-footer">
-          <a href="{% url 'login_assistance' %}">{% trans "Trouble signing in?" %}</a>
-          <div class="clearfix"></div>
-      </div>
+        {% if wizard.steps.current != 'rate_limited' %}
+          <div class="panel-footer">
+              <a href="{% url 'login_assistance' %}">{% trans "Trouble signing in?" %}</a>
+              <div class="clearfix"></div>
+          </div>
+        {% endif %}
       {% endblock %}
     </div>
   </form>

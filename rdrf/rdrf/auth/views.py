@@ -1,5 +1,10 @@
+import datetime
+import jwt
 import logging
+import pytz
 
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage import default_storage
@@ -9,11 +14,13 @@ from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.tokens import default_token_generator
 from django.dispatch import receiver
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.http import urlsafe_base64_decode
+from django.utils.timezone import now
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
@@ -26,9 +33,11 @@ from django.shortcuts import redirect
 from useraudit.models import UserDeactivation
 from useraudit.password_expiry import is_password_expired
 
+from registry.groups.models import CustomUser
 from registry.patients.models import Patient, ParentGuardian
 
 from rdrf.auth import can_user_self_unlock, is_user_privileged
+from rdrf.models.definition.models import DeviceCookie
 
 
 from .forms import UserVerificationForm, ReactivateAccountForm
@@ -239,3 +248,104 @@ def _get_users_verification_data(user):
         'last_name': user.last_name,
         'date_of_birth': dob,
     }
+
+
+class TRRFLoginView(tfv.core.LoginView):
+
+    def get_prefix(self, request, *args, **kwargs):
+        return 'login_view'
+
+    def _encode(self, username, expires, max_age):
+        data = {
+            'user': username,
+            'exp': expires,
+            'max_age': settings.DEVICE_COOKIE_MAX_AGE
+        }
+        return jwt.encode(data, settings.JWT_SECRET_KEY, algorithm='HS256')
+
+    def generate_cookie(self, user_obj):
+
+        def expiration_str(input_dt):
+            as_utc = input_dt.astimezone(pytz.utc)
+            return datetime.datetime.strftime(as_utc, "%a, %d-%b-%Y %H:%M:%S GMT")
+
+        max_age = settings.DEVICE_COOKIE_MAX_AGE
+        current_ts = now()
+        expiration_dt = current_ts + datetime.timedelta(seconds=max_age)
+        expires = expiration_str(expiration_dt)
+
+        existing = DeviceCookie.objects.filter(user=user_obj, expires__gte=current_ts).first()
+        if existing:
+            expiration_dt = existing.expires + datetime.timedelta(seconds=max_age)
+            max_age += existing.max_age
+            expires = expiration_str(expiration_dt)
+            encoded = self._encode(user_obj.username, expiration_dt, max_age)
+
+            existing.locked_out = False
+            existing.lock_out_expiration = None
+            existing.expires = expiration_dt
+            existing.max_age = max_age
+            existing.cookie = encoded
+            existing.save()
+        else:
+            encoded = self._encode(user_obj.username, expiration_dt, max_age)
+            DeviceCookie.objects.create(
+                user=user_obj,
+                max_age=max_age,
+                expires=expiration_dt,
+                cookie=encoded
+            )
+
+        return encoded, expires, max_age
+
+    def _render_lockout_page(self):
+        params = {
+            'wizard': {
+                'steps': {
+                    'current': 'rate_limited'
+                }
+            }
+        }
+        return render(self.request, 'two_factor/core/login.html', params)
+
+    def post(self, *args, **kwargs):
+        current_ts = now()
+        user_name = self.request.POST.get('auth-username')
+        device_cookie = self.request.COOKIES.get(settings.DEVICE_COOKIE_NAME)
+        stored_cookie = DeviceCookie.objects.filter(
+            user__username=user_name, expires__gte=current_ts
+        ).first()
+
+        if not device_cookie or not stored_cookie:
+            # No cookie in the request or no match found
+            db_user = CustomUser.objects.filter(username=user_name).first()
+            if db_user and not db_user.untrusted_source_login:
+                # if untrusted users login not allowed for the user
+                # and we're withing the lockout expiration period
+                # reject auth and display the lockout page
+                lock_out_expiration = db_user.untrusted_sources_lockout_expiration
+                if lock_out_expiration and current_ts < lock_out_expiration:
+                    return self._render_lockout_page()
+
+        if stored_cookie and stored_cookie.locked_out:
+            # Reject auth and display the lockout page
+            # if the stored cookie for that user
+            # is locked out and we're within the lockout expiration period
+            lock_out_expiration = stored_cookie.lock_out_expiration
+            if lock_out_expiration and current_ts < lock_out_expiration:
+                return self._render_lockout_page()
+
+        return super().post(*args, **kwargs)
+
+    def done(self, form_list, **kwargs):
+        response = super().done(form_list, **kwargs)
+        cookie_value, expires, max_age = self.generate_cookie(self.get_user())
+        response.set_cookie(
+            settings.DEVICE_COOKIE_NAME,
+            cookie_value,
+            expires=expires,
+            max_age=max_age,
+            domain=settings.DEVICE_COOKIE_DOMAIN,
+            secure=settings.DEVICE_COOKIE_SECURE or None
+        )
+        return response
