@@ -17,8 +17,9 @@ from django.utils.formats import date_format
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 
-from rdrf.models.definition.models import CommonDataElement
-from registry.patients.models import PatientConsent
+from rdrf.db.filestorage import VirusScanStatus, virus_checker_result
+from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
+from registry.patients.models import PatientConsent, upload_patient_consent_to
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
@@ -460,57 +461,84 @@ class MultipleFileInput(Widget):
 
 
 class ValueWrapper:
-    def __init__(self, value):
+    def __init__(self, value, filename):
         self.value = value
         self.url = value.url
-        # capture the original uploaded filename here
-        self.filename = None
+        self.filename = filename
 
     def __str__(self):
         return self.filename
 
 
-class ConsentFileInput(widgets.ClearableFileInput):
+class FileInputWrapper(widgets.ClearableFileInput):
 
-    @staticmethod
-    def usable_for_types():
-        return {CDEDataTypes.FILE}
+    template_name = 'widgets/custom_file_input.html'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.virus_check_result = VirusScanStatus.CLEAN
+
+    def wrap(self, value):
+        """
+        Wrap the incoming value so we can display
+        the original filename properly
+        """
+        try:
+            return self.wrapper_value_check(value)
+        except ValueError:
+            # was getting this on the Clear operation
+            # if we catch here, the clearing still works ...
+            return ''
+
+    def wrapper_value_check(self, value):
+        raise NotImplementedError("Must be implemented by subclass")
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         checkbox_name = self.clear_checkbox_name(name)
         checkbox_id = self.clear_checkbox_id(checkbox_name)
 
-        def wrap(value):
-            """
-            Wrap the incoming value so we can display
-            the original filename properly
-            """
-            try:
-                if hasattr(value, 'url'):
-                    patient_consent = PatientConsent.objects.get(form=value)
-                    filename = patient_consent.filename
-                    vw = ValueWrapper(value)
-                    vw.filename = filename
-                    return vw
-                else:
-                    return ''
-            except ValueError:
-                # was getting this on the Clear operation
-                # if we catch here, the clearing still works ...
-                return ''
-
         context['widget'].update({
             'checkbox_name': checkbox_name,
             'checkbox_id': checkbox_id,
             'is_initial': self.is_initial(value),
             'input_text': self.input_text,
-            'value': wrap(value),
+            'value': self.wrap(value) if value else 'Not set',
             'initial_text': self.initial_text,
             'clear_checkbox_label': self.clear_checkbox_label,
+            'virus_check_result': self.virus_check_result
         })
-
         return context
+
+
+class ConsentFileInput(FileInputWrapper):
+
+    def wrapper_value_check(self, value):
+        if hasattr(value, 'url'):
+            patient_consent = PatientConsent.objects.get(form=value)
+            filename = patient_consent.filename
+            try:
+                self.virus_check_result = virus_checker_result(upload_patient_consent_to(patient_consent, filename))
+            except Exception:
+                logger.exception("Exception while checking virus scan result")
+            return ValueWrapper(value, filename)
+        else:
+            return ''
+
+
+class CustomFileInput(FileInputWrapper):
+
+    def wrapper_value_check(self, value):
+        fs_dict = getattr(value, 'fs_dict') or {} if value else {}
+        filename = ''
+        if 'django_file_id' in fs_dict:
+            cde_file = CDEFile.objects.get(id=fs_dict['django_file_id'])
+            filename = cde_file.filename
+            try:
+                self.virus_check_result = virus_checker_result(file_upload_to(cde_file, filename))
+            except Exception:
+                logger.exception("Exception while checking virus scan result")
+        return ValueWrapper(value, filename) if hasattr(value, 'url') else ''
 
 
 class SliderWidget(widgets.TextInput):

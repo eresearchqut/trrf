@@ -457,7 +457,7 @@ class FieldFactory(object):
         if self.cde.allow_multiple:
             return fields.MultipleFileField(**options)
         else:
-            return fields.FileTypeRestrictedFileField(**options)
+            return fields.CustomFileField(**options)
 
 
 class ComplexFieldParseError(Exception):
