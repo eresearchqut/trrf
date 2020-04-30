@@ -275,6 +275,8 @@ AWS_SECRET_ACCESS_KEY = env.get("aws_storage_secret_access_key", env.get("aws_se
 AWS_S3_REGION_NAME = env.get("aws_storage_region_name", env.get("aws_region_name", "ap-southeast-2"))
 AWS_LOCATION = env.get("aws_storage_location", "")  # set to "local/{YOUR_USERNAME}/" in local dev
 
+VIRUS_CHECKING_ENABLED = env.get("VIRUS_CHECKING_ENABLED", False)
+
 #
 #       END OF - File Uploads
 

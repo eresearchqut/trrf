@@ -1,4 +1,5 @@
 import base64
+from collections import namedtuple
 import datetime
 import inspect
 import logging
@@ -498,10 +499,17 @@ class FileInputWrapper(widgets.ClearableFileInput):
         return context
 
 
+# Used to present a FieldFile-like object to the widget template that we can modify
+# Should return the name on str(value) and should have a value.url property
+FieldFileDummy = namedtuple('FieldFileDummy', ['name', 'url'])
+FieldFileDummy.__str__ = lambda ff: ff.name
+
+
 class ConsentFileInput(FileInputWrapper):
 
     def get_value(self, value):
-        return PatientConsent.objects.get(form=value).filename
+        filename = PatientConsent.objects.get(form=value).filename
+        return FieldFileDummy(name=filename, url=value.url)
 
     def get_filename(self, value):
         patient_consent = PatientConsent.objects.get(form=value)

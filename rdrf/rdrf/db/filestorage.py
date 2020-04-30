@@ -120,6 +120,8 @@ class S3VirusChecker:
 
 
 def virus_checker_result(filename):
+    if not settings.VIRUS_CHECKING_ENABLED:
+        return VirusScanStatus.CLEAN
     if isinstance(default_storage, CustomS3Storage):
         return S3VirusChecker(default_storage).check(filename)
     return VirusScanStatus.CLEAN
