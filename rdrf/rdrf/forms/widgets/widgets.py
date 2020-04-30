@@ -18,7 +18,7 @@ from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
-from rdrf.db.filestorage import VirusScanStatus, virus_checker_result
+from rdrf.db.filestorage import virus_checker_result
 from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
 from registry.patients.models import PatientConsent, upload_patient_consent_to
 from rdrf.forms.dynamic.validation import iso_8601_validator
