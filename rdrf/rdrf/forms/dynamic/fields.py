@@ -12,7 +12,7 @@ from django.forms import URLField
 from django.forms import DateField
 from django.utils.translation import gettext as _
 
-from rdrf.forms.widgets.widgets import MultipleFileInput
+from rdrf.forms.widgets.widgets import MultipleFileInput, CustomFileInput
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
@@ -61,7 +61,11 @@ class FileTypeRestrictedFileField(FileField):
         return super().validate(value)
 
 
-class MultipleFileField(FileTypeRestrictedFileField):
+class CustomFileField(FileTypeRestrictedFileField):
+    widget = CustomFileInput
+
+
+class MultipleFileField(CustomFileField):
     """
     A field made from multiple file fields.
     Values go in and out as lists of files.

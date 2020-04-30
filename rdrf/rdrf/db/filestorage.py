@@ -1,6 +1,13 @@
+import botocore
 from collections import namedtuple
 import logging
 import re
+
+from django.conf import settings
+from django.core.files.storage import default_storage
+
+from storages.backends.s3boto3 import S3Boto3Storage
+
 from rdrf.models.definition.models import Registry, CDEFile
 from rdrf.helpers.utils import models_from_mongo_key
 
@@ -74,3 +81,45 @@ def get_file(file_id):
         return StorageFileInfo(item=cde_file.item, filename=cde_file.filename, uploaded_by=cde_file.uploaded_by, patient=cde_file.patient)
     except CDEFile.DoesNotExist:
         return StorageFileInfo(item=None, filename=None, uploaded_by=None, patient=None)
+
+
+class CustomS3Storage(S3Boto3Storage):
+
+    def get_tags(self, name):
+        try:
+            name = self._encode_name(self._normalize_name(self._clean_name(name)))
+            response = self.connection.meta.client.get_object_tagging(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=name)
+            return {el['Key']: el['Value'] for el in response['TagSet']}
+        except botocore.exceptions.ClientError as tce:
+            if tce.response['Error']['Code'] == 'NoSuchKey':
+                pass
+            else:
+                raise tce
+        return {}
+
+
+class VirusScanStatus:
+    SCANNING = 'scanning'
+    CLEAN = 'clean'
+    INFECTED = 'infected'
+
+
+class S3VirusChecker:
+
+    def __init__(self, storage):
+        self.storage = storage
+
+    def check(self, name):
+        tags = self.storage.get_tags(name)
+        status = tags.get('av-status', '')
+        if not status:
+            return VirusScanStatus.SCANNING
+        elif status == 'INFECTED':
+            return VirusScanStatus.INFECTED
+        return VirusScanStatus.CLEAN
+
+
+def virus_checker_result(filename):
+    if isinstance(default_storage, CustomS3Storage):
+        return S3VirusChecker(default_storage).check(filename)
+    return VirusScanStatus.CLEAN

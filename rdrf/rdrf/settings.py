@@ -254,7 +254,7 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 if env.get("FILE_STORAGE", "S3") == "FS":
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    DEFAULT_FILE_STORAGE = "rdrf.db.filestorage.CustomS3Storage"
 
 # Configure different aspects of file uploads to S3
 
