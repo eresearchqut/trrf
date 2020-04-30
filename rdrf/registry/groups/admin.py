@@ -1,13 +1,19 @@
+import logging
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext as _
+
+from useraudit.admin import LogAdmin
+from useraudit.models import FailedLoginLog, LoginLog, UserDeactivation
+
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from useraudit.models import UserDeactivation
-from rdrf.helpers.registry_features import RegistryFeatures
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -116,5 +122,33 @@ class CustomUserAdmin(UserAdmin):
         return 'Inactive (%s)' % reason
 
 
+class CustomLoginLogFilter(admin.SimpleListFilter):
+    title = _('Users')
+
+    parameter_name = 'user_type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('regular', _('Regular users')),
+            ('other', _('Other')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'other':
+            return queryset.filter(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+        if self.value() == 'regular':
+            return queryset.exclude(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+
+
+class CustomLoginLogAdmin(LogAdmin):
+    list_filter = ['timestamp', CustomLoginLogFilter]
+
+
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(WorkingGroup, WorkingGroupAdmin)
+
+admin.site.unregister(LoginLog)
+admin.site.register(LoginLog, CustomLoginLogAdmin)
+
+admin.site.unregister(FailedLoginLog)
+admin.site.register(FailedLoginLog, CustomLoginLogAdmin)
