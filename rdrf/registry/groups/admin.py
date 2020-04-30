@@ -130,6 +130,7 @@ class CustomLoginLogFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
+            ('all', _('All')),
             ('regular', _('Regular users')),
             ('other', _('Other')),
         )
@@ -145,10 +146,13 @@ class CustomLoginLogFilter(admin.SimpleListFilter):
             }
 
     def queryset(self, request, queryset):
-        if self.value() == 'other':
-            return queryset.filter(username__in=settings.LOGIN_LOG_FILTERED_USERS)
-        else:
+        value = self.value()
+        is_default_value = not value or value == 'regular'
+        if is_default_value:
             return queryset.exclude(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+        elif value == 'other':
+            return queryset.filter(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+        return queryset
 
 
 class CustomLoginLogAdmin(LogAdmin):
