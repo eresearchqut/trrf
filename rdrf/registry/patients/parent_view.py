@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import PermissionDenied
 from django.views.generic.base import View
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -174,6 +175,13 @@ class ParentEditView(BaseParentView):
     def post(self, request, registry_code, parent_id):
         context = {}
         parent = ParentGuardian.objects.get(id=parent_id)
+        associated_parent = ParentGuardian.objects.filter(user=request.user).first()
+        if not associated_parent:
+            user = request.user
+            if not (user.is_superuser or self.request.user.is_staff):
+                raise PermissionDenied
+        elif associated_parent.id != parent_id:
+            raise PermissionDenied
 
         parent_form = ParentGuardianForm(request.POST, instance=parent)
         if parent_form.is_valid():
