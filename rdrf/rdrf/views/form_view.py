@@ -1123,6 +1123,8 @@ class FormFieldHistoryView(TemplateView):
     def get(self, request, **kwargs):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
+        patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
+        security_check_user_patient(request.user, patient_model)
         return super(FormFieldHistoryView, self).get(request, **kwargs)
 
     def get_context_data(
