@@ -1537,7 +1537,7 @@ class QuestionnaireView(FormView):
             registry, registry_form, section, questionnaire_context=self.questionnaire_context)
 
 
-class QuestionnaireHandlingView(View):
+class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
