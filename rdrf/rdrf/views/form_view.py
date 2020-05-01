@@ -68,6 +68,7 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.view_helper import FileErrorHandlingMixin
+from rdrf.security.mixins import StaffMemberRequiredMixin
 
 import logging
 
@@ -1593,7 +1594,7 @@ class StandardView(object):
         return StandardView._render(request, StandardView.APPLICATION_ERROR, context)
 
 
-class QuestionnaireConfigurationView(View):
+class QuestionnaireConfigurationView(StaffMemberRequiredMixin, View):
 
     """
     Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
