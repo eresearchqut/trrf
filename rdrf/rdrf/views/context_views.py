@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
@@ -71,7 +72,7 @@ class ContextFormGroupHelperMixin(object):
         else:
             return context_form_group_model.get_default_name(patient_model)
 
-    def allowed(self, user, registry_code, patient_id, context_id):
+    def allowed(self, user, registry_code, patient_id, context_id=None):
         try:
             is_normal_user = not user.is_superuser
             registry_model = Registry.objects.get(code=registry_code)
@@ -79,7 +80,7 @@ class ContextFormGroupHelperMixin(object):
                 return False
             patient_model = Patient.objects.get(pk=patient_id)
             patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
-            context_model = RDRFContext.objects.get(pk=context_id)
+            context_model = RDRFContext.objects.get(pk=context_id) if context_id else None
             if not user.is_superuser:
                 user_working_groups = set([wg for wg in user.working_groups.all()])
             else:
@@ -96,10 +97,6 @@ class ContextFormGroupHelperMixin(object):
         except Exception as ex:
             logger.error("error in context allowed check: %s" % ex)
             return False
-
-    def sanity_check(self, registry_model):
-        if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
-            return HttpResponseRedirect("/")
 
     def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):
         assert len(
@@ -130,8 +127,10 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
 
     @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_form_group_id=None):
+        if not self.allowed(request.user, registry_code, patient_id):
+            raise PermissionDenied
+
         registry_model = Registry.objects.get(code=registry_code)
-        self.sanity_check(registry_model)
         patient_model = Patient.objects.get(pk=patient_id)
         context_form_group = self.get_context_form_group(context_form_group_id)
         naming_info = self.get_naming_info(context_form_group_id)
@@ -162,10 +161,13 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
 
     @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
+        if not self.allowed(request.user, registry_code, patient_id):
+            raise PermissionDenied
+
         form = ContextForm(request.POST)
         registry_model = Registry.objects.get(code=registry_code)
-        self.sanity_check(registry_model)
         patient_model = Patient.objects.get(pk=patient_id)
+
         context_form_group_model = self.get_context_form_group(context_form_group_id)
         naming_info = self.get_naming_info(context_form_group_id)
         context_name = self.get_context_name(registry_model, context_form_group_model)
@@ -216,7 +218,7 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
         rdrf_context_model = get_object_or_404(RDRFContext, pk=context_id)
 
         if not self.allowed(request.user, registry_code, patient_id, context_id):
-            return HttpResponseRedirect("/")
+            raise PermissionDenied
 
         context_form = ContextForm(instance=rdrf_context_model)
 
