@@ -3,7 +3,6 @@ from django.views.generic import View
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 
 import json
 
@@ -51,21 +50,6 @@ class PatientLookup(View):
             results = []
 
         return HttpResponse(json.dumps(results))
-
-
-class VerificationLookup(View):
-    @method_decorator(login_required)
-    def get(self, request, registry_code, patient_id):
-        from rdrf.models.definition.models import Registry
-        from rdrf.workflows.verification import get_verifiable_cdes
-        registry_model = Registry.objects.get(code=registry_code)
-        patient_model = Patient.objects.get(id=patient_id,
-                                            rdrf_registry__in=[registry_model])
-        if self._user_allowed(request.user, registry_model, patient_model):
-            results = get_verifiable_cdes(registry_model, patient_model)
-            return HttpResponse(json.dumps(results))
-
-        raise PermissionDenied()
 
 
 class FamilyLookup(View):
