@@ -252,9 +252,11 @@ class DownloadQueryView(LoginRequiredMixin, View, AccessCheckMixin):
         return report_table_generator.dump_csv(response)
 
 
-class SqlQueryView(View):
+class SqlQueryView(LoginRequiredMixin, View):
 
     def post(self, request):
+        if not self.request.user.is_superuser:
+            raise PermissionDenied
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]
