@@ -1,8 +1,10 @@
 import logging
 import json
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.views.generic.base import View
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.apps import apps
 from django.contrib import messages
@@ -16,15 +18,19 @@ from rdrf.services.io.notifications.email_notification import EmailNotificationH
 logger = logging.getLogger(__name__)
 
 
-class ResendEmail(View):
+class ResendEmail(LoginRequiredMixin, View):
 
     template_data = {}
 
     # TODO most of this code probably belongs on an EmailNotificationHistoryManager method
     # To be done as part of EmailNotificationHistory redesign #447
     def get(self, request, notification_history_id):
+        if not self.request.user.is_superuser:
+            raise PermissionDenied
+
         self.notification_history_id = notification_history_id
-        history = EmailNotificationHistory.objects.get(pk=notification_history_id)
+        history = get_object_or_404(EmailNotificationHistory, pk=notification_history_id)
+
         self.template_data = history.template_data
 
         self._get_template_data()

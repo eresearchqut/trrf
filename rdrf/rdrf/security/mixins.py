@@ -1,5 +1,4 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
-from rdrf.helpers.registry_features import RegistryFeatures
 
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
