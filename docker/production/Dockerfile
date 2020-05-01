@@ -86,6 +86,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   nodejs \
   unixodbc \
   ssl-cert \
+  libmagic1 \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir /requirements

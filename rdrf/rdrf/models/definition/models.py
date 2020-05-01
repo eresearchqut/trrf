@@ -831,7 +831,7 @@ class RegistryForm(models.Model):
     conditional_rendering_rules = models.TextField(
         blank=True,
         null=True,
-        help_text=f'''Use the conditional rendering DSL to add rules.
+        help_text='''Use the conditional rendering DSL to add rules.
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
 
@@ -1838,7 +1838,7 @@ class ClinicalData(models.Model):
         if not self.modjgo_schema:
             try:
                 with open(self.modjgo_schema_file) as f:
-                    self.modjgo_schema = yaml.load(f.read())
+                    self.modjgo_schema = yaml.load(f.read(), Loader=yaml.FullLoader)
             except BaseException:
                 logger.exception("Error reading %s" % self.modjgo_schema_file)
 
@@ -1935,3 +1935,14 @@ class FormTitle(models.Model):
     @property
     def group_names(self):
         return ', '.join(group.name for group in self.groups.order_by('name').all())
+
+
+class BlacklistedMimeType(models.Model):
+    mime_type = models.CharField(max_length=256, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.mime_type} - {self.description}"
+
+    class Meta:
+        verbose_name = "Disallowed mime type"

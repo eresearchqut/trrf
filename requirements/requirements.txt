@@ -3,6 +3,7 @@ Django==2.2.10
 django-ajax-selects==1.8.0
 django-anymail==7.0.0
 django-countries==5.5
+django-csp==3.6
 django-extensions==2.2.8
 django-messages-ui==2.0.2
 django-nose==1.4.6
@@ -24,6 +25,7 @@ pyinotify==0.9.6
 pyodbc==4.0.28
 pyparsing==2.4.6
 python-dateutil==2.8.1
+python-magic==0.4.15
 python-memcached==1.59
 pyyaml==5.3.1
 setuptools==43.0.0

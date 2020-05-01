@@ -4,7 +4,7 @@ import subprocess
 
 from aloe import world
 
-from .terrain import TEST_WAIT
+TEST_WAIT = int(os.environ.get('TEST_WAIT') or '10')
 
 logger = logging.getLogger(__name__)
 

@@ -104,14 +104,14 @@ class Importer(object):
 
     def load_yaml_from_string(self, yaml_string):
         self.yaml_data_file = "yaml string"
-        self.data = yaml.load(yaml_string)
+        self.data = yaml.load(yaml_string, Loader=yaml.FullLoader)
         self.state = ImportState.LOADED
 
     def load_yaml(self, yaml_data_file):
         try:
             self.yaml_data_file = yaml_data_file
             yaml_data = open(yaml_data_file)
-            self.data = yaml.load(yaml_data)
+            self.data = yaml.load(yaml_data, Loader=yaml.FullLoader)
             yaml_data.close()
             self.state = ImportState.LOADED
         except Exception as ex:
@@ -249,7 +249,7 @@ class Importer(object):
                             imported_section_cdes.add(cde_model.code)
                         except CommonDataElement.DoesNotExist:
                             raise RegistryImportError(
-                                "CDE %s.%s does not exist" %
+                                "CDE %s.%s.%s does not exist" %
                                 (form.name, section_code, section_cde_code))
 
                     yaml_section_cdes = set([])

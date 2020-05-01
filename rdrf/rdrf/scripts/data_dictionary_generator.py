@@ -7,8 +7,8 @@ import codecs
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
 
-def decode(l):
-    return map(lambda s: s.decode('utf-8'), l)
+def decode(string_list):
+    return map(lambda s: s.decode('utf-8'), string_list)
 
 
 RANGE_DELIMITER = "|"
@@ -281,7 +281,7 @@ output_file = sys.argv[2]
 
 
 with open(yaml_file) as yf:
-    data = yaml.load(yf)
+    data = yaml.load(yf, Loader=yaml.FullLoader)
 
 f = codecs.open(output_file, mode="w", encoding="utf-8")
 ddr = DataDefinitionReport(data, f)

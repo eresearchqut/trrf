@@ -1,13 +1,20 @@
+import logging
+
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.utils.encoding import force_text
+from django.utils.translation import gettext as _
+
+from useraudit.admin import LogAdmin
+from useraudit.models import FailedLoginLog, LoginLog, UserDeactivation
+
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
-from useraudit.models import UserDeactivation
-from rdrf.helpers.registry_features import RegistryFeatures
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -116,5 +123,47 @@ class CustomUserAdmin(UserAdmin):
         return 'Inactive (%s)' % reason
 
 
+class CustomLoginLogFilter(admin.SimpleListFilter):
+    title = _('Users')
+
+    parameter_name = 'user_type'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('all', _('All')),
+            ('regular', _('Regular users')),
+            ('other', _('Other')),
+        )
+
+    def choices(self, changelist):
+        for lookup, title in self.lookup_choices:
+            value_text = force_text(self.value())
+            lookup_text = force_text(lookup)
+            yield {
+                'selected': value_text == lookup_text if self.value() else 'regular' == lookup_text,
+                'query_string': changelist.get_query_string({self.parameter_name: lookup}, []),
+                'display': title,
+            }
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        is_default_value = not value or value == 'regular'
+        if is_default_value:
+            return queryset.exclude(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+        elif value == 'other':
+            return queryset.filter(username__in=settings.LOGIN_LOG_FILTERED_USERS)
+        return queryset
+
+
+class CustomLoginLogAdmin(LogAdmin):
+    list_filter = ['timestamp', CustomLoginLogFilter]
+
+
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(WorkingGroup, WorkingGroupAdmin)
+
+admin.site.unregister(LoginLog)
+admin.site.register(LoginLog, CustomLoginLogAdmin)
+
+admin.site.unregister(FailedLoginLog)
+admin.site.register(FailedLoginLog, CustomLoginLogAdmin)

@@ -6,6 +6,7 @@ from ccg_django_utils.conf import EnvConfig
 # import message constants so we can use bootstrap style classes
 from django.contrib.messages import constants as message_constants
 import rdrf
+from rdrf.helpers.settings_helpers import get_static_url_domain, get_csp
 from rdrf.system_role import SystemRoles
 
 env = EnvConfig()
@@ -148,6 +149,7 @@ MIDDLEWARE = (
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -252,7 +254,7 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 if env.get("FILE_STORAGE", "S3") == "FS":
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    DEFAULT_FILE_STORAGE = "rdrf.db.filestorage.CustomS3Storage"
 
 # Configure different aspects of file uploads to S3
 
@@ -272,6 +274,8 @@ AWS_SECRET_ACCESS_KEY = env.get("aws_storage_secret_access_key", env.get("aws_se
 
 AWS_S3_REGION_NAME = env.get("aws_storage_region_name", env.get("aws_region_name", "ap-southeast-2"))
 AWS_LOCATION = env.get("aws_storage_location", "")  # set to "local/{YOUR_USERNAME}/" in local dev
+
+VIRUS_CHECKING_ENABLED = env.get("VIRUS_CHECKING_ENABLED", False)
 
 #
 #       END OF - File Uploads
@@ -303,7 +307,7 @@ SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get(
     "session_cookie_name", "trrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
-SESSION_COOKIE_SAMESITE = "Strict"
+# SESSION_COOKIE_SAMESITE = "Strict"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
@@ -317,6 +321,19 @@ CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
+# Content Security Policy
+_CSP_STATIC_URL = get_static_url_domain(env.get("STATIC_URL", ""))
+
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_OBJECT_SRC = ["'none'"]
+CSP_SCRIPT_SRC = get_csp(
+    ["'self'", "'unsafe-inline'", "https://js-agent.newrelic.com", "https://bam.nr-data.net"],
+    [_CSP_STATIC_URL]
+)
+CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
+CSP_FONT_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
+CSP_IMG_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
+CSP_CONNECT_SRC = ["'self'", "https://bam.nr-data.net"]
 
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised.
@@ -587,3 +604,4 @@ RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
 
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
+LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])

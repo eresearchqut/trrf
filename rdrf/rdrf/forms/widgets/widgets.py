@@ -1,4 +1,5 @@
 import base64
+from collections import namedtuple
 import datetime
 import inspect
 import logging
@@ -16,9 +17,11 @@ from django.forms.utils import flatatt
 from django.utils.formats import date_format
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
-from rdrf.models.definition.models import CommonDataElement
-from registry.patients.models import PatientConsent
+from rdrf.db.filestorage import virus_checker_result
+from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
+from registry.patients.models import PatientConsent, upload_patient_consent_to
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
@@ -459,58 +462,69 @@ class MultipleFileInput(Widget):
                 for i in nums]
 
 
-class ValueWrapper:
-    def __init__(self, value):
-        self.value = value
-        self.url = value.url
-        # capture the original uploaded filename here
-        self.filename = None
+class FileInputWrapper(widgets.ClearableFileInput):
 
-    def __str__(self):
-        return self.filename
+    template_name = 'widgets/custom_file_input.html'
 
+    def get_value(self, value):
+        return value
 
-class ConsentFileInput(widgets.ClearableFileInput):
+    def get_filename(self, value):
+        return None
 
-    @staticmethod
-    def usable_for_types():
-        return {CDEDataTypes.FILE}
+    def do_virus_check(self, filename):
+        try:
+            return virus_checker_result(filename)
+        except Exception:
+            logger.exception("Exception while checking virus scan result")
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         checkbox_name = self.clear_checkbox_name(name)
         checkbox_id = self.clear_checkbox_id(checkbox_name)
 
-        def wrap(value):
-            """
-            Wrap the incoming value so we can display
-            the original filename properly
-            """
-            try:
-                if hasattr(value, 'url'):
-                    patient_consent = PatientConsent.objects.get(form=value)
-                    filename = patient_consent.filename
-                    vw = ValueWrapper(value)
-                    vw.filename = filename
-                    return vw
-                else:
-                    return ''
-            except ValueError:
-                # was getting this on the Clear operation
-                # if we catch here, the clearing still works ...
-                return ''
+        is_initial = self.is_initial(value)
+        filename = self.get_filename(value) if is_initial else None
 
         context['widget'].update({
             'checkbox_name': checkbox_name,
             'checkbox_id': checkbox_id,
-            'is_initial': self.is_initial(value),
+            'is_initial': is_initial,
             'input_text': self.input_text,
-            'value': wrap(value),
+            'value': self.get_value(value) if is_initial else _('Not set'),
             'initial_text': self.initial_text,
             'clear_checkbox_label': self.clear_checkbox_label,
+            'virus_check_result': self.do_virus_check(filename) if filename else '',
         })
-
         return context
+
+
+# Used to present a FieldFile-like object to the widget template that we can modify
+# Should return the name on str(value) and should have a value.url property
+FieldFileDummy = namedtuple('FieldFileDummy', ['name', 'url'])
+FieldFileDummy.__str__ = lambda ff: ff.name
+
+
+class ConsentFileInput(FileInputWrapper):
+
+    def get_value(self, value):
+        filename = PatientConsent.objects.get(form=value).filename
+        return FieldFileDummy(name=filename, url=value.url)
+
+    def get_filename(self, value):
+        patient_consent = PatientConsent.objects.get(form=value)
+        return upload_patient_consent_to(patient_consent, patient_consent.filename)
+
+
+class CustomFileInput(FileInputWrapper):
+
+    def get_filename(self, value):
+        django_file_id = getattr(value, 'fs_dict', {}).get('django_file_id')
+        if django_file_id is None:
+            return None
+
+        cde_file = CDEFile.objects.get(pk=django_file_id)
+        return file_upload_to(cde_file, cde_file.filename)
 
 
 class SliderWidget(widgets.TextInput):
