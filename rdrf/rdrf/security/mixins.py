@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
@@ -11,3 +12,13 @@ class StaffMemberRequiredMixin(UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_staff
+
+class ReportAccessMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        user = self.request.user
+        if not user.is_staff:
+            return False
+        if user.is_superuser or user.is_curator or user.is_clinician:
+            return True
+        return False

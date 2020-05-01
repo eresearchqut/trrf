@@ -1,48 +1,36 @@
 import json
 import logging
 
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic.base import View
 
 from explorer.models import Query
-from rdrf.security.mixins import StaffMemberRequiredMixin
+from rdrf.security.mixins import ReportAccessMixin
 from rdrf.services.io.reporting.reporting_table import ReportTable
 
 logger = logging.getLogger(__name__)
 
 
-class ReportView(StaffMemberRequiredMixin, View):
+class ReportView(ReportAccessMixin, View):
 
     def get(self, request):
         user = request.user
-
-        reports = None
-
-        if user.is_superuser:
-            reports = Query.objects.all()
-        elif user.is_curator or (user.is_clinician and user.ethically_cleared):
-            reports = Query.objects.filter(
-                registry__in=[
-                    reg.id for reg in user.get_registries()]).filter(
-                access_group__in=[
-                    g.id for g in user.get_groups()]).distinct()
-
         context = {}
-        context['reports'] = reports
+        context['reports'] = Query.objects.reports_for_user(user)
         context["location"] = 'Reports'
         return render(request, 'rdrf_cdes/reports.html', context)
 
 
-class ReportDataTableView(StaffMemberRequiredMixin, View):
+class ReportDataTableView(ReportAccessMixin, View):
 
     def get(self, request, query_model_id):
         user = request.user
         query_model = get_object_or_404(Query, pk=query_model_id)
 
-        if not self._sanity_check(query_model, user):
-            return HttpResponseRedirect("/")
+        self._permission_check(query_model, user)
 
         report_table = ReportTable(user, query_model)
         registry_model = query_model.registry
@@ -56,19 +44,16 @@ class ReportDataTableView(StaffMemberRequiredMixin, View):
             "api_url": reverse('report_datatable', args=[query_model_id]),
         })
 
-    def _sanity_check(self, query_model, user):
-        # todo sanity check
-        return True
+    def _permission_check(self, query_model, user):
+        accessible_report_ids = set([q.id for q in Query.objects.reports_for_user(user)])
+        if query_model.id not in accessible_report_ids:
+            raise PermissionDenied
 
     def post(self, request, query_model_id):
         user = request.user
-        try:
-            query_model = Query.objects.get(pk=query_model_id)
-        except Query.DoesNotExist:
-            raise Http404("Report %s does not exist" % query_model_id)
+        query_model = get_object_or_404(Query, pk=query_model_id)
 
-        if not self._sanity_check(query_model, user):
-            return HttpResponseRedirect("/")
+        self._permission_check(query_model, user)
 
         query_parameters = self._get_query_parameters(request)
         report_table = ReportTable(user, query_model)
