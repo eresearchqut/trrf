@@ -39,6 +39,7 @@ from rdrf.forms.components import FamilyLinkagePanel
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.db.contexts_api import RDRFContextManager
 
+from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
 from django.core.exceptions import PermissionDenied
 
@@ -588,7 +589,7 @@ class PatientFormMixin:
         return [_(x) for x in registry_model.metadata.get('section_blacklist', [])]
 
 
-class AddPatientView(PatientFormMixin, CreateView):
+class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
     model = Patient
     form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
