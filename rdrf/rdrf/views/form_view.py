@@ -79,14 +79,6 @@ class RDRFContextSwitchError(Exception):
     pass
 
 
-class LoginRequiredMixin(object):
-
-    @login_required_method
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
-
-
 class CustomConsentHelper(object):
 
     def __init__(self, registry_model):

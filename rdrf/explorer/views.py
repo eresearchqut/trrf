@@ -5,12 +5,12 @@ import re
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
-from django.utils.decorators import method_decorator
 from django.views.generic.base import View
 
 from explorer import __version__
@@ -28,14 +28,6 @@ from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyEr
 from rdrf.helpers.utils import mongo_key_from_models
 
 logger = logging.getLogger(__name__)
-
-
-class LoginRequiredMixin(object):
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
 
 
 class MainView(LoginRequiredMixin, View):

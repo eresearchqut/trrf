@@ -1,11 +1,11 @@
-from django.urls import reverse
-from django.shortcuts import redirect, get_object_or_404
+
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse
 from django.views.generic.base import View
 
 from rdrf.models.definition.models import Registry
-
-from .mixins import LoginRequiredMixin
 
 
 class PatientView(View, LoginRequiredMixin):
