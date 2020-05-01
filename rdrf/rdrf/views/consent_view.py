@@ -8,7 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils.translation import ugettext as _
 
 from registry.patients.models import ConsentValue
-from registry.patients.models import Patient, ParentGuardian
+from registry.patients.models import Patient
 
 from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
@@ -119,31 +119,3 @@ class ConsentDetails(StaffMemberRequiredMixin, View):
                     "section_id": section_id
                 })
         return values
-
-
-class ConsentDetailsPrint(ConsentDetails):
-
-    def get(self, request, registry_code, patient_id):
-        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
-        security_check_user_patient(request.user, patient_model)
-        context = {}
-
-        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
-        patient = Patient.objects.get(id=patient_id)
-
-        details = {}
-        for section in consent_sections:
-            if section.applicable_to(patient):
-                details[section] = self._get_consent_details_for_patient(
-                    registry_code, section.id, patient_id)
-
-        context['details'] = details
-        context['patient'] = patient
-
-        if request.user.is_parent:
-            parent = ParentGuardian.objects.get(user=request.user)
-            context['is_parent'] = True
-            context['parent'] = parent
-            context['self_patient'] = True if parent.self_patient == patient else False
-
-        return render(request, 'rdrf_cdes/consent_details_print.html', context)
