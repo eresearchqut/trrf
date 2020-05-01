@@ -116,6 +116,10 @@
                 {
                     "name": "EMAIL_SUBJECT_PREFIX",
                     "value": "$EMAIL_SUBJECT_PREFIX"
+                },
+                {
+                    "name": "VIRUS_CHECKING_ENABLED",
+                    "value": "$VIRUS_CHECKING_ENABLED"
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
