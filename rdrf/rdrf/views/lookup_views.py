@@ -1,16 +1,18 @@
-from django.http import HttpResponse
+import logging
+
+from django.http import JsonResponse
 from django.views.generic import View
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-
-import json
+from django.core.exceptions import PermissionDenied
 
 from registry.patients.models import Patient
 
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.security.security_checks import security_check_user_patient
 
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,18 +43,37 @@ class PatientLookup(View):
                     Q(working_groups__in=working_groups)
 
                 for patient_model in Patient.objects.filter(query):
-                    if patient_model.active:
-                        name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name,
-                                        "class": "Patient", "pk": patient_model.pk})
+                    try:
+                        security_check_user_patient(self.request.user, patient_model)
+                        if patient_model.active:
+                            name = "%s" % patient_model
+                            results.append({"value": patient_model.pk, "label": name,
+                                            "class": "Patient", "pk": patient_model.pk})
+                    except PermissionDenied:
+                        pass
 
         except Registry.DoesNotExist:
             results = []
 
-        return HttpResponse(json.dumps(results))
+        return JsonResponse(results, safe=False)
 
 
 class FamilyLookup(View):
+
+    def _patient_info(self, patient, working_group, link, relationship=None):
+        ret_val = {
+            "pk": patient.pk,
+            "given_names": patient.given_names,
+            "family_name": patient.family_name,
+            "class": 'Patient' if not relationship else 'PatientRelative',
+            "working_group": working_group,
+            "link": link
+        }
+        if relationship:
+            ret_val.update({
+                'relationship': relationship
+            })
+        return ret_val
 
     @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
@@ -62,61 +83,40 @@ class FamilyLookup(View):
             patient = Patient.objects.get(pk=index_patient_pk)
         except Patient.DoesNotExist:
             result = {"error": "patient does not exist"}
-            return HttpResponse(json.dumps(result))
+            return JsonResponse(result)
 
         if not patient.is_index:
             result = {"error": "patient is not an index"}
-            return HttpResponse(json.dumps(result))
+            return JsonResponse(result)
 
-        if request.user.can_view_patient_link(patient):
-            link = reverse("patient_edit", args=[reg_code, patient.pk])
-            working_group = None
-        else:
-            link = None
-            working_group = self._get_working_group_name(patient)
+        if not request.user.can_view_patient_link(patient):
+            result = {"error": "User cannot view patient link"}
+            return JsonResponse(result)
 
-        result["index"] = {"pk": patient.pk,
-                           "given_names": patient.given_names,
-                           "family_name": patient.family_name,
-                           "class": "Patient",
-                           "working_group": working_group,
-                           "link": link}
+        link = reverse("patient_edit", args=[reg_code, patient.pk])
+        working_group = None
+
+        result["index"] = self._patient_info(patient, working_group, link)
         result["relatives"] = []
 
-        relationships = self._get_relationships()
-        result["relationships"] = relationships
+        result["relationships"] = self._get_relationships()
 
         for relative in patient.relatives.all():
             patient_created = relative.relative_patient
             working_group = None
-
+            relative_link = None
             if patient_created:
                 if request.user.can_view_patient_link(patient_created):
                     relative_link = reverse("patient_edit", args=[reg_code,
                                                                   patient_created.pk])
-                else:
-                    relative_link = None
-                    working_group = self._get_working_group_name(patient_created)
 
-            else:
-                relative_link = None
+            if relative_link:
+                result["relatives"].append(
+                    self._patient_info(relative, working_group, relative_link, relative.relationship)
+                )
 
-            relative_dict = {"pk": relative.pk,
-                             "given_names": relative.given_names,
-                             "family_name": relative.family_name,
-                             "relationship": relative.relationship,
-                             "class": "PatientRelative",
-                             "working_group": working_group,
-                             "link": relative_link}
-
-            result["relatives"].append(relative_dict)
-
-        return HttpResponse(json.dumps(result))
+        return JsonResponse(result)
 
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
-
-    def _get_working_group_name(self, patient_model):
-        wgs = ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))
-        return "No link - patient in " + wgs
