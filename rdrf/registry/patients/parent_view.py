@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from registry.groups.models import WorkingGroup
 from registry.patients.admin_forms import ParentGuardianForm
@@ -16,7 +17,6 @@ from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryForm
 
-from .mixins import LoginRequiredMixin
 
 logger = logging.getLogger("registry_log")
 
