@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic.base import View
 
 from explorer import __version__
@@ -33,21 +33,8 @@ logger = logging.getLogger(__name__)
 class MainView(LoginRequiredMixin, View):
 
     def get(self, request):
-        user = request.user
-
-        reports = None
-
-        if user.is_superuser:
-            reports = Query.objects.all()
-        elif user.is_curator or (user.is_clinician and user.ethically_cleared):
-            reports = Query.objects.filter(
-                registry__in=[
-                    reg.id for reg in user.get_registries()]).filter(
-                access_group__in=[
-                    g.id for g in user.get_groups()])
-
         return render(request, 'explorer/query_list.html', {
-            'object_list': reports
+            'object_list': Query.objects.reports_for_user(request.user)
         })
 
 
@@ -80,17 +67,27 @@ class DeleteQueryView(LoginRequiredMixin, View):
         if not request.user.is_superuser:
             raise PermissionDenied()
 
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
         return redirect('rdrf:explorer_main')
 
+class AccessCheckMixin:
 
-class QueryView(LoginRequiredMixin, View):
+    def check_access(self, user, query):
+        if not user.is_superuser:
+            accessible_query_ids = [q.id for q in Query.objects.reports_for_user(user)]
+            if query.id not in accessible_query_ids:
+                raise PermissionDenied
+
+
+class QueryView(LoginRequiredMixin, View, AccessCheckMixin):
 
     def get(self, request, query_id):
         from rdrf.models.definition.models import Registry
 
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
+        self.check_access(request.user, query_model)
+
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -98,7 +95,9 @@ class QueryView(LoginRequiredMixin, View):
         return render(request, 'explorer/query.html', params)
 
     def post(self, request, query_id):
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
+        self.check_access(request.user, query_model)
+
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
@@ -133,13 +132,14 @@ class QueryView(LoginRequiredMixin, View):
                 return redirect(query_model)
 
 
-class DownloadQueryView(LoginRequiredMixin, View):
+class DownloadQueryView(LoginRequiredMixin, View, AccessCheckMixin):
 
     def post(self, request, query_id, action):
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
+        self.check_access(request.user, query_model)
 
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
@@ -198,7 +198,10 @@ class DownloadQueryView(LoginRequiredMixin, View):
             raise Exception("bad action")
 
         user = request.user
-        query_model = Query.objects.get(id=query_id)
+
+        query_model = get_object_or_404(Query, pk=query_id)
+        self.check_access(request.user, query_model)
+
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
 
