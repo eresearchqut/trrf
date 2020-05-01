@@ -1685,12 +1685,6 @@ class Colours(object):
     yellow = "#ffff00"
 
 
-class ConstructorFormView(View):
-
-    def get(self, request, form_name):
-        return render(request, 'rdrf_cdes/%s.html' % form_name)
-
-
 class CustomConsentFormView(View):
 
     def get(self, request, registry_code, patient_id, context_id=None):

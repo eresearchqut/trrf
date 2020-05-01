@@ -135,8 +135,6 @@ normalpatterns += [
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
-    re_path(r'^constructors/(?P<form_name>\w+)/?$',
-            form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
@@ -254,10 +252,6 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
             form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
-
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
-            consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
 
 
     # ---- Clinician related URLs -----------------
