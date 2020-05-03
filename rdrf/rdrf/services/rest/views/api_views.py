@@ -30,28 +30,28 @@ class BadRequestError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
 
-class RegistryDetail(generics.RetrieveUpdateDestroyAPIView):
+class RegistryDetail(generics.RetrieveAPIView):
     queryset = Registry.objects.all()
     serializer_class = RegistrySerializer
     lookup_field = 'code'
 
 
-class RegistryList(generics.ListCreateAPIView):
+class RegistryList(generics.ListAPIView):
     queryset = Registry.objects.all()
     serializer_class = RegistrySerializer
 
 
-class NextOfKinRelationshipDetail(generics.RetrieveUpdateDestroyAPIView):
+class NextOfKinRelationshipDetail(generics.RetrieveAPIView):
     queryset = NextOfKinRelationship.objects.all()
     serializer_class = NextOfKinRelationshipSerializer
 
 
-class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
+class NextOfKinRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = NextOfKinRelationship.objects.all()
     serializer_class = NextOfKinRelationshipSerializer
 
 
-class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
+class PatientDetail(generics.RetrieveAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = (IsAuthenticated,)
@@ -80,7 +80,7 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
             self.permission_denied(request, message='Patient not in your working group')
 
 
-class PatientList(generics.ListCreateAPIView):
+class PatientList(generics.ListAPIView):
 
     serializer_class = PatientSerializer
 
@@ -113,7 +113,7 @@ class PatientList(generics.ListCreateAPIView):
         return super(PatientList, self).post(request, *args, **kwargs)
 
 
-class RegistryViewSet(viewsets.ModelViewSet):
+class RegistryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Registry.objects.all()
     serializer_class = RegistrySerializer
     lookup_field = 'code'
@@ -128,12 +128,12 @@ class RegistryViewSet(viewsets.ModelViewSet):
         return obj
 
 
-class WorkingGroupViewSet(viewsets.ModelViewSet):
+class WorkingGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = WorkingGroup.objects.all()
     serializer_class = WorkingGroupSerializer
 
 
-class CustomUserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
