@@ -1,14 +1,17 @@
 import logging
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 logger = logging.getLogger(__name__)
+
 
 @login_required
 def rpc_visibility(request, element):
     user = request.user
     if user.can("see", element):
         return True
+
 
 @login_required
 def rpc_check_notifications(request):
@@ -21,6 +24,7 @@ def rpc_check_notifications(request):
         results.append({"message": notification.message,
                         "from_user": notification.from_username, "link": notification.link})
     return results
+
 
 @login_required
 def rpc_dismiss_notification(request, notification_id):
@@ -36,6 +40,7 @@ def rpc_dismiss_notification(request, notification_id):
                      (notification_id, ex))
     return status
 
+
 @login_required
 def rpc_fh_patient_is_index(request, patient_id):
     from registry.patients.models import Patient
@@ -47,6 +52,7 @@ def rpc_fh_patient_is_index(request, patient_id):
     else:
         return False
 
+
 @login_required
 def rpc_reporting_command(request, query_id, registry_id, command, arg):
     # 2 possible commands/invocations client side from report definition screen:
@@ -57,10 +63,15 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
     from rdrf.models.definition.models import Registry
     from explorer.models import Query
     user = request.user
+
     if query_id == "new":
         query_model = None
     else:
         query_model = Query.objects.get(pk=int(query_id))
+        if not user.is_superuser:
+            accessible_query_ids = [q.id for q in Query.objects.reports_for_user(user)]
+            if query_model.id not in accessible_query_ids:
+                raise PermissionDenied
 
     registry_model = Registry.objects.get(pk=int(registry_id))
     if command == "get_projection":
@@ -99,6 +110,10 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     from registry.patients.models import Patient
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
+    from django.utils.translation import ugettext as _
+
+    if not (request.user.is_superuser or request.user.is_staff):
+        return {"status": "fail", "message": _("Permission error. Data cannot be updated !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
@@ -111,6 +126,7 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
             "name": existing_data.name,
             "questions": existing_data.questions}
 
+
 @login_required
 def rpc_update_selected_cdes_from_questionnaire(
         request,
@@ -121,6 +137,10 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
     from django.db import transaction
+    from django.utils.translation import ugettext as _
+
+    if not (request.user.is_superuser or request.user.is_staff):
+        return {"status": "fail", "message": _("Permission error. Data cannot be updated !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
@@ -144,6 +164,7 @@ def rpc_update_selected_cdes_from_questionnaire(
         questionnaire_response_model.save()
         return {"status": "success", "message": "Patient updated successfully"}
 
+
 @login_required
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.models.definition.models import QuestionnaireResponse
@@ -151,6 +172,10 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.db.dynamic_data import DynamicDataWrapper
     from django.db import transaction
     from django.urls import reverse
+    from django.utils.translation import ugettext as _
+
+    if not (request.user.is_superuser or request.user.is_staff):
+        return {"status": "fail", "message": _("Permission error. Patient cannot be created!")}
 
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)
@@ -184,6 +209,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_name": "%s" % created_patient,
             "patient_link": patient_link,
             "patient_blurb": patient_blurb}
+
 
 @login_required
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
