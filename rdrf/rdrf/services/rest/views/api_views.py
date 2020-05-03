@@ -12,10 +12,13 @@ from rest_framework.reverse import reverse
 from rest_framework import serializers
 from rest_framework.views import APIView
 
-from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
+from registry.patients.models import Patient, Registry, NextOfKinRelationship, PatientStage
 from registry.groups.models import CustomUser, WorkingGroup
 from rdrf.models.definition.models import RegistryForm
-from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from rdrf.services.rest.serializers import (
+    PatientSerializer, RegistrySerializer, WorkingGroupSerializer,
+    CustomUserSerializer, NextOfKinRelationshipSerializer
+)
 from rdrf.helpers.registry_features import RegistryFeatures
 
 
@@ -36,16 +39,6 @@ class RegistryDetail(generics.RetrieveUpdateDestroyAPIView):
 class RegistryList(generics.ListCreateAPIView):
     queryset = Registry.objects.all()
     serializer_class = RegistrySerializer
-
-
-class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
-
-
-class DoctorViewSet(viewsets.ModelViewSet):
-    queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
 
 
 class NextOfKinRelationshipDetail(generics.RetrieveUpdateDestroyAPIView):
