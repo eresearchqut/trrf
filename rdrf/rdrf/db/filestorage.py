@@ -76,11 +76,14 @@ oid_pat = re.compile(r"[0-9A-F]{24}", re.I)
 
 
 def get_file(file_id):
+    empty_file_info = StorageFileInfo(item=None, filename=None, uploaded_by=None, patient=None)
     try:
         cde_file = CDEFile.objects.get(id=file_id)
         return StorageFileInfo(item=cde_file.item, filename=cde_file.filename, uploaded_by=cde_file.uploaded_by, patient=cde_file.patient)
     except CDEFile.DoesNotExist:
-        return StorageFileInfo(item=None, filename=None, uploaded_by=None, patient=None)
+        return empty_file_info
+    except IOError:
+        return empty_file_info
 
 
 class CustomS3Storage(S3Boto3Storage):
@@ -96,6 +99,15 @@ class CustomS3Storage(S3Boto3Storage):
             else:
                 raise tce
         return {}
+
+    def open(self, file_name, mode='rb'):
+        try:
+            return super().open(file_name, mode)
+        except botocore.exceptions.ClientError as ex:
+            if ex.response['Error']['Code'] == '403':
+                raise PermissionError
+            else:
+                raise ex
 
 
 class VirusScanStatus:
