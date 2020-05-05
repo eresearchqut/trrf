@@ -506,6 +506,7 @@ class FileInputWrapper(widgets.ClearableFileInput):
             'initial_text': self.initial_text,
             'clear_checkbox_label': self.clear_checkbox_label,
             'virus_check_result': self.do_virus_check(filename) if filename else '',
+            'virus_check_id': checkbox_name.replace("-", "_")
         })
         return context
 

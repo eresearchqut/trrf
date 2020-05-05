@@ -1,28 +1,50 @@
 {% load i18n %}
-{% if widget.is_initial %}
-    {{ widget.initial_text }}:
-    {% if widget.virus_check_result == 'clean' %}
-        <a href="{{ widget.value.url }}">{{ widget.value }}</a>
-    {% else %}
-        {{ widget.value }}
-    {% endif %}
-    {% if not widget.required %}
-        <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
-        <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
-    {% endif %}
-    {% if widget.virus_check_result == 'scanning' %}
-        <div class="alert alert-info" role="alert">
-            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-            {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses. Please refresh page for updates.' %}
+<div id="upload_{{widget_name}}">
+    {% if widget.is_initial %}
+        {{ widget.initial_text }}:
+        <span id="{{widget.virus_check_id}}_link">
+            {% if widget.virus_check_result == 'clean' %}
+                <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+            {% else %}
+                {{ widget.value }}
+            {% endif %}
+        </span>
+        {% if not widget.required %}
+            <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
+            <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
+        {% endif %}
+        {% if widget.virus_check_result == 'scanning' %}
+            <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+                {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses.Waiting for the scan to finish...' %}
+            </div>
+            <script>
+                var {{widget.virus_check_id}}_interval = setInterval(
+                    function(){ 
+                        $.ajax({
+                            url: "{{widget.value.url}}?check_status=true",
+                            type: "GET",
+                            success: function(data) {
+                                var status = data['response']
+                                if ( status !== 'scanning') {
+                                    clearInterval({{widget.virus_check_id}}_interval);
+                                    $("#{{widget.virus_check_id}}_scanning").remove();
+                                    if (status == 'clean') {
+                                        $("#{{widget.virus_check_id}}_link").html('<a href="{{ widget.value.url }}">{{ widget.value }}</a>');
+                                    }
+                                }
+                            }});
+                    }, 5000);
+            </script>
+        {% elif widget.virus_check_result == 'infected' %}
+            <div class="alert alert-danger" role="alert">
+                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
+            </div>
+        {% endif %}
+        <div>
+        {{ widget.input_text }}:
         </div>
-    {% elif widget.virus_check_result == 'infected' %}
-        <div class="alert alert-danger" role="alert">
-            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-            {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
-        </div>
     {% endif %}
-    <div>
-    {{ widget.input_text }}:
-    </div>
-{% endif %}
-<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+    <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+</div>
