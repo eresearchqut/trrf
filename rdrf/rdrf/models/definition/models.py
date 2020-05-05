@@ -1882,6 +1882,7 @@ class CDEFile(models.Model):
     cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
+    mime_type = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.item.name

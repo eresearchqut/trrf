@@ -1571,7 +1571,7 @@ class FileUploadView(LoginRequiredMixin, FileErrorHandlingMixin, View):
         else:
             raise PermissionDenied
         if file_info.item is not None:
-            response = FileResponse(file_info.item, content_type='application/octet-stream')
+            response = FileResponse(file_info.item, content_type=file_info.mime_type or 'application/octet-stream')
             response['Content-disposition'] = 'filename="%s"' % file_info.filename
             return response
         return HttpResponseNotFound()
