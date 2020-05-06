@@ -4,6 +4,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory

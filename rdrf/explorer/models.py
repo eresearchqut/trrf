@@ -259,7 +259,7 @@ class QueryManager(models.Manager):
                 r for r in user.get_registries() if not r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
             )
 
-        filtered_qs = super().get_queryset().filter(registry__in=registries, access_group__in=user.get_groups())
+        return super().get_queryset().filter(registry__in=registries, access_group__in=user.get_groups())
 
 
 class Query(models.Model):
