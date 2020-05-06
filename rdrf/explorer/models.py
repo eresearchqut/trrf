@@ -243,6 +243,30 @@ class FieldValue(models.Model):
                 typed_value = self.get_typed_value()
                 return typed_value
 
+class QueryManager(models.Manager):
+
+    def reports_for_user(self, user):
+        if user.is_superuser:
+            return super().get_queryset()
+        filtered_qs = super().get_queryset().filter(
+            registry__in=user.get_registries(), access_group__in=user.get_groups()
+        )
+        if user.is_curator:
+            return filtered_qs
+        if user.is_clinician:
+            check_ethically_cleared = any(
+                r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) for r in user.registry.all()
+            )
+            has_ethical_clearance = check_ethically_cleared and user.ethically_cleared if check_ethically_cleared else True
+            if not has_ethical_clearance:
+                registries = (
+                    r for r in user.get_registries() if not r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+                )
+                return filtered_qs.filter(registry__in=registries)
+
+            return filtered_qs
+        return self.none()
+
 
 class QueryManager(models.Manager):
 

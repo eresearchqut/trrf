@@ -77,6 +77,8 @@ class QueryView(LoginRequiredMixin, AccessCheckMixin, View):
 
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
+        self.check_access(request.user, query_model)
+
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -239,6 +241,8 @@ class DownloadQueryView(LoginRequiredMixin, AccessCheckMixin, View):
 class SqlQueryView(SuperuserRequiredMixin, View):
 
     def post(self, request):
+        if not self.request.user.is_superuser:
+            raise PermissionDenied
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]
