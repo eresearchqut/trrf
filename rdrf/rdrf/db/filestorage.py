@@ -17,7 +17,8 @@ __all__ = ["get_id", "delete_file_wrapper", "get_file",
            "store_file", "store_file_by_key", "StorageFileInfo"]
 
 
-StorageFileInfo = namedtuple('StorageFileInfo', 'item filename uploaded_by patient')
+StorageFileInfo = namedtuple('StorageFileInfo', 'item filename uploaded_by patient', defaults=(None, None, None, None))
+EMPTY_FILE_INFO = StorageFileInfo()
 
 
 def get_id(value):
@@ -80,12 +81,27 @@ def get_file(file_id):
         cde_file = CDEFile.objects.get(id=file_id)
         return StorageFileInfo(item=cde_file.item, filename=cde_file.filename, uploaded_by=cde_file.uploaded_by, patient=cde_file.patient)
     except CDEFile.DoesNotExist:
-        return StorageFileInfo(item=None, filename=None, uploaded_by=None, patient=None)
+        return EMPTY_FILE_INFO
+    except IOError:
+        return EMPTY_FILE_INFO
 
 
 class CustomS3Storage(S3Boto3Storage):
 
+    def open(self, file_name, mode='rb'):
+        try:
+            return super().open(file_name, mode)
+        except botocore.exceptions.ClientError as ex:
+            if ex.response['Error']['Code'] == '403':
+                raise PermissionError
+            else:
+                raise ex
+
     def get_tags(self, name):
+        '''
+        Returns dict of tags key/values of an S3 object.
+        This method isn't part of the Storage API, it is an extra method added by us.
+        '''
         try:
             name = self._encode_name(self._normalize_name(self._clean_name(name)))
             response = self.connection.meta.client.get_object_tagging(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=name)

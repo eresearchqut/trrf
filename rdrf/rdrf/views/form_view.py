@@ -67,6 +67,7 @@ from registry.patients.patient_stage_flows import get_registry_stage_flow
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.view_helper import FileErrorHandlingMixin
 
 import logging
 
@@ -1561,22 +1562,19 @@ class QuestionnaireHandlingView(View):
         return render(request, template_name, context)
 
 
-class FileUploadView(View):
+class FileUploadView(LoginRequiredMixin, FileErrorHandlingMixin, View):
 
-    @login_required_method
     def get(self, request, registry_code, file_id):
         file_info = filestorage.get_file(file_id)
         if file_info.patient:
             security_check_user_patient(request.user, file_info.patient)
         else:
             raise PermissionDenied
-
         if file_info.item is not None:
             response = FileResponse(file_info.item, content_type='application/octet-stream')
             response['Content-disposition'] = 'filename="%s"' % file_info.filename
-        else:
-            response = HttpResponseNotFound()
-        return response
+            return response
+        return HttpResponseNotFound()
 
 
 class StandardView(object):
