@@ -21,6 +21,7 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
+from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
@@ -38,20 +39,14 @@ class MainView(LoginRequiredMixin, View):
         })
 
 
-class NewQueryView(LoginRequiredMixin, View):
+class NewQueryView(SuperuserRequiredMixin, View):
 
     def get(self, request):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
         return render(request, 'explorer/query.html', params)
 
     def post(self, request):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
             m = query_form.save(commit=False)
@@ -61,33 +56,27 @@ class NewQueryView(LoginRequiredMixin, View):
         return HttpResponse()
 
 
-class DeleteQueryView(LoginRequiredMixin, View):
+class DeleteQueryView(SuperuserRequiredMixin, View):
 
     def get(self, request, query_id):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
         query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
         return redirect('rdrf:explorer_main')
 
+
 class AccessCheckMixin:
 
-    def check_access(self, user, query):
-        if not user.is_superuser:
-            accessible_query_ids = [q.id for q in Query.objects.reports_for_user(user)]
-            if query.id not in accessible_query_ids:
-                raise PermissionDenied
+    def dispatch(self, *args, **kwargs):
+        request, query_id, *__ = args
+        if Query.objects.report_for_user(request.user).filter(pk=query_id).exists():
+            raise PermissionDenied
+        return super().dispatch(*args, **kwargs)
 
 
-class QueryView(LoginRequiredMixin, View, AccessCheckMixin):
+class QueryView(LoginRequiredMixin, AccessCheckMixin, View):
 
     def get(self, request, query_id):
-        from rdrf.models.definition.models import Registry
-
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_access(request.user, query_model)
-
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -96,7 +85,6 @@ class QueryView(LoginRequiredMixin, View, AccessCheckMixin):
 
     def post(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_access(request.user, query_model)
 
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
@@ -132,15 +120,13 @@ class QueryView(LoginRequiredMixin, View, AccessCheckMixin):
                 return redirect(query_model)
 
 
-class DownloadQueryView(LoginRequiredMixin, View, AccessCheckMixin):
+class DownloadQueryView(LoginRequiredMixin, AccessCheckMixin, View):
 
     def post(self, request, query_id, action):
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_access(request.user, query_model)
-
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
         sql_query = query_model.sql_query
@@ -198,9 +184,7 @@ class DownloadQueryView(LoginRequiredMixin, View, AccessCheckMixin):
             raise Exception("bad action")
 
         user = request.user
-
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_access(request.user, query_model)
 
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
@@ -252,11 +236,9 @@ class DownloadQueryView(LoginRequiredMixin, View, AccessCheckMixin):
         return report_table_generator.dump_csv(response)
 
 
-class SqlQueryView(LoginRequiredMixin, View):
+class SqlQueryView(SuperuserRequiredMixin, View):
 
     def post(self, request):
-        if not self.request.user.is_superuser:
-            raise PermissionDenied
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]
