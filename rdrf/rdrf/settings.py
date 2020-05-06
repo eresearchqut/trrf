@@ -161,6 +161,7 @@ MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'stronghold.middleware.LoginRequiredMiddleware',
 )
 
 
@@ -194,6 +195,7 @@ INSTALLED_APPS = [
     'django_user_agents',
     'simple_history',
     'django_js_reverse',
+    'stronghold',
 ]
 
 
@@ -605,3 +607,27 @@ JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
 
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
+
+STRONGHOLD_DEFAULTS = False
+STRONGHOLD_PUBLIC_URLS = (
+    r'^/$',
+    r'/account/login',
+    r'/(?P<registry_code>\w+)/register',
+    r'/activate/(?P<activation_key>\w+)/?$',
+    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+)
+if DEBUG:
+    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )
+
+# Public named urls can contain only urls without parameters
+# as django-stronghold cannot handle it otherwise
+STRONGHOLD_PUBLIC_NAMED_URLS = (
+    'login_assistance',
+    'registration_complete',
+    'registration_failed',
+    'registration_disallowed',
+    'registration_activation_complete',
+    'registration_activate_complete',
+    'password_reset_done',
+    'password_reset_complete',
+)

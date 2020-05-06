@@ -6,7 +6,6 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from registry.groups.models import WorkingGroup
 from registry.patients.admin_forms import ParentGuardianForm
@@ -26,7 +25,7 @@ class RDRFContextSwitchError(Exception):
     pass
 
 
-class BaseParentView(View, LoginRequiredMixin):
+class BaseParentView(View):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

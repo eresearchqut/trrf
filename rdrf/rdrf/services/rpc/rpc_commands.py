@@ -1,19 +1,16 @@
 import logging
 
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 logger = logging.getLogger(__name__)
 
 
-@login_required
 def rpc_visibility(request, element):
     user = request.user
     if user.can("see", element):
         return True
 
 
-@login_required
 def rpc_check_notifications(request):
     from rdrf.models.definition.models import Notification
     user = request.user
@@ -26,7 +23,6 @@ def rpc_check_notifications(request):
     return results
 
 
-@login_required
 def rpc_dismiss_notification(request, notification_id):
     from rdrf.models.definition.models import Notification
     status = False
@@ -41,7 +37,6 @@ def rpc_dismiss_notification(request, notification_id):
     return status
 
 
-@login_required
 def rpc_fh_patient_is_index(request, patient_id):
     from registry.patients.models import Patient
     patient = Patient.objects.get(pk=patient_id)
@@ -53,7 +48,6 @@ def rpc_fh_patient_is_index(request, patient_id):
         return False
 
 
-@login_required
 def rpc_reporting_command(request, query_id, registry_id, command, arg):
     # 2 possible commands/invocations client side from report definition screen:
     # get_field_data: used to build all the checkboxes for client
@@ -94,7 +88,6 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
 
 # questionnaire handling
 
-@login_required
 def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
     """
     Try to return any existing data for a patient corresponding the filled in values
@@ -127,7 +120,6 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
             "questions": existing_data.questions}
 
 
-@login_required
 def rpc_update_selected_cdes_from_questionnaire(
         request,
         patient_id,
@@ -165,7 +157,6 @@ def rpc_update_selected_cdes_from_questionnaire(
         return {"status": "success", "message": "Patient updated successfully"}
 
 
-@login_required
 def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import PatientCreator, PatientCreatorError
@@ -211,7 +202,6 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
             "patient_blurb": patient_blurb}
 
 
-@login_required
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     from rdrf.models.definition.models import ContextFormGroup
     from rdrf.models.definition.models import Registry

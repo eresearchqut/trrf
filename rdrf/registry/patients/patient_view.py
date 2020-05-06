@@ -1,5 +1,4 @@
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
@@ -8,7 +7,7 @@ from django.views.generic.base import View
 from rdrf.models.definition.models import Registry
 
 
-class PatientView(View, LoginRequiredMixin):
+class PatientView(View):
 
     def get(self, request, registry_code):
         registry = get_object_or_404(Registry, code=registry_code)

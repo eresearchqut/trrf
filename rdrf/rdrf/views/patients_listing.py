@@ -2,7 +2,6 @@ import json
 import logging
 from itertools import chain
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import InvalidPage, Paginator
 from django.db.models import Q
@@ -25,7 +24,7 @@ from registry.patients.models import Patient
 logger = logging.getLogger(__name__)
 
 
-class PatientsListingView(LoginRequiredMixin, View):
+class PatientsListingView(View):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,7 +1,6 @@
 import logging
 import json
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.views.generic.base import View
 from django.shortcuts import get_object_or_404, redirect
@@ -18,7 +17,7 @@ from rdrf.services.io.notifications.email_notification import EmailNotificationH
 logger = logging.getLogger(__name__)
 
 
-class ResendEmail(LoginRequiredMixin, View):
+class ResendEmail(View):
 
     template_data = {}
 

@@ -3,8 +3,6 @@ import logging
 from django.http import JsonResponse
 from django.views.generic import View
 from django.urls import reverse
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
 from registry.patients.models import Patient
@@ -18,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class PatientLookup(View):
 
-    @method_decorator(login_required)
     def get(self, request, reg_code):
         from rdrf.models.definition.models import Registry
         from registry.patients.models import Patient
@@ -75,7 +72,6 @@ class FamilyLookup(View):
             })
         return ret_val
 
-    @method_decorator(login_required)
     def get(self, request, reg_code, index=None):
         result = {}
         try:

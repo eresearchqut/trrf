@@ -5,7 +5,6 @@ import re
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
@@ -31,7 +30,7 @@ from rdrf.helpers.utils import mongo_key_from_models
 logger = logging.getLogger(__name__)
 
 
-class MainView(LoginRequiredMixin, View):
+class MainView(View):
 
     def get(self, request):
         return render(request, 'explorer/query_list.html', {
@@ -66,17 +65,15 @@ class DeleteQueryView(SuperuserRequiredMixin, View):
 
 class AccessCheckMixin:
 
-    def dispatch(self, *args, **kwargs):
-        request, query_id, *__ = args
-        if Query.objects.report_for_user(request.user).filter(pk=query_id).exists():
+    def check_query_permission(self, request, query_id):
+        if not Query.objects.reports_for_user(request.user).filter(pk=query_id).exists():
             raise PermissionDenied
-        return super().dispatch(*args, **kwargs)
 
-
-class QueryView(LoginRequiredMixin, AccessCheckMixin, View):
+class QueryView(AccessCheckMixin, View):
 
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
+        self.check_query_permission(request, query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -85,7 +82,7 @@ class QueryView(LoginRequiredMixin, AccessCheckMixin, View):
 
     def post(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
-
+        self.check_query_permission(request, query_id)
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
@@ -120,13 +117,14 @@ class QueryView(LoginRequiredMixin, AccessCheckMixin, View):
                 return redirect(query_model)
 
 
-class DownloadQueryView(LoginRequiredMixin, AccessCheckMixin, View):
+class DownloadQueryView(AccessCheckMixin, View):
 
     def post(self, request, query_id, action):
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
         query_model = get_object_or_404(Query, pk=query_id)
+        self.check_query_permission(request, query_id)
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
         sql_query = query_model.sql_query
@@ -185,6 +183,7 @@ class DownloadQueryView(LoginRequiredMixin, AccessCheckMixin, View):
 
         user = request.user
         query_model = get_object_or_404(Query, pk=query_id)
+        self.check_query_permission(request, query_id)
 
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)

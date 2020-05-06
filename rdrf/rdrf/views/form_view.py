@@ -4,14 +4,12 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
-from django.contrib.auth.decorators import login_required
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
 from rdrf.models.definition.models import Section, CommonDataElement
@@ -74,7 +72,6 @@ from rdrf.security.mixins import StaffMemberRequiredMixin
 import logging
 
 logger = logging.getLogger(__name__)
-login_required_method = method_decorator(login_required)
 
 
 class RDRFContextSwitchError(Exception):
@@ -370,7 +367,6 @@ class FormView(View):
             context["change_targets"] = code_gen.generate_change_targets() or ''
             context["generated_declarations"] = code_gen.generate_declarations() or ''
 
-    @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
@@ -497,7 +493,6 @@ class FormView(View):
         # the ids of each cde on the form
         return ",".join(form_class().fields.keys())
 
-    @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if context_id is None:
             raise Http404
@@ -1088,7 +1083,6 @@ class FormPrintView(FormView):
 class FormListView(TemplateView):
     template_name = "rdrf_cdes/form_list.html"
 
-    @login_required_method
     def get(self, request, **kwargs):
         patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
         security_check_user_patient(request.user, patient_model)
@@ -1121,7 +1115,6 @@ class FormListView(TemplateView):
 class FormFieldHistoryView(TemplateView):
     template_name = "rdrf_cdes/form_field_history.html"
 
-    @login_required_method
     def get(self, request, **kwargs):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
@@ -1541,7 +1534,6 @@ class QuestionnaireView(FormView):
 
 class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.workflows.questionnaires.questionnaires import Questionnaire
         context = csrf(request)
@@ -1558,7 +1550,7 @@ class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
         return render(request, template_name, context)
 
 
-class FileUploadView(LoginRequiredMixin, FileErrorHandlingMixin, View):
+class FileUploadView(FileErrorHandlingMixin, View):
 
     def get(self, request, registry_code, file_id):
         file_info = filestorage.get_file(file_id)
@@ -1602,7 +1594,6 @@ class QuestionnaireConfigurationView(StaffMemberRequiredMixin, View):
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
-    @login_required_method
     def get(self, request, form_pk):
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
@@ -1964,7 +1955,6 @@ class FormDSLHelpView(TemplateView):
 
 class CdeWidgetSettingsView(View):
 
-    @login_required_method
     def get(self, request, code, new_name):
         cde = CommonDataElement.objects.filter(code=code).first() or CommonDataElement()
         cde.widget_name = new_name
@@ -1985,7 +1975,6 @@ class CdeWidgetSettingsView(View):
 
 class CdeAvailableWidgetsView(View):
 
-    @login_required_method
     def get(self, request, data_type):
         widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
         return JsonResponse({'widgets': widgets})

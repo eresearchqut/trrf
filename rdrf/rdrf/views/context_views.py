@@ -3,8 +3,6 @@ from django.urls import reverse_lazy
 from django.forms import ModelForm
 from django.views.generic.base import View
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.contenttypes.models import ContentType
@@ -125,7 +123,6 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
     template_name = "rdrf_cdes/rdrf_context.html"
     success_url = reverse_lazy('contextslisting')
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_form_group_id=None):
         if not self.allowed(request.user, registry_code, patient_id):
             raise PermissionDenied
@@ -159,7 +156,6 @@ class RDRFContextCreateView(View, ContextFormGroupHelperMixin):
 
         return render(request, "rdrf_cdes/rdrf_context.html", context)
 
-    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_form_group_id=None):
         if not self.allowed(request.user, registry_code, patient_id):
             raise PermissionDenied
@@ -213,7 +209,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
     template_name = "rdrf_cdes/rdrf_context.html"
     success_url = reverse_lazy('contextslisting')
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id, context_id):
         rdrf_context_model = get_object_or_404(RDRFContext, pk=context_id)
 
@@ -257,7 +252,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
 
         return render(request, "rdrf_cdes/rdrf_context.html", context)
 
-    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
         registry_model = Registry.objects.get(code=registry_code)
         context_model = RDRFContext.objects.get(pk=context_id)
