@@ -12,6 +12,7 @@ class StaffMemberRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_staff
 
+
 class ReportAccessMixin(UserPassesTestMixin):
 
     def test_func(self):
