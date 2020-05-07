@@ -36,7 +36,6 @@ from rdrf.views import patients_listing
 from rdrf.views import clinician_view
 from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
-from rdrf.views.password_reset_view import ForcePasswordResetView
 from rdrf.views.proms_views import PromsView
 from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
@@ -152,7 +151,9 @@ normalpatterns += [
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
     re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-    re_path(r'^force_password_reset/?$', ForcePasswordResetView.as_view(), name='force_password_reset'),
+    re_path(r'^force_password_reset/?$',
+            auth_views.PasswordResetView.as_view(template_name='registration/force_password_reset_form.html'),
+            name='force_password_reset'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
     re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
