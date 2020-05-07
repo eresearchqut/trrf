@@ -610,7 +610,6 @@ LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
 
 STRONGHOLD_DEFAULTS = False
 STRONGHOLD_PUBLIC_URLS = (
-    r'^/$',
     r'/account/login',
     r'/(?P<registry_code>\w+)/register',
     r'/activate/(?P<activation_key>\w+)/?$',
@@ -622,6 +621,7 @@ if DEBUG:
 # Public named urls can contain only urls without parameters
 # as django-stronghold cannot handle it otherwise
 STRONGHOLD_PUBLIC_NAMED_URLS = (
+    'landing',
     'login_assistance',
     'registration_complete',
     'registration_failed',
