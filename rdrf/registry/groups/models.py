@@ -69,6 +69,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         _('require two-factor authentication'),
         default=False,
         help_text=_('Requires this user to use two factor authentication to access the system.'))
+    force_password_reset = models.BooleanField(
+        _('force password reset'),
+        default=False,
+        help_text=_('Force this user to reset their password to access the system.'))
     prevent_self_unlock = models.BooleanField(_('prevent self unlock'), default=False, help_text=_(
         'Explicitly prevent this user to unlock their account using the Unlock Account functionality.'))
 
@@ -229,6 +233,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                 return True
 
         return False
+
+    def set_password(self, raw_password):
+        super().set_password(raw_password)
+        self.force_password_reset = False
 
     @property
     def menu_links(self):

@@ -1,6 +1,6 @@
 import logging
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
@@ -42,6 +42,7 @@ class NoCacheMiddleware:
     Disable browser-side caching of all views. Override with
     :func:`~django.views.decorators.cache.cache_control` decorator
     """
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -50,3 +51,27 @@ class NoCacheMiddleware:
         if not response.has_header('Cache-Control'):
             add_never_cache_headers(response)
         return response
+
+
+class ForcePasswordResetMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        whitelisted_views = (
+            'force_password_reset',
+            'password_reset_done',
+            'password_reset_confirm',
+            'password_reset_complete',
+            'javascript-catalog',
+            'js_reverse')
+
+        match = resolve(request.path)
+        if match.url_name in whitelisted_views:
+            return None
+
+        user = getattr(request, 'user', None)
+        if user is None or user.is_anonymous:
+            return None
+
+        if user.force_password_reset:
+            return HttpResponseRedirect(reverse('force_password_reset'))
+
+        return None
