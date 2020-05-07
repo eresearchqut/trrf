@@ -65,15 +65,16 @@ class DeleteQueryView(SuperuserRequiredMixin, View):
 
 class AccessCheckMixin:
 
-    def check_query_permission(self, request, query_id):
-        if not Query.objects.reports_for_user(request.user).filter(pk=query_id).exists():
+    def dispatch(self, request, *args, **kwargs):
+        if not Query.objects.reports_for_user(request.user).filter(pk=kwargs['query_id']).exists():
             raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
 
 class QueryView(AccessCheckMixin, View):
 
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_query_permission(request, query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -82,7 +83,6 @@ class QueryView(AccessCheckMixin, View):
 
     def post(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_query_permission(request, query_id)
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
@@ -124,7 +124,6 @@ class DownloadQueryView(AccessCheckMixin, View):
             raise Exception("bad action")
 
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_query_permission(request, query_id)
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
         sql_query = query_model.sql_query
@@ -183,7 +182,6 @@ class DownloadQueryView(AccessCheckMixin, View):
 
         user = request.user
         query_model = get_object_or_404(Query, pk=query_id)
-        self.check_query_permission(request, query_id)
 
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
