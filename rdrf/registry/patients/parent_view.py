@@ -57,46 +57,46 @@ class ParentView(BaseParentView):
 
     def get(self, request, registry_code):
         context = {}
-        if request.user.is_authenticated:
-            parent = ParentGuardian.objects.get(user=request.user)
-            registry = Registry.objects.get(code=registry_code)
 
-            self.registry = registry
-            self.rdrf_context_manager = RDRFContextManager(self.registry)
+        parent = ParentGuardian.objects.get(user=request.user)
+        registry = Registry.objects.get(code=registry_code)
 
-            patients_objects = parent.patient.all()
-            patients = []
+        self.registry = registry
+        self.rdrf_context_manager = RDRFContextManager(self.registry)
 
-            forms_objects = RegistryForm.objects.filter(registry=registry).exclude(is_questionnaire=True).order_by('position')
+        patients_objects = parent.patient.all()
+        patients = []
 
-            progress = form_progress.FormProgress(registry)
+        forms_objects = RegistryForm.objects.filter(registry=registry).exclude(is_questionnaire=True).order_by('position')
 
-            for patient in patients_objects:
-                forms = []
-                for form in forms_objects:
-                    if form.is_questionnaire or not request.user.can_view(form):
-                        continue
-                    forms.append({
-                        "form": form,
-                        "progress": progress.get_form_progress(form, patient),
-                        "current": progress.get_form_currency(form, patient),
-                        "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
-                    })
+        progress = form_progress.FormProgress(registry)
 
-                rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient)
-                patients.append({
-                    "patient": patient,
-                    "consent": consent_status_for_patient(registry_code, patient),
-                    "context_id": rdrf_context.pk,
-                    "forms": forms
+        for patient in patients_objects:
+            forms = []
+            for form in forms_objects:
+                if form.is_questionnaire or not request.user.can_view(form):
+                    continue
+                forms.append({
+                    "form": form,
+                    "progress": progress.get_form_progress(form, patient),
+                    "current": progress.get_form_currency(form, patient),
+                    "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id)
                 })
 
-            context['parent'] = parent
-            context['patients'] = patients
-            context['registry_code'] = registry_code
+            rdrf_context = self.rdrf_context_manager.get_or_create_default_context(patient)
+            patients.append({
+                "patient": patient,
+                "consent": consent_status_for_patient(registry_code, patient),
+                "context_id": rdrf_context.pk,
+                "forms": forms
+            })
 
-            fth = FormTitleHelper(self.registry, "")
-            context['form_titles'] = fth.all_titles_for_user(request.user)
+        context['parent'] = parent
+        context['patients'] = patients
+        context['registry_code'] = registry_code
+
+        fth = FormTitleHelper(self.registry, "")
+        context['form_titles'] = fth.all_titles_for_user(request.user)
 
         return render(request, 'rdrf_cdes/parent.html', context)
 
