@@ -32,6 +32,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     age = serializers.IntegerField(read_only=True)
     url = PatientHyperlinkId(read_only=True, source='*')
     user = CustomUserSerializer()
+    stage = serializers.StringRelatedField()
 
     class Meta:
         model = Patient

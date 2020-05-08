@@ -1,10 +1,11 @@
+from functools import cached_property
 from operator import attrgetter
 import pycountry
 
 from django.db.models import Q
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, BasePermission
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -15,8 +16,9 @@ from rest_framework.views import APIView
 from registry.patients.models import Patient, Registry, PatientStage
 from registry.groups.models import CustomUser
 from rdrf.models.definition.models import RegistryForm
-from rdrf.services.rest.serializers import PatientSerializer, CustomUserSerializer
+from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.security.security_checks import security_check_user_patient
 
 
 import logging
@@ -45,20 +47,8 @@ class PatientDetail(generics.RetrieveAPIView):
 
     def check_object_permissions(self, request, patient):
         """We're always filtering the patients by the registry code form the url and the user's working groups"""
-        super(PatientDetail, self).check_object_permissions(request, patient)
-        registry_code = self.kwargs.get('registry_code')
-        registry = self._get_registry_by_code(registry_code)
-        if registry not in patient.rdrf_registry.all():
-            self.permission_denied(
-                request, message='Patient not available in requested registry')
-        if request.user.is_superuser:
-            return
-        if registry not in request.user.registry.all():
-            self.permission_denied(
-                request, message='Not allowed to get Patients from this Registry')
-
-        if not patient.working_groups.filter(pk__in=request.user.working_groups.all()).exists():
-            self.permission_denied(request, message='Patient not in your working group')
+        super().check_object_permissions(request, patient)
+        security_check_user_patient(request.user, patient)
 
 
 class CustomUserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -163,5 +153,20 @@ class PatientStageSerializer(serializers.ModelSerializer):
 class PatientStages(generics.ListAPIView):
     serializer_class = PatientStageSerializer
 
+    @cached_property
+    def registry(self):
+        registry_id = self.kwargs.get('registry_id')
+        registry = Registry.objects.filter(pk=registry_id).first()
+        if registry is None or not registry.has_feature(RegistryFeatures.STAGES):
+            raise NotFound
+        return registry
+
+    def check_permissions(self, request):
+        user = request.user
+        if user.is_superuser:
+            return
+        if not user.in_registry(self.registry):
+            raise PermissionDenied
+
     def get_queryset(self):
-        return PatientStage.objects.filter(registry_id=self.kwargs.get('registry_id'))
+        return PatientStage.objects.filter(registry=self.registry)
