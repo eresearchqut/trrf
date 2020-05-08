@@ -107,8 +107,10 @@ class CustomConsentHelper(object):
                 self.custom_consent_data[key] = request.POST[key]
                 self.custom_consent_keys.append(key)
 
-        for key in self.custom_consent_keys:
-            del request.POST[key]
+        # Commented the code below as request.POST is immutable
+
+        # for key in self.custom_consent_keys:
+        #     del request.POST[key]
 
     def check_for_errors(self):
         for custom_consent_wrapper in self.custom_consent_wrappers:
@@ -1193,6 +1195,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
         self.show_multisection_delete_checkbox = False
+        self.init_previous_data_members()
 
     @method_decorator(patient_questionnaire_access)
     def get(self, request, registry_code, questionnaire_context="au"):
@@ -1527,9 +1530,13 @@ class QuestionnaireView(FormView):
     def _get_patient_name(self):
         return "questionnaire"
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
-            registry, registry_form, section, questionnaire_context=self.questionnaire_context)
+            registry, registry_form, section,
+            allowed_cdes=allowed_cdes,
+            previous_values=previous_values,
+            questionnaire_context=self.questionnaire_context
+        )
 
 
 class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
