@@ -3,18 +3,17 @@ import logging
 from django.http import JsonResponse
 from django.views.generic import View
 from django.urls import reverse
-from django.core.exceptions import PermissionDenied
 
 from registry.patients.models import Patient
 
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.security.security_checks import security_check_user_patient
+from rdrf.security.mixins import StaffMemberRequiredMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class PatientLookup(View):
+class PatientLookup(StaffMemberRequiredMixin, View):
 
     def get(self, request, reg_code):
         from rdrf.models.definition.models import Registry
@@ -40,14 +39,10 @@ class PatientLookup(View):
                     Q(working_groups__in=working_groups)
 
                 for patient_model in Patient.objects.filter(query):
-                    try:
-                        security_check_user_patient(self.request.user, patient_model)
-                        if patient_model.active:
-                            name = "%s" % patient_model
-                            results.append({"value": patient_model.pk, "label": name,
-                                            "class": "Patient", "pk": patient_model.pk})
-                    except PermissionDenied:
-                        pass
+                    if patient_model.active:
+                        name = "%s" % patient_model
+                        results.append({"value": patient_model.pk, "label": name,
+                                        "class": "Patient", "pk": patient_model.pk})
 
         except Registry.DoesNotExist:
             results = []
@@ -101,12 +96,11 @@ class FamilyLookup(View):
             patient_created = relative.relative_patient
             working_group = None
             relative_link = None
-            if patient_created:
-                if request.user.can_view_patient_link(patient_created):
-                    relative_link = reverse("patient_edit", args=[reg_code,
-                                                                  patient_created.pk])
+            if patient_created and request.user.can_view_patient_link(patient_created):
+                relative_link = reverse("patient_edit", args=[reg_code, patient_created.pk])
 
             if relative_link:
+                working_group = self._get_working_group_name(patient_created)
                 result["relatives"].append(
                     self._patient_info(relative, working_group, relative_link, relative.relationship)
                 )
@@ -116,3 +110,6 @@ class FamilyLookup(View):
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
+
+    def _get_working_group_name(self, patient_model):
+        return ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))

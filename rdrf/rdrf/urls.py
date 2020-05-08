@@ -25,7 +25,6 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
-from rdrf.views.lookup_views import FamilyLookup
 from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -285,7 +284,9 @@ normalpatterns += [
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
-    re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+    # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
+    # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',
