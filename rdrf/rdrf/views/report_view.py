@@ -45,8 +45,7 @@ class ReportDataTableView(ReportAccessMixin, View):
         })
 
     def _permission_check(self, query_model, user):
-        accessible_report_ids = set([q.id for q in Query.objects.reports_for_user(user)])
-        if query_model.id not in accessible_report_ids:
+        if not Query.objects.reports_for_user(user).filter(pk=query_model.id).exists():
             raise PermissionDenied
 
     def post(self, request, query_model_id):

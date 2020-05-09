@@ -62,10 +62,8 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
         query_model = None
     else:
         query_model = Query.objects.get(pk=int(query_id))
-        if not user.is_superuser:
-            accessible_query_ids = [q.id for q in Query.objects.reports_for_user(user)]
-            if query_model.id not in accessible_query_ids:
-                raise PermissionDenied
+        if not Query.objects.reports_for_user(user).filter(pk=query_id).exists():
+            raise PermissionDenied
 
     registry_model = Registry.objects.get(pk=int(registry_id))
     if command == "get_projection":
