@@ -41,7 +41,7 @@ class UserSentryMiddleware(MiddlewareMixin):
         if user is None or user.is_anonymous:
             return None
 
-        for f in [self.verify_tfa, self.verify_password_reset]:
+        for f in [self.verify_password_reset, self.verify_tfa]:
             if redirect := f(user):
                 return redirect
 
