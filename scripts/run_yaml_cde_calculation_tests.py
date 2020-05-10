@@ -121,8 +121,9 @@ def run_test(registry, test):
 
     if success:
         context_result, output = parse_output(output)
-        return CustomTestResult(test, test.params[test.check_code].strip(), context_result,
-                          False, output)
+        return CustomTestResult(
+            test, test.params[test.check_code].strip(), context_result, False, output
+        )
     else:
         return CustomTestResult(test, None, None, True, output)
 

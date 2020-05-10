@@ -7,9 +7,10 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from rdrf.admin_forms import DemographicFieldsAdminForm
-from rdrf.models.definition.models import Registry, RegistryFeatures
+from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy, DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
