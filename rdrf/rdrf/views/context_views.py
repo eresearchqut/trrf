@@ -16,7 +16,6 @@ from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.components import RDRFContextLauncherComponent
 
 from registry.patients.models import Patient
-from registry.groups.models import WorkingGroup
 from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
@@ -36,17 +35,14 @@ class ContextFormGroupHelperMixin(object):
     def get_context_form_group(self, form_group_id):
         if form_group_id is None:
             return None
-        else:
-            return ContextFormGroup.objects.get(pk=form_group_id)
+        return ContextFormGroup.objects.get(pk=form_group_id)
 
     def get_context_name(self, registry_model, context_form_group):
         if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
             raise Exception("Registry does not support contexts")
-        else:
-            if context_form_group is not None:
-                return context_form_group.name
-            else:
-                return registry_model.metadata.get("context_name", "Context")
+        if context_form_group is None:
+            return registry_model.metadata.get("context_name", "Context")
+        return context_form_group.name
 
     def get_context_launcher(self, user, registry_model, patient_model, context_model=None):
         context_launcher = RDRFContextLauncherComponent(user,
@@ -58,42 +54,37 @@ class ContextFormGroupHelperMixin(object):
         return context_launcher.html
 
     def get_naming_info(self, form_group_id):
-        if form_group_id is not None:
-            context_form_group = ContextFormGroup.objects.get(id=form_group_id)
-            return context_form_group.naming_info
-        else:
+        if form_group_id is None:
             return "Display Name will default to 'Modules' if left blank"
+        context_form_group = ContextFormGroup.objects.get(id=form_group_id)
+        return context_form_group.naming_info
 
     def get_default_name(self, patient_model, context_form_group_model):
         if context_form_group_model is None:
             return "Modules"
-        else:
-            return context_form_group_model.get_default_name(patient_model)
+        return context_form_group_model.get_default_name(patient_model)
 
     def allowed(self, user, registry_code, patient_id, context_id=None):
         try:
-            is_normal_user = not user.is_superuser
             registry_model = Registry.objects.get(code=registry_code)
             if not registry_model.has_feature(RegistryFeatures.CONTEXTS):
                 return False
             patient_model = Patient.objects.get(pk=patient_id)
-            patient_working_groups = set([wg for wg in patient_model.working_groups.all()])
+            patient_working_groups = set(patient_model.working_groups.all())
             context_model = RDRFContext.objects.get(pk=context_id) if context_id else None
-            if not user.is_superuser:
-                user_working_groups = set([wg for wg in user.working_groups.all()])
-            else:
-                user_working_groups = set(
-                    [wg for wg in WorkingGroup.objects.filter(registry=registry_model)])
+            user_working_groups = set(
+                registry_model.workinggroup_set.all() if user.is_superuser else user.working_groups.all()
+            )
 
-            if is_normal_user and not user.in_registry(registry_model):
+            if not user.is_superuser and not user.in_registry(registry_model):
                 return False
             if context_model.registry.code != registry_model.code:
                 return False
             if not (patient_working_groups <= user_working_groups):
                 return False
             return True
-        except Exception as ex:
-            logger.error("error in context allowed check: %s" % ex)
+        except Exception:
+            logger.exception("error in context allowed check")
             return False
 
     def create_context_and_goto_form(self, registry_model, patient_model, context_form_group):
