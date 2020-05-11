@@ -107,11 +107,6 @@ class CustomConsentHelper(object):
                 self.custom_consent_data[key] = request.POST[key]
                 self.custom_consent_keys.append(key)
 
-        # Commented the code below as request.POST is immutable
-
-        # for key in self.custom_consent_keys:
-        #     del request.POST[key]
-
     def check_for_errors(self):
         for custom_consent_wrapper in self.custom_consent_wrappers:
             if not custom_consent_wrapper.is_valid():

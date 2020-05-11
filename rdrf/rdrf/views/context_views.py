@@ -78,7 +78,7 @@ class ContextFormGroupHelperMixin(object):
 
             if not user.is_superuser and not user.in_registry(registry_model):
                 return False
-            if context_model.registry.code != registry_model.code:
+            if context_model and context_model.registry.code != registry_model.code:
                 return False
             if not (patient_working_groups <= user_working_groups):
                 return False

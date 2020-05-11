@@ -1,6 +1,7 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
+from rdrf.security.security_checks import security_check_user_patient
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,9 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
             raise PermissionDenied
 
     registry_model = Registry.objects.get(pk=int(registry_id))
+    if not user.in_registry(registry_model):
+        raise PermissionDenied
+
     if command == "get_projection":
         checkbox_ids = arg["checkbox_ids"]
         longitudinal_ids = arg['longitudinal_ids']
@@ -60,8 +64,11 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
     from django.utils.translation import ugettext as _
 
-    if not (request.user.is_superuser or request.user.is_staff):
-        return {"status": "fail", "message": _("Permission error. Data cannot be updated !")}
+    patient_model = Patient.objects.get(pk=patient_id)
+    try:
+        security_check_user_patient(request.user, patient_model)
+    except PermissionDenied:
+        return {"status": "fail", "message": _("Permission error. Data cannot be loaded !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
@@ -86,12 +93,14 @@ def rpc_update_selected_cdes_from_questionnaire(
     from django.db import transaction
     from django.utils.translation import ugettext as _
 
-    if not (request.user.is_superuser or request.user.is_staff):
+    patient_model = Patient.objects.get(pk=patient_id)
+    try:
+        security_check_user_patient(request.user, patient_model)
+    except PermissionDenied:
         return {"status": "fail", "message": _("Permission error. Data cannot be updated !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
-    patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
     data_to_update = [

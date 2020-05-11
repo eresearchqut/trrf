@@ -1,6 +1,7 @@
 import logging
 
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.generic import View
 from django.urls import reverse
 
@@ -18,34 +19,23 @@ class PatientLookup(StaffMemberRequiredMixin, View):
     def get(self, request, reg_code):
         from rdrf.models.definition.models import Registry
         from registry.patients.models import Patient
-        from registry.groups.models import WorkingGroup
         from django.db.models import Q
 
         term = None
         results = []
 
-        try:
-            registry_model = Registry.objects.get(code=reg_code)
-            if registry_model.has_feature(RegistryFeatures.QUESTIONNAIRES):
-                term = request.GET.get("term", "")
-                if not request.user.is_superuser:
-                    working_groups = [wg for wg in request.user.working_groups.all()]
-                else:
-                    working_groups = [
-                        wg for wg in WorkingGroup.objects.filter(
-                            registry=registry_model)]
-
-                query = (Q(given_names__icontains=term) | Q(family_name__icontains=term)) & \
-                    Q(working_groups__in=working_groups)
-
-                for patient_model in Patient.objects.filter(query):
-                    if patient_model.active:
-                        name = "%s" % patient_model
-                        results.append({"value": patient_model.pk, "label": name,
-                                        "class": "Patient", "pk": patient_model.pk})
-
-        except Registry.DoesNotExist:
-            results = []
+        registry_model = get_object_or_404(Registry, code=reg_code)
+        registry_model = Registry.objects.get(code=reg_code)
+        if registry_model.has_feature(RegistryFeatures.QUESTIONNAIRES):
+            term = request.GET.get("term", "")
+            qs = Patient.objects.get_by_user_and_registry(request.user, registry_model)
+            query = (Q(given_names__icontains=term) | Q(family_name__icontains=term))
+            results = [{
+                "value": patient_model.pk,
+                "label": str(patient_model),
+                "class": "Patient",
+                "pk": patient_model.pk
+            } for patient_model in qs.filter(query).filter(active=True)]
 
         return JsonResponse(results, safe=False)
 
