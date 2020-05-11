@@ -25,7 +25,6 @@ class PatientLookup(StaffMemberRequiredMixin, View):
         results = []
 
         registry_model = get_object_or_404(Registry, code=reg_code)
-        registry_model = Registry.objects.get(code=reg_code)
         if registry_model.has_feature(RegistryFeatures.QUESTIONNAIRES):
             term = request.GET.get("term", "")
             qs = Patient.objects.get_by_user_and_registry(request.user, registry_model)
