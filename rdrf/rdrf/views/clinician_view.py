@@ -1,9 +1,7 @@
 from django.views.generic.base import View
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.template.context_processors import csrf
-from django.utils.decorators import method_decorator
 from django.shortcuts import render
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -143,7 +141,6 @@ class ClinicianFormView(View):
     def _get_template(self):
         return 'rdrf_cdes/clinician.html'
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, patient_id):
 
         self._get_objects(request, registry_code, patient_id)
@@ -233,7 +230,6 @@ class ClinicianFormView(View):
         self.wizard = self._get_navigation_wizard()
 
     @transaction.atomic()
-    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id):
         self._get_objects(request, registry_code, patient_id)
 

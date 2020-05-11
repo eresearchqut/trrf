@@ -1,6 +1,4 @@
 from django.views.generic.base import View
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.urls import reverse
@@ -100,7 +98,7 @@ class PatientVerification:
 
 
 class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
-    @method_decorator(login_required)
+
     def get(self, request, registry_code):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
@@ -127,7 +125,7 @@ class PatientsRequiringVerificationView(View, VerificationSecurityMixin):
 
 
 class PatientVerificationView(View, VerificationSecurityMixin):
-    @method_decorator(login_required)
+
     def get(self, request, registry_code, patient_id, context_id):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)
@@ -195,7 +193,6 @@ class PatientVerificationView(View, VerificationSecurityMixin):
         context.update(csrf(request))
         return context
 
-    @method_decorator(login_required)
     def post(self, request, registry_code, patient_id, context_id):
         user = request.user
         registry_model = Registry.objects.get(code=registry_code)

@@ -58,8 +58,8 @@ def load_yaml(file_obj):
     return Registry(names, calculations)
 
 
-TestResult = namedtuple("TestResult", ("test", "expected", "actual", "error", "output"))
-TestCase = namedtuple("TestCase", ("file", "number", "check_code", "params", "desc"))
+CustomTestResult = namedtuple("TestResult", ("test", "expected", "actual", "error", "output"))
+CustomTestCase = namedtuple("TestCase", ("file", "number", "check_code", "params", "desc"))
 
 
 def run_tests(registry, csv_file, opts):
@@ -87,7 +87,7 @@ def setup_test(cols, num, filename):
     params = {code: val for code, val in cols.items()
               if code not in ("check", "testcase")}
     desc = cols.get("testcase", "")
-    return TestCase(filename, num, cols["check"], params, desc)
+    return CustomTestCase(filename, num, cols["check"], params, desc)
 
 
 def load_adsafe_js():
@@ -121,10 +121,11 @@ def run_test(registry, test):
 
     if success:
         context_result, output = parse_output(output)
-        return TestResult(test, test.params[test.check_code].strip(), context_result,
-                          False, output)
+        return CustomTestResult(
+            test, test.params[test.check_code].strip(), context_result, False, output
+        )
     else:
-        return TestResult(test, None, None, True, output)
+        return CustomTestResult(test, None, None, True, output)
 
 
 def parse_output(output):

@@ -113,7 +113,8 @@ class CalculatedFieldParser(object):
                 'v1:patient-detail',
                 kwargs={
                     "registry_code": self.registry.code,
-                    "pk": self.injected_model_id})
+                    "pk": self.injected_model_id}
+            ) if self.injected_model_id else ""
         else:
             function_parameter_list = "context"
             injected_model = ""

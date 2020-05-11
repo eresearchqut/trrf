@@ -7,9 +7,10 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from rdrf.admin_forms import DemographicFieldsAdminForm
-from rdrf.models.definition.models import Registry, RegistryFeatures
+from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy, DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.registry_features import RegistryFeatures
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -39,6 +40,7 @@ from rdrf.forms.components import FamilyLinkagePanel
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.db.contexts_api import RDRFContextManager
 
+from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
 from django.core.exceptions import PermissionDenied
 
@@ -588,7 +590,7 @@ class PatientFormMixin:
         return [_(x) for x in registry_model.metadata.get('section_blacklist', [])]
 
 
-class AddPatientView(PatientFormMixin, CreateView):
+class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
     model = Patient
     form_class = PatientForm
     template_name = 'rdrf_cdes/generic_patient.html'
@@ -600,19 +602,22 @@ class AddPatientView(PatientFormMixin, CreateView):
         return context
 
     def get(self, request, registry_code):
-        if not request.user.is_authenticated:
-            patient_add_url = reverse('patient_add', args=[registry_code])
-            login_url = reverse('two_factor:login')
-            return redirect("%s?next=%s" % (login_url, patient_add_url))
-
         self._set_registry_model(registry_code)
         self._set_user(request)
+
+        if not self.user.is_superuser and not self.user.in_registry(self.registry_model):
+            raise PermissionDenied
+
         return super(AddPatientView, self).get(request, registry_code)
 
     def post(self, request, registry_code):
         self.request = request
         self._set_user(request)
         self._set_registry_model(registry_code)
+
+        if not self.user.is_superuser and not self.user.in_registry(self.registry_model):
+            raise PermissionDenied
+
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):

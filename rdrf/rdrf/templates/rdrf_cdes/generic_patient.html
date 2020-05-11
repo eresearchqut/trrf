@@ -20,31 +20,6 @@
     <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
 
     <script>
-        function setPatientRelativeFormVisiblity(visible) {
-            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-            if (visible) {
-                rpc.send("fh_patient_is_index", [{{patient.id}}], function (data) {
-                    var result = data.result;
-                    if (result) {
-                        $("#relatives-group").show();
-                    } else {
-                        $("#relatives-group").hide();
-                    }
-                });
-            } else {
-                $("#relatives-group").hide();
-            }
-        }
-
-        function setupPatientRelativeForm() {
-            var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
-            rpc.send("visibility",["PatientRelativeForm"], function (data) {
-                setPatientRelativeFormVisiblity(data.result);
-            })
-        }
-
-
-
         function select_country(obj) {
             var state_id = obj.id.replace("country", "state");
             var state_select = $('#' + state_id);
@@ -102,8 +77,6 @@
         }
 
         $(document).ready(function(){
-            setupPatientRelativeForm();
-
             function setUpDatepickerOnField(field) {
                 $(field).datepicker({
                     "dateFormat": "dd-mm-yy",

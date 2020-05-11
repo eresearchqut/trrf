@@ -25,7 +25,6 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
-from rdrf.views.lookup_views import FamilyLookup
 from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -135,8 +134,6 @@ normalpatterns += [
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
-    re_path(r'^constructors/(?P<form_name>\w+)/?$',
-            form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
@@ -255,10 +252,6 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
             form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
-            consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
-
 
     # ---- Clinician related URLs -----------------
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
@@ -291,7 +284,9 @@ normalpatterns += [
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
-    re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+    # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
+    # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',

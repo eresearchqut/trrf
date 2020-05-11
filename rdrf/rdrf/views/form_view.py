@@ -10,7 +10,6 @@ from django.forms.formsets import formset_factory
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
-from django.contrib.auth.decorators import login_required
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
 from rdrf.models.definition.models import Section, CommonDataElement
@@ -68,23 +67,15 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.view_helper import FileErrorHandlingMixin
+from rdrf.security.mixins import StaffMemberRequiredMixin
 
 import logging
 
 logger = logging.getLogger(__name__)
-login_required_method = method_decorator(login_required)
 
 
 class RDRFContextSwitchError(Exception):
     pass
-
-
-class LoginRequiredMixin(object):
-
-    @login_required_method
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
 
 
 class CustomConsentHelper(object):
@@ -115,9 +106,6 @@ class CustomConsentHelper(object):
             if key.startswith("customconsent_"):
                 self.custom_consent_data[key] = request.POST[key]
                 self.custom_consent_keys.append(key)
-
-        for key in self.custom_consent_keys:
-            del request.POST[key]
 
     def check_for_errors(self):
         for custom_consent_wrapper in self.custom_consent_wrappers:
@@ -376,7 +364,6 @@ class FormView(View):
             context["change_targets"] = code_gen.generate_change_targets() or ''
             context["generated_declarations"] = code_gen.generate_declarations() or ''
 
-    @login_required_method
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
@@ -503,7 +490,6 @@ class FormView(View):
         # the ids of each cde on the form
         return ",".join(form_class().fields.keys())
 
-    @login_required_method
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         if context_id is None:
             raise Http404
@@ -1094,7 +1080,6 @@ class FormPrintView(FormView):
 class FormListView(TemplateView):
     template_name = "rdrf_cdes/form_list.html"
 
-    @login_required_method
     def get(self, request, **kwargs):
         patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
         security_check_user_patient(request.user, patient_model)
@@ -1127,10 +1112,11 @@ class FormListView(TemplateView):
 class FormFieldHistoryView(TemplateView):
     template_name = "rdrf_cdes/form_field_history.html"
 
-    @login_required_method
     def get(self, request, **kwargs):
         if request.user.is_working_group_staff:
             raise PermissionDenied()
+        patient_model = get_object_or_permission_denied(Patient, pk=kwargs.get('patient_id'))
+        security_check_user_patient(request.user, patient_model)
         return super(FormFieldHistoryView, self).get(request, **kwargs)
 
     def get_context_data(
@@ -1204,6 +1190,7 @@ class QuestionnaireView(FormView):
         self.template = 'rdrf_cdes/questionnaire.html'
         self.CREATE_MODE = False
         self.show_multisection_delete_checkbox = False
+        self.init_previous_data_members()
 
     @method_decorator(patient_questionnaire_access)
     def get(self, request, registry_code, questionnaire_context="au"):
@@ -1538,14 +1525,17 @@ class QuestionnaireView(FormView):
     def _get_patient_name(self):
         return "questionnaire"
 
-    def _get_form_class_for_section(self, registry, registry_form, section):
+    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
-            registry, registry_form, section, questionnaire_context=self.questionnaire_context)
+            registry, registry_form, section,
+            allowed_cdes=allowed_cdes,
+            previous_values=previous_values,
+            questionnaire_context=self.questionnaire_context
+        )
 
 
-class QuestionnaireHandlingView(View):
+class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
 
-    @method_decorator(login_required)
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.workflows.questionnaires.questionnaires import Questionnaire
         context = csrf(request)
@@ -1562,7 +1552,7 @@ class QuestionnaireHandlingView(View):
         return render(request, template_name, context)
 
 
-class FileUploadView(LoginRequiredMixin, FileErrorHandlingMixin, View):
+class FileUploadView(FileErrorHandlingMixin, View):
 
     def get(self, request, registry_code, file_id):
         file_info = filestorage.get_file(file_id)
@@ -1599,14 +1589,13 @@ class StandardView(object):
         return StandardView._render(request, StandardView.APPLICATION_ERROR, context)
 
 
-class QuestionnaireConfigurationView(View):
+class QuestionnaireConfigurationView(StaffMemberRequiredMixin, View):
 
     """
     Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
     """
     TEMPLATE = "rdrf_cdes/questionnaire_config.html"
 
-    @login_required_method
     def get(self, request, form_pk):
         registry_form = RegistryForm.objects.get(pk=form_pk)
 
@@ -1689,12 +1678,6 @@ class Colours(object):
     green = "#00ff00"
     red = "#f7464a"
     yellow = "#ffff00"
-
-
-class ConstructorFormView(View):
-
-    def get(self, request, form_name):
-        return render(request, 'rdrf_cdes/%s.html' % form_name)
 
 
 class CustomConsentFormView(View):
@@ -1974,7 +1957,6 @@ class FormDSLHelpView(TemplateView):
 
 class CdeWidgetSettingsView(View):
 
-    @login_required_method
     def get(self, request, code, new_name):
         cde = CommonDataElement.objects.filter(code=code).first() or CommonDataElement()
         cde.widget_name = new_name
@@ -1995,7 +1977,6 @@ class CdeWidgetSettingsView(View):
 
 class CdeAvailableWidgetsView(View):
 
-    @login_required_method
     def get(self, request, data_type):
         widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
         return JsonResponse({'widgets': widgets})

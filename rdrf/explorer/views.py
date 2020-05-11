@@ -5,12 +5,11 @@ import re
 from tempfile import NamedTemporaryFile
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render, redirect
-from django.utils.decorators import method_decorator
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic.base import View
 
 from explorer import __version__
@@ -21,6 +20,7 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
+from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 
@@ -30,49 +30,22 @@ from rdrf.helpers.utils import mongo_key_from_models
 logger = logging.getLogger(__name__)
 
 
-class LoginRequiredMixin(object):
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(
-            request, *args, **kwargs)
-
-
-class MainView(LoginRequiredMixin, View):
+class MainView(View):
 
     def get(self, request):
-        user = request.user
-
-        reports = None
-
-        if user.is_superuser:
-            reports = Query.objects.all()
-        elif user.is_curator or (user.is_clinician and user.ethically_cleared):
-            reports = Query.objects.filter(
-                registry__in=[
-                    reg.id for reg in user.get_registries()]).filter(
-                access_group__in=[
-                    g.id for g in user.get_groups()])
-
         return render(request, 'explorer/query_list.html', {
-            'object_list': reports
+            'object_list': Query.objects.reports_for_user(request.user)
         })
 
 
-class NewQueryView(LoginRequiredMixin, View):
+class NewQueryView(SuperuserRequiredMixin, View):
 
     def get(self, request):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
         return render(request, 'explorer/query.html', params)
 
     def post(self, request):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
             m = query_form.save(commit=False)
@@ -82,23 +55,26 @@ class NewQueryView(LoginRequiredMixin, View):
         return HttpResponse()
 
 
-class DeleteQueryView(LoginRequiredMixin, View):
+class DeleteQueryView(SuperuserRequiredMixin, View):
 
     def get(self, request, query_id):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
         return redirect('rdrf:explorer_main')
 
 
-class QueryView(LoginRequiredMixin, View):
+class AccessCheckMixin:
+
+    def dispatch(self, request, *args, **kwargs):
+        if not Query.objects.reports_for_user(request.user).filter(pk=kwargs['query_id']).exists():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class QueryView(AccessCheckMixin, View):
 
     def get(self, request, query_id):
-        from rdrf.models.definition.models import Registry
-
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
         params['edit'] = True
@@ -106,7 +82,7 @@ class QueryView(LoginRequiredMixin, View):
         return render(request, 'explorer/query.html', params)
 
     def post(self, request, query_id):
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
         form = QueryForm(request.POST)
@@ -141,14 +117,13 @@ class QueryView(LoginRequiredMixin, View):
                 return redirect(query_model)
 
 
-class DownloadQueryView(LoginRequiredMixin, View):
+class DownloadQueryView(AccessCheckMixin, View):
 
     def post(self, request, query_id, action):
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
-        query_model = Query.objects.get(id=query_id)
-
+        query_model = get_object_or_404(Query, pk=query_id)
         query_params = re.findall("%(.*?)%", query_model.sql_query)
 
         sql_query = query_model.sql_query
@@ -206,7 +181,8 @@ class DownloadQueryView(LoginRequiredMixin, View):
             raise Exception("bad action")
 
         user = request.user
-        query_model = Query.objects.get(id=query_id)
+        query_model = get_object_or_404(Query, pk=query_id)
+
         registry_model = query_model.registry
         query_form = QueryForm(instance=query_model)
 
@@ -257,7 +233,7 @@ class DownloadQueryView(LoginRequiredMixin, View):
         return report_table_generator.dump_csv(response)
 
 
-class SqlQueryView(View):
+class SqlQueryView(SuperuserRequiredMixin, View):
 
     def post(self, request):
         form = QueryForm(request.POST)
