@@ -602,19 +602,22 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
         return context
 
     def get(self, request, registry_code):
-        if not request.user.is_authenticated:
-            patient_add_url = reverse('patient_add', args=[registry_code])
-            login_url = reverse('two_factor:login')
-            return redirect("%s?next=%s" % (login_url, patient_add_url))
-
         self._set_registry_model(registry_code)
         self._set_user(request)
+
+        if not self.user.is_superuser and not self.user.in_registry(self.registry_model):
+            raise PermissionDenied
+
         return super(AddPatientView, self).get(request, registry_code)
 
     def post(self, request, registry_code):
         self.request = request
         self._set_user(request)
         self._set_registry_model(registry_code)
+
+        if not self.user.is_superuser and not self.user.in_registry(self.registry_model):
+            raise PermissionDenied
+
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):
