@@ -23,10 +23,8 @@ class UserSentryMiddleware(MiddlewareMixin):
         'setup',
         'qr',
 
-        'force_password_change',
-        'password_reset_done',
-        'password_reset_confirm',
-        'password_reset_complete',
+        'password_change',
+        'password_change_done',
 
         'logout',
         'javascript-catalog',
@@ -55,7 +53,7 @@ class UserSentryMiddleware(MiddlewareMixin):
     @staticmethod
     def verify_password_change(user):
         if user.force_password_change:
-            return HttpResponseRedirect(reverse('force_password_change'))
+            return HttpResponseRedirect(reverse('password_change'))
 
 
 class NoCacheMiddleware:
