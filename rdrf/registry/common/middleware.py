@@ -14,7 +14,7 @@ class UserSentryMiddleware(MiddlewareMixin):
     :class:`~django_otp.middleware.OTPMiddleware`.
     Users who are required to have two-factor authentication but aren't verified
     will always be redirected to the two-factor setup page.
-    Users who are required to reset their passwords will be redirected to the
+    Users who are required to change their passwords will be redirected to the
     password reset page
     """
 
@@ -23,7 +23,7 @@ class UserSentryMiddleware(MiddlewareMixin):
         'setup',
         'qr',
 
-        'force_password_reset',
+        'force_password_change',
         'password_reset_done',
         'password_reset_confirm',
         'password_reset_complete',
@@ -41,7 +41,7 @@ class UserSentryMiddleware(MiddlewareMixin):
         if user is None or user.is_anonymous:
             return None
 
-        for f in [self.verify_password_reset, self.verify_tfa]:
+        for f in [self.verify_password_change, self.verify_tfa]:
             if redirect := f(user):
                 return redirect
 
@@ -53,9 +53,9 @@ class UserSentryMiddleware(MiddlewareMixin):
             return HttpResponseRedirect(reverse('two_factor:setup'))
 
     @staticmethod
-    def verify_password_reset(user):
-        if user.force_password_reset:
-            return HttpResponseRedirect(reverse('force_password_reset'))
+    def verify_password_change(user):
+        if user.force_password_change:
+            return HttpResponseRedirect(reverse('force_password_change'))
 
 
 class NoCacheMiddleware:
