@@ -1,3 +1,4 @@
+from csp.decorators import csp_update
 from django.shortcuts import render
 from django.views.generic.base import View
 from django.template.context_processors import csrf
@@ -230,6 +231,7 @@ class FamilyLinkageManager(object):
 
 class FamilyLinkageView(View):
 
+    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, registry_code, initial_index=None):
 
         try:

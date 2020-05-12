@@ -1,3 +1,4 @@
+from csp.decorators import csp_update
 from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
@@ -1536,6 +1537,7 @@ class QuestionnaireView(FormView):
 
 class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
 
+    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, registry_code, questionnaire_response_id):
         from rdrf.workflows.questionnaires.questionnaires import Questionnaire
         context = csrf(request)
