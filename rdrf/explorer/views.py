@@ -4,6 +4,7 @@ import logging
 import re
 from tempfile import NamedTemporaryFile
 
+from csp.decorators import csp_update
 from django.conf import settings
 
 from django.core.exceptions import PermissionDenied
@@ -40,6 +41,7 @@ class MainView(View):
 
 class NewQueryView(SuperuserRequiredMixin, View):
 
+    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request):
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
@@ -73,6 +75,7 @@ class AccessCheckMixin:
 
 class QueryView(AccessCheckMixin, View):
 
+    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
         query_form = QueryForm(instance=query_model)
