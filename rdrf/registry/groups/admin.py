@@ -81,12 +81,12 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('username', 'password')}),
         ('Personal information', {'fields': ('first_name', 'last_name', 'title', 'email', 'preferred_language')}),
         ('Permissions', {
-         'fields': ('is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'groups', 'registry', 'working_groups')}))
+         'fields': ('is_active', 'require_2_fact_auth', 'force_password_change', 'prevent_self_unlock', 'is_staff', 'groups', 'registry', 'working_groups')}))
 
     # only superusers are allowed to make users superuser
     def superuser_fieldsets(self, user):
         def get_permision_fields(user):
-            base_fields = ['is_active', 'require_2_fact_auth', 'prevent_self_unlock', 'is_staff', 'is_superuser',
+            base_fields = ['is_active', 'require_2_fact_auth', 'force_password_change', 'prevent_self_unlock', 'is_staff', 'is_superuser',
                            'groups', 'registry', 'working_groups']
             show_ethically_cleared = any(r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) for r in user.registry.all())
             if show_ethically_cleared:

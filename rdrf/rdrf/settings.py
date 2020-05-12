@@ -155,7 +155,7 @@ MIDDLEWARE = (
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
-    'registry.common.middleware.EnforceTwoFactorAuthMiddleware',
+    'registry.common.middleware.UserSentryMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
