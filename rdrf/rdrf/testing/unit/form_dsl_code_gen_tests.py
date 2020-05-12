@@ -1,5 +1,3 @@
-import pytest
-
 from rdrf.forms.dsl.code_generator import CodeGenerator
 
 from .tests import FormTestCase
@@ -40,7 +38,7 @@ class CodeGenTestCase(FormTestCase):
         assert 'visibility_map_update(visibility_map, ' in visibility_handler_output
 
     def visibility_handler_simple_test(self, visibility_handler_output, name, op, value):
-        assert f'test_cde_value_simple("{name}", "{op}", "{value}")'  in visibility_handler_output
+        assert f'test_cde_value_simple("{name}", "{op}", "{value}")' in visibility_handler_output
 
     def change_targets_assertions(self, change_targets_output):
         assert 'function change_handler_targets()' in change_targets_output
