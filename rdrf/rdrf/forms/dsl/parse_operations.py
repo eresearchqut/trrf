@@ -139,7 +139,7 @@ class TreeTransformer(Transformer):
 
 
 def parse_dsl(dsl):
-    p = Lark(DSL_DEFINITION, parser='earley', debug=False)
+    p = Lark(DSL_DEFINITION, parser='lalr', start='start', debug=False)
     return p.parse(dsl)
 
 
