@@ -1,6 +1,6 @@
 import logging
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
@@ -35,6 +35,26 @@ class EnforceTwoFactorAuthMiddleware(MiddlewareMixin):
             return HttpResponseRedirect(reverse('two_factor:setup'))
 
         return None
+
+
+class LaxSameSiteCookieMiddleware(MiddlewareMixin):
+    """
+    Sets 'SameSite: Lax' on cookies when resetting user passwords.
+    Must be installed before SessionMiddleware.
+
+    This mitigates a bug where redirect-urls from email clients cause cookies
+    to not be set when part of a redirect chain.
+    """
+    applied_views = [
+        'password_reset_confirm'
+    ]
+
+    def process_response(self, request, response):
+        match = resolve(request.path)
+        if match.url_name in self.applied_views:
+            for cookie in response.cookies:
+                response.cookies[cookie]['samesite'] = 'Lax'
+        return response
 
 
 class NoCacheMiddleware:
