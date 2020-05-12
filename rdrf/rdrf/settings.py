@@ -615,6 +615,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/(?P<registry_code>\w+)/register',
     r'/activate/(?P<activation_key>\w+)/?$',
     r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    r'^i18n/',
 )
 if DEBUG:
     STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )
@@ -632,4 +633,7 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'registration_activate_complete',
     'password_reset_done',
     'password_reset_complete',
+    'favicon',
+    'robots_txt',
+    'js_reverse',
 )
