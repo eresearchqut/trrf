@@ -622,6 +622,7 @@ if DEBUG:
 # Public named urls can contain only urls without parameters
 # as django-stronghold cannot handle it otherwise
 STRONGHOLD_PUBLIC_NAMED_URLS = (
+    'health_check',
     'landing',
     'login_assistance',
     'registration_complete',
