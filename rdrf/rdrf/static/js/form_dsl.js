@@ -2,7 +2,7 @@ function update_cde($target_cde, visibility) {
     switch(visibility) {
         case "enabled":
         case "disabled":
-            $target_cde.parents('.form-group').prop('disabled', visibility == "disabled");
+            $target_cde.prop('disabled', visibility == "disabled");
             break;
         case "visible":
             $target_cde.parents('.form-group').show();
