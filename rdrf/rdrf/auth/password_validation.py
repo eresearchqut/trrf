@@ -119,3 +119,12 @@ class ConsecutivelyDecreasingNumberValidator(NumberRuleValidator):
 
     def validation_func(self, prev, cur):
         return int(prev) - 1 == int(cur) or prev == '0' and cur == '9'
+
+
+class DifferentToPrevious:
+    def validate(self, password, user=None):
+        if user and user.check_password(password):
+            raise ValidationError(self.get_help_text())
+
+    def get_help_text(self):
+        return _(f"You must change the password to something other than your current password.")
