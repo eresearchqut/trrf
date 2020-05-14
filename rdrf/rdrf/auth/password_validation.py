@@ -127,4 +127,4 @@ class DifferentToPrevious:
             raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
-        return _(f"You must change the password to something other than your current password.")
+        return _("You must change the password to something other than your current password.")
