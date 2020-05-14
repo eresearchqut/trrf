@@ -333,17 +333,20 @@ class FieldFactory(object):
                         widget = widget_class(
                             main_choices=choices,
                             other_please_specify_value=other_please_specify_value,
-                            unset_value=self.UNSET_CHOICE)
+                            unset_value=self.UNSET_CHOICE,
+                            widget_name=self.cde.widget_name)
                     except BaseException:
                         widget = widgets.OtherPleaseSpecifyWidget(
                             main_choices=choices,
                             other_please_specify_value=other_please_specify_value,
-                            unset_value=self.UNSET_CHOICE)
+                            unset_value=self.UNSET_CHOICE,
+                            widget_name=self.cde.widget_name)
                 else:
                     widget = widgets.OtherPleaseSpecifyWidget(
                         main_choices=choices,
                         other_please_specify_value=other_please_specify_value,
-                        unset_value=self.UNSET_CHOICE)
+                        unset_value=self.UNSET_CHOICE,
+                        widget_name=self.cde.widget_name)
 
                 return fields.CharField(
                     max_length=80,

@@ -48,13 +48,21 @@ class OtherPleaseSpecifyWidget(MultiWidget):
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
-    def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None):
+    def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None, widget_name=None):
         self.main_choices = main_choices
         self.other_please_specify_value = other_please_specify_value
         self.unset_value = unset_value
+        self.use_radio = widget_name == 'RadioSelect'
 
+        def default_main_widget():
+            return widgets.Select(attrs=attrs, choices=self.main_choices)
+
+        _main_widget_mapping = {
+            'RadioSelect': lambda: RadioSelect(attrs=attrs, choices=self.main_choices),
+            'ReadOnlySelect': lambda: ReadOnlySelect(attrs=attrs, choices=self.main_choices)
+        }
         _widgets = (
-            widgets.Select(attrs=attrs, choices=self.main_choices),
+            _main_widget_mapping.get(widget_name, default_main_widget)(),
             widgets.TextInput(attrs=attrs)
         )
 
@@ -97,11 +105,14 @@ class OtherPleaseSpecifyWidget(MultiWidget):
     def render(self, name, value, attrs=None, renderer=None):
         select_id = "id_" + name + "_0"
         specified_value_textbox_id = "id_" + name + "_1"
+        value_check = f'$(this).val() == "{self.other_please_specify_value}"'
+        if self.use_radio:
+            value_check = f'$(this).find(":checked").val() == "{self.other_please_specify_value}"'
         script = """
         <script>
             (function() {
                 $("#%s").bind("change", function() {
-                    if ($(this).val() == "%s") {
+                    if (%s) {
                         $("#%s").show();
                     }
                     else {
@@ -112,7 +123,7 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             (function(){ $("#%s").change();})();
 
         </script>
-        """ % (select_id, self.other_please_specify_value, specified_value_textbox_id, specified_value_textbox_id, select_id)
+        """ % (select_id, value_check, specified_value_textbox_id, specified_value_textbox_id, select_id)
 
         return f'''
             <div id="id_{name}" name="{name}">
