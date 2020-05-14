@@ -189,13 +189,13 @@ class PatientManager(models.Manager):
                 rdrf_registry=registry_model,
                 working_groups__in=user.working_groups.all())
         if user.is_working_group_staff:
-            return qs.filter(working_groups__in=self.user.working_groups.all())
+            return qs.filter(working_groups__in=user.working_groups.all())
         if user.is_clinician:
             return self.get_by_clinician(user, registry_model)
         if user.is_patient:
             return qs.filter(user=user)
         if user.is_carer:
-            return qs.filter(carer=self.user)
+            return qs.filter(carer=user)
         return qs.none()
 
 
