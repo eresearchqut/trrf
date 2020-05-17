@@ -41,6 +41,11 @@
                 <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                 {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
             </div>
+        {% elif widget.virus_check_result == 'not found' %}
+            <div class="alert alert-danger" role="alert">
+                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                {% trans 'The file is not found !.' %}
+            </div>
         {% endif %}
         <div>
         {{ widget.input_text }}:
