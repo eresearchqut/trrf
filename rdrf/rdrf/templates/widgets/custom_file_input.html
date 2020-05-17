@@ -13,7 +13,7 @@
         <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
     {% endif %}
     <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning" style="display:{% if widget.virus_check_result == 'scanning' %} block {% else %} none {% endif %};">
-        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+        <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>
         {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses.Waiting for the scan to finish...' %}
     </div>
     <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_infected" style="display: {% if widget.virus_check_result == 'infected' %} block {% else %} none {% endif %}">
