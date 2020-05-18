@@ -27,7 +27,6 @@ function check_virus_scan_status(base_url, base_id, value, interval) {
 }
 
 function setup_virus_status_check(base_url, base_id, value, interval_ms) {
-    check_virus_scan_status(base_url, base_id, value);
     var _interval = setInterval( function() {
         check_virus_scan_status(base_url, base_id, value, _interval);
     }, interval_ms);

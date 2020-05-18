@@ -25,11 +25,12 @@
         {% trans 'The file is not found !.' %}
     </div>
 
-    {% if widget.virus_check_result == 'scanning' %}
-        <script>
+    <script>
+        check_virus_scan_status("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}");
+        {% if widget.virus_check_result == 'scanning' %}
             setup_virus_status_check("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}", 5000);
-        </script>
-    {% endif %}
+        {% endif %}
+    </script>
     <div>
         {{ widget.input_text }}:
     </div>
