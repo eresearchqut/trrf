@@ -12,42 +12,22 @@
         <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
         <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
     {% endif %}
-    <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning" style="display:{% if widget.virus_check_result == 'scanning' %} block {% else %} none {% endif %};">
+    <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning" style="display:none;"">
         <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>
         {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses.Waiting for the scan to finish...' %}
     </div>
-    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_infected" style="display: {% if widget.virus_check_result == 'infected' %} block {% else %} none {% endif %}">
+    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_infected" style="display:none;">
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
         {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
     </div>
-    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_notfound" style="display: {% if widget.virus_check_result == 'not found' %} block {% else %} none {% endif %}">
+    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_notfound" style="display:none;">
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
         {% trans 'The file is not found !.' %}
     </div>
 
     {% if widget.virus_check_result == 'scanning' %}
         <script>
-            var {{widget.virus_check_id}}_interval = setInterval(
-                function(){ 
-                    $.ajax({
-                        url: "{{widget.value.url}}?check_status=true",
-                        type: "GET",
-                        success: function(data) {
-                            var status = data['response']
-                            if ( status !== 'scanning') {
-                                $("#{{widget.virus_check_id}}_scanning").hide();
-                                clearInterval({{widget.virus_check_id}}_interval);
-                                if (status == 'infected') {
-                                    $("#{{widget.virus_check_id}}_infected").show();
-                                } else if (status == 'not found') {
-                                    $("#{{widget.virus_check_id}}_notfound").show();
-                                } else if (status == 'clean') {
-                                    $("#{{widget.virus_check_id}}_link").html('<a href="{{ widget.value.url }}">{{ widget.value }}</a>');
-                                }
-                            }
-                        }
-                    });
-                }, 5000);
+            setup_virus_status_check("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}", 5000);
         </script>
     {% endif %}
     <div>
