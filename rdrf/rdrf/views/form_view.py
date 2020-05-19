@@ -13,10 +13,11 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
-from rdrf.models.definition.models import Section, CommonDataElement
+from rdrf.models.definition.models import CDEFile, Section, CommonDataElement, file_upload_to
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.db.filestorage import virus_checker_result
 from django.http import Http404
 from rdrf.forms.dsl.code_generator import CodeGenerator
 from rdrf.forms.file_upload import wrap_fs_data_for_form
@@ -1562,6 +1563,14 @@ class FileUploadView(FileErrorHandlingMixin, View):
             security_check_user_patient(request.user, file_info.patient)
         else:
             raise PermissionDenied
+        check_status = request.GET.get('check_status', '')
+        need_status_check = check_status and check_status.lower() == 'true'
+        if need_status_check:
+            cde_file = get_object_or_404(CDEFile, pk=file_id)
+            return JsonResponse({
+                "response": virus_checker_result(file_upload_to(cde_file, cde_file.filename)),
+            })
+
         if file_info.item is not None:
             response = FileResponse(file_info.item, content_type=file_info.mime_type or 'application/octet-stream')
             response['Content-disposition'] = 'filename="%s"' % file_info.filename

@@ -108,6 +108,7 @@ class CustomS3Storage(S3Boto3Storage):
     def get_tags(self, name):
         '''
         Returns dict of tags key/values of an S3 object.
+        Empty dict is returned if the object is in scanning state, None if it does not exist
         This method isn't part of the Storage API, it is an extra method added by us.
         '''
         try:
@@ -116,7 +117,7 @@ class CustomS3Storage(S3Boto3Storage):
             return {el['Key']: el['Value'] for el in response['TagSet']}
         except botocore.exceptions.ClientError as tce:
             if tce.response['Error']['Code'] == 'NoSuchKey':
-                pass
+                return None
             else:
                 raise tce
         return {}
@@ -126,6 +127,7 @@ class VirusScanStatus:
     SCANNING = 'scanning'
     CLEAN = 'clean'
     INFECTED = 'infected'
+    NOT_FOUND = 'not found'
 
 
 class S3VirusChecker:
@@ -135,6 +137,8 @@ class S3VirusChecker:
 
     def check(self, name):
         tags = self.storage.get_tags(name)
+        if tags is None:
+            return VirusScanStatus.NOT_FOUND
         status = tags.get('av-status', '')
         if not status:
             return VirusScanStatus.SCANNING
