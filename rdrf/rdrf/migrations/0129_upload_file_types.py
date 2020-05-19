@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0126_blacklistedmimetype'),
+        ('rdrf', '0128_cdefile_set_mime_type_data_migration'),
     ]
 
     operations = [
