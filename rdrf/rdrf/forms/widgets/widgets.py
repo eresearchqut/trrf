@@ -528,7 +528,7 @@ class ConsentFileInput(FileInputWrapper):
 
     def get_filename(self, value):
         patient_consent = PatientConsent.objects.get(form=value)
-        return upload_patient_consent_to(patient_consent, patient_consent.filename)
+        return upload_patient_consent_to(patient_consent, patient_consent.filename, get_existing=True)
 
 
 class CustomFileInput(FileInputWrapper):
@@ -539,7 +539,7 @@ class CustomFileInput(FileInputWrapper):
             return None
 
         cde_file = CDEFile.objects.get(pk=django_file_id)
-        return file_upload_to(cde_file, cde_file.filename)
+        return file_upload_to(cde_file, cde_file.filename, get_existing=True)
 
 
 class SliderWidget(widgets.TextInput):

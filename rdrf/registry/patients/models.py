@@ -4,8 +4,10 @@ import json
 import logging
 from functools import reduce
 from operator import attrgetter
+import os
 import pycountry
 import random
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.core import serializers
@@ -1474,8 +1476,12 @@ class PatientConsentStorage(DefaultStorage):
         return None
 
 
-def upload_patient_consent_to(instance, filename):
-    return 'consents/patient/{0}/{1}'.format(instance.patient.pk, filename)
+def upload_patient_consent_to(instance, filename, get_existing=False):
+    if not get_existing:
+        __, ext = os.path.splitext(filename)
+        generated_name = f"{uuid.uuid4()}{ext}"
+        return 'consents/patient/{0}/{1}'.format(instance.patient.pk, generated_name)
+    return str(instance.form)
 
 
 class ConsentFileField(models.FileField):

@@ -27,7 +27,7 @@ from rdrf.helpers.utils import de_camelcase, location_name, is_multisection, mak
 from rdrf.helpers.utils import parse_iso_date
 from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
-from rdrf.models.definition.models import RDRFContext
+from rdrf.models.definition.models import RDRFContext, file_upload_to
 
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -1577,7 +1577,7 @@ class FileUploadView(FileErrorHandlingMixin, View):
         if need_status_check:
             cde_file = get_object_or_404(CDEFile, pk=file_id)
             return JsonResponse({
-                "response": virus_checker_result(cde_file.item.name),
+                "response": virus_checker_result(file_upload_to(cde_file, cde_file.filename, get_existing=True)),
             })
 
         if file_info.item is not None:

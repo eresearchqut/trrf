@@ -4,6 +4,7 @@ import jsonschema
 import logging
 import os.path
 import yaml
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -1867,11 +1868,17 @@ class ClinicalData(models.Model):
                 raise ValidationError({"data": e})
 
 
-def file_upload_to(instance, filename):
-    return "/".join(filter(bool, [
-        instance.registry_code,
-        instance.section_code or "_",
-        instance.cde_code, filename]))
+def file_upload_to(instance, filename, get_existing=False):
+    if not get_existing:
+        __, ext = os.path.splitext(filename)
+        generated_name = f"{uuid.uuid4()}{ext}"
+        return "/".join(filter(bool, [
+            instance.registry_code,
+            instance.section_code or "_",
+            instance.cde_code,
+            generated_name
+        ]))
+    return str(instance.item)
 
 
 class CDEFile(models.Model):

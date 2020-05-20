@@ -7,7 +7,7 @@ from rdrf.db.filestorage import virus_checker_result
 from rdrf.helpers.view_helper import FileErrorHandlingMixin
 from rdrf.security.security_checks import security_check_user_patient
 
-from .models import PatientConsent
+from .models import PatientConsent, upload_patient_consent_to
 
 
 class ConsentFileView(FileErrorHandlingMixin, View):
@@ -19,7 +19,7 @@ class ConsentFileView(FileErrorHandlingMixin, View):
         need_status_check = check_status and check_status.lower() == 'true'
         if need_status_check:
             return JsonResponse({
-                "response": virus_checker_result(consent.form.name),
+                "response": virus_checker_result(upload_patient_consent_to(consent, consent.filename, get_existing=True)),
             })
 
         if consent.form and consent.form.file:
