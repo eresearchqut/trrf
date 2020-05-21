@@ -15,7 +15,7 @@ from django.core.files.storage import DefaultStorage
 from django.urls import reverse
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import post_save, m2m_changed, post_delete
+from django.db.models.signals import m2m_changed, post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -1806,3 +1806,17 @@ PatientDTO = namedtuple('PatientDTO', (
     'my_index',
     'has_guardian',
 ))
+
+
+@receiver(pre_save, sender=PatientConsent)
+def delete_updated_consent_file(sender, instance, raw, using, update_fields, **kwargs):
+    if instance.pk:
+        existing = PatientConsent.objects.get(pk=instance.pk)
+        if existing.form:
+            DefaultStorage().delete(str(existing.form))
+
+
+@receiver(post_delete, sender=PatientConsent)
+def delete_removed_consent_file(sender, instance, **kwargs):
+    if instance.form:
+        DefaultStorage().delete(str(instance.form))
