@@ -527,7 +527,9 @@ class ConsentFileInput(FileInputWrapper):
         return FieldFileDummy(name=filename, url=value.url)
 
     def get_filename(self, value):
-        patient_consent = PatientConsent.objects.get(form=value)
+        patient_consent = PatientConsent.objects.filter(form=value).first()
+        if not patient_consent:
+            return None
         return upload_patient_consent_to(patient_consent, patient_consent.filename, get_existing=True)
 
 
@@ -538,7 +540,9 @@ class CustomFileInput(FileInputWrapper):
         if django_file_id is None:
             return None
 
-        cde_file = CDEFile.objects.get(pk=django_file_id)
+        cde_file = CDEFile.objects.filter(pk=django_file_id).first()
+        if not cde_file:
+            return None
         return file_upload_to(cde_file, cde_file.filename, get_existing=True)
 
 

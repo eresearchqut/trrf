@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 from operator import itemgetter
 from itertools import zip_longest
@@ -6,7 +7,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from rdrf.db import filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
-from rdrf.models.definition.models import Registry, ClinicalData
+from rdrf.models.definition.models import CDEFile, ClinicalData, Registry
 from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
@@ -54,17 +55,23 @@ def find_cdes(doc,
               formp=None,
               sectionp=None,
               cdep=None,
-              multisection=False):
+              multisection=False,
+              with_section_index=False):
     """
     Iterates through CDEs stored in a mongo doc.
     """
     cdep = cdep or (lambda c, i: True)
 
     sections = find_sections(doc, form_name, section_code, formp, sectionp, multisection=multisection)
+    section_idx = 0
     for section in sections:
         for c, cde in enumerate(section.get("cdes") or []):
             if (cde_code is None or (cde.get("code") == cde_code and cdep(cde, c))):
-                yield cde
+                if not with_section_index:
+                    yield cde
+                else:
+                    yield section_idx, cde
+        section_idx += 1
 
 
 def section_allow_multiple(s, i):
@@ -103,11 +110,21 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
     return None
 
 
+def _get_file_id(existing_value):
+    if not existing_value:
+        return None
+    value = existing_value.get('value') or {}
+    if value:
+        return value.get('django_file_id') if isinstance(value, dict) else None
+    return existing_value.get('django_file_id') if isinstance(existing_value, dict) else None
+
+
 def update_multisection_file_cdes(registry_code, patient_record, user, multisection_code, form_section_items, form_model,
                                   existing_nested_data, index_map):
 
     updates = []
-
+    processed_indexes = defaultdict(list)
+    to_delete = []
     for item_index, section_item_dict in enumerate(form_section_items):
         for key, value in section_item_dict.items():
             cde_code = get_code(key)
@@ -117,12 +134,29 @@ def update_multisection_file_cdes(registry_code, patient_record, user, multisect
                 existing_value = get_mongo_value(
                     registry_code, existing_nested_data, key, multisection_index=actual_index)
 
+                # File is updated, delete the original
+                if value is not None and value:
+                    file_id = _get_file_id(existing_value)
+                    if file_id:
+                        to_delete.append(file_id)
+
                 # antecedent here will never return true and the definition is not correct
                 if is_multiple_file_cde(cde_code):
                     new_val = DynamicDataWrapper.handle_file_uploads(registry_code, patient_record, user, key, value, existing_value)
                 else:
                     new_val = DynamicDataWrapper.handle_file_upload(registry_code, patient_record, user, key, value, existing_value)
+                processed_indexes[cde_code].append(actual_index)
                 updates.append((item_index, key, new_val))
+
+    # Delete values which were not processed ( marked as deleted in the UI)
+    for section_index, cde in find_cdes(existing_nested_data, form_model.name, multisection_code, multisection=True, with_section_index=True):
+        cde_code = cde['code']
+        if cde and is_file_cde(cde_code) and section_index not in processed_indexes[cde_code]:
+            file_id = _get_file_id(cde)
+            if file_id:
+                to_delete.append(file_id)
+    if to_delete:
+        CDEFile.objects.filter(pk__in=to_delete).delete()
 
     for index, key, value in updates:
         form_section_items[index][key] = value

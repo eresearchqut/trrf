@@ -210,12 +210,12 @@ def get_cde(code):
 
 def is_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file'
+    return cde and cde.datatype == CDEDataTypes.FILE
 
 
 def is_multiple_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file' and cde.allow_multiple
+    return cde and cde.datatype == CDEDataTypes.FILE and cde.allow_multiple
 
 
 def is_uploaded_file(value):

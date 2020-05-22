@@ -10,11 +10,12 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files.storage import DefaultStorage
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete, post_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.formats import date_format, time_format
@@ -1964,3 +1965,9 @@ class BlacklistedMimeType(models.Model):
 
     class Meta:
         verbose_name = "Disallowed mime type"
+
+
+@receiver(post_delete, sender=CDEFile)
+def delete_removed_upload(sender, instance, **kwargs):
+    if instance.item:
+        DefaultStorage().delete(str(instance.item))
