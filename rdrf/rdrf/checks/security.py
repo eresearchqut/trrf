@@ -1,8 +1,6 @@
-import os
-
-from django.conf import settings
 from django.core.checks import Error, register
 from django.urls import get_resolver, URLPattern, URLResolver
+from django.conf import settings
 
 
 @register()
@@ -18,14 +16,10 @@ def url_whitelist_check(app_configs, **kwargs):
 
     get_url_names(get_resolver().url_patterns)
 
-    with open(os.path.join(settings.WEBAPP_ROOT, "rdrf/checks/url_whitelist.txt"), 'r') as f:
-        whitelisted_names = set((line.rstrip() for line in f.readlines()))
-
-    errors = []
-    for name in whitelisted_names.symmetric_difference(registered_names):
-        errors.append(Error(
+    return [
+        Error(
             f"Url {name} has not been whitelisted",
-            hint="Read the instructions in SECURITY.rst",
+            hint="Read the instructions in docs/security/README.rst",
             id='trrf.E001',
-        ))
-    return errors
+        ) for name in set(settings.SECURITY_WHITELISTED_URLS).symmetric_difference(registered_names)
+    ]
