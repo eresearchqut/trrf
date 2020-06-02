@@ -6,7 +6,7 @@ Views
 
 TRRF views must conform to the following conventions.
 
-Once you have ensured your view meets the requirements outlined below, add its url pattern name to the whitelist in `rdrf/rdrf/checks/url_whitelist.txt <rdrf/rdrf/checks/url_whitelist.txt>`_.
+Once you have ensured your view meets the requirements outlined below, add its url pattern name to the whitelist in `rdrf/rdrf/security/url_whitelist.py <rdrf/rdrf/security/url_whitelist.py>`_.
 
 Publicly accessible views should be whitelisted for django-stronghold
 =====================================================================
