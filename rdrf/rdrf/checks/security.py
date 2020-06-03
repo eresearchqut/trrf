@@ -21,5 +21,5 @@ def url_whitelist_check(app_configs, **kwargs):
             f"Url {name} has not been whitelisted",
             hint="Read the instructions in docs/security/README.rst",
             id='trrf.E001',
-        ) for name in set(settings.SECURITY_WHITELISTED_URLS) - registered_names
+        ) for name in registered_names - set(settings.SECURITY_WHITELISTED_URLS)
     ]
