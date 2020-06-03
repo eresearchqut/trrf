@@ -1,9 +1,9 @@
-from django.core.checks import Error, register
+from django.core.checks import Error, register, Tags
 from django.urls import get_resolver, URLPattern, URLResolver
 from django.conf import settings
 
 
-@register()
+@register(Tags.security, deploy=True)
 def url_whitelist_check(app_configs, **kwargs):
     registered_names = set()
 
