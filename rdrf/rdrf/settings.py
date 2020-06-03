@@ -8,8 +8,7 @@ from django.contrib.messages import constants as message_constants
 import rdrf
 from rdrf.helpers.settings_helpers import get_static_url_domain, get_csp
 from rdrf.system_role import SystemRoles
-from rdrf.security.url_whitelist import SECURITY_WHITELISTED_URLS
-
+from rdrf.security import url_whitelist
 env = EnvConfig()
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
@@ -644,4 +643,4 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 
 # URLs whitelisted for meeting the security conventions
 # Refer to docs/security/README.rst
-SECURITY_WHITELISTED_URLS = list(SECURITY_WHITELISTED_URLS)
+SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
