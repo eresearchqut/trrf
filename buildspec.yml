@@ -33,6 +33,7 @@ phases:
       - docker-compose build
       - echo Running tests...
       - scripts/lint.sh
+      - scripts/django-checks.sh
       - scripts/js_dependencies.py --verify
       - scripts/check-migrations.sh
       - scripts/unit-tests.sh
