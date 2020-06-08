@@ -619,6 +619,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/activate/(?P<activation_key>\w+)/?$',
     r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
     r'^i18n/',
+    r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',
 )
 if DEBUG:
     STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )
