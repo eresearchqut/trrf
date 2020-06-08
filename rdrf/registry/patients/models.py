@@ -14,6 +14,7 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.signals import post_save, m2m_changed, post_delete
 from django.dispatch import receiver
+from django.conf import settings
 from django.utils import timezone
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -676,8 +677,9 @@ class Patient(models.Model):
             value,
             context_model=None,
             save_snapshot=False,
-            user=None):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
+            user=None,
+            skip_bad_key=False):
+
         from rdrf.helpers.utils import mongo_key
         from rdrf.forms.progress.form_progress import FormProgress
         from rdrf.models.definition.models import RegistryForm, Registry
@@ -710,7 +712,7 @@ class Patient(models.Model):
         else:
             mongo_data[key] = value
             mongo_data[timestamp] = t
-            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data, skip_bad_key=skip_bad_key)
 
         # update form progress
         registry_model = Registry.objects.get(code=registry_code)
@@ -1148,7 +1150,19 @@ class Patient(models.Model):
                                                   form_model.id,
                                                   self.pk, cm.id))
 
-        return [(cm.id, link_url(cm), link_text(cm)) for cm in context_models]
+        def link_locking(cm):
+            try:
+                clinical_data = ClinicalData.objects.get(
+                    registry_code=cm.registry.code,
+                    collection="cdes",
+                    django_id=self.pk,
+                    django_model="Patient",
+                    context_id=cm.id)
+            except ClinicalData.DoesNotExist:
+                return False
+            return clinical_data.get_metadata_locking(form_model.name)
+
+        return [(cm.id, link_url(cm), link_text(cm), link_locking(cm)) for cm in context_models]
 
     def default_context(self, registry_model):
         # return None if doesn't make sense
@@ -1181,7 +1195,8 @@ class Patient(models.Model):
             if default_context is not None:
                 context_id = default_context.pk
             else:
-                raise Exception("need context id to get dynamic data for patient %s" % self.pk)
+                raise Exception("need context id to get dynamic data for patient %s" %
+                                getattr(self, settings.LOG_PATIENT_FIELDNAME))
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
 
@@ -1201,7 +1216,7 @@ class Patient(models.Model):
             else:
                 raise Exception(
                     "need context id to get update dynamic data for patient %s" %
-                    self.pk)
+                    getattr(self, settings.LOG_PATIENT_FIELDNAME))
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient
@@ -1746,10 +1761,10 @@ class PatientGUIDManager(models.Manager):
 
     @staticmethod
     def _generate_guid():
-        def randomString(letters, length):
+        def random_string(letters, length):
             return ''.join(random.choice(letters) for i in range(length))
 
-        return randomString('ABCDEFGHJKLMNPRSTUVXYZ', 6) + randomString('123456789', 4)
+        return random_string('ABCDEFGHJKLMNPRSTUVXYZ', 6) + random_string('123456789', 4)
 
     def create(self, *args, **kwargs):
         if not kwargs.get('guid'):

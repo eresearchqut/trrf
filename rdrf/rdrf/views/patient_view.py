@@ -39,6 +39,7 @@ from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.components import FamilyLinkagePanel
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.views.custom_actions import CustomActionWrapper
 
 from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
@@ -63,6 +64,19 @@ class PatientFormMixin:
         self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
+
+    def load_custom_actions(self, registry_model=None, user=None, patient=None):
+        user = user or self.user
+        registry_model = registry_model or self.registry_model
+        patient = patient or self.patient_model
+        if user and patient and registry_model:
+            return [CustomActionWrapper(registry_model,
+                                        user,
+                                        custom_action,
+                                        patient) for custom_action in
+                    user.custom_actions(registry_model)]
+        else:
+            return []
 
     def _get_registry_specific_fields(self, user, registry_model):
         """
@@ -695,6 +709,7 @@ class PatientEditView(PatientFormMixin, View):
         context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
         fth = FormTitleHelper(registry_model, "Demographics")
         context["form_title"] = fth.title_for_user(request.user)
+        context['custom_actions'] = self.load_custom_actions()
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 
@@ -805,6 +820,7 @@ class PatientEditView(PatientFormMixin, View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         fth = FormTitleHelper(registry_model, "Demographics")
         context["form_title"] = fth.title_for_user(request.user)
+        context['custom_actions'] = self.load_custom_actions(registry_model, request.user, patient)
 
         return render(request, 'rdrf_cdes/patient_edit.html', context)
 

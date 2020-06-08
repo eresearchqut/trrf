@@ -25,6 +25,7 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
+from rdrf.views.registry_list_view import RegistryListView
 from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -33,6 +34,7 @@ from rdrf.views.permission_matrix import PermissionMatrixView
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
+from rdrf.views.change_password import ChangePasswordView
 from rdrf.views.verification_views import PatientsRequiringVerificationView
 from rdrf.views.verification_views import PatientVerificationView
 from rdrf.views.proms_views import PromsView
@@ -42,8 +44,10 @@ from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.review_views import ReviewWizardLandingView
+from rdrf.views.custom_actions import CustomActionView
 
-
+from rdrf.views.actions import ActionExecutorView
 import logging
 
 
@@ -98,6 +102,10 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -105,7 +113,7 @@ proms_patterns = [
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
@@ -120,6 +128,7 @@ proms_patterns = [
 
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
+    re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
@@ -129,9 +138,12 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^reviews/?', ReviewWizardLandingView.as_view(), name='wizard_landing'),
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
-
+    re_path(r'^customactions/(?P<action_id>\d+)/(?P<patient_id>\d+)/?$',
+            CustomActionView.as_view(), name='custom_action'),
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -146,7 +158,7 @@ normalpatterns += [
     # Login is done by two_factor:login included above
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/?$', ChangePasswordView.as_view(), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
@@ -193,6 +205,7 @@ normalpatterns += [
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
 
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
+    re_path(r'^reglist/?', RegistryListView.as_view(), name="reglist"),
     re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
@@ -214,6 +227,9 @@ normalpatterns += [
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormView.as_view(), name='registry_form'),
+
+    re_path(r"^(?P<registry_code>\w+)/forms/switchlock/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
+            form_view.FormSwitchLockingView.as_view(), name='registry_form_switchlock'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/print/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>\d+)?$",
             form_view.FormPrintView.as_view(), name='registry_form_print'),

@@ -51,7 +51,7 @@ class FormDSLValidationTestCase(FormTestCase):
         '''
         self.new_form.save()
 
-    def test_simple_dsl_multiple_CDEs(self):
+    def test_simple_dsl_multiple_cdes(self):
         self.new_form.conditional_rendering_rules = '''
         CDEName DM1Fatigue visible if CDEAge == 10
         '''

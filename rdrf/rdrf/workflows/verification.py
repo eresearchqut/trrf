@@ -1,7 +1,10 @@
 from explorer.views import Humaniser
 from rdrf.models.verification.models import Annotation
 from registry.patients.models import Patient
+from django.conf import settings
+from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.registry_features import RegistryFeatures
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -71,9 +74,9 @@ class VerifiableCDE:
 
     def set_clinician_value(self, raw_value):
         # field has already been validated so type casts are safe
-        if self.cde_model.datatype == "integer":
+        if self.cde_model.datatype == CDEDataTypes.INTEGER:
             self.clinician_data = int(raw_value)
-        elif self.cde_model.datatype in ["float", "decimal", "numeric"]:
+        elif self.cde_model.datatype in [CDEDataTypes.FLOAT, "decimal", "numeric"]:
             self.clinician_data = float(raw_value)
         else:
             # everything else is string
@@ -147,10 +150,11 @@ class VerifiableCDE:
         the cde has changed?
         """
         def carp(msg):
-            logger.debug("Annotations Patient %s Context %s CDE %s: %s" % (patient_model,
-                                                                           context_model.id,
-                                                                           self.cde_model.code,
-                                                                           msg))
+
+            logger.info("Annotations Patient %s Context %s CDE %s: %s" % (getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
+                                                                          context_model.id,
+                                                                          self.cde_model.code,
+                                                                          msg))
 
         annotations_query = Annotation.objects.filter(patient_id=patient_model.pk,
                                                       context_id=context_model.pk,
@@ -222,23 +226,17 @@ def get_verifications(user, registry_model, patient_model, context_model):
     verifiable_cdes = get_verifiable_cdes(registry_model)
     verifications = []
     for v in verifiable_cdes:
-        logger.debug("getting verification for cde %s" % v.cde_model.code)
-
         last_annotation = v.has_annotation(user,
                                            registry_model,
                                            patient_model,
                                            context_model)
 
         if last_annotation is not None:
-            logger.debug("found an annotation")
             v.status = last_annotation.annotation_type
-            logger.debug("status = %s" % v.status)
             v.comments = last_annotation.comment
-            logger.debug("comments = %s" % v.comments)
             v.clinician_data = last_annotation.cde_value
 
         else:
-            logger.debug("no annotation")
             v.status = VerificationStatus.UNVERIFIED
 
         verifications.append(v)
@@ -326,7 +324,6 @@ def send_participant_notification(registry_model, clinician_user, patient_model,
 
 def get_diagnosis(registry_model, verifications):
     diagnosis_code = registry_model.diagnosis_code
-    logger.debug("diagnosis code = %s" % diagnosis_code)
     if not diagnosis_code:
         return None
     for v in verifications:

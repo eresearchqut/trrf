@@ -166,6 +166,23 @@ class LookupWidget(widgets.TextInput):
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
 
+class LookupWidget2(LookupWidget):
+
+    @staticmethod
+    def usable_for_types():
+        return {CDEDataTypes.STRING}
+
+    def render(self, name, value, attrs, renderer=None):
+        return """
+            <input type="text" name="%s" id="id_%s" value="%s">
+            <script type="text/javascript">
+                $("#id_%s").keyup(function() {
+                    lookup2($(this), '%s');
+                });
+            </script>
+        """ % (name, name, value or '', name, self.SOURCE_URL)
+
+
 class DateWidget(widgets.TextInput):
 
     @staticmethod
@@ -661,17 +678,17 @@ class TimeWidget(widgets.TextInput):
             except ValueError:
                 return False
 
-        NO_VALUE = ('', [])
+        no_value = ('', [])
         if not value:
-            return NO_VALUE
+            return no_value
 
         m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
         if not m:
-            return NO_VALUE
+            return no_value
         parts = m.groups()
         hour, minute, meridian = parts
         if not validate(hour, minute, self.AMPM if meridian else self.FULL):
-            return NO_VALUE
+            return no_value
         hour, minute = int(hour), int(minute)
 
         if fmt == self.FULL:
@@ -847,13 +864,13 @@ class DurationWidget(widgets.TextInput):
 
 
 def _all_widgets():
-    EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput']
+    excluded_widget_names = ['Widget', 'HiddenInput']
 
     def is_widget(cls):
         return issubclass(cls, Widget)
 
     def is_name_ok(name):
-        return name not in EXCLUDED_WIDGET_NAMES
+        return name not in excluded_widget_names
 
     return ((name, cls) for name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass) if is_widget(cls) and is_name_ok(name))
 

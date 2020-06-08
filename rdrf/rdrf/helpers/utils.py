@@ -27,6 +27,21 @@ class BadKeyError(Exception):
     pass
 
 
+def catch_and_log_exceptions(func):
+    logger = logging.getLogger(__name__)
+
+    def func_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            import traceback
+            trace_back = traceback.format_exc()
+            message = str(e) + " | " + str(trace_back)
+            logger.error(message)
+            raise e
+    return func_wrapper
+
+
 def get_code(delimited_key):
     return delimited_key.split(settings.FORM_SECTION_DELIMITER)[-1]
 
@@ -210,12 +225,12 @@ def get_cde(code):
 
 def is_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file'
+    return cde and cde.datatype == CDEDataTypes.FILE
 
 
 def is_multiple_file_cde(code):
     cde = get_cde(code)
-    return cde and cde.datatype == 'file' and cde.allow_multiple
+    return cde and cde.datatype == CDEDataTypes.FILE and cde.allow_multiple
 
 
 def is_uploaded_file(value):
@@ -426,6 +441,7 @@ def wrap_uploaded_files(registry_code, post_files_data):
     from rdrf.forms.file_upload import FileUpload
 
     def wrap(key, value):
+        logger.debug("key = %s value = %s" % (key, value))
         if isinstance(value, UploadedFile):
             return FileUpload(
                 registry_code, key, {
@@ -433,7 +449,18 @@ def wrap_uploaded_files(registry_code, post_files_data):
         else:
             return value
 
-    return {key: wrap(key, value) for key, value in list(post_files_data.items())}
+    def get_lists(multivaluedict):
+        # fixes rdrf 1099
+        results = []
+        for k in multivaluedict:
+            v = multivaluedict.getlist(k)
+            if len(v) == 1:
+                results.append((k, v[0]))
+            else:
+                results.append((k, v))
+        return results
+
+    return {key: wrap(key, value) for key, value in get_lists(post_files_data)}
 
 
 class Message():
@@ -769,3 +796,167 @@ def get_preferred_languages():
         return []
     else:
         return languages
+
+
+def check_models(registry_model, form_model, section_model, cde_model):
+    # raise an error if this quadruple not correct in given registry
+    for f in registry_model.forms:
+        if f.id == form_model.id:
+            for s in f.section_models:
+                if s.id == section_model.id:
+                    for c in s.cde_models:
+                        if c.id == cde_model.id:
+                            return True
+
+    raise ValueError("%s/%s/%s/%s not consistent" % (registry_model, form_model, section_model, cde_model))
+
+
+def is_authorised(user, patient_model):
+    if user.is_superuser:
+        return True
+    from registry.patients.models import ParentGuardian
+    # is the given user allowed to see this patient
+    # patient IS user:
+    if patient_model.user and patient_model.user.id == user.id:
+        return True
+    # user is parent of patient
+    try:
+        pg = ParentGuardian.objects.get(user=user)
+        if pg.user and pg.user.id == user.id:
+            if patient_model.id in [p.id for p in pg.children]:
+                return True
+    except ParentGuardian.DoesNotExist:
+        pass
+
+    # otherwise, is the user in (some of) the same working group(s)
+
+    user_wgs = set([wg.id for wg in user.working_groups.all()])
+    patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
+    common = user_wgs.intersection(patient_wgs)
+    if common and not user.is_parent:
+        return True
+
+    logger.warning("user %s is not authorised for patient %s" %
+                   (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
+
+    return False
+
+
+def escape_for_javascript(s):
+    return s.replace("'", "\'").replace('"', '\"')
+
+
+def is_calculated(cde_model):
+    return cde_model.datatype == CDEDataTypes.CALCULATED
+
+
+def get_normal_fields(section_model):
+    """
+    Yield only the non-calculated fields
+    in the given section.
+    """
+    for cde_model in section_model.cde_models:
+        if not is_calculated(cde_model):
+            yield cde_model
+
+
+def annotate_form_with_verifications(patient_model,
+                                     context_model,
+                                     registry_model,
+                                     form_model,
+                                     section_model,
+                                     initial_data,
+                                     section_form):
+    if not registry_model.has_feature("verification"):
+        return
+
+    def get_cde_model(django_field):
+        from rdrf.models.definition.models import CommonDataElement
+        delimited_key = str(django_field)
+        cde_code = delimited_key.split("____")[-1]
+        return CommonDataElement.objects.get(code=cde_code)
+
+    for field in section_form.fields:
+        value = section_form[field].value()
+        cde_model = get_cde_model(field)
+        verification_status = get_verification_status(patient_model,
+                                                      context_model,
+                                                      registry_model,
+                                                      form_model,
+                                                      section_model,
+                                                      cde_model,
+                                                      value)
+
+        if verification_status is not None:
+            # add a flag
+            section_form[field].verification_status = verification_status
+
+
+def get_verification_status(patient_model,
+                            context_model,
+                            registry_model,
+                            form_model,
+                            section_model,
+                            cde_model,
+                            value):
+
+    from rdrf.models.definition.verification_models import Verification
+    verifications = Verification.objects.filter(patient=patient_model,
+                                                context=context_model,
+                                                registry=registry_model,
+                                                form_name=form_model.name,
+                                                section_code=section_model.code,
+                                                cde_code=cde_model.code)
+
+    last_verification = verifications.order_by("-created_date").first()
+    if last_verification:
+        verified_value = last_verification.data
+        if str(value) == verified_value:
+            if last_verification.status == "V":
+                # verified
+                return "V"
+    return None
+
+
+def check_suspicious_sql(sql_query, user):
+    # Checker for SQL explorer.
+    # Return error messages in an list if anything suspicious is identified in the SQL.
+
+    sql_query_lowercase = ' '.join(sql_query.lower().split())
+    securityerrors = []
+    if not sql_query_lowercase.startswith("select p.id"):
+        logger.warning(
+            f"User {user} tries to write/validate a SQL request not starting by SELECT p.id: {sql_query_lowercase}")
+        securityerrors.append("The SQL query must start with SELECT p.id")
+    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
+        logger.warning(
+            f"User {user} tries to write/validate a suspicious SQL request containing DROP, DELETE or UPDATE: {sql_query_lowercase}")
+        securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
+    return securityerrors
+
+
+def cde_completed(registry_model, form_model, section_model, cde_model, patient_model, data):
+    # is there a "real" value stored? in data ( assumes we've loaded first from a given context
+    if not data:
+        return False
+    if "forms" not in data:
+        return False
+
+    for form_dict in data["forms"]:
+        if form_dict["name"] == form_model.name:
+            for section_dict in form_dict["sections"]:
+                if section_dict["code"] == section_model.code:
+                    if not section_dict["allow_multiple"]:
+                        for cde_dict in section_dict["cdes"]:
+                            if cde_dict["code"] == cde_model.code:
+                                value = cde_dict["value"]
+                                if value is None:
+                                    return False
+                                else:
+                                    return True
+
+
+class LinkWrapper:
+    def __init__(self, url, text):
+        self.url = url
+        self.text = text

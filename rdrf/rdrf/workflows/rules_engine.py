@@ -84,9 +84,7 @@ class RulesEvaluator:
             elif head == Tokens.IN:
                 element = self._eval(expr[1])
                 a_list = list(map(self._eval, expr[2]))
-                logger.debug("in: element = %s a_list = %s" % (element, a_list))
                 result = element in a_list
-                logger.debug("in result = %s" % result)
                 return result
             elif head == Tokens.BETWEEN:
                 value = self._eval(expr[1])
@@ -133,11 +131,10 @@ class RulesEvaluator:
             from django.urls import reverse
             from django.http import HttpResponseRedirect
             url_name = action[1]
-            logger.debug("redirecting to %s" % url_name)
             return HttpResponseRedirect(reverse(url_name))
         elif head == Actions.WORKFLOW:
             # set the current workflow somehow ( session ???)
             workflow = action[1]
-            logger.debug("setting current workflow to %s" % workflow)
+            logger.info("setting current workflow to %s" % workflow)
         else:
             raise RulesEvaluationError("Unknown action: %s" % head)

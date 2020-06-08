@@ -42,7 +42,7 @@
                 {% if status %}
                     <p class="navbar-text pull-right"><b><font color="green">{% trans "Connected" %}</font></p>
                 {% else %}
-                    <p class="navbar-text pull-right"><b><font color="red">{% trans "Not connected" %}</font></b></p>
+                <p class="navbar-text pull-right"><b><font color="red">{% trans "Not connected" %}</font></b></p>
                 {% endif%}
             </div>
         </nav>
@@ -56,10 +56,10 @@
             {% if error_msg %}
                 <div class="alert alert-danger">{{error_msg}}</div>
             {% endif %}
-            
-			<!-- For Javascript errors -->
-			<div id="js-errors" class="alert alert-danger" style="display: none"></div>
-			
+
+            <!-- For Javascript errors -->
+            <div id="js-errors" class="alert alert-danger" style="display: none"></div>
+
             {% block content %}
             {% endblock %}
         </div>

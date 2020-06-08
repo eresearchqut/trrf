@@ -83,6 +83,7 @@ class RegistryCodeField(serializers.CharField):
 
 
 class SurveyAssignmentSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     registry_code = RegistryCodeField(max_length=10)
     survey_name = serializers.CharField(max_length=80)
     patient_token = serializers.CharField(max_length=80)

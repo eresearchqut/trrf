@@ -15,3 +15,5 @@ class RDRFConfig(AppConfig):
         import rdrf.models.verification.models
         import rdrf.models.proms.models  # noqa
         import rdrf.checks.security  # noqa
+        import rdrf.models.definition.review_models  # noqa
+        import rdrf.models.definition.verification_models  # noqa 

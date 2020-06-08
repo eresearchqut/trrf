@@ -17,7 +17,7 @@ from rdrf.security.security_checks import user_is_patient_type
 
 logger = logging.getLogger("registry_log")
 
-Link = namedtuple('Link', ['url', 'text', 'current'])
+Link = namedtuple('Link', ['url', 'text', 'current', 'locking'])
 
 
 class LauncherError(Exception):
@@ -325,7 +325,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
         if not current_context_id:
             forms = forms[:slice_len]
 
-        for index, (context_id, url, text) in enumerate(forms):
+        for index, (context_id, url, text, link_locking) in enumerate(forms):
             is_current = context_id == current_context_id
             if is_current:
                 current_index = index
@@ -335,7 +335,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 break
 
             text = text or _("Not set")
-            link_obj = Link(url, text, is_current)
+            link_obj = Link(url, text, is_current, link_locking)
             links.append(link_obj)
 
         return list(links), current_index, total_forms

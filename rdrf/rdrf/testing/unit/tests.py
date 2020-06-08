@@ -21,19 +21,300 @@ from rdrf.helpers.utils import TimeStripper, check_calculation, de_camelcase
 from rdrf.models.definition.models import (CDEPermittedValue,
                                            CDEPermittedValueGroup,
                                            ClinicalData, CommonDataElement,
+                                           ContextFormGroupItem,
                                            EmailNotification,
                                            EmailNotificationHistory,
-                                           EmailTemplate, Registry,
-                                           RegistryForm, Section)
+                                           EmailTemplate,
+                                           InvalidAbnormalityConditionError,
+                                           Registry,
+                                           RegistryForm, Section,
+                                           ValidationError)
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
 from rdrf.views.form_view import FormView
+from rdrf.forms.fields import calculated_functions
+
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import (AddressType, Patient, PatientAddress,
                                       State)
 
+
 logger = logging.getLogger(__name__)
+
+
+class CalculatedFunctionsTestCase(TestCase):
+
+    def setUp(self):
+        # Note that we convert the string date as a date django date
+        patient_date_of_birth = '2000-05-17'
+        self.patient_values = {'date_of_birth': datetime.strptime(patient_date_of_birth, '%Y-%m-%d'),
+                               'sex': 1}
+
+    def test_cdefhdutchlipidclinicnetwork_all_cap_reached(self):
+        self.form_values = {'CDE00001': 'y',
+                            'CDE00002': 'y',
+                            'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
+                            'CDE00013': 10.0,
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'FHFamilyHistoryChild': 'fh_n',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '18')
+
+    def test_cdefhdutchlipidclinicnetwork_2(self):
+        self.patient_values = {'date_of_birth': datetime.strptime('1990-01-01', '%Y-%m-%d'),
+                               'sex': 2}
+        self.form_values = {'CDE00001': 'y',
+                            'CDE00002': 'y',
+                            'CDE00003': 'fh2_n',
+                            'CDE00004': 'fh2_n',
+                            'CDE00011': 'fhpremcvd_yes_corheartdisease',
+                            'CDE00013': '',
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2016-01-09',
+                            'FHFamHistArcusCornealis': 'fh2_n',
+                            'FHFamHistTendonXanthoma': 'fh2_n',
+                            'FHFamilyHistoryChild': 'fh_n',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '6'}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '11')
+
+    def test_cdefhdutchlipidclinicnetwork_3(self):
+        self.patient_values = {'date_of_birth': datetime.strptime('2000-10-01', '%Y-%m-%d'),
+                               'sex': 1}
+        self.form_values = {'CDE00001': 'n',
+                            'CDE00002': 'n',
+                            'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00011': 'fhpremcvd_no',
+                            'CDE00013': 12.0,
+                            'CDEIndexOrRelative': 'fh_is_relative',
+                            'DateOfAssessment': '2016-10-01',
+                            'FHFamHistArcusCornealis': 'fh2_n',
+                            'FHFamHistTendonXanthoma': 'fh2_n',
+                            'FHFamilyHistoryChild': 'fh_y',
+                            'FHPersHistCerebralVD': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': None}
+        self.assertEqual(calculated_functions.CDEfhDutchLipidClinicNetwork(self.patient_values, self.form_values), '')
+
+    def test_cde00024(self):
+        self.form_values = {'CDE00003': 'fh2_y',
+                            'CDE00004': 'fh2_y',
+                            'CDE00013': 10.0,
+                            'CDEfhDutchLipidClinicNetwork': '24',
+                            'CDEIndexOrRelative': 'fh_is_index',
+                            'DateOfAssessment': '2019-05-10',
+                            'FHFamHistArcusCornealis': 'fh2_y',
+                            'FHFamHistTendonXanthoma': 'fh2_y',
+                            'LDLCholesterolAdjTreatment': '21.74'}
+        self.assertEqual(calculated_functions.CDE00024(self.patient_values, self.form_values), 'Definite')
+
+    def test_ldlcholesteroladjtreatment(self):
+        self.form_values = {'CDE00019': 10.0,
+                            'PlasmaLipidTreatment': 'FAEzetimibe/atorvastatin20'}
+        self.assertEqual(calculated_functions.LDLCholesterolAdjTreatment(
+            self.patient_values, self.form_values), '21.74')
+
+    def test_cdebmi(self):
+        self.form_values = {'CDEHeight': "",
+                            'CDEWeight': ""}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'CDEHeight': 1.82,
+                            'CDEWeight': 86.0}
+        self.assertEqual(calculated_functions.CDEBMI(self.patient_values, self.form_values), '25.96')
+
+    def test_fhdeathage(self):
+        self.form_values = {'FHDeathDate': ""}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'FHDeathDate': '2019-05-11'}
+        self.assertEqual(calculated_functions.FHDeathAge(self.patient_values, self.form_values), '18')
+
+    def test_ddageatdiagnosis(self):
+        self.form_values = {'DateOfDiagnosis': ""}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), 'NaN')
+        self.form_values = {'DateOfDiagnosis': '2019-05-01'}
+        self.assertEqual(calculated_functions.DDAgeAtDiagnosis(self.patient_values, self.form_values), '18')
+
+    def test_poemscore(self):
+        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "", 'poemQ4': "", 'poemQ5': "", 'poemQ6': "",
+                            'poemQ7': ""}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
+        self.form_values = {'poemQ1': "", 'poemQ2': "", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
+                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), 'UNSCORED')
+        self.form_values = {'poemQ1': "", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
+                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
+                         '0 ( Clear or almost clear )')
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "NoDays", 'poemQ3': "NoDays", 'poemQ4': "NoDays",
+                            'poemQ5': "NoDays", 'poemQ6': "NoDays", 'poemQ7': "NoDays"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values),
+                         '0 ( Clear or almost clear )')
+        self.form_values = {'poemQ1': "NoDays", 'poemQ2': "1to2Days", 'poemQ3': "1to2Days", 'poemQ4': "1to2Days",
+                            'poemQ5': "1to2Days", 'poemQ6': "1to2Days", 'poemQ7': "1to2Days"}
+        self.assertEqual(calculated_functions.poemScore(self.patient_values, self.form_values), '6 ( Mild eczema )')
+        self.form_values = {'poemQ1': "EveryDay", 'poemQ2': "EveryDay", 'poemQ3': "EveryDay", 'poemQ4': "EveryDay",
+                            'poemQ5': "EveryDay", 'poemQ6': "EveryDay", 'poemQ7': "EveryDay"}
+        self.assertEqual(calculated_functions.poemScore(
+            self.patient_values, self.form_values), '28 ( Very severe eczema )')
+
+
+class AbnormalityRulesTestCase(TestCase):
+
+    def setUp(self):
+        self.cde = CommonDataElement()
+        self.cde.datatype = "integer"
+
+    def test_integer(self):
+        self.cde.abnormality_condition = "x < 10"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_minus_integer(self):
+        self.cde.abnormality_condition = "x <= -10"
+        self.assertTrue(self.cde.is_abnormal(-11))
+        self.assertTrue(self.cde.is_abnormal(-10))
+        self.assertFalse(self.cde.is_abnormal(-9))
+        self.assertFalse(self.cde.is_abnormal(0))
+        self.assertFalse(self.cde.is_abnormal(10))
+
+    def test_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x < 10.2"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.0))
+        self.assertTrue(self.cde.is_abnormal(10.1))
+        self.assertFalse(self.cde.is_abnormal(10.2))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_assignment_rule(self):
+        self.cde.abnormality_condition = "x = 10"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_multiple_rules_same_line(self):
+        self.cde.abnormality_condition = "x < 2   x > 100"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_integer_range(self):
+        self.cde.abnormality_condition = "2 < x < 10"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_float_range(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "2.0 < x <= 10.0"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_unsupported_datatype(self):
+        self.cde.datatype = "boolean"
+        self.cde.abnormality_condition = "x == 1"
+        self.assertRaises(ValidationError, self.cde.is_abnormal, value=9)
+
+    def test_number_equality(self):
+        self.cde.abnormality_condition = "x == 10"
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_float_equality(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.2"
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.2))
+        self.assertFalse(self.cde.is_abnormal(10.3))
+
+    def test_minus_float_equality(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == -10.2"
+        self.assertFalse(self.cde.is_abnormal(10.2))
+        self.assertTrue(self.cde.is_abnormal(-10.2))
+        self.cde.abnormality_condition = "x == -10.0"
+        self.assertTrue(self.cde.is_abnormal(-10))
+        self.assertTrue(self.cde.is_abnormal(-10.0))
+        self.assertFalse(self.cde.is_abnormal(-10.2))
+
+    def test_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10."
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_second_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.1."
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_third_bad_float(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x == 10.1.2"
+        self.assertRaises(InvalidAbnormalityConditionError, self.cde.is_abnormal, value=9)
+
+    def test_string_equality(self):
+        self.cde.datatype = "range"
+        self.cde.abnormality_condition = "x == \"10\""
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal("11"))
+
+    def test_empty_lines(self):
+        self.cde.abnormality_condition = "x < 10\r\n\r\n"
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_whitespaces(self):
+        self.cde.abnormality_condition = "  x   <   10  \r\n  "
+        self.assertTrue(self.cde.is_abnormal(9))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_in_number_list(self):
+        self.cde.abnormality_condition = "x in [-2,10,20,30]"
+        self.assertFalse(self.cde.is_abnormal(-10))
+        self.assertTrue(self.cde.is_abnormal(-2))
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(20))
+        self.assertTrue(self.cde.is_abnormal(30))
+        # self.assertFalse(self.cde.is_abnormal("10"))
+        self.assertFalse(self.cde.is_abnormal(11))
+
+    def test_in_float_list(self):
+        self.cde.datatype = "float"
+        self.cde.abnormality_condition = "x in [10.0,20.0,30.0]"
+        self.assertFalse(self.cde.is_abnormal(9))
+        self.assertTrue(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal(10.0))
+        self.assertTrue(self.cde.is_abnormal(20))
+        self.assertTrue(self.cde.is_abnormal(20.0))
+        self.assertTrue(self.cde.is_abnormal(30))
+        self.assertTrue(self.cde.is_abnormal(30.0))
+        # self.assertFalse(self.cde.is_abnormal("10"))
+        # self.assertFalse(self.cde.is_abnormal("10.0"))
+        self.assertFalse(self.cde.is_abnormal(11))
+        self.assertFalse(self.cde.is_abnormal(10.3))
+
+    def test_in_string_list(self):
+        self.cde.datatype = "range"
+        self.cde.abnormality_condition = "x in [\"10\",\"20\",\"30\"]"
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertTrue(self.cde.is_abnormal("10"))
+        self.assertTrue(self.cde.is_abnormal("20"))
+        self.assertTrue(self.cde.is_abnormal("30"))
+        self.assertFalse(self.cde.is_abnormal("11"))
+
+    def test_multiple_rules(self):
+        self.cde.abnormality_condition = "x < 2 \r\nx > 100"
+        self.assertTrue(self.cde.is_abnormal(1))
+        self.assertFalse(self.cde.is_abnormal(10))
+        self.assertFalse(self.cde.is_abnormal(30.1))
+        self.assertTrue(self.cde.is_abnormal(110))
 
 
 class MigrateCDESTestCase(TestCase):
@@ -271,12 +552,15 @@ class ImporterTestCase(TestCase):
 class FormTestCase(RDRFTestCase):
     databases = ['default', 'clinical']
 
-    def setUp(self):
-        super().setUp()
+    def setup_registry(self):
         # For some reason pytest doesn't pick up the fixtures in the RDRFTestCase class
         # so we have to load them manually here.
         management.call_command('loaddata', *RDRFTestCase.fixtures, verbosity=0)
         self.registry = Registry.objects.get(code='fh')
+
+    def setUp(self):
+        super().setUp()
+        self.setup_registry()
         self.wg, created = WorkingGroup.objects.get_or_create(name="testgroup",
                                                               registry=self.registry)
 
@@ -370,7 +654,7 @@ class FormTestCase(RDRFTestCase):
         self.sectionA = self.create_section(
             "sectionA", "Simple Section A", ["CDEName", "CDEAge"])
         self.sectionB = self.create_section(
-            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight"])
+            "sectionB", "Simple Section B", ["CDEHeight", "CDEWeight", "CDEBMI"])
         # A multi allowed section with no file cdes
         self.sectionC = self.create_section(
             "sectionC", "MultiSection No Files Section C", ["CDEName", "CDEAge"], True)
@@ -498,6 +782,26 @@ class FormTestCase(RDRFTestCase):
             self.sectionB.code,
             "CDEWeight",
             mongo_record) == 88.23
+
+
+class CalculationTestCase(FormTestCase):
+
+    def setup_registry(self):
+        # For some reason pytest doesn't pick up the fixtures in the RDRFTestCase class
+        # so we have to load them manually here.
+        management.call_command('loaddata', *RDRFTestCase.fixtures, verbosity=0)
+        self.registry = Registry.objects.get(code='reg5')
+
+    def create_forms(self):
+        self.simple_form = self.create_form("reg5_simple", [self.sectionA, self.sectionB])
+        form_group = self.registry.fixed_form_groups[0]
+        ContextFormGroupItem.objects.create(context_form_group=form_group, registry_form=self.simple_form)
+
+    def test_simple_form(self):
+        pass
+
+    def test_patient_archiving(self):
+        pass
 
 
 class LongitudinalTestCase(FormTestCase):
@@ -1308,9 +1612,16 @@ class RemindersTestCase(TestCase):
         assert result == "testuser\n", "Expected testuser instead got [%s]" % result
 
         # parents are detected
-        self._setup_user("testuser", Time.LONG_AGO, group="parents")
-        result = self._run_command(registry_code="foobar", days=365)
-        assert result == "testuser\n", "Expected testuser instead got [%s]" % result
+        parent_feature = True
+        # Check parent feature is enabled.
+        try:
+            __import__('angelman.parent_view')
+        except ImportError:
+            parent_feature = False
+        if parent_feature:
+            self._setup_user("testuser", Time.LONG_AGO, group="parents")
+            result = self._run_command(registry_code="foobar", days=365)
+            assert result == "testuser\n", "Expected testuser instead got [%s]" % result
 
         # but not other types of users
         self._setup_user("testuser", Time.LONG_AGO, group="curators")
@@ -1472,3 +1783,90 @@ class ClinicalDataTestCase(RDRFTestCase):
         self.assertEqual(patient_model2.active, True)
         self.assertEqual(clinicaldata_model2.active, True)
         self.assertEqual(patient_model2.id, clinicaldata_model2.django_id)
+
+
+class UpdateCalculatedFieldsTestCase(CalculationTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        def form_value(form_name, section_code, cde_code, db_record):
+            for form in db_record["forms"]:
+                if form["name"] == form_name:
+                    for section in form["sections"]:
+                        if section["code"] == section_code:
+                            for cde in section["cdes"]:
+                                if cde["code"] == cde_code:
+                                    return cde["value"]
+        self.form_value = form_value
+
+        from rdrf.management.commands.update_calculated_fields import context_ids_for_patient_and_form
+        context_ids = context_ids_for_patient_and_form(self.patient, self.simple_form.name, self.registry)
+
+        self.context_id = context_ids[0]
+
+        ff = FormFiller(self.simple_form)
+        ff.sectionA.CDEName = "Fred"
+        ff.sectionA.CDEAge = 20
+        ff.sectionB.CDEHeight = 1.82
+        ff.sectionB.CDEWeight = 86.0
+        ff.sectionB.CDEBMI = 38
+
+        form_data = ff.data
+        request = self._create_request(self.simple_form, form_data)
+        view = FormView()
+        view.request = request
+        view.post(
+            request,
+            self.registry.code,
+            self.simple_form.pk,
+            self.patient.pk,
+            self.context_id)
+
+    def test_save_new_calculation(self):
+        # Check the CDE value is correctly setup.
+        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        assert self.form_value(
+            self.simple_form.name,
+            self.sectionA.code,
+            "CDEAge",
+            db_record) == 20
+
+        # Change the CDE value and save it.
+        changed_calculated_cdes = {"CDEAge": {"old_value": 20, "new_value": 21, "section_code": "sectionA"}}
+        from rdrf.management.commands.update_calculated_fields import save_new_calculation
+        save_new_calculation(changed_calculated_cdes, self.context_id,
+                             self.simple_form.name, self.patient, self.registry)
+
+        # Check that the CDE value has been updated.
+        db_record = collection.find(self.patient, self.context_id).data().first()
+
+        cdeage_value = self.form_value(
+            self.simple_form.name,
+            self.sectionA.code,
+            "CDEAge",
+            db_record)
+        self.assertEqual(cdeage_value, 21)
+
+    def test_update_calculated_fields_command(self):
+
+        # Check the CDE value is correctly setup.
+        collection = ClinicalData.objects.collection(self.registry.code, "cdes")
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        cdebmi_value = self.form_value(
+            self.simple_form.name,
+            self.sectionB.code,
+            "CDEBMI",
+            db_record)
+        self.assertEqual(cdebmi_value, "38")
+
+        call_command('update_calculated_fields', registry_code=self.registry.code, patient_id=[self.patient.id])
+
+        db_record = collection.find(self.patient, self.context_id).data().first()
+        cdebmi_value = self.form_value(
+            self.simple_form.name,
+            self.sectionB.code,
+            "CDEBMI",
+            db_record)
+        self.assertEqual(cdebmi_value, "25.96")

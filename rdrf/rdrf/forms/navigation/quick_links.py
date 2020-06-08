@@ -77,6 +77,11 @@ class LinkDefs:
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
 
+    Reviews = make_link("admin:rdrf_review_changelist", _("Reviews"))
+    PatientReviews = make_link("admin:rdrf_patientreview_changelist", _("Patient Reviews"))
+    Verifications = make_link("admin:rdrf_verification_changelist", _("Verifications"))
+    Custom_Actions = make_link("admin:rdrf_customaction_changelist", _("Custom Actions"))
+
 
 class Links:
     """
@@ -133,6 +138,7 @@ class Links:
     REGISTRATION = {}
     VERIFICATION = {}
     STAGES = {}
+    CUSTOM_ACTIONS = {}
 
     USER_MANAGEMENT = make_entries(LinkDefs.Users)
 
@@ -158,7 +164,11 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.BlacklistedMimeTypesConfig
+        LinkDefs.BlacklistedMimeTypesConfig,
+        LinkDefs.Reviews,
+        LinkDefs.PatientReviews,
+        LinkDefs.Verifications,
+        LinkDefs.Custom_Actions
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)
@@ -240,6 +250,9 @@ class MenuConfig:
     def verification_links(self):
         Links.VERIFICATION = self.per_registry_links('Verifications', 'verifications_list', RegistryFeatures.VERIFICATION)
 
+    def custom_action_links(self):
+        Links.CUSTOM_ACTIONS = self.per_registry_links('Custom Actions', 'customactions_list', RegistryFeatures.CUSTOM_ACTIONS)
+
     def consent_links(self):
         return {}
 
@@ -266,6 +279,7 @@ class MenuConfig:
         self.registration_links()
         self.verification_links()
         self.patient_stages_links()
+        self.custom_action_links()
 
 
 class RegularMenuConfig(MenuConfig):

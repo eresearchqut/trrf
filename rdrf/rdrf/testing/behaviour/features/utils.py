@@ -162,6 +162,7 @@ def show_stats(export_name):
     """
     show some stats after import
     """
+    from django.conf import settings
     from rdrf.models.definition.models import Registry
     from registry.patients.models import Patient
     logger.info("Stats after import of export file %s:" % export_name)
@@ -169,7 +170,7 @@ def show_stats(export_name):
         logger.info("\tregistry = %s" % r)
 
     for p in Patient.objects.all():
-        logger.info("\t\tPatient %s" % p)
+        logger.info("\t\tPatient %s" % getattr(p, settings.LOG_PATIENT_FIELDNAME))
 
 
 def click(element):

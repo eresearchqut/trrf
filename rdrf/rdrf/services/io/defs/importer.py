@@ -650,13 +650,18 @@ class Importer(object):
             permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
 
+            # Create can unlock permission.
+            can_lock_permission_code_name = "form_%s_can_lock" % f.id
+            can_lock_permission_name = "Form '%s' can be locked (%s)" % (f.name, f.registry.code.upper())
+            create_permission("rdrf", "registryform", can_lock_permission_code_name, can_lock_permission_name)
+
             f.name = frm_map["name"]
+            if "display_name" in frm_map:
+                f.display_name = frm_map["display_name"]
             if "header" in frm_map:
                 f.header = frm_map["header"]
             else:
                 f.header = ""
-            if "display_name" in frm_map:
-                f.display_name = frm_map["display_name"]
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
@@ -740,6 +745,14 @@ class Importer(object):
             self._create_surveys(r)
             logger.info("imported surveys OK")
 
+        if "reviews" in self.data:
+            self._create_reviews(r)
+            logger.info("imported reviews OK")
+
+        if "custom_actions" in self.data:
+            self._create_custom_actions(r)
+            logger.info("imported custom actions OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -780,7 +793,27 @@ class Importer(object):
             survey_model.name = survey_dict["name"]
             survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.is_followup = survey_dict.get("is_followup", False)
+            context_form_group_name = survey_dict.get("context_form_group", None)
+            if context_form_group_name:
+                from rdrf.models.definition.models import ContextFormGroup
+                cfg = ContextFormGroup.objects.get(name=context_form_group_name,
+                                                   registry=registry_model)
+            else:
+                cfg = None
+
             survey_model.save()
+            if cfg:
+                survey_model.context_form_group = cfg
+                survey_model.save()
+
+            form_name = survey_dict.get("form", None)
+            if form_name:
+                from rdrf.models.definition.models import RegistryForm
+                form_model = RegistryForm.objects.get(registry=registry_model,
+                                                      name=form_name)
+                survey_model.form = form_model
+                survey_model.save()
+
             logger.info("saved survey_model %s" % survey_model.name)
 
             for sq in survey_dict["questions"]:
@@ -789,6 +822,7 @@ class Importer(object):
                 sq_model.instruction = sq.get("instruction", None)
                 sq_model.copyright_text = sq.get("copyright_text", None)
                 sq_model.source = sq.get("source", None)
+                sq_model.cde_path = sq.get("cde_path", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()
@@ -806,6 +840,79 @@ class Importer(object):
                     logger.info("Imported precondition: %s = %s" % (sq_model.precondition.cde.code,
                                                                     sq_model.precondition.value))
             logger.info("Imported Survey %s" % survey_model.name)
+
+    def _create_reviews(self, registry_model):
+        from rdrf.models.definition.review_models import Review
+        from rdrf.models.definition.review_models import ReviewItem
+
+        def goc(klass, **kwargs):
+            instance, created = klass.objects.get_or_create(**kwargs)
+            return instance
+
+        review_codes = [r["code"] for r in self.data["reviews"]]
+
+        for review_model in Review.objects.filter(registry=registry_model):
+            if review_model.code not in review_codes:
+                review_model.delete()
+
+        for review_dict in self.data["reviews"]:
+            review_model = goc(Review,
+                               registry=registry_model,
+                               code=review_dict["code"])
+
+            review_model.name = review_dict["name"]
+            review_model.review_type = review_dict["review_type"]
+            review_model.save()
+
+            # delete items no longer in definition
+            existing_item_codes = set([ri.code for ri in review_model.items.all()])
+            imported_item_codes = set([rd["code"] for rd in review_dict["items"]])
+            items_to_delete = existing_item_codes - imported_item_codes
+            ReviewItem.objects.filter(review=review_model,
+                                      code__in=items_to_delete).delete()
+
+            # now update/create items
+            for item_dict in review_dict["items"]:
+                review_item = goc(ReviewItem,
+                                  review=review_model,
+                                  code=item_dict["code"])
+                review_item.category = item_dict["category"]
+                review_item.name = item_dict["name"]
+                review_item.position = item_dict["position"]
+                review_item.item_type = item_dict["item_type"]
+                review_item.fields = item_dict["fields"]
+                review_item.summary = item_dict["summary"]
+                review_item.appearance_condition = item_dict["appearance_condition"]
+                review_item.save()
+
+                if item_dict["form"]:
+                    form_model = RegistryForm.objects.get(registry=registry_model,
+                                                          name=item_dict["form"])
+                    review_item.form = form_model
+                if item_dict["section"]:
+                    section_model = Section.objects.get(code=item_dict["section"])
+                    review_item.section = section_model
+
+                review_item.save()
+
+    def _create_custom_actions(self, registry):
+        from rdrf.models.definition.models import CustomAction
+        CustomAction.objects.filter(registry=registry).delete()
+        for action_dict in self.data["custom_actions"]:
+            action = CustomAction(registry=registry)
+            action.code = action_dict["code"]
+            action.name = action_dict["name"]
+            action.action_type = action_dict["action_type"]
+            action.data = action_dict["data"]
+            action.save()
+
+            groups = []
+            for group_name in action_dict["groups_allowed"]:
+                group = Group.objects.get(name=group_name)
+                groups.append(group)
+
+            action.groups_allowed.set(groups)
+            action.save()
 
     def _create_email_notifications(self, registry):
         from rdrf.models.definition.models import EmailNotification
