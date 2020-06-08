@@ -640,7 +640,6 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'favicon',
     'robots_txt',
     'js_reverse',
-    'javascript-catalog',
 )
 
 # URLs whitelisted for meeting the security conventions
