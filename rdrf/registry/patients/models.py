@@ -197,8 +197,8 @@ class PatientManager(models.Manager):
         if user.is_carer:
             return qs.filter(carer=user)
         if user.is_parent:
-            parent_guardian = ParentGuardian.objects.filter(user=user).first()
-            return qs & parent_guardian.patient.all()
+            if parent_guardian := ParentGuardian.objects.filter(user=user).first():
+                return qs & parent_guardian.patient.all()
         return qs.none()
 
 
