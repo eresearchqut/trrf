@@ -73,7 +73,7 @@
                             {% trans 'Admin Page' %}</a></li>
                         <li class="divider"></li>
                     {% endif %}
-                    {% if request.user.is_parent and registry_code %}
+                    {% if request.user.is_parent and registry_code and parent %}
                         <li><a href="{% url 'registry:parent_edit' registry_code parent.id %}"><span
                                 class="glyphicon glyphicon-wrench"></span>
                             {% trans 'Account' %}</a></li>
