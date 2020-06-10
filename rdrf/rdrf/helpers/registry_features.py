@@ -17,6 +17,5 @@ class RegistryFeatures:
     PATIENT_FORM_DOCTORS = "patient_form_doctors"
     PATIENT_GUID = "patient_guid"
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
-    CONSENT_LOCK = "consent_lock"
     FORM_LOCKING = "form_locking"
     CUSTOM_ACTIONS = 'custom_actions'
