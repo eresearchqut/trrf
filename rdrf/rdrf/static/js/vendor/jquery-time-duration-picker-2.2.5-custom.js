@@ -228,7 +228,7 @@
       }
     },
     _createNumberInput: function(unit, value, min, max) {
-      var input = $( "<input type='number' />" );
+      var input = $( "<input type='number' class='duration-input' />");
 
       value = parseInt( value, 10 );
       min = parseInt( min, 10 );

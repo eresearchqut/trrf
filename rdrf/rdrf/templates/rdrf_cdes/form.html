@@ -25,6 +25,7 @@
     <script type="text/javascript" src="{% static 'js/vendor/adsafe.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jsignature-2.1.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/virus_scan_check.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/custom_widget_setup.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/form_extra.css' %}" media="all">
@@ -211,6 +212,11 @@
         return parseInt(total_forms.val());
     }
 
+    function attribute_replace($el, attribute_name, form_count) {
+        var replaced_value = $el.attr(attribute_name).replace(/__prefix__/g, form_count)
+        $el.attr(attribute_name, replaced_value);
+    }
+
     function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
         var empty_form = $("#empty_" + prefix);
@@ -220,10 +226,19 @@
 
         var new_form = empty_form.clone(true, true);
 
+        var durationWidgets = [];
+        var timePickers = [];
+        var durationInputs = [];
+        var form_count = total_forms.val();
         new_form.find(":input").each(function() {
-            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-
+            var idAttribute = $(this).attr("id");
+            if (typeof idAttribute !== typeof undefined && idAttribute !== false) {
+                attribute_replace($(this), "id", form_count);
+            }
+            var nameAttribute = $(this).attr('name');
+            if (typeof nameAttribute !== typeof undefined && nameAttribute !== false) {
+                attribute_replace($(this), "name", form_count);
+            }
             if ($(this).hasClass("datepicker")) {
                 $(this).datepicker({
                     changeMonth: true,
@@ -234,16 +249,57 @@
                     buttonImageOnly: true,
                 });
             }
+            if ($(this).hasClass("timepicker")) {
+                timePickers.push($(this));
+            } else if ($(this).hasClass("duration-widget")) {
+                attribute_replace($(this), "input-name", form_count);
+                durationWidgets.push($(this));
+            }
+            if ($(this).hasClass("duration-input")) {
+                durationInputs.push($(this));
+            }
         });
-
+        new_form.find("script").each(function() {
+            if ($(this).hasClass("timepicker-script") || $(this).hasClass("duration-widget-script")) {
+                // Don't need the script tag for cloned timepicker or duration widgets
+                $(this).remove();
+            } else {
+                var replaced_script = $(this).html().replace(/__prefix__/g, form_count);
+                $(this).html(replaced_script);
+            }
+        });
         CollapsingPanels.expandParentPanel(el);
-
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
 
         $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
-        targets = change_handler_targets();
+
+        // Duration widget setup only done here as it contains
+        // two related fields and must ensure all are cloned and renamed by now
+        durationWidgets.forEach(function(el) {
+            var $el = $("#id_" + el.attr("input-name") + "_text");
+            var instance = $el.timeDurationPicker("instance");
+            if (instance !== undefined) {
+                $el.timeDurationPicker("destroy");
+                instance.element = null;
+            }
+            setupDurationWidget(el.attr('input-name'), el.attr('init_attrs'));
+        });
+
+        timePickers.forEach(function(el) {
+            var hasAMPM = el.attr('has_am_pm') == 'true';
+            setupTimepicker(el, hasAMPM, el.attr('start_time'));
+            // Add form-control class to timepicker inputs to fix alignment
+            el.parent().find(".timepicki-input").addClass("form-control");
+        });
+
+        durationInputs.forEach(function(el) {
+            // Reset values for duration widget inputs
+            el.val(0);
+        });
+
+        var targets = change_handler_targets();
         if (targets.hasOwnProperty(prefix)) {
             targets[prefix].forEach( function (el) {
                 var el_name = prefix + "-" +  (total_forms_inc - 1) + "-" + cdeNamePrefix + el;
