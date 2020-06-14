@@ -67,7 +67,7 @@ class Instruction:
         def visibility_map_entry(cde_info, action, is_inverse=False, condition_is_multiple=False):
             final_action = action.action if not is_inverse else action.inverse_action
             if cde_info.is_multi_section and condition_is_multiple:
-                return f'visibility_map[get_cde_name("{cde_info.name}", idx)] = "{final_action}";'
+                return f'visibility_map_update(visibility_map, get_cde_name("{cde_info.name}", idx), "{final_action}");'
 
             section = "true" if self.target.has_qualifier else "false"
             return f'visibility_map_update(visibility_map, "{cde_info.name}", "{final_action}", {section});'
