@@ -1320,7 +1320,7 @@ class ClinicianOther(models.Model, PatientUpdateMixin):
 @receiver(post_save, sender=ClinicianOther)
 def other_clinician_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
 
-    if not instance.user and instance.use_other:
+    if not instance.user and instance.use_other and instance.clinician_email:
         # User has NOT selected an existing clinician
         other_clinician = instance
         patient = other_clinician.patient
