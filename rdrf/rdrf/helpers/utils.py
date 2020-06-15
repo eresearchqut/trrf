@@ -345,6 +345,9 @@ def get_cde_value(form_model, section_model, cde_model, patient_record, form_ind
     # should refactor code everywhere to use this func
     if patient_record is None:
         return None
+    if form_index is not None:
+        form_index = int(form_index)
+
     for form_dict in patient_record["forms"]:
         if form_dict["name"] == form_model.name:
             for section_dict in form_dict["sections"]:
@@ -354,22 +357,17 @@ def get_cde_value(form_model, section_model, cde_model, patient_record, form_ind
                             if cde_dict["code"] == cde_model.code:
                                 return cde_dict["value"]
                     else:
-                        if form_index:
-                            idx = int(form_index)
-                            cde_dict_list = section_dict["cdes"]
-                            if idx < len(cde_dict_list):
-                                for d in cde_dict_list[idx]:
-                                    if d["code"] == cde_model.code:
-                                        return d["value"]
-                            return None
-                        else:
-                            values = []
-                            items = section_dict["cdes"]
-                            for item in items:
-                                for cde_dict in item:
-                                    if cde_dict['code'] == cde_model.code:
-                                        values.append(cde_dict["value"])
+                        values = []
+                        items = section_dict["cdes"]
+                        for item in items:
+                            for cde_dict in item:
+                                if cde_dict['code'] == cde_model.code:
+                                    values.append(cde_dict["value"])
+                        if form_index is None:
                             return values
+                        if form_index >= len(values):
+                            return None
+                        return values[form_index]
 
 
 def report_function(func):
