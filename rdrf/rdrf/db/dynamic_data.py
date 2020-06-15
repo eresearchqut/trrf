@@ -511,7 +511,7 @@ class DynamicDataWrapper(object):
         else:
             return None
 
-    def get_cde_history(self, registry_code, form_name, section_code, cde_code):
+    def get_cde_history(self, registry_code, form_name, section_code, cde_code, formset_index=None):
         from rdrf.helpers.utils import get_cde_value
         from rdrf.models.definition.models import Registry, RegistryForm, Section, CommonDataElement
         registry_model = Registry.objects.get(code=registry_code)
@@ -522,21 +522,22 @@ class DynamicDataWrapper(object):
         def fmt(snapshot, snapshot_number):
             return {
                 "timestamp": datetime.datetime.strptime(snapshot["timestamp"][:19], "%Y-%m-%d %H:%M:%S"),
-                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"]),
+                "value": get_cde_value(form_model, section_model, cde_model, snapshot["record"], formset_index),
                 "user": snapshot.get("username", ""),
                 "id": str(snapshot_number),
             }
 
         def collapse_same(snapshots):
-            # This should be changed to use sets I think
-            prev = {"": None}  # nonlocal works in python3
-
-            def is_different(snap):
-                diff = prev[""] is None or snap["value"] != prev[""]["value"]
-                prev[""] = snap
-                return diff
-
-            return list(filter(is_different, snapshots))
+            collapsed = snapshots[:1]
+            for snap in snapshots[1:]:
+                val = snap["value"]
+                prev_val = collapsed[-1]["value"]
+                is_same_as_last = not val and not prev_val or val == prev_val
+                if is_same_as_last:
+                    collapsed[-1] = snap
+                else:
+                    collapsed.append(snap)
+            return collapsed
 
         record_query = self._get_record(registry_code, "history", filter_by_context=False)
         record_query = record_query.find(record_type="snapshot")

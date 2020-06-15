@@ -341,10 +341,13 @@ def timed(func):
     return wrapper
 
 
-def get_cde_value(form_model, section_model, cde_model, patient_record):
+def get_cde_value(form_model, section_model, cde_model, patient_record, form_index=None):
     # should refactor code everywhere to use this func
     if patient_record is None:
         return None
+    if form_index is not None:
+        form_index = int(form_index)
+
     for form_dict in patient_record["forms"]:
         if form_dict["name"] == form_model.name:
             for section_dict in form_dict["sections"]:
@@ -360,7 +363,11 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                             for cde_dict in item:
                                 if cde_dict['code'] == cde_model.code:
                                     values.append(cde_dict["value"])
-                        return values
+                        if form_index is None:
+                            return values
+                        if form_index >= len(values):
+                            return None
+                        return values[form_index]
 
 
 def report_function(func):
