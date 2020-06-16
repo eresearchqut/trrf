@@ -55,6 +55,8 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
 
         if msg not in [m.message for m in messages.get_messages(request)]:
             messages.info(request, msg)
+    if user.force_password_change:
+        messages.info(request, _("You are required to change your password for security purposes"))
 
 
 # Customised Two Factor views
