@@ -261,13 +261,8 @@
             }
         });
         new_form.find("script").each(function() {
-            if ($(this).hasClass("timepicker-script") || $(this).hasClass("duration-widget-script")) {
-                // Don't need the script tag for cloned timepicker or duration widgets
-                $(this).remove();
-            } else {
-                var replaced_script = $(this).html().replace(/__prefix__/g, form_count);
-                $(this).html(replaced_script);
-            }
+            var replaced_script = $(this).html().replace(/__prefix__/g, form_count);
+            $(this).html(replaced_script);
         });
         CollapsingPanels.expandParentPanel(el);
         var total_forms_inc = parseInt(total_forms.val()) + 1;

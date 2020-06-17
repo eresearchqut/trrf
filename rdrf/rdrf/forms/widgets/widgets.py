@@ -636,6 +636,10 @@ class AllConsentWidget(widgets.CheckboxInput):
          """)
 
 
+def _is_not_multisection_clone_base_widget(attrs):
+    return 'id' in attrs and '__prefix__' not in attrs['id']
+
+
 class TimeWidget(widgets.TextInput):
     AMPM = "12hour"
     FULL = "24hour"
@@ -697,11 +701,19 @@ class TimeWidget(widgets.TextInput):
         html = f'''
             <input id="id_{name}" type="text" name="{name}" class="timepicker" has_am_pm="{has_am_pm}", start_time="{start_time_str}" value="{value}"/>
         '''
+        script = ''
+        if _is_not_multisection_clone_base_widget(attrs):
+            # Only attach the script if this is not the default
+            # widget used for cloning in multisections
+            script = f'''
+                <script type="text/javascript" class="timepicker-script">
+                    setupTimepicker($("#id_{name}"), {has_am_pm}, "{start_time_str}");
+                </script>
+            '''
+
         return f'''
             {html}
-            <script type="text/javascript" class="timepicker-script">
-                setupTimepicker($("#id_{name}"), {has_am_pm}, "{start_time_str}");
-            </script>
+            {script}
         '''
 
 
@@ -819,7 +831,7 @@ class DurationWidget(widgets.TextInput):
         init_attrs = [widget_helper.get_attribute_js(name) for name in fields]
         init_attrs_str = ",".join(init_attrs)
         script = ''
-        if 'id' in attrs and '__prefix__' not in attrs['id']:
+        if _is_not_multisection_clone_base_widget(attrs):
             # Only attach the script if this is not the default
             # widget used for cloning in multisections
             script = f'''
