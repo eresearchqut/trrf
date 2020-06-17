@@ -27,7 +27,6 @@ function setupDurationWidget(inputName, attributesStr) {
         onSelect: function(element, seconds, duration, text) {
             $(durationInput).val(duration);
             $(textInput).val(text);
-            $("#main-form").trigger('change');
             $(durationInput).trigger('change');
         },
         years: initAttrs[0] == "true",
