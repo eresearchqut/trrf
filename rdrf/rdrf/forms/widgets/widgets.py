@@ -818,13 +818,19 @@ class DurationWidget(widgets.TextInput):
         fields = ('years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only')
         init_attrs = [widget_helper.get_attribute_js(name) for name in fields]
         init_attrs_str = ",".join(init_attrs)
-
+        script = ''
+        if 'id' in attrs and '__prefix__' not in attrs['id']:
+            # Only attach the script if this is not the default
+            # widget used for cloning in multisections
+            script = f'''
+                <script type="text/javascript" class="duration-widget-script">
+                    setupDurationWidget("{name}", "{init_attrs_str}");
+                </script>
+            '''
         return f'''
             <input id="id_{name}_text" type="text" class="duration-widget" value="{value}" input-name="{name}" init_attrs="{init_attrs_str}" readonly/>
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
-            <script type="text/javascript" class="duration-widget-script">
-                setupDurationWidget("{name}", "{init_attrs_str}");
-            </script>
+            {script}
         '''
 
 

@@ -217,6 +217,7 @@
         $el.attr(attribute_name, replaced_value);
     }
 
+
     function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
         var empty_form = $("#empty_" + prefix);
@@ -278,12 +279,6 @@
         // Duration widget setup only done here as it contains
         // two related fields and must ensure all are cloned and renamed by now
         durationWidgets.forEach(function(el) {
-            var $el = $("#id_" + el.attr("input-name") + "_text");
-            var instance = $el.timeDurationPicker("instance");
-            if (instance !== undefined) {
-                $el.timeDurationPicker("destroy");
-                instance.element = null;
-            }
             setupDurationWidget(el.attr('input-name'), el.attr('init_attrs'));
         });
 
