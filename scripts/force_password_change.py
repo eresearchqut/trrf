@@ -70,7 +70,7 @@ def force_password_change(args):
     else:
         print_message(f"Updated {updated_count} users.")
     if not_forced:
-        print_message(f"Updated users:", verbosity=3)
+        print_message("Updated users:", verbosity=3)
         print_message("\n".join(u.username for u in not_forced), verbosity=3)
 
 
