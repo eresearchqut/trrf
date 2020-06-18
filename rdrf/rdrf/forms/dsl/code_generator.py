@@ -171,7 +171,9 @@ class Instruction:
     def change_handler_element(cde_info):
         return f'''
             if (change_handler.hasOwnProperty("{cde_info.formset_prefix}")) {{
-                change_handler["{cde_info.formset_prefix}"].push("{cde_info.name}");
+                if (!change_handler["{cde_info.formset_prefix}"].includes("{cde_info.name}")) {{
+                    change_handler["{cde_info.formset_prefix}"].push("{cde_info.name}");
+                }}
             }} else {{
                 change_handler["{cde_info.formset_prefix}"] = ["{cde_info.name}"];
             }}

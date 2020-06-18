@@ -636,6 +636,10 @@ class AllConsentWidget(widgets.CheckboxInput):
          """)
 
 
+def _is_not_multisection_clone_base_widget(attrs):
+    return 'id' in attrs and '__prefix__' not in attrs['id']
+
+
 class TimeWidget(widgets.TextInput):
     AMPM = "12hour"
     FULL = "24hour"
@@ -692,29 +696,24 @@ class TimeWidget(widgets.TextInput):
     def render(self, name, value, attrs=None, renderer=None):
         fmt = self.attrs.pop("format") if "format" in self.attrs else self.AMPM
         value, start_time = self._parse_value(value, fmt)
+        has_am_pm = "true" if fmt == self.AMPM else "false"
+        start_time_str = ",".join([str(t) for t in start_time])
         html = f'''
-            <input id="id_{name}" type="text" name="{name}" value="{value}"/>
+            <input id="id_{name}" type="text" name="{name}" class="timepicker" has_am_pm="{has_am_pm}", start_time="{start_time_str}" value="{value}"/>
         '''
-        set_time_str = f", start_time:{start_time}" if start_time else ""
-        change_handler = '''
-            on_change: function() { $("#main-form").trigger('change'); }
-        '''
+        script = ''
+        if _is_not_multisection_clone_base_widget(attrs):
+            # Only attach the script if this is not the default
+            # widget used for cloning in multisections
+            script = f'''
+                <script type="text/javascript" class="timepicker-script">
+                    setupTimepicker($("#id_{name}"), {has_am_pm}, "{start_time_str}");
+                </script>
+            '''
 
-        if fmt == self.AMPM:
-            attrs = f"{{ {change_handler}, $show_meridian:true, min_hour_value:1, max_hour_value:12 {set_time_str}}}"
-        else:
-            attrs = f"{{ {change_handler}, show_meridian:false, min_hour_value:0, max_hour_value:23 {set_time_str}}}"
-
-        js = f'''
-            $("#id_{name}").timepicki({attrs});
-            $("#id_{name}").addClass("form-control");
-            $(".meridian .mer_tx input").css("padding","0px"); // fix padding for meridian display
-        '''
         return f'''
             {html}
-            <script>
-                {js}
-            </script>
+            {script}
         '''
 
 
@@ -828,34 +827,22 @@ class DurationWidget(widgets.TextInput):
         if not value or not iso_8601_validator(value) or not compatible:
             value = widget_helper.current_format_default()
 
+        fields = ('years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only')
+        init_attrs = [widget_helper.get_attribute_js(name) for name in fields]
+        init_attrs_str = ",".join(init_attrs)
+        script = ''
+        if _is_not_multisection_clone_base_widget(attrs):
+            # Only attach the script if this is not the default
+            # widget used for cloning in multisections
+            script = f'''
+                <script type="text/javascript" class="duration-widget-script">
+                    setupDurationWidget("{name}", "{init_attrs_str}");
+                </script>
+            '''
         return f'''
-            <input id="id_{name}_text" type="text" value="{value}" readonly/>
+            <input id="id_{name}_text" type="text" class="duration-widget" value="{value}" input-name="{name}" init_attrs="{init_attrs_str}" readonly/>
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
-            <script>
-                $("#id_{name}_text").timeDurationPicker({{
-                    css: {{
-                        "width":"200px"
-                    }},
-                    seconds: true,
-                    defaultValue: function() {{
-                        return $("#id_{name}_duration").val();
-                    }},
-                    onSelect: function(element, seconds, duration, text) {{
-                        $("#id_{name}_duration").val(duration);
-                        $("#id_{name}_text").val(text);
-                        $("#main-form").trigger('change');
-                        $("#id_{name}_duration").trigger('change');
-                    }},
-                    years: {widget_helper.get_attribute_js('years')},
-                    months: {widget_helper.get_attribute_js('months')},
-                    days: {widget_helper.get_attribute_js('days')},
-                    hours: {widget_helper.get_attribute_js('hours')},
-                    minutes: {widget_helper.get_attribute_js('minutes')},
-                    seconds: {widget_helper.get_attribute_js('seconds')},
-                    weeks: {widget_helper.get_attribute_js('weeks_only')}
-                }});
-                $("#id_{name}_text").addClass("form-control");
-            </script>
+            {script}
         '''
 
 
