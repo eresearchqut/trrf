@@ -1,19 +1,12 @@
 $(document).ready(function() {
 
   var transition           = "all 0.5s ease 0.0s";
-  var new_border           = "1px solid #B1B23F";
-  var new_background_color = "#FEFFD7";
-  var monitored_fields     = "select,input,textarea";
-
-  // Save default colors for later recovery.
-  // TS: Moved these into the change handler below as they were called before the elements
-  // get styled on Chromium which resulted in saving an incorrect border of 0
-  // https://eresearchqut.atlassian.net/browse/TRRFFDA-449
-  var old_border;
-  var old_background_color;
+  var newBorder           = "1px solid #B1B23F";
+  var newBackgroundColor = "#FEFFD7";
+  var monitoredFields     = "select,input,textarea";
 
   // Save defaults in each DOM element's pre data and append transitions
-  $('#main-form *').filter(monitored_fields).each(function() {
+  $('#main-form *').filter(monitoredFields).each(function() {
     if ($(this).is(':radio')) {
       $(this).parent().parent().data('pre', $(this).parent().parent().find(':checked').val());
       $(this).parent().parent().css("transition", transition);
@@ -29,14 +22,7 @@ $(document).ready(function() {
   // current value to value stored in DOM element's pre data and
   // highlights fields that have changed
   $('#main-form').change(function() {
-    if (!old_border) {
-      old_border = $('#main-form *').filter('input').first().css("border");
-    }
-    if (!old_background_color) {
-      old_background_color = $('#main-form *').filter('input').first().css("background-color");
-    }
-
-    $('#main-form *').filter(monitored_fields).each(function() {
+    $('#main-form *').filter(monitoredFields).each(function() {
       if ($(this).hasClass('timepicki-input')) {
         return;
       }
@@ -58,16 +44,40 @@ $(document).ready(function() {
 
       var didValueChange = didChange($(this));
 
-      var border = didValueChange ? new_border : old_border;
-      var background_color = didValueChange ? new_background_color : old_background_color;
-
-      var elementToHighlight = ($(this).is(':radio') || $(this).is(':checkbox')) ? $(this).parent().parent() : $(this);
-
-      if (!($(this).is(':radio') || $(this).is(':checkbox'))) {
-        // No border changes for radio boxes and checkboxes
-        elementToHighlight.css('border', border);
+      var elementToHighlight = $(this);
+      var highlightBorder = true;
+      if ($(this).is(':radio') || $(this).is(':checkbox')) {
+        elementToHighlight = $(this).parent().parent();
+        highlightBorder = false;
       }
-      elementToHighlight.css('background-color', background_color);
+
+      function handleHighlighting(el, propertyName, newValue) {
+        var savedPropertyName = 'saved-' + propertyName;
+        var savedValue = el.data(savedPropertyName);
+
+        if (didValueChange) {
+          if (typeof savedValue === 'undefined') {
+            // Save original CSS property value before overwriting it
+            el.data(savedPropertyName, el.css(propertyName));
+          }
+          el.css(propertyName, newValue);
+          return;
+        }
+
+        // Value didn't change and original CSS property intact -> nothing to do
+        if (typeof savedValue === 'undefined') {
+            return;
+        }
+
+        // Value changed back to original value -> restore saved CSS property and remove saved value
+        el.css(propertyName, savedValue);
+        el.removeData(savedPropertyName);
+      }
+
+      handleHighlighting(elementToHighlight, 'background-color', newBackgroundColor);
+      if (highlightBorder) {
+        handleHighlighting(elementToHighlight, 'border', newBorder);
+      }
     });
   });
 });
