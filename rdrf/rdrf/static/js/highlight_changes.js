@@ -23,7 +23,7 @@ $(document).ready(function() {
   // highlights fields that have changed
   $('#main-form').change(function() {
     $('#main-form *').filter(monitoredFields).each(function() {
-      if ($(this).hasClass('timepicki-input')) {
+      if ($(this).hasClass('timepicki-input') || $(this).hasClass("duration-input")) {
         return;
       }
 
