@@ -1,5 +1,6 @@
 import base64
 from collections import namedtuple
+from collections.abc import Iterable
 import datetime
 import inspect
 import logging
@@ -455,9 +456,9 @@ class MultipleFileInput(Widget):
         return "%s\n%s" % (base, hidden)
 
     def _render_each(self, name, value, attrs):
+        idx_val_pairs = [(i, val) for (i, val) in enumerate(value or [])] if isinstance(value, Iterable) else []
         return [self._render_base(name, self.TemplateFile(), attrs, "???")] + [
-            self._render_base(name, val, attrs, i)
-            for (i, val) in enumerate(value or [])
+            self._render_base(name, val, attrs, i) for i, val in idx_val_pairs
         ]
 
     def value_from_datadict(self, data, files, name):

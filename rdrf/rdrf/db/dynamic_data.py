@@ -113,7 +113,15 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
 def _get_file_id(existing_value):
     if not existing_value:
         return None
-    value = existing_value.get('value') or {}
+    value = None
+    if isinstance(existing_value, dict):
+        value = existing_value.get('value') or {}
+    elif isinstance(existing_value, list):
+        for el in existing_value:
+            if isinstance(value, dict):
+                value = el.get('value' or {})
+                if value:
+                    break
     if value:
         return value.get('django_file_id') if isinstance(value, dict) else None
     return existing_value.get('django_file_id') if isinstance(existing_value, dict) else None
