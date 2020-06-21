@@ -110,25 +110,45 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
     return None
 
 
-def _get_file_id(existing_value):
+def _get_file_ids(existing_value):
+
+    def is_dict(v):
+        return isinstance(v, dict) and v
+
+    def is_list(v):
+        return isinstance(v, list) and v
+
+    def get_django_file_id(input_value):
+        if 'value' in input_value:
+            value = input_value.get('value') or {}
+            if is_dict(value):
+                return [value.get('django_file_id')]
+            elif is_list(value):
+                return [el.get('django_file_id') for el in value]
+        elif 'django_file_id' in input_value:
+            return [input_value.get('django_file_id')]
+        return []
+
     if not existing_value:
-        return None
-    value = None
-    if isinstance(existing_value, dict):
-        value = existing_value.get('value') or {}
-    elif isinstance(existing_value, list):
+        return []
+    values = []
+    if is_dict(existing_value):
+        values.extend(get_django_file_id(existing_value))
+    elif is_list(existing_value):
         for el in existing_value:
-            if isinstance(value, dict):
-                value = el.get('value' or {})
-                if value:
-                    break
-    if value:
-        return value.get('django_file_id') if isinstance(value, dict) else None
-    return existing_value.get('django_file_id') if isinstance(existing_value, dict) else None
+            values.extend(get_django_file_id(el))
+    logger.info(f"_get_file_ids({existing_value}) = {values}")
+    return values
 
 
 def update_multisection_file_cdes(registry_code, patient_record, user, multisection_code, form_section_items, form_model,
                                   existing_nested_data, index_map):
+
+    def value_is_set(value):
+        if isinstance(value, list):
+            return all(v for v in value)
+        else:
+            return value is not None and value
 
     updates = []
     processed_indexes = defaultdict(list)
@@ -143,9 +163,10 @@ def update_multisection_file_cdes(registry_code, patient_record, user, multisect
                     registry_code, existing_nested_data, key, multisection_index=actual_index)
 
                 # File is updated, delete the original
-                if value is not None and value:
-                    file_id = _get_file_id(existing_value)
-                    if file_id:
+                logger.info(f"value={value}")
+                if value_is_set(value):
+                    file_ids = _get_file_ids(existing_value)
+                    for file_id in file_ids:
                         to_delete.append(file_id)
 
                 # antecedent here will never return true and the definition is not correct
@@ -160,8 +181,8 @@ def update_multisection_file_cdes(registry_code, patient_record, user, multisect
     for section_index, cde in find_cdes(existing_nested_data, form_model.name, multisection_code, multisection=True, with_section_index=True):
         cde_code = cde['code']
         if cde and is_file_cde(cde_code) and section_index not in processed_indexes[cde_code]:
-            file_id = _get_file_id(cde)
-            if file_id:
+            logger.info(f"delete(2) = section_index={section_index}, processed_indexes={processed_indexes[cde_code]}")
+            for file_id in _get_file_ids(cde):
                 to_delete.append(file_id)
     if to_delete:
         CDEFile.objects.filter(pk__in=to_delete).delete()

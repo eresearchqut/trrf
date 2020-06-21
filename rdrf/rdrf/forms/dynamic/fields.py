@@ -65,7 +65,7 @@ class CustomFileField(FileTypeRestrictedFileField):
     widget = CustomFileInput
 
 
-class MultipleFileField(CustomFileField):
+class MultipleFileField(FileTypeRestrictedFileField):
     """
     A field made from multiple file fields.
     Values go in and out as lists of files.

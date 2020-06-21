@@ -4,7 +4,6 @@ import json
 import logging
 from functools import reduce
 from operator import attrgetter
-import os
 import pycountry
 import random
 import uuid
