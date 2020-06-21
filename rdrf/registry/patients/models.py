@@ -1478,8 +1478,7 @@ class PatientConsentStorage(DefaultStorage):
 
 def upload_patient_consent_to(instance, filename, get_existing=False):
     if not get_existing:
-        __, ext = os.path.splitext(filename)
-        generated_name = f"{uuid.uuid4()}{ext}"
+        generated_name = f"{uuid.uuid4()}_{filename}"
         return 'consents/patient/{0}/{1}'.format(instance.patient.pk, generated_name)
     return str(instance.form)
 

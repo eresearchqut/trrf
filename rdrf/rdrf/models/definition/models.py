@@ -1871,8 +1871,7 @@ class ClinicalData(models.Model):
 
 def file_upload_to(instance, filename, get_existing=False):
     if not get_existing:
-        __, ext = os.path.splitext(filename)
-        generated_name = f"{uuid.uuid4()}{ext}"
+        generated_name = f"{uuid.uuid4()}_{filename}"
         return "/".join(filter(bool, [
             instance.registry_code,
             instance.section_code or "_",
