@@ -229,7 +229,6 @@
 
         var durationWidgets = [];
         var timePickers = [];
-        var durationInputs = [];
         var form_count = total_forms.val();
         new_form.find(":input").each(function() {
             var idAttribute = $(this).attr("id");
@@ -275,6 +274,7 @@
         // two related fields and must ensure all are cloned and renamed by now
         durationWidgets.forEach(function(el) {
             setupDurationWidget(el.attr('input-name'), el.attr('init_attrs'));
+            el.data('pre', '');
         });
 
         timePickers.forEach(function(el) {
@@ -282,11 +282,6 @@
             setupTimepicker(el, hasAMPM, el.attr('start_time'));
             // Add form-control class to timepicker inputs to fix alignment
             el.parent().find(".timepicki-input").addClass("form-control");
-        });
-
-        durationInputs.forEach(function(el) {
-            // Reset values for duration widget inputs
-            el.val(0);
         });
 
         var targets = change_handler_targets();
