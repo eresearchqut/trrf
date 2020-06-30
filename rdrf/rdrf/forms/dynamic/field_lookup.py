@@ -123,12 +123,7 @@ class FieldFactory(object):
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
     def _get_label(self):
-        if not self.is_verification:
-            return self.cde.name
-        else:
-            return "%s/%s/%s" % (self.registry_form.name,
-                                 self.section.display_name,
-                                 self.cde.name)
+        return self.cde.name
 
     def _get_cde_link(self, name):
         if not settings.DESIGN_MODE:
