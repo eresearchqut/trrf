@@ -26,8 +26,7 @@ from rdrf.models.definition.models import (CDEPermittedValue,
                                            EmailNotificationHistory,
                                            EmailTemplate,
                                            Registry,
-                                           RegistryForm, Section,
-                                           ValidationError)
+                                           RegistryForm, Section)
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 from rdrf.services.io.defs.importer import Importer, ImportState
 from rdrf.views.form_view import FormView
