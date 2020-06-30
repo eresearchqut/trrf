@@ -25,7 +25,6 @@ from rdrf.models.definition.models import (CDEPermittedValue,
                                            EmailNotification,
                                            EmailNotificationHistory,
                                            EmailTemplate,
-                                           InvalidAbnormalityConditionError,
                                            Registry,
                                            RegistryForm, Section,
                                            ValidationError)

@@ -64,14 +64,13 @@ class FieldFactory(object):
     UNSET_CHOICE = ""
 
     def __init__(self, registry, registry_form, section, cde, questionnaire_context=None,
-                 injected_model=None, injected_model_id=None, is_superuser=False, is_verification=False):
+                 injected_model=None, injected_model_id=None, is_superuser=False):
         """
         :param cde: Common Data Element model instance
         """
         self.registry = registry
         self.registry_form = registry_form
         self.section = section
-        self.is_verification = is_verification
         self.cde = cde
         self.questionnaire_context = questionnaire_context
         if questionnaire_context:

@@ -1,7 +1,6 @@
 class RegistryFeatures:
     STAGES = "stages"
     FAMILY_LINKAGE = "family_linkage"
-    VERIFICATION = "verification"
     QUESTIONNAIRES = "questionnaires"
     CONSENT_CHECKS = "consent_checks"
     PROMS_CLINICAL = "proms_clinical"
@@ -17,5 +16,3 @@ class RegistryFeatures:
     PATIENT_FORM_DOCTORS = "patient_form_doctors"
     PATIENT_GUID = "patient_guid"
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
-    FORM_LOCKING = "form_locking"
-    CUSTOM_ACTIONS = 'custom_actions'

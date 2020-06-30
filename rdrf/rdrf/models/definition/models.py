@@ -5,8 +5,6 @@ import logging
 import os.path
 import yaml
 
-from pyparsing import Word, nums, Optional, delimitedList, alphanums, Literal, LineEnd, LineStart
-
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -36,10 +34,6 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 
 
 logger = logging.getLogger(__name__)
-
-
-class InvalidAbnormalityConditionError(Exception):
-    pass
 
 
 class InvalidQuestionnaireError(Exception):
@@ -625,19 +619,15 @@ class CommonDataElement(models.Model):
     max_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=12,
+        max_digits=10,
         decimal_places=2,
         help_text="Only used for numeric fields")
     min_value = models.DecimalField(
         blank=True,
         null=True,
-        max_digits=12,
+        max_digits=10,
         decimal_places=2,
         help_text="Only used for numeric fields")
-    abnormality_condition = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Rules triggering a visual notification encouraging the user to process with further investigations")
     is_required = models.BooleanField(
         default=False, help_text="Indicate whether field is non-optional")
     pattern = models.CharField(
@@ -735,12 +725,6 @@ class CommonDataElement(models.Model):
                 "CDE [%s] has space(s) in code - this causes problems please remove" %
                 self.code)
 
-        if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
-            raise ValidationError(
-                """The abnormality condition is incorrect. It should something like
-                     x in ("code_1", "code_2"), or x <= 10
-                    """)
-
         # check javascript calculation for naughty code
         if self.calculation.strip():
             err = check_calculation(self.calculation).strip()
@@ -775,84 +759,6 @@ class CommonDataElement(models.Model):
                     existing.update(settings)
                     self.widget_settings = json.dumps(existing)
         super().save(*args, **kwargs)
-
-    def is_abnormal(self, value):
-        if self.abnormality_condition:
-
-            # some sanity check
-            # ignore any non integer / float / string values (.i.e. we ignore multiple selectors)
-            # (if you add a list to the condition, it will be critical to validate deeply the list value to avoid hack)
-            if not isinstance(value, str) and not isinstance(value, float) and not isinstance(value, int):
-                return False
-
-            # some sanity checks (it could happen because we updated the validation to be more restrictive
-            # but we did not update the existing abnormality_condition to match the new restriction)
-            if not validate_abnormality_condition(self.abnormality_condition, self.datatype):
-                raise InvalidAbnormalityConditionError(
-                    f"The abnormality condition of CDE {self.code} is incorrect: {self.abnormality_condition}")
-
-            # extract each individual rules from abnormality_condition
-            # ignore empty lines
-            abnormality_condition_lines = [rule.strip() for rule in self.abnormality_condition.splitlines() if
-                                           rule.strip()]
-
-            try:
-                typed_value = self._get_typed_value(value)
-            except ValueError:
-                return False
-
-            return any([eval(line, {'x': typed_value}) for line in abnormality_condition_lines])
-
-        # no abnormality condition
-        return False
-
-    def _get_typed_value(self, value):
-        if self.datatype == CDEDataTypes.INTEGER:
-            return int(value)
-
-        if self.datatype == CDEDataTypes.FLOAT:
-            return float(value)
-        return value
-
-
-def validate_abnormality_condition(abnormality_condition, datatype):
-    if not abnormality_condition:
-        return True
-    abnormality_condition_lines = list(
-        filter(None, [rule.strip() for rule in abnormality_condition.split("\r\n")])
-    )
-    return all(validate_rule(rule, datatype) for rule in abnormality_condition_lines)
-
-
-def validate_rule(rule, datatype):
-    # numeric rules
-    eq = Literal("==")
-    le = Literal("<=")
-    ge = Literal(">=")
-    lo = Literal("<")
-    g = Literal(">")
-    quote = "\""
-
-    parsing_formats = None
-    if datatype in [CDEDataTypes.RANGE, CDEDataTypes.STRING]:
-        string_equality_expression = 'x' + eq + Word(quote + alphanums + '_' + '-' + quote)
-        string_list_expression = 'x' + \
-            Literal('in') + "[" + (delimitedList(quote + Word(alphanums + '_' + '-') + quote, ",")) + "]"
-        parsing_formats = string_equality_expression | string_list_expression
-
-    if datatype in [CDEDataTypes.INTEGER, CDEDataTypes.FLOAT]:
-        number = Optional('-') + Word(nums) + Optional('.' + Word(nums))
-        numeric_expression = 'x' + (eq | le | ge | lo | g) + number
-        numeric_list_expression = 'x' + Literal('in') + "[" + (delimitedList(number, ',')) + "]"
-        parsing_formats = numeric_expression | numeric_list_expression
-
-    # If we can not find any matching rule (should only happen when a designer edit the CDE).
-    if parsing_formats is None:
-        raise ValidationError(
-            f"This CDE datatype \"{datatype}\" is not supported by the abnormality field.")
-
-    parsing_formats = LineStart() + parsing_formats + LineEnd()
-    return list(parsing_formats.scanString(rule))
 
 
 class CdePolicy(models.Model):
@@ -1882,7 +1788,6 @@ class ClinicalData(models.Model):
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
     active = models.BooleanField(
         default=True, help_text="Indicate whether an entity is active or not")
-    metadata = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, null=True)
     last_updated_by = models.IntegerField(db_index=True, blank=True, null=True)
@@ -1902,38 +1807,6 @@ class ClinicalData(models.Model):
 
     def __str__(self):
         return json.dumps(model_to_dict(self), indent=2)
-
-    def get_metadata_locking(self, form_name):
-        # the clinical metadata are only stored with the cdes collection
-        if self.collection != "cdes":
-            raise Exception("coding error: metadata are stored in the cdes collection")
-
-        if self.metadata:
-            metadata = json.loads(self.metadata)
-            if form_name in metadata["forms"].keys():
-                return metadata["forms"][form_name]['locking']
-        return False
-
-    def switch_metadata_locking(self, form_name):
-        # the clinical metadata are only stored with the cdes collection
-        if self.collection != "cdes":
-            raise Exception("coding error: metadata are stored in the cdes collection")
-
-        # Set default value when no metadata exist yet.
-        metadata = {"forms": {form_name: {'locking': True}}}
-
-        if self.metadata:
-            metadata = json.loads(self.metadata)
-            if form_name in metadata["forms"].keys():
-                metadata["forms"][form_name]['locking'] = not metadata["forms"][form_name]['locking']
-            else:
-                # Some metadata existed for other forms, but not for this form_name.
-                metadata["forms"] = {form_name: {'locking': True}}
-
-        logger.debug(f"Switching to {form_name} locking to: {metadata['forms'][form_name]['locking']}")
-
-        self.metadata = json.dumps(metadata)
-        self.save()
 
     def cde_val(self, form_name, section_code, cde_code):
         forms = self.data.get("forms", [])
@@ -2078,76 +1951,3 @@ class BlacklistedMimeType(models.Model):
     class Meta:
         verbose_name = "Disallowed mime type"
 
-
-class CustomAction(models.Model):
-    """
-    Represents actions with a button in the GUI - can be run
-    data associated with the action is parsed and the action executed
-    """
-    ACTION_TYPES = (("PR", "Patient Report"),
-                    ("SR", "Patient Status Report"))
-
-    SCOPES = (("U", "Universal"),
-              ("P", "Patient"))
-
-    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    groups_allowed = models.ManyToManyField(Group, blank=True)
-    code = models.CharField(max_length=80)
-    name = models.CharField(max_length=80, blank=True, null=True)
-    action_type = models.CharField(max_length=2, choices=ACTION_TYPES)
-    data = models.TextField(null=True)
-    scope = models.CharField(max_length=1, choices=SCOPES)  # controls where action appears
-
-    def execute(self, user, patient_model=None):
-        """
-        This should return a HttpResponse of some sort
-        """
-        if self.scope == "P":
-            if not self.check_security(user, patient_model):
-                raise PermissionDenied
-        elif self.scope == "U":
-            if not user.in_registry(self.registry):
-                raise PermissionDenied
-
-        if self.action_type == "PR":
-            from rdrf.services.io.actions import patient_report
-            result = patient_report.execute(self.registry, self.name, self.data, user, patient_model)
-            logger.info("custom action %s/%s by user %s on patient %s" % (self.registry.code,
-                                                                          self.name,
-                                                                          user.username,
-                                                                          patient_model.pk))
-            return result
-        elif self.action_type == "SR":
-            from rdrf.services.io.actions import patient_status_report
-            return patient_status_report.execute(self.registry,
-                                                 self.name,
-                                                 self.data,
-                                                 user)
-
-        else:
-            raise NotImplementedError("Unknown action type: %s" % self.action_type)
-
-    @property
-    def text(self):
-        return self.name
-
-    @property
-    def url(self):
-        if self.scope == "U":
-            return reverse("custom_action", args=(self.pk, 0))
-        else:
-            return ""
-
-    @property
-    def menu_link(self):
-        link = LinkWrapper(self.url, self.name)
-        return link
-
-    def check_security(self, user, patient_model):
-        from rdrf.security.security_checks import security_check_user_patient
-        try:
-            security_check_user_patient(user, patient_model)
-        except PermissionDenied:
-            return False
-
-        return True

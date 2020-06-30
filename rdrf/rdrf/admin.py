@@ -31,15 +31,7 @@ from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
 
-from rdrf.models.definition.review_models import Review
-from rdrf.models.definition.review_models import ReviewItem
-from rdrf.models.definition.review_models import PatientReview
-from rdrf.models.definition.review_models import PatientReviewItem
-from rdrf.models.definition.verification_models import Verification
-
 from rdrf.system_role import SystemRoles
-
-from rdrf.models.definition.models import CustomAction
 
 
 from reversion.admin import VersionAdmin
@@ -463,54 +455,6 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
     list_display = ('mime_type', 'description')
 
 
-class ReviewItemAdmin(admin.StackedInline):
-    model = ReviewItem
-    ordering = ['position']
-
-
-class ReviewAdmin(admin.ModelAdmin):
-    model = Review
-    list_display = ("registry", "name", "code")
-    inlines = [ReviewItemAdmin]
-
-
-class PatientReviewItemAdmin(admin.StackedInline):
-    model = PatientReviewItem
-
-
-class PatientReviewAdmin(admin.ModelAdmin):
-    model = PatientReview
-    list_display = ("moniker",
-                    "patient",
-                    "parent",
-                    "token",
-                    "created_date",
-                    "completed_date",
-                    "state")
-    inlines = [PatientReviewItemAdmin]
-
-
-class VerificationAdmin(admin.ModelAdmin):
-    model = Verification
-    list_display = ("patient",
-                    "registry",
-                    "form_name",
-                    "section_code",
-                    "cde_code",
-                    "created_date",
-                    "status",
-                    "username",
-                    "data")
-
-
-class CustomActionAdmin(admin.ModelAdmin):
-    model = CustomAction
-    list_display = ("registry",
-                    "code",
-                    "name",
-                    "action_type")
-
-
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -571,10 +515,6 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
-    (Review, ReviewAdmin),
-    (PatientReview, PatientReviewAdmin),
-    (Verification, VerificationAdmin),
-    (CustomAction, CustomActionAdmin),
 ]
 
 ADMIN_COMPONENTS = []

@@ -248,11 +248,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             reports_disabled = self.is_clinician and not self.ethically_cleared
             links = qlinks.menu_links([group.name for group in self.groups.all()], reports_disabled)
 
-        for registry_model in self.get_registries():
-            for custom_action in self.custom_actions(registry_model):
-                if custom_action.scope == "U":
-                    links.append(custom_action.menu_link)
-
         return links
 
     @property
@@ -276,11 +271,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             links = qlinks.admin_page_links()
 
         return links
-
-    def custom_actions(self, registry_model):
-        # return all custom actions applicable
-        from rdrf.models.definition.models import CustomAction
-        return [action for action in CustomAction.objects.filter(registry=registry_model)]
 
 
 @receiver(user_activated)

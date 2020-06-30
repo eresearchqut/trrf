@@ -245,8 +245,6 @@ class Exporter:
         data["consent_rules"] = self._get_consent_rules()
         data["surveys"] = self._get_surveys()
         data["form_titles"] = self._get_form_titles()
-        data["reviews"] = self._get_reviews()
-        data["custom_actions"] = self._get_custom_actions()
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
@@ -346,7 +344,6 @@ class Exporter:
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
-            cde_map["abnormality_condition"] = cde_model.abnormality_condition
 
             data["cdes"].append(cde_map)
 
@@ -624,49 +621,6 @@ class Exporter:
                 survey_dict["questions"].append(sq_dict)
             data.append(survey_dict)
         return data
-
-    def _get_reviews(self):
-        from rdrf.models.definition.review_models import Review
-        review_dicts = []
-        for review_model in Review.objects.filter(registry=self.registry).order_by("name"):
-            review_dict = {}
-            review_dict["name"] = review_model.name
-            review_dict["code"] = review_model.code
-            review_dict["review_type"] = review_model.review_type
-            review_dict["items"] = []
-            for review_item in review_model.items.all().order_by("position"):
-                item_dict = {}
-                item_dict["position"] = review_item.position
-                item_dict["item_type"] = review_item.item_type
-                item_dict["category"] = review_item.category
-                item_dict["name"] = review_item.name
-                item_dict["code"] = review_item.code
-                item_dict["form"] = ""
-                if review_item.form:
-                    item_dict["form"] = review_item.form.name
-                item_dict["section"] = ""
-                if review_item.section:
-                    item_dict["section"] = review_item.section.code
-                item_dict["target_code"] = review_item.target_code
-                item_dict["fields"] = review_item.fields
-                item_dict["summary"] = review_item.summary
-                item_dict["appearance_condition"] = review_item.appearance_condition
-                review_dict["items"].append(item_dict)
-            review_dicts.append(review_dict)
-        return review_dicts
-
-    def _get_custom_actions(self):
-        from rdrf.models.definition.models import CustomAction
-        actions = []
-        for action in CustomAction.objects.filter(registry=self.registry):
-            action_dict = {}
-            action_dict["code"] = action.code
-            action_dict["name"] = action.name
-            action_dict["action_type"] = action.action_type
-            action_dict["groups_allowed"] = [g.name for g in action.groups_allowed.all()]
-            action_dict["data"] = action.data
-            actions.append(action_dict)
-        return actions
 
     def _get_form_titles(self):
         from rdrf.models.definition.models import FormTitle
