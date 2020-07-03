@@ -1,4 +1,3 @@
-from django.conf import settings
 from rdrf.services.io.reporting import report_field_functions
 from registry.patients.models import Patient, PatientAddress
 from rdrf.models.definition.models import ConsentSection, ConsentQuestion
