@@ -80,13 +80,6 @@ def try_to_register(step, registry, client_name, email_address, password):
         ('id_parent_guardian_first_name', client_first_name),
         ('id_parent_guardian_last_name', client_last_name),
         ('id_parent_guardian_date_of_birth', '1980-09-01'),
-        # Gender radio button
-        ('id_parent_guardian_address', 'Australia'),
-        ('id_parent_guardian_suburb', 'Australia'),
-        # Country dropdown
-        # State dropdown
-        ('id_parent_guardian_postcode', '6000'),
-        ('id_parent_guardian_phone', '98765432')
     ])
 
     # Populate plain text fields
@@ -378,78 +371,12 @@ def option_should_be_selected(step, option, dropdown_label):
     assert_true(option.get_attribute('selected'))
 
 
-@step('search for "(.*)"')
-def search_for_text(step, text):
-    search = world.browser.find_element_by_xpath('//input[@type="search"]')
-    search.send_keys(text)
-
-
 @step('fill in "(.*)" with "(.*)"')
 def fill_in_textfield(step, textfield_label, text):
     label = world.browser.find_element_by_xpath('//label[contains(., "%s")]' % textfield_label)
     textfield = world.browser.find_element_by_xpath(
         '//input[@id="%s"]' % label.get_attribute('for'))
     textfield.send_keys(text)
-
-
-@step('I click the add button in "(.*)" section')
-def click_add_for_inline(step, section):
-    section_div_heading = world.browser.find_element_by_xpath(
-        "//div[@class='panel-heading'][contains(., '%s')]" % section)
-    add_link_xpath = """//a[starts-with(@onclick,"add_form")]"""
-    add_link = section_div_heading.find_element_by_xpath(add_link_xpath)
-    utils.click(add_link)
-    wait_n_seconds(step, 5)
-
-
-@step('fill out "(.*)" textarea in "(.*)" section "(.*)" with "(.*)"')
-def fill_in_inline_textarea(step, textfield_label, section, index, text):
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
-    section_div = section_div_heading.find_element_by_xpath("..")
-
-    label = section_div.find_element_by_xpath(".//label[normalize-space()='%s']" % textfield_label)
-    css_id = label.get_attribute('for')
-    css_id = css_id.replace('__prefix__', str(int(index) - 1))
-    text_area = world.browser.find_element_by_xpath(
-        '//textarea[@id="%s"]' % css_id)
-    text_area.send_keys(text)
-
-
-@step('fill out "(.*)" in "(.*)" section "(.*)" with "(.*)"')
-def fill_in_inline_textfield(step, textfield_label, section, index, text):
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
-    section_div = section_div_heading.find_element_by_xpath("..")
-
-    label = section_div.find_element_by_xpath('.//label[contains(., "%s")]' % textfield_label)
-    css_id = label.get_attribute('for')
-    css_id = css_id.replace('__prefix__', str(int(index) - 1))
-    textfield = world.browser.find_element_by_xpath('//input[@id="%s"]' % css_id)
-    textfield.send_keys(text)
-
-
-@step('choose "(.*)" from "(.*)" in "(.*)" section "(.*)"')
-def select_from_inline_list(step, option, dropdown_label_or_id, section, index):
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
-    section_div = section_div_heading.find_element_by_xpath("..")
-    utils.scroll_to(section_div)
-    label = section_div.find_element_by_xpath(
-        './/label[contains(., "%s")]' %
-        dropdown_label_or_id)
-    select_id = label.get_attribute('for')
-    select_id = select_id.replace('__prefix__', str(int(index) - 1))
-    option = section_div.find_element_by_xpath(
-        '//select[@id="%s"]/option[contains(., "%s")]' %
-        (select_id, option))
-    utils.click(option)
-
-
-@step('choose with wait "(.*)" from "(.*)" in "(.*)" section "(.*)"')
-def select_from_inline_list_wait(step, option, dropdown_label_or_id, section, index):
-    wait_n_seconds(step, 3)
-    select_from_inline_list(step, option, dropdown_label_or_id, section, index)
 
 
 @step('fill "(.*)" with "(.*)" in MultiSection "(.*)" index "(.*)"')

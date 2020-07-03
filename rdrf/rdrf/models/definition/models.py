@@ -21,10 +21,9 @@ from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
 
 
-from rdrf.events.events import EventType
 from rdrf.helpers.utils import check_calculation
 from rdrf.helpers.utils import format_date, parse_iso_datetime
-
+from rdrf.events.events import EventType
 
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
@@ -100,9 +99,9 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if any(x in self.code for x in (" ", "&")):
+        if " " in self.code:
             errors["code"] = ValidationError(
-                "Section %s code '%s' should not contain spaces or &" %
+                "Section %s code '%s' contains spaces" %
                 (self.display_name, self.code))
 
         if errors:

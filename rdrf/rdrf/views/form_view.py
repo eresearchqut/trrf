@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
-from rdrf.models.definition.models import ClinicalData, CDEFile, Section, CommonDataElement, file_upload_to
+from rdrf.models.definition.models import CDEFile, Section, CommonDataElement, file_upload_to
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -191,36 +191,6 @@ class SectionInfo(object):
         return form_instance
 
 
-class FormSwitchLockingView(View):
-
-    def get(self, request, registry_code, form_id, patient_id, context_id=None):
-
-        # Switch the locking.
-        context_model = RDRFContext.objects.get(id=context_id)
-        form_model = RegistryForm.objects.get(id=form_id)
-        form_name = form_model.name
-
-        if not request.user.has_perm("rdrf.form_%s_can_lock" % form_model.name):
-            logger.warning(f"User {request.user.id} ({request.user}) is trying to lock/unlock the form {form_model.name} \
-                for context {context_model.id} - patient {patient_id} without the permission!")
-            raise Exception("You don't have the permission to lock/unlock this form.")
-
-        # the clinical metadata are only stored with the cdes collection
-        try:
-            clinical_data = ClinicalData.objects.get(
-                registry_code=registry_code,
-                collection="cdes",
-                django_id=patient_id,
-                django_model="Patient",
-                context_id=context_id)
-            clinical_data.switch_metadata_locking(form_name)
-        except ClinicalData.DoesNotExist:
-            # Not ClinicalData means the form is not save yet, just ignore the command.
-            pass
-
-        return HttpResponseRedirect(reverse("registry_form", args=[registry_code, form_id, patient_id, context_id]))
-
-
 class FormView(View):
 
     def __init__(self, *args, **kwargs):
@@ -273,8 +243,7 @@ class FormView(View):
         except RDRFContextError as ex:
             logger.error(
                 "Error setting rdrf context id %s for patient %s in %s: %s" %
-                (context_id, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), self.registry, ex))
-
+                (context_id, patient_model, self.registry, ex))
             raise RDRFContextSwitchError
 
     def _evaluate_form_rules(self, form_rules, evaluation_context):
@@ -467,9 +436,7 @@ class FormView(View):
                                                         self.rdrf_context,
                                                         registry_form=self.registry_form)
 
-        context = self._build_context(
-            user=request.user, patient_model=patient_model, changes_since_version=changes_since_version
-        )
+        context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
         context["header"] = self.registry_form.header
@@ -514,6 +481,7 @@ class FormView(View):
         ) if context_id != 'add' else ''
         self.set_code_generator_data(context, empty_stubs=changes_since_version is not None)
         context["selected_version_name"] = selected_version_name
+
         return self._render_context(request, context)
 
     def _render_context(self, request, context):
@@ -734,7 +702,6 @@ class FormView(View):
                                         newly_created_context,
                                         remove_existing=True,
                                         form_model=form_obj)
-                # TODO: the following line is smelly - it is eating all exceptions.
                 except Exception as ex:
                     logger.debug("Error creating field values for new context: %s" % ex)
 
@@ -959,6 +926,7 @@ class FormView(View):
                 # return a normal form
                 initial_data = wrap_fs_data_for_form(self.registry, self.dynamic_data)
                 form_section[s] = form_class(self.dynamic_data, initial=initial_data)
+
             else:
                 # Ensure that we can have multiple formsets on the one page
                 prefix = "formset_%s" % s
@@ -1130,7 +1098,7 @@ class FormListView(TemplateView):
             {
                 "url": url,
                 "text": text or _("Not set"),
-            } for context_id, url, text, link_locking in patient.get_forms_by_group(cfg, self.user)
+            } for context_id, url, text in patient.get_forms_by_group(cfg, self.user)
         ]
 
     def get_context_data(self, **kwargs):
@@ -1455,9 +1423,12 @@ class QuestionnaireView(FormView):
                                             return value_dict["questionnaire_value"]
                                         else:
                                             return value_dict["value"]
-                            elif cde_model.datatype == CDEDataTypes.BOOLEAN:
-                                return "Yes" if self.value else "No"
-                            elif cde_model.datatype == CDEDataTypes.DATE:
+                            elif cde_model.datatype == 'boolean':
+                                if self.value:
+                                    return "Yes"
+                                else:
+                                    return "No"
+                            elif cde_model.datatype == 'date':
                                 return parse_iso_date(self.value).strftime("%d-%m-%Y")
                             return str(self.value)
 

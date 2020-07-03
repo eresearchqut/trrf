@@ -27,7 +27,7 @@ class GeneralisedFieldExpression(object):
             return self.evaluate(patient_model, mongo_data)
         except Exception as ex:
             logger.error("Error evaluating %s for %s: %s" % (self.__class__.__name__,
-                                                             getattr(patient_model, settings.LOG_PATIENT_FIELDNAME),
+                                                             patient_model.pk,
                                                              ex))
             return "??ERROR??"
 
@@ -336,14 +336,13 @@ class PatientFieldExpression(GeneralisedFieldExpression):
                     patient_model.save()
                 except WorkingGroup.DoesNotExist:
                     logger.error("Working group %s does not exist" % new_value)
-                    from django.conf import settings
-                    raise Exception("can't update working group on %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+                    raise Exception("can't update working group on %s" % patient_model)
             elif isinstance(new_value, WorkingGroup):
                 patient_model.working_groups.set([new_value])
                 patient_model.save()
             else:
                 logger.error("can't update working group to %s" % new_value)
-                raise Exception("can't update working group on %s" % getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
+                raise Exception("can't update working group on %s" % patient_model)
 
         else:
             setattr(patient_model, self.field, new_value)

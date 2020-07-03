@@ -16,7 +16,6 @@ from registry.patients.models import PatientStage, PatientStageRule
 
 from explorer.models import Query
 
-
 logger = logging.getLogger(__name__)
 
 

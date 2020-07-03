@@ -131,6 +131,7 @@ class Links:
     PERMISSIONS = {}
     QUESTIONNAIRE = {}
     REGISTRATION = {}
+    VERIFICATION = {}
     STAGES = {}
 
     USER_MANAGEMENT = make_entries(LinkDefs.Users)
@@ -157,7 +158,7 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.BlacklistedMimeTypesConfig,
+        LinkDefs.BlacklistedMimeTypesConfig
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)
@@ -236,6 +237,9 @@ class MenuConfig:
         if has_stages and settings.DESIGN_MODE:
             Links.STAGES = Links.ENABLED_STAGES
 
+    def verification_links(self):
+        Links.VERIFICATION = self.per_registry_links('Verifications', 'verifications_list', RegistryFeatures.VERIFICATION)
+
     def consent_links(self):
         return {}
 
@@ -260,6 +264,7 @@ class MenuConfig:
         self.questionnaire_links()
         self.permission_matrix_links()
         self.registration_links()
+        self.verification_links()
         self.patient_stages_links()
 
 
@@ -283,6 +288,7 @@ class RegularMenuConfig(MenuConfig):
         self.clinical = {
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.QUESTIONNAIRE,
+            **RegularLinks.VERIFICATION,
             **RegularLinks.REPORTING,
         }
 

@@ -9,7 +9,6 @@ def production(request):
 def common_settings(request):
     return {
         'ACCOUNT_SELF_UNLOCK_ENABLED': settings.ACCOUNT_SELF_UNLOCK_ENABLED,
-        'enable_pwd_change': settings.ENABLE_PWD_CHANGE,
         'HIGHLIGHT_FORM_CHANGES_ENABLED': settings.HIGHLIGHT_FORM_CHANGES_ENABLED,
         'AUTO_LOGOUT_ENABLED': settings.AUTO_LOGOUT_ENABLED,
         'AUTO_LOGOUT_WARN_AFTER_MS': settings.AUTO_LOGOUT_WARN_AFTER_MS,

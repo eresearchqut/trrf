@@ -8,6 +8,14 @@
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
+    <!--[if IE 8]>
+	<script type="text/javascript" src="ie_expand_select_width.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('select').ieExpandSelectWidth();
+		});
+	</script>
+    <![endif]-->
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
     <script>

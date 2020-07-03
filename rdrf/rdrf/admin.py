@@ -30,7 +30,6 @@ from rdrf.models.proms.models import SurveyQuestion
 from rdrf.models.proms.models import Precondition
 from rdrf.models.proms.models import SurveyAssignment
 from rdrf.models.proms.models import SurveyRequest
-
 from rdrf.system_role import SystemRoles
 
 

@@ -386,9 +386,6 @@ else:
 # #
 LOG_DIRECTORY = env.get('log_directory', os.path.join(WEBAPP_ROOT, "log"))
 
-# Default LOG patient_model fieldname
-LOG_PATIENT_FIELDNAME = env.get('log_patient_fieldname', 'id')
-
 # UserAgent lookup cache location - used by django_user_agents
 USER_AGENTS_CACHE = 'default'
 
@@ -648,6 +645,3 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 # URLs whitelisted for meeting the security conventions
 # Refer to docs/security/README.rst
 SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
-
-# Enable user password change
-ENABLE_PWD_CHANGE = env.get("enable_pwd_change", True)

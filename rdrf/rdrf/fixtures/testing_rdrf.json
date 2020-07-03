@@ -89,32 +89,6 @@
     }
   },
   {
-    "pk": 9,
-    "model": "rdrf.registry",
-    "fields": {
-      "splash_screen": "none",
-      "code": "reg5",
-      "name": "Registry5",
-      "version": "1",
-      "desc": "testing",
-      "metadata_json":"{\"features\":[\"contexts\"]}"
-    }
-  },
-  {
-    "model": "rdrf.contextformgroup",
-    "pk": 1,
-    "fields": {
-      "registry_id": 9,
-      "context_type": "F",
-      "name": "Main",
-      "naming_scheme": "D",
-      "is_default": true,
-      "naming_cde_to_use": null,
-      "ordering": "C",
-      "sort_order": 1
-    }
-  },
-  {
     "pk": "AddressType",
     "model": "rdrf.cdepermittedvaluegroup",
     "fields": {}

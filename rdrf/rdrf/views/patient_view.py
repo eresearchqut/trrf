@@ -63,6 +63,7 @@ class PatientFormMixin:
         self.request = None   # set in post so RegistrySpecificFieldsHandler can process files
 
     # common methods
+
     def _get_registry_specific_fields(self, user, registry_model):
         """
         :param user:
