@@ -375,5 +375,6 @@ SECURITY_WHITELISTED_URLS = (
     "v1:patient-stages",
     "v1:registry-forms",
     "v1:state_lookup",
-    "verifications_list"
+    "verifications_list",
+    "action"
 )
