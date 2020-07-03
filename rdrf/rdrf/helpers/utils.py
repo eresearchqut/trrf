@@ -770,6 +770,7 @@ def get_preferred_languages():
     else:
         return languages
 
+
 def is_authorised(user, patient_model):
     if user.is_superuser:
         return True
@@ -799,4 +800,3 @@ def is_authorised(user, patient_model):
                    (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
 
     return False
-
