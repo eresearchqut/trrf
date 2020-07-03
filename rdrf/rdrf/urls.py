@@ -41,6 +41,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 
+from rdrf.views.actions import ActionExecutorView
 import logging
 
 
@@ -130,6 +131,7 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
