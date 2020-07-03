@@ -1149,10 +1149,10 @@ class Questionnaire(object):
         if num_errors == 0:
             logger.info(
                 "Questionnaire update of Patient %s succeeded without error." %
-                patient_model.pk)
+                getattr(patient_model, settings.LOG_PATIENT_FIELDNAME))
         else:
-            logger.info("Questionnaire update of Patient %s had %s errors: " % (
-                patient_model.pk, num_errors))
+            logger.warning("Questionnaire update of Patient %s had %s errors: " % (
+                getattr(patient_model, settings.LOG_PATIENT_FIELDNAME), num_errors))
             for msg in errors:
                 logger.error("Questionnaire update error: %s" % msg)
 

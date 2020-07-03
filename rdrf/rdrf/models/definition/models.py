@@ -1386,7 +1386,8 @@ class EmailNotification(models.Model):
         (EventType.CARER_INVITED, "Primary Caregiver Invited"),
         (EventType.CARER_ASSIGNED, "Primary Caregiver Assigned"),
         (EventType.CARER_ACTIVATED, "Primary Caregiver Activated"),
-        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated")
+        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated"),
+        (EventType.SURVEY_REQUEST, "Survey Request"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)

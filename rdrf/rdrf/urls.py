@@ -33,8 +33,6 @@ from rdrf.views.permission_matrix import PermissionMatrixView
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
-from rdrf.views.verification_views import PatientsRequiringVerificationView
-from rdrf.views.verification_views import PatientVerificationView
 from rdrf.views.proms_views import PromsView
 from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
@@ -43,7 +41,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 
-
+from rdrf.views.actions import ActionExecutorView
 import logging
 
 
@@ -98,6 +96,10 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -129,6 +131,7 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
@@ -260,12 +263,6 @@ normalpatterns += [
     # ---- Clinician related URLs -----------------
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
             clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
-
-    re_path(r"^(?P<registry_code>\w+)/verifications/?$",
-            PatientsRequiringVerificationView.as_view(), name='verifications_list'),
-
-    re_path(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)/(?P<context_id>\d+)/?$",
-            PatientVerificationView.as_view(), name='patient_verification'),
 
     re_path(r'^clinicianactivate/(?P<activation_key>\w+)/?$',
             clinician_view.ClinicianActivationView.as_view(),
