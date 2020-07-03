@@ -49,10 +49,6 @@ Explorer
 --------
 - **AccessCheckMixin**: Verify that user has access to a given query.
 
-Patient verification
---------------------
-- **VerificationSecurityMixin**: Verify relevant permissions for user and registry.
-
 Decorators
 ==========
 - **csrf_exempt**: Mark a view as being exempt from the CSRF view protection.
