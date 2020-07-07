@@ -17,7 +17,11 @@ class Migration(migrations.Migration):
             drop table if exists iprestrict_iprange;
             drop table if exists iprestrict_reloadrulesrequest;
             drop table if exists iprestrict_rule;
+                        
+            delete from groups_customuser_user_permissions where permission_id in (select id from auth_permission where content_type_id in (select id from django_content_type where app_label = 'iprestrict'));
+            delete from auth_group_permissions where permission_id in (select id from auth_permission where content_type_id in (select id from django_content_type where app_label = 'iprestrict'));
             delete from auth_permission where content_type_id in (select id from django_content_type where app_label = 'iprestrict');
+            
             delete from django_admin_log where content_type_id in (select id from django_content_type where app_label = 'iprestrict');
             delete from django_content_type where app_label = 'iprestrict';
             delete from django_migrations where app='iprestrict';
