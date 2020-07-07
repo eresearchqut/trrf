@@ -87,6 +87,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unixodbc \
   ssl-cert \
   libmagic1 \
+  curl \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir /requirements

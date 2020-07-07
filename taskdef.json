@@ -123,6 +123,16 @@
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
+            "healthCheck": {
+                "retries": 3,
+                "command": [
+                    "CMD-SHELL",
+                    "curl -k -f https://localhost:$CONTAINER_PORT/health-check || exit 1"
+                ],
+                "timeout": 5,
+                "interval": 10,
+                "startPeriod": 30
+            },
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
