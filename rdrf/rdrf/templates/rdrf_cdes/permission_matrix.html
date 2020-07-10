@@ -19,18 +19,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/form_common.css' %}" media="all">
-    <script type="text/javascript">
-        window.IMAGES_URL = "{% static 'images/' %}";
-    </script>
-
-    <script>
-        function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
 
     <script>
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
