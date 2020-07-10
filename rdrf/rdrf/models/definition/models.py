@@ -22,7 +22,7 @@ from django.utils.translation import ugettext as _
 
 
 from rdrf.helpers.utils import check_calculation
-from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import format_date, is_alphanumeric, parse_iso_datetime
 from rdrf.events.events import EventType
 
 from rdrf.forms.dsl.validator import DSLValidator
@@ -99,10 +99,10 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if " " in self.code:
-            errors["code"] = ValidationError(
-                "Section %s code '%s' contains spaces" %
-                (self.display_name, self.code))
+        if not is_alphanumeric(self.code):
+            raise ValidationError(
+                "Section [%s] code - only letters and numbers are allowed !" %
+                self.code)
 
         if errors:
             raise ValidationError(errors)
@@ -718,9 +718,9 @@ class CommonDataElement(models.Model):
                 "CDE %s  name error '%s' has dots - this causes problems please remove" %
                 (self.code, self.name))
 
-        if " " in self.code:
+        if not is_alphanumeric(self.code):
             raise ValidationError(
-                "CDE [%s] has space(s) in code - this causes problems please remove" %
+                "CDE [%s] code - only letters and numbers are allowed !" %
                 self.code)
 
         # check javascript calculation for naughty code

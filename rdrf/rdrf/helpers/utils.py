@@ -811,3 +811,7 @@ def check_suspicious_sql(sql_query, user):
         )
         security_errors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
     return security_errors
+
+
+def is_alphanumeric(input_str):
+    return re.match(r"^[a-zA-Z0-9]*$", input_str) is not None
