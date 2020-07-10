@@ -800,3 +800,17 @@ def is_authorised(user, patient_model):
                    (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
 
     return False
+
+
+def check_suspicious_sql(sql_query, user):
+    # Checker for SQL explorer.
+    # Return error messages in an list if anything suspicious is identified in the SQL.
+
+    sql_query_lowercase = ' '.join(sql_query.lower().split())
+    securityerrors = []
+    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
+        logger.warning(
+            f"User {user} tries to write/validate a suspicious SQL: {sql_query_lowercase}"
+        )
+        securityerrors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
+    return securityerrors
