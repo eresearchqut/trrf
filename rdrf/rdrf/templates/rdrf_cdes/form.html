@@ -29,16 +29,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/form_extra.css' %}" media="all">
-
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
-
+    <link rel="stylesheet" type="text/css" href="{% static 'css/form_common.css' %}" media="all">
     <style>
         .modal .modal-dialog {
             max-height: 600px;
@@ -58,41 +49,6 @@
         $(function () {
           $('[data-toggle="tooltip"]').tooltip()
         });
-    <style>
-        .ui-autocomplete {
-            max-height: 100px;
-            overflow-y: auto;
-            /* prevent horizontal scrollbar */
-            overflow-x: hidden;
-        }
-          /* IE 6 doesn't support max-height
-           * we use height instead, but this forces the menu to always be this tall
-           */
-          * html .ui-autocomplete {
-            height: 100px;
-        }
-
-        ul {
-            list-style-type: none;
-            margin-left: 0;
-        }
-
-        table {
-            table-layout: fixed;
-        }
-
-        .progress {
-            margin-bottom: 0px;
-        }
-
-        .badge {
-            border-radius: 0px;
-        }
-
-        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
-            border-top: 0;
-        }
-    </style>
 
     <script>
         function goBack() {
