@@ -256,10 +256,8 @@ class SqlQueryView(SuperuserRequiredMixin, View):
             else:
                 results = {"success_msg": "Report config field is correct structure"}
         else:
-            # Check for dangerous sql queries.
-            securityerrors = check_suspicious_sql(form.data["sql_query"], request.user.id)
-            if securityerrors:
-                results = {"error_msg": ' | '.join(securityerrors)}
+            if security_errors := check_suspicious_sql(form.data["sql_query"], request.user.id):
+                results = {"error_msg": ' | '.join(security_errors)}
             else:
                 results = database_utils.run_sql().result
 

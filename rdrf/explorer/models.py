@@ -311,10 +311,8 @@ class Query(models.Model):
                 error_string = ",".join(errors)
                 raise ValidationError("Report Config Errors: %s" % error_string)
 
-        # Check for dangereous sql queries.
-        securityerrors = check_suspicious_sql(self.sql_query, self.created_by)
-        if securityerrors:
-            error_msg = ' | '.join(securityerrors)
+        if security_errors := check_suspicious_sql(self.sql_query, self.created_by):
+            error_msg = ' | '.join(security_errors)
             raise ValidationError(f"{error_msg}")
 
     def _get_mixed_query_errors(self):
