@@ -10,7 +10,7 @@ from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import parse_iso_date
+from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql
 from registry.patients.models import Patient
 
 import json
@@ -310,6 +310,10 @@ class Query(models.Model):
             if len(errors) > 0:
                 error_string = ",".join(errors)
                 raise ValidationError("Report Config Errors: %s" % error_string)
+
+        if security_errors := check_suspicious_sql(self.sql_query, self.created_by):
+            error_msg = ' | '.join(security_errors)
+            raise ValidationError(f"{error_msg}")
 
     def _get_mixed_query_errors(self):
         import json
