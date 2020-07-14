@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import django
-import logging
-
 from rdrf.models.definition.models import CDEFile, ClinicalData
 from registry.patients.models import Patient
 from rdrf.db import filestorage
+
+import django
+import logging
 
 django.setup()
 
