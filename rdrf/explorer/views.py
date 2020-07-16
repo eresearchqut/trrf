@@ -311,7 +311,7 @@ class Humaniser(object):
 
             if cde_model.pv_group:
                 # look up the stored code and return the display value
-                range_dict = cde_model.pv_group.as_dict()
+                range_dict = cde_model.pv_group.as_dict
                 for value_dict in range_dict["values"]:
                     if mongo_value == value_dict["code"]:
                         return value_dict["value"]
