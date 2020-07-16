@@ -98,7 +98,7 @@ def create_form_class_for_section(
 
         cde_field.previous_value = prev_value
         if prev_value and cde.pv_group:
-            values = {el['code'].lower(): el['value'] for el in cde.pv_group.as_dict()['values']}
+            values = {el['code'].lower(): el['value'] for el in cde.pv_group.as_dict['values']}
             if isinstance(prev_value, list):
                 cde_field.previous_value = [values.get(v.lower()) for v in prev_value]
             else:

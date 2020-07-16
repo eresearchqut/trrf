@@ -229,7 +229,7 @@ class Exporter:
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
         data["cdes"] = [cde_to_dict(cde) for cde in self._get_cdes(export_type)]
-        data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
+        data["pvgs"] = [pvg.as_dict for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
         data["consent_sections"] = self._get_consent_sections()

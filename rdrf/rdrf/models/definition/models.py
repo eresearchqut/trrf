@@ -16,6 +16,7 @@ from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.formats import date_format, time_format
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
@@ -510,6 +511,7 @@ def get_owner_choices():
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
+    @cached_property
     def as_dict(self):
         d = {}
         d["code"] = self.code
@@ -523,6 +525,12 @@ class CDEPermittedValueGroup(models.Model):
             value_dict["position"] = value.position
             d["values"].append(value_dict)
         return d
+
+    @cached_property
+    def cde_values_dict(self):
+        return {
+            r['code']: r['value'] for r in CDEPermittedValue.objects.filter(pv_group=self).values('code', 'value')
+        }
 
     def members(self, get_code=True):
         if get_code:
@@ -677,7 +685,7 @@ class CommonDataElement(models.Model):
                 return None
         return stored_value
 
-    def get_display_value(self, stored_value):
+    def get_display_value(self, stored_value, permitted_values_map=None):
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
@@ -686,12 +694,13 @@ class CommonDataElement(models.Model):
         elif self.pv_group:
             # if a range, return the display value
             try:
-                values_dict = self.pv_group.as_dict()
-                for value_dict in values_dict["values"]:
-                    if value_dict["code"] == stored_value:
-                        display_value = value_dict["value"]
-                        return display_value
-
+                if isinstance(stored_value, list):
+                    return stored_value
+                if permitted_values_map:
+                    display_value = permitted_values_map[(stored_value, self.pv_group_id)]
+                else:
+                    display_value = self.pv_group.cde_values_dict[stored_value]
+                return display_value
             except Exception as ex:
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,

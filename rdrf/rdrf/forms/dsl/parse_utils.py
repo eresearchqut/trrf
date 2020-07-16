@@ -108,10 +108,10 @@ class CDEHelper:
                 'max_value': m.max_value,
                 'max_length': m.max_length,
                 'values': {
-                    el['value'].lower(): el['code'] for el in m.pv_group.as_dict()['values']
+                    el['value'].lower(): el['code'] for el in m.pv_group.as_dict['values']
                 } if m.pv_group else {},
                 'codes': [
-                    el['code'] for el in m.pv_group.as_dict()['values']
+                    el['code'] for el in m.pv_group.as_dict['values']
                 ] if m.pv_group else []
 
             }

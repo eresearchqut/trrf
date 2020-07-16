@@ -1416,7 +1416,7 @@ class QuestionnaireView(FormView):
                         else:
                             cde_model = self._get_cde_model()
                             if cde_model.pv_group:
-                                range_dict = cde_model.pv_group.as_dict()
+                                range_dict = cde_model.pv_group.as_dict
                                 for value_dict in range_dict["values"]:
                                     if value_dict["code"] == self.value:
                                         if value_dict["questionnaire_value"]:
