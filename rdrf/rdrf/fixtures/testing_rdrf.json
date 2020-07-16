@@ -10344,7 +10344,7 @@
     "pk": 7,
     "model": "rdrf.registryform",
     "fields": {
-      "name": "FSHD Questionnaire",
+      "name": "FSHDQuestionnaire",
       "is_questionnaire": true,
       "registry": 4,
       "position": 0,

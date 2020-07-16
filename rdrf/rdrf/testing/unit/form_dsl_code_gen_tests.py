@@ -21,8 +21,8 @@ class CodeGenTestCase(FormTestCase):
 
     def create_forms(self):
         super().create_forms()
-        self.new_form = self.create_form("new_form", [self.sectionA, self.sectionB, self.sectionD,
-                                                      self.sectionE, self.sectionF, self.sectionG])
+        self.new_form = self.create_form("NewForm", [self.sectionA, self.sectionB, self.sectionD,
+                                                     self.sectionE, self.sectionF, self.sectionG])
 
     def code_gen(self, form, dsl=None):
         return CodeGenerator(dsl or form.conditional_rendering_rules, form)

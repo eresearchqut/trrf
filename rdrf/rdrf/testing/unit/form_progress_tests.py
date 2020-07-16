@@ -22,10 +22,10 @@ class FormProgressTestCase(FormTestCase):
     def create_forms(self):
         super().create_forms()
         self.new_form = self.create_form(
-            "new_form", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
+            "NewForm", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
         )
         self.other_form = self.create_form(
-            "other_form", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
+            "OtherForm", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
         )
 
     def _set_form_data(self, form, form_filler):

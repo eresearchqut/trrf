@@ -949,8 +949,8 @@ class RegistryForm(models.Model):
             raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
 
     def clean(self):
-        if " " in self.name:
-            msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
+        if not is_alphanumeric(self.name):
+            msg = "Only letters and numbers are allowed for form name: Use CamelCase to make GUI display the name as" + \
                 "Camel Case, instead."
             raise ValidationError({'name': msg})
 
