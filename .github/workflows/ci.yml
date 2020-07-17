@@ -1,0 +1,158 @@
+name: Continuous Integration
+on:
+  push:
+    branches:
+      - master
+      - next_release
+  pull_request:
+    branches:
+      - next_release
+env:
+  PACKAGE_PATH: docker.pkg.github.com/eresearchqut/trrf
+
+jobs:
+  build_django:
+    name: Build django image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build django image
+        run: docker build -t $PACKAGE_PATH/runserver:$GITHUB_SHA . -f docker/dev/Dockerfile
+      - name: Publish image
+        run: |
+          docker push $PACKAGE_PATH/runserver:$GITHUB_SHA
+
+  build_node:
+    name: Build node image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build node image
+        run: docker build -t $PACKAGE_PATH/nodeserver:$GITHUB_SHA . -f docker/dev/Dockerfile-node
+      - name: Publish image
+        run: |
+          docker push $PACKAGE_PATH/nodeserver:$GITHUB_SHA
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build_node
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          touch .env_local
+          echo "::set-env name=TRRF_IMAGE_NAME::$PACKAGE_PATH/runserver:$GITHUB_SHA"
+          echo "::set-env name=NODE_IMAGE_NAME::$PACKAGE_PATH/nodeserver:$GITHUB_SHA"
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull docker images
+        run: docker-compose pull
+      - name: Flake8 linting
+        run: ./scripts/lint.sh
+
+  migration_check:
+    name: Check migrations
+    runs-on: ubuntu-latest
+    needs: build_django
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          touch .env_local
+          echo "::set-env name=TRRF_IMAGE_NAME::$PACKAGE_PATH/runserver:$GITHUB_SHA"
+          echo "::set-env name=NODE_IMAGE_NAME::$PACKAGE_PATH/nodeserver:$GITHUB_SHA"
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull docker images
+        run: docker-compose pull
+      - name: Django migrations check
+        run: ./scripts/check-migrations.sh
+
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: [build_django, build_node]
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          touch .env_local
+          echo "::set-env name=TRRF_IMAGE_NAME::$PACKAGE_PATH/runserver:$GITHUB_SHA"
+          echo "::set-env name=NODE_IMAGE_NAME::$PACKAGE_PATH/nodeserver:$GITHUB_SHA"
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull docker images
+        run: docker-compose pull
+      - name: Unit tests
+        run: ./scripts/unit-tests.sh
+
+  integration_tests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    needs: [build_django, build_node]
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          touch .env_local
+          echo "::set-env name=TRRF_IMAGE_NAME::$PACKAGE_PATH/runserver:$GITHUB_SHA"
+          echo "::set-env name=NODE_IMAGE_NAME::$PACKAGE_PATH/nodeserver:$GITHUB_SHA"
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull docker images
+        run: docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-dev.yml -f docker-compose-aloe.yml -f docker-compose.yml pull
+      - name: Create log dir
+        run: mkdir -p data/aloe/dev
+      - name: Integration tests
+        run: ./scripts/end2end-tests.sh
+      - name: Upload test output
+        uses: actions/upload-artifact@v2
+        with:
+          name: Aloe output
+          path: data/aloe/dev
+
+  system_checks:
+    name: System checks
+    runs-on: ubuntu-latest
+    needs: build_django
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          touch .env_local
+          echo "::set-env name=TRRF_IMAGE_NAME::$PACKAGE_PATH/runserver:$GITHUB_SHA"
+          echo "::set-env name=NODE_IMAGE_NAME::$PACKAGE_PATH/nodeserver:$GITHUB_SHA"
+      - name: Docker login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull docker images
+        run: docker-compose pull
+      - name: Django checks
+        run: ./scripts/django-checks.sh

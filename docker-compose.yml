@@ -38,7 +38,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: ${APP_IMAGE_NAME}
+    image: ${TRRF_IMAGE_NAME}
     env_file:
       - docker/dev/envs/postgres
       - docker/dev/envs/runserver
@@ -59,7 +59,7 @@ services:
       context: .
       dockerfile: docker/dev/Dockerfile-node
     stop_signal: SIGKILL
-    image: ${APP_IMAGE_NAME}-node
+    image: ${NODE_IMAGE_NAME}
     command: watch
     working_dir: ${TRRF_SOURCE_DIR:-/app}/rdrf/rdrf/frontend
 
