@@ -3,29 +3,13 @@
 {% load i18n static %}
 {% block extrastyle %}
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
-    <script src="{% static 'js/vendor/jquery-3.4.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery-3.5.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/underscore-1.5.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
-    <script>
-        function goBack() {
-            var warning = confirm("Are you sure?\nAll entered or amended data will be lost!");
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
   <script>
   $(function() {
     $( ".datepicker" ).datepicker({

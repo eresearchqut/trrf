@@ -9,8 +9,10 @@ from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
-from rdrf.helpers.utils import parse_iso_date
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql
 from registry.patients.models import Patient
+
 import json
 
 import logging
@@ -242,6 +244,24 @@ class FieldValue(models.Model):
                 return typed_value
 
 
+class QueryManager(models.Manager):
+
+    def reports_for_user(self, user):
+        if user.is_superuser:
+            return super().get_queryset()
+        if not (user.is_curator or user.is_clinician):
+            return self.none()
+
+        registries = user.get_registries()
+        if user.is_clinician and not user.ethically_cleared:
+            # Registries that do NOT require ethical clearence
+            registries = (
+                r for r in user.get_registries() if not r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+            )
+
+        return super().get_queryset().filter(registry__in=registries, access_group__in=user.get_groups())
+
+
 class Query(models.Model):
     MONGO_SEARCH_TYPES = (
         ('C', 'Current'),
@@ -269,6 +289,8 @@ class Query(models.Model):
     # max number of multisection items to show in datatable
     max_items = models.IntegerField(default=3)
 
+    objects = QueryManager()
+
     def get_absolute_url(self):
         return reverse('rdrf:explorer_query', kwargs={'query_id': self.pk})
 
@@ -288,6 +310,10 @@ class Query(models.Model):
             if len(errors) > 0:
                 error_string = ",".join(errors)
                 raise ValidationError("Report Config Errors: %s" % error_string)
+
+        if security_errors := check_suspicious_sql(self.sql_query, self.created_by):
+            error_msg = ' | '.join(security_errors)
+            raise ValidationError(f"{error_msg}")
 
     def _get_mixed_query_errors(self):
         import json

@@ -229,7 +229,7 @@ class Exporter:
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
         data["cdes"] = [cde_to_dict(cde) for cde in self._get_cdes(export_type)]
-        data["pvgs"] = [pvg.as_dict() for pvg in self._get_pvgs(export_type)]
+        data["pvgs"] = [pvg.as_dict for pvg in self._get_pvgs(export_type)]
         data["REGISTRY_VERSION"] = self._get_registry_version()
         data["metadata_json"] = self.registry.metadata_json
         data["consent_sections"] = self._get_consent_sections()
@@ -594,10 +594,21 @@ class Exporter:
             survey_dict["display_name"] = survey_model.display_name
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
+            if survey_model.context_form_group:
+                cfg = survey_model.context_form_group.name
+            else:
+                cfg = ""
+            survey_dict["context_form_group"] = cfg
+
+            if survey_model.form:
+                survey_dict["form"] = survey_model.form.name
+            else:
+                survey_dict["form"] = ""
 
             for sq in survey_model.survey_questions.all():
                 sq_dict = {}
                 sq_dict["cde"] = sq.cde.code
+                sq_dict["cde_path"] = sq.cde_path
                 sq_dict["position"] = sq.position
                 sq_dict["precondition"] = None
                 sq_dict["instruction"] = sq.instruction

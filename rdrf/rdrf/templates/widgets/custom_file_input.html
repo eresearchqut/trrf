@@ -1,28 +1,38 @@
 {% load i18n %}
 {% if widget.is_initial %}
     {{ widget.initial_text }}:
-    {% if widget.virus_check_result == 'clean' %}
-        <a href="{{ widget.value.url }}">{{ widget.value }}</a>
-    {% else %}
-        {{ widget.value }}
-    {% endif %}
+    <span id="{{widget.virus_check_id}}_link">
+        {% if widget.virus_check_result == 'clean' %}
+            <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+        {% else %}
+            {{ widget.value }}
+        {% endif %}
+    </span>
     {% if not widget.required %}
         <input type="checkbox" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}">
         <label for="{{ widget.checkbox_id }}">{{ widget.clear_checkbox_label }}</label>
     {% endif %}
-    {% if widget.virus_check_result == 'scanning' %}
-        <div class="alert alert-info" role="alert">
-            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
-            {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses. Please refresh page for updates.' %}
-        </div>
-    {% elif widget.virus_check_result == 'infected' %}
-        <div class="alert alert-danger" role="alert">
-            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-            {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
-        </div>
-    {% endif %}
+    <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning" style="display:none;"">
+        <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>
+        {% trans 'Virus check in progress! The file can\'t be downloaded before it was checked for viruses.Waiting for the scan to finish...' %}
+    </div>
+    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_infected" style="display:none;">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
+    </div>
+    <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_notfound" style="display:none;">
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        {% trans 'The file is not found !.' %}
+    </div>
+
+    <script>
+        check_virus_scan_status("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}");
+        {% if widget.virus_check_result == 'scanning' %}
+            setup_virus_status_check("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}", 5000);
+        {% endif %}
+    </script>
     <div>
-    {{ widget.input_text }}:
+        {{ widget.input_text }}:
     </div>
 {% endif %}
 <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>

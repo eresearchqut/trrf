@@ -16,13 +16,14 @@ from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.utils.formats import date_format, time_format
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
 
 
 from rdrf.helpers.utils import check_calculation
-from rdrf.helpers.utils import format_date, parse_iso_datetime
+from rdrf.helpers.utils import format_date, is_alphanumeric, parse_iso_datetime
 from rdrf.events.events import EventType
 
 from rdrf.forms.dsl.validator import DSLValidator
@@ -99,10 +100,10 @@ class Section(models.Model):
                     "section %s refers to CDE with code %s which doesn't exist" %
                     (self.display_name, code)) for code in missing]
 
-        if " " in self.code:
-            errors["code"] = ValidationError(
-                "Section %s code '%s' contains spaces" %
-                (self.display_name, self.code))
+        if not is_alphanumeric(self.code):
+            raise ValidationError(
+                "Section [%s] code - only letters and numbers are allowed !" %
+                self.code)
 
         if errors:
             raise ValidationError(errors)
@@ -510,6 +511,7 @@ def get_owner_choices():
 class CDEPermittedValueGroup(models.Model):
     code = models.CharField(max_length=250, primary_key=True)
 
+    @cached_property
     def as_dict(self):
         d = {}
         d["code"] = self.code
@@ -523,6 +525,12 @@ class CDEPermittedValueGroup(models.Model):
             value_dict["position"] = value.position
             d["values"].append(value_dict)
         return d
+
+    @cached_property
+    def cde_values_dict(self):
+        return {
+            r['code']: r['value'] for r in CDEPermittedValue.objects.filter(pv_group=self).values('code', 'value')
+        }
 
     def members(self, get_code=True):
         if get_code:
@@ -677,7 +685,7 @@ class CommonDataElement(models.Model):
                 return None
         return stored_value
 
-    def get_display_value(self, stored_value):
+    def get_display_value(self, stored_value, permitted_values_map=None):
         if stored_value is None:
             return ""
         elif stored_value == "NaN":
@@ -686,12 +694,13 @@ class CommonDataElement(models.Model):
         elif self.pv_group:
             # if a range, return the display value
             try:
-                values_dict = self.pv_group.as_dict()
-                for value_dict in values_dict["values"]:
-                    if value_dict["code"] == stored_value:
-                        display_value = value_dict["value"]
-                        return display_value
-
+                if isinstance(stored_value, list):
+                    return stored_value
+                if permitted_values_map:
+                    display_value = permitted_values_map[(stored_value, self.pv_group_id)]
+                else:
+                    display_value = self.pv_group.cde_values_dict[stored_value]
+                return display_value
             except Exception as ex:
                 logger.error("bad value for cde %s %s: %s" % (self.code,
                                                               stored_value,
@@ -718,9 +727,9 @@ class CommonDataElement(models.Model):
                 "CDE %s  name error '%s' has dots - this causes problems please remove" %
                 (self.code, self.name))
 
-        if " " in self.code:
+        if not is_alphanumeric(self.code):
             raise ValidationError(
-                "CDE [%s] has space(s) in code - this causes problems please remove" %
+                "CDE [%s] code - only letters and numbers are allowed !" %
                 self.code)
 
         # check javascript calculation for naughty code
@@ -949,8 +958,8 @@ class RegistryForm(models.Model):
             raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
 
     def clean(self):
-        if " " in self.name:
-            msg = "Form name contains spaces which causes problems: Use CamelCase to make GUI display the name as" + \
+        if not is_alphanumeric(self.name):
+            msg = "Only letters and numbers are allowed for form name: Use CamelCase to make GUI display the name as" + \
                 "Camel Case, instead."
             raise ValidationError({'name': msg})
 
@@ -1386,7 +1395,8 @@ class EmailNotification(models.Model):
         (EventType.CARER_INVITED, "Primary Caregiver Invited"),
         (EventType.CARER_ASSIGNED, "Primary Caregiver Assigned"),
         (EventType.CARER_ACTIVATED, "Primary Caregiver Activated"),
-        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated")
+        (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated"),
+        (EventType.SURVEY_REQUEST, "Survey Request"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
@@ -1882,6 +1892,7 @@ class CDEFile(models.Model):
     cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
     filename = models.CharField(max_length=255)
+    mime_type = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.item.name

@@ -651,12 +651,12 @@ class Importer(object):
             create_permission("rdrf", "registryform", permission_code_name, permission_name)
 
             f.name = frm_map["name"]
+            if "display_name" in frm_map:
+                f.display_name = frm_map["display_name"]
             if "header" in frm_map:
                 f.header = frm_map["header"]
             else:
                 f.header = ""
-            if "display_name" in frm_map:
-                f.display_name = frm_map["display_name"]
             if "questionnaire_display_name" in frm_map:
                 f.questionnaire_display_name = frm_map["questionnaire_display_name"]
             f.is_questionnaire = frm_map["is_questionnaire"]
@@ -780,7 +780,27 @@ class Importer(object):
             survey_model.name = survey_dict["name"]
             survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.is_followup = survey_dict.get("is_followup", False)
+            context_form_group_name = survey_dict.get("context_form_group", None)
+            if context_form_group_name:
+                from rdrf.models.definition.models import ContextFormGroup
+                cfg = ContextFormGroup.objects.get(name=context_form_group_name,
+                                                   registry=registry_model)
+            else:
+                cfg = None
+
             survey_model.save()
+            if cfg:
+                survey_model.context_form_group = cfg
+                survey_model.save()
+
+            form_name = survey_dict.get("form", None)
+            if form_name:
+                from rdrf.models.definition.models import RegistryForm
+                form_model = RegistryForm.objects.get(registry=registry_model,
+                                                      name=form_name)
+                survey_model.form = form_model
+                survey_model.save()
+
             logger.info("saved survey_model %s" % survey_model.name)
 
             for sq in survey_dict["questions"]:
@@ -789,6 +809,7 @@ class Importer(object):
                 sq_model.instruction = sq.get("instruction", None)
                 sq_model.copyright_text = sq.get("copyright_text", None)
                 sq_model.source = sq.get("source", None)
+                sq_model.cde_path = sq.get("cde_path", None)
                 cde_model = CommonDataElement.objects.get(code=sq["cde"])
                 sq_model.cde = cde_model
                 sq_model.save()

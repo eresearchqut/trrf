@@ -86,7 +86,7 @@ class FieldInfo:
             # values are peristed as lists of codes not single values
             return self._get_multiple_code_list(display_value)
 
-        range_value_dicts = self.cde_model.pv_group.as_dict()["values"]
+        range_value_dicts = self.cde_model.pv_group.as_dict["values"]
 
         for range_value_dict in range_value_dicts:
             # code is what needs to be stored in the db
@@ -109,7 +109,7 @@ class FieldInfo:
 
         codes = []
         pv_group = self.cde_model.pv_group
-        values_dict = pv_group.as_dict()
+        values_dict = pv_group.as_dict
         for desc in descs:
             for value_dict in values_dict["values"]:
                 if desc == value_dict["value"]:

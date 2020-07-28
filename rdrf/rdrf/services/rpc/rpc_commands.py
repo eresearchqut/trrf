@@ -1,48 +1,9 @@
 import logging
+
+from django.core.exceptions import PermissionDenied
+from rdrf.security.security_checks import security_check_user_patient
+
 logger = logging.getLogger(__name__)
-
-
-def rpc_visibility(request, element):
-    user = request.user
-    if user.can("see", element):
-        return True
-
-
-def rpc_check_notifications(request):
-    from rdrf.models.definition.models import Notification
-    user = request.user
-    results = []
-    notifications = Notification.objects.filter(
-        to_username=user.username, seen=False).order_by('-created')
-    for notification in notifications:
-        results.append({"message": notification.message,
-                        "from_user": notification.from_username, "link": notification.link})
-    return results
-
-
-def rpc_dismiss_notification(request, notification_id):
-    from rdrf.models.definition.models import Notification
-    status = False
-    try:
-        notification = Notification.objects.get(pk=int(notification_id))
-        notification.seen = True
-        notification.save()
-        status = True
-    except Exception as ex:
-        logger.error("could not mark notification with id %s as seen: %s" %
-                     (notification_id, ex))
-    return status
-
-
-def rpc_fh_patient_is_index(request, patient_id):
-    from registry.patients.models import Patient
-    patient = Patient.objects.get(pk=patient_id)
-    if patient.in_registry("fh"):
-        is_index = patient.get_form_value(
-            "fh", "ClinicalData", "fhDateSection", "CDEIndexOrRelative") != "fh_is_relative"
-        return is_index
-    else:
-        return False
 
 
 def rpc_reporting_command(request, query_id, registry_id, command, arg):
@@ -54,12 +15,18 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
     from rdrf.models.definition.models import Registry
     from explorer.models import Query
     user = request.user
+
     if query_id == "new":
         query_model = None
     else:
         query_model = Query.objects.get(pk=int(query_id))
+        if not Query.objects.reports_for_user(user).filter(pk=query_id).exists():
+            raise PermissionDenied
 
     registry_model = Registry.objects.get(pk=int(registry_id))
+    if not user.in_registry(registry_model):
+        raise PermissionDenied
+
     if command == "get_projection":
         checkbox_ids = arg["checkbox_ids"]
         longitudinal_ids = arg['longitudinal_ids']
@@ -80,7 +47,6 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
 
 # questionnaire handling
 
-
 def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
     """
     Try to return any existing data for a patient corresponding the filled in values
@@ -96,6 +62,13 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     from registry.patients.models import Patient
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
+    from django.utils.translation import ugettext as _
+
+    patient_model = Patient.objects.get(pk=patient_id)
+    try:
+        security_check_user_patient(request.user, patient_model)
+    except PermissionDenied:
+        return {"status": "fail", "message": _("Permission error. Data cannot be loaded !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
@@ -118,10 +91,16 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
     from django.db import transaction
+    from django.utils.translation import ugettext as _
+
+    patient_model = Patient.objects.get(pk=patient_id)
+    try:
+        security_check_user_patient(request.user, patient_model)
+    except PermissionDenied:
+        return {"status": "fail", "message": _("Permission error. Data cannot be updated !")}
 
     questionnaire_response_model = QuestionnaireResponse.objects.get(
         pk=questionnaire_response_id)
-    patient_model = Patient.objects.get(pk=patient_id)
     registry_model = questionnaire_response_model.registry
     questionnaire = Questionnaire(registry_model, questionnaire_response_model)
     data_to_update = [
@@ -148,6 +127,10 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.db.dynamic_data import DynamicDataWrapper
     from django.db import transaction
     from django.urls import reverse
+    from django.utils.translation import ugettext as _
+
+    if not (request.user.is_superuser or request.user.is_staff):
+        return {"status": "fail", "message": _("Permission error. Patient cannot be created!")}
 
     qr = QuestionnaireResponse.objects.get(pk=questionnaire_response_id)
     patient_creator = PatientCreator(qr.registry, request.user)

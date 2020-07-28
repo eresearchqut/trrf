@@ -1,6 +1,5 @@
+from csp.decorators import csp_update
 from django.shortcuts import render
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
 from django.views.generic.base import View
 from django.template.context_processors import csrf
 from django.http import Http404
@@ -232,7 +231,7 @@ class FamilyLinkageManager(object):
 
 class FamilyLinkageView(View):
 
-    @method_decorator(login_required)
+    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, registry_code, initial_index=None):
 
         try:
@@ -265,7 +264,6 @@ class FamilyLinkageView(View):
 
         return render(request, 'rdrf_cdes/family_linkage.html', context)
 
-    @method_decorator(login_required)
     def post(self, request, registry_code, initial_index=None):
         try:
             import json

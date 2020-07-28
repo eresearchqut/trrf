@@ -1,24 +1,30 @@
-function update_cde($target_cde, visibility) {
-    switch(visibility) {
-        case "enabled":
-        case "disabled":
-            $target_cde.parents('.form-group').prop('disabled', visibility == "disabled");
-            break;
-        case "visible":
-            $target_cde.parents('.form-group').show();
-            break;
-        case "hidden":
-            $target_cde.parents('.form-group').hide();
+function update_cde($target_cde, visibility_array) {
+    for (var idx=0; idx < visibility_array.length; idx++) {
+        var visibility = visibility_array[idx];
+        switch(visibility) {
+            case "enabled":
+            case "disabled":
+                $target_cde.prop('disabled', visibility == "disabled");
+                break;
+            case "visible":
+                $target_cde.parents('.form-group').show();
+                break;
+            case "hidden":
+                $target_cde.parents('.form-group').hide();
+        }
     }
 }
 
-function update_section($target_section, visibility) {
-    switch(visibility) {
-        case "visible":
-            $target_section.parents('.panel').show();
-            break;
-        case "hidden":
-            $target_section.parents('.panel').hide();
+function update_section($target_section, visibility_array) {
+    for (var idx=0; idx < visibility_array.length; idx++) {
+        var visibility = visibility_array[idx];
+        switch(visibility) {
+            case "visible":
+                $target_section.parents('.panel').show();
+                break;
+            case "hidden":
+                $target_section.parents('.panel').hide();
+        }
     }
 }
 
@@ -273,19 +279,40 @@ function test_conditions(results, boolean_ops) {
     return result;
 }
 
+function visibility_map_merge(visibility_map, name, action) {
+    // added to support two states for visibility such as
+    // visible and disabled, hidden and disabled, hidden and enabled,
+    // visible and enabled
+    var existing = visibility_map[name];
+    var is_enabled_or_disabled = ['enabled', 'disabled'].includes(action);
+    if (existing === undefined) {
+        visibility_map[name] = [action];
+    } else {
+        if (is_enabled_or_disabled) {
+            if (existing.length == 1) {
+                existing.push(action);
+            } else {
+                existing[1] = action;
+            }
+        } else {
+            existing[0] = action;
+        }
+    }
+}
+
 function visibility_map_update(visibility_map, name, action, is_section) {
     var entry = is_section ? undefined : cdeNameMapping[name];
     if (!entry) {
-        visibility_map[name] = action;
+        visibility_map_merge(visibility_map, name, action);
     } else {
         if (entry.formset && entry.formset.length > 0) {
             for (var idx = 0; idx < total_forms_count(entry.formset); idx ++) {
                 var full_name = get_cde_name(name, idx);
-                visibility_map[full_name] = action;
+                visibility_map_merge(visibility_map, full_name, action);
             }
         } else {
             var full_name = get_cde_name(name);
-            visibility_map[full_name] = action;
+            visibility_map_merge(visibility_map, full_name, action);
         }
     }
 }

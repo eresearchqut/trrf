@@ -1,22 +1,24 @@
+from functools import cached_property
 from operator import attrgetter
 import pycountry
 
 from django.db.models import Q
 from rest_framework import generics
-from rest_framework import viewsets
 from rest_framework import status
-from rest_framework.exceptions import APIException
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.exceptions import APIException, NotFound, PermissionDenied
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, BasePermission
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import serializers
+from rest_framework import viewsets
 from rest_framework.views import APIView
 
-from registry.patients.models import Patient, Registry, Doctor, NextOfKinRelationship, PatientStage
-from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.models import Patient, Registry, PatientStage
+from registry.groups.models import CustomUser
 from rdrf.models.definition.models import RegistryForm
-from rdrf.services.rest.serializers import PatientSerializer, RegistrySerializer, WorkingGroupSerializer, CustomUserSerializer, DoctorSerializer, NextOfKinRelationshipSerializer
+from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.security.security_checks import security_check_user_patient
 
 
 import logging
@@ -27,38 +29,12 @@ class BadRequestError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
 
 
-class RegistryDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Registry.objects.all()
-    serializer_class = RegistrySerializer
-    lookup_field = 'code'
+class IsSuperUser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
 
 
-class RegistryList(generics.ListCreateAPIView):
-    queryset = Registry.objects.all()
-    serializer_class = RegistrySerializer
-
-
-class DoctorDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
-
-
-class DoctorViewSet(viewsets.ModelViewSet):
-    queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
-
-
-class NextOfKinRelationshipDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = NextOfKinRelationship.objects.all()
-    serializer_class = NextOfKinRelationshipSerializer
-
-
-class NextOfKinRelationshipViewSet(viewsets.ModelViewSet):
-    queryset = NextOfKinRelationship.objects.all()
-    serializer_class = NextOfKinRelationshipSerializer
-
-
-class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
+class PatientDetail(generics.RetrieveAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = (IsAuthenticated,)
@@ -71,76 +47,12 @@ class PatientDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def check_object_permissions(self, request, patient):
         """We're always filtering the patients by the registry code form the url and the user's working groups"""
-        super(PatientDetail, self).check_object_permissions(request, patient)
-        registry_code = self.kwargs.get('registry_code')
-        registry = self._get_registry_by_code(registry_code)
-        if registry not in patient.rdrf_registry.all():
-            self.permission_denied(
-                request, message='Patient not available in requested registry')
-        if request.user.is_superuser:
-            return
-        if registry not in request.user.registry.all():
-            self.permission_denied(
-                request, message='Not allowed to get Patients from this Registry')
-
-        if not patient.working_groups.filter(pk__in=request.user.working_groups.all()).exists():
-            self.permission_denied(request, message='Patient not in your working group')
+        super().check_object_permissions(request, patient)
+        security_check_user_patient(request.user, patient)
 
 
-class PatientList(generics.ListCreateAPIView):
-
-    serializer_class = PatientSerializer
-
-    def _get_registry_by_code(self, registry_code):
-        try:
-            return Registry.objects.get(code=registry_code)
-        except Registry.DoesNotExist:
-            raise BadRequestError("Invalid registry code '%s'" % registry_code)
-
-    def get_queryset(self):
-        """We're always filtering the patients by the registry code form the url and the user's working groups"""
-        registry_code = self.kwargs.get('registry_code')
-        registry = self._get_registry_by_code(registry_code)
-        if self.request.user.is_superuser:
-            return Patient.objects.get_by_registry(registry.pk)
-        return Patient.objects.get_by_registry_and_working_group(registry, self.request.user)
-
-    def post(self, request, *args, **kwargs):
-        registry_code = kwargs.get('registry_code')
-        if len(request.data) > 0:
-            # For empty posts don't set the registry as it fails because request.data
-            # is immutable for empty posts. Post request will fail on validation anyways.
-
-            request.data['registry'] = self._get_registry_by_code(registry_code)
-        if not (
-                request.user.is_superuser or request.data['registry'] in request.user.registry.all()):
-            self.permission_denied(
-                request, message='Not allowed to create Patient in this Registry')
-        request.data['created_by'] = request.user
-        return super(PatientList, self).post(request, *args, **kwargs)
-
-
-class RegistryViewSet(viewsets.ModelViewSet):
-    queryset = Registry.objects.all()
-    serializer_class = RegistrySerializer
-    lookup_field = 'code'
-
-    # Overriding get_object to make registry lookup be based on the registry code
-    # instead of the pk
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = generics.get_object_or_404(queryset, code=self.kwargs['pk'])
-        self.check_object_permissions(self.request, obj)
-
-        return obj
-
-
-class WorkingGroupViewSet(viewsets.ModelViewSet):
-    queryset = WorkingGroup.objects.all()
-    serializer_class = WorkingGroupSerializer
-
-
-class CustomUserViewSet(viewsets.ModelViewSet):
+class CustomUserViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsSuperUser, )
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -187,33 +99,6 @@ class ListStates(APIView):
             return dict([(k, getattr(x, k)) for k in wanted_fields])
 
         return Response(list(map(to_dict, states)))
-
-
-class ListClinicians(APIView):
-    queryset = CustomUser.objects.none()
-
-    def get(self, request, registry_code, format=None):
-        users = CustomUser.objects.filter(registry__code=registry_code, is_superuser=False)
-        clinicians = [u for u in users if u.is_clinician]
-
-        def to_dict(c, wg):
-            return {
-                'id': "%s_%s" % (reverse(
-                    'v1:customuser-detail',
-                    args=[
-                        c.id,
-                    ]),
-                    reverse(
-                    'v1:workinggroup-detail',
-                    args=[
-                        wg.id,
-                    ])),
-                'full_name': "%s %s (%s)" % (c.first_name,
-                                             c.last_name,
-                                             wg.name),
-            }
-
-        return Response([to_dict(c, wg) for c in clinicians for wg in c.working_groups.all()])
 
 
 class LookupIndex(APIView):
@@ -268,5 +153,20 @@ class PatientStageSerializer(serializers.ModelSerializer):
 class PatientStages(generics.ListAPIView):
     serializer_class = PatientStageSerializer
 
+    @cached_property
+    def registry(self):
+        registry_id = self.kwargs.get('registry_id')
+        registry = Registry.objects.filter(pk=registry_id).first()
+        if registry is None or not registry.has_feature(RegistryFeatures.STAGES):
+            raise NotFound
+        return registry
+
+    def check_permissions(self, request):
+        user = request.user
+        if user.is_superuser:
+            return
+        if not user.in_registry(self.registry):
+            raise PermissionDenied
+
     def get_queryset(self):
-        return PatientStage.objects.filter(registry_id=self.kwargs.get('registry_id'))
+        return PatientStage.objects.filter(registry=self.registry)

@@ -1,6 +1,7 @@
 import botocore
 from collections import namedtuple
 import logging
+import magic
 import re
 
 from django.conf import settings
@@ -17,7 +18,8 @@ __all__ = ["get_id", "delete_file_wrapper", "get_file",
            "store_file", "store_file_by_key", "StorageFileInfo"]
 
 
-StorageFileInfo = namedtuple('StorageFileInfo', 'item filename uploaded_by patient')
+StorageFileInfo = namedtuple('StorageFileInfo', 'item filename uploaded_by patient mime_type', defaults=(None, None, None, None, None))
+EMPTY_FILE_INFO = StorageFileInfo()
 
 
 def get_id(value):
@@ -41,6 +43,8 @@ def delete_file_wrapper(file_ref):
 
 
 def store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_name=None, section_code=None):
+    mime_type = magic.from_buffer(file_obj.read(2048), mime=True)
+    file_obj.seek(0)
     cde_file = CDEFile(registry_code=registry_code,
                        uploaded_by=uploaded_by,
                        patient=patient,
@@ -48,7 +52,8 @@ def store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_nam
                        section_code=section_code,
                        cde_code=cde_code,
                        item=file_obj,
-                       filename=file_obj.name)
+                       filename=file_obj.name,
+                       mime_type=mime_type)
     cde_file.save()
 
     return {
@@ -78,21 +83,41 @@ oid_pat = re.compile(r"[0-9A-F]{24}", re.I)
 def get_file(file_id):
     try:
         cde_file = CDEFile.objects.get(id=file_id)
-        return StorageFileInfo(item=cde_file.item, filename=cde_file.filename, uploaded_by=cde_file.uploaded_by, patient=cde_file.patient)
+        return StorageFileInfo(
+            item=cde_file.item, filename=cde_file.filename,
+            uploaded_by=cde_file.uploaded_by, patient=cde_file.patient,
+            mime_type=cde_file.mime_type
+        )
     except CDEFile.DoesNotExist:
-        return StorageFileInfo(item=None, filename=None, uploaded_by=None, patient=None)
+        return EMPTY_FILE_INFO
+    except IOError:
+        return EMPTY_FILE_INFO
 
 
 class CustomS3Storage(S3Boto3Storage):
 
+    def open(self, file_name, mode='rb'):
+        try:
+            return super().open(file_name, mode)
+        except botocore.exceptions.ClientError as ex:
+            if ex.response['Error']['Code'] == '403':
+                raise PermissionError
+            else:
+                raise ex
+
     def get_tags(self, name):
+        '''
+        Returns dict of tags key/values of an S3 object.
+        Empty dict is returned if the object is in scanning state, None if it does not exist
+        This method isn't part of the Storage API, it is an extra method added by us.
+        '''
         try:
             name = self._encode_name(self._normalize_name(self._clean_name(name)))
             response = self.connection.meta.client.get_object_tagging(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=name)
             return {el['Key']: el['Value'] for el in response['TagSet']}
         except botocore.exceptions.ClientError as tce:
             if tce.response['Error']['Code'] == 'NoSuchKey':
-                pass
+                return None
             else:
                 raise tce
         return {}
@@ -102,6 +127,7 @@ class VirusScanStatus:
     SCANNING = 'scanning'
     CLEAN = 'clean'
     INFECTED = 'infected'
+    NOT_FOUND = 'not found'
 
 
 class S3VirusChecker:
@@ -111,6 +137,8 @@ class S3VirusChecker:
 
     def check(self, name):
         tags = self.storage.get_tags(name)
+        if tags is None:
+            return VirusScanStatus.NOT_FOUND
         status = tags.get('av-status', '')
         if not status:
             return VirusScanStatus.SCANNING

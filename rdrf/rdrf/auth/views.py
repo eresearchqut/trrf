@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage import default_storage
 
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.signals import user_logged_in
 
 from django.contrib.auth.tokens import default_token_generator
@@ -56,25 +55,24 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
 
         if msg not in [m.message for m in messages.get_messages(request)]:
             messages.info(request, msg)
+    if user.force_password_change:
+        messages.info(request, _("You are required to change your password for security purposes"))
 
 
 # Customised Two Factor views
 
 
 @tfv.utils.class_view_decorator(never_cache)
-@tfv.utils.class_view_decorator(login_required)
 class QRGeneratorView(tfv.core.QRGeneratorView):
     session_key_name = 'two_fact_auth_key'
 
 
 @tfv.utils.class_view_decorator(never_cache)
-@tfv.utils.class_view_decorator(login_required)
 class SetupView(tfv.core.SetupView):
     session_key_name = 'two_fact_auth_key'
 
 
 @tfv.utils.class_view_decorator(never_cache)
-@tfv.utils.class_view_decorator(login_required)
 class DisableView(tfv.profile.DisableView):
     def form_valid(self, form):
         for device in devices_for_user(self.request.user):

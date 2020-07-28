@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: ${APP_IMAGE_NAME}
+    image: ${TRRF_IMAGE_NAME}
     command: aloe
     environment:
       <<: *common-env-variables
@@ -33,7 +33,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
-    image: ${APP_IMAGE_NAME}
+    image: ${TRRF_IMAGE_NAME}
     command: aloe
     environment:
       <<: *common-env-variables

@@ -24,18 +24,12 @@
     <script type="text/javascript" src="{% static 'js/vendor/chart.js-2.0.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/adsafe.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jsignature-2.1.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/virus_scan_check.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/custom_widget_setup.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
-
-    <!--[if IE 8]>
-	<script type="text/javascript" src="ie_expand_select_width.js"></script>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$('select').ieExpandSelectWidth();
-		});
-	</script>
-    <![endif]-->
-
+    <link rel="stylesheet" type="text/css" href="{% static 'css/form_extra.css' %}" media="all">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/form_common.css' %}" media="all">
     <style>
         .modal .modal-dialog {
             max-height: 600px;
@@ -46,59 +40,6 @@
             background-color: lightgray;
         }
     </style>
-
-    <script type="text/javascript">
-        window.IMAGES_URL = "{% static 'images/' %}";
-    </script>
-
-        // show bootstrap tooltips
-        $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
-        });
-    <style>
-        .ui-autocomplete {
-            max-height: 100px;
-            overflow-y: auto;
-            /* prevent horizontal scrollbar */
-            overflow-x: hidden;
-        }
-          /* IE 6 doesn't support max-height
-           * we use height instead, but this forces the menu to always be this tall
-           */
-          * html .ui-autocomplete {
-            height: 100px;
-        }
-
-        ul {
-            list-style-type: none;
-            margin-left: 0;
-        }
-
-        table {
-            table-layout: fixed;
-        }
-
-        .progress {
-            margin-bottom: 0px;
-        }
-
-        .badge {
-            border-radius: 0px;
-        }
-
-        .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
-            border-top: 0;
-        }
-    </style>
-
-    <script>
-        function goBack() {
-            var warning = confirm('{% trans "Are you sure?\nAll entered or amended data will be lost!" %}');
-            if (warning == true) {
-                window.location.replace('{% url 'admin:patients_patient_changelist' %}');
-            }
-        }
-    </script>
 
     <script>
     // The following "corrects" the behaviour of the "today" button in the jquery datepicker
@@ -209,6 +150,12 @@
         return parseInt(total_forms.val());
     }
 
+    function attribute_replace($el, attribute_name, form_count) {
+        var replaced_value = $el.attr(attribute_name).replace(/__prefix__/g, form_count)
+        $el.attr(attribute_name, replaced_value);
+    }
+
+
     function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
         var empty_form = $("#empty_" + prefix);
@@ -218,10 +165,18 @@
 
         var new_form = empty_form.clone(true, true);
 
+        var durationWidgets = [];
+        var timePickers = [];
+        var form_count = total_forms.val();
         new_form.find(":input").each(function() {
-            $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-            $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
-
+            var idAttribute = $(this).attr("id");
+            if (typeof idAttribute !== typeof undefined && idAttribute !== false) {
+                attribute_replace($(this), "id", form_count);
+            }
+            var nameAttribute = $(this).attr('name');
+            if (typeof nameAttribute !== typeof undefined && nameAttribute !== false) {
+                attribute_replace($(this), "name", form_count);
+            }
             if ($(this).hasClass("datepicker")) {
                 $(this).datepicker({
                     changeMonth: true,
@@ -232,16 +187,42 @@
                     buttonImageOnly: true,
                 });
             }
+            if ($(this).hasClass("timepicker")) {
+                timePickers.push($(this));
+            } else if ($(this).hasClass("duration-widget")) {
+                attribute_replace($(this), "input-name", form_count);
+                durationWidgets.push($(this));
+            }
+            if ($(this).hasClass("duration-input")) {
+                durationInputs.push($(this));
+            }
         });
-
+        new_form.find("script").each(function() {
+            var replaced_script = $(this).html().replace(/__prefix__/g, form_count);
+            $(this).html(replaced_script);
+        });
         CollapsingPanels.expandParentPanel(el);
-
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
 
         $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
-        targets = change_handler_targets();
+
+        // Duration widget setup only done here as it contains
+        // two related fields and must ensure all are cloned and renamed by now
+        durationWidgets.forEach(function(el) {
+            setupDurationWidget(el.attr('input-name'), el.attr('init_attrs'));
+            el.data('pre', '');
+        });
+
+        timePickers.forEach(function(el) {
+            var hasAMPM = el.attr('has_am_pm') == 'true';
+            setupTimepicker(el, hasAMPM, el.attr('start_time'));
+            // Add form-control class to timepicker inputs to fix alignment
+            el.parent().find(".timepicki-input").addClass("form-control");
+        });
+
+        var targets = change_handler_targets();
         if (targets.hasOwnProperty(prefix)) {
             targets[prefix].forEach( function (el) {
                 var el_name = prefix + "-" +  (total_forms_inc - 1) + "-" + cdeNamePrefix + el;
@@ -417,9 +398,9 @@
                                         {% endif %}
                                         {% for element in f %}
                                             {% if element.errors %}
-                                                <div class="form-group has-error">
+                                                <div class="form-group has-error invisibutton-container">
                                             {% else %}
-                                                <div class="form-group">
+                                                <div class="form-group invisibutton-container">
                                             {% endif %}
                                                     {% if changes_since_version and element.label == "Delete" %}
                                                         <div></div>
@@ -428,6 +409,15 @@
                                                             {% if element.label == "Delete" %}
                                                                 {% trans "Mark for deletion" %}
                                                             {% else %}
+                                                                {% if element.field.cde.code and not CREATE_MODE and have_dynamic_data %}
+                                                                    <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id element.field.cde.code index%}"
+                                                                    onclick="rdrf_click_form_field_history(event, this)"
+                                                                    class="btn btn-default btn-xs invisibutton pull-left"
+                                                                    data-toggle="tooltip" title="View previous answers"
+                                                                    aria-label="Previous answers">
+                                                                    <i class="glyphicon glyphicon-time" aria-hidden="true"></i>
+                                                                    </a>
+                                                                {% endif %}
                                                                 {{ element.label }}
                                                                 {% if element.field.required %}
                                                                     <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>

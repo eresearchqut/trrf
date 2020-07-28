@@ -22,10 +22,10 @@ class FormProgressTestCase(FormTestCase):
     def create_forms(self):
         super().create_forms()
         self.new_form = self.create_form(
-            "new_form", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
+            "NewForm", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
         )
         self.other_form = self.create_form(
-            "other_form", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
+            "OtherForm", [self.sectionA, self.sectionB, self.sectionD, self.sectionE]
         )
 
     def _set_form_data(self, form, form_filler):
@@ -99,6 +99,7 @@ class FormProgressTestCase(FormTestCase):
         ff = FormFiller(self.other_form)
         ff.sectionA.CDEName = "Fred"
         ff.sectionE.DateOfAssessment = "10-01-1999"
+        ff.sectionD.DM1Fatigue = 'DM1FatigueNo'
 
         self._set_form_data(self.other_form, ff)
 
@@ -113,7 +114,55 @@ class FormProgressTestCase(FormTestCase):
         ff = FormFiller(self.other_form)
         ff.sectionA.CDEName = "Fred"
         ff.sectionE.DateOfAssessment = "10-01-2003"
+        ff.sectionD.DM1Fatigue = 'DM1FatigueNo'
 
         self._set_form_data(self.other_form, ff)
         result = self._compute_progress(self.other_form, progress_cdes_map)
-        self.assertEqual(result['progress']['percentage'], 25)
+        self.assertEqual(result['progress']['percentage'], 50)
+
+    def test_form_progress_multi_condition(self):
+        self.new_form.conditional_rendering_rules = '''
+        DM1Fatigue visible if CDEAge >= 10 and DateOfAssessment >= "10-01-2000"
+        CDEfhDrugs visible if CDEAge >=15 or DateOfAssessment >= "11-01-2000"
+        '''
+        cde_fatigue = CommonDataElement.objects.get(code='DM1Fatigue')
+        cde_drugs = CommonDataElement.objects.get(code='CDEfhDrugs')
+        self.new_form.complete_form_cdes.add(cde_fatigue)
+        self.new_form.complete_form_cdes.add(cde_drugs)
+        self.new_form.save()
+
+        ff = FormFiller(self.new_form)
+        ff.sectionA.CDEAge = 5
+        ff.sectionE.DateOfAssessment = "10-01-2000"
+        ff.sectionD.DM1Fatigue = 'DM1FatigueNo'
+        ff.sectionD.CDEfhDrugs = 'PVfhDrugsEzetimibe'
+
+        self._set_form_data(self.new_form, ff)
+
+        progress_cdes_map = {}
+        progress_cdes_map[self.new_form.name] = set(
+            cde_model.code for cde_model in self.new_form.complete_form_cdes.all()
+        )
+
+        result = self._compute_progress(self.new_form, progress_cdes_map)
+        self.assertEqual(result['progress']['percentage'], 0)
+
+        ff = FormFiller(self.new_form)
+        ff.sectionA.CDEAge = 5
+        ff.sectionE.DateOfAssessment = "11-01-2000"
+        ff.sectionD.DM1Fatigue = 'DM1FatigueNo'
+        ff.sectionD.CDEfhDrugs = 'PVfhDrugsEzetimibe'
+
+        self._set_form_data(self.new_form, ff)
+        result = self._compute_progress(self.new_form, progress_cdes_map)
+        self.assertEqual(result['progress']['percentage'], 100)
+
+        ff = FormFiller(self.new_form)
+        ff.sectionA.CDEAge = 20
+        ff.sectionE.DateOfAssessment = "11-01-2000"
+        ff.sectionD.DM1Fatigue = 'DM1FatigueNo'
+        ff.sectionD.CDEfhDrugs = 'PVfhDrugsEzetimibe'
+
+        self._set_form_data(self.new_form, ff)
+        result = self._compute_progress(self.new_form, progress_cdes_map)
+        self.assertEqual(result['progress']['percentage'], 100)

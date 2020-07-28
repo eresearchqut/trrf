@@ -341,10 +341,13 @@ def timed(func):
     return wrapper
 
 
-def get_cde_value(form_model, section_model, cde_model, patient_record):
+def get_cde_value(form_model, section_model, cde_model, patient_record, form_index=None):
     # should refactor code everywhere to use this func
     if patient_record is None:
         return None
+    if form_index is not None:
+        form_index = int(form_index)
+
     for form_dict in patient_record["forms"]:
         if form_dict["name"] == form_model.name:
             for section_dict in form_dict["sections"]:
@@ -360,7 +363,11 @@ def get_cde_value(form_model, section_model, cde_model, patient_record):
                             for cde_dict in item:
                                 if cde_dict['code'] == cde_model.code:
                                     values.append(cde_dict["value"])
-                        return values
+                        if form_index is None:
+                            return values
+                        if form_index >= len(values):
+                            return None
+                        return values[form_index]
 
 
 def report_function(func):
@@ -762,3 +769,49 @@ def get_preferred_languages():
         return []
     else:
         return languages
+
+
+def is_authorised(user, patient_model):
+    if user.is_superuser:
+        return True
+    from registry.patients.models import ParentGuardian
+    # is the given user allowed to see this patient
+    # patient IS user:
+    if patient_model.user and patient_model.user.id == user.id:
+        return True
+    # user is parent of patient
+    try:
+        pg = ParentGuardian.objects.get(user=user)
+        if pg.user and pg.user.id == user.id:
+            if patient_model.id in [p.id for p in pg.children]:
+                return True
+    except ParentGuardian.DoesNotExist:
+        pass
+
+    # otherwise, is the user in (some of) the same working group(s)
+
+    user_wgs = set([wg.id for wg in user.working_groups.all()])
+    patient_wgs = set([wg.id for wg in patient_model.working_groups.all()])
+    common = user_wgs.intersection(patient_wgs)
+    if common and not user.is_parent:
+        return True
+
+    logger.warning("user %s is not authorised for patient %s" %
+                   (user.username, getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)))
+
+    return False
+
+
+def check_suspicious_sql(sql_query, user):
+    sql_query_lowercase = ' '.join(sql_query.lower().split())
+    security_errors = []
+    if any(sql_command in sql_query_lowercase for sql_command in ["drop", "delete", "update"]):
+        logger.warning(
+            f"User {user} tries to write/validate a suspicious SQL: {sql_query_lowercase}"
+        )
+        security_errors.append("The SQL query must not contain any of these keywords: DROP, DELETE, UPDATE")
+    return security_errors
+
+
+def is_alphanumeric(input_str):
+    return re.match(r"^[a-zA-Z0-9]*$", input_str) is not None

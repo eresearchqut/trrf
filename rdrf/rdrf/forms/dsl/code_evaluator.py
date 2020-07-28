@@ -40,8 +40,8 @@ class ConditionEvaluator:
         existing_value = self.existing_value
         if self.data_type:
             if self.data_type.lower() == INTEGER_TYPE:
-                value = parse_int(self.value)
-                existing_value = parse_int(self.existing_value)
+                value = parse_int(self.value) if self.value not in ["set", "unset"] else None
+                existing_value = parse_int(self.existing_value) if self.existing_value else None
             elif self.data_type.lower() == DATE_TYPE:
                 value = parse_date(self.value) if self.value not in ["set", "unset"] else None
                 existing_value = parse_date(self.existing_value) if self.existing_value else None

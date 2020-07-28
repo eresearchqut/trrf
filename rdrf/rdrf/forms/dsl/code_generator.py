@@ -67,7 +67,7 @@ class Instruction:
         def visibility_map_entry(cde_info, action, is_inverse=False, condition_is_multiple=False):
             final_action = action.action if not is_inverse else action.inverse_action
             if cde_info.is_multi_section and condition_is_multiple:
-                return f'visibility_map[get_cde_name("{cde_info.name}", idx)] = "{final_action}";'
+                return f'visibility_map_update(visibility_map, get_cde_name("{cde_info.name}", idx), "{final_action}");'
 
             section = "true" if self.target.has_qualifier else "false"
             return f'visibility_map_update(visibility_map, "{cde_info.name}", "{final_action}", {section});'
@@ -171,7 +171,9 @@ class Instruction:
     def change_handler_element(cde_info):
         return f'''
             if (change_handler.hasOwnProperty("{cde_info.formset_prefix}")) {{
-                change_handler["{cde_info.formset_prefix}"].push("{cde_info.name}");
+                if (!change_handler["{cde_info.formset_prefix}"].includes("{cde_info.name}")) {{
+                    change_handler["{cde_info.formset_prefix}"].push("{cde_info.name}");
+                }}
             }} else {{
                 change_handler["{cde_info.formset_prefix}"] = ["{cde_info.name}"];
             }}

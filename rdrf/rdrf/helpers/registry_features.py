@@ -1,7 +1,6 @@
 class RegistryFeatures:
     STAGES = "stages"
     FAMILY_LINKAGE = "family_linkage"
-    VERIFICATION = "verification"
     QUESTIONNAIRES = "questionnaires"
     CONSENT_CHECKS = "consent_checks"
     PROMS_CLINICAL = "proms_clinical"

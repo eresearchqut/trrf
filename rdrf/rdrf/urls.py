@@ -25,7 +25,6 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView
-from rdrf.views.lookup_views import FamilyLookup
 from rdrf.views.lookup_views import PatientLookup
 from registration.backends.default.views import ActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -34,8 +33,6 @@ from rdrf.views.permission_matrix import PermissionMatrixView
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views import patients_listing
 from rdrf.views import clinician_view
-from rdrf.views.verification_views import PatientsRequiringVerificationView
-from rdrf.views.verification_views import PatientVerificationView
 from rdrf.views.proms_views import PromsView
 from rdrf.views.proms_views import PromsLandingPageView
 from rdrf.views.proms_views import PromsCompletedPageView
@@ -44,7 +41,7 @@ from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
 
-
+from rdrf.views.actions import ActionExecutorView
 import logging
 
 
@@ -99,6 +96,10 @@ two_factor_auth_urls = [
 ]
 
 proms_patterns = [
+    re_path(r'^promslanding/?$', PromsLandingPageView.as_view(), name="proms_landing_page"),
+    re_path(r'^proms/?$', PromsView.as_view(), name="proms"),
+    re_path(r'^promsqrcode/(?P<patient_token>[0-9A-Za-z_\-]+)/?$', PromsQRCodeImageView.as_view(), name="promsqrcode"),
+    re_path(r'^promscompleted/?$', PromsCompletedPageView.as_view(), name="proms_completed"),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None)),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
@@ -130,13 +131,12 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     proms_only(re_path(r'^api/proms/v1/', include(('rdrf.services.rest.urls.proms_api_urls', 'proms_api_urls'), namespace=None))),
-    re_path(r'^constructors/(?P<form_name>\w+)/?$',
-            form_view.ConstructorFormView.as_view(), name="constructors"),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
     path('admin/', admin.site.urls),
@@ -227,6 +227,10 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/history/?$",
             form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
 
+    re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/(?P<formset_index>\d+)?/history/?$",
+            form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
+
+
     re_path(r"^forms/dsl-help$",
             form_view.FormDSLHelpView.as_view(), name='registry_form_dsl_help'),
 
@@ -255,20 +259,10 @@ normalpatterns += [
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/?$",
             form_view.CustomConsentFormView.as_view(), name="consent_form_view"),
 
-    re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/consents/print/?$",
-            consent_view.ConsentDetailsPrint.as_view(), name="print_consent_details"),
-
-
 
     # ---- Clinician related URLs -----------------
     re_path(r"^(?P<registry_code>\w+)/(?P<patient_id>\d+)/clinician/?$",
             clinician_view.ClinicianFormView.as_view(), name="clinician_form_view"),
-
-    re_path(r"^(?P<registry_code>\w+)/verifications/?$",
-            PatientsRequiringVerificationView.as_view(), name='verifications_list'),
-
-    re_path(r"^(?P<registry_code>\w+)/verifications/(?P<patient_id>\d+)/(?P<context_id>\d+)/?$",
-            PatientVerificationView.as_view(), name='patient_verification'),
 
     re_path(r'^clinicianactivate/(?P<activation_key>\w+)/?$',
             clinician_view.ClinicianActivationView.as_view(),
@@ -291,7 +285,9 @@ normalpatterns += [
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
-    re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+    # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
+    # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',

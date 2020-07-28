@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 import json
 
 from django.db import ProgrammingError
@@ -8,7 +8,7 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.models.definition.models import Registry, RegistryForm, Section
-from rdrf.models.definition.models import CommonDataElement, ClinicalData
+from rdrf.models.definition.models import CommonDataElement, ClinicalData, CDEPermittedValue
 
 from .models import Query
 from .models import FieldValue
@@ -52,6 +52,11 @@ class DatabaseUtils(object):
                 self.projection = self._string_to_json(self.form_object.projection)
                 self.aggregation = self.form_object.aggregation
                 self.mongo_search_type = self.form_object.mongo_search_type
+
+        self.permitted_values_map = {
+            (r["code"], r['pv_group_id']): r["value"]
+            for r in CDEPermittedValue.objects.values('code', 'value', 'pv_group_id')
+        }
 
     def run_sql(self):
         try:
@@ -268,14 +273,14 @@ class DatabaseUtils(object):
                     sql_column_name = self.reverse_map[i]
                     sql_columns_dict[sql_column_name] = item
 
-                    for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
-                        if mongo_columns_dict is None:
-                            # sql_columns_dict["snapshot"] = False
-                            yield sql_columns_dict
-                        else:
-                            # mongo_columns_dict["snapshot"] = False
-                            for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
-                                yield combined_dict
+                for mongo_columns_dict in self.run_mongo_one_row(sql_columns_dict, collection, max_items):
+                    if mongo_columns_dict is None:
+                        # sql_columns_dict["snapshot"] = False
+                        yield sql_columns_dict
+                    else:
+                        # mongo_columns_dict["snapshot"] = False
+                        for combined_dict in self._combine_sql_and_mongo(sql_columns_dict, mongo_columns_dict):
+                            yield combined_dict
 
         def longitudinal():
             for row in self.cursor:
@@ -478,6 +483,21 @@ class DatabaseUtils(object):
         # timestamp from top level in for current and snapshot
         result['timestamp'] = mongo_document.get("timestamp", None)
 
+        processed_record = defaultdict(list)
+        for form_dict in mongo_document["forms"]:
+            form_name = form_dict["name"]
+            for section_dict in form_dict["sections"]:
+                section_code = section_dict["code"]
+                if section_dict["allow_multiple"]:
+                    for section_item in section_dict["cdes"]:
+                        for cde_dict in section_item:
+                            cde_code = cde_dict["code"]
+                            processed_record[(form_name, section_code, cde_code, True)].append(cde_dict)
+                else:
+                    for cde_dict in section_dict["cdes"]:
+                        cde_code = cde_dict["code"]
+                        processed_record[(form_name, section_code, cde_code, False)].append(cde_dict)
+
         for key, column_name in self.col_map.items():
             if isinstance(key, tuple):
                 if len(key) == 4:
@@ -521,34 +541,14 @@ class DatabaseUtils(object):
         for snapshot in history.find(**mongo_query).data():
             yield self._get_result_map(snapshot, is_snapshot=True, max_items=max_items)
 
-    def _get_cde_value(self, form_model, section_model, cde_model, mongo_document):
+    def _get_cde_value(self, form_model, section_model, cde_model, processed_record, allow_multiple_section):
         # retrieve value of cde
-        for form_dict in mongo_document["forms"]:
-            if form_dict["name"] == form_model.name:
-                for section_dict in form_dict["sections"]:
-                    if section_dict["code"] == section_model.code:
-                        if section_dict["allow_multiple"]:
-                            values = []
-                            for section_item in section_dict["cdes"]:
-                                for cde_dict in section_item:
-                                    if cde_dict["code"] == cde_model.code:
-                                        values.append(
-                                            self._get_sensible_value_from_cde(
-                                                cde_model, cde_dict["value"]))
-
-                            return values
-                        else:
-                            for cde_dict in section_dict["cdes"]:
-                                if cde_dict["code"] == cde_model.code:
-                                    value = self._get_sensible_value_from_cde(
-                                        cde_model, cde_dict["value"])
-                                    return value
-
-        if section_model.allow_multiple:
-            # no data filled in?
-            return [None]
-        else:
-            return None
+        cde_values = processed_record.get((form_model.name, section_model.code, cde_model.code, allow_multiple_section), [])
+        if not cde_values:
+            return [None] if allow_multiple_section else None
+        if allow_multiple_section:
+            return [self._get_sensible_value_from_cde(cde_model, cde_dict["value"]) for cde_dict in cde_values]
+        return self._get_sensible_value_from_cde(cde_model, cde_values[0]["value"])
 
     def _get_sensible_value_from_cde(self, cde_model, stored_value):
         datatype = cde_model.datatype.strip().lower()
@@ -560,7 +560,7 @@ class DatabaseUtils(object):
             return None
         if datatype == CDEDataTypes.FILE:
             return "FILE"
-        return cde_model.get_display_value(stored_value)
+        return cde_model.get_display_value(stored_value, self.permitted_values_map)
 
     def run_mongo(self):
         raise NotImplementedError("MongoDB is no longer supported in the RDRF")

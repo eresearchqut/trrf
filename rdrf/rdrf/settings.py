@@ -8,7 +8,7 @@ from django.contrib.messages import constants as message_constants
 import rdrf
 from rdrf.helpers.settings_helpers import get_static_url_domain, get_csp
 from rdrf.system_role import SystemRoles
-
+from rdrf.security import url_whitelist
 env = EnvConfig()
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
@@ -150,17 +150,19 @@ MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
     'csp.middleware.CSPMiddleware',
+    'registry.common.middleware.LaxSameSiteCookieMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
-    'registry.common.middleware.EnforceTwoFactorAuthMiddleware',
+    'registry.common.middleware.UserSentryMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'stronghold.middleware.LoginRequiredMiddleware',
 )
 
 
@@ -194,6 +196,7 @@ INSTALLED_APPS = [
     'django_user_agents',
     'simple_history',
     'django_js_reverse',
+    'stronghold',
 ]
 
 
@@ -307,7 +310,7 @@ SESSION_COOKIE_SECURE = env.get("session_cookie_secure", PRODUCTION)
 SESSION_COOKIE_NAME = env.get(
     "session_cookie_name", "trrf_{0}".format(SCRIPT_NAME.replace("/", "")))
 SESSION_COOKIE_DOMAIN = env.get("session_cookie_domain", "") or None
-# SESSION_COOKIE_SAMESITE = "Strict"
+SESSION_COOKIE_SAMESITE = "Strict"
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 CSRF_COOKIE_NAME = env.get("csrf_cookie_name", "csrf_{0}".format(SESSION_COOKIE_NAME))
@@ -316,7 +319,7 @@ CSRF_COOKIE_PATH = env.get("csrf_cookie_path", SESSION_COOKIE_PATH)
 CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
-CSRF_COOKIE_AGE = None
+CSRF_COOKIE_AGE = env.get('csrf_cookie_age', 31449600)
 CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure")
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
@@ -560,6 +563,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.DifferentToPrevious'
     }
 ]
 
@@ -605,3 +611,38 @@ JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
 
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
+
+STRONGHOLD_DEFAULTS = False
+STRONGHOLD_PUBLIC_URLS = (
+    r'/account/login',
+    r'/(?P<registry_code>\w+)/register',
+    r'/activate/(?P<activation_key>\w+)/?$',
+    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    r'^i18n/',
+    r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',
+)
+if DEBUG:
+    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )
+
+# Public named urls can contain only urls without parameters
+# as django-stronghold cannot handle it otherwise
+STRONGHOLD_PUBLIC_NAMED_URLS = (
+    'health_check',
+    'landing',
+    'login_assistance',
+    'registration_complete',
+    'registration_failed',
+    'registration_disallowed',
+    'registration_activation_complete',
+    'registration_activate_complete',
+    'password_reset_done',
+    'password_reset_complete',
+    'favicon',
+    'robots_txt',
+    'js_reverse',
+    'javascript-catalog',
+)
+
+# URLs whitelisted for meeting the security conventions
+# Refer to docs/security/README.rst
+SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS

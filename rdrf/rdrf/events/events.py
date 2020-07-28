@@ -16,6 +16,7 @@ class EventType:
     CARER_ASSIGNED = "carer-assigned"
     CARER_ACTIVATED = "carer-activated"
     CARER_DEACTIVATED = "carer-deactivated"
+    SURVEY_REQUEST = "survey-request"
 
     REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
     CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]

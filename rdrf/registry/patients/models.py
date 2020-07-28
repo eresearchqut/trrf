@@ -189,13 +189,16 @@ class PatientManager(models.Manager):
                 rdrf_registry=registry_model,
                 working_groups__in=user.working_groups.all())
         if user.is_working_group_staff:
-            return qs.filter(working_groups__in=self.user.working_groups.all())
+            return qs.filter(working_groups__in=user.working_groups.all())
         if user.is_clinician:
             return self.get_by_clinician(user, registry_model)
         if user.is_patient:
             return qs.filter(user=user)
         if user.is_carer:
-            return qs.filter(carer=self.user)
+            return qs.filter(carer=user)
+        if user.is_parent:
+            if parent_guardian := ParentGuardian.objects.filter(user=user).first():
+                return qs & parent_guardian.patient.all()
         return qs.none()
 
 
@@ -1317,7 +1320,7 @@ class ClinicianOther(models.Model, PatientUpdateMixin):
 @receiver(post_save, sender=ClinicianOther)
 def other_clinician_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
 
-    if not instance.user and instance.use_other:
+    if not instance.user and instance.use_other and instance.clinician_email:
         # User has NOT selected an existing clinician
         other_clinician = instance
         patient = other_clinician.patient
