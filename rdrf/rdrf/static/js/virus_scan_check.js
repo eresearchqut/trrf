@@ -19,7 +19,7 @@ function check_virus_scan_status(base_url, base_id, value, interval) {
                 } else if (status == 'not found') {
                     update_status_div(base_id, 'notfound', true);
                 } else if (status == 'clean') {
-                    $("#" + base_id + "_link").html('<a href="' + base_url +'">' + value + '</a>');
+                    $("#" + base_id + "_link").html('<a href="' + base_url + '" target="_blank" rel="noreferrer noopener">' + value + '</a>');
                 }
             }
         }
