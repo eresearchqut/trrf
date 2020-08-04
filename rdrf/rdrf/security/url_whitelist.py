@@ -385,5 +385,6 @@ SECURITY_WHITELISTED_URLS = (
     "v1:registry-forms",
     "v1:state_lookup",
     "verifications_list",
-    "action"
+    "action",
+    "session_refresh"
 )
