@@ -40,6 +40,7 @@ from rdrf.views.proms_views import PromsClinicalView
 from rdrf.views.proms_views import PromsQRCodeImageView
 from rdrf.system_role import SystemRoles
 from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.session_refresh_view import session_refresh
 
 from rdrf.views.actions import ActionExecutorView
 import logging
@@ -320,6 +321,7 @@ normalpatterns += [
     re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
     re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
+    re_path(r'^session-refresh/?$', session_refresh, name='session_refresh'),
 
 ]
 

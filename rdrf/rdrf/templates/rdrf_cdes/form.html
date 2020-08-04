@@ -12,6 +12,7 @@
 {% load static %}
 {% load i18n admin_urls static admin_modify %}
 {% load translate %}
+{% load session_refresh_interval %}
 
 
 {% block extrastyle %}
@@ -505,6 +506,14 @@
         $("textarea").addClass("form-control");
         $("select").addClass("form-control");
         $("label[for*='-clear']").removeClass();
+
+        var session_refresh_interval = setInterval( function() {
+            $.get("{% url 'session_refresh' %}", function( data ) {
+                if (data && !data.success) {
+                    clearInterval(session_refresh_interval);
+                }
+            });
+        }, {% session_refresh_interval %});
     });
 </script>
 
