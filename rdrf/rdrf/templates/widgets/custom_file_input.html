@@ -3,7 +3,7 @@
     {{ widget.initial_text }}:
     <span id="{{widget.virus_check_id}}_link">
         {% if widget.virus_check_result == 'clean' %}
-            <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+            <a href="{{ widget.value.url }}" target="_blank" rel="noreferrer noopener">{{ widget.value }}</a>
         {% else %}
             {{ widget.value }}
         {% endif %}
