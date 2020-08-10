@@ -1,4 +1,5 @@
 SECURITY_WHITELISTED_URLS = (
+    "action",
     "admin:app_list",
     "admin:auth_group_add",
     "admin:auth_group_autocomplete",
@@ -380,10 +381,11 @@ SECURITY_WHITELISTED_URLS = (
     "v1:customuser-detail",
     "v1:customuser-list",
     "v1:customuser-list",
+    "v1:nextofkinrelationship-detail",
+    "v1:nextofkinrelationship-list",
     "v1:patient-detail",
     "v1:patient-stages",
     "v1:registry-forms",
     "v1:state_lookup",
     "verifications_list",
-    "action"
 )
