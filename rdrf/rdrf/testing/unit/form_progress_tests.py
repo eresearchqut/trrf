@@ -32,6 +32,7 @@ class FormProgressTestCase(FormTestCase):
         request = self._create_request(form, form_filler.data)
         view = FormView()
         view.request = request
+        request.session = {}
         view.post(
             request,
             form.registry.code,
