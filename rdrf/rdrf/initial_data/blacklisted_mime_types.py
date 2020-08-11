@@ -33,6 +33,8 @@ def init_blacklisted_file_types():
         'application/ecmascript': 'JavaScript files',
         'text/javascript': 'JavaScript files',
         'text/ecmascript': 'JavaScript files',
+        'text/html': 'HTML files',
+        'application/xhtml+xml': 'XHTML files',
         'text/vbscript': 'VisualBasic script files',
         'application/x-ms-application': 'MS application',
         'application/x-java-applet': 'Java applet files',

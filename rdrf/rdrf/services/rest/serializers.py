@@ -1,8 +1,20 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from registry.patients.models import Patient, Registry
+from registry.patients.models import Patient, Registry, NextOfKinRelationship
 from registry.groups.models import CustomUser
 from rdrf.models.proms.models import SurveyAssignment
+
+
+class NextOfKinRelationshipHyperlinkId(serializers.HyperlinkedRelatedField):
+    view_name = "nextofkinrelationship-detail"
+
+
+class NextOfKinRelationshipSerializer(serializers.HyperlinkedModelSerializer):
+    url = NextOfKinRelationshipHyperlinkId(read_only=True, source='*')
+
+    class Meta:
+        model = NextOfKinRelationship
+        fields = "__all__"
 
 
 # Needed so we can display the URL to the patient that also has the registry code in it
