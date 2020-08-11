@@ -511,10 +511,10 @@
             $.get("{% url 'session_refresh' %}", function( data ) {
                 if (data && !data.success) {
                     clearInterval(session_refresh_interval);
-                    alert("Your session is about to expire.Press 'OK' and submit your changes or reload the page to continue using this session");
+                    alert("{% trans "Your session is about to expire. Press 'OK' and submit your changes or reload the page to continue using this session" %}");
                 }
             }).fail(function() {
-                alert("Error while refreshing session.Please check your connection");
+                alert("{% trans "Error while refreshing session. Please check your connection" %}");
             });
         }, {% session_refresh_interval %});
     });
