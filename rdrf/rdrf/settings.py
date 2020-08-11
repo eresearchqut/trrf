@@ -646,4 +646,6 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 # URLs whitelisted for meeting the security conventions
 # Refer to docs/security/README.rst
 SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
-MAX_SESSION_REFRESH_RETRIES = env.get('max_session_refresh_retries', 5)
+
+# Frontend session renewal
+SESSION_REFRESH_MAX_RETRIES = env.get('session_refresh_max_retries', 5)

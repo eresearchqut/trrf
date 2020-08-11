@@ -408,7 +408,7 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        request.session['num_retries'] = settings.MAX_SESSION_REFRESH_RETRIES
+        request.session['num_retries'] = settings.SESSION_REFRESH_MAX_RETRIES
         self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
         if changes_since_version:
@@ -531,7 +531,7 @@ class FormView(View):
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
 
-        request.session['num_retries'] = settings.MAX_SESSION_REFRESH_RETRIES
+        request.session['num_retries'] = settings.SESSION_REFRESH_MAX_RETRIES
 
         if not self.CREATE_MODE:
             dyn_patient = DynamicDataWrapper(patient, rdrf_context_id=self.rdrf_context.pk)
