@@ -444,6 +444,7 @@ class FormTestCase(RDRFTestCase):
         request = self._create_request(self.simple_form, form_data)
         view = FormView()
         view.request = request
+        request.session = {}
         view.post(
             request,
             self.registry.code,

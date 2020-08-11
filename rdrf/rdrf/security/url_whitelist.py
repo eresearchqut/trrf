@@ -364,6 +364,7 @@ SECURITY_WHITELISTED_URLS = (
     "resend_email",
     "robots_txt",
     "rpc",
+    "session_refresh",
     "test 404",
     "test 500",
     "test application error",

@@ -302,7 +302,7 @@ DATABASE_PASSWORD = DATABASES["default"]["PASSWORD"]
 DATABASE_HOST = DATABASES["default"]["HOST"]
 
 # session and cookies
-SESSION_COOKIE_AGE = env.get("session_cookie_age", 60 * 60)
+SESSION_COOKIE_AGE = env.get("session_cookie_age", 15 * 60)
 SESSION_COOKIE_PATH = '{0}/'.format(SCRIPT_NAME)
 SESSION_SAVE_EVERY_REQUEST = env.get("session_save_every_request", True)
 SESSION_COOKIE_HTTPONLY = env.get("session_cookie_httponly", True)
@@ -646,3 +646,7 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 # URLs whitelisted for meeting the security conventions
 # Refer to docs/security/README.rst
 SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
+
+# Frontend session renewal
+SESSION_REFRESH_MAX_RETRIES = env.get('session_refresh_max_retries', 5)
+SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
