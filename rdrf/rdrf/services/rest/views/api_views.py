@@ -13,10 +13,10 @@ from rest_framework import serializers
 from rest_framework import viewsets
 from rest_framework.views import APIView
 
-from registry.patients.models import Patient, Registry, PatientStage
+from registry.patients.models import Patient, Registry, PatientStage, NextOfKinRelationship
 from registry.groups.models import CustomUser
 from rdrf.models.definition.models import RegistryForm
-from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer
+from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.security.security_checks import security_check_user_patient
 
@@ -32,6 +32,16 @@ class BadRequestError(APIException):
 class IsSuperUser(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_superuser
+
+
+class NextOfKinRelationshipDetail(generics.RetrieveAPIView):
+    queryset = NextOfKinRelationship.objects.all()
+    serializer_class = NextOfKinRelationshipSerializer
+
+
+class NextOfKinRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = NextOfKinRelationship.objects.all()
+    serializer_class = NextOfKinRelationshipSerializer
 
 
 class PatientDetail(generics.RetrieveAPIView):
