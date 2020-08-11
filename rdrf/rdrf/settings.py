@@ -649,3 +649,4 @@ SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
 
 # Frontend session renewal
 SESSION_REFRESH_MAX_RETRIES = env.get('session_refresh_max_retries', 5)
+SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
