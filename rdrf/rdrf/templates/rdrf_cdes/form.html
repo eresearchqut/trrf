@@ -112,6 +112,8 @@
             return $($($('#main-form')[0].elements).not('[readonly]')).serialize();
         }
 
+        rdrfSetupFileUploads();
+ 
         $('#main-form').data('serialize', serialized_form());
 
         $(window).bind('beforeunload', function(e){
@@ -125,7 +127,8 @@
         $("#main-form").submit(function() {
             $(window).unbind("beforeunload");
         });
-		rdrfSetupFileUploads();
+
+
 		$('.next').hover(
 			function() {
 				$("#next-form-label").toggle("fast");
