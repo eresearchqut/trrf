@@ -43,7 +43,7 @@ services:
       - docker/dev/envs/postgres
       - docker/dev/envs/runserver
       - .env_local
-    restart: always
+    restart: on-failure
     volumes:
       - .:/app
       - ./data/dev/:/data
