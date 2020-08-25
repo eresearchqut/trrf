@@ -547,7 +547,7 @@ class SliderWidget(widgets.TextInput):
 
     def render(self, name, value, attrs=None, renderer=None):
         if not (value and isinstance(value, float) or isinstance(value, int)):
-            value = 0
+            value = ""
 
         left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
         right_label = self.attrs.pop("right_label") if "right_label" in self.attrs else ''
@@ -576,6 +576,7 @@ class SliderWidget(widgets.TextInput):
                              $( "#{attrs['id']}" ).val( ui.value );
                          }}
                      }});
+                     $( "#{attrs['id']}" ).val("{value}");
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
                      $(".slider .tooltip").css("z-index","0");
