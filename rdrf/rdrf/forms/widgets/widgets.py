@@ -570,13 +570,18 @@ class SliderWidget(widgets.TextInput):
                  $(function() {{
                      $( "#{attrs['id']}" ).bootstrapSlider({{
                          tooltip: 'always',
+                         id: '{attrs['id']}-slider',
                          value: '{value}',
                          {widget_attrs}
-                         slide: function( event, ui ) {{
-                             $( "#{attrs['id']}" ).val( ui.value );
-                         }}
                      }});
+
+                     // Set the uninitialised / null value to ""
                      $( "#{attrs['id']}" ).val("{value}");
+                     // Set the uninitialised / null value to "-" in the tooltip
+                     if ("{value}" === "") {{
+                         $("#{attrs['id']}-slider .tooltip-inner").html("-");
+                     }};
+
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
                      $(".slider .tooltip").css("z-index","0");
