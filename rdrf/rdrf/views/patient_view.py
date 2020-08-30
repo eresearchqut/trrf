@@ -11,6 +11,7 @@ from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy, DemographicFields
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.form_section_helper import DemographicsSectionFieldBuilder
 
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
@@ -27,11 +28,6 @@ from registry.patients.admin_forms import PatientRelativeForm
 from django.utils.translation import ugettext as _
 
 from rdrf.forms.dynamic.registry_specific_fields import RegistrySpecificFieldsHandler
-from rdrf.helpers.constants import (
-    PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
-    PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
-    PATIENT_PERSONAL_DETAILS_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
-)
 from rdrf.helpers.utils import get_error_messages
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.forms.components import RDRFContextLauncherComponent
@@ -208,92 +204,34 @@ class PatientFormMixin:
         return list(map(strip_tags, error_messages))
 
     def _get_patient_id(self):
-        if self.object:
-            return self.object.pk
-        else:
-            return None
+        return self.object.pk if self.object else None
 
-    def get_form_sections(self, user, request, patient, registry, registry_code, patient_form,
-                          patient_address_form, patient_doctor_form, patient_relative_form):
-        personal_header = _(PATIENT_PERSONAL_DETAILS_SECTION_NAME)
-        # shouldn't be hardcoding behaviour here plus the html formatting
-        # originally here was not being passed as text
-        if registry_code == "fkrp":
-            personal_header += " " + \
-                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
+    def get_form_sections(self, user, request, patient, registry, patient_form,
+                          patient_address_form, patient_doctor_form, patient_relative_form, builder):
 
-        personal_fields = [
-            "family_name",
-            "given_names",
-            "maiden_name",
-            "umrn",
-            "date_of_birth",
-            "date_of_death",
-            "place_of_birth",
-            "date_of_migration",
-            "country_of_birth",
-            "ethnic_origin",
-            "sex",
-            "home_phone",
-            "mobile_phone",
-            "work_phone",
-            "email",
-            "living_status",
-        ]
-        personal_details_fields = (personal_header, personal_fields)
-
-        next_of_kin_fields = [
-            "next_of_kin_family_name",
-            "next_of_kin_given_names",
-            "next_of_kin_relationship",
-            "next_of_kin_address",
-            "next_of_kin_suburb",
-            "next_of_kin_country",
-            "next_of_kin_state",
-            "next_of_kin_postcode",
-            "next_of_kin_home_phone",
-            "next_of_kin_mobile_phone",
-            "next_of_kin_work_phone",
-            "next_of_kin_email",
-            "next_of_kin_parent_place_of_birth"
-        ]
-
-        next_of_kin = (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), next_of_kin_fields)
-
-        rdrf_registry = (_("Registry"), [
-            "rdrf_registry",
-            "working_groups",
-            "clinician"
-        ])
-
-        patient_address_section = (_(PATIENT_ADDRESS_SECTION_NAME), None)
-
-        patient_stage_section = (_(PATIENT_STAGE_SECTION_NAME), [
-            "stage"
-        ])
-
+        registry_code = registry.code
         form_sections = [
             (
                 patient_form,
-                (rdrf_registry,)
+                (builder.get_registry_fields(),)
             ),
             (
                 patient_form,
-                (personal_details_fields,)
+                (builder.get_personal_detail_fields(registry_code),)
             ),
             (
                 patient_address_form,
-                (patient_address_section,)
+                (builder.get_patient_address_section(),)
             ),
             (
                 patient_form,
-                (next_of_kin,)
+                (builder.get_next_of_kin_fields(),)
             ),
         ]
         if not user.is_patient and registry.has_feature(RegistryFeatures.STAGES):
             form_sections.append((
                 patient_form,
-                (patient_stage_section, )
+                (builder.get_patient_stage_section(), )
             ))
 
         if registry.has_feature(RegistryFeatures.FAMILY_LINKAGE):
@@ -310,11 +248,9 @@ class PatientFormMixin:
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
 
-            patient_doctor_section = (_(PATIENT_DOCTOR_SECTION_NAME), None)
-
             form_sections.append((
                 patient_doctor_form,
-                (patient_doctor_section,)
+                (builder.get_patient_doctor_section(),)
             ))
 
         # PatientRelativeForm for FH (only)
@@ -335,9 +271,7 @@ class PatientFormMixin:
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
 
-            patient_relative_section = (_(PATIENT_RELATIVE_SECTION_NAME), None)
-
-            form_sections.append((patient_relative_form, (patient_relative_section,)))
+            form_sections.append((patient_relative_form, (builder.get_patient_relative_section(),)))
 
         if registry.patient_fields:
             registry_specific_section_fields = self._get_registry_specific_section_fields(
@@ -389,8 +323,8 @@ class PatientFormMixin:
                 instance=patient, prefix="patient_address")
 
         form_sections = self.get_form_sections(
-            user, request, patient, registry, registry_code, patient_form, patient_address_form,
-            patient_doctor_form, patient_relative_form
+            user, request, patient, registry, patient_form, patient_address_form,
+            patient_doctor_form, patient_relative_form, DemographicsSectionFieldBuilder()
         )
 
         return patient, form_sections
