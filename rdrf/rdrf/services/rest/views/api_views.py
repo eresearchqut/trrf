@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import cached_property
 from operator import attrgetter
 import pycountry
@@ -69,8 +70,17 @@ class PatientList(generics.ListAPIView):
 
     def get_queryset(self):
         registry_code = self.kwargs.get("registry_code")
+
         registry = get_object_or_404(Registry, code=registry_code)
-        return Patient.objects.get_by_registry(registry)
+        patients = Patient.objects.get_by_registry(registry)
+
+        if updated_since := self.request.query_params.get("updated_since"):
+            if updated_since.isdigit():
+                updated_since = datetime.fromtimestamp(int(updated_since))
+                return patients.filter(last_updated_overall_at__gt=updated_since)
+            else:
+                raise APIException("Invalid value for updated_since")
+        return patients
 
 
 class CustomUserViewSet(viewsets.ReadOnlyModelViewSet):
