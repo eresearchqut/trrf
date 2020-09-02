@@ -24,6 +24,12 @@ matthew.bellgard@qut.edu.au
 Publications
 ------------
 
+*Please cite the following*:
+
+Bellgard MI, Snelling T, McGree JM. RD-RAP: beyond rare disease patient registries, devising a comprehensive data and analytic framework. Orphanet J Rare Dis. 2019;14(1):176. Published 2019 Jul 12. doi:10.1186/s13023-019-1139-9
+
+*Other relevant publications*:
+
 Matthew I Bellgard, Lee Render, Maciej Radochonski and Adam Hunter, Second generation registry framework, Source Code Biol Med. 2014 Jun 20;9:14.
 
 Matthew Bellgard, Christophe Beroud, Kay Parkinson, Tess Harris, Segolene Ayme, Gareth Baynam, Tarun Weeramanthri, Hugh Dawkins and Adam Hunter, Dispelling myths about rare disease registry system development. Source Code for Biology and Medicine, 2013. 8(1): p. 21.
