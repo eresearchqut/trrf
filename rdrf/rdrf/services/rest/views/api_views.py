@@ -18,6 +18,7 @@ from rest_framework.views import APIView
 from registry.patients.models import Patient, Registry, PatientStage, NextOfKinRelationship
 from registry.groups.models import CustomUser
 from rdrf.models.definition.models import RegistryForm
+from rdrf.services.rest.paginators import PatientListPagination
 from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.security.security_checks import security_check_user_patient
@@ -67,6 +68,7 @@ class PatientList(generics.ListAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = (IsSuperUser,)
+    pagination_class = PatientListPagination
 
     def get_queryset(self):
         registry_code = self.kwargs.get("registry_code")
