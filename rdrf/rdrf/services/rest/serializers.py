@@ -62,7 +62,7 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
         entry = ClinicalData.objects\
             .filter(django_model="Patient", django_id=instance.id, collection="cdes")\
             .order_by("last_updated_at").first()
-        return entry.data if entry else {}
+        return entry.data if entry else None
 
 
 class RegistryHyperlink(serializers.HyperlinkedRelatedField):
