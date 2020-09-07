@@ -45,7 +45,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 SECRET_KEY = env.get("secret_key", "changeme")
 # Locale
-TIME_ZONE = env.get("time_zone", 'Australia/Perth')
+TIME_ZONE = env.get("time_zone", 'Australia/Brisbane')
 LANGUAGE_CODE = env.get("language_code", 'en')
 USE_I18N = env.get("use_i18n", True)
 
@@ -182,6 +182,7 @@ INSTALLED_APPS = [
     'useraudit',
     'templatetag_handlebars',
     'rest_framework',
+    'rest_framework.authtoken',
     'anymail',
     'registry.groups',
     'registry.patients',
@@ -500,8 +501,8 @@ LOGIN_REDIRECT_URL = '{0}/'.format(SCRIPT_NAME)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.DjangoModelPermissions',
@@ -620,6 +621,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
     r'^i18n/',
     r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',
+    r'/api/v1/registries/(?P<registry_code>\w+)/patients/$',  # Authentication implemented in class
 )
 if DEBUG:
     STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )

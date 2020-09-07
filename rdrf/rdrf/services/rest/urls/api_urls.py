@@ -11,6 +11,8 @@ router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet
 # router.register(r'registries/(?P<registry_code>\w+)/indices', api_views.LookupIndex, basename='index')
 
 urlpatterns = [
+    re_path(r'registries/(?P<registry_code>\w+)/patients/$',
+            api_views.PatientList.as_view(), name='patient-list'),
     re_path(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
             api_views.PatientDetail.as_view(), name='patient-detail'),
     re_path(r'^countries/(?P<country_code>[A-Z]{2})/states/$',

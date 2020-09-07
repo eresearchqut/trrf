@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+
+from rdrf.models.definition.models import ClinicalData
 from registry.patients.models import Patient, Registry, NextOfKinRelationship
 from registry.groups.models import CustomUser
 from rdrf.models.proms.models import SurveyAssignment
@@ -41,10 +43,12 @@ class CustomUserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PatientSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.IntegerField(read_only=True)
     age = serializers.IntegerField(read_only=True)
     url = PatientHyperlinkId(read_only=True, source='*')
     user = CustomUserSerializer()
     stage = serializers.StringRelatedField()
+    clinical_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -53,6 +57,12 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
             'consent': {'required': True},
         }
         exclude = ('rdrf_registry', 'working_groups', 'created_by')
+
+    def get_clinical_data(self, instance):
+        entry = ClinicalData.objects\
+            .filter(django_model="Patient", django_id=instance.id, collection="cdes")\
+            .order_by("last_updated_at").first()
+        return entry.data if entry else None
 
 
 class RegistryHyperlink(serializers.HyperlinkedRelatedField):

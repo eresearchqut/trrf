@@ -1,8 +1,10 @@
+from datetime import datetime
 from functools import cached_property
 from operator import attrgetter
 import pycountry
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.exceptions import APIException, NotFound, PermissionDenied
@@ -16,12 +18,13 @@ from rest_framework.views import APIView
 from registry.patients.models import Patient, Registry, PatientStage, NextOfKinRelationship
 from registry.groups.models import CustomUser
 from rdrf.models.definition.models import RegistryForm
+from rdrf.services.rest.paginators import PatientListPagination
 from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.security.security_checks import security_check_user_patient
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,6 +62,27 @@ class PatientDetail(generics.RetrieveAPIView):
         """We're always filtering the patients by the registry code form the url and the user's working groups"""
         super().check_object_permissions(request, patient)
         security_check_user_patient(request.user, patient)
+
+
+class PatientList(generics.ListAPIView):
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
+    permission_classes = (IsSuperUser,)
+    pagination_class = PatientListPagination
+
+    def get_queryset(self):
+        registry_code = self.kwargs.get("registry_code")
+
+        registry = get_object_or_404(Registry, code=registry_code)
+        patients = Patient.objects.get_by_registry(registry)
+
+        if updated_since := self.request.query_params.get("updated_since"):
+            if updated_since.isdigit():
+                updated_since = datetime.fromtimestamp(int(updated_since))
+                return patients.filter(last_updated_overall_at__gt=updated_since)
+            else:
+                raise APIException("Invalid value for updated_since")
+        return patients
 
 
 class CustomUserViewSet(viewsets.ReadOnlyModelViewSet):
