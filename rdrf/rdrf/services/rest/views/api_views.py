@@ -41,6 +41,7 @@ class CanDeletePatient(BasePermission):
     def has_permission(self, request, view):
         if request.method == "DELETE":
             return request.user.is_superuser
+        return True
 
 
 class NextOfKinRelationshipDetail(generics.RetrieveAPIView):
