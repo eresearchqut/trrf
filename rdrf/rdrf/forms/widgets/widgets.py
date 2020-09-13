@@ -8,9 +8,11 @@ import re
 import sys
 
 from functools import reduce
+from importlib import import_module
 from operator import attrgetter
 
 import pycountry
+from django.conf import settings
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
@@ -150,6 +152,7 @@ class CalculatedFieldWidget(widgets.TextInput):
 
 
 class LookupWidget(widgets.TextInput):
+    SOURCE_URL = ""
 
     @staticmethod
     def usable_for_types():
@@ -853,7 +856,7 @@ class DurationWidget(widgets.TextInput):
 
 
 def _all_widgets():
-    EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput']
+    EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput', 'LookupWidget']
 
     def is_widget(cls):
         return issubclass(cls, Widget)
@@ -861,11 +864,28 @@ def _all_widgets():
     def is_name_ok(name):
         return name not in EXCLUDED_WIDGET_NAMES
 
-    return ((name, cls) for name, cls in inspect.getmembers(sys.modules[__name__], inspect.isclass) if is_widget(cls) and is_name_ok(name))
+    def get_widgets(name):
+        return [
+            (name, cls) for name, cls in inspect.getmembers(sys.modules[name], inspect.isclass)
+            if is_widget(cls) and is_name_ok(name)
+        ]
+
+    own_widgets = get_widgets(__name__)
+    if hasattr(settings, 'EXTRA_WIDGETS'):
+        module = import_module(settings.EXTRA_WIDGETS)
+        extra_widgets = get_widgets(module.__name__)
+        return own_widgets + extra_widgets
+
+    return own_widgets
 
 
 def get_all_widgets():
     return [name for name, _ in _all_widgets()]
+
+
+def get_widget_class(widget_name):
+    result = [widget_class for name, widget_class in _all_widgets() if name == widget_name]
+    return result[0] if result else None
 
 
 def get_widgets_for_data_type(data_type):
