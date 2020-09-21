@@ -37,6 +37,13 @@ class IsSuperUser(BasePermission):
         return request.user.is_superuser
 
 
+class CanDeletePatient(BasePermission):
+    def has_permission(self, request, view):
+        if request.method == "DELETE":
+            return request.user.is_staff
+        return True
+
+
 class NextOfKinRelationshipDetail(generics.RetrieveAPIView):
     queryset = NextOfKinRelationship.objects.all()
     serializer_class = NextOfKinRelationshipSerializer
@@ -47,10 +54,10 @@ class NextOfKinRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NextOfKinRelationshipSerializer
 
 
-class PatientDetail(generics.RetrieveAPIView):
+class PatientDetail(generics.RetrieveDestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, CanDeletePatient)
 
     def _get_registry_by_code(self, registry_code):
         try:
