@@ -40,7 +40,7 @@ class IsSuperUser(BasePermission):
 class CanDeletePatient(BasePermission):
     def has_permission(self, request, view):
         if request.method == "DELETE":
-            return request.user.is_superuser
+            return request.user.is_staff
         return True
 
 
