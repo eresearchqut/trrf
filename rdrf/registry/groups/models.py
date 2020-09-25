@@ -121,10 +121,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.num_registries == 1:
             return self.registry.first().code
 
-    def can(self, verb, datum):
-        if verb == "see":
-            return any([registry.shows(datum) for registry in self.registry.all()])
-
     @property
     def can_archive(self):
         """

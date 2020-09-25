@@ -209,11 +209,6 @@ class Registry(models.Model):
         except KeyError:
             return True
 
-    def shows(self, element):
-        # does this registry make visible extra/custom functionality ( false by default)
-        if "visibility" in self.metadata:
-            return element in self.metadata["visibility"]
-
     @property
     def questionnaire(self):
         try:
