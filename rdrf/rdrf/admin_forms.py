@@ -166,7 +166,7 @@ class CommonDataElementAdminForm(ModelForm):
         if not widget_name:
             return widget_name
 
-        WidgetClass = getattr(rdrf_widgets, widget_name, object)
+        WidgetClass = rdrf_widgets.get_widget_class(widget_name)
         if not issubclass(WidgetClass, Widget):
             raise ValidationError(_(f'Invalid widget "{widget_name}"'))
 
@@ -183,7 +183,7 @@ class CommonDataElementAdminForm(ModelForm):
         data_type = cleaned_data.get('datatype')
         widget_name = cleaned_data.get('widget_name')
         if widget_name:
-            WidgetClass = getattr(rdrf_widgets, widget_name)
+            WidgetClass = rdrf_widgets.get_widget_class(widget_name)
             if data_type not in WidgetClass.usable_for_types():
                 raise ValidationError(_(f"{widget_name} widget not usable for datatype: {data_type} !"))
             if WidgetClass == rdrf_widgets.OtherPleaseSpecifyWidget:

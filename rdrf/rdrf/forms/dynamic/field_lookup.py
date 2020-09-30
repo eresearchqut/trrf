@@ -239,9 +239,10 @@ class FieldFactory(object):
         """
         import django.forms as django_forms
 
-        if hasattr(widgets, cde.widget_name):
-            widget_class = getattr(widgets, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
+        if cde.widget_name in widgets.get_all_widgets():
+            widget_class = widgets.get_widget_class(cde.widget_name)
+            if widget_class:
+                return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
 
         if hasattr(django_forms, cde.widget_name):
             widget_class = getattr(django_forms, cde.widget_name)
@@ -323,7 +324,7 @@ class FieldFactory(object):
                 other_please_specify_value = choices[other_please_specify_index][0]
                 if self.cde.widget_name:
                     try:
-                        widget_class = getattr(widgets, self.cde.widget_name)
+                        widget_class = widgets.get_widget_class(self.cde.widget_name)
                         widget = widget_class(
                             main_choices=choices,
                             other_please_specify_value=other_please_specify_value,

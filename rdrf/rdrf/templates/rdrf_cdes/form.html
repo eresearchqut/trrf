@@ -109,7 +109,8 @@
         function serialized_form() {
             // don't serialize the readonly elements for change detection
             // this way we avoid calculated fields as being falsely detected as changed
-            return $($($('#main-form')[0].elements).not('[readonly]')).serialize();
+            // also skip elements with skip-serialize class attached to them
+            return $($($('#main-form')[0].elements).not('[readonly]').not('.skip-serialize')).serialize();
         }
 
         rdrfSetupFileUploads();
