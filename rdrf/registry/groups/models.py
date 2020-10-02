@@ -1,8 +1,10 @@
 import re
 
+from django.conf import settings
 from django.core import validators
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
 from django.utils import timezone
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.dispatch import receiver
@@ -238,10 +240,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         super().set_password(raw_password)
         self.force_password_change = False
 
+    def _load_quick_links(self):
+        valid_setting = hasattr(settings, 'QUICKLINKS_CLASS')
+        if not valid_setting:
+            logger.error("QUICKLINKS_CLASS setting is not configured !")
+            return None
+        setting_value = settings.QUICKLINKS_CLASS
+        if not setting_value:
+            logger.error("QUICKLINKS_CLASS setting need to have a value !")
+            return None
+        return import_string(setting_value)
+
     @property
     def menu_links(self):
-        from rdrf.forms.navigation.quick_links import QuickLinks
-        qlinks = QuickLinks(self.get_registries_or_all())
+        quick_links_class = self._load_quick_links()
+        if not quick_links_class:
+            return []
+        qlinks = quick_links_class(self.get_registries_or_all())
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
@@ -253,21 +268,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def settings_links(self):
         links = []
-
         if self.is_superuser:
-            from rdrf.forms.navigation.quick_links import QuickLinks
-            qlinks = QuickLinks(self.get_registries_or_all())
+            quick_links_class = self._load_quick_links()
+            if not quick_links_class:
+                return links
+            qlinks = quick_links_class(self.get_registries_or_all())
             links = qlinks.settings_links()
-
         return links
 
     @property
     def admin_page_links(self):
         links = []
-
         if self.is_superuser:
-            from rdrf.forms.navigation.quick_links import QuickLinks
-            qlinks = QuickLinks(self.get_registries_or_all())
+            quick_links_class = self._load_quick_links()
+            if not quick_links_class:
+                return links
+            qlinks = quick_links_class(self.get_registries_or_all())
             links = qlinks.admin_page_links()
 
         return links

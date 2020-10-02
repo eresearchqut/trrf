@@ -370,12 +370,14 @@ class QuickLinks:
     """
     A convenience class to make it easy to see what links are provided to users on the "Home" screen
     """
+    REGULAR_MENU_CONFIG = RegularMenuConfig
+    PROMS_MENU_CONFIG = PromsMenuConfig
 
     def __init__(self, registries):
         if settings.SYSTEM_ROLE.is_cic_proms:
-            self.menu_config = PromsMenuConfig(registries)
+            self.menu_config = self.PROMS_MENU_CONFIG(registries)
         else:
-            self.menu_config = RegularMenuConfig(registries)
+            self.menu_config = self.REGULAR_MENU_CONFIG(registries)
         self.menu_config.build_menu()
 
     def menu_links(self, groups, reports_disabled=False):
