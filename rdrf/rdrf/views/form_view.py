@@ -527,6 +527,7 @@ class FormView(View):
 
         patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient)
+        self.registry_permissions_check(request, registry_code, form_id, patient_id, context_id)
 
         self.patient_id = patient_id
 
