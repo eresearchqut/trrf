@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class RegistryFormAdminForm(ModelForm):
-    tags = MultipleChoiceField(choices=settings.REGISTRY_FORM_TAGS,
+    tags = MultipleChoiceField(choices=settings.REGISTRY_FORM_TAGS, required=False,
                                widget=HiddenInput if not settings.REGISTRY_FORM_TAGS else None)
 
     def __init__(self, *args, **kwargs):
