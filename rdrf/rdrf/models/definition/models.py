@@ -7,6 +7,7 @@ import yaml
 
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
@@ -838,6 +839,7 @@ class RegistryForm(models.Model):
         help_text='''Use the conditional rendering DSL to add rules.
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
+    tags = ArrayField(models.CharField(max_length=20), default=list, blank=True)
 
     class Meta:
         ordering = ('registry', 'position')
