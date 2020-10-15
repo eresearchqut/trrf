@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0130_duplicate_patient_email'),
+        ('rdrf', '0131_clinician_assignment_event_types'),
     ]
 
     operations = [
