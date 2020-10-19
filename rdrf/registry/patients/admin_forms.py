@@ -302,7 +302,7 @@ class PatientForm(forms.ModelForm):
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
-        clinicians = CustomUser.objects.all()
+        registered_clinicians = CustomUser.objects.all()
         instance = None
 
         if 'registry_model' in kwargs:
@@ -323,8 +323,6 @@ class PatientForm(forms.ModelForm):
 
             kwargs['initial'] = initial_data
 
-            clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
-
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
@@ -333,14 +331,15 @@ class PatientForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
-        self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
+        registered_clinicians_filtered = [c.id for c in registered_clinicians if c.is_clinician]
+        self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(id__in=registered_clinicians_filtered)
 
         # clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
         if self.registry_model:
             if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
-                self.fields["clinician"].widget = forms.HiddenInput()
+                self.fields['registered_clinicians'].required = False
+                self.fields["registered_clinicians"].widget = forms.HiddenInput()
 
         registries = Registry.objects.all()
         if self.registry_model:
@@ -570,7 +569,7 @@ class PatientForm(forms.ModelForm):
 
             patient_model.save()
 
-        patient_model.clinician = self.cleaned_data["clinician"]
+        patient_model.registered_clinicians.set(self.cleaned_data["registered_clinicians"])
 
         for consent_field in self.custom_consents:
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(

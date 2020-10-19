@@ -193,8 +193,8 @@
                         <td>{{patient.patient.family_name|title}}</td>
                         <td>{{patient.patient.date_of_birth|date:"jS F Y"}}</td>
                         <td>
-                            {% if patient.patient.clinician %}
-                                {% for wg in patient.patient.clinician.working_groups.all %}
+                            {% if patient.patient.registered_clinicians %}
+                                {% for wg in patient.working_groups.all %}
                                     {{wg.name}}
                                 {% endfor %}
                             {% else %}

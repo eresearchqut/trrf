@@ -350,12 +350,10 @@ class Patient(models.Model):
         null=True,
         verbose_name=_("Reason"),
         help_text=_("Please provide reason for deactivating the patient"))
-    clinician = models.ForeignKey(
+    registered_clinicians = models.ManyToManyField(
         CustomUser,
-        blank=True,
-        null=True,
-        verbose_name=_("Clinician"),
-        on_delete=models.SET_NULL)
+        related_name='registered_patients'
+    )
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -1357,7 +1355,7 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 def selected_clinician_notification(sender, instance, **kwargs):
     from rdrf.services.io.notifications.email_notification import process_notification
     from rdrf.events.events import EventType
-    if instance.clinician and hasattr(instance, "clinician_flag"):
+    if instance.registered_clinicians.exists() and hasattr(instance, "clinician_flag"):
         registry_model = instance.rdrf_registry.first()
         template_data = {"patient": instance}
         process_notification(registry_model.code,
