@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<br>
+
+<div class="alert alert-success">
+    {% blocktrans %}
+        We have sent an email to {{ email }} with further instructions.
+    {% endblocktrans %}
+</div>
+
+{% endblock %}

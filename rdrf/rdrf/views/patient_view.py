@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.views.generic import CreateView
@@ -16,6 +17,7 @@ from rdrf.helpers.form_section_helper import DemographicsSectionFieldBuilder
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
+from registry.groups.models import CustomUser
 from registry.patients.models import ParentGuardian
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
@@ -336,54 +338,64 @@ class PatientFormMixin:
         kwargs["registry_model"] = self.registry_model
         return kwargs
 
-    def all_forms_valid(self, forms):
-        # called _after_ all form(s) validated
-        # save patient
-        patient_form = forms['patient_form']
-        self.object = patient_form.save()
-        if self.object.created_by is None:
-            self.object.created_by = self.user
-            self.object.save()
-        # if this patient was created from a patient relative, sync with it
-        self.object.sync_patient_relative()
+    def save_models(self, forms):
+        with transaction.atomic():
+            # save patient
+            patient_form = forms['patient_form']
+            self.object = patient_form.save()
+            if self.object.created_by is None:
+                self.object.created_by = self.user
+                self.object.save()
+            # if this patient was created from a patient relative, sync with it
+            self.object.sync_patient_relative()
 
-        # save registry specific fields
-        registry_specific_fields_handler = RegistrySpecificFieldsHandler(
-            self.registry_model, self.object)
+            # save registry specific fields
+            registry_specific_fields_handler = RegistrySpecificFieldsHandler(
+                self.registry_model, self.object)
 
-        registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
+            registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
-        # save addresses
-        address_formset = forms.get('address_form')
-        if address_formset:
-            address_formset.instance = self.object
-            address_formset.save()
+            # save addresses
+            address_formset = forms.get('address_form')
+            if address_formset:
+                address_formset.instance = self.object
+                address_formset.save()
 
-        # save doctors
-        if self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
-            doctor_formset = forms.get('doctors_form')
-            if doctor_formset:
-                doctor_formset.instance = self.object
-                doctor_formset.save()
+            # save doctors
+            if self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
+                doctor_formset = forms.get('doctors_form')
+                if doctor_formset:
+                    doctor_formset.instance = self.object
+                    doctor_formset.save()
 
-        # patient relatives
-        patient_relative_formset = forms.get('patient_relatives_form')
-        if patient_relative_formset:
-            patient_relative_formset.instance = self.object
-            patient_relative_models = patient_relative_formset.save()
-            for patient_relative_model in patient_relative_models:
-                patient_relative_model.patient = self.object
-                patient_relative_model.save()
-                patient_relative_model.sync_relative_patient()
-                tag = patient_relative_model.given_names + patient_relative_model.family_name
-                # The patient relative form has a checkbox to "create a patient from the
-                # relative"
-                for form in patient_relative_formset:
-                    if form.tag == tag:  # must be a better way to do this ...
-                        if form.create_patient_flag:
-                            patient_relative_model.create_patient_from_myself(
-                                self.registry_model,
-                                self.object.working_groups.all())
+            # create user
+            if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+                user = CustomUser.objects.create(
+                    first_name=self.object.given_names,
+                    last_name=self.object.family_name,
+                    email=self.object.email,
+                )
+                user.set_unusable_password()
+                user.save()
+
+            # patient relatives
+            patient_relative_formset = forms.get('patient_relatives_form')
+            if patient_relative_formset:
+                patient_relative_formset.instance = self.object
+                patient_relative_models = patient_relative_formset.save()
+                for patient_relative_model in patient_relative_models:
+                    patient_relative_model.patient = self.object
+                    patient_relative_model.save()
+                    patient_relative_model.sync_relative_patient()
+                    tag = patient_relative_model.given_names + patient_relative_model.family_name
+                    # The patient relative form has a checkbox to "create a patient from the
+                    # relative"
+                    for form in patient_relative_formset:
+                        if form.tag == tag:  # must be a better way to do this ...
+                            if form.create_patient_flag:
+                                patient_relative_model.create_patient_from_myself(
+                                    self.registry_model,
+                                    self.object.working_groups.all())
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -555,7 +567,8 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):
-            return self.all_forms_valid(forms)
+            success_redirect = self.save_models(forms)
+            return success_redirect
         else:
             errors = get_error_messages([form for form in forms.values() if form])
             return self.form_invalid(forms, errors=errors)
@@ -675,7 +688,7 @@ class PatientEditView(PatientFormMixin, View):
 
         patient_relatives_form = None
         if all(valid_forms):
-            self.all_forms_valid(forms)
+            self.save_models(forms)
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
             context = {
