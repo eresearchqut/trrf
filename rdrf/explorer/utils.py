@@ -513,7 +513,7 @@ class DatabaseUtils(object):
                 values = self._get_cde_value(form_model,
                                              section_model,
                                              cde_model,
-                                             record,
+                                             processed_record,
                                              True)
                 if len(values) > max_items:
                     self.warning_messages.append(
@@ -529,7 +529,7 @@ class DatabaseUtils(object):
                 value = self._get_cde_value(form_model,
                                             section_model,
                                             cde_model,
-                                            record,
+                                            processed_record,
                                             False)
                 result[column_name] = value
         return result
