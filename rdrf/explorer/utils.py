@@ -484,7 +484,7 @@ class DatabaseUtils(object):
         result['timestamp'] = mongo_document.get("timestamp", None)
 
         processed_record = defaultdict(list)
-        for form_dict in mongo_document["forms"]:
+        for form_dict in record["forms"]:
             form_name = form_dict["name"]
             for section_dict in form_dict["sections"]:
                 section_code = section_dict["code"]
