@@ -163,7 +163,7 @@ class PatientManager(models.Manager):
         by_registry = self.model.objects.filter(rdrf_registry=registry_model)
 
         normal = Q(working_groups__in=clinician.working_groups.all())
-        clinicians_patients = Q(clinician=clinician)
+        clinicians_patients = Q(registered_clinicians__in=[clinician])
         patients_created_by_clinician = Q(created_by=clinician)
 
         base_qs = by_registry.filter(clinicians_patients if clinicians_have_patients else normal)
@@ -171,7 +171,7 @@ class PatientManager(models.Manager):
         if not ethical_clearance_needed:
             return base_qs
 
-        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(clinician__isnull=True))
+        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(registered__clinicians__isnull=True))
 
         if clinician.ethically_cleared:
             if clinicians_have_patients:
