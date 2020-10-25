@@ -580,6 +580,22 @@ class PatientForm(forms.ModelForm):
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
 
+    def notify_clinicians(self, patient_model, existing_clinicians, current_clinicians):
+        from rdrf.services.io.notifications.email_notification import process_notification
+        from rdrf.events.events import EventType
+
+        instance = getattr(self, 'instance', None)
+        registry_model = instance.rdrf_registry.first()
+
+        new_clinicians = current_clinicians - existing_clinicians
+        for c in new_clinicians:
+            template_data = {"patient": patient_model, "clinician": c}
+            process_notification(registry_model.code, EventType.CLINICIAN_ASSIGNED, template_data)
+        removed_clinicians = existing_clinicians - current_clinicians
+        for c in removed_clinicians:
+            template_data = {"patient": patient_model, "clinician": c}
+            process_notification(registry_model.code, EventType.CLINICIAN_UNASSIGNED, template_data)
+
     def save(self, commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
@@ -590,17 +606,26 @@ class PatientForm(forms.ModelForm):
             patient_registries = []
 
         if commit:
+            instance = getattr(self, 'instance', None)
             patient_model.save()
+            existing_clinicians = set()
+            if instance:
+                existing_clinicians = set(instance.registered_clinicians.all())
 
-            patient_model.registered_clinicians.set(self.cleaned_data["registered_clinicians"])
+            current_clinicians = set(self.cleaned_data["registered_clinicians"])
+            patient_model.registered_clinicians.set(current_clinicians)
             if patient_model.registered_clinicians.exists():
                 clinician_wgs = set([wg for c in patient_model.registered_clinicians.all() for wg in c.working_groups.all()])
                 patient_model.working_groups.set(clinician_wgs)
             else:
                 patient_model.working_groups.set(self.cleaned_data["working_groups"])
 
-            for reg in self.cleaned_data["rdrf_registry"]:
+            registries = self.cleaned_data["rdrf_registry"]
+            for reg in registries:
                 patient_model.rdrf_registry.add(reg)
+
+            if any([r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries]):
+                self.notify_clinicians(patient_model, existing_clinicians, current_clinicians)
 
             patient_model.save()
 
