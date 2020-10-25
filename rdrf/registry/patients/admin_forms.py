@@ -302,6 +302,13 @@ class PatientForm(forms.ModelForm):
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
+
+        def clinician_display_str(obj):
+            title = obj.title or ''
+            full_name = f"{obj.first_name} {obj.last_name}"
+            wg = obj.working_groups.first().name if obj.working_groups.first() else ''
+            return f"{title} {full_name} ({wg})"
+
         registered_clinicians = CustomUser.objects.all()
         instance = None
 
@@ -333,9 +340,7 @@ class PatientForm(forms.ModelForm):
 
         registered_clinicians_filtered = [c.id for c in registered_clinicians if c.is_clinician]
         self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(id__in=registered_clinicians_filtered)
-        self.fields["registered_clinicians"].label_from_instance = (
-            lambda obj: f"{obj.first_name} {obj.last_name} ({obj.working_groups.first().name if obj.working_groups.first() else ''})"
-        )
+        self.fields["registered_clinicians"].label_from_instance = clinician_display_str
 
         # registered_clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
