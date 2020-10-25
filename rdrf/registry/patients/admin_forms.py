@@ -520,6 +520,17 @@ class PatientForm(forms.ModelForm):
                 raise forms.ValidationError("Patient must be assigned to a working group")
             return ret_val
 
+    def clean_registered_clinicians(self):
+        reg = self.cleaned_data["rdrf_registry"]
+        reg_clinicians = self.cleaned_data["registered_clinicians"]
+        if reg and reg.exists():
+            current_registry = reg.first()
+            if current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM) and reg_clinicians.count() > 1:
+                raise ValidationError(
+                    "Only a single clinician can be selected when the `clinician_form` registry feature is enabled !"
+                )
+        return reg_clinicians
+
     def clean(self):
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
