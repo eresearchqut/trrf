@@ -1,14 +1,9 @@
 {% load i18n %}
-{% load get_password_status %}
 
 
 {% trans 'Please visit the following page to activate your newly created account!' %}
 
-{% if user and user|has_unusable_password %}
-  <a href="https://{{ site.domain }}{% url 'clinical_patient_activate' activation_key %}">Activate</a>
-{% else %}
-  <a href="https://{{ site.domain }}{% url 'registration_activate' activation_key %}">Activate</a>
-{% endif %}
+<a href="https://{{ site.domain }}{% url 'registration_activate' activation_key %}">Activate</a>
 
 <br />
 
