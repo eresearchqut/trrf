@@ -4,5 +4,5 @@ register = template.Library()
 
 
 @register.filter
-def has_unusable_password(user):
-    return user.has_unusable_password()
+def has_usable_password(user):
+    return user.has_usable_password()

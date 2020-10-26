@@ -97,16 +97,12 @@ class ClinicalPatientActivationView(ActivationView):
     def activate(self, *args, **kwargs):
         if activation_key := kwargs.get('activation_key'):
             profile = self.registration_profile.objects.get(activation_key=activation_key)
-            if profile and profile.user.has_unusable_password:
+            if profile and profile.user.has_usable_password:
                 return super().activate(*args, **kwargs)
         return False
 
     def get_success_url(self, user):
-        user.force_password_change = True
-        user.save(update_fields=['force_password_change'])
-
-        login(self.request, user)
-
+        login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
         return "login_router"
 
 

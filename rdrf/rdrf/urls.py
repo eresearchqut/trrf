@@ -13,6 +13,7 @@ from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
+from rdrf.forms.password_change import PasswordChangeForm
 
 from rdrf.views import favicon_view
 import rdrf.views.form_view as form_view
@@ -150,7 +151,7 @@ normalpatterns += [
     # Login is done by two_factor:login included above
 
     re_path(r'^logout/?$', auth_views.LogoutView.as_view(), name='logout'),
-    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    re_path(r'^password_change/?$', auth_views.PasswordChangeView.as_view(form_class=PasswordChangeForm), name='password_change'),
     re_path(r'^password_change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),

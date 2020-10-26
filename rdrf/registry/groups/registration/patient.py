@@ -28,11 +28,15 @@ class PatientRegistration(BaseRegistration):
         patient = self._create_patient(registry, working_group, user)
         logger.info("Registration process - created patient")
 
+        self.send_activation_email(registry_code, user, patient)
+
+    def send_activation_email(self, registry_code, user, patient):
         registration = RegistrationProfile.objects.get(user=user)
         template_data = {
             "patient": patient,
             "registration": registration,
             "activation_url": self.get_registration_activation_url(registration),
+            "has_usable_password": user.has_usable_password(),
         }
 
         process_notification(registry_code, EventType.NEW_PATIENT, template_data)

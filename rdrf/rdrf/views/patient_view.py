@@ -2,11 +2,14 @@ from collections import OrderedDict
 
 from django.db import transaction
 from django.shortcuts import render, redirect
+from django.utils.module_loading import import_string
 from django.views.generic.base import View
 from django.views.generic import CreateView
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from registration.models import RegistrationProfile
 
+from rdrf import settings
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy, DemographicFields
@@ -17,6 +20,7 @@ from rdrf.helpers.form_section_helper import DemographicsSectionFieldBuilder
 from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
+from registry.groups import GROUPS
 from registry.groups.models import CustomUser
 from registry.patients.models import ParentGuardian
 from registry.patients.models import Patient
@@ -371,12 +375,21 @@ class PatientFormMixin:
             # create user
             if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                 user = CustomUser.objects.create(
-                    first_name=self.object.given_names,
-                    last_name=self.object.family_name,
                     email=self.object.email,
+                    username=self.object.email,
+                    force_password_change=True,
                 )
                 user.set_unusable_password()
                 user.save()
+
+                self.object.user = user
+                self.object.save(update_fields=["user"])
+
+                RegistrationProfile.objects.create_profile(user)
+                registration = import_string(settings.REGISTRATION_CLASS)(self.request)
+                registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
+                                               self.object.given_names, self.object.family_name)
+                registration.send_activation_email(self.registry_model.code, user, self.object)
 
             # patient relatives
             patient_relative_formset = forms.get('patient_relatives_form')
