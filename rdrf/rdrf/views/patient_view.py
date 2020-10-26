@@ -580,8 +580,7 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):
-            success_redirect = self.save_models(forms)
-            return success_redirect
+            return self.save_models(forms)
         else:
             errors = get_error_messages([form for form in forms.values() if form])
             return self.form_invalid(forms, errors=errors)
