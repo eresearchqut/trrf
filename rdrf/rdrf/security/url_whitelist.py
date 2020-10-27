@@ -296,7 +296,6 @@ SECURITY_WHITELISTED_URLS = (
     "cde_widget_settings",
     "clinician_activate",
     "clinician_form_view",
-    "clinical_patient_activate",
     "consent_details",
     "consent_form_view",
     "consent_list",
