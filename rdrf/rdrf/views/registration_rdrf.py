@@ -93,16 +93,10 @@ class RdrfRegistrationView(RegistrationView):
         return registry.registration_allowed()
 
 
-class ClinicalPatientActivationView(ActivationView):
-    def activate(self, *args, **kwargs):
-        if activation_key := kwargs.get('activation_key'):
-            profile = self.registration_profile.objects.get(activation_key=activation_key)
-            if profile and profile.user.has_usable_password:
-                return super().activate(*args, **kwargs)
-        return False
-
+class PatientActivationView(ActivationView):
     def get_success_url(self, user):
-        login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
+        if not user.has_usable_password:
+            login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
         return "login_router"
 
 
