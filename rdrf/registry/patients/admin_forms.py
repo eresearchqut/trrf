@@ -347,7 +347,6 @@ class PatientForm(forms.ModelForm):
         wgs_set_by_clinicians = False
         if self.registry_model:
             if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
-                self.fields["registered_clinicians"].required = False
                 self.fields["registered_clinicians"].widget = forms.HiddenInput()
             elif instance and instance.registered_clinicians.exists():
                 wgs_set_by_clinicians = True

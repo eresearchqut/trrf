@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patient',
             name='registered_clinicians',
-            field=models.ManyToManyField(related_name='registered_patients', to=settings.AUTH_USER_MODEL),
+            field=models.ManyToManyField(blank=True, related_name='registered_patients', to=settings.AUTH_USER_MODEL),
         ),
     ]

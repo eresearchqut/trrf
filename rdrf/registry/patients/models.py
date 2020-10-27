@@ -352,7 +352,8 @@ class Patient(models.Model):
         help_text=_("Please provide reason for deactivating the patient"))
     registered_clinicians = models.ManyToManyField(
         CustomUser,
-        related_name='registered_patients'
+        related_name='registered_patients',
+        blank=True
     )
     user = models.ForeignKey(
         CustomUser,
