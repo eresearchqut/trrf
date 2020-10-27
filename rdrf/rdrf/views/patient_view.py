@@ -342,7 +342,7 @@ class PatientFormMixin:
         kwargs["registry_model"] = self.registry_model
         return kwargs
 
-    def save_models(self, forms):
+    def all_forms_valid(self, forms):
         with transaction.atomic():
             # save patient
             patient_form = forms['patient_form']
@@ -580,7 +580,7 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):
-            return self.save_models(forms)
+            return self.all_forms_valid(forms)
         else:
             errors = get_error_messages([form for form in forms.values() if form])
             return self.form_invalid(forms, errors=errors)
@@ -700,7 +700,7 @@ class PatientEditView(PatientFormMixin, View):
 
         patient_relatives_form = None
         if all(valid_forms):
-            self.save_models(forms)
+            self.all_forms_valid(forms)
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
             context = {
