@@ -95,7 +95,7 @@ class RdrfRegistrationView(RegistrationView):
 
 class PatientActivationView(ActivationView):
     def get_success_url(self, user):
-        if not user.has_usable_password:
+        if not user.has_usable_password():
             login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
         return "login_router"
 
