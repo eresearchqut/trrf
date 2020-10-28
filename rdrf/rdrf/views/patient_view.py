@@ -21,7 +21,7 @@ from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
 from registry.groups import GROUPS
-from registry.groups.models import CustomUser
+from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import ParentGuardian
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
@@ -380,6 +380,7 @@ class PatientFormMixin:
                     force_password_change=True,
                 )
                 user.set_unusable_password()
+                user.working_groups.set([WorkingGroup.objects.get_unallocated(self.registry_model)])
                 user.save()
 
                 self.object.user = user
