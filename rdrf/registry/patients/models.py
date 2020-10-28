@@ -171,7 +171,7 @@ class PatientManager(models.Manager):
         if not ethical_clearance_needed:
             return base_qs
 
-        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(registered__clinicians__isnull=True))
+        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(registered_clinicians__isnull=True))
 
         if clinician.ethically_cleared:
             if clinicians_have_patients:
