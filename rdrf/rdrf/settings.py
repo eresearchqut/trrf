@@ -637,7 +637,6 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'registration_disallowed',
     'registration_activation_complete',
     'registration_activate_complete',
-    'registration_resend_activation',
     'password_reset_done',
     'password_reset_complete',
     'favicon',

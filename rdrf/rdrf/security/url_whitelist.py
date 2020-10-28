@@ -355,7 +355,6 @@ SECURITY_WHITELISTED_URLS = (
     "registration_disallowed",
     "registration_failed",
     "registration_register",
-    "registration_resend_activation",
     "registry",
     "registry:consent-form-download",
     "registry:parent_edit",

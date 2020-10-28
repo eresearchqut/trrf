@@ -27,7 +27,6 @@ import rdrf.views.consent_view as consent_view
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
 from rdrf.views.lookup_views import PatientLookup
-from registration.backends.default.views import ResendActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
@@ -315,7 +314,6 @@ normalpatterns += [
     re_path(r'^activate/(?P<activation_key>\w+)/?$',
             PatientActivationView.as_view(),
             name='registration_activate'),
-    re_path(r'^resend-activation/?$', ResendActivationView.as_view(), name='registration_resend_activation'),
 
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
