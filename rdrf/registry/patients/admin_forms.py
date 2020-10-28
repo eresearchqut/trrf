@@ -306,8 +306,8 @@ class PatientForm(forms.ModelForm):
         def clinician_display_str(obj):
             title = obj.title or ''
             full_name = f"{obj.first_name} {obj.last_name}"
-            wg = obj.working_groups.first().name if obj.working_groups.first() else ''
-            return f"{title} {full_name} ({wg})"
+            wgs = ', '.join([wg.name for wg in obj.working_groups.all()])
+            return f"{title} {full_name} ({wgs})"
 
         registered_clinicians = CustomUser.objects.all()
         instance = None
