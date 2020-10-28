@@ -512,12 +512,13 @@ class PatientForm(forms.ModelForm):
     def clean_working_groups(self):
         instance = getattr(self, "instance", None)
         if instance and getattr(instance, "wgs_set_by_clinicians", False):
-            return [wg.id for wg in instance.working_groups.all()]
-        else:
-            ret_val = self.cleaned_data["working_groups"]
-            if not ret_val:
-                raise forms.ValidationError("Patient must be assigned to a working group")
-            return ret_val
+            reg_clinicians = self.cleaned_data.get("registered_clinicians", [])
+            if reg_clinicians:
+                return [wg.id for wg in instance.working_groups.all()]
+        ret_val = self.cleaned_data["working_groups"]
+        if not ret_val:
+            raise forms.ValidationError("Patient must be assigned to a working group")
+        return ret_val
 
     def clean_registered_clinicians(self):
         reg = self.cleaned_data["rdrf_registry"]
@@ -545,8 +546,8 @@ class PatientForm(forms.ModelForm):
 
         registries = self.cleaned_data["rdrf_registry"]
         reg_clinicians = self.cleaned_data.get("registered_clinicians", [])
-        selected_wgs = self.cleaned_data.get("working_groups", [])
-        if registries.exists() and not reg_clinicians and not selected_wgs:
+        clinicians_have_patients = any(r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries)
+        if registries.exists() and clinicians_have_patients and not reg_clinicians:
             unallocated_wgs = [WorkingGroup.objects.get_unallocated(registry) for registry in registries]
             wgs = [unallocated.id for unallocated in unallocated_wgs if unallocated]
             cleaneddata['working_groups'] = wgs
