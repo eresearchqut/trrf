@@ -163,7 +163,7 @@ class PatientManager(models.Manager):
         by_registry = self.model.objects.filter(rdrf_registry=registry_model)
 
         normal = Q(working_groups__in=clinician.working_groups.all())
-        clinicians_patients = Q(clinician=clinician)
+        clinicians_patients = Q(registered_clinicians__in=[clinician])
         patients_created_by_clinician = Q(created_by=clinician)
 
         base_qs = by_registry.filter(clinicians_patients if clinicians_have_patients else normal)
@@ -171,7 +171,7 @@ class PatientManager(models.Manager):
         if not ethical_clearance_needed:
             return base_qs
 
-        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(clinician__isnull=True))
+        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(registered__clinicians__isnull=True))
 
         if clinician.ethically_cleared:
             if clinicians_have_patients:
@@ -350,12 +350,11 @@ class Patient(models.Model):
         null=True,
         verbose_name=_("Reason"),
         help_text=_("Please provide reason for deactivating the patient"))
-    clinician = models.ForeignKey(
+    registered_clinicians = models.ManyToManyField(
         CustomUser,
-        blank=True,
-        null=True,
-        verbose_name=_("Clinician"),
-        on_delete=models.SET_NULL)
+        related_name='registered_patients',
+        blank=True
+    )
     user = models.ForeignKey(
         CustomUser,
         blank=True,
@@ -1357,7 +1356,7 @@ def other_clinician_post_save(sender, instance, created, raw, using, update_fiel
 def selected_clinician_notification(sender, instance, **kwargs):
     from rdrf.services.io.notifications.email_notification import process_notification
     from rdrf.events.events import EventType
-    if instance.clinician and hasattr(instance, "clinician_flag"):
+    if instance.registered_clinicians.exists() and hasattr(instance, "clinician_flag"):
         registry_model = instance.rdrf_registry.first()
         template_data = {"patient": instance}
         process_notification(registry_model.code,

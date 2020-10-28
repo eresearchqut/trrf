@@ -4,7 +4,7 @@ from registry.patients.models import PatientAddress
 
 @report_function
 def professionals(patient_model):
-    return patient_model.clinician
+    return patient_model.registered_clinicians.all()
 
 
 @report_function

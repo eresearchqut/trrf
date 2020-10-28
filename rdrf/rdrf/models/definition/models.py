@@ -1398,6 +1398,8 @@ class EmailNotification(models.Model):
         (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated"),
         (EventType.SURVEY_REQUEST, "Survey Request"),
         (EventType.DUPLICATE_PATIENT_SET, "Duplicate Patient Set"),
+        (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
+        (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
     )
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)

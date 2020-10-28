@@ -213,7 +213,7 @@ class PatientFormMixin:
         form_sections = [
             (
                 patient_form,
-                (builder.get_registry_fields(),)
+                (builder.get_registry_fields(registry.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)),)
             ),
             (
                 patient_form,

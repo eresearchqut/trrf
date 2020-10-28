@@ -18,6 +18,8 @@ class EventType:
     CARER_DEACTIVATED = "carer-deactivated"
     SURVEY_REQUEST = "survey-request"
     DUPLICATE_PATIENT_SET = "duplicate-patient-set"
+    CLINICIAN_ASSIGNED = "clinician-assigned"
+    CLINICIAN_UNASSIGNED = "clinician-unassigned"
 
     REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
     CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]

@@ -302,7 +302,14 @@ class PatientForm(forms.ModelForm):
     country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
 
     def __init__(self, *args, **kwargs):
-        clinicians = CustomUser.objects.all()
+
+        def clinician_display_str(obj):
+            title = obj.title or ''
+            full_name = f"{obj.first_name} {obj.last_name}"
+            wgs = ', '.join([wg.name for wg in obj.working_groups.all()])
+            return f"{title} {full_name} ({wgs})"
+
+        registered_clinicians = CustomUser.objects.all()
         instance = None
 
         if 'registry_model' in kwargs:
@@ -323,8 +330,6 @@ class PatientForm(forms.ModelForm):
 
             kwargs['initial'] = initial_data
 
-            clinicians = CustomUser.objects.filter(registry__in=kwargs['instance'].rdrf_registry.all())
-
         if "user" in kwargs:
             self.user = kwargs.pop("user")
 
@@ -333,14 +338,23 @@ class PatientForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        clinicians_filtered = [c.id for c in clinicians if c.is_clinician]
-        self.fields["clinician"].queryset = CustomUser.objects.filter(id__in=clinicians_filtered)
+        registered_clinicians_filtered = [c.id for c in registered_clinicians if c.is_clinician]
+        self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(id__in=registered_clinicians_filtered)
+        self.fields["registered_clinicians"].label_from_instance = clinician_display_str
 
-        # clinicians field should only be visible for registries which
+        # registered_clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
+        wgs_set_by_clinicians = False
         if self.registry_model:
             if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
-                self.fields["clinician"].widget = forms.HiddenInput()
+                self.fields["registered_clinicians"].widget = forms.HiddenInput()
+            elif instance and instance.registered_clinicians.exists():
+                wgs_set_by_clinicians = True
+                clinician_wgs = set([wg for c in instance.registered_clinicians.all() for wg in c.working_groups.all()])
+                self.fields["working_groups"].disabled = True
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(pk__in=[wg.id for wg in clinician_wgs])
+                instance.working_groups.set(clinician_wgs)
+                instance.wgs_set_by_clinicians = True
 
         registries = Registry.objects.all()
         if self.registry_model:
@@ -351,16 +365,17 @@ class PatientForm(forms.ModelForm):
             user = self.user
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
-            if user.is_superuser:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
-            else:
-                if self._is_parent_editing_child(instance):
-                    # see FKRP #472
-                    self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
-                    self.fields["working_groups"].queryset = instance.working_groups.all()
+            if not wgs_set_by_clinicians:
+                if user.is_superuser:
+                    self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
                 else:
-                    self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                        registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
+                    if self._is_parent_editing_child(instance):
+                        # see FKRP #472
+                        self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
+                        self.fields["working_groups"].queryset = instance.working_groups.all()
+                    else:
+                        self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
+                            registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -494,6 +509,28 @@ class PatientForm(forms.ModelForm):
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB
 
+    def clean_working_groups(self):
+        instance = getattr(self, "instance", None)
+        if instance and getattr(instance, "wgs_set_by_clinicians", False):
+            reg_clinicians = self.cleaned_data.get("registered_clinicians", [])
+            if reg_clinicians:
+                return [wg.id for wg in instance.working_groups.all()]
+        ret_val = self.cleaned_data["working_groups"]
+        if not ret_val:
+            raise forms.ValidationError("Patient must be assigned to a working group")
+        return ret_val
+
+    def clean_registered_clinicians(self):
+        reg = self.cleaned_data["rdrf_registry"]
+        reg_clinicians = self.cleaned_data["registered_clinicians"]
+        if reg and reg.exists():
+            current_registry = reg.first()
+            if current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM) and reg_clinicians.count() > 1:
+                raise ValidationError(
+                    "You may only select one clinician"
+                )
+        return reg_clinicians
+
     def clean(self):
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
@@ -505,15 +542,15 @@ class PatientForm(forms.ModelForm):
         for k in self.custom_consents:
             del cleaneddata[k]
 
-        if "working_groups" not in cleaneddata:
-            raise forms.ValidationError("Patient must be assigned to a working group")
-        if not cleaneddata["working_groups"]:
-            raise forms.ValidationError("Patient must be assigned to a working group")
-
-        self._check_working_groups(cleaneddata)
-
         self._validate_custom_consents()
 
+        registries = self.cleaned_data["rdrf_registry"]
+        reg_clinicians = self.cleaned_data.get("registered_clinicians", [])
+        clinicians_have_patients = any(r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries)
+        if registries.exists() and clinicians_have_patients and not reg_clinicians:
+            unallocated_wgs = [WorkingGroup.objects.get_unallocated(registry) for registry in registries]
+            wgs = [unallocated.id for unallocated in unallocated_wgs if unallocated]
+            cleaneddata['working_groups'] = wgs
         return super().clean()
 
     def _validate_custom_consents(self):
@@ -550,6 +587,22 @@ class PatientForm(forms.ModelForm):
         if len(validation_errors) > 0:
             raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
 
+    def notify_clinicians(self, patient_model, existing_clinicians, current_clinicians):
+        from rdrf.services.io.notifications.email_notification import process_notification
+        from rdrf.events.events import EventType
+
+        instance = getattr(self, 'instance', None)
+        registry_model = instance.rdrf_registry.first()
+
+        new_clinicians = current_clinicians - existing_clinicians
+        for c in new_clinicians:
+            template_data = {"patient": patient_model, "clinician": c}
+            process_notification(registry_model.code, EventType.CLINICIAN_ASSIGNED, template_data)
+        removed_clinicians = existing_clinicians - current_clinicians
+        for c in removed_clinicians:
+            template_data = {"patient": patient_model, "clinician": c}
+            process_notification(registry_model.code, EventType.CLINICIAN_UNASSIGNED, template_data)
+
     def save(self, commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
         patient_model.active = True
@@ -560,17 +613,28 @@ class PatientForm(forms.ModelForm):
             patient_registries = []
 
         if commit:
+            instance = getattr(self, 'instance', None)
             patient_model.save()
-            patient_model.working_groups.set(self.cleaned_data["working_groups"])
-            # for wg in self.cleaned_data["working_groups"]:
-            #    patient_model.working_groups.add(wg)
+            existing_clinicians = set()
+            if instance:
+                existing_clinicians = set(instance.registered_clinicians.all())
 
-            for reg in self.cleaned_data["rdrf_registry"]:
+            current_clinicians = set(self.cleaned_data["registered_clinicians"])
+            patient_model.registered_clinicians.set(current_clinicians)
+            if patient_model.registered_clinicians.exists():
+                clinician_wgs = set([wg for c in patient_model.registered_clinicians.all() for wg in c.working_groups.all()])
+                patient_model.working_groups.set(clinician_wgs)
+            else:
+                patient_model.working_groups.set(self.cleaned_data["working_groups"])
+
+            registries = self.cleaned_data["rdrf_registry"]
+            for reg in registries:
                 patient_model.rdrf_registry.add(reg)
 
-            patient_model.save()
+            if any([r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries]):
+                self.notify_clinicians(patient_model, existing_clinicians, current_clinicians)
 
-        patient_model.clinician = self.cleaned_data["clinician"]
+            patient_model.save()
 
         for consent_field in self.custom_consents:
             registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
@@ -600,26 +664,6 @@ class PatientForm(forms.ModelForm):
                 pass
 
         return closure
-
-    def _check_working_groups(self, cleaned_data):
-        working_group_data = {}
-        for working_group in cleaned_data["working_groups"]:
-            if working_group.registry:
-                if working_group.registry.code not in working_group_data:
-                    working_group_data[working_group.registry.code] = [working_group]
-                else:
-                    working_group_data[working_group.registry.code].append(working_group)
-
-        bad = []
-        for reg_code in working_group_data:
-            if len(working_group_data[reg_code]) > 1:
-                bad.append(reg_code)
-
-        if bad:
-            bad_regs = [Registry.objects.get(code=reg_code).name for reg_code in bad]
-            raise forms.ValidationError(
-                "Patient can only belong to one working group per registry. Patient is assigned to more than one working for %s"
-                % ",".join(bad_regs))
 
 
 class ParentGuardianForm(forms.ModelForm):
