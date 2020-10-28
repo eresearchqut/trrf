@@ -543,6 +543,12 @@ class PatientForm(forms.ModelForm):
 
         self._validate_custom_consents()
 
+        registries = self.cleaned_data["rdrf_registry"]
+        reg_clinicians = self.cleaned_data["registered_clinicians"]
+        if registries.exists() and not reg_clinicians:
+            unallocated_wgs = [WorkingGroup.objects.get_unallocated(registry) for registry in registries]
+            wgs = [unallocated.id for unallocated in unallocated_wgs if unallocated]
+            cleaneddata['working_groups'] = wgs
         return super().clean()
 
     def _validate_custom_consents(self):
