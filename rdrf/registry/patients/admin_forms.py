@@ -355,7 +355,6 @@ class PatientForm(forms.ModelForm):
                 self.fields["working_groups"].queryset = WorkingGroup.objects.filter(pk__in=[wg.id for wg in clinician_wgs])
                 instance.working_groups.set(clinician_wgs)
                 instance.wgs_set_by_clinicians = True
-                self.fields["clinician"].widget = forms.HiddenInput()
             if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                 self.fields["email"].required = True
 
