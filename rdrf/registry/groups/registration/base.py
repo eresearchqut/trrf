@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class BaseRegistration(abc.ABC):
 
-    def __init__(self, request, form):
+    def __init__(self, request, form=None):
         self.request = request
         self.form = form
 
@@ -39,6 +39,8 @@ class BaseRegistration(abc.ABC):
         return WorkingGroup.objects.get_unallocated(registry)
 
     def _create_patient(self, registry, working_group, user, set_link_to_user=True):
+        if not self.form:
+            raise AttributeError("Cannot create patient without form")
 
         form_data = self.form.cleaned_data
         patient = Patient.objects.create(

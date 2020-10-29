@@ -3,13 +3,14 @@ import requests
 from csp.decorators import csp_update
 
 from django.conf import settings
+from django.contrib.auth import login
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
 
-from registration.backends.default.views import RegistrationView
+from registration.backends.default.views import RegistrationView, ActivationView
 
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_preferred_languages
@@ -90,6 +91,13 @@ class RdrfRegistrationView(RegistrationView):
     def registration_allowed(self):
         registry = get_object_or_404(Registry, code=self.registry_code)
         return registry.registration_allowed()
+
+
+class PatientActivationView(ActivationView):
+    def get_success_url(self, user):
+        if not user.has_usable_password():
+            login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
+        return "login_router"
 
 
 def validate_recaptcha(response_value):
