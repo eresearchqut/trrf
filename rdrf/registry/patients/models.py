@@ -2,6 +2,7 @@ from collections import namedtuple
 import datetime
 import json
 import logging
+from functools import reduce
 from operator import attrgetter
 import pycountry
 import random
@@ -157,28 +158,14 @@ class PatientManager(models.Manager):
         return self.really_all().filter(active=False)
 
     def get_by_clinician(self, clinician, registry_model):
-        clinicians_have_patients = registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
-        ethical_clearance_needed = registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+        filters = [Q(created_by=clinician)]
+        if registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
+            filters.append(Q(registered_clinicians__in=[clinician]))
+        if registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) and clinician.ethically_cleared:
+            filters.append(Q(working_groups__in=clinician.working_groups.all()))
 
-        by_registry = self.model.objects.filter(rdrf_registry=registry_model)
-
-        normal = Q(working_groups__in=clinician.working_groups.all())
-        clinicians_patients = Q(registered_clinicians__in=[clinician])
-        patients_created_by_clinician = Q(created_by=clinician)
-
-        base_qs = by_registry.filter(clinicians_patients if clinicians_have_patients else normal)
-
-        if not ethical_clearance_needed:
-            return base_qs
-
-        unassigned_patients_created_by_clinician = by_registry.filter(patients_created_by_clinician & Q(registered__clinicians__isnull=True))
-
-        if clinician.ethically_cleared:
-            if clinicians_have_patients:
-                return base_qs | unassigned_patients_created_by_clinician
-            return base_qs
-
-        return by_registry.filter(patients_created_by_clinician)
+        query = reduce(lambda a, b: a | b, filters)
+        return self.model.objects.filter(Q(rdrf_registry=registry_model) & query)
 
     def get_by_user_and_registry(self, user, registry_model):
         qs = self.get_queryset()

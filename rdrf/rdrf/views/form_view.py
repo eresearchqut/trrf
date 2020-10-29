@@ -366,6 +366,12 @@ class FormView(View):
             context["change_targets"] = code_gen.generate_change_targets() or ''
             context["generated_declarations"] = code_gen.generate_declarations() or ''
 
+    def registry_permissions_check(self, request, registry_code, form_id, patient_id, context_id):
+        """
+        Overridden in custom registries to perform registry-specific permissions checks
+        """
+        pass
+
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
@@ -385,6 +391,7 @@ class FormView(View):
 
         patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
+        self.registry_permissions_check(request, registry_code, form_id, patient_id, context_id)
 
         self.registry = self._get_registry(registry_code)
 
@@ -520,6 +527,7 @@ class FormView(View):
 
         patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient)
+        self.registry_permissions_check(request, registry_code, form_id, patient_id, context_id)
 
         self.patient_id = patient_id
 

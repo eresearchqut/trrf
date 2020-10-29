@@ -659,3 +659,7 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # Use the setting below in registries derived from trrf to setup extra UI widgets
 # it shoud be a string indicating the module where registry specific widgets are defined
 # EXTRA_WIDGETS = '<fill module name here>'
+
+# Override the setting below in registries derived from trrf to tag forms to
+# allow customising the behaviour of trrf when interacting with them
+REGISTRY_FORM_TAGS = ()
