@@ -24,6 +24,9 @@ class CDE:
         return f'add_change_handler(get_cde_name("{self.cde.element_name()}", 0));'
 
     def change_handler(self):
+        """
+        Generates a JS onchange handler for the CDE contained by this instance
+        """
         cde_info = self.cde.get_cde_info()
         return (
             self.multi_section_handler(cde_info) if cde_info.is_multi_section else self.simple_change_handler()
@@ -63,6 +66,10 @@ class Instruction:
         self.cde_helper = cde_helper
 
     def generate_visibility_assignments(self, is_multi_section):
+        """
+        Generates function calls to update the visibility map based on
+        the visibility rules
+        """
 
         def visibility_map_entry(cde_info, action, is_inverse=False, condition_is_multiple=False):
             final_action = action.action if not is_inverse else action.inverse_action
@@ -194,6 +201,11 @@ class Instruction:
 
 
 class CodeGenerator:
+    """
+    This class generates the javascript code that
+    implements visibility rules based on the DSL.
+    It uses helper JS functions defined in static/js/form_dsl.js
+    """
 
     def __init__(self, dsl, form):
         self.dsl = dsl
@@ -204,6 +216,10 @@ class CodeGenerator:
         self.form = form
 
     def generate_visibility_handler(self):
+        """
+        The visibility_map is a dictionary containing the visibility state
+        for each CDE/section which are defined in the form DSL
+        """
         visibility_assignments = "\n".join(self.condition_handlers)
         return f'''
         function visibility_handler() {{
@@ -214,6 +230,10 @@ class CodeGenerator:
 
     @staticmethod
     def get_initializer():
+        """
+        The render_changes function is the one responsible for updating the
+        UI based on current element visibility state
+        """
         return "\trender_changes(visibility_handler());"
 
     def generate_code(self):
@@ -243,6 +263,10 @@ class CodeGenerator:
             return None
 
     def generate_change_targets(self):
+        """
+        Generates a dictionary containg CDEs for multi sections
+        that need to have change handlers added/attached
+        """
         elements = "\n".join(self.multi_section_targets)
         return f'''
             function change_handler_targets() {{
@@ -253,6 +277,11 @@ class CodeGenerator:
         '''
 
     def generate_declarations(self):
+        """
+        This generates a helper dict with information about each CDE
+        to aid the front end helper code in generating handlers
+        for those elements
+        """
 
         def cde_mapping(cde_info):
             multiple = 'true' if cde_info.allow_multiple else 'false'

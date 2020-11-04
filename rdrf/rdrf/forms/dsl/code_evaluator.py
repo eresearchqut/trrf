@@ -46,13 +46,18 @@ class ConditionEvaluator:
                 value = parse_date(self.value) if self.value not in ["set", "unset"] else None
                 existing_value = parse_date(self.existing_value) if self.existing_value else None
             if not all([value, existing_value]):
-                # If one of the dates is None fail the evaluation
+                # If one of the values is None fail the evaluation
                 return False
         return self.eval_dict.get(self.operator, self.default_comparison)(existing_value, value)
 
 
 # This should be used only on previously validated from DSLs
 class CodeEvaluator:
+    """
+    This is used in form progress indicator to not include in the
+    progress computation the elements which are hidden due to form
+    conditional rendering rules
+    """
 
     def __init__(self, form, dynamic_data):
         self.dsl = form.conditional_rendering_rules

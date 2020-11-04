@@ -23,6 +23,9 @@ class ConditionCheckResult(Enum):
 
 
 class ConditionChecker:
+    """
+    Class to check if a condition is valid
+    """
 
     EQUAL = '=='
     NOT_EQUAL = '!='
@@ -224,6 +227,10 @@ class ConditionChecker:
 
 
 class DSLValidator:
+    """
+    This class performs validation of DSL rules to avoid
+    defining contradicting/bad/duplicate rules
+    """
 
     def __init__(self, dsl, form):
         self.dsl = dsl
