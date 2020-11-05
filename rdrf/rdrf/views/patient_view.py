@@ -373,7 +373,8 @@ class PatientFormMixin:
                     doctor_formset.save()
 
             # create user
-            if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+            if isinstance(self, AddPatientView) and \
+                    self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                 user = CustomUser.objects.create(
                     email=self.object.email,
                     username=self.object.email,
