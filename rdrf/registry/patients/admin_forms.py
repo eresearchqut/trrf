@@ -523,7 +523,7 @@ class PatientForm(forms.ModelForm):
         return ret_val
 
     def clean_registered_clinicians(self):
-        reg = self.cleaned_data["rdrf_registry"]
+        reg = self.cleaned_data.get("rdrf_registry")
         reg_clinicians = self.cleaned_data["registered_clinicians"]
         if reg and reg.exists():
             current_registry = reg.first()
