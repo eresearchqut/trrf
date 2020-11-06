@@ -188,7 +188,13 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, 
             return wrap_filestorage_dict(key, mongo_value)
 
     def wrap_section(section_index, section_dict):
-        return {key: wrap(section_index, key, value) for key, value in section_dict.items()}
+        wrapped = {}
+        for key, value in section_dict.items():
+            if isinstance(value, list):
+                wrapped[key] = [wrap(section_index, key, vi) for vi in value]
+            else:
+                wrapped[key] = wrap(section_index, key, value)
+        return wrapped
 
     def wrap_multisection(multisection_list):
         def iterate_over_non_deleted_items(multisection_list):
