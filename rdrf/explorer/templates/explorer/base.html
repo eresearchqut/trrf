@@ -4,7 +4,7 @@
     
 <html>
     <head>
-        <title>{% trans "RDRF Reporting Tool" %}</title>
+        <title>{% trans "TRRF Reporting Tool" %}</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -31,7 +31,7 @@
         
         <nav class="navbar navbar-inverse" role="navigation">
             <div class="container">
-                <p class="navbar-brand" href="explorer">{% trans "RDRF Reporting Tool" %} <sup>{{version}}</sup></p>
+                <p class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %} <sup>{{version}}</sup></p>
                 <ul class="nav navbar-nav">
                     <li><a href="{% url 'rdrf:explorer_main' %}">{% trans "List" %}</a></li>
                     {% if request.user.is_superuser %}
