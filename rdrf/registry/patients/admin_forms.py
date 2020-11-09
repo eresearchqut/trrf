@@ -512,9 +512,10 @@ class PatientForm(forms.ModelForm):
     # Does not need a unique constraint on the DB
 
     def clean_rdrf_registry(self):
-        registry = self.cleaned_data.get("rdrf_registry")
-        if not registry:
+        registries = self.cleaned_data.get("rdrf_registry")
+        if not registries:
             raise ValidationError("Patient must be added with a registry")
+        return registries
 
     def clean_working_groups(self):
         instance = getattr(self, "instance", None)
@@ -551,10 +552,10 @@ class PatientForm(forms.ModelForm):
 
         self._validate_custom_consents()
 
-        registries = self.cleaned_data["rdrf_registry"]
+        registries = self.cleaned_data.get("rdrf_registry", [])
         reg_clinicians = self.cleaned_data.get("registered_clinicians", [])
         clinicians_have_patients = any(r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries)
-        if registries.exists() and clinicians_have_patients and not reg_clinicians:
+        if registries and registries.exists() and clinicians_have_patients and not reg_clinicians:
             unallocated_wgs = [WorkingGroup.objects.get_unallocated(registry) for registry in registries]
             wgs = [unallocated.id for unallocated in unallocated_wgs if unallocated]
             cleaneddata['working_groups'] = wgs
