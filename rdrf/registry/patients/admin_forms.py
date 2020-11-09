@@ -511,6 +511,11 @@ class PatientForm(forms.ModelForm):
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB
 
+    def clean_rdrf_registry(self):
+        registry = self.cleaned_data.get("rdrf_registry")
+        if not registry:
+            raise ValidationError("Patient must be added with a registry")
+
     def clean_working_groups(self):
         instance = getattr(self, "instance", None)
         if instance and getattr(instance, "wgs_set_by_clinicians", False):
