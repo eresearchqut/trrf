@@ -21,11 +21,11 @@ def rpc_reporting_command(request, query_id, registry_id, command, arg):
     else:
         query_model = Query.objects.get(pk=int(query_id))
         if not Query.objects.reports_for_user(user).filter(pk=query_id).exists():
-            raise PermissionDenied
+            raise PermissionDenied("Report not available for user")
 
     registry_model = Registry.objects.get(pk=int(registry_id))
     if not user.in_registry(registry_model):
-        raise PermissionDenied
+        raise PermissionDenied("User not a member of this registry")
 
     if command == "get_projection":
         checkbox_ids = arg["checkbox_ids"]
