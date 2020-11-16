@@ -344,12 +344,10 @@ class PatientForm(forms.ModelForm):
 
         # registered_clinicians field should only be visible for registries which
         # support linking of patient to an "owning" clinician
-        wgs_set_by_clinicians = False
         if self.registry_model:
             if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
                 self.fields["registered_clinicians"].widget = forms.HiddenInput()
             elif instance and instance.registered_clinicians.exists():
-                wgs_set_by_clinicians = True
                 clinician_wgs = set([wg for c in instance.registered_clinicians.all() for wg in c.working_groups.all()])
                 instance.working_groups.add(*clinician_wgs)
                 instance.wgs_set_by_clinicians = True
@@ -365,17 +363,12 @@ class PatientForm(forms.ModelForm):
             user = self.user
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
-            if not wgs_set_by_clinicians:
-                if user.is_superuser:
-                    self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
-                else:
-                    if self._is_parent_editing_child(instance):
-                        # see FKRP #472
-                        self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
-                        self.fields["working_groups"].queryset = instance.working_groups.all()
-                    else:
-                        self.fields["working_groups"].queryset = WorkingGroup.objects.filter(
-                            registry=self.registry_model, id__in=[wg.pk for wg in self.user.working_groups.all()])
+            if self._is_parent_editing_child(instance):
+                # see FKRP #472
+                self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
+                self.fields["working_groups"].queryset = instance.working_groups.all()
+            else:
+                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
             # field visibility restricted no non admins
             if not user.is_superuser:
