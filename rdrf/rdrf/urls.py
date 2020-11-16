@@ -1,6 +1,5 @@
 from django.urls import re_path, include, path
 from django.contrib import admin
-from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.contrib.auth import views as auth_views
 from django.views.i18n import JavaScriptCatalog
@@ -24,6 +23,7 @@ import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
 import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
+from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
 from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
 from rdrf.views.lookup_views import PatientLookup
@@ -50,25 +50,6 @@ logger = logging.getLogger(__name__)
 
 # very important so that registry admins (patient, etc) are discovered.
 admin.autodiscover()
-
-
-def handler_exceptions(request):
-    raise Exception("Forced exception in /raise")
-
-
-def handler404(request, exception):
-    return render(request, "404.html")
-
-
-def handler500(request, exception=None):
-    logger.exception('Unhandled Exception!')
-    return render(request, "500.html")
-
-
-def handler_application_error(request):
-    return render(request, "rdrf_cdes/application_error.html", {
-        "application_error": "Example config Error",
-    })
 
 
 def proms_only(url_pattern):
