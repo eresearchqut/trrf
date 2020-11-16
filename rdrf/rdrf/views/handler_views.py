@@ -5,6 +5,10 @@ from django.shortcuts import redirect, render
 logger = logging.getLogger(__name__)
 
 
+def handler_csrf(request, reason):
+    return redirect("login_router")
+
+
 def handler_exceptions(request):
     raise Exception("Forced exception in /raise")
 
