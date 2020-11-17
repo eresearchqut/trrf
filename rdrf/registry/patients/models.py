@@ -165,7 +165,7 @@ class PatientManager(models.Manager):
             filters.append(Q(working_groups__in=clinician.working_groups.all()))
 
         query = reduce(lambda a, b: a | b, filters)
-        return self.model.objects.filter(Q(rdrf_registry=registry_model) & query)
+        return self.model.objects.filter(Q(rdrf_registry=registry_model) & query).order_by("pk").distinct("pk")
 
     def get_by_user_and_registry(self, user, registry_model):
         qs = self.get_queryset()
