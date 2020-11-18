@@ -40,8 +40,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           touch .env_local
-          echo "::set-env name=TRRF_IMAGE_NAME::$OWNER/runserver:$GITHUB_SHA"
-          echo "::set-env name=NODE_IMAGE_NAME::$OWNER/nodeserver:$GITHUB_SHA"
+          echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -60,8 +60,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           touch .env_local
-          echo "::set-env name=TRRF_IMAGE_NAME::$OWNER/runserver:$GITHUB_SHA"
-          echo "::set-env name=NODE_IMAGE_NAME::$OWNER/nodeserver:$GITHUB_SHA"
+          echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -82,8 +82,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           touch .env_local
-          echo "::set-env name=TRRF_IMAGE_NAME::$OWNER/runserver:$GITHUB_SHA"
-          echo "::set-env name=NODE_IMAGE_NAME::$OWNER/nodeserver:$GITHUB_SHA"
+          echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -104,8 +104,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           touch .env_local
-          echo "::set-env name=TRRF_IMAGE_NAME::$OWNER/runserver:$GITHUB_SHA"
-          echo "::set-env name=NODE_IMAGE_NAME::$OWNER/nodeserver:$GITHUB_SHA"
+          echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -133,8 +133,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           touch .env_local
-          echo "::set-env name=TRRF_IMAGE_NAME::$OWNER/runserver:$GITHUB_SHA"
-          echo "::set-env name=NODE_IMAGE_NAME::$OWNER/nodeserver:$GITHUB_SHA"
+          echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
+          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
