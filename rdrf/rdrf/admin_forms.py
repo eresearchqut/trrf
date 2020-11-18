@@ -4,7 +4,7 @@ import re
 
 from django.conf import settings
 from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError, HiddenInput, Select, Widget, \
-    MultipleChoiceField
+    MultipleChoiceField, MultipleHiddenInput
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class RegistryFormAdminForm(ModelForm):
     tags = MultipleChoiceField(choices=settings.REGISTRY_FORM_TAGS, required=False,
-                               widget=HiddenInput if not settings.REGISTRY_FORM_TAGS else None)
+                               widget=MultipleHiddenInput if not settings.REGISTRY_FORM_TAGS else None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
