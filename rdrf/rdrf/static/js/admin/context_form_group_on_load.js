@@ -1,4 +1,4 @@
-django.jQuery(document).ready(function() {
+$(document).ready(function() {
     var initiallySelectedValues = {};
     $("select[name$='-registry_form']").each(function(value) {
         var value = $(this).val();
