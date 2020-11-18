@@ -321,7 +321,7 @@ CSRF_COOKIE_SECURE = env.get("csrf_cookie_secure", PRODUCTION)
 CSRF_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 CSRF_COOKIE_AGE = env.get('csrf_cookie_age', 31449600)
-CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "django.views.csrf.csrf_failure")
+CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "rdrf.views.handler_views.handler_csrf")
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
 CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
 
