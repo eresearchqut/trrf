@@ -71,7 +71,7 @@ class PatientDetail(generics.RetrieveDestroyAPIView):
         security_check_user_patient(request.user, patient)
 
 
-class PatientList(generics.ListAPIView):
+class PatientList(generics.ListCreateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = (IsSuperUser,)
