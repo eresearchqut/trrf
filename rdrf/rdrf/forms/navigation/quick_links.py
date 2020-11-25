@@ -77,6 +77,9 @@ class LinkDefs:
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
 
+    NofOneTrials = make_link("admin:trials_nofonetrial_changelist", _("N-of-1 Trials"))
+    NofOneTreatments = make_link("admin:trials_nofonetreatment_changelist", _("N-of-1 Treatments"))
+
 
 class Links:
     """
@@ -158,6 +161,10 @@ class RegularLinks(Links):
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
         LinkDefs.BlacklistedMimeTypesConfig
+    )
+    TRIALS = make_entries(
+        LinkDefs.NofOneTrials,
+        LinkDefs.NofOneTreatments,
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
     REPORTING = make_entries(LinkDefs.Reports)
@@ -310,6 +317,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.DOCTORS,
             **RegularLinks.EMAIL,
             **RegularLinks.FAMILY_LINKAGE,
+            **RegularLinks.TRIALS,
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.QUESTIONNAIRE,
