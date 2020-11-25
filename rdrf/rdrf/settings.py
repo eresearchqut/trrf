@@ -186,6 +186,7 @@ INSTALLED_APPS = [
     'anymail',
     'registry.groups',
     'registry.patients',
+    'registry.trials',
     'registry.common',
     'registration',
     'reversion',
