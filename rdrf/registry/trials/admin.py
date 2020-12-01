@@ -1,14 +1,24 @@
 import logging
 
 from django.contrib import admin
+from django.db import transaction
 
+from .services import setup_trial
+from .forms import NofOneTrialCreationForm
 from .models import NofOneTrial, NofOneArm, NofOneCycle, NofOnePeriod, NofOneTreatment
 
 logger = logging.getLogger(__name__)
 
 
+class NofOneTreatmentInlineAdmin(admin.StackedInline):
+    model = NofOneTreatment
+    extra = 0
+    show_change_link = True
+
+
 class NofOneTreatmentAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["title", "blinded_title", "trial"]
+    list_filter = ["trial", "trial__registry"]
 
 
 class NofOnePeriodAdmin(admin.ModelAdmin):
@@ -58,8 +68,34 @@ class NofOneArmAdmin(admin.ModelAdmin):
 
 
 class NofOneTrialAdmin(admin.ModelAdmin):
-    inlines = [NofOneArmInlineAdmin]
     list_display = ["title", "registry"]
+
+    def __init__(self, model, admin_site):
+        super().__init__(model, admin_site)
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Custom add form"""
+        if not obj:
+            kwargs["form"] = NofOneTrialCreationForm
+        return super().get_form(request, obj, **kwargs)
+
+    def get_inline_instances(self, request, obj=None):
+        """Only show inlines on change form"""
+        inlines = [NofOneTreatmentInlineAdmin, NofOneArmInlineAdmin] if obj else []
+        return [inline(self.model, self.admin_site) for inline in inlines]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        with transaction.atomic():
+            setup_trial(
+                form.cleaned_data["patients"],
+                form.cleaned_data["cycles"],
+                form.cleaned_data["treatments"],
+                form.cleaned_data["period_length"],
+                form.cleaned_data["period_washout_duration"],
+                obj
+            )
 
 
 admin.site.register(NofOnePeriod, NofOnePeriodAdmin)
