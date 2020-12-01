@@ -1,5 +1,3 @@
-import string
-
 from django import forms
 from django.utils.translation import ugettext as _
 
@@ -29,6 +27,3 @@ class NofOneTrialCreationForm(forms.ModelForm):
     class Meta:
         model = NofOneTrial
         fields = ["title", "registry", "description"]
-
-
-
