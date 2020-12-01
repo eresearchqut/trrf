@@ -18,6 +18,7 @@ WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
 PRODUCTION = env.get("production", False)
+ENVIRONMENT_NAME = env.get("environment_name", "dev")
 
 # https://docs.djangoproject.com/en/1.8/ref/middleware/#django.middleware.security.SecurityMiddleware
 SECURE_SSL_REDIRECT = env.get("secure_ssl_redirect", PRODUCTION)
@@ -664,3 +665,7 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # Override the setting below in registries derived from trrf to tag forms to
 # allow customising the behaviour of trrf when interacting with them
 REGISTRY_FORM_TAGS = ()
+
+# Trial randomisation API
+TRIAL_RANDOMISATION_API = env.get("trial_randomisation_api",
+                                  f"https://trial-randomisation-api.{ENVIRONMENT_NAME}.eresearchqut.net/n_of_1/v1")
