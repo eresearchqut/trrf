@@ -42,7 +42,7 @@ class NofOneCycleInlineAdmin(admin.StackedInline):
     show_change_link = True
 
     def periods(self, instance):
-        return "".join(period.treatment.blinded_title for period in instance.periods.all())
+        return instance.formatted_treatments
 
 
 class NofOneArmInlineAdmin(admin.StackedInline):
@@ -53,8 +53,7 @@ class NofOneArmInlineAdmin(admin.StackedInline):
     show_change_link = True
 
     def cycles(self, instance):
-        return ", ".join("".join(period.treatment.blinded_title for period in cycle.periods.all()) for cycle in
-                         instance.cycles.all())
+        return instance.formatted_treatments
 
 
 class NofOneArmAdmin(admin.ModelAdmin):
@@ -63,8 +62,7 @@ class NofOneArmAdmin(admin.ModelAdmin):
     list_filter = ["trial"]
 
     def cycles(self, instance):
-        return ", ".join("".join(period.treatment.blinded_title for period in cycle.periods.all()) for cycle in
-                         instance.cycles.all())
+        return instance.formatted_treatments
 
 
 class NofOneTrialAdmin(admin.ModelAdmin):

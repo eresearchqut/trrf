@@ -41,12 +41,13 @@ class NofOneArm(models.Model):
         verbose_name = "N-of-1 Arm"
         verbose_name_plural = "N-of-1 Arms"
 
-    @property
-    def ordered_periods(self):
-        return self.cycles.select_related("periods").all().order_by("start")
-
     def __str__(self):
         return f"{self.patient} - {self.trial}"
+
+    @property
+    def formatted_treatments(self):
+        cycles = self.cycles.order_by("sequence_index").prefetch_related("periods__treatment").all()
+        return ", ".join(cycle.formatted_treatments for cycle in cycles)
 
 
 class NofOneCycle(models.Model):
@@ -73,7 +74,11 @@ class NofOneCycle(models.Model):
 
     @property
     def ordered_periods(self):
-        return self.periods.all().order_by("start")
+        return self.periods.all().order_by("sequence_index")
+
+    @property
+    def formatted_treatments(self):
+        return "".join(period.treatment.blinded_title for period in self.ordered_periods.all())
 
 
 class NofOnePeriod(models.Model):
