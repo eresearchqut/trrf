@@ -34,6 +34,8 @@ class NofOnePeriodInlineAdmin(admin.StackedInline):
 
 class NofOneCycleAdmin(admin.ModelAdmin):
     inlines = [NofOnePeriodInlineAdmin]
+    list_display = ["__str__", "start", "end", "arm"]
+    list_filter = ["arm__trial"]
 
 
 class NofOneCycleInlineAdmin(admin.StackedInline):
