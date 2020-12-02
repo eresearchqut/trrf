@@ -32,8 +32,8 @@ class NofOneTreatment(models.Model):
 
 
 class NofOneArm(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.PROTECT, blank=True, null=True)
-    trial = models.ForeignKey(NofOneTrial, on_delete=models.PROTECT, related_name="arms")
+    patient = models.OneToOneField(Patient, on_delete=models.PROTECT, blank=True, null=True, related_name="n_of_1_arm")
+    trial = models.ForeignKey(NofOneTrial, on_delete=models.CASCADE, related_name="arms")
 
     sequence_index = models.IntegerField()
 
@@ -51,7 +51,7 @@ class NofOneArm(models.Model):
 
 
 class NofOneCycle(models.Model):
-    arm = models.ForeignKey(NofOneArm, on_delete=models.PROTECT, related_name="cycles")
+    arm = models.ForeignKey(NofOneArm, on_delete=models.CASCADE, related_name="cycles")
 
     sequence_index = models.IntegerField()
 
@@ -82,8 +82,8 @@ class NofOneCycle(models.Model):
 
 
 class NofOnePeriod(models.Model):
-    cycle = models.ForeignKey(NofOneCycle, on_delete=models.PROTECT, related_name="periods")
-    treatment = models.ForeignKey(NofOneTreatment, on_delete=models.PROTECT, related_name="periods")
+    cycle = models.ForeignKey(NofOneCycle, on_delete=models.CASCADE, related_name="periods")
+    treatment = models.ForeignKey(NofOneTreatment, on_delete=models.CASCADE, related_name="periods")
 
     sequence_index = models.IntegerField()
 
