@@ -49,6 +49,10 @@ class NofOneArm(models.Model):
         cycles = self.cycles.order_by("sequence_index").prefetch_related("periods__treatment").all()
         return ", ".join(cycle.formatted_treatments for cycle in cycles)
 
+    @property
+    def ordered_periods(self):
+        return NofOnePeriod.objects.filter(cycle__in=self.cycles.all()).order_by("cycle__sequence_index", "sequence_index")
+
 
 class NofOneCycle(models.Model):
     arm = models.ForeignKey(NofOneArm, on_delete=models.CASCADE, related_name="cycles")
