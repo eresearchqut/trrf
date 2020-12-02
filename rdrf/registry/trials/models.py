@@ -60,9 +60,7 @@ class NofOneCycle(models.Model):
         verbose_name_plural = "N-of-1 Cycles"
 
     def __str__(self):
-        periods = self.ordered_periods
-        cycle_treatments = "".join(period.treatment.blinded_title for period in periods)
-        return f"{cycle_treatments} - ({periods.first().start} -> {periods.last().end})"
+        return f"{self.formatted_treatments} - ({self.start} -> {self.end})"
 
     @property
     def start(self):
