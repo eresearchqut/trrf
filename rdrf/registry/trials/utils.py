@@ -65,4 +65,3 @@ def setup_patient_arm(trial, patient, start_time):
         NofOnePeriod.objects.bulk_update(periods, ["start"])
 
     return next_arm
-

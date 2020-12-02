@@ -45,4 +45,3 @@ class AddPatientForm(forms.Form):
             initial=datetime.now(),
             label="Trial start",
         )
-
