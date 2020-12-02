@@ -15,7 +15,7 @@ def _generate_n_of_1_arms(patients, cycles, treatments):
     return response["schedule"]
 
 
-def setup_trial(patients, cycles, treatments, period_length, period_washout_duration, trial):
+def setup_trial(trial, patients, cycles, treatments, period_length, period_washout_duration):
     arms = _generate_n_of_1_arms(
         patients,
         cycles,
@@ -49,3 +49,20 @@ def setup_trial(patients, cycles, treatments, period_length, period_washout_dura
                 washout=period_washout_duration,
                 sequence_index=period_index,
             ) for period_index, period in enumerate(cycle))
+
+
+def setup_patient_arm(trial, patient, start_time):
+    next_arm = NofOneArm.objects.filter(trial=trial, patient=None).order_by("sequence_index").first()
+    if next_arm:
+        next_arm.patient = patient
+        next_arm.save()
+
+        period_time = start_time
+        periods = next_arm.ordered_periods
+        for period in periods:
+            period.start = period_time
+            period_time = period_time + period.duration + period.washout
+        NofOnePeriod.objects.bulk_update(periods, ["start"])
+
+    return next_arm
+

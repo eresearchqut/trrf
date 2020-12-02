@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django import forms
 from django.utils.translation import ugettext as _
 
+from registry.patients.models import Patient
 from .models import NofOneTrial, NofOneTreatment
 
 
@@ -27,3 +30,19 @@ class NofOneTrialCreationForm(forms.ModelForm):
     class Meta:
         model = NofOneTrial
         fields = ["title", "registry", "description"]
+
+
+class AddPatientForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        trial = kwargs.pop("trial")
+        super().__init__(*args, **kwargs)
+
+        self.fields["patient"] = forms.ModelChoiceField(
+            queryset=Patient.objects.filter(rdrf_registry__in=[trial.registry]).exclude(n_of_1_arm__trial=trial),
+            label="Unallocated patients",
+        )
+        self.fields["start_time"] = forms.SplitDateTimeField(
+            initial=datetime.now(),
+            label="Trial start",
+        )
+

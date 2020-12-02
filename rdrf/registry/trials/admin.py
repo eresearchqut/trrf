@@ -1,10 +1,11 @@
 import logging
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import transaction
+from django.shortcuts import render, redirect
 
-from .services import setup_trial
-from .forms import NofOneTrialCreationForm
+from .utils import setup_trial, setup_patient_arm
+from .forms import NofOneTrialCreationForm, AddPatientForm
 from .models import NofOneTrial, NofOneArm, NofOneCycle, NofOnePeriod, NofOneTreatment
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class NofOneTreatmentAdmin(admin.ModelAdmin):
 
 
 class NofOnePeriodAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ["cycle__arm__trial"]
 
 
 class NofOnePeriodInlineAdmin(admin.StackedInline):
@@ -66,6 +67,7 @@ class NofOneArmAdmin(admin.ModelAdmin):
 
 
 class NofOneTrialAdmin(admin.ModelAdmin):
+    actions = ["add_patient"]
     list_display = ["title", "registry"]
 
     def __init__(self, model, admin_site):
@@ -87,13 +89,37 @@ class NofOneTrialAdmin(admin.ModelAdmin):
 
         with transaction.atomic():
             setup_trial(
+                obj,
                 form.cleaned_data["patients"],
                 form.cleaned_data["cycles"],
                 form.cleaned_data["treatments"],
                 form.cleaned_data["period_length"],
                 form.cleaned_data["period_washout_duration"],
-                obj
             )
+
+    def add_patient(self, request, queryset):
+        trial = queryset.first()
+
+        errors = []
+        if queryset.count() != 1:
+            errors.append("You must select 1 trial to add a patient to")
+        else:
+            if 'apply' in request.POST:
+                form = AddPatientForm(request.POST, trial=trial)
+                if form.is_valid():
+                    if arm := setup_patient_arm(trial, form.cleaned_data["patient"], form.cleaned_data["start_time"]):
+                        messages.success(request, f"Successfully added {arm}")
+                    else:
+                        messages.error(request, "Could not find arm to assign patient to")
+                    return redirect(request.get_full_path())
+                else:
+                    errors.extend(form.errors)
+
+        return render(request, "admin/trial_add_patient_form.html", context={
+            "form": AddPatientForm(trial=trial),
+            "trial": trial,
+            "errors": errors
+        })
 
 
 admin.site.register(NofOnePeriod, NofOnePeriodAdmin)
