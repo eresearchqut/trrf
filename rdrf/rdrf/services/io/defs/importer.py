@@ -669,6 +669,9 @@ class Importer(object):
             if "conditional_rendering_rules" in frm_map:
                 f.conditional_rendering_rules = frm_map["conditional_rendering_rules"]
 
+            if "tags" in frm_map:
+                f.tags = frm_map["tags"]
+
             f.registry = r
             if 'position' in frm_map:
                 f.position = frm_map['position']

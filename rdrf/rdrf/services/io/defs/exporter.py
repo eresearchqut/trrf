@@ -210,6 +210,7 @@ class Exporter:
         frm_map["sections"] = []
         frm_map["applicability_condition"] = form_model.applicability_condition
         frm_map["conditional_rendering_rules"] = form_model.conditional_rendering_rules or ''
+        frm_map["tags"] = form_model.tags
 
         for section_code in form_model.get_sections():
             frm_map["sections"].append(self._create_section_map(section_code))
