@@ -5,7 +5,6 @@ from django.db import ProgrammingError
 from django.db import connection
 
 from rdrf.helpers.cde_data_types import CDEDataTypes
-from rdrf.helpers.utils import get_cached_instance
 from rdrf.helpers.utils import timed
 from rdrf.models.definition.models import Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData, CDEPermittedValue
