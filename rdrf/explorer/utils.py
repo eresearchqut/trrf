@@ -58,6 +58,10 @@ class DatabaseUtils(object):
             for r in CDEPermittedValue.objects.values('code', 'value', 'pv_group_id')
         }
 
+        self.forms_mapping = {f.name: f for f in RegistryForm.objects.filter(registry=self.registry_model)}
+        self.section_mapping = {s.code: s for s in Section.objects.all()}
+        self.cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all()}
+
     def run_sql(self):
         try:
             cursor = self.create_cursor()
@@ -406,11 +410,10 @@ class DatabaseUtils(object):
             return data
 
         for cde_dict in self.projection:
-            form_model = RegistryForm.objects.get(
-                name=cde_dict["formName"], registry=self.registry_model)
-            section_model = Section.objects.filter(code=cde_dict["sectionCode"]).first()
+            form_model = self.forms_mapping[cde_dict["formName"]]
+            section_model = self.section_mapping.get(cde_dict["sectionCode"])
             if section_model:
-                cde_model = CommonDataElement.objects.get(code=cde_dict["cdeCode"])
+                cde_model = self.cde_mapping[cde_dict["cdeCode"]]
                 column_name = self._get_database_column_name(form_model, section_model, cde_model)
                 data["multisection_column_map"][(
                     form_model, section_model, cde_model)] = column_name
@@ -423,12 +426,9 @@ class DatabaseUtils(object):
 
     def _get_mongo_fields(self):
         for cde_dict in self.projection:
-            form_model = get_cached_instance(
-                RegistryForm,
-                name=cde_dict["formName"],
-                registry=self.registry_model)
-            section_model = get_cached_instance(Section, code=cde_dict["sectionCode"])
-            cde_model = get_cached_instance(CommonDataElement, code=cde_dict["cdeCode"])
+            form_model = self.forms_mapping[cde_dict["formName"]]
+            section_model = self.section_mapping[cde_dict["sectionCode"]]
+            cde_model = self.cde_mapping[cde_dict["cdeCode"]]
             if section_model and cde_model:
                 yield form_model, section_model, cde_model
 
