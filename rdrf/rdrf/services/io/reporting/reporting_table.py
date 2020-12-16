@@ -28,9 +28,9 @@ class ColumnLabeller(object):
 
     def __init__(self):
         from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
-        self.forms_mapping = {f.id: f for f in RegistryForm.objects.all()}
-        self.section_mapping = {s.id: s for s in Section.objects.all()}
-        self.cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all()}
+        self.forms_mapping = {f["id"]: f["name"] for f in RegistryForm.objects.all().values('id', 'name')}
+        self.section_mapping = {s["id"]: s["display_name"] for s in Section.objects.all().values('id', 'display_name')}
+        self.cde_mapping = {cde["code"]: cde["name"] for cde in CommonDataElement.objects.all().values('code', 'name')}
 
     def get_label(self, column_name):
         s = self._get_label(column_name)
@@ -55,18 +55,12 @@ class ColumnLabeller(object):
             else:
                 return column_name
 
-            form_model = self.form_mapping[int(form_pk)]
-            section_model = self.section_mapping[int(section_pk)]
-            cde_model = self.cde_mapping[cde_code]
+            form_name = self.form_mapping[int(form_pk)]
+            section_name = self.section_mapping[int(section_pk)]
+            cde_name = self.cde_mapping[cde_code]
             if column_index:
-                s = form_model.name[:3] + "_" + section_model.display_name[
-                    :3] + "_" + cde_model.name[:30] + "_" + column_index
-            else:
-                s = form_model.name[
-                    :3] + "_" + section_model.display_name[:3] + "_" + cde_model.name[:30]
-
-            return s
-
+                return form_name[:3] + "_" + section_name[:3] + "_" + cde_name[:30] + "_" + column_index
+            return form_name[:3] + "_" + section_name[:3] + "_" + cde_name[:30]
         except Exception:
             return column_name
 
