@@ -409,10 +409,10 @@ class DatabaseUtils(object):
             return data
 
         for cde_dict in self.projection:
-            form_model = self.forms_mapping[cde_dict["formName"]]
+            form_model = self.forms_mapping.get(cde_dict["formName"])
             section_model = self.section_mapping.get(cde_dict["sectionCode"])
-            if section_model:
-                cde_model = self.cde_mapping[cde_dict["cdeCode"]]
+            cde_model = self.cde_mapping.get(cde_dict["cdeCode"])
+            if form_model and section_model and cde_model:
                 column_name = self._get_database_column_name(form_model, section_model, cde_model)
                 data["multisection_column_map"][(
                     form_model, section_model, cde_model)] = column_name
@@ -425,10 +425,10 @@ class DatabaseUtils(object):
 
     def _get_mongo_fields(self):
         for cde_dict in self.projection:
-            form_model = self.forms_mapping[cde_dict["formName"]]
-            section_model = self.section_mapping[cde_dict["sectionCode"]]
-            cde_model = self.cde_mapping[cde_dict["cdeCode"]]
-            if section_model and cde_model:
+            form_model = self.forms_mapping.get(cde_dict["formName"])
+            section_model = self.section_mapping.get(cde_dict["sectionCode"])
+            cde_model = self.cde_mapping.get(cde_dict["cdeCode"])
+            if form_model and section_model and cde_model:
                 yield form_model, section_model, cde_model
 
     def get_cde_forms_list(self):
