@@ -59,7 +59,7 @@ class DatabaseUtils(object):
 
         self.forms_mapping = {f.name: f for f in RegistryForm.objects.filter(registry=self.registry_model)}
         self.section_mapping = {s.code: s for s in Section.objects.all()}
-        self.cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all()}
+        self.cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all().select_related("pv_group")}
 
     def run_sql(self):
         try:
@@ -625,22 +625,22 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
     dynamic_data = patient_model.get_dynamic_data(registry_model,
                                                   context_id=context_model.id)
     if dynamic_data:
+        forms_mapping = {f.name: f for f in RegistryForm.objects.filter(registry=registry_model)}
+        section_mapping = {s.code: s for s in Section.objects.all()}
+        cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all().select_related("pv_group")}
+
         for form_dict in dynamic_data["forms"]:
-            try:
-                form_model = RegistryForm.objects.get(name=form_dict["name"],
-                                                      registry=registry_model)
-            except RegistryForm.DoesNotExist:
+            form_model = forms_mapping.get(form_dict["name"])
+            if not form_model:
                 continue
             for section_dict in form_dict["sections"]:
-                try:
-                    section_model = Section.objects.get(code=section_dict["code"])
-                except Section.DoesNotExist:
+                section_model = section_mapping.get(section_dict["code"])
+                if not section_model:
                     continue
                 if not section_dict["allow_multiple"]:
                     for cde_dict in section_dict["cdes"]:
-                        try:
-                            cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
-                        except CommonDataElement.DoesNotExist:
+                        cde_model = cde_mapping.get(cde_dict["code"])
+                        if not cde_model:
                             continue
 
                         FieldValue.put(registry_model,
@@ -654,9 +654,8 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
                 else:
                     for index, item in enumerate(section_dict["cdes"]):
                         for cde_dict in item:
-                            try:
-                                cde_model = CommonDataElement.objects.get(code=cde_dict["code"])
-                            except CommonDataElement.DoesNotExist:
+                            cde_model = cde_mapping.get(cde_dict["code"])
+                            if not cde_model:
                                 continue
 
                             FieldValue.put(registry_model,
