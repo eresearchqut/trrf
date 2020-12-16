@@ -55,7 +55,7 @@ class ColumnLabeller(object):
             else:
                 return column_name
 
-            form_name = self.form_mapping[int(form_pk)]
+            form_name = self.forms_mapping[int(form_pk)]
             section_name = self.section_mapping[int(section_pk)]
             cde_name = self.cde_mapping[cde_code]
             if column_index:
