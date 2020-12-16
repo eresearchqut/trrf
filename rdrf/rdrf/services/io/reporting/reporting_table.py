@@ -26,14 +26,18 @@ def pg_uri(db):
 
 class ColumnLabeller(object):
 
+    def __init__(self):
+        from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+        self.forms_mapping = {f.id: f for f in RegistryForm.objects.all()}
+        self.section_mapping = {s.id: s for s in Section.objects.all()}
+        self.cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all()}
+
     def get_label(self, column_name):
         s = self._get_label(column_name)
-
         return s.upper()
 
     def _get_label(self, column_name):
         # relies on the encoding of the column names
-        from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
         try:
             column_tuple = column_name.split("_")
             num_parts = len(column_tuple)
@@ -51,9 +55,9 @@ class ColumnLabeller(object):
             else:
                 return column_name
 
-            form_model = RegistryForm.objects.get(pk=int(form_pk))
-            section_model = Section.objects.get(pk=int(section_pk))
-            cde_model = CommonDataElement.objects.get(code=cde_code)
+            form_model = self.form_mapping[int(form_pk)]
+            section_model = self.section_mapping[int(section_pk)]
+            cde_model = self.cde_mapping[cde_code]
             if column_index:
                 s = form_model.name[:3] + "_" + section_model.display_name[
                     :3] + "_" + cde_model.name[:30] + "_" + column_index
