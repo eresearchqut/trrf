@@ -1,9 +1,13 @@
-from rdrf.models.definition.models import Registry
+from django.db.models import Prefetch
+
+from rdrf.models.definition.models import Registry, ContextFormGroup, ContextFormGroupItem
 from rdrf.models.definition.models import RDRFContext
 from django.contrib.contenttypes.models import ContentType
 from rdrf.helpers.registry_features import RegistryFeatures
 
 import logging
+
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +114,24 @@ class RDRFContextManager:
             content_type=content_type, object_id=patient_model.pk,
             context_form_group__id=context.context_form_group_id
         ).order_by("-created_at")
+
+    def get_patient_current_contexts(self, patient):
+        return ContextFormGroup.objects\
+            .filter(registry=self.registry_model)\
+            .order_by("sort_order")\
+            .prefetch_related(
+                Prefetch(
+                    lookup="rdrfcontext_set",
+                    queryset=RDRFContext.objects.filter(
+                        object_id=patient.pk,
+                        content_type=ContentType.objects.get_for_model(Patient)
+                    ),
+                    to_attr="patient_contexts"
+                ),
+                Prefetch(
+                    lookup="items",
+                    queryset=ContextFormGroupItem.objects.filter(
+                        registry_form__is_questionnaire=False
+                    )
+                )
+            )
