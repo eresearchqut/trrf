@@ -1555,6 +1555,14 @@ class ContextFormGroup(models.Model):
     def is_ordered_by_creation(self):
         return self.ordering == "C"
 
+    @property
+    def is_fixed(self):
+        return self.context_type == "F"
+
+    @property
+    def is_multiple(self):
+        return self.context_type == "M"
+
     def get_default_name(self, patient_model, context_model=None):
         if self.naming_scheme == "M":
             return "Modules"

@@ -90,11 +90,11 @@ class ParentView(BaseParentView):
 
     def _get_form_url(self, patient, form, context_form_group=None):
         if context_form_group:
-            if context_form_group.context_type == "F":
+            if context_form_group.is_fixed:
                 assert len(context_form_group.patient_contexts) > 0, f"Patient missing context for {context_form_group}"
                 context_id = context_form_group.patient_contexts[0].pk
                 return reverse("registry_form", args=[self.registry.code, form.id, patient.id, context_id])
-            elif context_form_group.context_type == "M":
+            elif context_form_group.is_multiple:
                 return reverse("form_add", args=[self.registry.code, form.id, patient.id, "add"])
         else:
             context_id = self.rdrf_context_manager.get_or_create_default_context(patient).pk
