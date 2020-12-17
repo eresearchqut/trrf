@@ -1,12 +1,14 @@
 from collections import defaultdict, OrderedDict
 import json
 
+from django.contrib.contenttypes.models import ContentType
+
 from django.db import ProgrammingError
 from django.db import connection
 
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import timed
-from rdrf.models.definition.models import Registry, RegistryForm, Section
+from rdrf.models.definition.models import RDRFContext, Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData, CDEPermittedValue
 
 from .models import Query
@@ -175,7 +177,29 @@ class DatabaseUtils(object):
                 d = get_sql_dict(row)
                 yield d
 
+        def base_field_value_query(registry_id):
+            return (
+                FieldValue
+                .objects
+                .filter(registry_id=registry_id,
+                        column_name__in=report_columns,
+                        index__lt=max_items))
+
+        def contexts_for_patients():
+            content_type = ContentType.objects.get_for_model(Patient)
+            context_mapping = defaultdict(list)
+            context_qs = (
+                RDRFContext
+                .objects
+                .filter(content_type=content_type)
+                .order_by("object_id", "created_at")
+                .values("id", "object_id"))
+            for entry in context_qs:
+                context_mapping[entry["object_id"]].append(entry["id"])
+            return context_mapping
+
         def full_new():
+            patient_contexts_dict = contexts_for_patients()
             registry_id = self.registry_model.id
             from copy import copy
             for row in self.cursor:
@@ -183,28 +207,14 @@ class DatabaseUtils(object):
                 d = get_sql_dict(row)
                 row_dict.update(d)
                 patient_id = int(d['id'])
-                patient_model = Patient.objects.filter(id=patient_id).first()
-                q = (FieldValue.objects.filter(registry_id=registry_id)
-                     .prefetch_related("patient")
-                     .prefetch_related("context")
-                     .prefetch_related("form")
-                     .prefetch_related("section")
-                     .prefetch_related("cde"))
-
-                if patient_model:
-                    for context_model in patient_model.context_models:
-                        context_id = context_model.pk
+                context_models = patient_contexts_dict.get(patient_id, [])
+                if context_models:
+                    q = base_field_value_query(registry_id)
+                    for context_id in context_models:
                         row = copy(row_dict)
                         # row["context_id"] = context_id
-
-                        qry = q.filter(registry_id=registry_id,
-                                       patient_id=patient_id,
-                                       context_id=context_id,
-                                       column_name__in=report_columns,
-                                       index__lt=max_items)
-
+                        qry = q.filter(patient_id=patient_id, context_id=context_id)
                         self._get_fvs_by_datatype(qry, row)
-
                         yield row
 
         if self.mongo_search_type == "C":
@@ -222,22 +232,23 @@ class DatabaseUtils(object):
                 yield d
 
     def _get_fvs_by_datatype(self, query, row):
-        for fv in query.filter(datatype=CDEDataTypes.STRING):
-            row[fv.column_name] = fv.raw_value
-        for fv in query.filter(datatype=CDEDataTypes.RANGE):
-            row[fv.column_name] = fv.display_value
-        for fv in query.filter(datatype=CDEDataTypes.INTEGER):
-            row[fv.column_name] = fv.raw_integer
-        for fv in query.filter(datatype=CDEDataTypes.FLOAT):
-            row[fv.column_name] = fv.raw_float
-        for fv in query.filter(datatype=CDEDataTypes.FILE):
-            row[fv.column_name] = fv.file_name
-        for fv in query.filter(datatype=CDEDataTypes.BOOL):
-            row[fv.column_name] = fv.raw_boolean
-        for fv in query.filter(datatype=CDEDataTypes.DATE):
-            row[fv.column_name] = fv.raw_date
-        for fv in query.filter(datatype=CDEDataTypes.CALCULATED):
-            row[fv.column_name] = fv.get_calculated_value()
+        for fv in query:
+            if fv.datatype == CDEDataTypes.STRING:
+                row[fv.column_name] = fv.raw_value
+            elif fv.datatype == CDEDataTypes.RANGE:
+                row[fv.column_name] = fv.display_value
+            elif fv.datatype == CDEDataTypes.INTEGER:
+                row[fv.column_name] = fv.raw_integer
+            elif fv.datatype == CDEDataTypes.FLOAT:
+                row[fv.column_name] = fv.raw_float
+            elif fv.datatype == CDEDataTypes.FILE:
+                row[fv.column_name] = fv.file_name
+            elif fv.datatype == CDEDataTypes.BOOL:
+                row[fv.column_name] = fv.raw_boolean
+            elif fv.datatype == CDEDataTypes.DATE:
+                row[fv.column_name] = fv.raw_date
+            elif fv.datatype == CDEDataTypes.CALCULATED:
+                row[fv.column_name] = fv.get_calculated_value()
 
     @timed
     def generate_results(self, reverse_column_map, col_map, max_items):
