@@ -1,6 +1,5 @@
 import csv
 import itertools
-from time import sleep
 
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
