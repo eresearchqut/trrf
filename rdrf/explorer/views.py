@@ -9,7 +9,7 @@ from django.conf import settings
 
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic.base import View
 
@@ -222,18 +222,21 @@ class DownloadQueryView(AccessCheckMixin, View):
                                       humaniser,
                                       max_items=query_model.max_items)
         rtg.set_table_name(query_model)
-        database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
         if action == 'view':
             # allow user to view and manipulate
+            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
             # download csv
-            return self._extract(query_model.title, rtg)
+            return self._extract(query_model.title, rtg, database_utils.dump_results_into_reportingdb)
 
-    def _extract(self, title, report_table_generator):
-        response = HttpResponse(content_type='text/csv')
+    def _extract(self, title, report_table_generator, dump_method):
+
+        record_generator = report_table_generator.csv_generator(dump_method)
+
+        response = StreamingHttpResponse(record_generator, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()
-        return report_table_generator.dump_csv(response)
+        return response
 
 
 class SqlQueryView(SuperuserRequiredMixin, View):

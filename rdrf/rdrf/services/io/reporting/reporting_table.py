@@ -1,3 +1,7 @@
+import csv
+import itertools
+from time import sleep
+
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.helpers.utils import timed
@@ -393,17 +397,25 @@ class ReportingTableGenerator(object):
 
         return self.TYPE_MAP.get(datatype, alc.String)
 
-    def dump_csv(self, stream):
-        import csv
-        writer = csv.writer(stream)
-        select_query = alc.sql.select([self.table])
-        db_connection = self.engine.connect()
-        result = db_connection.execute(select_query)
-        writer.writerow([self.column_labeller.get_label(key)
-                         for key in list(result.keys())])
-        writer.writerows(result)
-        db_connection.close()
-        return stream
+    def csv_generator(self, dump_method):
+        writer = csv.writer(StreamingCSVWriter())
+
+        def database_results():
+            sleep(10)
+            dump_method(self)
+            select_query = alc.sql.select([self.table])
+            db_connection = self.engine.connect()
+            result = db_connection.execute(select_query)
+            yield [self.column_labeller.get_label(key) for key in list(result.keys())]
+
+            for row in result:
+                yield row
+
+            db_connection.close()
+
+        csv_rows = (writer.writerow(row) for row in database_results())
+
+        return itertools.chain(["\n"], csv_rows)
 
 
 class MongoFieldSelector(object):
@@ -616,3 +628,12 @@ class ReportTable(object):
             return iso
 
         return str(data)
+
+
+class StreamingCSVWriter:
+    """
+    From https://docs.djangoproject.com/en/2.2/howto/outputting-csv/#streaming-csv-files
+    """
+
+    def write(self, value):
+        return value
