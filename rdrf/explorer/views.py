@@ -228,11 +228,14 @@ class DownloadQueryView(AccessCheckMixin, View):
             return HttpResponseRedirect(reverse("report_datatable", args=[query_model.id]))
         else:
             # download csv
-            return self._extract(query_model.title, rtg, database_utils.dump_results_into_reportingdb)
+            return self._extract(
+                query_model.title, rtg,
+                database_utils.create_reporting_db_table,
+                database_utils.stream_explorer_query)
 
-    def _extract(self, title, report_table_generator, dump_method):
+    def _extract(self, title, report_table_generator, create_table_method, dump_method):
 
-        record_generator = report_table_generator.csv_generator(dump_method)
+        record_generator = report_table_generator.csv_generator(create_table_method, dump_method)
 
         response = StreamingHttpResponse(record_generator, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % title.lower()

@@ -105,7 +105,7 @@ class DatabaseUtils(object):
             return self
 
     @timed
-    def dump_results_into_reportingdb(self, reporting_table_generator):
+    def create_reporting_db_table(self, reporting_table_generator):
         try:
             reporting_table_generator.drop_table()
         except Exception as ex:
@@ -141,12 +141,21 @@ class DatabaseUtils(object):
         except Exception as ex:
             logger.error("Report Error: creating schema: %s" % ex)
             raise
+        reporting_table_generator.create_table()
 
+    @timed
+    def dump_results_into_reportingdb(self, reporting_table_generator):
+        self.create_reporting_db_table(reporting_table_generator)
         try:
             return reporting_table_generator.run_explorer_query(self)
         except Exception as ex:
             logger.exception("Error running explorer query: {}".format(ex))
             raise
+
+    @timed
+    def stream_explorer_query(self, reporting_table_generator):
+        for row in reporting_table_generator.stream_query(self):
+            yield row
 
     @timed
     def generate_results2(self, reverse_column_map, col_map, max_items):
