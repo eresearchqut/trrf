@@ -412,7 +412,7 @@ class ReportingTableGenerator(object):
             create_table_method(self)
             select_query = alc.sql.select([self.table])
             db_connection = self.engine.connect()
-            result = db_connection.execute(select_query)
+            result = db_connection.execution_options(stream_results=True).execute(select_query)
             yield [self.column_labeller.get_label(key) for key in list(result.keys())]
             db_connection.close()
             for row in dump_method(self):
