@@ -1,5 +1,4 @@
 import csv
-import itertools
 
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
@@ -418,9 +417,7 @@ class ReportingTableGenerator(object):
             for row in dump_method(self):
                 yield row
 
-        csv_rows = (writer.writerow(row) for row in database_results())
-
-        return itertools.chain(["\n"], csv_rows)
+        return (writer.writerow(row) for row in database_results())
 
 
 class MongoFieldSelector(object):
