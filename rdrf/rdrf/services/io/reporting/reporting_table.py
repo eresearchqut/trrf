@@ -1,3 +1,5 @@
+import csv
+
 import sqlalchemy as alc
 from sqlalchemy import create_engine, MetaData
 from rdrf.helpers.utils import timed
@@ -341,9 +343,23 @@ class ReportingTableGenerator(object):
                 "warning_messages": self.warning_messages}
 
     @timed
+    def stream_query(self, database_utils):
+        from copy import copy
+        row_num = 0
+        blank_row = self._get_blank_row()
+
+        for row in database_utils.generate_results2(self.reverse_map,
+                                                    self.col_map,
+                                                    max_items=self.max_items):
+            new_row = copy(blank_row)
+            new_row.update(row)
+            self.insert_row(new_row)
+            row_num += 1
+            yield new_row.values()
+
+    @timed
     def run_explorer_query(self, database_utils):
         from copy import copy
-        self.create_table()
         errors = 0
         row_num = 0
         blank_row = self._get_blank_row()
@@ -364,11 +380,6 @@ class ReportingTableGenerator(object):
         return self._get_result_messages_dict()
 
     def insert_row(self, value_dict):
-        for k in value_dict:
-            value = value_dict[k]
-            if isinstance(value, str):
-                value_dict[k] = value
-
         self.engine.execute(self.table.insert().values(**value_dict))
 
     def _create_column(self, name, datatype=alc.String):
@@ -393,17 +404,20 @@ class ReportingTableGenerator(object):
 
         return self.TYPE_MAP.get(datatype, alc.String)
 
-    def dump_csv(self, stream):
-        import csv
-        writer = csv.writer(stream)
-        select_query = alc.sql.select([self.table])
-        db_connection = self.engine.connect()
-        result = db_connection.execute(select_query)
-        writer.writerow([self.column_labeller.get_label(key)
-                         for key in list(result.keys())])
-        writer.writerows(result)
-        db_connection.close()
-        return stream
+    def csv_generator(self, create_table_method, dump_method):
+        writer = csv.writer(StreamingCSVWriter())
+
+        def database_results():
+            create_table_method(self)
+            select_query = alc.sql.select([self.table])
+            db_connection = self.engine.connect()
+            result = db_connection.execution_options(stream_results=True).execute(select_query)
+            yield [self.column_labeller.get_label(key) for key in list(result.keys())]
+            db_connection.close()
+            for row in dump_method(self):
+                yield row
+
+        return (writer.writerow(row) for row in database_results())
 
 
 class MongoFieldSelector(object):
@@ -616,3 +630,12 @@ class ReportTable(object):
             return iso
 
         return str(data)
+
+
+class StreamingCSVWriter:
+    """
+    From https://docs.djangoproject.com/en/2.2/howto/outputting-csv/#streaming-csv-files
+    """
+
+    def write(self, value):
+        return value
