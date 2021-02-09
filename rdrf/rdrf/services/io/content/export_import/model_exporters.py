@@ -131,6 +131,8 @@ registry_catalogue.register(models.RegistryForm, ModelExporterFilteredByRegistry
 registry_catalogue.register(models.Section, SectionExporter)
 registry_catalogue.register(models.CommonDataElement, CommonDataElementExporter)
 registry_catalogue.register(models.ConsentSection, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.ConsentConfiguration, ModelExporterFilteredByRegistry)
+registry_catalogue.register(models.ConsentRule, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.ConsentQuestion, ConsentQuestionExporter)
 registry_catalogue.register(models.DemographicFields, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.EmailNotification, ModelExporterFilteredByRegistry)
@@ -152,6 +154,7 @@ registry_catalogue.register(patientmodels.PatientRelative, ModelExporterFiltered
 registry_catalogue.register(patientmodels.ConsentValue, ModelExporterFilteredByPatient)
 registry_catalogue.register(models.RDRFContext, ModelExporterFilteredByRegistry)
 registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredByRegistry)
+registry_catalogue.register(patientmodels.ClinicianSignupRequest, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
 registry_catalogue.register(models.ClinicalData, ModelExporterFilteredByRegistryCode)
