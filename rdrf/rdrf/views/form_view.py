@@ -487,7 +487,11 @@ class FormView(View):
             "registry_form",
             kwargs={"registry_code": registry_code, "patient_id": patient_id, "form_id": form_id, "context_id": context_id}
         ) if context_id != 'add' else ''
-        self.set_code_generator_data(context, empty_stubs=changes_since_version is not None)
+
+        conditional_rendering_disabled = changes_since_version or \
+            self.registry.has_feature(RegistryFeatures.CONDITIONAL_RENDERING_DISABLED)
+        self.set_code_generator_data(context, empty_stubs=conditional_rendering_disabled)
+
         context["selected_version_name"] = selected_version_name
 
         return self._render_context(request, context)
@@ -844,7 +848,10 @@ class FormView(View):
                                  failure_message)
             context['error_messages'] = [failure_message]
 
-        self.set_code_generator_data(context)
+        self.set_code_generator_data(
+            context,
+            empty_stubs=self.registry.has_feature(RegistryFeatures.CONDITIONAL_RENDERING_DISABLED)
+        )
         return render(request, self._get_template(), context)
 
     def _get_sections(self, form):
