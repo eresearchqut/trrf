@@ -172,12 +172,15 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         'patients.Doctor',
                         'patients.PatientDoctor',
                         'patients.ClinicianOther',
+                        'rdrf.ClinicianSignupRequest',
                         'patients.ParentGuardian',
                         'patients.PatientAddress',
                         'patients.PatientConsent',
                         'patients.PatientRelative',
                         'patients.ConsentValue',
-                         # TODO is it ok to include all Notifications?
+                        'rdrf.ConsentConfiguration',
+                        'rdrf.ConsentRule',
+                        # TODO is it ok to include all Notifications?
                         # They aren't linked to registry, and from and to are not FKs
                         'rdrf.Notification',
                         'rdrf.EmailNotification',
