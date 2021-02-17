@@ -47,7 +47,7 @@ class CodeGenTestCase(FormTestCase):
         generated_js = self.code_gen(self.new_form, 'BAD DSL!').generate_code()
         assert generated_js is None
 
-    def test_code_gen_with_simple_dls(self):
+    def test_code_gen_with_simple_dsl(self):
         self.new_form.conditional_rendering_rules = '''
         CDEName visible if CDEAge == 10
         '''
@@ -104,3 +104,15 @@ class CodeGenTestCase(FormTestCase):
         assert 'change_handler.hasOwnProperty("formset_sectionF")' in change_targets_output
         assert 'change_handler["formset_sectionF"].push("sectionF____DM1Apathy")' in change_targets_output
         assert 'change_handler["formset_sectionF"] = ["sectionF____DM1Apathy"]' in change_targets_output
+
+    def test_code_gen_with_simple_dsl_multiple_change_handlers(self):
+
+        self.new_form.conditional_rendering_rules = '''
+        CDEName visible if CDEAge == 10 or CDEAge == 11 or CDEAge == 12 or CDEAge == 13
+        '''
+        self.new_form.save()
+        code_gen = self.code_gen(self.new_form)
+        generated_js = code_gen.generate_code()
+        self.basic_generated_code_validation(generated_js)
+        self.change_handler_validation('get_cde_name("DM1Cholesterol____CDEAge", 0)', generated_js)
+        assert generated_js.count('get_cde_name("DM1Cholesterol____CDEAge", 0)') == 1

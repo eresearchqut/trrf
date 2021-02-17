@@ -166,13 +166,16 @@ class Instruction:
             else self.single_condition_assignments()
         )
 
-    def generate_change_handler(self):
-        if not self.multiple_conditions:
-            condition_cdes = [CDE(c.cde) for c in self.conditions if isinstance(c, Condition)]
-            return "\n".join([cde.change_handler() for cde in condition_cdes])
-        else:
-            event_handler_cdes = [CDE(c.cde) for c in self.conditions if isinstance(c, Condition)]
-            return "\n".join([cde.change_handler() for cde in event_handler_cdes])
+    def generate_change_handler(self, existing_change_handler_names):
+        condition_cdes = [c for c in self.conditions if isinstance(c, Condition)]
+        cdes = []
+        for c in condition_cdes:
+            cde_name = c.cde.element_name()
+            if cde_name not in existing_change_handler_names:
+                cdes.append(CDE(c.cde))
+                existing_change_handler_names.add(cde_name)
+
+        return "\n".join([cde.change_handler() for cde in cdes])
 
     @staticmethod
     def change_handler_element(cde_info):
@@ -245,10 +248,11 @@ class CodeGenerator:
             transformed_tree = transform_tree(parse_tree, self.cde_helper, self.section_helper)
 
             change_handlers = []
+            existing_change_handler_names = set()
             for idx, inst in enumerate(transformed_tree.children):
                 instruction_obj = Instruction(inst.children, self.cde_helper)
                 self.condition_handlers.append(instruction_obj.conditional_visibility_assignments())
-                change_handlers.append(instruction_obj.generate_change_handler())
+                change_handlers.append(instruction_obj.generate_change_handler(existing_change_handler_names))
                 self.multi_section_targets.append(instruction_obj.get_multi_section_targets())
 
             event_handlers = "\n".join(change_handlers)
