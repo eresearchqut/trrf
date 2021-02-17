@@ -317,7 +317,12 @@ function visibility_map_update(visibility_map, name, action, is_section) {
     }
 }
 
+var registered_change_handlers = new Set();
 function add_change_handler(name) {
+    if (registered_change_handlers.has(name)) {
+        return;
+    }
+    registered_change_handlers.add(name);
     $("[name='" + name +"']").change(function() {
         render_changes(visibility_handler());
     });
