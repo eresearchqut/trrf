@@ -137,20 +137,12 @@ normalpatterns += [
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
     re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
-            auth_views.PasswordResetConfirmView.as_view(),
-            kwargs={'set_password_form': RDRFSetPasswordForm},
+            auth_views.PasswordResetConfirmView.as_view(form_class=RDRFSetPasswordForm),
             name='password_reset_confirm'),
     re_path(r'^reset/done/?$', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     # Login trouble self assistance URLs
-    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(),
-            kwargs={
-            'password_reset_form': RDRFLoginAssistanceForm,
-            'template_name': 'registration/login_assistance_form.html',
-            'subject_template_name': 'registration/login_assistance_subject.txt',
-            'email_template_name': 'registration/login_assistance_email.html',
-            'post_reset_redirect': 'login_assistance_email_sent',
-            },
+    re_path(r'^login_assistance/?$', auth_views.PasswordResetView.as_view(form_class=RDRFPasswordResetForm),
             name='login_assistance'),
     re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(),
             kwargs={'template_name': 'registration/login_assistance_sent.html',
