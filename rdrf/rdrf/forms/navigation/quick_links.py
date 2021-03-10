@@ -41,6 +41,7 @@ class LinkDefs:
     Importer = make_link("import_registry", _("Importer"))
     Groups = make_link("admin:auth_group_changelist", _("Groups"))
     NextOfKinRelationship = make_link("admin:patients_nextofkinrelationship_changelist", _("Next of Kin Relationship"))
+    AddressTypes = make_link("admin:patients_addresstype_changelist", _("Address Types"))
     States = make_link("admin:patients_state_changelist", _("States"))
     ClinicianOther = make_link("admin:patients_clinicianother_changelist", _("Other Clinicians"))
     EmailNotification = make_link("admin:rdrf_emailnotification_changelist", _("Email Notifications"))
@@ -154,6 +155,7 @@ class RegularLinks(Links):
         LinkDefs.Importer,
         LinkDefs.DemographicsFields,
         LinkDefs.NextOfKinRelationship,
+        LinkDefs.AddressTypes,
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
