@@ -53,6 +53,7 @@ services:
       - db
       - clinicaldb
       - reportingdb
+      - xray-daemon
 
   node:
     build:
@@ -69,3 +70,12 @@ services:
       - .:/app
       - ./data/dev/:/data
       - ./yarn_cache:/opt/yarn_cache
+
+  xray-daemon:
+    image: amazon/aws-xray-daemon:3.2.0
+    ports:
+      - "2000"
+      - "2000/udp"
+    env_file:
+      - .env_local
+    command: ["-o", "--bind", "0.0.0.0:2000"]
