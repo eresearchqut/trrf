@@ -20,3 +20,5 @@ TRRF_SITE_NAME=TRRF Local DEV
 RECAPTCHA_SITE_KEY=6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
 RECAPTCHA_SECRET_KEY=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
 
+# Duplicate of value in settings.py because xray is not configured when django-admin commands are run
+AWS_XRAY_DAEMON_ADDRESS="xray-daemon:2000"

@@ -1,3 +1,4 @@
+from aws_xray_sdk.core import xray_recorder
 from django.apps import AppConfig
 import logging
 
@@ -14,3 +15,5 @@ class RDRFConfig(AppConfig):
         # migration wasn't being found - importing here fixed that
         import rdrf.models.proms.models  # noqa
         import rdrf.checks.security  # noqa
+
+        xray_recorder.begin_segment('setup')
