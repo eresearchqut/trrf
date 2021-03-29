@@ -478,6 +478,21 @@ LOGGING = {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
+        'aws_xray_sdk': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propograte': True,
+        },
+        'botocore': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propograte': True,
+        },
+        'urllib3': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propograte': True,
+        },
     }
 }
 
