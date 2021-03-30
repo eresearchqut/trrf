@@ -14,6 +14,9 @@ x-common-env-variables: &common-env-variables
   CACHESERVER: cachetest
   CONSOLE_LOG_LEVEL: WARNING
 
+  AWS_XRAY_SDK_ENABLED: 0
+
+
 services:
   aloe_dev:
     build:
