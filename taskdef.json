@@ -190,6 +190,10 @@
                 {
                     "containerPort": 2000,
                     "protocol": "udp"
+                },
+                {
+                    "containerPort": 2000,
+                    "protocol": "tcp"
                 }
             ]
         }
