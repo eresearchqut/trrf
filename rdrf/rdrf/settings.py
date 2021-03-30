@@ -11,6 +11,8 @@ from rdrf.system_role import SystemRoles
 from rdrf.security import url_whitelist
 env = EnvConfig()
 
+TRRF_SITE_NAME = env.get("trrf_site_name", "trrf")
+
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
 
@@ -146,6 +148,7 @@ MESSAGE_TAGS = {
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 MIDDLEWARE = (
+    'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'django.middleware.common.CommonMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
@@ -198,6 +201,7 @@ INSTALLED_APPS = [
     'simple_history',
     'django_js_reverse',
     'stronghold',
+    'aws_xray_sdk.ext.django',
 ]
 
 
@@ -209,6 +213,17 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'useraudit.backend.AuthFailedLoggerBackend',
 ]
+
+# AWS X-Ray
+# To enable X-Ray locally, in .env_local set `AWS_XRAY_SDK_ENABLED` to 1 and add AWS keys
+XRAY_RECORDER = {
+    'AWS_XRAY_DAEMON_ADDRESS': env.get("aws_xray_daemon_address", "xray-daemon:2000"),
+    'AUTO_INSTRUMENT': True,
+    'AWS_XRAY_CONTEXT_MISSING': 'LOG_ERROR',
+    'PLUGINS': ('ECSPlugin',),
+    'SAMPLING': True,
+    'AWS_XRAY_TRACING_NAME': TRRF_SITE_NAME,
+}
 
 # email
 EMAIL_USE_TLS = env.get("email_use_tls", False)
@@ -462,6 +477,21 @@ LOGGING = {
             'formatter': 'simplest',
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
+        },
+        'aws_xray_sdk': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propograte': True,
+        },
+        'botocore': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propograte': True,
+        },
+        'urllib3': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propograte': True,
         },
     }
 }
