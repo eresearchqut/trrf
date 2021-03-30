@@ -212,16 +212,9 @@ if [ "$1" = 'uwsgi_ssl_fargate' ]; then
     set -x
     django-admin.py collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1
 
-    # Only run New Relic monitoring if its configuration exists
-    if [ -n "${NEW_RELIC_MONITOR_MODE}" ] && [ "${NEW_RELIC_MONITOR_MODE}" == 'true' ]; then
-        nr_command='newrelic-admin run-program'
-    else
-        nr_command=''
-    fi
-
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-    exec ${nr_command} uwsgi --master --enable-threads --single-interpreter --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+    exec uwsgi --master --enable-threads --single-interpreter --https 0.0.0.0:9443,/etc/ssl/certs/ssl-cert-snakeoil.pem,/etc/ssl/private/ssl-cert-snakeoil.key --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
 
