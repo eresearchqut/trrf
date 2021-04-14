@@ -338,7 +338,7 @@ class FormView(View):
         if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
             from rdrf.helpers.utils import consent_check
             if not consent_check(self.registry,
-                                 self.user,
+                                 request.user,
                                  patient_model,
                                  "see_patient"):
                 raise PermissionDenied
