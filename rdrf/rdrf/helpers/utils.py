@@ -698,6 +698,9 @@ def consent_check(registry_model, user_model, patient_model, capability):
     # if there are any consent rules for user's group , perform the check
     # if any fail , fail, otherwise pass (return True)
     from rdrf.models.definition.models import ConsentRule
+    if not registry_model.has_feature(RegistryFeatures.CONSENT_CHECKS):
+        return True
+
     if user_model.is_superuser:
         return True
     for user_group in user_model.groups.all():
