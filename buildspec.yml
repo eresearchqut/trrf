@@ -1,29 +1,10 @@
 version: 0.2
+env:
+  git-credential-helper: yes
 phases:
-  install:
-    commands:
-      # CodePipeline has no support for git submodules:
-      #
-      # https://forums.aws.amazon.com/thread.jspa?threadID=248267
-      #
-      # Using a simplified version of solutions on
-      #
-      # https://stackoverflow.com/questions/42712542/how-to-auto-deploying-git-repositories-with-submodules-on-aws/
-      #
-      # to fetch submodules. It can be simplified, because our GitHub repositories are public, so we don't need to
-      # set up SSH.
-      - |
-        if [ -f .gitmodules ]; then
-          echo "Project has git submodules."
-          echo "Manual workaround to help CodePipeline fetch git submodules."
-          git init
-          git remote add origin "$GITHUB_CLONE_URL"
-          git fetch
-          git checkout -f "$CODEBUILD_RESOLVED_SOURCE_VERSION"
-          git submodule update --init --recursive
-        fi
   pre_build:
     commands:
+      - git submodule update --init --recursive
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - echo Logging in to Docker Hub...
