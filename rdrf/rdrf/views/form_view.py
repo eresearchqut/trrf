@@ -50,7 +50,7 @@ import os
 from collections import OrderedDict
 from django.conf import settings
 from rdrf.services.rpc.actions import ActionExecutor
-from rdrf.helpers.utils import FormLink
+from rdrf.helpers.utils import FormLink, consent_check
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
 from rdrf.forms.dynamic.form_changes import FormChangesExtractor
 from rdrf.forms.progress.form_progress import FormProgress
@@ -335,13 +335,8 @@ class FormView(View):
         patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
         self.registry = self._get_registry(registry_code)
-        if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
-            from rdrf.helpers.utils import consent_check
-            if not consent_check(self.registry,
-                                 request.user,
-                                 patient_model,
-                                 "see_patient"):
-                raise PermissionDenied
+        if not consent_check(self.registry, request.user, patient_model, "see_patient"):
+            raise PermissionDenied
 
         rdrf_context = get_object_or_404(RDRFContext, pk=context_id)
         if rdrf_context.is_multi_context:
@@ -395,13 +390,8 @@ class FormView(View):
 
         self.registry = self._get_registry(registry_code)
 
-        if self.registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
-            from rdrf.helpers.utils import consent_check
-            if not consent_check(self.registry,
-                                 self.user,
-                                 patient_model,
-                                 "see_patient"):
-                raise PermissionDenied
+        if not consent_check(self.registry, self.user, patient_model, "see_patient"):
+            raise PermissionDenied
 
         self.registry_form = self.get_registry_form(form_id)
         if not self.user.can_view(self.registry_form):
@@ -532,6 +522,9 @@ class FormView(View):
         patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient)
         self.registry_permissions_check(request, registry_code, form_id, patient_id, context_id)
+
+        if not consent_check(self.registry, request.user, patient, "see_patient"):
+            raise PermissionDenied
 
         self.patient_id = patient_id
 

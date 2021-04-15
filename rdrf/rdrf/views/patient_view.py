@@ -13,7 +13,7 @@ from rdrf import settings
 from rdrf.admin_forms import DemographicFieldsAdminForm
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import CdePolicy, DemographicFields
-from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import consent_check, consent_status_for_patient
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.form_section_helper import DemographicsSectionFieldBuilder
 
@@ -603,13 +603,8 @@ class PatientEditView(PatientFormMixin, View):
 
         security_check_user_patient(request.user, patient)
 
-        if registry_model.has_feature(RegistryFeatures.CONSENT_CHECKS):
-            from rdrf.helpers.utils import consent_check
-            if not consent_check(registry_model,
-                                 request.user,
-                                 patient,
-                                 "see_patient"):
-                raise PermissionDenied
+        if not consent_check(registry_model, request.user, patient, "see_patient"):
+            raise PermissionDenied
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
@@ -673,6 +668,9 @@ class PatientEditView(PatientFormMixin, View):
 
         registry_model = Registry.objects.get(code=registry_code)
         self.registry_model = registry_model
+
+        if not consent_check(registry_model, user, patient, "see_patient"):
+            raise PermissionDenied
 
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
