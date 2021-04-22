@@ -1,5 +1,6 @@
 from csp.decorators import csp_update
 from django.shortcuts import render, get_object_or_404
+from django.template.loader import render_to_string
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
@@ -1777,7 +1778,7 @@ class CustomConsentFormView(View):
 
         consent_sections = custom_consent_form.get_consent_sections()
 
-        patient_section_consent_file = (_("Upload consent file (if requested)"), None)
+        patient_section_consent_file = (_(render_to_string("rdrf_cdes/consent_instructions.html")), None)
 
         patient_signature_form = None
         patient_signature = None
@@ -1872,7 +1873,7 @@ class CustomConsentFormView(View):
             if f.instance:
                 security_check_user_patient(request.user, f.instance.patient)
 
-        patient_section_consent_file = (_("Upload consent file (if requested)"), None)
+        patient_section_consent_file = (_(render_to_string("rdrf_cdes/consent_instructions.html")), None)
 
         patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
 
