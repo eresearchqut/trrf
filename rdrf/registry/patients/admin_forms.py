@@ -161,9 +161,9 @@ class PatientConsentFileForm(forms.ModelForm):
 class PatientSignatureForm(forms.ModelForm):
     class Meta:
         model = PatientSignature
-        fields = ["consent_to_all", "signature"]
+        fields = ["signature"]
 
-    consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
+    # consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
     signature = forms.CharField(widget=SignatureWidget, required=False)
 
     SIGNATURE_REQUIRED = _("Signature is required")
