@@ -75,6 +75,11 @@
             $("select").addClass("form-control");
             $('#main-form').data('serialize', $('#main-form').serialize());
 
+            $("#consent_to_all").click(function() {
+                $("[name^='customconsent']").prop("checked", true);
+                $('#main-form').trigger("change");
+            })
+
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
                     return "{% trans 'You have unsaved changes!' %}";
@@ -157,6 +162,17 @@
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
+                <div class="panel panel-info">
+                    <div class="panel-body">
+                        <div>
+                          <h2 style="display: inline-block">{% trans "Consents" %}</h2>
+                          <button style="float: right" type="button" id="consent_to_all" class="btn btn-primary btn-block btn-lg">
+                            <i class="glyphicon glyphicon-check" ></i>
+                            {% trans "Consent to All" %}
+                          </button>
+                        </div>
+                    </div>
+                </div>
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">
