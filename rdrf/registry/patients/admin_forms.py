@@ -525,6 +525,20 @@ class PatientForm(forms.ModelForm):
                 )
         return reg_clinicians
 
+    def clean_email(self):
+        registries = self.cleaned_data.get("rdrf_registry")
+        email = self.cleaned_data.get("email")
+
+        # When patient is created or email is updated
+        if "email" in self.changed_data:
+            for registry in registries:
+                if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+                    if CustomUser.objects.filter(email=email).first():
+                        raise ValidationError(
+                            _("User with this email already exists")
+                        )
+        return email
+
     def clean(self):
         self.custom_consents = {}
         cleaneddata = self.cleaned_data
