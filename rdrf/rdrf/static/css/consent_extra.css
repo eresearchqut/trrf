@@ -1,0 +1,16 @@
+/* Follow down page when scrolling */
+#consent-header {
+  position: sticky;
+  z-index: 90;
+  top: 200px;
+}
+
+/* Non-mobile header styles */
+#consent-header .hidden-xs > h2 {
+  display: inline-block
+}
+
+#consent-header .hidden-xs > button {
+  float: right;
+  margin-top: 8px;
+}
