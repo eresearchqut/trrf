@@ -1785,7 +1785,7 @@ class CustomConsentFormView(View):
         consent_config = getattr(registry_model, 'consent_configuration', None)
         signature_supported = consent_config and (consent_config.signature_required or consent_config.signature_enabled)
         if consent_sections and signature_supported:
-            patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
+            patient_signature = (_("Patient signature"), ["signature"])
             signature = PatientSignature.objects.filter(patient=patient_model).first()
             patient_signature_form = PatientSignatureForm(
                 data=None, prefix="patient_signature", instance=signature, registry_model=registry_model,
@@ -1875,7 +1875,7 @@ class CustomConsentFormView(View):
 
         patient_section_consent_file = (_(render_to_string("rdrf_cdes/consent_instructions.html")), None)
 
-        patient_signature = (_("Patient signature"), ["consent_to_all", "signature"])
+        patient_signature = (_("Patient signature"), ["signature"])
 
         custom_consent_form_generator = CustomConsentFormGenerator(
             registry_model, patient_model, request.user)

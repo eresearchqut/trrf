@@ -621,30 +621,6 @@ class SignatureWidget(widgets.TextInput):
         return mark_safe(renderer.render("widgets/signature_widget.html", context))
 
 
-class AllConsentWidget(widgets.CheckboxInput):
-
-    @staticmethod
-    def usable_for_types():
-        return {CDEDataTypes.BOOL}
-
-    def render(self, name, value, attrs=None, renderer=None):
-
-        base = super().render(name, value, attrs, renderer)
-        javascript = """
-                $("[name='""" + name + """']").change(function(e) {
-                    if (this.checked) {
-                        $("[name^='customconsent']").prop("checked", this.checked);
-                    }
-                })
-        """
-        return mark_safe(f"""
-            {base}
-            <script>
-                {javascript}
-            </script>
-         """)
-
-
 def _is_not_multisection_clone_base_widget(attrs):
     return 'id' in attrs and '__prefix__' not in attrs['id']
 
