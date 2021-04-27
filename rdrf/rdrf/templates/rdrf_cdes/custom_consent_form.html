@@ -76,6 +76,9 @@
             $("select").addClass("form-control");
             $('#main-form').data('serialize', $('#main-form').serialize());
 
+            // Dynamically set the fixed position of the sticky consent-header according to banner height
+            $('#consent-header').css("top", $(".banner").first()[0].getBoundingClientRect().bottom + 5)
+
             // Click all consent boxes and disable sticky header
             $(".consent_to_all").click(function() {
                 $("[name^='customconsent']").prop("checked", true);

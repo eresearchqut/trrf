@@ -2,7 +2,6 @@
 #consent-header {
   position: sticky;
   z-index: 90;
-  top: 200px;
 }
 
 /* Non-mobile header styles */
