@@ -83,8 +83,7 @@
             $(".consent_to_all").click(function() {
                 $("[name^='customconsent']").prop("checked", true);
                 $('#main-form').trigger("change");
-                $('#consent-header button > i').removeClass("glyphicon-unchecked");
-                $('#consent-header button > i').addClass("glyphicon-check");
+                $('#consent-header button > i').removeClass("glyphicon-unchecked").addClass("glyphicon-check");
                 setTimeout(() => $('#consent-header').animate({top: "0"}, "fast"), 500);
             })
 
