@@ -265,16 +265,12 @@ class FamilyLinkageView(View):
         return render(request, 'rdrf_cdes/family_linkage.html', context)
 
     def post(self, request, registry_code, initial_index=None):
-        try:
-            import json
-            registry_model = Registry.objects.get(code=registry_code)
-            packet = json.loads(request.POST["packet_json"])
-            fml_log("packet = %s" % packet)
-            self._process_packet(registry_model, packet)
-            return HttpResponse("OK")
-
-        except Exception as err:
-            return HttpResponse("FAIL: %s" % err)
+        import json
+        registry_model = Registry.objects.get(code=registry_code)
+        packet = json.loads(request.POST["packet_json"])
+        fml_log("packet = %s" % packet)
+        self._process_packet(registry_model, packet)
+        return HttpResponse("OK")
 
     def _process_packet(self, registry_model, packet):
         fml_log("packet = %s" % packet)

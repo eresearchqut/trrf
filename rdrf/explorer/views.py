@@ -104,11 +104,8 @@ class QueryView(AccessCheckMixin, View):
                                           humaniser,
                                           max_items=query_model.max_items)
             rtg.set_table_name(query_model)
-            try:
-                database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
-                return HttpResponse("")
-            except Exception as ex:
-                return HttpResponse("Report Error: %s" % ex)
+            database_utils.dump_results_into_reportingdb(reporting_table_generator=rtg)
+            return HttpResponse("")
         else:
             # user clicked Save
             if form.is_valid():
