@@ -111,7 +111,7 @@ class Importer(object):
         try:
             self.yaml_data_file = yaml_data_file
             yaml_data = open(yaml_data_file)
-            self.data = yaml.safe_load(yaml_data)
+            self.data = yaml.load(yaml_data, yaml.FullLoader)
             yaml_data.close()
             self.state = ImportState.LOADED
         except Exception as ex:
