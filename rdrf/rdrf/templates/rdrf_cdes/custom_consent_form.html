@@ -19,6 +19,7 @@
     {{block.super}}
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/form_extra.css' %}" media="all">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/consent_extra.css' %}" media="all">
 
 
     <script type="text/javascript" src={% static 'js/rpc_module.js' %}></script>
@@ -74,6 +75,17 @@
             $("textarea").addClass("form-control");
             $("select").addClass("form-control");
             $('#main-form').data('serialize', $('#main-form').serialize());
+
+            // Dynamically set the fixed position of the sticky consent-header according to banner height
+            $('#consent-header').css("top", $(".banner").first()[0].getBoundingClientRect().bottom + 5)
+
+            // Click all consent boxes and disable sticky header
+            $(".consent_to_all").click(function() {
+                $("[name^='customconsent']").prop("checked", true);
+                $('#main-form').trigger("change");
+                $('#consent-header button > i').removeClass("glyphicon-unchecked").addClass("glyphicon-check");
+                setTimeout(() => $('#consent-header').animate({top: "0"}, "fast"), 500);
+            })
 
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
@@ -157,6 +169,23 @@
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
+                <div id="consent-header" class="panel panel-info">
+                    <div class="panel-body">
+                        <div class="visible-xs">
+                          <button type="button" class="consent_to_all btn btn-primary btn-success btn-block btn-lg">
+                            <i class="glyphicon glyphicon-unchecked" ></i>
+                            {% trans "Consent to All" %}
+                          </button>
+                        </div>
+                        <div class="hidden-xs">
+                          <h2 style="">{% trans "Consents" %}</h2>
+                          <button type="button" class="consent_to_all btn btn-primary btn-success btn-lg">
+                            <i class="glyphicon glyphicon-unchecked" ></i>
+                            {% trans "Consent to All" %}
+                          </button>
+                        </div>
+                    </div>
+                </div>
 
                 {% if errors %}
                     <div class="alert alert-danger" role="alert">

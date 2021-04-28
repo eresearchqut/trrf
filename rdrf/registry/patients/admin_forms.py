@@ -23,7 +23,7 @@ from .models import (
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
 from rdrf.forms.dynamic.fields import FileTypeRestrictedFileField
-from rdrf.forms.widgets.widgets import AllConsentWidget, CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
+from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
@@ -161,9 +161,8 @@ class PatientConsentFileForm(forms.ModelForm):
 class PatientSignatureForm(forms.ModelForm):
     class Meta:
         model = PatientSignature
-        fields = ["consent_to_all", "signature"]
+        fields = ["signature"]
 
-    consent_to_all = forms.BooleanField(widget=AllConsentWidget, required=False)
     signature = forms.CharField(widget=SignatureWidget, required=False)
 
     SIGNATURE_REQUIRED = _("Signature is required")
