@@ -112,7 +112,7 @@ class CustomS3Storage(S3Boto3Storage):
         This method isn't part of the Storage API, it is an extra method added by us.
         '''
         try:
-            name = self._encode_name(self._normalize_name(self._clean_name(name)))
+            name = self._normalize_name(self._clean_name(name))
             response = self.connection.meta.client.get_object_tagging(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=name)
             return {el['Key']: el['Value'] for el in response['TagSet']}
         except botocore.exceptions.ClientError as tce:
@@ -131,14 +131,13 @@ class CustomS3Storage(S3Boto3Storage):
         In the original method, 403 and 404 errors are treated as missing files, which means that currently-scanning
         files can be overwritten if a second file with the same name is uploaded.
         '''
+
         name = self._normalize_name(self._clean_name(name))
-        if self.entries:
-            return name in self.entries
         try:
             self.connection.meta.client.head_object(Bucket=self.bucket_name, Key=name)
             return True
         except botocore.exceptions.ClientError as e:
-            code = e['Error']['Code']
+            code = e.response['Error']['Code']
             if code == "403":
                 return True
             elif code == "404":

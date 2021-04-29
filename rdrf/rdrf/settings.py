@@ -284,12 +284,14 @@ AWS_DEFAULT_ACL = None
 # To test locally set these values in your .env_local file
 # .env_local is in .gitignore so it can have your local settings without being checked in
 
-AWS_STORAGE_BUCKET_NAME = env.get("AWS_STORAGE_BUCKET_NAME", "")  # set to trrf-storage-dev in local dev
+AWS_STORAGE_BUCKET_NAME = env.get("AWS_STORAGE_BUCKET_NAME", "")  # set to dev-trrf-filestoragebucket in local dev
+AWS_S3_FILE_OVERWRITE = False
 
 # Set these to an IAM user's keys when testing locally.
 # On the servers EC2 roles will take care of this.
 AWS_ACCESS_KEY_ID = env.get("aws_storage_access_key_id", env.get("aws_access_key_id", ""))
 AWS_SECRET_ACCESS_KEY = env.get("aws_storage_secret_access_key", env.get("aws_secret_access_key", ""))
+AWS_SECURITY_TOKEN = env.get("aws_storage_security_token", env.get("aws_security_token", ""))
 
 AWS_S3_REGION_NAME = env.get("aws_storage_region_name", env.get("aws_region_name", "ap-southeast-2"))
 AWS_LOCATION = env.get("aws_storage_location", "")  # set to "local/{YOUR_USERNAME}/" in local dev
