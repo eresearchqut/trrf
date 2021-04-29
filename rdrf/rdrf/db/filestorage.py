@@ -122,6 +122,30 @@ class CustomS3Storage(S3Boto3Storage):
                 raise tce
         return {}
 
+    def exists(self, name):
+        '''
+        Determines whether a file exists in the bucket already, and thus needs a new file name.
+
+        This method overrides the existing method because of the way we do virus scanning on uploaded files.
+        Files uploaded with virus scanning enabled will return 403 errors until they are cleared.
+        In the original method, 403 and 404 errors are treated as missing files, which means that currently-scanning
+        files can be overwritten if a second file with the same name is uploaded.
+        '''
+        name = self._normalize_name(self._clean_name(name))
+        if self.entries:
+            return name in self.entries
+        try:
+            self.connection.meta.client.head_object(Bucket=self.bucket_name, Key=name)
+            return True
+        except botocore.exceptions.ClientError as e:
+            code = e['Error']['Code']
+            if code == "403":
+                return True
+            elif code == "404":
+                return False
+            else:
+                raise e
+
 
 class VirusScanStatus:
     SCANNING = 'scanning'
