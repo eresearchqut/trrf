@@ -14,6 +14,6 @@
     "jsignature": "2.1.3",
     "moment": "2.24.0",
     "timepicki": "2.0.1",
-    "underscore": "1.5.2"
+    "underscore": "1.13.1"
   }
 }
