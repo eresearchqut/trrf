@@ -91,7 +91,12 @@ class Section(models.Model):
 
     def clean(self):
         errors = {}
-        codes = set(self.get_elements())
+        elements = self.get_elements()
+        codes = set(elements)
+
+        if elements and len(elements) != len(codes):
+            raise ValidationError("Section [%s] code - section contains duplicate CDEs" % self.code)
+
         qs = CommonDataElement.objects.filter(code__in=codes)
         missing = sorted(codes - set(qs.values_list("code", flat=True)))
 
