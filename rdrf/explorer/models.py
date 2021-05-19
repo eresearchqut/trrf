@@ -74,7 +74,7 @@ class FieldValue(models.Model):
     @classmethod
     def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
         datatype = cde_model.datatype.strip().lower()
-        model, _ = cls.objects.get_or_create(
+        model = cls(
             registry=registry_model,
             patient=patient_model,
             context=context_model,
@@ -90,8 +90,7 @@ class FieldValue(models.Model):
                                                   cde_model,
                                                   index)
         if value is None:
-            model.save()
-            return
+            return model
 
         if datatype == 'string':
             try:
@@ -135,7 +134,7 @@ class FieldValue(models.Model):
             except BaseException:
                 pass
 
-        model.save()
+        return model
 
     def set_datatype(self, datatype):
         if datatype in ['string', 'striing']:

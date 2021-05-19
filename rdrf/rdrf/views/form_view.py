@@ -726,9 +726,7 @@ class FormView(View):
                 if self.rdrf_context:
                     create_field_values(registry,
                                         patient,
-                                        self.rdrf_context,
-                                        remove_existing=True,
-                                        form_model=form_obj)
+                                        self.rdrf_context)
                 logger.debug("created field values for patient %s" % patient)
             except Exception as ex:
                 logger.debug("error creating field values: %s" % ex)
@@ -746,9 +744,7 @@ class FormView(View):
                 try:
                     create_field_values(registry,
                                         patient,
-                                        newly_created_context,
-                                        remove_existing=True,
-                                        form_model=form_obj)
+                                        newly_created_context)
                 except Exception as ex:
                     logger.debug("Error creating field values for new context: %s" % ex)
 
