@@ -11,9 +11,8 @@ from registry.patients.models import AddressType, ParentGuardian, Patient, Patie
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.forms.form_title_helper import FormTitleHelper
-from rdrf.forms.progress import form_progress
 from rdrf.helpers.utils import consent_status_for_patient
-from rdrf.models.definition.models import Registry, RegistryForm
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger("registry_log")
 
@@ -58,24 +57,13 @@ class ParentView(BaseParentView):
 
     def get(self, request, registry_code):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
-        progress = form_progress.FormProgress(self.registry)
         fth = FormTitleHelper(self.registry, "")
 
         context = {
             "parent": self.parent,
             "patients": [{
                 "patient": patient,
-                "consent": consent_status_for_patient(registry_code, patient),
-                "form_groups": [{
-                    "name": group_title,
-                    "forms": [{
-                        "form": form,
-                        "progress": progress.get_form_progress(form, patient),
-                        "current": progress.get_form_currency(form, patient),
-                        "readonly": request.user.has_perm("rdrf.form_%s_is_readonly" % form.id),
-                        "url": self._get_form_url(patient, form, cfg)
-                    } for form in forms]
-                } for cfg, group_title, forms in self._get_form_groups(patient)]
+                "consent": consent_status_for_patient(registry_code, patient)
             } for patient in self._get_parent_patients(self.parent)],
             "registry_code": registry_code,
             "form_titles": fth.all_titles_for_user(request.user)
@@ -87,28 +75,6 @@ class ParentView(BaseParentView):
         for patient in parent.patient.all():
             self.rdrf_context_manager.get_or_create_default_context(patient)
             yield patient
-
-    def _get_form_url(self, patient, form, context_form_group=None):
-        if context_form_group:
-            if context_form_group.is_fixed:
-                assert len(context_form_group.patient_contexts) > 0, f"Patient missing context for {context_form_group}"
-                context_id = context_form_group.patient_contexts[0].pk
-                return reverse("registry_form", args=[self.registry.code, form.id, patient.id, context_id])
-            elif context_form_group.is_multiple:
-                return reverse("form_add", args=[self.registry.code, form.id, patient.id, "add"])
-        else:
-            context_id = self.rdrf_context_manager.get_or_create_default_context(patient).pk
-            return reverse("registry_form", args=[self.registry.code, form.id, patient.id, context_id])
-
-    def _get_form_groups(self, patient):
-        if self.rdrf_context_manager.supports_contexts:
-            for context_form_group in self.rdrf_context_manager.get_patient_current_contexts(patient):
-                yield context_form_group, context_form_group.name, context_form_group.forms
-        else:
-            forms = RegistryForm.objects.filter(registry=self.registry)\
-                .exclude(is_questionnaire=True)\
-                .order_by('position')
-            yield None, "Modules", forms
 
     def post(self, request, registry_code):
 
