@@ -342,7 +342,7 @@ class FormProgress:
                 return form_model.applicable_to(self.current_patient)
         return True
 
-    def _calculate(self, dynamic_data, patient_model=None):
+    def _calculate(self, dynamic_data, patient_model=None, context_model=None):
 
         logger.info("calculating progress")
         if patient_model is not None:
@@ -368,7 +368,9 @@ class FormProgress:
         current_form_name = forms[0]["name"] if forms else ""
 
         xray_recorder.begin_subsegment("form_progress_calculator")
-        for form_model in self.registry_model.forms:
+        has_cfg_forms = context_model and context_model.context_form_group
+        form_models = context_model.context_form_group.forms if has_cfg_forms else self.registry_model.forms
+        for form_model in form_models:
             if form_model.is_questionnaire or not self._applicable(form_model):
                 continue
             form_name = form_model.name
@@ -541,7 +543,7 @@ class FormProgress:
         if not dynamic_data:
             return self.progress_data
         xray_recorder.begin_subsegment("calculate")
-        self._calculate(dynamic_data, patient_model)
+        self._calculate(dynamic_data, patient_model, context_model)
         xray_recorder.end_subsegment()
 
         xray_recorder.begin_subsegment("update")
