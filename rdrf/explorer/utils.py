@@ -3,8 +3,7 @@ import json
 
 from django.contrib.contenttypes.models import ContentType
 
-from django.db import ProgrammingError
-from django.db import connection
+from django.db import ProgrammingError, connection, transaction
 
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import timed
@@ -628,26 +627,25 @@ class ParseQuery(object):
         pass
 
 
-def create_field_values(registry_model, patient_model, context_model, remove_existing=False, form_model=None):
+@transaction.atomic()
+def create_field_values(registry_model, patient_model, context_model):
     """
     Create faster representations of the clinical data for reporting
     """
-    if remove_existing:
-        qry = FieldValue.objects.filter(registry=registry_model,
-                                        patient=patient_model,
-                                        context=context_model)
-
-        if form_model:
-            qry = qry.filter(form=form_model)
-
-        qry.delete()
+    # Remove existing values for the context, makes for faster bulk create
+    FieldValue.objects.filter(registry=registry_model,
+                              patient=patient_model,
+                              context=context_model).delete()
 
     dynamic_data = patient_model.get_dynamic_data(registry_model,
                                                   context_id=context_model.id)
+
     if dynamic_data:
         forms_mapping = {f.name: f for f in RegistryForm.objects.filter(registry=registry_model)}
         section_mapping = {s.code: s for s in Section.objects.all()}
         cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all().select_related("pv_group")}
+
+        field_values = []
 
         for form_dict in dynamic_data["forms"]:
             form_model = forms_mapping.get(form_dict["name"])
@@ -663,14 +661,14 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
                         if not cde_model:
                             continue
 
-                        FieldValue.put(registry_model,
-                                       patient_model,
-                                       context_model,
-                                       form_model,
-                                       section_model,
-                                       cde_model,
-                                       0,
-                                       cde_dict["value"])
+                        field_values.append(FieldValue.put(registry_model,
+                                                           patient_model,
+                                                           context_model,
+                                                           form_model,
+                                                           section_model,
+                                                           cde_model,
+                                                           0,
+                                                           cde_dict["value"]))
                 else:
                     for index, item in enumerate(section_dict["cdes"]):
                         for cde_dict in item:
@@ -678,11 +676,13 @@ def create_field_values(registry_model, patient_model, context_model, remove_exi
                             if not cde_model:
                                 continue
 
-                            FieldValue.put(registry_model,
-                                           patient_model,
-                                           context_model,
-                                           form_model,
-                                           section_model,
-                                           cde_model,
-                                           index,
-                                           cde_dict["value"])
+                            field_values.append(FieldValue.put(registry_model,
+                                                               patient_model,
+                                                               context_model,
+                                                               form_model,
+                                                               section_model,
+                                                               cde_model,
+                                                               index,
+                                                               cde_dict["value"]))
+
+        FieldValue.objects.bulk_create(field_values)

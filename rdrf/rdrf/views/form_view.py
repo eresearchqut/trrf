@@ -72,6 +72,8 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.view_helper import FileErrorHandlingMixin
 from rdrf.security.mixins import StaffMemberRequiredMixin
 
+from aws_xray_sdk.core import xray_recorder
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -369,6 +371,8 @@ class FormView(View):
         pass
 
     def get(self, request, registry_code, form_id, patient_id, context_id=None):
+        xray_recorder.begin_subsegment('formview_get')
+        xray_recorder.begin_subsegment('auth')
         # RDR-1398 enable a Create View which context_id of 'add' is provided
         if context_id is None:
             raise Http404
@@ -397,7 +401,9 @@ class FormView(View):
         self.registry_form = self.get_registry_form(form_id)
         if not self.user.can_view(self.registry_form):
             raise PermissionDenied
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -405,7 +411,9 @@ class FormView(View):
                 self.set_rdrf_context(patient_model, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("data")
         request.session['num_retries'] = settings.SESSION_REFRESH_MAX_RETRIES
         self.init_previous_data_members()
         changes_since_version = request.GET.get("changes_since_version")
@@ -424,10 +432,12 @@ class FormView(View):
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
             changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
+        xray_recorder.end_subsegment()
 
         if not self.registry_form.applicable_to(patient_model):
             return HttpResponseRedirect(reverse("patientslisting"))
 
+        xray_recorder.begin_subsegment("template")
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         self.registry,
                                                         patient_model,
@@ -485,7 +495,14 @@ class FormView(View):
 
         context["selected_version_name"] = selected_version_name
 
-        return self._render_context(request, context)
+        xray_recorder.end_subsegment()
+
+        xray_recorder.begin_subsegment("render")
+        response = self._render_context(request, context)
+        xray_recorder.end_subsegment()
+
+        xray_recorder.end_subsegment()
+        return response
 
     def _render_context(self, request, context):
         context.update(csrf(request))
@@ -496,6 +513,8 @@ class FormView(View):
         return ",".join(form_class().fields.keys())
 
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
+        xray_recorder.begin_subsegment('formview_post')
+        xray_recorder.begin_subsegment("auth")
         if context_id is None:
             raise Http404
         all_errors = []
@@ -528,7 +547,9 @@ class FormView(View):
             raise PermissionDenied
 
         self.patient_id = patient_id
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
 
         try:
@@ -536,7 +557,9 @@ class FormView(View):
                 self.set_rdrf_context(patient, context_id)
         except RDRFContextSwitchError:
             return HttpResponseRedirect("/")
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("data")
         request.session['num_retries'] = settings.SESSION_REFRESH_MAX_RETRIES
 
         if not self.CREATE_MODE:
@@ -548,7 +571,9 @@ class FormView(View):
 
         self.init_previous_data_members()
         changes_since_version, __ = self.fetch_previous_data(None, patient, registry_code)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("form")
         form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
@@ -664,7 +689,10 @@ class FormView(View):
                         all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
+        xray_recorder.end_subsegment()
+
         if all_sections_valid:
+            xray_recorder.begin_subsegment("section_save")
             # Only save to the db iff all sections are valid
             # If all sections are valid, each section form instance  needs to be re-created here as other wise the links
             # to any upload files won't work
@@ -675,30 +703,38 @@ class FormView(View):
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
 
+            xray_recorder.end_subsegment()
+
+            xray_recorder.begin_subsegment("progress")
             progress_dict = dyn_patient.save_form_progress(
                 registry_code, context_model=self.rdrf_context)
+            xray_recorder.end_subsegment()
+
+            xray_recorder.begin_subsegment("save_snapshot")
             # Save one snapshot after all sections have being persisted
             dyn_patient.save_snapshot(
                 registry_code,
                 "cdes",
                 form_name=form_obj.name,
                 form_user=self.request.user.username)
+            xray_recorder.end_subsegment()
 
+            xray_recorder.begin_subsegment("report_fields")
             # save report friendly field values
             try:
                 logger.debug("trying to create field values for %s" % patient)
                 if self.rdrf_context:
                     create_field_values(registry,
                                         patient,
-                                        self.rdrf_context,
-                                        remove_existing=True,
-                                        form_model=form_obj)
+                                        self.rdrf_context)
                 logger.debug("created field values for patient %s" % patient)
             except Exception as ex:
                 logger.debug("error creating field values: %s" % ex)
                 raise
+            xray_recorder.end_subsegment()
 
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
+                xray_recorder.begin_subsegment("existing_form")
                 # we've created the context on the fly so no redirect to the edit view on
                 # the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
@@ -708,12 +744,11 @@ class FormView(View):
                 try:
                     create_field_values(registry,
                                         patient,
-                                        newly_created_context,
-                                        remove_existing=True,
-                                        form_model=form_obj)
+                                        newly_created_context)
                 except Exception as ex:
                     logger.debug("Error creating field values for new context: %s" % ex)
 
+                xray_recorder.end_subsegment()
                 return HttpResponseRedirect(
                     reverse(
                         'registry_form',
@@ -727,6 +762,7 @@ class FormView(View):
                 raise Exception("Content not created")
 
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
+                xray_recorder.begin_subsegment("rules")
                 rules_block = registry.metadata.get("rules", {})
                 form_rules = rules_block.get(form_obj.name, [])
                 logger.debug("checking rules for %s" % form_obj.name)
@@ -739,11 +775,13 @@ class FormView(View):
                                                 "context_id": self.rdrf_context.pk,
                                                 "clinical_data": None}
                     action_result = self._evaluate_form_rules(form_rules, rules_evaluation_context)
+                    xray_recorder.end_subsegment()
                     if isinstance(action_result, HttpResponseRedirect):
                         return action_result
                 else:
                     logger.debug("No evaluation rules to apply")
 
+        xray_recorder.begin_subsegment("wizard")
         patient_name = '%s %s' % (patient.given_names, patient.family_name)
         # progress saved to progress collection in mongo
         # the data is returned also
@@ -753,7 +791,9 @@ class FormView(View):
                                   NavigationFormType.CLINICAL,
                                   context_id,
                                   form_obj)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("template")
         context_launcher = RDRFContextLauncherComponent(request.user,
                                                         registry,
                                                         patient,
@@ -846,7 +886,14 @@ class FormView(View):
             context,
             empty_stubs=self.registry.has_feature(RegistryFeatures.CONDITIONAL_RENDERING_DISABLED)
         )
-        return render(request, self._get_template(), context)
+        xray_recorder.end_subsegment()
+
+        xray_recorder.begin_subsegment("render")
+        response = render(request, self._get_template(), context)
+        xray_recorder.end_subsegment()
+
+        xray_recorder.end_subsegment()
+        return response
 
     def _get_sections(self, form):
         section_parts = form.get_sections()

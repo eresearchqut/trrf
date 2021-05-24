@@ -218,7 +218,7 @@ AUTHENTICATION_BACKENDS = [
 # To enable X-Ray locally, in .env_local set `AWS_XRAY_SDK_ENABLED` to 1 and add AWS keys
 XRAY_RECORDER = {
     'AWS_XRAY_DAEMON_ADDRESS': env.get("aws_xray_daemon_address", "") or None,
-    'AUTO_INSTRUMENT': True,
+    'AUTO_INSTRUMENT': False,
     'AWS_XRAY_CONTEXT_MISSING': 'LOG_ERROR',
     'PLUGINS': ('ECSPlugin',),
     'SAMPLING': True,
