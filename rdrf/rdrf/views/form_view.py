@@ -706,8 +706,9 @@ class FormView(View):
             xray_recorder.end_subsegment()
 
             xray_recorder.begin_subsegment("progress")
-            progress_dict = dyn_patient.save_form_progress(
-                registry_code, context_model=self.rdrf_context)
+            if not self.CREATE_MODE:
+                progress_dict = dyn_patient.save_form_progress(
+                    registry_code, context_model=self.rdrf_context)
             xray_recorder.end_subsegment()
 
             xray_recorder.begin_subsegment("save_snapshot")
@@ -749,6 +750,7 @@ class FormView(View):
                     logger.debug("Error creating field values for new context: %s" % ex)
 
                 xray_recorder.end_subsegment()
+                xray_recorder.end_subsegment()  # End main subsegment
                 return HttpResponseRedirect(
                     reverse(
                         'registry_form',
