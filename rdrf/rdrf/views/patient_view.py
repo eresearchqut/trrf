@@ -46,6 +46,8 @@ from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
 from django.core.exceptions import PermissionDenied
 
+from aws_xray_sdk.core import xray_recorder
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -591,21 +593,28 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
 class PatientEditView(PatientFormMixin, View):
 
     def get(self, request, registry_code, patient_id):
+        xray_recorder.begin_subsegment("auth")
         if not request.user.is_authenticated:
             patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id, ])
             login_url = reverse('two_factor:login')
             return redirect("%s?next=%s" % (login_url, patient_edit_url))
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("form_sections")
         registry_model = Registry.objects.get(code=registry_code)
 
         patient, form_sections = self._get_patient_and_forms_sections(
             patient_id, registry_code, request)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("security")
         security_check_user_patient(request.user, patient)
 
         if not consent_check(registry_model, request.user, patient, "see_patient"):
             raise PermissionDenied
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("template")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
 
@@ -651,8 +660,13 @@ class PatientEditView(PatientFormMixin, View):
         context["hidden_sectionlist"] = self._hidden_sections(request.user, registry_model, form_sections)
         fth = FormTitleHelper(registry_model, "Demographics")
         context["form_title"] = fth.title_for_user(request.user)
+        xray_recorder.end_subsegment()
 
-        return render(request, 'rdrf_cdes/patient_edit.html', context)
+        xray_recorder.begin_subsegment("render")
+        response = render(request, 'rdrf_cdes/patient_edit.html', context)
+        xray_recorder.end_subsegment()
+
+        return response
 
     def _get_proms_link(self, registry_model, patient_model):
         if not registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
@@ -660,6 +674,7 @@ class PatientEditView(PatientFormMixin, View):
         return "todo"
 
     def post(self, request, registry_code, patient_id):
+        xray_recorder.begin_subsegment("auth")
         user = request.user
         patient = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(user, patient)
@@ -671,7 +686,9 @@ class PatientEditView(PatientFormMixin, View):
 
         if not consent_check(registry_model, user, patient, "see_patient"):
             raise PermissionDenied
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("validate")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
 
@@ -697,9 +714,11 @@ class PatientEditView(PatientFormMixin, View):
         if registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
             doctors_to_save = self._get_doctor_formset(request, patient)
             valid_forms.append(doctors_to_save.is_valid())
+        xray_recorder.end_subsegment()
 
         patient_relatives_form = None
         if all(valid_forms):
+            xray_recorder.begin_subsegment("save")
             self.all_forms_valid(forms)
             patient, form_sections = self._get_patient_and_forms_sections(
                 patient_id, registry_code, request)
@@ -710,7 +729,9 @@ class PatientEditView(PatientFormMixin, View):
                 "message": _("Patient's details saved successfully"),
                 "error_messages": [],
             }
+            xray_recorder.end_subsegment()
         else:
+            xray_recorder.begin_subsegment("error")
             error_messages = get_error_messages([form for form in forms.values() if form])
             if not registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
                 doctors_to_save = None
@@ -721,7 +742,6 @@ class PatientEditView(PatientFormMixin, View):
                                                                           forms.get('address_form'),
                                                                           doctors_to_save,
                                                                           patient_relatives_form)
-
             context = {
                 "forms": form_sections,
                 "patient": patient,
@@ -730,7 +750,9 @@ class PatientEditView(PatientFormMixin, View):
                 "errors": True,
                 "error_messages": error_messages,
             }
+            xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("template")
         wizard = NavigationWizard(request.user,
                                   registry_model,
                                   patient,
@@ -764,8 +786,13 @@ class PatientEditView(PatientFormMixin, View):
             context['parent'] = ParentGuardian.objects.get(user=request.user)
         fth = FormTitleHelper(registry_model, "Demographics")
         context["form_title"] = fth.title_for_user(request.user)
+        xray_recorder.end_subsegment()
 
-        return render(request, 'rdrf_cdes/patient_edit.html', context)
+        xray_recorder.begin_subsegment("render")
+        response = render(request, 'rdrf_cdes/patient_edit.html', context)
+        xray_recorder.end_subsegment()
+
+        return response
 
     def _is_linked(self, registry_model, patient_model):
         # is this patient linked to others?
