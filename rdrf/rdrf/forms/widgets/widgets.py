@@ -235,6 +235,7 @@ class StateWidget(widgets.Select):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
             "class": "form-control",
+            "onclick": "if (this.value === '') $('#' + this.id.replace('state', 'country')).trigger('change')"
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
