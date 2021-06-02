@@ -40,7 +40,7 @@ services:
     build:
       context: .
       dockerfile: docker/production/Dockerfile
-    image: trrf-backend
+    image: trrf-application
     command: uwsgi_ssl
     environment: 
       - POSTGRES_USER
