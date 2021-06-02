@@ -196,6 +196,8 @@ if [ "$1" = 'uwsgi_ssl' ]; then
     info "[Run] Starting prod uwsgi on HTTPS"
 
     _django_check_deploy
+    _django_migrate
+    _django_fixtures
 
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
