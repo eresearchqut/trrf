@@ -8,8 +8,9 @@ volumes:
 services:
   db:
     image: postgres:10.7
-    env_file:
-      - docker/dev/envs/postgres
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
       - db_data:/var/lib/postgresql/data
     expose:
@@ -17,8 +18,9 @@ services:
 
   clinicaldb:
     image: postgres:10.7
-    env_file:
-      - docker/dev/envs/postgres
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
       - clinicaldb_data:/var/lib/postgresql/data
     expose:
@@ -26,8 +28,9 @@ services:
 
   reportingdb:
     image: postgres:10.7
-    env_file:
-      - docker/dev/envs/postgres
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
       - reportingdb_data:/var/lib/postgresql/data
     expose:
@@ -39,10 +42,14 @@ services:
       dockerfile: docker/production/Dockerfile
     image: trrf-backend
     command: uwsgi_ssl
+    environment: 
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - DBUSER=${POSTGRES_USER}
+      - DBPASS=${POSTGRES_PASSWORD}
     env_file:
-      - docker/production/envs/uwsgi
-      - .env
       - docker/dev/envs/runserver
+      - docker/production/envs/uwsgi
     ports:
       - 443:9443
     volumes:
