@@ -695,3 +695,6 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # Override the setting below in registries derived from trrf to tag forms to
 # allow customising the behaviour of trrf when interacting with them
 REGISTRY_FORM_TAGS = ()
+
+#Used this value in places where demo version needs something to be done
+DEMO_DEPLOYMENT = env.get("DEMO_DEPLOYMENT", False)

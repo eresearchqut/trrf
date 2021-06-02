@@ -42,7 +42,8 @@ services:
       dockerfile: docker/production/Dockerfile
     image: trrf-application
     command: uwsgi_ssl
-    environment: 
+    environment:
+      - DEMO_DEPLOYMMENT=1
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - DBUSER=${POSTGRES_USER}
