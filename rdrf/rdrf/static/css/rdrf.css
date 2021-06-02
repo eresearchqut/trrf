@@ -131,7 +131,7 @@ html, body {
 
 
 /**************************************************************************
- * CSS button utils                                                       */
+ * CSS utils                                                              */
 
 .invisibutton-container .invisibutton {
   visibility: hidden;
@@ -139,6 +139,10 @@ html, body {
 
 .invisibutton-container:hover .invisibutton {
   visibility: visible;
+}
+
+.no-border-radius {
+    border-radius: 0;
 }
 
 /**************************************************************************
