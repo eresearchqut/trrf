@@ -1,0 +1,53 @@
+version: "3.7"
+
+volumes:
+  db_data:
+  clinicaldb_data:
+  reportingdb_data:
+
+services:
+  db:
+    image: postgres:10.7
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  clinicaldb:
+    image: postgres:10.7
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - clinicaldb_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  reportingdb:
+    image: postgres:10.7
+    env_file:
+      - docker/dev/envs/postgres
+    volumes:
+      - reportingdb_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  application:
+    build:
+      context: .
+      dockerfile: docker/production/Dockerfile
+    image: trrf-backend
+    command: uwsgi_ssl
+    env_file:
+      - docker/production/envs/uwsgi
+      - .env
+      - docker/dev/envs/runserver
+    ports:
+      - 443:9443
+    volumes:
+      - ./data/prod/:/data
+    depends_on:
+      - db
+      - clinicaldb
+      - reportingdb
