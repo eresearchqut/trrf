@@ -8,6 +8,7 @@ volumes:
 services:
   db:
     image: postgres:10.7
+    restart: always
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -18,6 +19,7 @@ services:
 
   clinicaldb:
     image: postgres:10.7
+    restart: always
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -28,6 +30,7 @@ services:
 
   reportingdb:
     image: postgres:10.7
+    restart: always
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -41,6 +44,7 @@ services:
       context: .
       dockerfile: docker/production/Dockerfile
     image: trrf-application
+    restart: always
     command: uwsgi_ssl
     environment:
       - LOGIN_PAGE_MESSAGE=This is a demo instance. No personal or private data should be entered
