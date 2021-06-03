@@ -1,9 +1,8 @@
 import logging
 
 from django import forms
-
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
@@ -12,25 +11,10 @@ from django.utils.translation import ugettext as _
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from useraudit import models as uam
-
 from rdrf.auth import can_user_self_unlock
 
 
 logger = logging.getLogger(__name__)
-
-
-_login_failure_limit = getattr(settings, 'LOGIN_FAILURE_LIMIT', 0)
-
-_msg_default = 'Please enter a correct %(username)s and password (case-sensitive).'
-_msg_limit = ('For security reasons, accounts are temporarily locked after '
-              '%(login_failure_limit)d incorrect attempts.' %
-              {'login_failure_limit': _login_failure_limit})
-
-# Making sure both text are available for translators indepenedent on the
-# current LOGIN_FAILURE_LIMIT setting
-_MSG_NO_LIMIT = _(_msg_default)
-_MSG_WITH_LIMIT = _(_msg_default + ' ' + _msg_limit)
 
 
 # Same as django.contrib.auth.forms.PasswordResetForm but also allows password reset functionality
@@ -203,7 +187,10 @@ class ReactivateAccountForm(SetPasswordForm):
         return self.user
 
 
-def extract_ip_address(request):
-    ll = uam.LoginLogger()
-    ip, _ = ll.extract_ip_address(request)
-    return ip
+class LoginAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct %(username)s and password."
+        ),
+        'inactive': _("This account is inactive."),
+    }
