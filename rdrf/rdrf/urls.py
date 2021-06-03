@@ -11,7 +11,7 @@ from django_js_reverse.views import urls_js
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
-from rdrf.auth.views import login_assistance_confirm, QRGeneratorView, SetupView, DisableView
+from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
 
 from rdrf.views import favicon_view
@@ -69,7 +69,7 @@ if settings.DEBUG is True:
 
 
 two_factor_auth_urls = [
-    re_path(r'^account/login/?$', twv.LoginView.as_view(), name='login'),
+    re_path(r'^account/login/?$', LoginView.as_view(), name='login'),
     re_path(r'^account/two_factor/setup/?$', SetupView.as_view(), name='setup'),
     re_path(r'^account/two_factor/qrcode/?$', QRGeneratorView.as_view(), name='qr'),
     re_path(r'^account/two_factor/setup/complete/?$', twv.SetupCompleteView.as_view(),

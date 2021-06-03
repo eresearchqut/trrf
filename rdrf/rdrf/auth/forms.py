@@ -1,9 +1,8 @@
 import logging
 
 from django import forms
-
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
@@ -207,3 +206,10 @@ def extract_ip_address(request):
     ll = uam.LoginLogger()
     ip, _ = ll.extract_ip_address(request)
     return ip
+class LoginAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct %(username)s and password."
+        ),
+        'inactive': _("This account is inactive."),
+    }

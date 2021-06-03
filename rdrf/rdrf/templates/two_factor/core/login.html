@@ -17,7 +17,7 @@
               {% endif %}
 
             {% if form.non_field_errors %}
-              {% trans "Please enter a correct username and password. Note that both fields may be case-sensitive." as original_error_msg %}
+              {% trans "Please enter a correct username and password." as original_error_msg %}
 
               {% for err in form.non_field_errors %}
                   <div class="col-xs-12 alert alert-danger no-border-radius text-center" role="alert">
