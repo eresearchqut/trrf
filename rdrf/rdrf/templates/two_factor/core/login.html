@@ -89,10 +89,10 @@
           <a href="{% url 'login_assistance' %}">{% trans "Trouble signing in?" %}</a>
           <div class="clearfix"></div>
       </div>
-      {% if "DEMO_DEPLOYMENT" %}
+      {% if LOGIN_PAGE_MESSAGE %}
       <div class="panel-footer" style="text-align: center;">
         <span style="color: red;font-size: medium;">&#9888;</span>
-          <span style="color: red;"> This is a demo instance. No personal or private data should be entered.</span>
+          <span style="color: red;"> {{LOGIN_PAGE_MESSAGE}}</span>
       </div>
       {% endif %}
       {% endblock %}

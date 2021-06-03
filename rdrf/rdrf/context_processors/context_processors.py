@@ -13,7 +13,7 @@ def common_settings(request):
         'AUTO_LOGOUT_ENABLED': settings.AUTO_LOGOUT_ENABLED,
         'AUTO_LOGOUT_WARN_AFTER_MS': settings.AUTO_LOGOUT_WARN_AFTER_MS,
         'AUTO_LOGOUT_WARNED_USER_AFTER_MS': settings.AUTO_LOGOUT_WARNED_USER_AFTER_MS,
-        'DEMO_DEPLOYMENT': settings.DEMO_DEPLOYMENT,
+        'LOGIN_PAGE_MESSAGE': settings.LOGIN_PAGE_MESSAGE,
     }
 
 

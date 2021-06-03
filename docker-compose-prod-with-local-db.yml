@@ -43,7 +43,7 @@ services:
     image: trrf-application
     command: uwsgi_ssl
     environment:
-      - DEMO_DEPLOYMMENT=1
+      - LOGIN_PAGE_MESSAGE=This is a demo instance. No personal or private data should be entered
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - DBUSER=${POSTGRES_USER}
