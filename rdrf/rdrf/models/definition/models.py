@@ -408,6 +408,7 @@ class Registry(models.Model):
             return False
 
     def clean(self):
+        self._check_registry_code()
         self._check_metadata()
         self._check_dupes()
 
@@ -419,6 +420,12 @@ class Registry(models.Model):
                 "Code %s already exists ( ignore case) in: %s" %
                 (self.code, names))
 
+    def _check_registry_code(self):
+        if not is_alphanumeric(self.code):
+            raise ValidationError(
+                "Registry [%s] code - only letters and numbers are allowed !" %
+                self.code
+            )
     @property
     def context_name(self):
         try:
