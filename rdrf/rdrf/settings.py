@@ -366,7 +366,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = env.get("data_upload_max_number_fields", 30000) 
 # django-useraudit
 # The setting `LOGIN_FAILURE_LIMIT` allows to enable a number of allowed login attempts.
 # If the settings is not set or set to 0, the feature is disabled.
-LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 3)
+LOGIN_FAILURE_LIMIT = env.get("login_failure_limit", 5)
 
 # APPLICATION SPECIFIC SETTINGS
 AUTH_PROFILE_MODULE = 'groups.User'

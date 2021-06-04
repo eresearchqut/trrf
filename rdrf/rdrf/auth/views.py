@@ -19,6 +19,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 
 from two_factor import views as tfv
+from two_factor import forms as tff
 from two_factor.utils import default_device
 from django_otp import devices_for_user
 from django.shortcuts import redirect
@@ -31,10 +32,19 @@ from registry.patients.models import Patient, ParentGuardian
 from rdrf.auth import can_user_self_unlock, is_user_privileged
 
 
-from .forms import UserVerificationForm, ReactivateAccountForm
-
+from .forms import LoginAuthenticationForm, UserVerificationForm, ReactivateAccountForm
 
 logger = logging.getLogger(__name__)
+
+
+@tfv.utils.class_view_decorator(sensitive_post_parameters())
+@tfv.utils.class_view_decorator(never_cache)
+class LoginView(tfv.LoginView):
+    form_list = (
+        ('auth', LoginAuthenticationForm),
+        ('token', tff.AuthenticationTokenForm),
+        ('backup', tff.BackupTokenForm),
+    )
 
 
 @receiver(user_logged_in)

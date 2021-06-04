@@ -541,7 +541,7 @@ class DynamicDataWrapper(object):
                     collapsed.append(snap)
             return collapsed
 
-        record_query = self._get_record(registry_code, "history", filter_by_context=False)
+        record_query = self._get_record(registry_code, "history", filter_by_context=True)
         record_query = record_query.find(record_type="snapshot")
         data = [fmt(snapshot, i) for i, snapshot in enumerate(record_query.data())]
         return collapse_same(sorted(data, key=itemgetter("timestamp")))
