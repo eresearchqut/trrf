@@ -426,6 +426,7 @@ class Registry(models.Model):
                 "Registry [%s] code - only letters and numbers are allowed !" %
                 self.code
             )
+
     @property
     def context_name(self):
         try:
