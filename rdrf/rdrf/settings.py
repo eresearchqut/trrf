@@ -348,7 +348,7 @@ _CSP_STATIC_URL = get_static_url_domain(env.get("STATIC_URL", ""))
 CSP_DEFAULT_SRC = ["'self'"]
 CSP_OBJECT_SRC = ["'none'"]
 CSP_SCRIPT_SRC = get_csp(
-    ["'self'", "'unsafe-inline'", "https://js-agent.newrelic.com", "https://bam.nr-data.net"],
+    ["'self'", "'unsafe-inline'"],
     [_CSP_STATIC_URL]
 )
 CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
