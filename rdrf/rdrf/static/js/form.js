@@ -203,18 +203,13 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
           display: false
         },
         scales: {
-          xAxes: [{
+          x: {
             type: "time",
             position: "bottom",
             time: {
               tooltipFormat: "D-M-Y HH:mm"
             }
-          }],
-          yAxes: false && datatype === "date" ? [{
-            // fixme: chart.js doesn't like time scale on y-axis
-            type: "time",
-            position: "left"
-          }] : undefined
+          }
         },
         maintainAspectRatio: false
       }
