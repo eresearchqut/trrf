@@ -48,12 +48,13 @@ services:
     command: uwsgi_ssl
     environment:
       - LOGIN_PAGE_MESSAGE=This is a demo instance. No personal or private data should be entered
+      - TIME_ZONE
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - DBUSER=${POSTGRES_USER}
       - DBPASS=${POSTGRES_PASSWORD}
     env_file:
-      - docker/dev/envs/runserver
+      - docker/production/envs/prod-local-db
       - docker/production/envs/uwsgi
     ports:
       - 443:9443
