@@ -696,5 +696,5 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # allow customising the behaviour of trrf when interacting with them
 REGISTRY_FORM_TAGS = ()
 
-#Used this value as a banner to be displayed in login page
+# Used this value as a banner to be displayed in login page
 LOGIN_PAGE_MESSAGE = env.get("LOGIN_PAGE_MESSAGE", '')
