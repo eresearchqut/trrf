@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>registration_registrationprofile - webapp Database</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
+        <!-- Bootstrap 3.3.5 -->
+        <link rel="stylesheet" href="../bower/admin-lte/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../bower/font-awesome/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="../bower/ionicons/css/ionicons.min.css">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="../bower/datatables.net-bs/css/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" href="../bower/datatables.net-buttons-bs/css/buttons.bootstrap.min.css">
+        <!-- Code Mirror -->
+        <link rel="stylesheet" href="../bower/codemirror/codemirror.css">
+        <!-- Fonts -->
+        <link href='../fonts/indieflower/indie-flower.css' rel='stylesheet' type='text/css'>
+        <link href='../fonts/source-sans-pro/source-sans-pro.css' rel='stylesheet' type='text/css'>
+
+        <!-- Theme style -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/AdminLTE.min.css">
+        <!-- Salvattore -->
+        <link rel="stylesheet" href="../bower/salvattore/salvattore.css">
+        <!-- AdminLTE Skins. Choose a skin from the css/skins
+           folder instead of downloading all of them to reduce the load. -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/skins/_all-skins.min.css">
+        <!-- SchemaSpy -->
+        <link rel="stylesheet" href="../schemaSpy.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="../bower/html5shiv/html5shiv.min.js"></script>
+        <script src="../bower/respond/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        <div class="wrapper">
+            <header class="main-header">
+                <nav class="navbar navbar-static-top">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <a href="../index.html" class="navbar-brand"><b>webapp</b> Database</a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"><i class="fa fa-bars"></i></button>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="../index.html">Tables <span class="sr-only">(current)</span></a></li>
+                                <li><a href="../columns.html" title="All of the columns in the schema">Columns</a></li>
+                                <li><a href="../constraints.html" title="Useful for diagnosing error messages that just give constraint name or number">Constraints</a></li>
+                                <li><a href="../relationships.html" title="Diagram of table relationships">Relationships</a></li>
+                                <li><a href="../orphans.html" title="View of tables with neither parents nor children">Orphan&nbsp;Tables</a></li>
+                                <li><a href="../anomalies.html" title="Things that might not be quite right">Anomalies</a></li>
+                                <li><a href="../routines.html" title="Procedures and functions">Routines</a></li>
+                            </ul>
+                        </div>
+                        <!-- /.navbar-collapse -->
+                        <!-- Navbar Right Menu -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </nav>
+            </header>
+            <!-- Main content -->
+            <!-- Full Width Column -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>registration_registrationprofile</h1><p><span id="recordNumber">0</span> rows</p><br />
+                </section>
+                <!-- Main content -->
+                <section class="content">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h3 id="Columns" class="box-title">Columns</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="standard_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead align='left'>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th title='Are nulls allowed?'>Nulls</th>
+                                    <th title='Is column automatically updated?'>Auto</th>
+                                    <th title='Default value'>Default</th>
+                                    <th title='Columns in tables that reference this column'>Children</th>
+                                    <th title='Columns in tables that are referenced by this column'>Parents</th>
+                                    <th title='Comments' class="toggle"><span>Comments</span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>serial</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title='Automatically updated by the database'>√</td>
+                                    <td>nextval(&#39;registration_registrationprofile_id_seq&#39;::regclass)</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="registration_supervisedregistrationprofile.registrationprofile_ptr_id references registration_registrationprofile.id via registration_supervi_registrationprofile__0a59f3b2_fk_registrat"><a href='registration_supervisedregistrationprofile.html'>registration_supervisedregistrationprofile</a><span class='relatedKey'>.registrationprofile_ptr_id</span></td>
+                                                <td class="constraint detail">registration_supervi_registrationprofile__0a59f3b2_fk_registrat<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="activation_key">activation_key</span></td>
+                                    <td>varchar</td>
+                                    <td>40</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="registration_registrationprofile.activation_key&#39;s name implies that it&#39;s a child of authtoken_token.key, but it doesn&#39;t reference that column."><a href='authtoken_token.html'>authtoken_token</a><span class='relatedKey'>.key</span></td>
+                                                <td class="constraint detail">Implied Constraint<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="user_id">user_id</span></td>
+                                    <td>int4</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="registration_registrationprofile.user_id references groups_customuser.id via registration_registr_user_id_5fcbf725_fk_groups_cu"><a href='groups_customuser.html'>groups_customuser</a><span class='relatedKey'>.id</span></td>
+                                                <td class="constraint detail">registration_registr_user_id_5fcbf725_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="activated">activated</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-sitemap"></i>
+                            <h3 id="Indexes" class="box-title">Indexes</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="indexes_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead>
+                                <tr>
+                                    <th>Constraint Name</th>
+                                    <th>Type</th>
+                                    <th>Sort</th>
+                                    <th>Column(s)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> registration_registrationprofile_pkey</td>
+                                    <td>Primary key</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>id</td>
+                                </tr>
+                                <tr>
+                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> registration_registrationprofile_user_id_key</td>
+                                    <td>Must be unique</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>user_id</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- /.box-body -->
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-code-fork"></i>
+                            <h3 id="Relationships" class="box-title">Relationships</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="nav-tabs-custom"><!-- Tabs within a box -->
+                                <h5>Close relationships within degrees of separation</h5>
+                                <ul class="nav nav-tabs pull-left ui-sortable-handle">
+                                    <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
+                                    <li class=""><a href="#oneimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">One implied</a></li>
+                                    <li class=""><a href="#twoimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two implied</a></li>
+                                </ul>
+                                <div class="tab-content no-padding">
+                                    <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagram" name="oneDegreeRelationshipsDiagram">
+<area shape="rect" id="node1" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="285,5,655,192">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,67,241,213">
+<area shape="rect" id="node3" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="699,8,1072,101">
+</map>
+                                        <a name='diagram'><img id="oneDegreeImg" src="../diagrams/tables/registration_registrationprofile.1degree.png" usemap="#oneDegreeRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagram" name="twoDegreesRelationshipsDiagram">
+<area shape="rect" id="node1" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="371,5,569,93">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,1549,241,1696">
+<area shape="rect" id="node3" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="365,111,575,199">
+<area shape="rect" id="node4" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="330,216,610,304">
+<area shape="rect" id="node5" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="328,321,612,409">
+<area shape="rect" id="node6" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="293,427,647,515">
+<area shape="rect" id="node7" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="298,532,642,620">
+<area shape="rect" id="node8" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="349,637,591,725">
+<area shape="rect" id="node9" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="359,743,581,831">
+<area shape="rect" id="node10" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="765,2045,1005,2133">
+<area shape="rect" id="node11" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="373,2289,567,2377">
+<area shape="rect" id="node12" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="322,920,618,1008">
+<area shape="rect" id="node13" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="317,1025,623,1113">
+<area shape="rect" id="node14" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="319,1131,621,1219">
+<area shape="rect" id="node15" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="342,1236,598,1324">
+<area shape="rect" id="node16" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="291,1341,649,1429">
+<area shape="rect" id="node17" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="311,1447,629,1535">
+<area shape="rect" id="node18" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="341,1552,599,1640">
+<area shape="rect" id="node19" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="313,1657,627,1745">
+<area shape="rect" id="node20" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="313,1763,627,1851">
+<area shape="rect" id="node21" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="318,1868,622,1956">
+<area shape="rect" id="node22" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="315,1973,625,2061">
+<area shape="rect" id="node23" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="332,2079,608,2167">
+<area shape="rect" id="node24" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="348,2184,592,2272">
+<area shape="rect" id="node25" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="759,2151,1011,2239">
+<area shape="rect" id="node26" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="713,2256,1058,2344">
+<area shape="rect" id="node27" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="805,2361,966,2449">
+<area shape="rect" id="node28" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1116,2237,1389,2325">
+<area shape="rect" id="node29" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="373,2503,567,2591">
+<area shape="rect" id="node30" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="285,2608,655,2795">
+<area shape="rect" id="node31" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="699,2611,1072,2704">
+<area shape="rect" id="node32" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="365,2812,575,2900">
+<area shape="rect" id="node33" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="344,2917,596,3005">
+</map>
+                                        <a name='diagram'><img id="twodegreesDegreeImg" src="../diagrams/tables/registration_registrationprofile.2degrees.png" usemap="#twoDegreesRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagramImplied" name="oneDegreeRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="285,5,483,152">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,83,241,229">
+<area shape="rect" id="node3" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="527,21,896,208">
+<area shape="rect" id="node4" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="940,24,1313,117">
+</map>
+                                        <a name='diagram'><img id="oneimpliedDegreeImg" src="../diagrams/tables/registration_registrationprofile.implied1degrees.png" usemap="#oneDegreeRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagramImplied" name="twoDegreesRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="365,792,563,939">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,1621,241,1768">
+<area shape="rect" id="node3" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="359,55,569,143">
+<area shape="rect" id="node4" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="324,160,604,248">
+<area shape="rect" id="node5" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="322,265,606,353">
+<area shape="rect" id="node6" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="287,371,641,459">
+<area shape="rect" id="node7" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="292,476,636,564">
+<area shape="rect" id="node8" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="343,581,585,669">
+<area shape="rect" id="node9" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="353,687,575,775">
+<area shape="rect" id="node10" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="751,2713,991,2801">
+<area shape="rect" id="node11" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="367,2469,561,2557">
+<area shape="rect" id="node12" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="316,992,612,1080">
+<area shape="rect" id="node13" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="311,1097,617,1185">
+<area shape="rect" id="node14" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="313,1203,615,1291">
+<area shape="rect" id="node15" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="336,1308,592,1396">
+<area shape="rect" id="node16" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="285,1413,643,1501">
+<area shape="rect" id="node17" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="305,1519,623,1607">
+<area shape="rect" id="node18" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="335,1624,593,1712">
+<area shape="rect" id="node19" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="307,1729,621,1817">
+<area shape="rect" id="node20" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="307,1835,621,1923">
+<area shape="rect" id="node21" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="312,1940,616,2028">
+<area shape="rect" id="node22" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="309,2045,619,2133">
+<area shape="rect" id="node23" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="326,2151,602,2239">
+<area shape="rect" id="node24" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="342,2256,586,2344">
+<area shape="rect" id="node25" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="745,2397,997,2485">
+<area shape="rect" id="node26" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="699,2503,1044,2591">
+<area shape="rect" id="node27" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="791,2608,952,2696">
+<area shape="rect" id="node28" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1150,2519,1423,2607">
+<area shape="rect" id="node29" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="367,2575,561,2663">
+<area shape="rect" id="node30" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="687,285,1056,472">
+<area shape="rect" id="node31" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="1100,288,1473,381">
+<area shape="rect" id="node32" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="359,2716,569,2804">
+<area shape="rect" id="node33" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="745,857,997,945">
+</map>
+                                        <a name='diagram'><img id="twoimpliedDegreeImg" src="../diagrams/tables/registration_registrationprofile.implied2degrees.png" usemap="#twoDegreesRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div>
+                </section>
+                <script>
+                    var config = {
+                        pagination: true
+                    }
+                </script>
+            </div>
+            <!-- /.content-wrapper -->
+            <footer class="main-footer">
+                <div>
+                    <div class="pull-right hidden-xs">
+                        <a href="https://github.com/schemaspy/schemaspy" title="GitHub for SchemaSpy"><i class="fa fa-github-square fa-2x"></i></a>
+                        <a href="http://stackoverflow.com/questions/tagged/schemaspy" title="StackOverflow for SchemaSpy"><i class="fa fa-stack-overflow fa-2x"></i></a>
+                    </div>
+                    <strong>Generated by <a href="http://schemaspy.org/" class="logo-text"><i class="fa fa-database"></i> SchemaSpy 6.1.0</a></strong>
+                </div>
+                <!-- /.container -->
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- jQuery 2.2.3 -->
+        <script src="../bower/admin-lte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <script src="../bower/admin-lte/plugins/jQueryUI/jquery-ui.min.js"></script>
+        <!-- Bootstrap 3.3.5 -->
+        <script src="../bower/admin-lte/bootstrap/js/bootstrap.min.js"></script>
+        <!-- DataTables -->
+        <script src="../bower/datatables.net/jquery.dataTables.min.js"></script>
+        <script src="../bower/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/dataTables.buttons.min.js"></script>
+        <script src="../bower/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.html5.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.print.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.colVis.min.js"></script>
+        <!-- SheetJS -->
+        <script src="../bower/js-xlsx/xlsx.full.min.js"></script>
+        <!-- pdfmake -->
+        <script src="../bower/pdfmake/pdfmake.min.js"></script>
+        <script src="../bower/pdfmake/vfs_fonts.js"></script>
+        <!-- SlimScroll -->
+        <script src="../bower/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+        <!-- FastClick -->
+        <script src="../bower/admin-lte/plugins/fastclick/fastclick.js"></script>
+        <!-- Salvattore -->
+        <script src="../bower/salvattore/salvattore.min.js"></script>
+        <!-- AnchorJS -->
+        <script src="../bower/anchor-js/anchor.min.js"></script>
+        <!-- CodeMirror -->
+        <script src="../bower/codemirror/codemirror.js"></script>
+        <script src="../bower/codemirror/sql.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../bower/admin-lte/dist/js/app.min.js"></script>
+        <script src="table.js"></script>
+        <script src="../schemaSpy.js"></script>
+    </body>
+</html>

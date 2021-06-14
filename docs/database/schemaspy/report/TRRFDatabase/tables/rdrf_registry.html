@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>rdrf_registry - webapp Database</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
+        <!-- Bootstrap 3.3.5 -->
+        <link rel="stylesheet" href="../bower/admin-lte/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../bower/font-awesome/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="../bower/ionicons/css/ionicons.min.css">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="../bower/datatables.net-bs/css/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" href="../bower/datatables.net-buttons-bs/css/buttons.bootstrap.min.css">
+        <!-- Code Mirror -->
+        <link rel="stylesheet" href="../bower/codemirror/codemirror.css">
+        <!-- Fonts -->
+        <link href='../fonts/indieflower/indie-flower.css' rel='stylesheet' type='text/css'>
+        <link href='../fonts/source-sans-pro/source-sans-pro.css' rel='stylesheet' type='text/css'>
+
+        <!-- Theme style -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/AdminLTE.min.css">
+        <!-- Salvattore -->
+        <link rel="stylesheet" href="../bower/salvattore/salvattore.css">
+        <!-- AdminLTE Skins. Choose a skin from the css/skins
+           folder instead of downloading all of them to reduce the load. -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/skins/_all-skins.min.css">
+        <!-- SchemaSpy -->
+        <link rel="stylesheet" href="../schemaSpy.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="../bower/html5shiv/html5shiv.min.js"></script>
+        <script src="../bower/respond/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        <div class="wrapper">
+            <header class="main-header">
+                <nav class="navbar navbar-static-top">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <a href="../index.html" class="navbar-brand"><b>webapp</b> Database</a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"><i class="fa fa-bars"></i></button>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="../index.html">Tables <span class="sr-only">(current)</span></a></li>
+                                <li><a href="../columns.html" title="All of the columns in the schema">Columns</a></li>
+                                <li><a href="../constraints.html" title="Useful for diagnosing error messages that just give constraint name or number">Constraints</a></li>
+                                <li><a href="../relationships.html" title="Diagram of table relationships">Relationships</a></li>
+                                <li><a href="../orphans.html" title="View of tables with neither parents nor children">Orphan&nbsp;Tables</a></li>
+                                <li><a href="../anomalies.html" title="Things that might not be quite right">Anomalies</a></li>
+                                <li><a href="../routines.html" title="Procedures and functions">Routines</a></li>
+                            </ul>
+                        </div>
+                        <!-- /.navbar-collapse -->
+                        <!-- Navbar Right Menu -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </nav>
+            </header>
+            <!-- Main content -->
+            <!-- Full Width Column -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>rdrf_registry</h1><p><span id="recordNumber">2</span> rows</p><br />
+                </section>
+                <!-- Main content -->
+                <section class="content">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h3 id="Columns" class="box-title">Columns</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="standard_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead align='left'>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th title='Are nulls allowed?'>Nulls</th>
+                                    <th title='Is column automatically updated?'>Auto</th>
+                                    <th title='Default value'>Default</th>
+                                    <th title='Columns in tables that reference this column'>Children</th>
+                                    <th title='Columns in tables that are referenced by this column'>Parents</th>
+                                    <th title='Comments' class="toggle"><span>Comments</span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>serial</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title='Automatically updated by the database'>√</td>
+                                    <td>nextval(&#39;rdrf_registry_id_seq&#39;::regclass)</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="explorer_fieldvalue.registry_id references rdrf_registry.id via explorer_fieldvalue_registry_id_c41872ee_fk_rdrf_registry_id"><a href='explorer_fieldvalue.html'>explorer_fieldvalue</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">explorer_fieldvalue_registry_id_c41872ee_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="explorer_query.registry_id references rdrf_registry.id via explorer_query_registry_id_dbb57ab9_fk_rdrf_registry_id"><a href='explorer_query.html'>explorer_query</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">explorer_query_registry_id_dbb57ab9_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_customuser_registry.registry_id references rdrf_registry.id via groups_customuser_re_registry_id_bcd5831b_fk_rdrf_regi"><a href='groups_customuser_registry.html'>groups_customuser_registry</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">groups_customuser_re_registry_id_bcd5831b_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_workinggroup.registry_id references rdrf_registry.id via groups_workinggroup_registry_id_0d9d3a8c_fk_rdrf_registry_id"><a href='groups_workinggroup.html'>groups_workinggroup</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">groups_workinggroup_registry_id_0d9d3a8c_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patient_rdrf_registry.registry_id references rdrf_registry.id via patients_patient_rdr_registry_id_25a2eb8c_fk_rdrf_regi"><a href='patients_patient_rdrf_registry.html'>patients_patient_rdrf_registry</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">patients_patient_rdr_registry_id_25a2eb8c_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patientstage.registry_id references rdrf_registry.id via patients_patientstage_registry_id_28f71a78_fk_rdrf_registry_id"><a href='patients_patientstage.html'>patients_patientstage</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">patients_patientstage_registry_id_28f71a78_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patientstagerule.registry_id references rdrf_registry.id via patients_patientstag_registry_id_0c736655_fk_rdrf_regi"><a href='patients_patientstagerule.html'>patients_patientstagerule</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">patients_patientstag_registry_id_0c736655_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_speciality.registry_id references rdrf_registry.id via patients_speciality_registry_id_39bf3176_fk_rdrf_registry_id"><a href='patients_speciality.html'>patients_speciality</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">patients_speciality_registry_id_39bf3176_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cdepolicy.registry_id references rdrf_registry.id via rdrf_cdepolicy_registry_id_2bab6911_fk_rdrf_registry_id"><a href='rdrf_cdepolicy.html'>rdrf_cdepolicy</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_cdepolicy_registry_id_2bab6911_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cliniciansignuprequest.registry_id references rdrf_registry.id via rdrf_cliniciansignup_registry_id_12bd0510_fk_rdrf_regi"><a href='rdrf_cliniciansignuprequest.html'>rdrf_cliniciansignuprequest</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_cliniciansignup_registry_id_12bd0510_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_consentconfiguration.registry_id references rdrf_registry.id via rdrf_consentconfigur_registry_id_bf23d9e4_fk_rdrf_regi"><a href='rdrf_consentconfiguration.html'>rdrf_consentconfiguration</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_consentconfigur_registry_id_bf23d9e4_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_consentrule.registry_id references rdrf_registry.id via rdrf_consentrule_registry_id_7fb344a9_fk_rdrf_registry_id"><a href='rdrf_consentrule.html'>rdrf_consentrule</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_consentrule_registry_id_7fb344a9_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_consentsection.registry_id references rdrf_registry.id via rdrf_consentsection_registry_id_e1082229_fk_rdrf_registry_id"><a href='rdrf_consentsection.html'>rdrf_consentsection</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_consentsection_registry_id_e1082229_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_contextformgroup.registry_id references rdrf_registry.id via rdrf_contextformgroup_registry_id_1956f6e4_fk_rdrf_registry_id"><a href='rdrf_contextformgroup.html'>rdrf_contextformgroup</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_contextformgroup_registry_id_1956f6e4_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_demographicfields.registry_id references rdrf_registry.id via rdrf_demographicfields_registry_id_6ae5c0d3_fk_rdrf_registry_id"><a href='rdrf_demographicfields.html'>rdrf_demographicfields</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_demographicfields_registry_id_6ae5c0d3_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_emailnotification.registry_id references rdrf_registry.id via rdrf_emailnotification_registry_id_6de8f622_fk_rdrf_registry_id"><a href='rdrf_emailnotification.html'>rdrf_emailnotification</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_emailnotification_registry_id_6de8f622_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_formtitle.registry_id references rdrf_registry.id via rdrf_formtitle_registry_id_8b973532_fk_rdrf_registry_id"><a href='rdrf_formtitle.html'>rdrf_formtitle</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_formtitle_registry_id_8b973532_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_questionnaireresponse.registry_id references rdrf_registry.id via rdrf_questionnairere_registry_id_371d96f1_fk_rdrf_regi"><a href='rdrf_questionnaireresponse.html'>rdrf_questionnaireresponse</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_questionnairere_registry_id_371d96f1_fk_rdrf_regi<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_rdrfcontext.registry_id references rdrf_registry.id via rdrf_rdrfcontext_registry_id_afb5d69b_fk_rdrf_registry_id"><a href='rdrf_rdrfcontext.html'>rdrf_rdrfcontext</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_rdrfcontext_registry_id_afb5d69b_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_registryform.registry_id references rdrf_registry.id via rdrf_registryform_registry_id_6cf53961_fk_rdrf_registry_id"><a href='rdrf_registryform.html'>rdrf_registryform</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_registryform_registry_id_6cf53961_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_survey.registry_id references rdrf_registry.id via rdrf_survey_registry_id_f8173e64_fk_rdrf_registry_id"><a href='rdrf_survey.html'>rdrf_survey</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_survey_registry_id_f8173e64_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_surveyassignment.registry_id references rdrf_registry.id via rdrf_surveyassignment_registry_id_5c53c95b_fk_rdrf_registry_id"><a href='rdrf_surveyassignment.html'>rdrf_surveyassignment</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_surveyassignment_registry_id_5c53c95b_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_surveyrequest.registry_id references rdrf_registry.id via rdrf_surveyrequest_registry_id_9024b8a5_fk_rdrf_registry_id"><a href='rdrf_surveyrequest.html'>rdrf_surveyrequest</a><span class='relatedKey'>.registry_id</span></td>
+                                                <td class="constraint detail">rdrf_surveyrequest_registry_id_9024b8a5_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="name">name</span></td>
+                                    <td>varchar</td>
+                                    <td>80</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="code">code</span></td>
+                                    <td>varchar</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="desc">desc</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="splash_screen">splash_screen</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="patient_splash_screen">patient_splash_screen</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="version">version</span></td>
+                                    <td>varchar</td>
+                                    <td>20</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="metadata_json">metadata_json</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="patient_data_section_id">patient_data_section_id</span></td>
+                                    <td>int4</td>
+                                    <td>10</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="rdrf_registry.patient_data_section_id references rdrf_section.id via rdrf_registry_patient_data_section_174da84c_fk_rdrf_sect"><a href='rdrf_section.html'>rdrf_section</a><span class='relatedKey'>.id</span></td>
+                                                <td class="constraint detail">rdrf_registry_patient_data_section_174da84c_fk_rdrf_sect<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-sitemap"></i>
+                            <h3 id="Indexes" class="box-title">Indexes</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="indexes_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead>
+                                <tr>
+                                    <th>Constraint Name</th>
+                                    <th>Type</th>
+                                    <th>Sort</th>
+                                    <th>Column(s)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> rdrf_registry_pkey</td>
+                                    <td>Primary key</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_registry_code_7ef558d7_like</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>code</td>
+                                </tr>
+                                <tr>
+                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> rdrf_registry_code_7ef558d7_uniq</td>
+                                    <td>Must be unique</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_registry_patient_data_section_id_174da84c</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>patient_data_section_id</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- /.box-body -->
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-code-fork"></i>
+                            <h3 id="Relationships" class="box-title">Relationships</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="nav-tabs-custom"><!-- Tabs within a box -->
+                                <h5>Close relationships within degrees of separation</h5>
+                                <ul class="nav nav-tabs pull-left ui-sortable-handle">
+                                    <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
+                                </ul>
+                                <div class="tab-content no-padding">
+                                    <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagram" name="oneDegreeRelationshipsDiagram">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1352,207,1565,530">
+<area shape="rect" id="node2" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="1065,103,1293,338">
+<area shape="rect" id="node3" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="728,450,996,597">
+<area shape="rect" id="node4" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="317,1686,673,2019">
+<area shape="rect" id="node5" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,975,273,1122">
+<area shape="rect" id="node18" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="741,250,983,397">
+<area shape="rect" id="node6" href="explorer_query.html" target="_top" title="explorer_query" alt="" coords="760,1230,964,1377">
+<area shape="rect" id="node7" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="720,1394,1004,1546">
+<area shape="rect" id="node8" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="743,1563,981,1710">
+<area shape="rect" id="node9" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="717,1727,1007,1879">
+<area shape="rect" id="node10" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="747,1933,977,2079">
+<area shape="rect" id="node11" href="patients_patientstagerule.html" target="_top" title="patients_patientstagerule" alt="" coords="1051,1815,1308,2050">
+<area shape="rect" id="node12" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="757,2097,967,2243">
+<area shape="rect" id="node13" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="771,2261,953,2437">
+<area shape="rect" id="node14" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="725,2454,999,2689">
+<area shape="rect" id="node15" href="rdrf_consentconfiguration.html" target="_top" title="rdrf_consentconfiguration" alt="" coords="729,2706,995,2853">
+<area shape="rect" id="node16" href="rdrf_consentrule.html" target="_top" title="rdrf_consentrule" alt="" coords="757,2870,967,3075">
+<area shape="rect" id="node17" href="rdrf_consentsection.html" target="_top" title="rdrf_consentsection" alt="" coords="751,3093,973,3239">
+<area shape="rect" id="node19" href="rdrf_demographicfields.html" target="_top" title="rdrf_demographicfields" alt="" coords="739,3257,985,3433">
+<area shape="rect" id="node20" href="rdrf_emailnotification.html" target="_top" title="rdrf_emailnotification" alt="" coords="747,3450,977,3626">
+<area shape="rect" id="node21" href="rdrf_formtitle.html" target="_top" title="rdrf_formtitle" alt="" coords="775,3643,949,3790">
+<area shape="rect" id="node22" href="rdrf_questionnaireresponse.html" target="_top" title="rdrf_questionnaireresponse" alt="" coords="724,650,1000,797">
+<area shape="rect" id="node23" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="1065,355,1293,561">
+<area shape="rect" id="node24" href="rdrf_surveyassignment.html" target="_top" title="rdrf_surveyassignment" alt="" coords="741,814,983,990">
+<area shape="rect" id="node25" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="755,1007,969,1213">
+</map>
+                                        <a name='diagram'><img id="oneDegreeImg" src="../diagrams/tables/rdrf_registry.1degree.png" usemap="#oneDegreeRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagram" name="twoDegreesRelationshipsDiagram">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1538,693,1751,1016">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="1099,1933,1361,2021">
+<area shape="rect" id="node3" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="1116,469,1344,704">
+<area shape="rect" id="node4" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="721,1823,989,1969">
+<area shape="rect" id="node5" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="1133,1009,1327,1097">
+<area shape="rect" id="node6" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="317,1412,673,1745">
+<area shape="rect" id="node7" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,836,273,983">
+<area shape="rect" id="node12" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="745,1033,966,1121">
+<area shape="rect" id="node30" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="735,1619,976,1765">
+<area shape="rect" id="node42" href="django_content_type.html" target="_top" title="django_content_type" alt="" coords="741,135,969,223">
+<area shape="rect" id="node17" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="740,833,971,980">
+<area shape="rect" id="node8" href="explorer_query.html" target="_top" title="explorer_query" alt="" coords="753,2332,957,2479">
+<area shape="rect" id="node9" href="explorer_query_access_group.html" target="_top" title="explorer_query_access_group" alt="" coords="1083,2393,1377,2481">
+<area shape="rect" id="node10" href="auth_group.html" target="_top" title="auth_group" alt="" coords="775,2227,936,2315">
+<area shape="rect" id="node11" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="1088,1151,1372,1303">
+<area shape="rect" id="node13" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="1058,1320,1402,1408">
+<area shape="rect" id="node14" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="737,1175,974,1321">
+<area shape="rect" id="node15" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="1525,1139,1765,1227">
+<area shape="rect" id="node16" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="750,1339,961,1485">
+<area shape="rect" id="node18" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="1500,1244,1789,1396">
+<area shape="rect" id="node19" href="patients_patient_working_groups.html" target="_top" title="patients_patient_working_groups" alt="" coords="1487,1033,1802,1121">
+<area shape="rect" id="node20" href="patients_patientstage_allowed_next_stages.html" target="_top" title="patients_patientstage_allowed_next_stages" alt="" coords="1038,259,1422,347">
+<area shape="rect" id="node21" href="patients_patientstage_allowed_prev_stages.html" target="_top" title="patients_patientstage_allowed_prev_stages" alt="" coords="1037,364,1423,452">
+<area shape="rect" id="node22" href="patients_patientstagerule.html" target="_top" title="patients_patientstagerule" alt="" coords="1101,721,1359,956">
+<area shape="rect" id="node23" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="1554,2039,1735,2215">
+<area shape="rect" id="node24" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="1867,2163,2168,2251">
+<area shape="rect" id="node25" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1881,559,2154,793">
+<area shape="rect" id="node26" href="rdrf_consentconfiguration.html" target="_top" title="rdrf_consentconfiguration" alt="" coords="723,276,988,423">
+<area shape="rect" id="node27" href="rdrf_consentquestion.html" target="_top" title="rdrf_consentquestion" alt="" coords="1114,2692,1346,2780">
+<area shape="rect" id="node28" href="rdrf_consentsection.html" target="_top" title="rdrf_consentsection" alt="" coords="744,2689,967,2836">
+<area shape="rect" id="node29" href="rdrf_consentrule.html" target="_top" title="rdrf_consentrule" alt="" coords="1540,2660,1749,2865">
+<area shape="rect" id="node31" href="rdrf_contextformgroupitem.html" target="_top" title="rdrf_contextformgroupitem" alt="" coords="1094,1792,1366,1880">
+<area shape="rect" id="node32" href="rdrf_demographicfields.html" target="_top" title="rdrf_demographicfields" alt="" coords="733,2496,978,2672">
+<area shape="rect" id="node33" href="rdrf_demographicfields_groups.html" target="_top" title="rdrf_demographicfields_groups" alt="" coords="1079,2499,1381,2587">
+<area shape="rect" id="node34" href="rdrf_emailnotification.html" target="_top" title="rdrf_emailnotification" alt="" coords="1115,2889,1345,3065">
+<area shape="rect" id="node35" href="rdrf_emailnotification_email_templates.html" target="_top" title="rdrf_emailnotification_email_templates" alt="" coords="1469,2887,1821,2975">
+<area shape="rect" id="node36" href="rdrf_emailnotificationhistory.html" target="_top" title="rdrf_emailnotificationhistory" alt="" coords="1505,2992,1785,3080">
+<area shape="rect" id="node37" href="rdrf_formtitle.html" target="_top" title="rdrf_formtitle" alt="" coords="769,2063,942,2209">
+<area shape="rect" id="node38" href="rdrf_formtitle_groups.html" target="_top" title="rdrf_formtitle_groups" alt="" coords="1114,2216,1346,2304">
+<area shape="rect" id="node39" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="1543,1720,1747,1808">
+<area shape="rect" id="node40" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="1116,1569,1344,1775">
+<area shape="rect" id="node41" href="rdrf_questionnaireresponse.html" target="_top" title="rdrf_questionnaireresponse" alt="" coords="717,440,993,587">
+<area shape="rect" id="node43" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="1467,1933,1823,2021">
+<area shape="rect" id="node44" href="rdrf_registryform_groups_allowed.html" target="_top" title="rdrf_registryform_groups_allowed" alt="" coords="1069,2111,1391,2199">
+<area shape="rect" id="node45" href="rdrf_surveyassignment.html" target="_top" title="rdrf_surveyassignment" alt="" coords="734,640,977,816">
+<area shape="rect" id="node46" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1906,1720,2129,1808">
+<area shape="rect" id="node47" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="1537,1413,1752,1619">
+</map>
+                                        <a name='diagram'><img id="twodegreesDegreeImg" src="../diagrams/tables/rdrf_registry.2degrees.png" usemap="#twoDegreesRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div>
+                </section>
+                <script>
+                    var config = {
+                        pagination: true
+                    }
+                </script>
+            </div>
+            <!-- /.content-wrapper -->
+            <footer class="main-footer">
+                <div>
+                    <div class="pull-right hidden-xs">
+                        <a href="https://github.com/schemaspy/schemaspy" title="GitHub for SchemaSpy"><i class="fa fa-github-square fa-2x"></i></a>
+                        <a href="http://stackoverflow.com/questions/tagged/schemaspy" title="StackOverflow for SchemaSpy"><i class="fa fa-stack-overflow fa-2x"></i></a>
+                    </div>
+                    <strong>Generated by <a href="http://schemaspy.org/" class="logo-text"><i class="fa fa-database"></i> SchemaSpy 6.1.0</a></strong>
+                </div>
+                <!-- /.container -->
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- jQuery 2.2.3 -->
+        <script src="../bower/admin-lte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <script src="../bower/admin-lte/plugins/jQueryUI/jquery-ui.min.js"></script>
+        <!-- Bootstrap 3.3.5 -->
+        <script src="../bower/admin-lte/bootstrap/js/bootstrap.min.js"></script>
+        <!-- DataTables -->
+        <script src="../bower/datatables.net/jquery.dataTables.min.js"></script>
+        <script src="../bower/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/dataTables.buttons.min.js"></script>
+        <script src="../bower/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.html5.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.print.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.colVis.min.js"></script>
+        <!-- SheetJS -->
+        <script src="../bower/js-xlsx/xlsx.full.min.js"></script>
+        <!-- pdfmake -->
+        <script src="../bower/pdfmake/pdfmake.min.js"></script>
+        <script src="../bower/pdfmake/vfs_fonts.js"></script>
+        <!-- SlimScroll -->
+        <script src="../bower/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+        <!-- FastClick -->
+        <script src="../bower/admin-lte/plugins/fastclick/fastclick.js"></script>
+        <!-- Salvattore -->
+        <script src="../bower/salvattore/salvattore.min.js"></script>
+        <!-- AnchorJS -->
+        <script src="../bower/anchor-js/anchor.min.js"></script>
+        <!-- CodeMirror -->
+        <script src="../bower/codemirror/codemirror.js"></script>
+        <script src="../bower/codemirror/sql.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../bower/admin-lte/dist/js/app.min.js"></script>
+        <script src="table.js"></script>
+        <script src="../schemaSpy.js"></script>
+    </body>
+</html>

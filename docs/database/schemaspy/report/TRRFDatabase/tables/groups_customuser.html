@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>groups_customuser - webapp Database</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
+        <!-- Bootstrap 3.3.5 -->
+        <link rel="stylesheet" href="../bower/admin-lte/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../bower/font-awesome/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="../bower/ionicons/css/ionicons.min.css">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="../bower/datatables.net-bs/css/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" href="../bower/datatables.net-buttons-bs/css/buttons.bootstrap.min.css">
+        <!-- Code Mirror -->
+        <link rel="stylesheet" href="../bower/codemirror/codemirror.css">
+        <!-- Fonts -->
+        <link href='../fonts/indieflower/indie-flower.css' rel='stylesheet' type='text/css'>
+        <link href='../fonts/source-sans-pro/source-sans-pro.css' rel='stylesheet' type='text/css'>
+
+        <!-- Theme style -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/AdminLTE.min.css">
+        <!-- Salvattore -->
+        <link rel="stylesheet" href="../bower/salvattore/salvattore.css">
+        <!-- AdminLTE Skins. Choose a skin from the css/skins
+           folder instead of downloading all of them to reduce the load. -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/skins/_all-skins.min.css">
+        <!-- SchemaSpy -->
+        <link rel="stylesheet" href="../schemaSpy.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="../bower/html5shiv/html5shiv.min.js"></script>
+        <script src="../bower/respond/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        <div class="wrapper">
+            <header class="main-header">
+                <nav class="navbar navbar-static-top">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <a href="../index.html" class="navbar-brand"><b>webapp</b> Database</a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"><i class="fa fa-bars"></i></button>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="../index.html">Tables <span class="sr-only">(current)</span></a></li>
+                                <li><a href="../columns.html" title="All of the columns in the schema">Columns</a></li>
+                                <li><a href="../constraints.html" title="Useful for diagnosing error messages that just give constraint name or number">Constraints</a></li>
+                                <li><a href="../relationships.html" title="Diagram of table relationships">Relationships</a></li>
+                                <li><a href="../orphans.html" title="View of tables with neither parents nor children">Orphan&nbsp;Tables</a></li>
+                                <li><a href="../anomalies.html" title="Things that might not be quite right">Anomalies</a></li>
+                                <li><a href="../routines.html" title="Procedures and functions">Routines</a></li>
+                            </ul>
+                        </div>
+                        <!-- /.navbar-collapse -->
+                        <!-- Navbar Right Menu -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </nav>
+            </header>
+            <!-- Main content -->
+            <!-- Full Width Column -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>groups_customuser</h1><p><span id="recordNumber">5</span> rows</p><br />
+                </section>
+                <!-- Main content -->
+                <section class="content">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h3 id="Columns" class="box-title">Columns</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="standard_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead align='left'>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th title='Are nulls allowed?'>Nulls</th>
+                                    <th title='Is column automatically updated?'>Auto</th>
+                                    <th title='Default value'>Default</th>
+                                    <th title='Columns in tables that reference this column'>Children</th>
+                                    <th title='Columns in tables that are referenced by this column'>Parents</th>
+                                    <th title='Comments' class="toggle"><span>Comments</span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>serial</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title='Automatically updated by the database'>√</td>
+                                    <td>nextval(&#39;groups_customuser_id_seq&#39;::regclass)</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="authtoken_token.user_id references groups_customuser.id via authtoken_token_user_id_35299eff_fk_groups_customuser_id"><a href='authtoken_token.html'>authtoken_token</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">authtoken_token_user_id_35299eff_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="django_admin_log.user_id references groups_customuser.id via django_admin_log_user_id_c564eba6_fk_groups_customuser_id"><a href='django_admin_log.html'>django_admin_log</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">django_admin_log_user_id_c564eba6_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_customuser_groups.customuser_id references groups_customuser.id via groups_customuser_gr_customuser_id_f4c24148_fk_groups_cu"><a href='groups_customuser_groups.html'>groups_customuser_groups</a><span class='relatedKey'>.customuser_id</span></td>
+                                                <td class="constraint detail">groups_customuser_gr_customuser_id_f4c24148_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_customuser_registry.customuser_id references groups_customuser.id via groups_customuser_re_customuser_id_118e9a83_fk_groups_cu"><a href='groups_customuser_registry.html'>groups_customuser_registry</a><span class='relatedKey'>.customuser_id</span></td>
+                                                <td class="constraint detail">groups_customuser_re_customuser_id_118e9a83_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_customuser_user_permissions.customuser_id references groups_customuser.id via groups_customuser_us_customuser_id_a0143abd_fk_groups_cu"><a href='groups_customuser_user_permissions.html'>groups_customuser_user_permissions</a><span class='relatedKey'>.customuser_id</span></td>
+                                                <td class="constraint detail">groups_customuser_us_customuser_id_a0143abd_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="groups_customuser_working_groups.customuser_id references groups_customuser.id via groups_customuser_wo_customuser_id_361f5e0b_fk_groups_cu"><a href='groups_customuser_working_groups.html'>groups_customuser_working_groups</a><span class='relatedKey'>.customuser_id</span></td>
+                                                <td class="constraint detail">groups_customuser_wo_customuser_id_361f5e0b_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="otp_static_staticdevice.user_id references groups_customuser.id via otp_static_staticdev_user_id_7f9cff2b_fk_groups_cu"><a href='otp_static_staticdevice.html'>otp_static_staticdevice</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">otp_static_staticdev_user_id_7f9cff2b_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="otp_totp_totpdevice.user_id references groups_customuser.id via otp_totp_totpdevice_user_id_0fb18292_fk_groups_customuser_id"><a href='otp_totp_totpdevice.html'>otp_totp_totpdevice</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">otp_totp_totpdevice_user_id_0fb18292_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_clinicianother.user_id references groups_customuser.id via patients_clinicianot_user_id_b420948c_fk_groups_cu"><a href='patients_clinicianother.html'>patients_clinicianother</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">patients_clinicianot_user_id_b420948c_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicaladdresstype.history_user_id references groups_customuser.id via patients_historicala_history_user_id_51d91422_fk_groups_cu"><a href='patients_historicaladdresstype.html'>patients_historicaladdresstype</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicala_history_user_id_51d91422_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalclinicianother.history_user_id references groups_customuser.id via patients_historicalc_history_user_id_5e69d1c7_fk_groups_cu"><a href='patients_historicalclinicianother.html'>patients_historicalclinicianother</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalc_history_user_id_5e69d1c7_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalconsentvalue.history_user_id references groups_customuser.id via patients_historicalc_history_user_id_ad6ae0da_fk_groups_cu"><a href='patients_historicalconsentvalue.html'>patients_historicalconsentvalue</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalc_history_user_id_ad6ae0da_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicaldoctor.history_user_id references groups_customuser.id via patients_historicald_history_user_id_743839bc_fk_groups_cu"><a href='patients_historicaldoctor.html'>patients_historicaldoctor</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicald_history_user_id_743839bc_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalnextofkinrelationship.history_user_id references groups_customuser.id via patients_historicaln_history_user_id_b23af8b8_fk_groups_cu"><a href='patients_historicalnextofkinrelationship.html'>patients_historicalnextofkinrelationship</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicaln_history_user_id_b23af8b8_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalparentguardian.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_3ce5d2b3_fk_groups_cu"><a href='patients_historicalparentguardian.html'>patients_historicalparentguardian</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_3ce5d2b3_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalpatient.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_cc617819_fk_groups_cu"><a href='patients_historicalpatient.html'>patients_historicalpatient</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_cc617819_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalpatientaddress.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_88bd3154_fk_groups_cu"><a href='patients_historicalpatientaddress.html'>patients_historicalpatientaddress</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_88bd3154_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalpatientconsent.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_98ccbf39_fk_groups_cu"><a href='patients_historicalpatientconsent.html'>patients_historicalpatientconsent</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_98ccbf39_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalpatientdoctor.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_04366f6f_fk_groups_cu"><a href='patients_historicalpatientdoctor.html'>patients_historicalpatientdoctor</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_04366f6f_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalpatientrelative.history_user_id references groups_customuser.id via patients_historicalp_history_user_id_18ea1cf0_fk_groups_cu"><a href='patients_historicalpatientrelative.html'>patients_historicalpatientrelative</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicalp_history_user_id_18ea1cf0_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalspeciality.history_user_id references groups_customuser.id via patients_historicals_history_user_id_aadd8d98_fk_groups_cu"><a href='patients_historicalspeciality.html'>patients_historicalspeciality</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicals_history_user_id_aadd8d98_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalstate.history_user_id references groups_customuser.id via patients_historicals_history_user_id_5fb74af1_fk_groups_cu"><a href='patients_historicalstate.html'>patients_historicalstate</a><span class='relatedKey'>.history_user_id</span></td>
+                                                <td class="constraint detail">patients_historicals_history_user_id_5fb74af1_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_parentguardian.user_id references groups_customuser.id via patients_parentguard_user_id_4a42387e_fk_groups_cu"><a href='patients_parentguardian.html'>patients_parentguardian</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">patients_parentguard_user_id_4a42387e_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patient.carer_id references groups_customuser.id via patients_patient_carer_id_d89d6877_fk_groups_customuser_id"><a href='patients_patient.html'>patients_patient</a><span class='relatedKey'>.carer_id</span></td>
+                                                <td class="constraint detail">patients_patient_carer_id_d89d6877_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patient.created_by_id references groups_customuser.id via patients_patient_created_by_id_cf506306_fk_groups_customuser_id"><a href='patients_patient.html'>patients_patient</a><span class='relatedKey'>.created_by_id</span></td>
+                                                <td class="constraint detail">patients_patient_created_by_id_cf506306_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patient.user_id references groups_customuser.id via patients_patient_user_id_b53513b7_fk_groups_customuser_id"><a href='patients_patient.html'>patients_patient</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">patients_patient_user_id_b53513b7_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_patient_registered_clinicians.customuser_id references groups_customuser.id via patients_patient_reg_customuser_id_65669129_fk_groups_cu"><a href='patients_patient_registered_clinicians.html'>patients_patient_registered_clinicians</a><span class='relatedKey'>.customuser_id</span></td>
+                                                <td class="constraint detail">patients_patient_reg_customuser_id_65669129_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cdefile.uploaded_by_id references groups_customuser.id via rdrf_cdefile_uploaded_by_id_7160d268_fk_groups_customuser_id"><a href='rdrf_cdefile.html'>rdrf_cdefile</a><span class='relatedKey'>.uploaded_by_id</span></td>
+                                                <td class="constraint detail">rdrf_cdefile_uploaded_by_id_7160d268_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cliniciansignuprequest.clinician_id references groups_customuser.id via rdrf_cliniciansignup_clinician_id_e2248d45_fk_groups_cu"><a href='rdrf_cliniciansignuprequest.html'>rdrf_cliniciansignuprequest</a><span class='relatedKey'>.clinician_id</span></td>
+                                                <td class="constraint detail">rdrf_cliniciansignup_clinician_id_e2248d45_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_rdrfcontext.last_updated_by_id references groups_customuser.id via rdrf_rdrfcontext_last_updated_by_id_e92c6b5c_fk_groups_cu"><a href='rdrf_rdrfcontext.html'>rdrf_rdrfcontext</a><span class='relatedKey'>.last_updated_by_id</span></td>
+                                                <td class="constraint detail">rdrf_rdrfcontext_last_updated_by_id_e92c6b5c_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="registration_registrationprofile.user_id references groups_customuser.id via registration_registr_user_id_5fcbf725_fk_groups_cu"><a href='registration_registrationprofile.html'>registration_registrationprofile</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">registration_registr_user_id_5fcbf725_fk_groups_cu<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="reversion_revision.user_id references groups_customuser.id via reversion_revision_user_id_17095f45_fk_groups_customuser_id"><a href='reversion_revision.html'>reversion_revision</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">reversion_revision_user_id_17095f45_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="two_factor_phonedevice.user_id references groups_customuser.id via two_factor_phonedevice_user_id_54718003_fk_groups_customuser_id"><a href='two_factor_phonedevice.html'>two_factor_phonedevice</a><span class='relatedKey'>.user_id</span></td>
+                                                <td class="constraint detail">two_factor_phonedevice_user_id_54718003_fk_groups_customuser_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="password">password</span></td>
+                                    <td>varchar</td>
+                                    <td>128</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="last_login">last_login</span></td>
+                                    <td>timestamptz</td>
+                                    <td>35,6</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="is_superuser">is_superuser</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="username">username</span></td>
+                                    <td>varchar</td>
+                                    <td>254</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="first_name">first_name</span></td>
+                                    <td>varchar</td>
+                                    <td>30</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="last_name">last_name</span></td>
+                                    <td>varchar</td>
+                                    <td>30</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="email">email</span></td>
+                                    <td>varchar</td>
+                                    <td>254</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="is_staff">is_staff</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="is_active">is_active</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="date_joined">date_joined</span></td>
+                                    <td>timestamptz</td>
+                                    <td>35,6</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="title">title</span></td>
+                                    <td>varchar</td>
+                                    <td>50</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="password_change_date">password_change_date</span></td>
+                                    <td>timestamptz</td>
+                                    <td>35,6</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="preferred_language">preferred_language</span></td>
+                                    <td>varchar</td>
+                                    <td>20</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="prevent_self_unlock">prevent_self_unlock</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="require_2_fact_auth">require_2_fact_auth</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="ethically_cleared">ethically_cleared</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="force_password_change">force_password_change</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-sitemap"></i>
+                            <h3 id="Indexes" class="box-title">Indexes</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="indexes_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead>
+                                <tr>
+                                    <th>Constraint Name</th>
+                                    <th>Type</th>
+                                    <th>Sort</th>
+                                    <th>Column(s)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> groups_customuser_pkey</td>
+                                    <td>Primary key</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>groups_customuser_username_e9cbd242_like</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>username</td>
+                                </tr>
+                                <tr>
+                                    <td class='uniqueKey' title='Unique Key'><i class='icon ion-key iconkey'></i> groups_customuser_username_key</td>
+                                    <td>Must be unique</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>username</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- /.box-body -->
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-code-fork"></i>
+                            <h3 id="Relationships" class="box-title">Relationships</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="nav-tabs-custom"><!-- Tabs within a box -->
+                                <h5>Close relationships within degrees of separation</h5>
+                                <ul class="nav nav-tabs pull-left ui-sortable-handle">
+                                    <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
+                                    <li class=""><a href="#oneimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">One implied</a></li>
+                                    <li class=""><a href="#twoimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two implied</a></li>
+                                </ul>
+                                <div class="tab-content no-padding">
+                                    <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagram" name="oneDegreeRelationshipsDiagram">
+<area shape="rect" id="node1" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="492,5,689,152">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,3067,368,3664">
+<area shape="rect" id="node3" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="486,169,695,345">
+<area shape="rect" id="node4" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="451,363,731,515">
+<area shape="rect" id="node5" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="449,532,733,684">
+<area shape="rect" id="node6" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="413,701,768,853">
+<area shape="rect" id="node7" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="419,871,763,1023">
+<area shape="rect" id="node8" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="470,1040,711,1187">
+<area shape="rect" id="node9" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="458,1204,723,1351">
+<area shape="rect" id="node10" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="866,5068,1106,5273">
+<area shape="rect" id="node11" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="417,4811,765,5163">
+<area shape="rect" id="node12" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="443,1440,739,1645">
+<area shape="rect" id="node13" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="438,1663,743,1927">
+<area shape="rect" id="node14" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="439,1944,742,2179">
+<area shape="rect" id="node15" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="463,2196,719,2460">
+<area shape="rect" id="node16" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="412,2477,769,2653">
+<area shape="rect" id="node17" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="432,2671,749,2905">
+<area shape="rect" id="node18" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="417,2923,765,3333">
+<area shape="rect" id="node19" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="434,3351,747,3585">
+<area shape="rect" id="node20" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="434,3603,747,3808">
+<area shape="rect" id="node21" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="439,3825,743,4060">
+<area shape="rect" id="node22" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="436,4077,745,4312">
+<area shape="rect" id="node23" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="453,4329,729,4535">
+<area shape="rect" id="node24" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="469,4552,713,4757">
+<area shape="rect" id="node25" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="860,2944,1112,3120">
+<area shape="rect" id="node26" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="813,4676,1159,4828">
+<area shape="rect" id="node27" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="901,4845,1071,5051">
+<area shape="rect" id="node28" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1203,3111,1476,3345">
+<area shape="rect" id="node29" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="477,5252,705,5487">
+<area shape="rect" id="node30" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="443,5504,739,5680">
+<area shape="rect" id="node31" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="485,5697,696,5873">
+<area shape="rect" id="node32" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="465,5891,717,6067">
+</map>
+                                        <a name='diagram'><img id="oneDegreeImg" src="../diagrams/tables/groups_customuser.1degree.png" usemap="#oneDegreeRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagram" name="twoDegreesRelationshipsDiagram">
+<area shape="rect" id="node1" href="auth_permission.html" target="_top" title="auth_permission" alt="" coords="705,88,903,176">
+<area shape="rect" id="node2" href="django_content_type.html" target="_top" title="django_content_type" alt="" coords="286,209,514,297">
+<area shape="rect" id="node3" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="705,1612,903,1759">
+<area shape="rect" id="node4" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="219,3227,581,3824">
+<area shape="rect" id="node5" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="699,229,909,405">
+<area shape="rect" id="node6" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1107,809,1320,897">
+<area shape="rect" id="node7" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="690,423,918,657">
+<area shape="rect" id="node8" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="630,1243,978,1595">
+<area shape="rect" id="node9" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="5,3820,175,3908">
+<area shape="rect" id="node50" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="279,711,521,799">
+<area shape="rect" id="node37" href="patients_nextofkinrelationship.html" target="_top" title="patients_nextofkinrelationship" alt="" coords="253,1363,547,1451">
+<area shape="rect" id="node38" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="285,2295,515,2383">
+<area shape="rect" id="node10" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="664,904,944,1056">
+<area shape="rect" id="node11" href="auth_group.html" target="_top" title="auth_group" alt="" coords="319,965,481,1053">
+<area shape="rect" id="node12" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="662,1073,946,1225">
+<area shape="rect" id="node13" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="1036,5,1391,157">
+<area shape="rect" id="node14" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="632,5648,976,5800">
+<area shape="rect" id="node15" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="281,5345,519,5433">
+<area shape="rect" id="node16" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="683,5889,925,6036">
+<area shape="rect" id="node17" href="otp_static_statictoken.html" target="_top" title="otp_static_statictoken" alt="" coords="1096,5892,1331,5980">
+<area shape="rect" id="node18" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="671,1776,937,1923">
+<area shape="rect" id="node19" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="1093,6195,1333,6400">
+<area shape="rect" id="node20" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="295,6187,505,6275">
+<area shape="rect" id="node21" href="patients_consentvalue.html" target="_top" title="patients_consentvalue" alt="" coords="1095,915,1332,1003">
+<area shape="rect" id="node22" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="656,1940,952,2145">
+<area shape="rect" id="node23" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="651,2163,957,2427">
+<area shape="rect" id="node24" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="653,2444,955,2679">
+<area shape="rect" id="node25" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="676,2696,932,2960">
+<area shape="rect" id="node26" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="625,2977,983,3153">
+<area shape="rect" id="node27" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="645,3171,963,3405">
+<area shape="rect" id="node28" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="630,3423,978,3833">
+<area shape="rect" id="node29" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="647,3851,961,4085">
+<area shape="rect" id="node30" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="647,4103,961,4308">
+<area shape="rect" id="node31" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="652,4325,956,4560">
+<area shape="rect" id="node32" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="649,4577,959,4812">
+<area shape="rect" id="node33" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="666,4829,942,5035">
+<area shape="rect" id="node34" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="682,5052,926,5257">
+<area shape="rect" id="node35" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="1087,1688,1339,1864">
+<area shape="rect" id="node36" href="patients_parentguardian_patient.html" target="_top" title="patients_parentguardian_patient" alt="" coords="1444,1337,1752,1425">
+<area shape="rect" id="node39" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="1069,5512,1358,5600">
+<area shape="rect" id="node40" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="1041,2280,1386,2432">
+<area shape="rect" id="node41" href="patients_patient_working_groups.html" target="_top" title="patients_patient_working_groups" alt="" coords="1056,4936,1371,5024">
+<area shape="rect" id="node42" href="patients_patientaddress.html" target="_top" title="patients_patientaddress" alt="" coords="1089,1056,1338,1144">
+<area shape="rect" id="node43" href="patients_patientconsent.html" target="_top" title="patients_patientconsent" alt="" coords="1089,1161,1338,1249">
+<area shape="rect" id="node44" href="patients_patientdoctor.html" target="_top" title="patients_patientdoctor" alt="" coords="1094,1267,1333,1355">
+<area shape="rect" id="node45" href="patients_patientguid.html" target="_top" title="patients_patientguid" alt="" coords="1101,1372,1325,1460">
+<area shape="rect" id="node46" href="patients_patientrelative.html" target="_top" title="patients_patientrelative" alt="" coords="1091,1477,1335,1565">
+<area shape="rect" id="node47" href="patients_patientsignature.html" target="_top" title="patients_patientsignature" alt="" coords="1084,1583,1343,1671">
+<area shape="rect" id="node48" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="1128,3959,1299,4164">
+<area shape="rect" id="node49" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1461,5925,1735,6160">
+<area shape="rect" id="node51" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="1106,5731,1321,5819">
+<area shape="rect" id="node52" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="656,6089,952,6265">
+<area shape="rect" id="node53" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="1027,6089,1400,6177">
+<area shape="rect" id="node54" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="699,675,909,851">
+<area shape="rect" id="node55" href="reversion_version.html" target="_top" title="reversion_version" alt="" coords="1110,415,1317,503">
+<area shape="rect" id="node56" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="678,5455,930,5631">
+</map>
+                                        <a name='diagram'><img id="twodegreesDegreeImg" src="../diagrams/tables/groups_customuser.2degrees.png" usemap="#twoDegreesRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagramImplied" name="oneDegreeRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="492,1254,689,1401">
+<area shape="rect" id="node2" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="5,3081,368,3678">
+<area shape="rect" id="node3" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="486,55,695,231">
+<area shape="rect" id="node4" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="451,249,731,401">
+<area shape="rect" id="node5" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="449,418,733,570">
+<area shape="rect" id="node6" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="413,587,768,739">
+<area shape="rect" id="node7" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="419,757,763,909">
+<area shape="rect" id="node8" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="470,926,711,1073">
+<area shape="rect" id="node9" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="458,1090,723,1237">
+<area shape="rect" id="node10" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="866,5410,1106,5615">
+<area shape="rect" id="node11" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="417,4897,765,5249">
+<area shape="rect" id="node12" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="443,1454,739,1659">
+<area shape="rect" id="node13" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="438,1677,743,1941">
+<area shape="rect" id="node14" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="439,1958,742,2193">
+<area shape="rect" id="node15" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="463,2210,719,2474">
+<area shape="rect" id="node16" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="412,2491,769,2667">
+<area shape="rect" id="node17" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="432,2685,749,2919">
+<area shape="rect" id="node18" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="417,2937,765,3347">
+<area shape="rect" id="node19" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="434,3365,747,3599">
+<area shape="rect" id="node20" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="434,3617,747,3822">
+<area shape="rect" id="node21" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="439,3839,743,4074">
+<area shape="rect" id="node22" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="436,4091,745,4326">
+<area shape="rect" id="node23" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="453,4343,729,4549">
+<area shape="rect" id="node24" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="469,4566,713,4771">
+<area shape="rect" id="node25" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="860,4825,1112,5001">
+<area shape="rect" id="node26" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="813,5018,1159,5170">
+<area shape="rect" id="node27" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="901,5187,1071,5393">
+<area shape="rect" id="node28" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1203,4991,1476,5226">
+<area shape="rect" id="node29" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="477,5266,705,5501">
+<area shape="rect" id="node30" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="838,501,1134,677">
+<area shape="rect" id="node31" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="485,5554,696,5730">
+<area shape="rect" id="node32" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="860,1273,1112,1449">
+</map>
+                                        <a name='diagram'><img id="oneimpliedDegreeImg" src="../diagrams/tables/groups_customuser.implied1degrees.png" usemap="#oneDegreeRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagramImplied" name="twoDegreesRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="auth_permission.html" target="_top" title="auth_permission" alt="" coords="705,399,903,487">
+<area shape="rect" id="node2" href="django_content_type.html" target="_top" title="django_content_type" alt="" coords="286,417,514,505">
+<area shape="rect" id="node3" href="authtoken_token.html" target="_top" title="authtoken_token" alt="" coords="705,3428,903,3575">
+<area shape="rect" id="node4" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="219,3349,581,3947">
+<area shape="rect" id="node5" href="django_admin_log.html" target="_top" title="django_admin_log" alt="" coords="699,612,909,788">
+<area shape="rect" id="node6" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1097,148,1311,236">
+<area shape="rect" id="node7" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="673,5,935,93">
+<area shape="rect" id="node8" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="690,147,918,381">
+<area shape="rect" id="node9" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="630,5029,978,5381">
+<area shape="rect" id="node10" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="5,927,175,1015">
+<area shape="rect" id="node52" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="279,304,521,392">
+<area shape="rect" id="node39" href="patients_nextofkinrelationship.html" target="_top" title="patients_nextofkinrelationship" alt="" coords="253,5103,547,5191">
+<area shape="rect" id="node40" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="285,5208,515,5296">
+<area shape="rect" id="node11" href="groups_customuser_groups.html" target="_top" title="groups_customuser_groups" alt="" coords="664,5635,944,5787">
+<area shape="rect" id="node12" href="auth_group.html" target="_top" title="auth_group" alt="" coords="319,5639,481,5727">
+<area shape="rect" id="node13" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="662,975,946,1127">
+<area shape="rect" id="node14" href="groups_customuser_user_permissions.html" target="_top" title="groups_customuser_user_permissions" alt="" coords="1027,507,1381,659">
+<area shape="rect" id="node15" href="groups_customuser_working_groups.html" target="_top" title="groups_customuser_working_groups" alt="" coords="632,805,976,957">
+<area shape="rect" id="node16" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="281,867,519,955">
+<area shape="rect" id="node17" href="otp_static_staticdevice.html" target="_top" title="otp_static_staticdevice" alt="" coords="683,5471,925,5617">
+<area shape="rect" id="node18" href="otp_static_statictoken.html" target="_top" title="otp_static_statictoken" alt="" coords="1087,5707,1321,5795">
+<area shape="rect" id="node19" href="otp_totp_totpdevice.html" target="_top" title="otp_totp_totpdevice" alt="" coords="671,4571,937,4717">
+<area shape="rect" id="node20" href="patients_clinicianother.html" target="_top" title="patients_clinicianother" alt="" coords="1084,5484,1324,5689">
+<area shape="rect" id="node21" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="295,5744,505,5832">
+<area shape="rect" id="node22" href="patients_consentvalue.html" target="_top" title="patients_consentvalue" alt="" coords="1085,4728,1323,4816">
+<area shape="rect" id="node23" href="patients_historicaladdresstype.html" target="_top" title="patients_historicaladdresstype" alt="" coords="656,1373,952,1579">
+<area shape="rect" id="node24" href="patients_historicalclinicianother.html" target="_top" title="patients_historicalclinicianother" alt="" coords="651,1596,957,1860">
+<area shape="rect" id="node25" href="patients_historicalconsentvalue.html" target="_top" title="patients_historicalconsentvalue" alt="" coords="653,1877,955,2112">
+<area shape="rect" id="node26" href="patients_historicaldoctor.html" target="_top" title="patients_historicaldoctor" alt="" coords="676,2129,932,2393">
+<area shape="rect" id="node27" href="patients_historicalnextofkinrelationship.html" target="_top" title="patients_historicalnextofkinrelationship" alt="" coords="625,2411,983,2587">
+<area shape="rect" id="node28" href="patients_historicalparentguardian.html" target="_top" title="patients_historicalparentguardian" alt="" coords="645,2604,963,2839">
+<area shape="rect" id="node29" href="patients_historicalpatient.html" target="_top" title="patients_historicalpatient" alt="" coords="630,2892,978,3303">
+<area shape="rect" id="node30" href="patients_historicalpatientaddress.html" target="_top" title="patients_historicalpatientaddress" alt="" coords="647,3592,961,3827">
+<area shape="rect" id="node31" href="patients_historicalpatientconsent.html" target="_top" title="patients_historicalpatientconsent" alt="" coords="647,3844,961,4049">
+<area shape="rect" id="node32" href="patients_historicalpatientdoctor.html" target="_top" title="patients_historicalpatientdoctor" alt="" coords="652,4067,956,4301">
+<area shape="rect" id="node33" href="patients_historicalpatientrelative.html" target="_top" title="patients_historicalpatientrelative" alt="" coords="649,4319,959,4553">
+<area shape="rect" id="node34" href="patients_historicalspeciality.html" target="_top" title="patients_historicalspeciality" alt="" coords="666,4771,942,4976">
+<area shape="rect" id="node35" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="1490,41,1734,247">
+<area shape="rect" id="node36" href="patients_state.html" target="_top" title="patients_state" alt="" coords="1115,5,1293,93">
+<area shape="rect" id="node37" href="patients_parentguardian.html" target="_top" title="patients_parentguardian" alt="" coords="1078,5291,1330,5467">
+<area shape="rect" id="node38" href="patients_parentguardian_patient.html" target="_top" title="patients_parentguardian_patient" alt="" coords="1458,5239,1766,5327">
+<area shape="rect" id="node41" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="1059,3928,1349,4016">
+<area shape="rect" id="node42" href="patients_patient_registered_clinicians.html" target="_top" title="patients_patient_registered_clinicians" alt="" coords="1031,4348,1377,4500">
+<area shape="rect" id="node43" href="patients_patient_working_groups.html" target="_top" title="patients_patient_working_groups" alt="" coords="1047,4193,1361,4281">
+<area shape="rect" id="node44" href="patients_patientaddress.html" target="_top" title="patients_patientaddress" alt="" coords="1079,4833,1329,4921">
+<area shape="rect" id="node45" href="patients_patientconsent.html" target="_top" title="patients_patientconsent" alt="" coords="1079,4939,1329,5027">
+<area shape="rect" id="node46" href="patients_patientdoctor.html" target="_top" title="patients_patientdoctor" alt="" coords="1085,5044,1323,5132">
+<area shape="rect" id="node47" href="patients_patientguid.html" target="_top" title="patients_patientguid" alt="" coords="1092,5149,1316,5237">
+<area shape="rect" id="node48" href="patients_patientrelative.html" target="_top" title="patients_patientrelative" alt="" coords="1082,4517,1326,4605">
+<area shape="rect" id="node49" href="patients_patientsignature.html" target="_top" title="patients_patientsignature" alt="" coords="1075,4623,1333,4711">
+<area shape="rect" id="node50" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="1119,3392,1289,3597">
+<area shape="rect" id="node51" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="1475,5367,1749,5601">
+<area shape="rect" id="node53" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="1097,5812,1311,5900">
+<area shape="rect" id="node54" href="registration_registrationprofile.html" target="_top" title="registration_registrationprofile" alt="" coords="1056,3163,1352,3339">
+<area shape="rect" id="node55" href="registration_supervisedregistrationprofile.html" target="_top" title="registration_supervisedregistrationprofile" alt="" coords="1425,3165,1799,3253">
+<area shape="rect" id="node56" href="reversion_revision.html" target="_top" title="reversion_revision" alt="" coords="699,1180,909,1356">
+<area shape="rect" id="node57" href="reversion_version.html" target="_top" title="reversion_version" alt="" coords="1101,845,1307,933">
+<area shape="rect" id="node58" href="two_factor_phonedevice.html" target="_top" title="two_factor_phonedevice" alt="" coords="1078,3655,1330,3831">
+</map>
+                                        <a name='diagram'><img id="twoimpliedDegreeImg" src="../diagrams/tables/groups_customuser.implied2degrees.png" usemap="#twoDegreesRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div>
+                </section>
+                <script>
+                    var config = {
+                        pagination: true
+                    }
+                </script>
+            </div>
+            <!-- /.content-wrapper -->
+            <footer class="main-footer">
+                <div>
+                    <div class="pull-right hidden-xs">
+                        <a href="https://github.com/schemaspy/schemaspy" title="GitHub for SchemaSpy"><i class="fa fa-github-square fa-2x"></i></a>
+                        <a href="http://stackoverflow.com/questions/tagged/schemaspy" title="StackOverflow for SchemaSpy"><i class="fa fa-stack-overflow fa-2x"></i></a>
+                    </div>
+                    <strong>Generated by <a href="http://schemaspy.org/" class="logo-text"><i class="fa fa-database"></i> SchemaSpy 6.1.0</a></strong>
+                </div>
+                <!-- /.container -->
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- jQuery 2.2.3 -->
+        <script src="../bower/admin-lte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <script src="../bower/admin-lte/plugins/jQueryUI/jquery-ui.min.js"></script>
+        <!-- Bootstrap 3.3.5 -->
+        <script src="../bower/admin-lte/bootstrap/js/bootstrap.min.js"></script>
+        <!-- DataTables -->
+        <script src="../bower/datatables.net/jquery.dataTables.min.js"></script>
+        <script src="../bower/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/dataTables.buttons.min.js"></script>
+        <script src="../bower/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.html5.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.print.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.colVis.min.js"></script>
+        <!-- SheetJS -->
+        <script src="../bower/js-xlsx/xlsx.full.min.js"></script>
+        <!-- pdfmake -->
+        <script src="../bower/pdfmake/pdfmake.min.js"></script>
+        <script src="../bower/pdfmake/vfs_fonts.js"></script>
+        <!-- SlimScroll -->
+        <script src="../bower/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+        <!-- FastClick -->
+        <script src="../bower/admin-lte/plugins/fastclick/fastclick.js"></script>
+        <!-- Salvattore -->
+        <script src="../bower/salvattore/salvattore.min.js"></script>
+        <!-- AnchorJS -->
+        <script src="../bower/anchor-js/anchor.min.js"></script>
+        <!-- CodeMirror -->
+        <script src="../bower/codemirror/codemirror.js"></script>
+        <script src="../bower/codemirror/sql.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../bower/admin-lte/dist/js/app.min.js"></script>
+        <script src="table.js"></script>
+        <script src="../schemaSpy.js"></script>
+    </body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>rdrf_cdepolicy - webapp Database</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
+        <!-- Bootstrap 3.3.5 -->
+        <link rel="stylesheet" href="../bower/admin-lte/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../bower/font-awesome/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="../bower/ionicons/css/ionicons.min.css">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="../bower/datatables.net-bs/css/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" href="../bower/datatables.net-buttons-bs/css/buttons.bootstrap.min.css">
+        <!-- Code Mirror -->
+        <link rel="stylesheet" href="../bower/codemirror/codemirror.css">
+        <!-- Fonts -->
+        <link href='../fonts/indieflower/indie-flower.css' rel='stylesheet' type='text/css'>
+        <link href='../fonts/source-sans-pro/source-sans-pro.css' rel='stylesheet' type='text/css'>
+
+        <!-- Theme style -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/AdminLTE.min.css">
+        <!-- Salvattore -->
+        <link rel="stylesheet" href="../bower/salvattore/salvattore.css">
+        <!-- AdminLTE Skins. Choose a skin from the css/skins
+           folder instead of downloading all of them to reduce the load. -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/skins/_all-skins.min.css">
+        <!-- SchemaSpy -->
+        <link rel="stylesheet" href="../schemaSpy.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="../bower/html5shiv/html5shiv.min.js"></script>
+        <script src="../bower/respond/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        <div class="wrapper">
+            <header class="main-header">
+                <nav class="navbar navbar-static-top">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <a href="../index.html" class="navbar-brand"><b>webapp</b> Database</a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"><i class="fa fa-bars"></i></button>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="../index.html">Tables <span class="sr-only">(current)</span></a></li>
+                                <li><a href="../columns.html" title="All of the columns in the schema">Columns</a></li>
+                                <li><a href="../constraints.html" title="Useful for diagnosing error messages that just give constraint name or number">Constraints</a></li>
+                                <li><a href="../relationships.html" title="Diagram of table relationships">Relationships</a></li>
+                                <li><a href="../orphans.html" title="View of tables with neither parents nor children">Orphan&nbsp;Tables</a></li>
+                                <li><a href="../anomalies.html" title="Things that might not be quite right">Anomalies</a></li>
+                                <li><a href="../routines.html" title="Procedures and functions">Routines</a></li>
+                            </ul>
+                        </div>
+                        <!-- /.navbar-collapse -->
+                        <!-- Navbar Right Menu -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </nav>
+            </header>
+            <!-- Main content -->
+            <!-- Full Width Column -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>rdrf_cdepolicy</h1><p><span id="recordNumber">0</span> rows</p><br />
+                </section>
+                <!-- Main content -->
+                <section class="content">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h3 id="Columns" class="box-title">Columns</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="standard_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead align='left'>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th title='Are nulls allowed?'>Nulls</th>
+                                    <th title='Is column automatically updated?'>Auto</th>
+                                    <th title='Default value'>Default</th>
+                                    <th title='Columns in tables that reference this column'>Children</th>
+                                    <th title='Columns in tables that are referenced by this column'>Parents</th>
+                                    <th title='Comments' class="toggle"><span>Comments</span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="id">id</span></td>
+                                    <td>serial</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title='Automatically updated by the database'>√</td>
+                                    <td>nextval(&#39;rdrf_cdepolicy_id_seq&#39;::regclass)</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="rdrf_cdepolicy_groups_allowed.cdepolicy_id references rdrf_cdepolicy.id via rdrf_cdepolicy_group_cdepolicy_id_c30438fa_fk_rdrf_cdep"><a href='rdrf_cdepolicy_groups_allowed.html'>rdrf_cdepolicy_groups_allowed</a><span class='relatedKey'>.cdepolicy_id</span></td>
+                                                <td class="constraint detail">rdrf_cdepolicy_group_cdepolicy_id_c30438fa_fk_rdrf_cdep<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="condition">condition</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="cde_id">cde_id</span></td>
+                                    <td>varchar</td>
+                                    <td>30</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="rdrf_cdepolicy.cde_id references rdrf_commondataelement.code via rdrf_cdepolicy_cde_id_b1035f21_fk_rdrf_commondataelement_code"><a href='rdrf_commondataelement.html'>rdrf_commondataelement</a><span class='relatedKey'>.code</span></td>
+                                                <td class="constraint detail">rdrf_cdepolicy_cde_id_b1035f21_fk_rdrf_commondataelement_code<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="registry_id">registry_id</span></td>
+                                    <td>int4</td>
+                                    <td>10</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="rdrf_cdepolicy.registry_id references rdrf_registry.id via rdrf_cdepolicy_registry_id_2bab6911_fk_rdrf_registry_id"><a href='rdrf_registry.html'>rdrf_registry</a><span class='relatedKey'>.id</span></td>
+                                                <td class="constraint detail">rdrf_cdepolicy_registry_id_2bab6911_fk_rdrf_registry_id<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-sitemap"></i>
+                            <h3 id="Indexes" class="box-title">Indexes</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="indexes_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead>
+                                <tr>
+                                    <th>Constraint Name</th>
+                                    <th>Type</th>
+                                    <th>Sort</th>
+                                    <th>Column(s)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> rdrf_cdepolicy_pkey</td>
+                                    <td>Primary key</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_cdepolicy_cde_id_b1035f21</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>cde_id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_cdepolicy_cde_id_b1035f21_like</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>cde_id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_cdepolicy_registry_id_2bab6911</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>registry_id</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- /.box-body -->
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-code-fork"></i>
+                            <h3 id="Relationships" class="box-title">Relationships</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="nav-tabs-custom"><!-- Tabs within a box -->
+                                <h5>Close relationships within degrees of separation</h5>
+                                <ul class="nav nav-tabs pull-left ui-sortable-handle">
+                                    <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
+                                    <li class=""><a href="#oneimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">One implied</a></li>
+                                    <li class=""><a href="#twoimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two implied</a></li>
+                                </ul>
+                                <div class="tab-content no-padding">
+                                    <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagram" name="oneDegreeRelationshipsDiagram">
+<area shape="rect" id="node1" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="311,32,595,219">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="5,25,267,172">
+<area shape="rect" id="node3" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="21,189,251,365">
+<area shape="rect" id="node4" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="639,5,940,157">
+</map>
+                                        <a name='diagram'><img id="oneDegreeImg" src="../diagrams/tables/rdrf_cdepolicy.1degree.png" usemap="#oneDegreeRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagram" name="twoDegreesRelationshipsDiagram">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1199,155,1413,243">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="823,411,1084,558">
+<area shape="rect" id="node3" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="857,87,1050,175">
+<area shape="rect" id="node4" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="533,302,735,390">
+<area shape="rect" id="node5" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="215,1055,445,1231">
+<area shape="rect" id="node6" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,566,171,654">
+<area shape="rect" id="node18" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="491,443,777,531">
+<area shape="rect" id="node22" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="513,197,755,285">
+<area shape="rect" id="node7" href="explorer_query.html" target="_top" title="explorer_query" alt="" coords="541,549,727,637">
+<area shape="rect" id="node8" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="492,654,776,742">
+<area shape="rect" id="node9" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="515,759,753,847">
+<area shape="rect" id="node10" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="489,865,779,953">
+<area shape="rect" id="node11" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="519,1006,749,1094">
+<area shape="rect" id="node12" href="patients_patientstagerule.html" target="_top" title="patients_patientstagerule" alt="" coords="825,1006,1082,1094">
+<area shape="rect" id="node13" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="529,1111,739,1199">
+<area shape="rect" id="node14" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="1164,1297,1448,1483">
+<area shape="rect" id="node15" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="1528,1738,1829,1890">
+<area shape="rect" id="node16" href="auth_group.html" target="_top" title="auth_group" alt="" coords="249,2201,411,2289">
+<area shape="rect" id="node17" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="497,1217,771,1305">
+<area shape="rect" id="node19" href="rdrf_consentconfiguration.html" target="_top" title="rdrf_consentconfiguration" alt="" coords="501,1322,767,1410">
+<area shape="rect" id="node20" href="rdrf_consentrule.html" target="_top" title="rdrf_consentrule" alt="" coords="535,2095,733,2183">
+<area shape="rect" id="node21" href="rdrf_consentsection.html" target="_top" title="rdrf_consentsection" alt="" coords="523,1463,745,1551">
+<area shape="rect" id="node23" href="rdrf_demographicfields.html" target="_top" title="rdrf_demographicfields" alt="" coords="511,1569,757,1657">
+<area shape="rect" id="node24" href="rdrf_emailnotification.html" target="_top" title="rdrf_emailnotification" alt="" coords="519,2201,749,2289">
+<area shape="rect" id="node25" href="rdrf_formtitle.html" target="_top" title="rdrf_formtitle" alt="" coords="547,1674,721,1762">
+<area shape="rect" id="node26" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="1204,409,1408,497">
+<area shape="rect" id="node27" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="873,306,1034,394">
+<area shape="rect" id="node28" href="rdrf_questionnaireresponse.html" target="_top" title="rdrf_questionnaireresponse" alt="" coords="496,1779,772,1867">
+<area shape="rect" id="node29" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="1128,303,1484,391">
+<area shape="rect" id="node30" href="rdrf_surveyassignment.html" target="_top" title="rdrf_surveyassignment" alt="" coords="513,1885,755,1973">
+<area shape="rect" id="node31" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1567,409,1790,497">
+<area shape="rect" id="node32" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="527,1990,741,2078">
+</map>
+                                        <a name='diagram'><img id="twodegreesDegreeImg" src="../diagrams/tables/rdrf_cdepolicy.2degrees.png" usemap="#twoDegreesRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagramImplied" name="oneDegreeRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="311,32,595,219">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="5,25,267,172">
+<area shape="rect" id="node3" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="21,189,251,365">
+<area shape="rect" id="node4" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="639,5,940,157">
+</map>
+                                        <a name='diagram'><img id="oneimpliedDegreeImg" src="../diagrams/tables/rdrf_cdepolicy.implied1degrees.png" usemap="#oneDegreeRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagramImplied" name="twoDegreesRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1199,1316,1413,1404">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="823,176,1084,323">
+<area shape="rect" id="node3" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="857,1316,1050,1404">
+<area shape="rect" id="node4" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="533,436,735,524">
+<area shape="rect" id="node5" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="215,1191,445,1367">
+<area shape="rect" id="node6" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,1759,171,1847">
+<area shape="rect" id="node18" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="491,40,777,128">
+<area shape="rect" id="node26" href="rdrf_contextformgroup.html" target="_top" title="rdrf_contextformgroup" alt="" coords="513,1140,755,1228">
+<area shape="rect" id="node7" href="explorer_query.html" target="_top" title="explorer_query" alt="" coords="541,1633,727,1721">
+<area shape="rect" id="node8" href="groups_customuser_registry.html" target="_top" title="groups_customuser_registry" alt="" coords="492,1739,776,1827">
+<area shape="rect" id="node9" href="groups_workinggroup.html" target="_top" title="groups_workinggroup" alt="" coords="515,1844,753,1932">
+<area shape="rect" id="node10" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="1557,145,1801,233">
+<area shape="rect" id="node11" href="patients_state.html" target="_top" title="patients_state" alt="" coords="1217,111,1395,199">
+<area shape="rect" id="node12" href="patients_patient_rdrf_registry.html" target="_top" title="patients_patient_rdrf_registry" alt="" coords="489,1949,779,2037">
+<area shape="rect" id="node13" href="patients_patientstage.html" target="_top" title="patients_patientstage" alt="" coords="519,331,749,419">
+<area shape="rect" id="node14" href="patients_patientstagerule.html" target="_top" title="patients_patientstagerule" alt="" coords="825,340,1082,428">
+<area shape="rect" id="node15" href="patients_speciality.html" target="_top" title="patients_speciality" alt="" coords="529,225,739,313">
+<area shape="rect" id="node16" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="1225,288,1387,376">
+<area shape="rect" id="node17" href="rdrf_cdepermittedvalue.html" target="_top" title="rdrf_cdepermittedvalue" alt="" coords="1184,5,1428,93">
+<area shape="rect" id="node19" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="1164,640,1448,827">
+<area shape="rect" id="node20" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="1528,1395,1829,1547">
+<area shape="rect" id="node21" href="auth_group.html" target="_top" title="auth_group" alt="" coords="249,2160,411,2248">
+<area shape="rect" id="node22" href="rdrf_cliniciansignuprequest.html" target="_top" title="rdrf_cliniciansignuprequest" alt="" coords="497,541,771,629">
+<area shape="rect" id="node23" href="rdrf_consentconfiguration.html" target="_top" title="rdrf_consentconfiguration" alt="" coords="501,719,767,807">
+<area shape="rect" id="node24" href="rdrf_consentrule.html" target="_top" title="rdrf_consentrule" alt="" coords="535,2160,733,2248">
+<area shape="rect" id="node25" href="rdrf_consentsection.html" target="_top" title="rdrf_consentsection" alt="" coords="523,824,745,912">
+<area shape="rect" id="node27" href="rdrf_demographicfields.html" target="_top" title="rdrf_demographicfields" alt="" coords="511,929,757,1017">
+<area shape="rect" id="node28" href="rdrf_emailnotification.html" target="_top" title="rdrf_emailnotification" alt="" coords="519,2055,749,2143">
+<area shape="rect" id="node29" href="rdrf_formtitle.html" target="_top" title="rdrf_formtitle" alt="" coords="547,1035,721,1123">
+<area shape="rect" id="node30" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="1204,499,1408,587">
+<area shape="rect" id="node31" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="873,567,1034,655">
+<area shape="rect" id="node32" href="rdrf_questionnaireresponse.html" target="_top" title="rdrf_questionnaireresponse" alt="" coords="496,1245,772,1333">
+<area shape="rect" id="node33" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="1128,393,1484,481">
+<area shape="rect" id="node34" href="rdrf_surveyassignment.html" target="_top" title="rdrf_surveyassignment" alt="" coords="513,1351,755,1439">
+<area shape="rect" id="node35" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1567,499,1790,587">
+<area shape="rect" id="node36" href="rdrf_surveyrequest.html" target="_top" title="rdrf_surveyrequest" alt="" coords="527,1456,741,1544">
+</map>
+                                        <a name='diagram'><img id="twoimpliedDegreeImg" src="../diagrams/tables/rdrf_cdepolicy.implied2degrees.png" usemap="#twoDegreesRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div>
+                </section>
+                <script>
+                    var config = {
+                        pagination: true
+                    }
+                </script>
+            </div>
+            <!-- /.content-wrapper -->
+            <footer class="main-footer">
+                <div>
+                    <div class="pull-right hidden-xs">
+                        <a href="https://github.com/schemaspy/schemaspy" title="GitHub for SchemaSpy"><i class="fa fa-github-square fa-2x"></i></a>
+                        <a href="http://stackoverflow.com/questions/tagged/schemaspy" title="StackOverflow for SchemaSpy"><i class="fa fa-stack-overflow fa-2x"></i></a>
+                    </div>
+                    <strong>Generated by <a href="http://schemaspy.org/" class="logo-text"><i class="fa fa-database"></i> SchemaSpy 6.1.0</a></strong>
+                </div>
+                <!-- /.container -->
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- jQuery 2.2.3 -->
+        <script src="../bower/admin-lte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <script src="../bower/admin-lte/plugins/jQueryUI/jquery-ui.min.js"></script>
+        <!-- Bootstrap 3.3.5 -->
+        <script src="../bower/admin-lte/bootstrap/js/bootstrap.min.js"></script>
+        <!-- DataTables -->
+        <script src="../bower/datatables.net/jquery.dataTables.min.js"></script>
+        <script src="../bower/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/dataTables.buttons.min.js"></script>
+        <script src="../bower/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.html5.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.print.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.colVis.min.js"></script>
+        <!-- SheetJS -->
+        <script src="../bower/js-xlsx/xlsx.full.min.js"></script>
+        <!-- pdfmake -->
+        <script src="../bower/pdfmake/pdfmake.min.js"></script>
+        <script src="../bower/pdfmake/vfs_fonts.js"></script>
+        <!-- SlimScroll -->
+        <script src="../bower/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+        <!-- FastClick -->
+        <script src="../bower/admin-lte/plugins/fastclick/fastclick.js"></script>
+        <!-- Salvattore -->
+        <script src="../bower/salvattore/salvattore.min.js"></script>
+        <!-- AnchorJS -->
+        <script src="../bower/anchor-js/anchor.min.js"></script>
+        <!-- CodeMirror -->
+        <script src="../bower/codemirror/codemirror.js"></script>
+        <script src="../bower/codemirror/sql.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../bower/admin-lte/dist/js/app.min.js"></script>
+        <script src="table.js"></script>
+        <script src="../schemaSpy.js"></script>
+    </body>
+</html>

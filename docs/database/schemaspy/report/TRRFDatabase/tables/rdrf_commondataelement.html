@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>rdrf_commondataelement - webapp Database</title>
+        <!-- Tell the browser to be responsive to screen width -->
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link rel="icon" type="image/png" sizes="16x16" href="../favicon.png">
+        <!-- Bootstrap 3.3.5 -->
+        <link rel="stylesheet" href="../bower/admin-lte/bootstrap/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="../bower/font-awesome/css/font-awesome.min.css">
+        <!-- Ionicons -->
+        <link rel="stylesheet" href="../bower/ionicons/css/ionicons.min.css">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="../bower/datatables.net-bs/css/dataTables.bootstrap.min.css">
+        <link rel="stylesheet" href="../bower/datatables.net-buttons-bs/css/buttons.bootstrap.min.css">
+        <!-- Code Mirror -->
+        <link rel="stylesheet" href="../bower/codemirror/codemirror.css">
+        <!-- Fonts -->
+        <link href='../fonts/indieflower/indie-flower.css' rel='stylesheet' type='text/css'>
+        <link href='../fonts/source-sans-pro/source-sans-pro.css' rel='stylesheet' type='text/css'>
+
+        <!-- Theme style -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/AdminLTE.min.css">
+        <!-- Salvattore -->
+        <link rel="stylesheet" href="../bower/salvattore/salvattore.css">
+        <!-- AdminLTE Skins. Choose a skin from the css/skins
+           folder instead of downloading all of them to reduce the load. -->
+        <link rel="stylesheet" href="../bower/admin-lte/dist/css/skins/_all-skins.min.css">
+        <!-- SchemaSpy -->
+        <link rel="stylesheet" href="../schemaSpy.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+        <script src="../bower/html5shiv/html5shiv.min.js"></script>
+        <script src="../bower/respond/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <!-- ADD THE CLASS layout-top-nav TO REMOVE THE SIDEBAR. -->
+    <body class="hold-transition skin-blue layout-top-nav">
+        <div class="wrapper">
+            <header class="main-header">
+                <nav class="navbar navbar-static-top">
+                    <div class="container">
+                        <div class="navbar-header">
+                            <a href="../index.html" class="navbar-brand"><b>webapp</b> Database</a>
+                            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse"><i class="fa fa-bars"></i></button>
+                        </div>
+
+                        <!-- Collect the nav links, forms, and other content for toggling -->
+                        <div class="collapse navbar-collapse pull-left" id="navbar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li><a href="../index.html">Tables <span class="sr-only">(current)</span></a></li>
+                                <li><a href="../columns.html" title="All of the columns in the schema">Columns</a></li>
+                                <li><a href="../constraints.html" title="Useful for diagnosing error messages that just give constraint name or number">Constraints</a></li>
+                                <li><a href="../relationships.html" title="Diagram of table relationships">Relationships</a></li>
+                                <li><a href="../orphans.html" title="View of tables with neither parents nor children">Orphan&nbsp;Tables</a></li>
+                                <li><a href="../anomalies.html" title="Things that might not be quite right">Anomalies</a></li>
+                                <li><a href="../routines.html" title="Procedures and functions">Routines</a></li>
+                            </ul>
+                        </div>
+                        <!-- /.navbar-collapse -->
+                        <!-- Navbar Right Menu -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </nav>
+            </header>
+            <!-- Main content -->
+            <!-- Full Width Column -->
+            <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                    <h1>rdrf_commondataelement</h1><p><span id="recordNumber">5</span> rows</p><br />
+                </section>
+                <!-- Main content -->
+                <section class="content">
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            <h3 id="Columns" class="box-title">Columns</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="standard_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead align='left'>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th title='Are nulls allowed?'>Nulls</th>
+                                    <th title='Is column automatically updated?'>Auto</th>
+                                    <th title='Default value'>Default</th>
+                                    <th title='Columns in tables that reference this column'>Children</th>
+                                    <th title='Columns in tables that are referenced by this column'>Parents</th>
+                                    <th title='Comments' class="toggle"><span>Comments</span></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="code">code</span></td>
+                                    <td>varchar</td>
+                                    <td>30</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="explorer_fieldvalue.cde_id references rdrf_commondataelement.code via explorer_fieldvalue_cde_id_0871eefc_fk_rdrf_comm"><a href='explorer_fieldvalue.html'>explorer_fieldvalue</a><span class='relatedKey'>.cde_id</span></td>
+                                                <td class="constraint detail">explorer_fieldvalue_cde_id_0871eefc_fk_rdrf_comm<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_historicalstate.country_code&#39;s name implies that it&#39;s a child of rdrf_commondataelement.code, but it doesn&#39;t reference that column."><a href='patients_historicalstate.html'>patients_historicalstate</a><span class='relatedKey'>.country_code</span></td>
+                                                <td class="constraint detail">Implied Constraint<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="patients_state.country_code&#39;s name implies that it&#39;s a child of rdrf_commondataelement.code, but it doesn&#39;t reference that column."><a href='patients_state.html'>patients_state</a><span class='relatedKey'>.country_code</span></td>
+                                                <td class="constraint detail">Implied Constraint<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cdefile.cde_code&#39;s name implies that it&#39;s a child of rdrf_commondataelement.code, but it doesn&#39;t reference that column."><a href='rdrf_cdefile.html'>rdrf_cdefile</a><span class='relatedKey'>.cde_code</span></td>
+                                                <td class="constraint detail">Implied Constraint<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cdepermittedvalue.code&#39;s name implies that it&#39;s a child of rdrf_commondataelement.code, but it doesn&#39;t reference that column."><a href='rdrf_cdepermittedvalue.html'>rdrf_cdepermittedvalue</a><span class='relatedKey'>.code</span></td>
+                                                <td class="constraint detail">Implied Constraint<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_cdepolicy.cde_id references rdrf_commondataelement.code via rdrf_cdepolicy_cde_id_b1035f21_fk_rdrf_commondataelement_code"><a href='rdrf_cdepolicy.html'>rdrf_cdepolicy</a><span class='relatedKey'>.cde_id</span></td>
+                                                <td class="constraint detail">rdrf_cdepolicy_cde_id_b1035f21_fk_rdrf_commondataelement_code<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_precondition.cde_id references rdrf_commondataelement.code via rdrf_precondition_cde_id_470abeda_fk_rdrf_comm"><a href='rdrf_precondition.html'>rdrf_precondition</a><span class='relatedKey'>.cde_id</span></td>
+                                                <td class="constraint detail">rdrf_precondition_cde_id_470abeda_fk_rdrf_comm<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_registryform_complete_form_cdes.commondataelement_id references rdrf_commondataelement.code via rdrf_registryform_co_commondataelement_id_d4efa096_fk_rdrf_comm"><a href='rdrf_registryform_complete_form_cdes.html'>rdrf_registryform_complete_form_cdes</a><span class='relatedKey'>.commondataelement_id</span></td>
+                                                <td class="constraint detail">rdrf_registryform_co_commondataelement_id_d4efa096_fk_rdrf_comm<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td title="rdrf_surveyquestion.cde_id references rdrf_commondataelement.code via rdrf_surveyquestion_cde_id_1e36d3a0_fk_rdrf_comm"><a href='rdrf_surveyquestion.html'>rdrf_surveyquestion</a><span class='relatedKey'>.cde_id</span></td>
+                                                <td class="constraint detail">rdrf_surveyquestion_cde_id_1e36d3a0_fk_rdrf_comm<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="name">name</span></td>
+                                    <td>varchar</td>
+                                    <td>250</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="desc">desc</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="datatype">datatype</span></td>
+                                    <td>varchar</td>
+                                    <td>50</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="instructions">instructions</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="allow_multiple">allow_multiple</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="max_length">max_length</span></td>
+                                    <td>int4</td>
+                                    <td>10</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="max_value">max_value</span></td>
+                                    <td>numeric</td>
+                                    <td>10,2</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="min_value">min_value</span></td>
+                                    <td>numeric</td>
+                                    <td>10,2</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="is_required">is_required</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="pattern">pattern</span></td>
+                                    <td>varchar</td>
+                                    <td>50</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="widget_name">widget_name</span></td>
+                                    <td>varchar</td>
+                                    <td>80</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="calculation">calculation</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="questionnaire_text">questionnaire_text</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="pv_group_id">pv_group_id</span></td>
+                                    <td>varchar</td>
+                                    <td>250</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                            <tr>
+                                                <td title="rdrf_commondataelement.pv_group_id references rdrf_cdepermittedvaluegroup.code via rdrf_commondataeleme_pv_group_id_d88c843e_fk_rdrf_cdep"><a href='rdrf_cdepermittedvaluegroup.html'>rdrf_cdepermittedvaluegroup</a><span class='relatedKey'>.code</span></td>
+                                                <td class="constraint detail">rdrf_commondataeleme_pv_group_id_d88c843e_fk_rdrf_cdep<span title='Restrict delete:&#10;Parent cannot be deleted if children exist'>R</span></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="important">important</span></td>
+                                    <td>bool</td>
+                                    <td>1</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span id="widget_settings">widget_settings</span></td>
+                                    <td>text</td>
+                                    <td>2147483647</td>
+                                    <td title=''></td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-sitemap"></i>
+                            <h3 id="Indexes" class="box-title">Indexes</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <table id="indexes_table" class="table table-bordered table-striped dataTable" role="grid">
+                                <thead>
+                                <tr>
+                                    <th>Constraint Name</th>
+                                    <th>Type</th>
+                                    <th>Sort</th>
+                                    <th>Column(s)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class='primaryKey' title='Primary Key'><i class='icon ion-key iconkey'></i> rdrf_commondataelement_pkey</td>
+                                    <td>Primary key</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_commondataelement_code_fa9d14e2_like</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>code</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_commondataelement_pv_group_id_d88c843e</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>pv_group_id</td>
+                                </tr>
+                                <tr>
+                                    <td title='Indexed'>rdrf_commondataelement_pv_group_id_d88c843e_like</td>
+                                    <td>Performance</td>
+                                    <td><span title='Ascending'>Asc</span></td>
+                                    <td>pv_group_id</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div><!-- /.box-body -->
+                    </div>
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-code-fork"></i>
+                            <h3 id="Relationships" class="box-title">Relationships</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            <div class="nav-tabs-custom"><!-- Tabs within a box -->
+                                <h5>Close relationships within degrees of separation</h5>
+                                <ul class="nav nav-tabs pull-left ui-sortable-handle">
+                                    <li class="active"><a href="#oneDegreeImg-chart" data-toggle="tab" aria-expanded="true">One</a></li>
+                                    <li class=""><a href="#twodegreesDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two degrees</a></li>
+                                    <li class=""><a href="#oneimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">One implied</a></li>
+                                    <li class=""><a href="#twoimpliedDegreeImg-chart" data-toggle="tab" aria-expanded="true">Two implied</a></li>
+                                </ul>
+                                <div class="tab-content no-padding">
+                                    <div class="chart tab-pane active" id="oneDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagram" name="oneDegreeRelationshipsDiagram">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="821,5,1034,328">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="335,496,705,1064">
+<area shape="rect" id="node4" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="5,909,291,1003">
+<area shape="rect" id="node3" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="837,345,1018,521">
+<area shape="rect" id="node5" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="825,575,1029,751">
+<area shape="rect" id="node6" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="749,768,1105,920">
+<area shape="rect" id="node7" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1149,493,1372,699">
+</map>
+                                        <a name='diagram'><img id="oneDegreeImg" src="../diagrams/tables/rdrf_commondataelement.1degree.png" usemap="#oneDegreeRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twodegreesDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagram" name="twoDegreesRelationshipsDiagram">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1030,675,1243,997">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="544,147,915,715">
+<area shape="rect" id="node3" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="633,732,826,820">
+<area shape="rect" id="node4" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="629,837,830,925">
+<area shape="rect" id="node5" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="633,943,826,1031">
+<area shape="rect" id="node6" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="273,924,442,1012">
+<area shape="rect" id="node7" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,1004,171,1092">
+<area shape="rect" id="node9" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="215,281,500,375">
+<area shape="rect" id="node8" href="rdrf_cdepermittedvalue.html" target="_top" title="rdrf_cdepermittedvalue" alt="" coords="607,5,851,93">
+<area shape="rect" id="node10" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="1046,67,1227,243">
+<area shape="rect" id="node11" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="1359,69,1660,157">
+<area shape="rect" id="node12" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="1407,449,1611,625">
+<area shape="rect" id="node13" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="1056,1015,1217,1103">
+<area shape="rect" id="node14" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="959,436,1315,588">
+<area shape="rect" id="node15" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1704,391,1927,596">
+</map>
+                                        <a name='diagram'><img id="twodegreesDegreeImg" src="../diagrams/tables/rdrf_commondataelement.2degrees.png" usemap="#twoDegreesRelationshipsDiagram" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="oneimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="oneDegreeRelationshipsDiagramImplied" name="oneDegreeRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="821,5,1034,328">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="335,815,705,1383">
+<area shape="rect" id="node7" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="5,1313,291,1407">
+<area shape="rect" id="node3" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="1149,393,1393,599">
+<area shape="rect" id="node4" href="patients_state.html" target="_top" title="patients_state" alt="" coords="838,345,1017,492">
+<area shape="rect" id="node5" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="842,545,1013,751">
+<area shape="rect" id="node6" href="rdrf_cdepermittedvalue.html" target="_top" title="rdrf_cdepermittedvalue" alt="" coords="805,1360,1049,1536">
+<area shape="rect" id="node8" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="837,768,1018,944">
+<area shape="rect" id="node9" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="825,1167,1029,1343">
+<area shape="rect" id="node10" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="749,997,1105,1149">
+<area shape="rect" id="node11" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1160,1000,1383,1205">
+</map>
+                                        <a name='diagram'><img id="oneimpliedDegreeImg" src="../diagrams/tables/rdrf_commondataelement.implied1degrees.png" usemap="#oneDegreeRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                    <div class="chart tab-pane " id="twoimpliedDegreeImg-chart" style="position: relative; overflow-x:auto;">
+                                        <map id="twoDegreesRelationshipsDiagramImplied" name="twoDegreesRelationshipsDiagramImplied">
+<area shape="rect" id="node1" href="explorer_fieldvalue.html" target="_top" title="explorer_fieldvalue" alt="" coords="1030,1135,1243,1457">
+<area shape="rect" id="node2" href="rdrf_commondataelement.html" target="_top" title="rdrf_commondataelement" alt="" coords="544,435,915,1003">
+<area shape="rect" id="node3" href="rdrf_rdrfcontext.html" target="_top" title="rdrf_rdrfcontext" alt="" coords="633,1161,826,1249">
+<area shape="rect" id="node4" href="rdrf_registryform.html" target="_top" title="rdrf_registryform" alt="" coords="629,1303,830,1391">
+<area shape="rect" id="node5" href="patients_patient.html" target="_top" title="patients_patient" alt="" coords="633,1020,826,1108">
+<area shape="rect" id="node6" href="rdrf_registry.html" target="_top" title="rdrf_registry" alt="" coords="273,1337,442,1425">
+<area shape="rect" id="node7" href="rdrf_section.html" target="_top" title="rdrf_section" alt="" coords="5,1391,171,1479">
+<area shape="rect" id="node14" href="rdrf_cdepermittedvaluegroup.html" target="_top" title="rdrf_cdepermittedvaluegroup" alt="" coords="215,521,500,615">
+<area shape="rect" id="node11" href="groups_customuser.html" target="_top" title="groups_customuser" alt="" coords="247,1020,468,1108">
+<area shape="rect" id="node8" href="patients_doctor.html" target="_top" title="patients_doctor" alt="" coords="1414,149,1605,237">
+<area shape="rect" id="node9" href="patients_state.html" target="_top" title="patients_state" alt="" coords="1047,199,1226,345">
+<area shape="rect" id="node10" href="patients_historicalstate.html" target="_top" title="patients_historicalstate" alt="" coords="1387,255,1631,460">
+<area shape="rect" id="node12" href="rdrf_cdefile.html" target="_top" title="rdrf_cdefile" alt="" coords="1051,549,1222,755">
+<area shape="rect" id="node13" href="rdrf_cdepermittedvalue.html" target="_top" title="rdrf_cdepermittedvalue" alt="" coords="1015,5,1259,181">
+<area shape="rect" id="node15" href="rdrf_cdepolicy.html" target="_top" title="rdrf_cdepolicy" alt="" coords="1046,772,1227,948">
+<area shape="rect" id="node16" href="rdrf_cdepolicy_groups_allowed.html" target="_top" title="rdrf_cdepolicy_groups_allowed" alt="" coords="1359,775,1660,863">
+<area shape="rect" id="node17" href="rdrf_precondition.html" target="_top" title="rdrf_precondition" alt="" coords="1407,548,1611,724">
+<area shape="rect" id="node18" href="rdrf_survey.html" target="_top" title="rdrf_survey" alt="" coords="1056,1475,1217,1563">
+<area shape="rect" id="node19" href="rdrf_registryform_complete_form_cdes.html" target="_top" title="rdrf_registryform_complete_form_cdes" alt="" coords="959,965,1315,1117">
+<area shape="rect" id="node20" href="rdrf_surveyquestion.html" target="_top" title="rdrf_surveyquestion" alt="" coords="1704,489,1927,695">
+</map>
+                                        <a name='diagram'><img id="twoimpliedDegreeImg" src="../diagrams/tables/rdrf_commondataelement.implied2degrees.png" usemap="#twoDegreesRelationshipsDiagramImplied" class="diagram" border="0" align="left"></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /.box-body -->
+                    </div>
+                </section>
+                <script>
+                    var config = {
+                        pagination: true
+                    }
+                </script>
+            </div>
+            <!-- /.content-wrapper -->
+            <footer class="main-footer">
+                <div>
+                    <div class="pull-right hidden-xs">
+                        <a href="https://github.com/schemaspy/schemaspy" title="GitHub for SchemaSpy"><i class="fa fa-github-square fa-2x"></i></a>
+                        <a href="http://stackoverflow.com/questions/tagged/schemaspy" title="StackOverflow for SchemaSpy"><i class="fa fa-stack-overflow fa-2x"></i></a>
+                    </div>
+                    <strong>Generated by <a href="http://schemaspy.org/" class="logo-text"><i class="fa fa-database"></i> SchemaSpy 6.1.0</a></strong>
+                </div>
+                <!-- /.container -->
+            </footer>
+        </div>
+        <!-- ./wrapper -->
+
+        <!-- jQuery 2.2.3 -->
+        <script src="../bower/admin-lte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+        <script src="../bower/admin-lte/plugins/jQueryUI/jquery-ui.min.js"></script>
+        <!-- Bootstrap 3.3.5 -->
+        <script src="../bower/admin-lte/bootstrap/js/bootstrap.min.js"></script>
+        <!-- DataTables -->
+        <script src="../bower/datatables.net/jquery.dataTables.min.js"></script>
+        <script src="../bower/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/dataTables.buttons.min.js"></script>
+        <script src="../bower/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.html5.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.print.min.js"></script>
+        <script src="../bower/datatables.net-buttons/buttons.colVis.min.js"></script>
+        <!-- SheetJS -->
+        <script src="../bower/js-xlsx/xlsx.full.min.js"></script>
+        <!-- pdfmake -->
+        <script src="../bower/pdfmake/pdfmake.min.js"></script>
+        <script src="../bower/pdfmake/vfs_fonts.js"></script>
+        <!-- SlimScroll -->
+        <script src="../bower/admin-lte/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+        <!-- FastClick -->
+        <script src="../bower/admin-lte/plugins/fastclick/fastclick.js"></script>
+        <!-- Salvattore -->
+        <script src="../bower/salvattore/salvattore.min.js"></script>
+        <!-- AnchorJS -->
+        <script src="../bower/anchor-js/anchor.min.js"></script>
+        <!-- CodeMirror -->
+        <script src="../bower/codemirror/codemirror.js"></script>
+        <script src="../bower/codemirror/sql.js"></script>
+        <!-- AdminLTE App -->
+        <script src="../bower/admin-lte/dist/js/app.min.js"></script>
+        <script src="table.js"></script>
+        <script src="../schemaSpy.js"></script>
+    </body>
+</html>
