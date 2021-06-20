@@ -247,6 +247,23 @@ if [ "$1" = 'runtests' ]; then
     exec pytest $args
 fi
 
+# runtests with coverage entrypoint
+if [ "$1" = 'runtests_coverage' ]; then
+    info "[Run] Starting tests"
+    export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
+
+    set -x
+    args="rdrf/rdrf/testing/unit"
+    if [ "$2" != "" ]; then
+        # pass through any arguments (if provided) to pytest
+        args="${@:2}"
+    fi
+    cd /app
+    coverage run -m pytest $args
+    coverage report -m
+    exec coverage html
+fi
+
 # aloe entrypoint
 if [ "$1" = 'aloe' ]; then
     info "[Run] Starting aloe"
@@ -264,7 +281,7 @@ if [ "$1" = 'db_init' ]; then
     exit
 fi
 
-warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runserver|runserver_plus|uwsgi|uwsgi_local|db_init]"
+warn "[RUN]: Builtin command not provided [tarball|aloe|runtests|runtests_coverage|runserver|runserver_plus|uwsgi|uwsgi_local|db_init]"
 info "[RUN]: $*"
 
 set -x
