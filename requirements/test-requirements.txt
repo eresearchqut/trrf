@@ -13,3 +13,4 @@ unittest-xml-reporting==2.5.2
 requests==2.25.1
 sqlalchemy-utils==0.36.1
 stellar==0.4.5
+coverage==5.5
