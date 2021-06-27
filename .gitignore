@@ -43,6 +43,7 @@ startup
 *.html~
 *.tags
 *.tags1
+.coverage
 .env_local
 
 
