@@ -94,7 +94,12 @@ jobs:
       - name: Load node image
         run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Unit tests
-        run: ./scripts/unit-tests.sh
+        run: ./scripts/unit-tests-coverage.sh
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unittest coverage
+          path: data/test/unittest_coverage_report
 
   integration_tests:
     name: Integration tests
