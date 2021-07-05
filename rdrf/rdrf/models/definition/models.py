@@ -812,8 +812,8 @@ class RegistryFormManager(models.Manager):
     def get_by_natural_key(self, registry_code, name):
         return self.get(registry__code=registry_code, name=name)
 
-    def get_by_registry(self, registry):
-        return self.model.objects.filter(registry__id__in=registry)
+    def get_by_registry(self, registry_id):
+        return self.model.objects.filter(registry__id=registry_id)
 
 
 class RegistryForm(models.Model):

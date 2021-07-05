@@ -182,7 +182,8 @@ class RegistryForms(generics.ListAPIView):
     serializer_class = RegistryFormSerializer
 
     def get_queryset(self):
-        return RegistryForm.objects.get_by_registry(self.kwargs.get('registry_id'))
+        registry_id = int(self.kwargs.get('registry_id'))
+        return RegistryForm.objects.get_by_registry(registry_id)
 
 
 class PatientStageSerializer(serializers.ModelSerializer):
