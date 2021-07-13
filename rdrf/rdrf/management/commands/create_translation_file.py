@@ -195,11 +195,7 @@ class Command(BaseCommand):
             raise Exception("No data?")
 
         for form_dict in self.data["forms"]:
-            name = form_dict["name"]
-            name_with_spaces = de_camelcase(name)
-
-            comment = None
-            yield comment, name_with_spaces
+            yield None, form_dict["display_name"]
 
             # the header is html ...
             # header_html = form_dict["header"]
