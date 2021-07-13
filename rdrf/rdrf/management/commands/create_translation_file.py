@@ -2,7 +2,6 @@ import yaml
 import sys
 import os.path
 import re
-from rdrf.helpers.utils import de_camelcase
 from tempfile import TemporaryDirectory
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
@@ -61,7 +60,6 @@ class Command(BaseCommand):
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
         self.number = re.compile(r"^\d+$")
-        self.translation_no = 1
 
         if not file_name:
             self._usage()
@@ -173,19 +171,17 @@ class Command(BaseCommand):
             message_string = message_string.replace('"', "")
 
         print('msgid "%s"' % message_string)
-        msgstr = "TRANSLATION %s" % self.translation_no
-        self.translation_no += 1
-        print('msgstr "%s"' % msgstr)
+        print('msgstr ""')
         print()
 
     def _get_strings_for_translation(self):
         yield from self._yield_registry_level_strings()
         yield from self._yield_form_strings()
+        yield from self._yield_context_form_group_strings()
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
         yield from self._yield_permission_strings()
         yield from self._yield_misc_strings()
-        yield from self._yield_form_title_strings()
 
     def _yield_registry_level_strings(self):
         # registry name
@@ -199,17 +195,20 @@ class Command(BaseCommand):
             raise Exception("No data?")
 
         for form_dict in self.data["forms"]:
-            name = form_dict["name"]
-            name_with_spaces = de_camelcase(name)
-
-            comment = None
-            yield comment, name_with_spaces
+            yield None, form_dict["display_name"]
 
             # the header is html ...
             # header_html = form_dict["header"]
             # todo extract strings from header
             yield None, None
             yield from self._yield_section_strings(form_dict)
+
+    def _yield_context_form_group_strings(self):
+        if self.data is None:
+            raise Exception("No data?")
+
+        for cfg in self.data["context_form_groups"]:
+            yield None, cfg["name"]
 
     def _yield_section_strings(self, form_dict):
 
@@ -308,11 +307,3 @@ class Command(BaseCommand):
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
-
-    def _yield_form_title_strings(self):
-        titles = self.data.get("form_titles", [])
-        result = [(t.get("default_title", ""), t.get("custom_title", "")) for t in titles]
-        valid_entries = [(default_title, custom_title) for default_title, custom_title in result if default_title and custom_title]
-        for default_title, custom_title in valid_entries:
-            yield None, default_title
-            yield None, custom_title

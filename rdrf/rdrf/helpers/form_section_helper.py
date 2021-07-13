@@ -10,7 +10,7 @@ from .constants import (
 class DemographicsSectionFieldBuilder(object):
 
     def get_personal_detail_fields(self, registry_code):
-        personal_header = _(PATIENT_PERSONAL_DETAILS_SECTION_NAME)
+        personal_header = PATIENT_PERSONAL_DETAILS_SECTION_NAME
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
         if registry_code == "fkrp":
@@ -53,7 +53,7 @@ class DemographicsSectionFieldBuilder(object):
             "next_of_kin_email",
             "next_of_kin_parent_place_of_birth"
         ]
-        return (_(PATIENT_NEXT_OF_KIN_SECTION_NAME), next_of_kin_fields)
+        return (PATIENT_NEXT_OF_KIN_SECTION_NAME, next_of_kin_fields)
 
     def get_registry_fields(self, clinician_has_patients=False):
         fields = ["rdrf_registry", "working_groups"]
@@ -62,13 +62,13 @@ class DemographicsSectionFieldBuilder(object):
         return _("Registry"), fields
 
     def get_patient_address_section(self):
-        return _(PATIENT_ADDRESS_SECTION_NAME), None
+        return PATIENT_ADDRESS_SECTION_NAME, None
 
     def get_patient_stage_section(self):
-        return _(PATIENT_STAGE_SECTION_NAME), ["stage"]
+        return PATIENT_STAGE_SECTION_NAME, ["stage"]
 
     def get_patient_doctor_section(self):
-        return _(PATIENT_DOCTOR_SECTION_NAME), None
+        return PATIENT_DOCTOR_SECTION_NAME, None
 
     def get_patient_relative_section(self):
-        return _(PATIENT_RELATIVE_SECTION_NAME), None
+        return PATIENT_RELATIVE_SECTION_NAME, None

@@ -14,7 +14,7 @@
         <div class="col-sm-12 text-muted">
             <p style="overflow-x: auto; white-space: nowrap">
                 {% with pi=patient_information %}
-                    <strong>DOB:</strong>&nbsp;{{ pi.dob }}&nbsp;(<strong>Age:</strong>&nbsp;{{ pi.age }})
+                    <strong>{% trans "DOB" %}:</strong>&nbsp;{{ pi.dob }}&nbsp;(<strong>{% trans "Age" %}:</strong>&nbsp;{{ pi.age }})
                     &nbsp;|&nbsp;{{ pi.gender }}
                     {% if pi.ancestry %}
                         &nbsp;|&nbsp;{{ pi.ancestry }}

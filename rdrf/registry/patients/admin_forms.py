@@ -295,10 +295,21 @@ class PatientForm(forms.ModelForm):
         "cols": 30,
     }
 
-    next_of_kin_country = forms.ChoiceField(required=False,
-                                            widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    next_of_kin_state = forms.ChoiceField(required=False, widget=StateWidget())
-    country_of_birth = forms.ChoiceField(required=False, widget=CountryWidget())
+    next_of_kin_country = forms.ChoiceField(
+        required=False,
+        widget=CountryWidget(attrs={'onChange': 'select_country(this);'}),
+        label=_("Next of kin country")
+    )
+    next_of_kin_state = forms.ChoiceField(
+        required=False,
+        widget=StateWidget(),
+        label=_("Next of kin state")
+    )
+    country_of_birth = forms.ChoiceField(
+        required=False,
+        widget=CountryWidget(),
+        label=_("Country of birth")
+    )
 
     def __init__(self, *args, **kwargs):
 
