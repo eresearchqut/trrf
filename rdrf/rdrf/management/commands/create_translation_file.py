@@ -177,6 +177,7 @@ class Command(BaseCommand):
     def _get_strings_for_translation(self):
         yield from self._yield_registry_level_strings()
         yield from self._yield_form_strings()
+        yield from self._yield_context_form_group_strings()
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
         yield from self._yield_permission_strings()
@@ -205,6 +206,13 @@ class Command(BaseCommand):
             # todo extract strings from header
             yield None, None
             yield from self._yield_section_strings(form_dict)
+
+    def _yield_context_form_group_strings(self):
+        if self.data is None:
+            raise Exception("No data?")
+
+        for cfg in self.data["context_form_groups"]:
+            yield None, cfg["name"]
 
     def _yield_section_strings(self, form_dict):
 
