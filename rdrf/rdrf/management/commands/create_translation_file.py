@@ -61,7 +61,6 @@ class Command(BaseCommand):
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
         self.number = re.compile(r"^\d+$")
-        self.translation_no = 1
 
         if not file_name:
             self._usage()
@@ -173,9 +172,7 @@ class Command(BaseCommand):
             message_string = message_string.replace('"', "")
 
         print('msgid "%s"' % message_string)
-        msgstr = "TRANSLATION %s" % self.translation_no
-        self.translation_no += 1
-        print('msgstr "%s"' % msgstr)
+        print('msgstr ""')
         print()
 
     def _get_strings_for_translation(self):
