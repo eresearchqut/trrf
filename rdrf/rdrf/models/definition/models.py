@@ -1946,11 +1946,11 @@ class FileStorage(models.Model):
 
 class FormTitle(models.Model):
     FORM_TITLE_CHOICES = (
-        ("Demographics", "Demographics"),
-        ("Consents", "Consents"),
-        ("Clinician", "Clinician"),
-        ("Proms", "Proms"),
-        ("Family linkage", "Family Linkage")
+        ("Demographics", _("Demographics")),
+        ("Consents", _("Consents")),
+        ("Clinician", _("Clinician")),
+        ("Proms", _("Proms")),
+        ("Family linkage", _("Family Linkage"))
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups = models.ManyToManyField(
