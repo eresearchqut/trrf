@@ -205,7 +205,7 @@
                                         <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
                                             <h4>{% trans "Compare mode" %}</h4>
                                             <p>
-                                            {% blocktrans with since_version=selected_version_name %}
+                                            {% blocktrans trimmed with since_version=selected_version_name %}
                                             Displaying fields that changed since <strong>{{ since_version }}</strong>.
                                             Please hover over the fields to see their previous value.
                                             {% endblocktrans %}

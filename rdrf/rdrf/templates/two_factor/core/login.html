@@ -26,7 +26,7 @@
                   {% if err == original_error_msg %}
                       <div class="col-xs-12 alert alert-warning no-border-radius text-center" role="alert">
                           {% url 'login_assistance' as assistance_url %}
-                          {% blocktrans %}
+                          {% blocktrans trimmed %}
                               <p>After 5 incorrect login attempts, you must reset your password in order to log in.</p>
                               <p><a class="alert-link" href="{{ assistance_url }}">Click here to reset your password.</a></p>
                           {% endblocktrans %}
