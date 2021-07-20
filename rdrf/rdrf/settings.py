@@ -692,3 +692,16 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # Override the setting below in registries derived from trrf to tag forms to
 # allow customising the behaviour of trrf when interacting with them
 REGISTRY_FORM_TAGS = ()
+
+# Crowdin in-context translation integration
+# Should only be enabled in local and staging environments
+ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION = env.get('enable_crowdin_in_context_translation', False)
+CROWDIN_IN_CONTEXT_PROJECT_ID = env.get('crowdin_in_context_project_id', '')
+CROWDIN_IN_CONTEXT_DOMAIN = env.get('crowdin_in_context_domain', 'eresearchqut')
+if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION:
+    CSP_SCRIPT_SRC += ["https://cdn.crowdin.com"]
+    CSP_STYLE_SRC += ["https://cdn.crowdin.com", "https://fonts.googleapis.com"]
+    CSP_FONT_SRC += ["https://fonts.gstatic.com"]
+    CSP_IMG_SRC += ["https://cdn.crowdin.com", "https://*.downloads.crowdin.com", "data:"]
+    CSP_CONNECT_SRC += ["https://eresearchqut.crowdin.com"]
+    CSP_FRAME_SRC += ["https://cdn.crowdin.com", "https://eresearchqut.crowdin.com"]
