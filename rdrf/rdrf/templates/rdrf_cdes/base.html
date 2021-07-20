@@ -24,6 +24,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/timepicki-2.0.1/css/timepicki.css' %}">
 
+    {% include "crowdin/in_context.html" %}
 
     {% project_stylesheet as PSS %}
     {% if PSS %}

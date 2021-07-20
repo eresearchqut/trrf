@@ -1,0 +1,8 @@
+{% if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION %}
+    <script type="text/javascript">
+        var _jipt = [];
+        _jipt.push(['project', '{{ CROWDIN_IN_CONTEXT_PROJECT_ID }}']);
+        _jipt.push(['domain', '{{ CROWDIN_IN_CONTEXT_DOMAIN }}']);
+    </script>
+    <script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+{% endif %}
