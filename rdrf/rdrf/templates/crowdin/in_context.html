@@ -1,4 +1,4 @@
-{% if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION %}
+{% if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION and request.LANGUAGE_CODE.lower == "pseudo" %}
     <script type="text/javascript">
         var _jipt = [];
         _jipt.push(['project', '{{ CROWDIN_IN_CONTEXT_PROJECT_ID }}']);
