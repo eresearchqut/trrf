@@ -168,7 +168,7 @@ class Command(BaseCommand):
 
         # again we need to escape somwhow
         if '"' in message_string:
-            message_string = message_string.replace('"', "")
+            message_string = message_string.replace('"', '\\"')
 
         print('msgid "%s"' % message_string)
         print('msgstr ""')
