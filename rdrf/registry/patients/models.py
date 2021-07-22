@@ -340,7 +340,8 @@ class Patient(models.Model):
     registered_clinicians = models.ManyToManyField(
         CustomUser,
         related_name='registered_patients',
-        blank=True
+        blank=True,
+        verbose_name=_("Registered clinicians")
     )
     user = models.ForeignKey(
         CustomUser,
@@ -1265,15 +1266,19 @@ class Speciality(models.Model):
 class ClinicianOther(models.Model, PatientUpdateMixin):
     use_other = models.BooleanField(default=False)
     patient = models.ForeignKey(Patient, null=True, on_delete=models.SET_NULL)
-    clinician_name = models.CharField(max_length=200, blank=True, null=True)
-    clinician_hospital = models.CharField(max_length=200, blank=True, null=True)
-    clinician_address = models.CharField(max_length=200, blank=True, null=True)
-    clinician_email = models.EmailField(max_length=254, null=True, blank=True)
-    clinician_phone_number = models.CharField(max_length=254, null=True, blank=True)
-    speciality = models.ForeignKey(Speciality, null=True, blank=True, on_delete=models.deletion.SET_NULL)
+    clinician_name = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("Clinician Name"))
+    clinician_hospital = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("Clinician hospital"))
+    clinician_address = models.CharField(max_length=200, blank=True, null=True, verbose_name=_("Clinician address"))
+    clinician_email = models.EmailField(max_length=254, null=True, blank=True, verbose_name=_("Clinician email"))
+    clinician_phone_number = models.CharField(max_length=254, null=True, blank=True,
+                                              verbose_name=_("Clinician phone number"))
+    speciality = models.ForeignKey(Speciality, null=True, blank=True, on_delete=models.deletion.SET_NULL,
+                                   verbose_name=_("Clinician specialty"))
     user = models.ForeignKey(CustomUser, blank=True, null=True, on_delete=models.SET_NULL)
-    clinician_first_name = models.CharField(max_length=200, blank=True, null=True)
-    clinician_last_name = models.CharField(max_length=200, blank=True, null=True)
+    clinician_first_name = models.CharField(max_length=200, blank=True, null=True,
+                                            verbose_name=_("Clinician first name"))
+    clinician_last_name = models.CharField(max_length=200, blank=True, null=True,
+                                           verbose_name=_("Clinician last name"))
 
     history = HistoricalRecords()
 
