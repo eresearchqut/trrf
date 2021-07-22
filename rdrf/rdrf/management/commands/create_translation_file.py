@@ -1,4 +1,5 @@
 import yaml
+import json
 import sys
 import os.path
 import re
@@ -233,12 +234,22 @@ class Command(BaseCommand):
             yield comment, cde_label
             yield comment, instruction_text
 
+            yield from self._yield_cde_settings_strings(cde_dict)
             yield from self._yield_pvg_strings(cde_dict)
 
     def _get_cde_dict(self, cde_code):
         for cde_dict in self.data["cdes"]:
             if cde_dict["code"] == cde_code:
                 return cde_dict
+
+    @staticmethod
+    def _yield_cde_settings_strings(cde_dict):
+        widget_name = cde_dict["widget_name"]
+        widget_settings = json.loads(cde_dict["widget_settings"] or 'null')
+
+        if widget_name == "SliderWidget":
+            yield "Slider left", widget_settings['left_label']
+            yield "Slider right", widget_settings['right_label']
 
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:

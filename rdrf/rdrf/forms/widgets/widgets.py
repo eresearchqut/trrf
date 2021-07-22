@@ -563,11 +563,11 @@ class SliderWidget(widgets.TextInput):
 
         context = f"""
              <div>
-                <div style="float:left; margin-right:20px;"><b>{left_label}</b></div>
+                <div style="float:left; margin-right:20px;"><b>{_(left_label)}</b></div>
                 <div style="float:left">
                     <input type="hidden" id="{attrs['id']}" name="{name}" value="{value}"/>
                 </div>
-                <div style="float:left;margin-left:20px;"><b>{right_label}</b></div>
+                <div style="float:left;margin-left:20px;"><b>{_(right_label)}</b></div>
              </div>
              <br/>
              <script>
@@ -650,7 +650,6 @@ class TimeWidget(widgets.TextInput):
         NO_VALUE = ('', [])
         if not value:
             return NO_VALUE
-
         m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
         if not m:
             return NO_VALUE
