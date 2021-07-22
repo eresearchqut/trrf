@@ -258,7 +258,7 @@ class Command(BaseCommand):
                 yield comment, "???"
                 return
             for value_dict in pvg_dict["values"]:
-                display_value = value_dict["desc"]
+                display_value = value_dict["value"]
 
                 comment = None
                 yield comment, display_value
