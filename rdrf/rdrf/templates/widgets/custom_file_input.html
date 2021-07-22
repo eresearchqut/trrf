@@ -14,15 +14,15 @@
     {% endif %}
     <div class="alert alert-info" role="alert" id="{{widget.virus_check_id}}_scanning" style="display:none;">
         <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></span>
-        {% trans 'Virus check in progress. The file can\'t be downloaded before it is checked for viruses. Waiting for the scan to finish...' %}
+        {% trans "Virus check in progress. The file can't be downloaded before it is checked for viruses. Waiting for the scan to finish..." %}
     </div>
     <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_infected" style="display:none;">
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        {% trans 'The file uploaded has been marked as infected by the virus checker! You can\'t download an infected file.' %}
+        {% trans "The file uploaded has been marked as infected by the virus checker! You can't download an infected file." %}
     </div>
     <div class="alert alert-danger" role="alert" id="{{widget.virus_check_id}}_notfound" style="display:none;">
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        {% trans 'The file is not found!' %}
+        {% trans "The file is not found!" %}
     </div>
 
     <script>
