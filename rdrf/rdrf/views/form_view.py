@@ -448,8 +448,7 @@ class FormView(View):
         context = self._build_context(user=request.user, patient_model=patient_model, changes_since_version=changes_since_version)
         context["location"] = location_name(self.registry_form, self.rdrf_context)
         # we provide a "path" to the header field which contains an embedded Django template
-        context["header"] = self.registry_form.header
-        context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+        context["header"] = _(self.registry_form.header)
         context["settings"] = settings
         context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
         patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
@@ -866,8 +865,7 @@ class FormView(View):
         context.update(csrf(request))
         self.registry_form = self.get_registry_form(form_id)
 
-        context["header"] = self.registry_form.header
-        context["header_expression"] = "rdrf://model/RegistryForm/%s/header" % self.registry_form.pk
+        context["header"] = _(self.registry_form.header)
 
         if error_count == 0:
             patient.mark_changed_timestamp()

@@ -189,7 +189,9 @@
                     {% if header %}
                         <div class="panel panel-info trrf-page-header">
                             <div class="panel-body">
-                                {% include header_expression %}
+                                {% autoescape off %}
+                                    {{ header }}
+                                {% endautoescape %}
                                 {% if has_previous_data %}
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
