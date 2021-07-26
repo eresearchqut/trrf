@@ -198,10 +198,7 @@ class Command(BaseCommand):
         for form_dict in self.data["forms"]:
             yield None, form_dict["display_name"]
 
-            # the header is html ...
-            # header_html = form_dict["header"]
-            # todo extract strings from header
-            yield None, None
+            yield None, form_dict['header']
             yield from self._yield_section_strings(form_dict)
 
     def _yield_context_form_group_strings(self):
