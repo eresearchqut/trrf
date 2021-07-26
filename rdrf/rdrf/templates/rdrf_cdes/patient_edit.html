@@ -335,7 +335,9 @@
                                                 {% if info_text_expression %}
                                                     <br>
                                                     <hr>
-                                                    {% include info_text_expression %}
+                                                    {% autoescape off %}
+                                                        {{ info_text_expression }}
+                                                    {% endautoescape %}
                                                 {% endif %}
                                             {% endwith %}
                                             {% endwith %}

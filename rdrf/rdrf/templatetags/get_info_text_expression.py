@@ -1,4 +1,6 @@
 from django import template
+from django.utils.translation import ugettext as _
+
 from rdrf.models.definition.models import ConsentSection
 import logging
 
@@ -19,14 +21,7 @@ def get_info_text_expression(fields):
         try:
             consent_section_model = ConsentSection.objects.get(pk=consent_section_model_pk)
             if consent_section_model.information_text:
-                try:
-                    field_path = "rdrf://model/ConsentSection/%s/information_text" % consent_section_model.pk
-                    return field_path
+                return _(consent_section_model.information_text)
 
-                except Exception as ex:
-                    logger.error(
-                        "Error getting custom consent information text for pk %s: %s" %
-                        (consent_section_model.pk, ex))
-                    return
         except BaseException:
             return
