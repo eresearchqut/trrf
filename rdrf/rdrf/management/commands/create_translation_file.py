@@ -251,6 +251,7 @@ class Command(BaseCommand):
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
             yield None, consent_section_dict["section_label"]
+            yield None, consent_section_dict["information_text"]
             for question_dict in consent_section_dict["questions"]:
                 yield None, question_dict["question_label"]
                 yield None, question_dict["instructions"]
