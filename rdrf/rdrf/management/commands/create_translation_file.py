@@ -157,14 +157,14 @@ class Command(BaseCommand):
             # probably wrong but compiler fails
             # if there are multilined messages
             # message_string = message_string.replace('\n',' ')
-            lines = message_string.split("\n")
+            lines = [line.replace('"', '\\"') for line in message_string.split("\n")]
             first_line = lines[0]
             lines = lines[1:]
 
-            print('msgid "%s"' % first_line.replace('"', ""))
+            print('msgid "%s"' % first_line)
             for line in lines:
-                print('"%s"' % line.replace('"', ""))
-            print('msgstr "translation goes here"')
+                print('"\\n%s"' % line)
+            print('msgstr ""')
             return
 
         # again we need to escape somwhow
