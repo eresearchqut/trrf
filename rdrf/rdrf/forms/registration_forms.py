@@ -1,6 +1,6 @@
 from django.forms import CharField, ChoiceField, DateField, ValidationError
 from django.forms.widgets import EmailInput, RadioSelect
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from registration.users import UsernameField, UserModel
 from registration.forms import RegistrationForm
