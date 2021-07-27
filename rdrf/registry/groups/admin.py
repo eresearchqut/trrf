@@ -10,8 +10,6 @@ from django.utils.translation import gettext as _
 from useraudit.admin import LogAdmin
 from useraudit.models import FailedLoginLog, LoginLog, UserDeactivation
 
-from rdrf.helpers.registry_features import RegistryFeatures
-
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
 from .models import WorkingGroup
 
