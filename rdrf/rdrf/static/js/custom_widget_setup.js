@@ -40,3 +40,40 @@ function setupDurationWidget(inputName, attributesStr) {
     $(textInput).timeDurationPicker(initParams);
     $(textInput).addClass("form-control");
 }
+
+$.timeDurationPicker.langs.en_US = {
+  years: gettext("years"),
+  months: gettext("months"),
+  days: gettext("days"),
+  hours: gettext("hours"),
+  minutes: gettext("minutes"),
+  seconds: gettext("seconds"),
+  and: gettext("and"),
+  button_ok: gettext("ok"),
+  units: {
+    year: {
+      one: gettext("year"),
+      other: gettext("years")
+    },
+    month: {
+      one: gettext("month"),
+      other: gettext("months")
+    },
+    day: {
+      one: gettext("day"),
+      other: gettext("days")
+    },
+    hour: {
+      one: gettext("hour"),
+      other: gettext("hours")
+    },
+    minute: {
+      one: gettext("minute"),
+      other: gettext("minutes")
+    },
+    second: {
+      one: gettext("second"),
+      other: gettext("seconds")
+    }
+  }
+}
