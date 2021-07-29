@@ -198,6 +198,7 @@ INSTALLED_APPS = [
     'django_js_reverse',
     'stronghold',
     'aws_xray_sdk.ext.django',
+    'django_countries'
 ]
 
 

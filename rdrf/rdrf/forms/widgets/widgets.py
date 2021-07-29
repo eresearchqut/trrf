@@ -208,9 +208,9 @@ class CountryWidget(widgets.Select):
 
             if value == country.alpha_2:
                 output.append("<option value='%s' selected>%s</option>" %
-                              (country.alpha_2, country.name))
+                              (country.alpha_2, _(country.name)))
             else:
-                output.append("<option value='%s'>%s</option>" % (country.alpha_2, country.name))
+                output.append("<option value='%s'>%s</option>" % (country.alpha_2, _(country.name)))
         output.append("</select>")
         return mark_safe('\n'.join(output))
 
