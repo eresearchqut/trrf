@@ -3,6 +3,7 @@
 {% load project_title %}
 {% load project_title_link %}
 
+{% include "localisation/language_picker_form.html" %}
 <div class="collapse navbar-collapse" id="navbar-collapsing-links">
     <ul class="nav navbar-nav navbar-right">
       <li><a class="visible-xs" href="{% project_title_link %}">{% project_title %}</a></li>
@@ -52,6 +53,26 @@
                     <ul class="dropdown-menu" role="menu">
                         {% for quick_link in request.user.settings_links %}
                             <li><a href="{{ quick_link.url }}">{{ quick_link.text|translate }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% get_available_languages as LANGUAGES %}
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% if LANGUAGES|length > 1 %}
+                <li class="dropdown dropdown-menu-button">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                       aria-expanded="false">
+                        <span class="glyphicon glyphicon-globe"></span> {% trans 'Language' %}<span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" style="cursor: pointer">
+                        {% for language_code, language_name in LANGUAGES %}
+                            {% ifequal language_code CURRENT_LANGUAGE %}
+                                <li><a onclick="setLanguage('{{ language_code }}')" style="font-weight: bold">{{ language_name }} ({% trans 'Selected' %})</a></li>
+                            {% else %}
+                                <li><a onclick="setLanguage('{{ language_code }}')">{{ language_name }}</a></li>
+                            {% endifequal %}
                         {% endfor %}
                     </ul>
                 </li>

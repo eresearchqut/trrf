@@ -1,0 +1,18 @@
+{% csrf_token %}
+<script>
+    function setLanguage(code) {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const request = new Request(
+            "{% url "django_conf_urls:set_language" %}",
+             {headers: {'X-CSRFToken': csrftoken}}
+        )
+        const languageForm = new FormData();
+        languageForm.append('language', code)
+        fetch(request, {
+            method: "POST",
+            mode: "same-origin",
+            redirect: "follow",
+            body: languageForm
+        }).then(response => window.location.href = response.url)
+    }
+</script>
