@@ -148,9 +148,9 @@
                                     <div class="col-sm-10">
                                         <select class="form-control" id="id_country" name="country">
                                             <option value="-1">{% trans 'Choose one' %}...</option>
-                                            {% countries as countries %}
+                                            {% get_countries as countries %}
                                             {% for con in countries %}
-                                                <option value="{{con.alpha_2}}">{{con.name}}</option>
+                                                <option value="{{con.alpha_2}}">{% trans con.name %}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -159,7 +159,7 @@
                                     <label class="col-sm-2 control-label">{% trans 'State' %}</label>
                                     <div class="col-sm-10">
                                         <select class="form-control" id="id_state" maxlength="30" name="state">
-                                            <option value="-1">State / County / Province / Region</option>
+                                            <option value="-1">{% trans "State / County / Province / Region" %}</option>
                                         </select>
                                     </div>
                                 </div>
