@@ -16,6 +16,7 @@ from django.db import models
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
+from django.template.defaultfilters import date as _date
 from django.utils.formats import date_format, time_format
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
@@ -1581,9 +1582,7 @@ class ContextFormGroup(models.Model):
             return "Modules"
         elif self.naming_scheme == "D" and context_model is not None:
             d = context_model.created_at
-            s = d.strftime("%d-%b-%Y")
-            t = d.strftime("%I:%M:%S %p")
-            return "%s/%s %s" % (self.name, s, t)
+            return "%s / %s" % (_(self.name), _date(d, "d-F-Y h:i:s A"))
         elif self.naming_scheme == "N":
             registry_model = self.registry
             contexts = RDRFContext.objects.get_for_patient(patient_model, registry_model)
