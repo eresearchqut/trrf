@@ -146,12 +146,12 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MIDDLEWARE = (
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'useraudit.middleware.RequestToThreadLocalMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
     'csp.middleware.CSPMiddleware',
     'registry.common.middleware.LaxSameSiteCookieMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_otp.middleware.OTPMiddleware',
     'registry.common.middleware.UserSentryMiddleware',
