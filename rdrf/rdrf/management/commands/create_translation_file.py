@@ -288,11 +288,11 @@ class Command(BaseCommand):
         # consent
         registry_name = self.data["name"]
 
-        msgid = "Consents (%s)s" % registry_name
+        msgid = "Consents (%s)" % registry_name
         yield None, msgid
 
         # permission matrix
-        msgid = "Permissions (%s)s" % registry_name
+        msgid = "Permissions (%s)" % registry_name
         yield None, msgid
 
     def _yield_misc_strings(self):
