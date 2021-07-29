@@ -1441,7 +1441,7 @@ class AddressType(models.Model):
         return (self.type,)
 
     def __str__(self):
-        return "%s" % (self.type)
+        return "%s" % _(self.type)
 
 
 class PatientAddress(models.Model, PatientUpdateMixin):
