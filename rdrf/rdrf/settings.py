@@ -64,7 +64,7 @@ ALL_LANGUAGES = (("en", "English"),
 
 # This must be a subset of ALL_LANGUAGES
 LANGUAGES_ASSOC_LIST = env.getlist("languages", ["en:English"])
-LANGUAGES = tuple(tuple(lang.split(":")) for lang in LANGUAGES_ASSOC_LIST)
+LANGUAGES = tuple(sorted([tuple(lang.split(":")) for lang in LANGUAGES_ASSOC_LIST], key=lambda l: l[1]))
 
 DATABASES = {
     'default': {
