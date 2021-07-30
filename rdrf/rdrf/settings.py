@@ -673,6 +673,7 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'robots_txt',
     'js_reverse',
     'javascript-catalog',
+    'django_conf_urls:set_language',
 )
 
 # URLs whitelisted for meeting the security conventions
