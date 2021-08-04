@@ -6,9 +6,16 @@ from django.core.exceptions import PermissionDenied
 from rdrf.helpers.utils import is_authorised
 from django.conf import settings
 
+from enum import Enum
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class FormTypes(Enum):
+    DEMOGRAPHICS = "Demographics"
+    CONSENTS = "Consents"
+    REGISTRY = "Registry"
 
 
 class Action:
@@ -102,7 +109,6 @@ class Action:
 
     def _process_form(self):
         from rdrf.models.definition.models import Registry
-        from rdrf.models.definition.models import RegistryForm
 
         registry_code = self._get_field("registry")
         registry_model = get_object_or_404(Registry,
@@ -111,11 +117,7 @@ class Action:
         if not self.user.in_registry(registry_model):
             raise PermissionDenied
 
-        form_name = self._get_field("form")
-
-        form_model = get_object_or_404(RegistryForm,
-                                       name=form_name,
-                                       registry=registry_model)
+        form_type = self._get_field("form_type")
 
         patient_model = self._get_patient()
         if patient_model is None:
@@ -127,13 +129,66 @@ class Action:
             logger.warning(f"patient {patient_logfield} not in registry supplied")
             raise PermissionDenied
 
-        from rdrf.helpers.utils import FormLink
-        default_context = patient_model.default_context(registry_model)
-        form_link = FormLink(patient_model.id,
-                             registry_model,
-                             form_model,
-                             context_model=default_context)
-        return HttpResponseRedirect(form_link.url)
+        if form_type == FormTypes.DEMOGRAPHICS.value:
+            return self._redirect_demographics_form(registry_model, patient_model)
+        elif form_type == FormTypes.CONSENTS.value:
+            return self._redirect_consents_form(registry_model, patient_model)
+        elif form_type == FormTypes.REGISTRY.value:
+            return self._redirect_registry_form(registry_model, patient_model)
+        else:
+            raise Http404
+
+    @staticmethod
+    def _redirect_demographics_form(registry_model, patient_model):
+        from django.urls import reverse
+
+        return HttpResponseRedirect(reverse("patient_edit", kwargs={
+            "registry_code": registry_model.code,
+            "patient_id": patient_model.id,
+        }))
+
+    @staticmethod
+    def _redirect_consents_form(registry_model, patient_model):
+        from django.urls import reverse
+
+        return HttpResponseRedirect(reverse("consent_form_view", kwargs={
+            "registry_code": registry_model.code,
+            "patient_id": patient_model.id
+        }))
+
+    def _redirect_registry_form(self, registry_model, patient_model):
+        from rdrf.models.definition.models import ContextFormGroup, RegistryForm, RDRFContext
+        from django.urls import reverse
+
+        form_name = self._get_field("form")
+        form_model = get_object_or_404(RegistryForm,
+                                       name=form_name,
+                                       registry=registry_model)
+
+        cfg_name = self._get_field("cfg")
+        cfg_model = get_object_or_404(ContextFormGroup,
+                                      name=cfg_name,
+                                      registry=registry_model)
+
+        context_model = get_object_or_404(RDRFContext.objects.get_for_patient(patient_model, registry_model),
+                                          context_form_group=cfg_model)
+
+        if cfg_model.is_fixed:
+            return HttpResponseRedirect(reverse('registry_form', kwargs={
+                "registry_code": registry_model.code,
+                "form_id": form_model.pk,
+                "patient_id": patient_model.pk,
+                "context_id": context_model.pk
+            }))
+        elif cfg_model.is_multiple:
+            return HttpResponseRedirect(reverse('form_add', kwargs={
+                "registry_code": registry_model.code,
+                "form_id": form_model.pk,
+                "patient_id": patient_model.pk,
+                "context_id": "add"
+            }))
+        else:
+            raise Http404
 
 
 class ActionExecutorView(View):
