@@ -4,6 +4,10 @@
 
 {% block content %}
     <div class="alert alert-danger">
-        {% trans "Looks like you don't have access to this page" %} ...
+        {% if exception %}
+          {{ exception }}
+        {% else %}
+          {% trans "You don't have access to this page" %}
+        {% endif %}
     </div>
 {% endblock %}

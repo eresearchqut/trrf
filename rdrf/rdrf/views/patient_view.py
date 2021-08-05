@@ -611,7 +611,7 @@ class PatientEditView(PatientFormMixin, View):
         security_check_user_patient(request.user, patient)
 
         if not consent_check(registry_model, request.user, patient, "see_patient"):
-            raise PermissionDenied
+            raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
 
         xray_recorder.begin_subsegment("template")
@@ -685,7 +685,7 @@ class PatientEditView(PatientFormMixin, View):
         self.registry_model = registry_model
 
         if not consent_check(registry_model, user, patient, "see_patient"):
-            raise PermissionDenied
+            raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
 
         xray_recorder.begin_subsegment("validate")
