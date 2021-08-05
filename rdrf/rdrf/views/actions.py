@@ -1,10 +1,11 @@
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.views.generic.base import View
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied
-from rdrf.helpers.utils import is_authorised
-from django.conf import settings
+from rdrf.helpers.utils import is_authorised, consent_check
 
 from enum import Enum
 import logging
@@ -53,8 +54,7 @@ class Action:
                     return patient_model
 
             except Patient.DoesNotExist:
-                logger.warning(f"patient id {patient_id} does not exist")
-                raise Http404
+                raise Http404(_("Patient not found"))
 
         try:
             patient_model = Patient.objects.filter(user=self.user).order_by("id").first()
@@ -70,12 +70,10 @@ class Action:
             children = parent.children
             if children:
                 return children[0]
-            else:
-                logger.warning(f"user {self.user.id} is a parent but has not children??? ...")
-                raise Http404
         except ParentGuardian.DoesNotExist:
-            logger.warning(f"no parent guardian assoc with user {self.user.id} ...")
-            raise Http404
+            pass
+
+        raise Http404(_("No patients found. Please create a patient"))
 
     def _process_survey(self):
         from rdrf.models.definition.models import Registry
@@ -120,19 +118,19 @@ class Action:
         form_type = self._get_field("form_type")
 
         patient_model = self._get_patient()
-        if patient_model is None:
-            logger.warning("patient is None??")
-            raise PermissionDenied
 
         if not patient_model.in_registry(registry_model.code):
-            patient_logfield = getattr(patient_model, settings.LOG_PATIENT_FIELDNAME)
-            logger.warning(f"patient {patient_logfield} not in registry supplied")
             raise PermissionDenied
+
+        if form_type == FormTypes.CONSENTS.value:
+            return self._redirect_consents_form(registry_model, patient_model)
+
+        if not consent_check(registry_model, self.user, patient_model, "see_patient"):
+            messages.error(self.request, "Patient consent required before continuing")
+            return self._redirect_consents_form(registry_model, patient_model)
 
         if form_type == FormTypes.DEMOGRAPHICS.value:
             return self._redirect_demographics_form(registry_model, patient_model)
-        elif form_type == FormTypes.CONSENTS.value:
-            return self._redirect_consents_form(registry_model, patient_model)
         elif form_type == FormTypes.REGISTRY.value:
             return self._redirect_registry_form(registry_model, patient_model)
         else:
