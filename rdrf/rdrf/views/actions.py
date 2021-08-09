@@ -168,10 +168,10 @@ class Action:
                                       name=cfg_name,
                                       registry=registry_model)
 
-        context_model = get_object_or_404(RDRFContext.objects.get_for_patient(patient_model, registry_model),
-                                          context_form_group=cfg_model)
-
         if cfg_model.is_fixed:
+            context_model = get_object_or_404(RDRFContext.objects.get_for_patient(patient_model, registry_model),
+                                              context_form_group=cfg_model)
+
             return HttpResponseRedirect(reverse('registry_form', kwargs={
                 "registry_code": registry_model.code,
                 "form_id": form_model.pk,
