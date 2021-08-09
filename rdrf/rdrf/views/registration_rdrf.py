@@ -3,6 +3,7 @@ import requests
 from csp.decorators import csp_update
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import login
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
@@ -95,6 +96,7 @@ class RdrfRegistrationView(RegistrationView):
 
 class PatientActivationView(ActivationView):
     def get_success_url(self, user):
+        messages.success(self.request, _("Registration complete. Please login to continue"))
         if not user.has_usable_password():
             login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
         return "login_router"
