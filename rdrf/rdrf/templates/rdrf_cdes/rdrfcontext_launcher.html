@@ -16,14 +16,15 @@
 </script>
 
 <style>
-  .panel-body  {
+  .card-body  {
     word-break:break-word
   }
-  .panel-footer {
+  .card-footer {
     text-align: right;
     font-weight: bold;
   }
   .selected-link {
+      text-decoration: none;
     font-style: italic;
     color: #333;
     cursor: default;
@@ -34,8 +35,8 @@
   }
 </style>
 
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
      <a href="{{demographics_link}}" class="{% if current_form_name == "Demographics" %}selected-link{% endif %}">
        {{ form_titles.Demographics }}
      </a>
@@ -44,8 +45,8 @@
 
 
 {% if not consent_locked %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
      <a href="{{consents_link}}" class="{% if current_form_name == "Consents" %}selected-link{% endif %}">
        {{ form_titles.Consents }}
      </a>
@@ -54,8 +55,8 @@
 
 
 {% if clinician_form_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
      <a href="{{clinician_form_link}}" class="{% if current_form_name == "Clinician" %}selected-link{% endif %}">
        {{ form_titles.Clinician }}
      </a>
@@ -64,8 +65,8 @@
 {% endif %}
 
 {% if proms_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
      <a href="{{proms_link}}" class="{% if current_form_name == "Proms" %}selected-link{% endif %}">
        {{ form_titles.Proms }}
      </a>
@@ -75,8 +76,8 @@
 
 
 {% if family_linkage_link %}
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
       <a href="{{family_linkage_link}}" class="{% if current_form_name == "Family Linkage" %}selected-link{% endif %}">
           {{ form_titles|lookup:"Family linkage" }}
       </a>
@@ -86,11 +87,11 @@
 
 {% for type, context in context_form_groups %}
     {% if type == 'fixed' %}
-        <div class="panel panel-default collapsible">
-            <div class="panel-heading">
+        <div class="card collapsible">
+            <div class="card-header">
                 {{context.name|translate}}
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 {% for form in context.forms %}
                     <p>
                         <a href="{{form.url}}" class="{% if form.current %}selected-link{% endif %}">{{form.text|translate}}</a>
@@ -100,23 +101,23 @@
         </div>
     {% endif %}
     {% if type == 'multiple' %}
-        <div width="100%" class="panel panel-default collapsible">
-            <div class="panel-heading" data-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
+        <div width="100%" class="card collapsible">
+            <div class="card-header" data-bs-toggle="collapse" data-target="#existing_{{multiple_context.id}}">
               {{context.heading}}
               {% if can_add_proms %}
-              <a class="btn btn-info btn-xs pull-right"
+              <a class="btn btn-info btn-xs float-end"
                  onclick="location.href='{{context.add_link_url}}';">
-                 <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans "Add" %}</a>
+                 <span class="fa fa-plus" aria-hidden="true"></span> {% trans "Add" %}</a>
                {% endif %}
             </div>
-            <div id="existing_{{context.id}}" class="panel-body">
+            <div id="existing_{{context.id}}" class="card-body">
 
               {% for link in context.existing_links %}
                  <a href="{{link.url}}" class="{% if link.current %}selected-link{% endif %}">{% trans link.text %}</a><br>
               {% endfor %}
             </div>
             {% if not context.all_existing_links_shown %}
-                <div class="panel-footer">
+                <div class="card-footer">
                   <span>
                     <a href="{{ context.list_link }}" target="popup" onclick="popupCenter('{{ context.list_link }}', '{{context.heading}}'); return false;">
                       {% if context.existing_links_index == -1 %}
@@ -134,8 +135,8 @@
 
 {% else %}
 <!-- consent locked -->
-<div width="100%" class="panel panel-default collapsible">
-  <div class="panel-body">
+<div width="100%" class="card collapsible">
+  <div class="card-body">
      <a href="{{consents_link}}" class="{% if current_form_name == "Consents" %}selected-link{% endif %}">
        {% trans 'Consents' %}
      </a>

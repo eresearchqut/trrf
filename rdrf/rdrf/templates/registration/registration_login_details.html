@@ -1,26 +1,26 @@
 {% load i18n %}
 
 <div id="login_details">
-    <div class="form-group">
+    <div class="row">
         <div class="alert alert-info">
             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
         </div>
     </div>
-    <div class="form-group">
+    <div class="row">
         <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
         {{form.username}}
     </div>
-    <div class="form-group">
-        <i id="validation-info" class="glyphicon glyphicon-info-sign"></i>
+    <div class="row">
+        <i id="validation-info" class="fa fa-info-circle"></i>
         <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
         {{form.password1}}
     </div>
-    <div class="form-group">
+    <div class="row">
         {{form.password2}}
     </div>
 
     {% if preferred_languages %}
-        <div class="form-group">
+        <div class="row">
             {{form.preferred_languages}}
         </div>
     {% endif %}

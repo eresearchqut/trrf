@@ -38,7 +38,7 @@ function setupDurationWidget(inputName, attributesStr) {
         weeks: initAttrs[6] == "true"
     };
     $(textInput).timeDurationPicker(initParams);
-    $(textInput).addClass("form-control");
+    $(textInput).addClass("form-select");
 }
 
 $.timeDurationPicker.langs.en_US = {

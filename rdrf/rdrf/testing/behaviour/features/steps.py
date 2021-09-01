@@ -209,7 +209,7 @@ def click_button_sidebar_group(step, button_name, group_name):
         '//div[@class="panel-heading"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
     button = form_group_panel.find_element_by_xpath(
-        '//a[@class="btn btn-info btn-xs pull-right"]')
+        '//a[@class="btn btn-info btn-xs float-end"]')
     utils.click(button)
 
 

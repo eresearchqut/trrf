@@ -30,7 +30,6 @@
     <script type="text/javascript" src="{% static 'js/custom_widget_setup.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'css/variation/variation.css' %}" media="all">
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/form_extra.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'css/form_common.css' %}" media="all">
     <style>
         .modal .modal-dialog {
@@ -265,16 +264,16 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans "Cancel" %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans "Cancel" %}
 		</a>
 
 		{% if show_print_button %}
 			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 	</div>
@@ -283,12 +282,12 @@
 {% block content %}
     {{ block.super }}
 
-	<a class="previous-form hidden-sm hidden-xs" href="{{ previous_form_link }}">
-		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+	<a class="previous-form d-none d-md-inline-block" href="{{ previous_form_link }}">
+		<span class="fa fa-chevron-left" aria-hidden="true"></span>
 	</a>
 
-	<a class="next-form hidden-sm hidden-xs" href="{{ next_form_link }}">
-		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+	<a class="next-form d-none d-md-inline-block" href="{{ next_form_link }}">
+		<span class="fa fa-chevron-right" aria-hidden="true"></span>
 	</a>
 
     <div class="row">
@@ -297,15 +296,17 @@
             {% if has_form_progress %}
                 <div class="well">
                     <p class="text-muted"><i><strong>{% trans "Progress on this page" %}</strong></i></p>
-                    <div id="form-progress">
+                    <div id="form-progress mb-2">
                         <ul class="list-group">
-                            <li class="list-group-item">
-                                <span class="badge" id="show-cdes-btn"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>
-                                <div class="progress">
+                            <li class="list-group-item d-flex">
+
+                                <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar" aria-valuenow="{{form_progress|floatformat:'0'}}" aria-valuemin="0" aria-valuemax="100" style="width: {{form_progress|floatformat:'0'}}%;">
                                       {{form_progress|floatformat:"0"}}%
                                     </div>
                                 </div>
+
+                                <span class="badge bg-secondary" id="show-cdes-btn"><span class="fa fa-sort" aria-hidden="true"></span></span>
                           </li>
                         </ul>
                     </div>
@@ -328,9 +329,9 @@
             {% endif %}
 
             {% for s in sections %}
-                <div class="panel panel-default collapsible">
+                <div class="card collapsible">
 
-                    <div class="panel-heading">
+                    <div class="card-header">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
                             <a target="_blank" href="{% url 'admin:rdrf_section_change' section_ids|get_section_id:s %}"><strong data-name="{{s}}">{{display_names|get_display_name:s|translate}}</strong></a>
                         {% else %}
@@ -339,40 +340,40 @@
 
                         {% if forms|is_formset:s and not changes_since_version %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-xs pull-right" onclick="add_form(this, '{{formset.prefix}}');">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans "Add" %}
+                                <a class="btn btn-primary btn-xs float-end" onclick="add_form(this, '{{formset.prefix}}');">
+                                    <span class="fa fa-plus" aria-hidden="true"></span> {% trans "Add" %}
                                 </a>
                             {% endwith %}
                         {% endif %}
                     </div>
 
-                    <div class="panel-body">
+                    <div class="card-body">
                         {% if forms|is_formset:s %}
                             {% with formset=forms|get_form_object:s %}
                                 <div id="mgmt_{{formset.prefix}}">{{formset.management_form}}</div>
                                 <div style="display: none;" id="empty_{{formset.prefix}}">
-                                    <div class="form-group">
-                                        <div class="col-sm-9 col-sm-offset-3">
-                                            <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{formset.prefix}}')">
-                                                <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans "Remove" %}
+                                    <div class="row">
+                                        <div class="col-sm-9 offset-sm-3">
+                                            <a class="btn btn-danger btn-xs float-end" onclick="delete_form(this, '{{formset.prefix}}')">
+                                                <span class="fa fa-minus" aria-hidden="true"></span> {% trans "Remove" %}
                                             </a>
                                         </div>
                                     </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
-                                            <div class="form-group has-error">
+                                            <div class="row has-error">
                                         {% else %}
-                                            <div class="form-group">
+                                            <div class="row">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                         {% endif %}
                                                         {% if  element.field.important %}
-                                                            <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                            <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                                         {% endif %}
                                                     </label>
                                                     <div class="col-sm-9">
@@ -383,7 +384,7 @@
                                                             </small>
 							                            {% endif %}
                                                         {% if element.errors %}
-                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                         {% endif %}
                                                     </div>
                                                 {% endif %}
@@ -404,32 +405,32 @@
                                         {% endif %}
                                         {% for element in f %}
                                             {% if element.errors %}
-                                                <div class="form-group has-error invisibutton-container">
+                                                <div class="row has-error invisibutton-container">
                                             {% else %}
-                                                <div class="form-group invisibutton-container">
+                                                <div class="row invisibutton-container">
                                             {% endif %}
                                                     {% if changes_since_version and element.label == "Delete" %}
                                                         <div></div>
                                                     {% else %}
-                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                             {% if element.label == "Delete" %}
                                                                 {% trans "Mark for deletion" %}
                                                             {% else %}
                                                                 {% if element.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                                                     <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id element.field.cde.code index%}"
                                                                     onclick="rdrf_click_form_field_history(event, this)"
-                                                                    class="btn btn-default btn-xs invisibutton pull-left"
-                                                                    data-toggle="tooltip" title="View previous answers"
+                                                                    class="btn btn-outline-secondary btn-xs invisibutton pull-left"
+                                                                    data-bs-toggle="tooltip" title="View previous answers"
                                                                     aria-label="Previous answers">
-                                                                    <i class="glyphicon glyphicon-time" aria-hidden="true"></i>
+                                                                    <i class="fa fa-clock-o" aria-hidden="true"></i>
                                                                     </a>
                                                                 {% endif %}
                                                                 {{ element.label }}
                                                                 {% if element.field.required %}
-                                                                    <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                 {% endif %}
                                                             {% if  element.field.important %}
-                                                                <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                                             {% endif %}
                                                             {% endif %}
                                                         </label>
@@ -447,7 +448,7 @@
                                                                 </small>
                                                             {% endif %}
                                                             {% if element.errors %}
-                                                                <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                                <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                             {% endif %}
                                                         </div>
                                                     {% endif %}
@@ -461,23 +462,23 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="form-group rdrf-cde-field invisibutton-container">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 control-label">
+                                <div class="row rdrf-cde-field invisibutton-container">
+                                    <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"
-                                           class="btn btn-default btn-xs invisibutton pull-left"
-                                           data-toggle="tooltip" title="View previous answers"
+                                           class="btn btn-outline-secondary btn-xs invisibutton pull-left"
+                                           data-bs-toggle="tooltip" title="View previous answers"
                                            aria-label="Previous answers">
-                                          <i class="glyphicon glyphicon-time" aria-hidden="true"></i>
+                                          <i class="fa fa-clock-o" aria-hidden="true"></i>
                                         </a>
                                         {% endif %}
                                         {{field.label}}
                                         {% if  field.field.required %}
-                                            <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                            <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                         {% endif %}
                                         {% if  field.field.important %}
-                                           <span class="glyphicon glyphicon-asterisk" style="color: green;" aria-hidden="true"></span>
+                                           <span class="fa fa-asterisk" style="color: green;" aria-hidden="true"></span>
                                         {% endif %}
                                     </label>
                                     <div class="col-sm-9">
@@ -490,7 +491,7 @@
                                         {% endif %}
                                         <p class="text-muted"><i>{{field.help_text}}</i></p>
                                         {% if field.errors %}
-                                            <span class="label label-danger">{{field.errors.as_text}}</span>
+                                            <span class="badge bg-danger">{{field.errors.as_text}}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -509,7 +510,7 @@
     $(document).ready(function () {
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");
-        $("select").addClass("form-control");
+        $("select").addClass("form-select");
         $("label[for*='-clear']").removeClass();
 
         var session_refresh_interval = setInterval( function() {
@@ -528,14 +529,14 @@
 {% if form.errors %}
     {% for field in form %}
         {% for error in field.errors %}
-            <div class="alert alert-error">
+            <div class="alert alert-danger">
                 <strong>{{ error|escape }}</strong>
             </div>
         {% endfor %}
     {% endfor %}
 
     {% for error in form.non_field_errors %}
-        <div class="alert alert-error">
+        <div class="alert alert-danger">
             <strong>{{ error|escape }}</strong>
         </div>
     {% endfor %}

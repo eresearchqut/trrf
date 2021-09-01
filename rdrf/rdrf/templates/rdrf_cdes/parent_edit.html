@@ -10,7 +10,7 @@
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             
             $(document).find("input[name*='date']").each(function() {
-                var cal_group = $("<label for='"+$(this).prop("id")+"' class='input-group-addon btn'><span class='glyphicon glyphicon-calendar'></span></label>");
+                var cal_group = $("<label for='"+$(this).prop("id")+"' class='input-group-addon btn'><span class='fa fa-calendar'></span></label>");
                 $(this).wrap("<div class='input-group'></div>");
                 cal_group.insertAfter($(this));
                 
@@ -42,28 +42,28 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% trans 'Parent Details' %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ parent.first_name }} {{  parent.last_name }}</i>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% trans 'Parent Details' %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{ parent.first_name }} {{  parent.last_name }}</i>
         </div>
     </div>
     <br>
     <form class="form-horizontal date-form" method="POST">
         {% csrf_token %}
         {% for field in parent_form %}
-            <div class="form-group {% if field.errors %}has-error{% endif %}">
-                <label for="{{field.id_for_label}}" class="col-md-3 col-md-offset-1 control-label">{% if field.field.required %}<span class="glyphicon glyphicon-asterisk" style="color: red" aria-hidden="true"></span>{% endif %} {{field.label}}</label>
+            <div class="row {% if field.errors %}has-error{% endif %}">
+                <label for="{{field.id_for_label}}" class="col-md-3 offset-md-1 col-form-label">{% if field.field.required %}<span class="fa fa-asterisk" style="color: red" aria-hidden="true"></span>{% endif %} {{field.label}}</label>
                 <div class="col-md-6">
                     {{ field }}
                 </div>
                 <div class="col-md-2">
-                    {% if field.errors %}<span class="label label-danger">{{field.errors.as_text}}</span>{% endif %}
+                    {% if field.errors %}<span class="badge bg-danger">{{field.errors.as_text}}</span>{% endif %}
                 </div>
             </div>
         {% endfor %}
 	    
-        <div class="form-group">
+        <div class="row">
             <div class="col-md-10">
-                <input type="submit" class="btn btn-success pull-right" value="{% trans 'Save' %}">
+                <input type="submit" class="btn btn-success float-end" value="{% trans 'Save' %}">
             </div>
         </div>
     </form>

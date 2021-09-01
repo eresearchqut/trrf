@@ -274,7 +274,7 @@ $(document).ready(function() {
         {% if not qr_model.processed %}
 	<div class="row">
 	<div class="col-md-12">
-	    <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
+	    <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> Questionnaire Response</h3></p>
 	</div>
 	</div>
     <br>
@@ -283,9 +283,9 @@ $(document).ready(function() {
 
             <div id="success-message"></div>
 
-             <div id="patient-info" class="panel panel-info">
-               <div class="panel-heading">Existing Patient Lookup <i>Type name to find a patient to match with or leave blank to create a new patient from the questionnaire response</i></div>
-                    <div class="panel-body">
+             <div id="patient-info" class="card card-info">
+               <div class="card-header">Existing Patient Lookup <i>Type name to find a patient to match with or leave blank to create a new patient from the questionnaire response</i></div>
+                    <div class="card-body">
                         <div class="row">
 			    <input  type="radio" name="handle_action" value="create" checked>Create New Patient From Questionnaire Response
 			    <input  type="radio" name="handle_action" value="update">Update Existing Patient From Questionnaire Response<br>
@@ -298,14 +298,14 @@ $(document).ready(function() {
 
              </div>
 
-	     <div  id="messages-panel" class="panel panel-info">
-	       <div id="messages" class="panel-heading"></div>
+	     <div  id="messages-panel" class="card card-info">
+	       <div id="messages" class="card-header"></div>
 	     </div>
 
-             <div id="patient-blurb" class="panel panel-default">
-               <div class="panel-heading">Patient Info</div>
+             <div id="patient-blurb" class="card">
+               <div class="card-header">Patient Info</div>
 
-                            <div id="patient-info-result" class="panel-body">
+                            <div id="patient-info-result" class="card-body">
 			      
                             </div>
 
@@ -315,9 +315,9 @@ $(document).ready(function() {
     
 	     <div id="datatable" class="row">
 		  <div class="col-md-12">
-		   <div id="questionnaire_data" class="panel panel-default">
-                     <div class="panel panel-heading">Questionnaire Data</div>
-                     <div class="panel panel-body">
+		   <div id="questionnaire_data" class="card">
+                     <div class="panel card-header">Questionnaire Data</div>
+                     <div class="panel card-body">
                        <div id="questions">
 			 <table class="table table-bordered table-striped">
                            <tbody>
@@ -363,15 +363,15 @@ $(document).ready(function() {
 	    </div>  <!-- col10 -->
 
 	      <div class="col-md-2">
-              <div data-spy="affix" style="width: 150px;">
-                <button id="createbutton" type="submit" class="btn btn-success btn-block" value="Save">
-                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Create
+              <div class="d-grid" data-spy="affix" style="width: 150px;">
+                <button id="createbutton" type="submit" class="btn btn-success" value="Save">
+                  <span class="fa fa-save" aria-hidden="true"></span> Create
                 </button>
-                <button id="updatebutton"  class="btn btn-success btn-block" value="Update">
-                  <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> Update
+                <button id="updatebutton"  class="btn btn-success" value="Update">
+                  <span class="fa fa-save" aria-hidden="true"></span> Update
                 </button>
-                <a id="clear" href="" class="btn btn-danger btn-block">
-                  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Clear
+                <a id="clear" href="" class="btn btn-danger">
+                  <span class="fa fa-times" aria-hidden="true"></span> Clear
                 </a>
               </div>
               </div>

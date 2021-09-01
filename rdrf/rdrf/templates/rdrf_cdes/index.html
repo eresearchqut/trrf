@@ -14,42 +14,39 @@
     <!-- stylesheets -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/compiled/theme.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/vendor/animate.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.4.1/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.4.1/css/bootstrap-theme.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.min.css' %}">
 
 
     <!-- javascript -->
     <script src="{% static 'js/vendor/jquery-3.5.1.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
 </head>
 <body id="home">
-    <header class="navbar navbar-inverse hero" role="banner">
-          <div class="container">
-            <div class="navbar-header">
-                  <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                  </button>
-                  <a href="{% url 'landing' %}" class="navbar-brand">TRRF {% version_number %}</a>
-            </div>
-            <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
-                  <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="https://github.com/eresearchqut/trrf">{% trans "Source code" %}</a>
+    <header class="navbar navbar-expand-md navbar-dark bg-dark hero pt-0" role="banner">
+          <div class="container-md">
+            <a href="{% url 'landing' %}" class="navbar-brand">TRRF {% version_number %}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapsing-links" aria-controls="navbar-collapsing-links" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="fa fa-bars"></span>
+            </button>
+            <nav class="collapse navbar-collapse justify-content-end" id="navbar-collapsing-links" role="navigation">
+                  <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/eresearchqut/trrf">{% trans "Source code" %}</a>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" id="registryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                               {% trans "Registries on this site" %} <b class="caret"></b>
-                          </a>
-                          <ul class="dropdown-menu">
-                            {% for reg in registries %}
-                            <li>
-                                <a href="{% url 'registry' reg.code %}">
-                                    {{reg.name|translate}}{% if reg.version %} v{{reg.version}}{% endif %}
-                                </a>
-                            </li>
-                            {% endfor %}
+                        </a>
+                        <ul class="dropdown-menu mt-0" aria-labelledby="registryDropdown">
+                          {% for reg in registries %}
+                          <li>
+                              <a class="dropdown-item" href="{% url 'registry' reg.code %}">
+                                  {{reg.name|translate}}{% if reg.version %} v{{reg.version}}{% endif %}
+                              </a>
+                          </li>
+                          {% endfor %}
                         </ul>
                     </li>
 

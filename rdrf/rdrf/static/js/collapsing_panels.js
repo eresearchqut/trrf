@@ -1,20 +1,20 @@
 /*
 Collapsing panel support for TRRF form panels.
 
-Call CollapsingPanels.setUp() on document ready and set .collapsible CSS class on .panel's you want to be collapsible/expandable.
+Call CollapsingPanels.setUp() on document ready and set .collapsible CSS class on .card's you want to be collapsible/expandable.
 
 If the page has a .trrf-page-header we also add a collapse/expand all button to the header.
 */
 
 var CollapsingPanels = function() {
-    var collapsiblePanelsSelector = "form .panel.collapsible";
+    var collapsiblePanelsSelector = "form .card.collapsible";
 
     function getAllPanelBodies() {
-        return $(collapsiblePanelsSelector +  ' > .panel-body');
+        return $(collapsiblePanelsSelector +  ' > .card-body');
     }
 
     function getFirstPanelBody() {
-        return $(collapsiblePanelsSelector +  ' > .panel-body').first();
+        return $(collapsiblePanelsSelector +  ' > .card-body').first();
     }
 
 
@@ -36,7 +36,7 @@ var CollapsingPanels = function() {
         if (!parentPanel.length) {
             return;
         }
-        var panelBody = parentPanel.find('.panel-body');
+        var panelBody = parentPanel.find('.card-body');
         panelBody.collapse('show');
         if (typeof(handler) !== 'undefined') {
             handler();
@@ -46,15 +46,16 @@ var CollapsingPanels = function() {
     function setUpCollapseAllButton() {
         // Adding the collapse button works only if we have one and only one <hx> element in the page header.
         // Otherwise, we might mess up the layout. This can be further customise as needed later on (ie. pass in selector of the button etc.)
-        var pageHeader = $('.trrf-page-header > .panel-body > :header');
+        var pageHeader = $('.trrf-page-header > .card-body > :header');
         if (pageHeader.length != 1) {
             return;
         }
-        var collapseAllToggleBtn = $('<span class="badge pull-right"><span class="glyphicon glyphicon-sort"></span></span>');
+        var collapseAllToggleBtn = $('<span class="badge bg-secondary float-end"><span class="fa fa-sort"></span></span>');
+        // var collapseAllToggleBtn = $('<button type="button" class="btn btn-secondary"><span class="fa fa-sort"></span></button>');
 
         function onCollapseAll() {
-            var panelBodies = $(collapsiblePanelsSelector +  ' > .panel-body');
-            var allCollapsed = panelBodies.filter('.collapse.in').length == 0;
+            var panelBodies = $(collapsiblePanelsSelector +  ' > .card-body');
+            var allCollapsed = panelBodies.filter('.collapse.show').length == 0;
             if (allCollapsed) {
                 expandAll();
             } else {
@@ -63,16 +64,16 @@ var CollapsingPanels = function() {
         }
 
         collapseAllToggleBtn.on('click', onCollapseAll);
-        pageHeader.append(collapseAllToggleBtn);
+        pageHeader.after(collapseAllToggleBtn);
     }
 
     function setUpCollapsiblePanel() {
         var panel = $(this);
-        var header = panel.children(".panel-heading");
-        var body = panel.children(".panel-body");
+        var header = panel.children(".card-header");
+        var body = panel.children(".card-body");
         var iconParent = header;
-        if (header.find(".panel-title").length == 1) {
-            iconParent = header.find(".panel-title");
+        if (header.find(".card-title").length == 1) {
+            iconParent = header.find(".card-title");
         }
 
         header.css("cursor", "pointer");
@@ -90,14 +91,14 @@ var CollapsingPanels = function() {
         });
 
         function createIconElement(panel) {
-            var body = panel.children(".panel-body");
+            var body = panel.children(".card-body");
             var isCollapsed = !body.hasClass('in');
-            var icon = isCollapsed ? 'glyphicon-triangle-right' : 'glyphicon-triangle-bottom';
-            return '<span class="panel-collapse-icon glyphicon ' + icon + '"></span>';
+            var icon = isCollapsed ? 'fa-caret-right' : 'fa-caret-down';
+            return '<span class="panel-collapse-icon fa ' + icon + '"></span>';
         }
 
         function toggleIcon() {
-            header.find('span[class*="panel-collapse-icon"]').toggleClass('glyphicon-triangle-right glyphicon-triangle-bottom');
+            header.find('span[class*="panel-collapse-icon"]').toggleClass('fa-caret-right fa-caret-down');
         }
 
         function available() {

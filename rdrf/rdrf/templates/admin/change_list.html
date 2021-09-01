@@ -67,8 +67,8 @@ $(function () {
     }
 
     cell
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "top")
+      .attr("data-bs-toggle", "tooltip")
+      .attr("data-bs-placement", "top")
       .attr("title", textCell.innerHTML)
       .css("text-overflow", "ellipsis")
       .tooltip({
@@ -96,13 +96,13 @@ $(function () {
 {% block content %}
   <div id="content-main">
     {% url cl.opts|admin_urlname:'add' as add_url %}
-    <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
-      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+    <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
+      <span class="fa fa-plus" aria-hidden="true"></span> Add
     </a>
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% blocktrans with cl.opts.verbose_name_plural|title as name %}{{ name }}{% endblocktrans %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% blocktrans with cl.opts.verbose_name_plural|title as name %}{{ name }}{% endblocktrans %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
 

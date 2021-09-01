@@ -9,7 +9,7 @@
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
   <script>
   $(function() {
     $( ".datepicker" ).datepicker({
@@ -49,7 +49,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
     <h3>Error: {% trans application_error %}</h3>
     </div>
 {% endblock %}

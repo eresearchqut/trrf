@@ -19,7 +19,9 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.4.1/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
 
@@ -39,7 +41,7 @@
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
     {% endif %}
 
-    <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/underscore-1.13.1.min.js' %}"></script>
@@ -78,12 +80,12 @@
         <div class="banner">
             <!-- one col banner -->
             <div class="container">
-                <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="col-sm-12">
                     {% if patient_link %}
                         {{ patient_link | safe}}
                     {% elif patient %}
                         <i class="text-muted">
-                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{ patient }}
+                            <span class="fa fa-user" aria-hidden="true"></span> {{ patient }}
                         </i>
                     {% endif %}
                     {% block formbtns %}
@@ -98,7 +100,7 @@
             {% if messages %}
             <div class="header">
                 <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
+                    <div class="col-md-6 offset-md-3">
                         {% for message in messages %}
                         <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>{{ message }}</div>
                         {% endfor %}
@@ -113,8 +115,8 @@
                     {% include 'rdrf_cdes/archive_modal.html' %}
 
                     {% if header %}
-                    <div class="panel panel-info">
-                        <div class="panel-body">
+                    <div class="card card-info">
+                        <div class="card-body">
                             {{ header|safe }}
                         </div>
                     </div>

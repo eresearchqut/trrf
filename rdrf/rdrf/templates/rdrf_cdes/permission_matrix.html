@@ -123,13 +123,13 @@
         <div class="row">
             <div class="col-md-10">
 
-                 <div class="panel panel-info">
+                 <div class="card card-info">
 
-                    <div class="panel-heading">
+                    <div class="card-header">
                        {{matrix_wrapper.name}}
                     </div>
 
-                    <div class="panel-body">
+                    <div class="card-body">
                         <table class="table table-striped">
                             <thead>
                             {% for header in matrix_wrapper.matrix.headers %}
@@ -144,9 +144,9 @@
                                        </td>
                                        {% for column in row.columns %}
                                             {% if column %}
-                                                 <td><span class="glyphicon glyphicon-large glyphicon-ok" style="color: green;font-size:1.5em;" aria-hidden="true"></span></td>
+                                                 <td><span class="fa fa-check" style="color: green;font-size:1.5em;" aria-hidden="true"></span></td>
                                             {% else %}
-                                                  <td><span class="glyphicon glyphicon-large glyphicon-remove" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
+                                                  <td><span class="fa fa-times" style="color: red;font-size:1.5em;" aria-hidden="true"></span></td>
                                             {% endif %}
                                        {% endfor %}
                                    </tr>
@@ -164,7 +164,7 @@
     $(document).ready(function () {
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");
-        $("select").addClass("form-control");
+        $("select").addClass("form-select");
         $("label[for*='-clear']").removeClass();
     })
 </script>

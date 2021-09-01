@@ -20,7 +20,9 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-3.4.1/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-slider-10.6.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/timepicki-2.0.1/css/timepicki.css' %}">
@@ -52,7 +54,7 @@
     <script src="{{ baseUrl }}/js/vendor/i18n/datepicker-{{ request.LANGUAGE_CODE }}.js"></script>
     {% endif %}
 
-    <script type="text/javascript" src="{% static 'vendor/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'vendor/bootstrap-slider-10.6.2/js/bootstrap-slider.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/underscore-1.13.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
@@ -122,12 +124,12 @@
                     <!-- name row -->
                         <div class="row">
                             <div class="col-sm-12">
-                            <h3>
+                            <h3 class="mt-3">
                                 {% if patient_link %}
                                     {{ patient_link | safe}}
                                 {% elif patient %}
                                     <i class="text-muted">
-                                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                                        <span class="fa fa-user" aria-hidden="true"></span>
                                         {{patient}}
                                     </i>
                                 {% endif %}
@@ -138,18 +140,18 @@
 
                 <div class="row">
                     <!-- command button row -->
-                    <div class="col-xs-3" style="text-align: left">
+                    <div class="col-3" style="text-align: left">
                         {% if show_archive_button %}
                         <div class="btn-group" role="group" aria-label="...">
-                            <a class="btn btn-danger" href="" data-toggle="modal" data-target="#archive_modal" target="_blank">
-                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                            <a class="btn btn-danger" href="" data-bs-toggle="modal" data-target="#archive_modal" target="_blank">
+                                <span class="fa fa-times" aria-hidden="true"></span>
                                 {% trans "Delete " %}
                             </a>
                         </div>
                         {% endif %}
                     </div>
                     {% if not changes_since_version %}
-                        <div class="col-xs-9" style="text-align: right">
+                        <div class="col-9" style="text-align: right">
                             {% block formbtns %}
                             {% endblock %}
                         </div>
@@ -163,7 +165,7 @@
             {% if messages %}
             <div class="header">
                 <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
+                    <div class="offset-md-3 col-md-6">
                         {% for message in messages %}
                         <div {% if message.tags %} class="alert alert-{{ message.tags }}" {% endif %}>
                             {{ message }}
@@ -175,26 +177,26 @@
             {% endif %}
 
             <div class="row">
-                <div id="sidebar" class="col-md-offset-1 col-md-2 sidebar sidebar-hide">
+                <div id="sidebar" class="offset-lg-1 col-lg-2 sidebar sidebar-hide">
                     <div class="well" style="background-color: #eeeeee;">
                         {% block sidebar %}
                         {% endblock %}
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-lg-8">
                     {% block content %}
 
                     {% include 'rdrf_cdes/archive_modal.html' %}
                     {% include 'rdrf_cdes/form_modal.html' %}
                     {% if header %}
-                        <div class="panel panel-info trrf-page-header">
-                            <div class="panel-body">
+                        <div class="card card-info trrf-page-header">
+                            <div class="card-body">
                                 {% autoescape off %}
                                     {{ header }}
                                 {% endautoescape %}
                                 {% if has_previous_data %}
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                             {% trans "View Changes Since" %}
                                             <span class="caret"></span>
                                         </button>
@@ -205,7 +207,7 @@
                                         </ul>
                                     </div>
                                     {% if changes_since_version %}
-                                        <button type="button" id="exit-compare-mode-btn" class="btn btn-default" >{% trans "Exit compare mode" %}</button>
+                                        <button type="button" id="exit-compare-mode-btn" class="btn btn-outline-secondary" >{% trans "Exit compare mode" %}</button>
                                         <div class="alert alert-info" style="margin-top: 12px; margin-bottom: 0px">
                                             <h4>{% trans "Compare mode" %}</h4>
                                             <p>
@@ -219,8 +221,8 @@
                                 {% endif %}
                                 {% if delete_form_url and not changes_since_version and is_multi_context %}
                                     <div class="btn-group" role="group" aria-label="...">
-                                        <a class="btn btn-danger" href="" data-toggle="modal" data-target="#form_modal" target="_blank">
-                                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        <a class="btn btn-danger" href="" data-bs-toggle="modal" data-target="#form_modal" target="_blank">
+                                            <span class="fa fa-times" aria-hidden="true"></span>
                                             {% trans "Delete " %}
                                         </a>
                                     </div>
