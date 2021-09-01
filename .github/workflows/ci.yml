@@ -125,6 +125,7 @@ jobs:
       - name: Integration tests
         run: ./scripts/end2end-tests.sh
       - name: Upload test output
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: Aloe output
