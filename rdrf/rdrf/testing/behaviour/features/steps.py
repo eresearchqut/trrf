@@ -195,7 +195,7 @@ def click_sidebar_group_item(step, item_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     form_group_panel = sidebar.find_element_by_xpath(
-        '//div[@class="panel-heading"][contains(., "%s")]' %
+        '//div[@class="card-header"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
     form_link = form_group_panel.find_element_by_partial_link_text(item_name)
     utils.click(form_link)
@@ -206,7 +206,7 @@ def click_button_sidebar_group(step, button_name, group_name):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     form_group_panel = sidebar.find_element_by_xpath(
-        '//div[@class="panel-heading"][contains(., "%s")]' %
+        '//div[@class="card-header"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
     button = form_group_panel.find_element_by_xpath(
         '//a[@class="btn btn-info btn-xs float-end"]')
@@ -222,7 +222,7 @@ def enter_cde_on_form(step, cde_value, form, section, cde):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     section_div = section_div_heading.find_element_by_xpath("..")
     if utils.is_section_collapsed(section_div):
         utils.click(section_div_heading)
@@ -256,7 +256,7 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
@@ -305,10 +305,10 @@ def location_is(step, location_name):
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
     location_parts = location_name.split("/")
     if len(location_parts) == 1:
-        sidebar.find_element_by_xpath('//div[@class="panel-body"][contains(., "%s")]' % location_name)
+        sidebar.find_element_by_xpath('//div[@class="card-body"][contains(., "%s")]' % location_name)
     else:
-        sidebar.find_element_by_xpath('//div[@class="panel-heading"][contains(., "%s")]' % location_parts[0])
-        sidebar.find_element_by_xpath('//div[@class="panel-body"][contains(., "%s")]' % location_parts[1])
+        sidebar.find_element_by_xpath('//div[@class="card-header"][contains(., "%s")]' % location_parts[0])
+        sidebar.find_element_by_xpath('//div[@class="card-body"][contains(., "%s")]' % location_parts[1])
 
 
 @step('When I click Module "(.*)" for patient "(.*)" on patientlisting')
@@ -403,7 +403,7 @@ def value_is2(step, section, cde, expected_value):
 
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
@@ -462,7 +462,7 @@ def goto_patient(step):
 def the_page_header_should_be(step, header):
     wrap = world.browser.find_element_by_id("wrap")
     sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
-    panel_body = sidebar.find_element_by_xpath('//div[@class="panel-body"]')
+    panel_body = sidebar.find_element_by_xpath('//div[@class="card-body"]')
     panel_body.find_element_by_xpath('//a[contains(., "%s")][@class="selected-link"]' % header)
 
 
@@ -495,7 +495,7 @@ def should_be_logged_in(step):
 @step('should be on the login page')
 def should_be_on_the_login_page(step):
     world.browser.find_element_by_xpath(
-        './/div[@class="panel-heading"][text()[contains(.,"Login")]]')
+        './/div[@class="card-header"][text()[contains(.,"Login")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Username")]]')
     world.browser.find_element_by_xpath('.//label[text()[contains(.,"Password")]]')
 
@@ -577,7 +577,7 @@ def click_radio_button(step, value, section, cde):
     # NB. this is actually just clicking the first radio at the moment
     # and ignores the value
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
@@ -651,7 +651,7 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     history_values = history_values_csv.split(",")
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section)
+        ".//div[@class='card-header'][contains(., '%s')]" % section)
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
     section_div = section_div_heading.find_element_by_xpath("..")
@@ -723,7 +723,7 @@ def scroll_to_section(step, section):
 
 @step('I click the add button for multisection "(.*)"')
 def add_multisection_item(step, section):
-    xpath = ".//div[@class='panel-heading' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
+    xpath = ".//div[@class='card-header' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     div = world.browser.find_element_by_xpath(xpath)
     add_link_xpath = """.//a[starts-with(@onclick,"add_form(")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
@@ -742,7 +742,7 @@ def wait_n_seconds(step, seconds):
 @step(r'I mark multisection "(.*)" item (\d+) for deletion')
 def mark_item_for_deletion(step, multisection, item):
     formset_string = "-%s-" % (int(item) - 1)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % multisection
+    xpath = "//div[@class='card-header' and contains(., '%s')]" % multisection
     default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     # now locate the delete checkbox for the item
     checkbox_xpath = ".//input[@type='checkbox' and contains(@id, '-DELETE') and contains(@id, '%s')]" % formset_string
@@ -779,7 +779,7 @@ def expand_section(step, section_name):
     utils.wait_for_first_section()
 
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s')]" % section_name)
+        ".//div[@class='card-header'][contains(., '%s')]" % section_name)
 
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
