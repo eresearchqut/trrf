@@ -58,3 +58,8 @@ label a:hover {
   border: none;
   cursor: auto;
 }
+
+/*Fix for progress bar label not displaying at 0%*/
+.progress-bar {
+  overflow: visible;
+}
