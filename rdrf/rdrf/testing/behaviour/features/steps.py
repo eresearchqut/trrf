@@ -507,8 +507,7 @@ def click_user_menu(step):
 
 @step('the progress indicator should be "(.*)"')
 def the_progress_indicator_should_be(step, percentage):
-    progress_bar = world.browser.find_element_by_xpath(
-        '//div[@class="progress"]/div[@class="progress-bar"]')
+    progress_bar = world.browser.find_element_by_css_selector('.progress .progress-bar')
 
     logger.info(progress_bar.text.strip())
     logger.info(percentage)
