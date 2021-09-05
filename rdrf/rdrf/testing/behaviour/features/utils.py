@@ -173,10 +173,8 @@ def show_stats(export_name):
 
 
 def click(element):
-    scrollelementintomiddle = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);" + \
-                              "var elementTop  = arguments[0].getBoundingClientRect().top;" + \
-                              "window.scrollBy(0, elementTop-(viewPortHeight/2));"
-    world.browser.execute_script(scrollelementintomiddle, element)
+    scroll_element_into_view = "arguments[0].scrollIntoView(true);"
+    world.browser.execute_script(scroll_element_into_view, element)
     element.click()
 
 
@@ -282,7 +280,7 @@ def is_section_collapsed(section):
     if css_class is None:
         return False
     css_classes = css_class.split(' ')
-    return 'collapse' in css_classes and 'in' not in css_classes
+    return 'collapse' in css_classes and 'show' not in css_classes
 
 
 def wait_for_first_section():

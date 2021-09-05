@@ -13,6 +13,10 @@ form .row {
   margin-bottom: 15px;
 }
 
+#sidebar .well {
+  padding: 19px;
+}
+
 #sidebar .card-body p {
   margin-bottom: 0.65rem;
 }
