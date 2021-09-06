@@ -715,6 +715,7 @@ def scroll_to_section(step, section):
 def add_multisection_item(step, section):
     xpath = ".//div[@class='card-header' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]" % section
     div = world.browser.find_element_by_xpath(xpath)
+    utils.scroll_element_into_view(div, True)
     add_link_xpath = """.//a[starts-with(@onclick,"add_form(")]"""
     add_link = div.find_element_by_xpath(add_link_xpath)
     add_link.click()
@@ -773,13 +774,11 @@ def expand_section(step, section_name):
 
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='card-header'][contains(., '%s')]" % section_name)
-    section_div_body = section_div_heading.find_element_by_xpath(
-        "../div[contains(@class, 'card-body') and contains(@class, 'show')]"
-    )
 
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
-    else:
-        utils.scroll_element_into_view(section_div_body)
 
-    WebDriverWait(world.browser, TEST_WAIT).until(ec.visibility_of(section_div_body))
+    section_div_body = WebDriverWait(world.browser, TEST_WAIT).until(
+        ec.visibility_of(section_div_heading.find_element_by_xpath(
+            "../div[contains(@class, 'card-body') and contains(@class, 'show')]")))
+    utils.scroll_element_into_view(section_div_body)
