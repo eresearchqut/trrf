@@ -651,29 +651,20 @@ def check_history_popup(step, form, section, cde, history_values_csv):
     form_block = world.browser.find_element_by_id("main-form")
     section_div_heading = form_block.find_element_by_xpath(
         ".//div[@class='card-header'][contains(., '%s')]" % section)
-    if utils.is_section_collapsed(section_div_heading):
-        utils.click(section_div_heading)
+
     section_div = section_div_heading.find_element_by_xpath("..")
     label_expression = ".//label[contains(., '%s')]" % cde
     label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-    input_element = input_div.find_element_by_xpath(".//input")
     history_widget = label_element.find_element_by_xpath(
         ".//a[@onclick='rdrf_click_form_field_history(event, this)']")
 
-    ActionChains(world.browser)\
-        .move_to_element(label_element)\
-        .perform()
-
-    # Scroll down avoid top overlay
-    world.browser.execute_script("window.scrollBy(0, 50)")
+    utils.scroll_element_into_view(label_element, True)
 
     # Hover over the label element to make history link visible
     ActionChains(world.browser)\
-        .move_to_element(input_element)\
+        .move_to_element(label_element)\
+        .click(history_widget)\
         .perform()
-
-    history_widget.click()
 
     WebDriverWait(world.browser, TEST_WAIT).until(
         ec.visibility_of_element_located((By.XPATH, ".//a[@href='#cde-history-table']"))
@@ -775,10 +766,20 @@ def check_multisection_value(step, multisection, cde, item, expected_value):
 
 @step(r'I expand the "(.*)" section')
 def expand_section(step, section_name):
+    from selenium.webdriver.support import expected_conditions as ec
+    from selenium.webdriver.support.ui import WebDriverWait
+
     utils.wait_for_first_section()
 
     section_div_heading = world.browser.find_element_by_xpath(
         ".//div[@class='card-header'][contains(., '%s')]" % section_name)
+    section_div_body = section_div_heading.find_element_by_xpath(
+        "../div[contains(@class, 'card-body') and contains(@class, 'show')]"
+    )
 
     if utils.is_section_collapsed(section_div_heading):
         utils.click(section_div_heading)
+    else:
+        utils.scroll_element_into_view(section_div_body)
+
+    WebDriverWait(world.browser, TEST_WAIT).until(ec.visibility_of(section_div_body))

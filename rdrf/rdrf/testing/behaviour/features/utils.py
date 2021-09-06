@@ -173,9 +173,21 @@ def show_stats(export_name):
 
 
 def click(element):
+    scroll_element_into_view(element)
+    element.click()
+
+
+def scroll_element_into_view(element, execute_pause=False):
     scroll_element_into_view = "arguments[0].scrollIntoView(true);"
     world.browser.execute_script(scroll_element_into_view, element)
-    element.click()
+    if execute_pause:
+        pause(2)
+
+
+def pause(seconds):
+    import time
+    n = int(seconds)
+    time.sleep(n)
 
 
 def debug_links():
@@ -291,3 +303,12 @@ def wait_for_first_section():
     WebDriverWait(world.browser, TEST_WAIT).until(
         ec.visibility_of_element_located((By.CSS_SELECTOR, ".section-available"))
     )
+
+
+def dismiss_alert():
+    from selenium.common.exceptions import NoAlertPresentException
+    try:
+        alert = world.browser.switch_to.alert
+        alert.accept()
+    except NoAlertPresentException:
+        return
