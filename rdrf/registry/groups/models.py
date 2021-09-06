@@ -64,7 +64,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(_('last name'), max_length=30)
     email = models.EmailField(_('email address'), max_length=254)
     is_staff = models.BooleanField(_('staff status'), default=False, help_text=_(
-        'Designates whether the user can log into this admin site.'))
+        'Designates that this user has elevated patient management permissions.'))
     is_active = models.BooleanField(_('active'), default=False, help_text=_(
         'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
     require_2_fact_auth = models.BooleanField(
