@@ -48,8 +48,11 @@ label a {
 }
 
 #sidebar .card-body a:hover,
+#sidebar .card-body a:focus,
 .card-header a:hover,
-label a:hover {
+.card-header a:focus,
+label a:hover,
+label a:focus {
   text-decoration: underline;
 }
 

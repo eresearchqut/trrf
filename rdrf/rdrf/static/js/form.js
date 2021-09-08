@@ -261,17 +261,17 @@ function rdrfSetupFileUploads() {
       var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="fa fa-times"></i> Remove</button>');
 
       return copy.empty()
-        .append($('<div class="col-xs-9"></div>').append(input).append(index))
-        .append($('<div class="col-xs-3"></div>').append(remove).append(clear.hide()));
+        .append($('<div class="col-9"></div>').append(input).append(index))
+        .append($('<div class="col-3"></div>').append(remove).append(clear.hide()));
     }
 
     widget.children(".multi-file")
       .each(function() {
         var elem = $(this);
         if (elem.find("a").attr("href")) {
-          var a = elem.find("a").addClass("col-xs-9");
+          var a = elem.find("a").addClass("col-9");
           var cb = elem.find("input[type='checkbox']")
-              .wrap('<div class="col-xs-3"><div class="checkbox"><label></label></div></div>')
+              .wrap('<div class="col-3"><div class="checkbox"><label></label></div></div>')
               .after("Clear").parent().parent().parent();
           var index = elem.find("input[type='hidden']");
           elem.empty().append(a).append(cb).append(index);
@@ -294,7 +294,7 @@ function rdrfSetupFileUploads() {
       .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
       .attr("name", widget.attr("id").replace(/_id$/, "_add"))
       .appendTo(widget)
-      .wrap('<div class="add-button col-xs-3 col-xs-offset-9"></div>');
+      .wrap('<div class="add-button col-3 offset-9"></div>');
 
     if (widget.children().length === 0) {
       addOne();

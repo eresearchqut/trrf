@@ -193,6 +193,8 @@ form .aligned ul.errorlist {
 
 .multi-file .btn-link.btn-danger {
   color: #a94442;
+  background-color: #ffffff;
+  border-color: transparent;
 }
 
 .multi-file .checkbox {

@@ -436,7 +436,7 @@ class MultipleFileInput(Widget):
         attrs = attrs or {}
         items = self._render_each(name, value, attrs)
 
-        elements = ("<div class=\"col-sm-12 multi-file\">%s</div>" % item for item in items)
+        elements = ("<div class=\"row multi-file\">%s</div>" % item for item in items)
         return """
             <div class="row multi-file-widget" id="%s_id">
               %s
@@ -589,7 +589,7 @@ class SliderWidget(widgets.TextInput):
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
                      $(".slider .tooltip").css("z-index","0");
-                     
+
                      // Hack to get compatibility for Bootstrap 5 with bootstrap-slider-11.0.2 which only officially supports Bootstrap 4
                      $(".slider .tooltip .arrow").addClass("tooltip-arrow");
                  }});
