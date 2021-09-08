@@ -29,6 +29,13 @@
       z-index: initial;
       position: initial;
     }
+    #changelist-filter a {
+        overflow: visible;
+        text-decoration: none;
+    }
+    #changelist-filter a:hover {
+        text-decoration: underline;
+    }
     .admin-table td, .admin-table th {
       max-width: 150px;
       overflow: hidden;
@@ -37,6 +44,9 @@
     div.tooltip-inner {
       max-width: 350px;
       word-wrap: break-word;
+    }
+    #toolbar {
+      text-align: right;
     }
   </style>
 {% endblock %}
@@ -51,6 +61,7 @@
         $("tr input.action-select").actions();
         if ($("input[value='Search']")) {
             $("#add_button").insertAfter($("input[value='Search']"));
+            $("#add_button").removeClass("d-none");
         }
     });
 })(django.jQuery);
@@ -96,7 +107,7 @@ $(function () {
 {% block content %}
   <div id="content-main">
     {% url cl.opts|admin_urlname:'add' as add_url %}
-    <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
+    <a href="{% add_preserved_filters add_url is_popup %}" class="d-none btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
       <span class="fa fa-plus" aria-hidden="true"></span> Add
     </a>
     <div class="row">
@@ -163,7 +174,7 @@ $(function () {
     <script>
         $(document).ready(function($) {
             $("#add_button").insertAfter($("input[value='Search']"));
-            $("#toolbar").attr("style", "text-align:right");
+            $("#add_button").removeClass("d-none");
         });
     </script>
 {% endblock %}

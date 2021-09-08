@@ -589,6 +589,9 @@ class SliderWidget(widgets.TextInput):
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
                      $(".slider .tooltip").css("z-index","0");
+                     
+                     // Hack to get compatibility for Bootstrap 5 with bootstrap-slider-11.0.2 which only officially supports Bootstrap 4
+                     $(".slider .tooltip .arrow").addClass("tooltip-arrow");
                  }});
              </script>
             """
