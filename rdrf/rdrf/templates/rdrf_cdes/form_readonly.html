@@ -144,7 +144,7 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 			{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+			<a class="btn btn-secondary" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
 				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
 
 			</a>
