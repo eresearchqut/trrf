@@ -271,7 +271,8 @@ function rdrfSetupFileUploads() {
         if (elem.find("a").attr("href")) {
           var a = elem.find("a").addClass("col-9");
           var cb = elem.find("input[type='checkbox']")
-              .wrap('<div class="col-3"><div class="checkbox"><label></label></div></div>')
+              .addClass("form-check-input")
+              .wrap('<div class="col-3"><div class="form-check"><label></label></div></div>')
               .after("Clear").parent().parent().parent();
           var index = elem.find("input[type='hidden']");
           elem.empty().append(a).append(cb).append(index);
@@ -290,7 +291,7 @@ function rdrfSetupFileUploads() {
       widget.children().last().before(makeCopy(nextIndex()));
     };
 
-    $('<button class="btn btn-sm btn-default multi-file-add"><i class="fa fa-plus"></i> Add</button>')
+    $('<button class="btn btn-sm btn-secondary multi-file-add"><i class="fa fa-plus"></i> Add</button>')
       .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
       .attr("name", widget.attr("id").replace(/_id$/, "_add"))
       .appendTo(widget)
