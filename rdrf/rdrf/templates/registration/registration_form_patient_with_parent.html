@@ -43,19 +43,19 @@ $("#id_parent_guardian_date_of_birth").datepicker(dateOptions);
 
                 <div id="guardian-form">
                     <h2>{% trans "Parent/Guardian Details" %}</h2>
-                    <div id="parent_guardian_form">
-                        <div class="row">
+                    <div id="parent_guardian_form" class="row g-3">
+                        <div class="col-12 mt-0">
                             {{form.parent_guardian_first_name}}
                         </div>
-                        <div class="row">
+                        <div class="col-12">
                             {{form.parent_guardian_last_name}}
                         </div>
-                        <div class="row">
+                        <div class="col-12">
                             {{form.parent_guardian_date_of_birth}}
                             <div class="text-muted">YYYY-MM-DD</div>
                         </div>
-                         <div class="row">
-                                <fieldset data-bs-toggle="tooltip" data-bs-placement="left" data-bs-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
+                         <div class="col-12">
+                                <fieldset class="required" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
                                 {% for choice in form.parent_guardian_gender %}
                                     <label>{{ choice.choice_label }}</label>
                                     {{ choice.tag }}

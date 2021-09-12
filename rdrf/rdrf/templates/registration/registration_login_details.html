@@ -6,23 +6,26 @@
             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
         </div>
     </div>
-    <div class="row">
-        <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
-        {{form.username}}
-    </div>
-    <div class="row">
-        <i id="validation-info" class="fa fa-info-circle"></i>
-        <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
-        {{form.password1}}
-    </div>
-    <div class="row">
-        {{form.password2}}
+    <div class="row g-3">
+        <div class="col-12">
+            <h5 class="ps-0"><div class="badge bg-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
+            {{form.username}}
+        </div>
+        <div class="col-12">
+            <i id="validation-info" class="fa fa-info-circle"></i>
+            <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
+            {{form.password1}}
+        </div>
+        <div class="col-12">
+            {{form.password2}}
+        </div>
+
+        {% if preferred_languages %}
+            <div class="col-12">
+                {{form.preferred_languages}}
+            </div>
+        {% endif %}
     </div>
 
-    {% if preferred_languages %}
-        <div class="row">
-            {{form.preferred_languages}}
-        </div>
-    {% endif %}
 </div>
 {% include 'registration/pwd_validation_info.html' %}

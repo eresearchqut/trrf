@@ -35,12 +35,14 @@
             border-top: dotted 1px #bbb;
             padding-top: 20px;
         }
-        :required  {
-            background: url({% static 'images/red-asterisk-16.png' %}) no-repeat;
-            background-size: 8px;
-            background-position:right top;
-            background-clip: padding-box;
-            background-origin: content-box;
+        .required::before {
+            content: "\f069";
+            font-family: 'FontAwesome';
+            color: red;
+            float: right;
+            height: 0;
+            font-size: 0.6em;
+            margin-right: 5px;
         }
     </style>
 
@@ -94,7 +96,9 @@
                 }
             }
 
-            $('input:radio[required]').parent('fieldset').before('<span style="color:red">*</span>')
+            // Wrap all required inputs in a div.required to apply styling
+            // (except for radio inputs which will be styled manually)
+            $(":input[required]:not(:radio)").wrap('<div class="required"></div>');
 
             {% block extra_js_init %}
             {% endblock %}
