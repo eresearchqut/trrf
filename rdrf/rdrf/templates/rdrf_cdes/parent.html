@@ -53,7 +53,7 @@
 {% block extra_menu %}
     {{ block.super }}
     {% if request.user.is_parent %}
-        <li><a href="#" id="add-patient-btn" data-bs-toggle="modal" data-target="#new_patient_modal"><span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add a Patient' %}</a></li>
+        <li><a href="#" id="add-patient-btn" data-bs-toggle="modal" data-bs-target="#new_patient_modal"><span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add a Patient' %}</a></li>
     {% endif %}
 {% endblock %}
 
@@ -73,7 +73,7 @@
         </div>
 
         <div class="btn-group" role="group" aria-label="...">
-            <button id="add-patient-btn" class="btn btn-success" data-bs-toggle="modal" data-target="#new_patient_modal">
+            <button id="add-patient-btn" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#new_patient_modal">
                 <span class="fa fa-plus" aria-hidden="true"></span>{% trans 'Add a Patient' %}
             </button>
         </div>

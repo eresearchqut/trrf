@@ -143,7 +143,7 @@
                     <div class="col-3" style="text-align: left">
                         {% if show_archive_button %}
                         <div class="btn-group" role="group" aria-label="...">
-                            <a class="btn btn-danger" href="" data-bs-toggle="modal" data-target="#archive_modal" target="_blank">
+                            <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">
                                 <span class="fa fa-times" aria-hidden="true"></span>
                                 {% trans "Delete " %}
                             </a>
@@ -221,7 +221,7 @@
                                 {% endif %}
                                 {% if delete_form_url and not changes_since_version and is_multi_context %}
                                     <div class="btn-group" role="group" aria-label="...">
-                                        <a class="btn btn-danger" href="" data-bs-toggle="modal" data-target="#form_modal" target="_blank">
+                                        <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#form_modal" target="_blank">
                                             <span class="fa fa-times" aria-hidden="true"></span>
                                             {% trans "Delete " %}
                                         </a>
