@@ -65,6 +65,16 @@ html, body {
     z-index: 1000;
 }
 
+.navbar-toggler[aria-expanded=false] > .fa-chevron-down {
+    transition: .3s transform;
+    transform: rotate(0deg);
+}
+
+.navbar-toggler[aria-expanded=true] > .fa-chevron-down {
+    transition: .3s transform;
+    transform: rotate(180deg);
+}
+
 .dropdown-menu {
     z-index: 2000;
 }
