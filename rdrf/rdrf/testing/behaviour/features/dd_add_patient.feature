@@ -12,7 +12,6 @@ Feature: Add a patient
     And I click "Menu"
     And I click "Patient List"
     And I press the "Add Patient" button
-    And I select "Demyelinating Diseases Registry" from "Registry"
     And I select "dd WA" from "Working Group"
     And I fill in "Family Name" with "Taylor"
     And I fill in "Given Names" with "Tom"

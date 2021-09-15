@@ -368,6 +368,7 @@ class PatientForm(forms.ModelForm):
         if self.registry_model:
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
+        self.fields["rdrf_registry"].initial = [registries.first()]
 
         if hasattr(self, 'user'):
             user = self.user
