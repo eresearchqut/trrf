@@ -782,15 +782,3 @@ def expand_section(step, section_name):
         ec.visibility_of(section_div_heading.find_element_by_xpath(
             "../div[contains(@class, 'card-body') and contains(@class, 'show')]")))
     utils.scroll_element_into_view(section_div_body)
-
-
-@step(r'I scroll to the "(.*)" section')
-def scroll_to_section(step, section_name):
-
-    utils.wait_for_first_section()
-
-    # section_div_heading = world.browser.find_element_by_css_selector(".card-header:contains('%s')" % section_name)
-    section_div_heading = world.browser.find_element_by_xpath(
-        f".//div[@class='card-header'][contains(., '{section_name}')]")
-
-    utils.scroll_element_into_view(section_div_heading, True)

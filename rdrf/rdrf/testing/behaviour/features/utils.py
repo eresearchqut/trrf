@@ -173,8 +173,13 @@ def show_stats(export_name):
 
 
 def click(element):
-    scroll_element_into_view(element, False)
-    element.click()
+    from selenium.common.exceptions import WebDriverException
+    try:
+        element.click()
+    except WebDriverException:
+        # Make sure the element is accessible before clicking it
+        scroll_element_into_view(element, True)
+        element.click()
 
 
 def scroll_element_into_view(element, execute_pause=False):
