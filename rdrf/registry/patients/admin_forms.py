@@ -368,6 +368,7 @@ class PatientForm(forms.ModelForm):
         if self.registry_model:
             registries = registries.filter(id=self.registry_model.id)
         self.fields["rdrf_registry"].queryset = registries
+        self.fields["rdrf_registry"].initial = [registries.first()]
 
         if hasattr(self, 'user'):
             user = self.user
@@ -525,18 +526,18 @@ class PatientForm(forms.ModelForm):
         return ret_val
 
     def clean_registered_clinicians(self):
-        reg = self.cleaned_data.get("rdrf_registry")
+        reg = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
         reg_clinicians = self.cleaned_data["registered_clinicians"]
         if reg and reg.exists():
             current_registry = reg.first()
             if current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM) and reg_clinicians.count() > 1:
                 raise ValidationError(
-                    "You may only select one clinician"
+                    _("You may only select one clinician")
                 )
         return reg_clinicians
 
     def clean_email(self):
-        registries = self.cleaned_data.get("rdrf_registry")
+        registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
         email = self.cleaned_data.get("email")
 
         # When patient is created or email is updated
