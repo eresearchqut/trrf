@@ -525,7 +525,7 @@ class PatientForm(forms.ModelForm):
         return ret_val
 
     def clean_registered_clinicians(self):
-        reg = self.cleaned_data.get("rdrf_registry")
+        reg = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
         reg_clinicians = self.cleaned_data["registered_clinicians"]
         if reg and reg.exists():
             current_registry = reg.first()
@@ -536,7 +536,7 @@ class PatientForm(forms.ModelForm):
         return reg_clinicians
 
     def clean_email(self):
-        registries = self.cleaned_data.get("rdrf_registry")
+        registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
         email = self.cleaned_data.get("email")
 
         # When patient is created or email is updated
