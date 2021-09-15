@@ -13,12 +13,8 @@ form .row {
   margin-bottom: 15px;
 }
 
-#sidebar .well {
-  padding: 19px;
-}
-
 #sidebar .card-body p {
-  margin-bottom: 0.65rem;
+  margin-bottom: 10px;
 }
 
 /* Right align labels in a Horizontal form (identified by col-form-label) as per previous styling*/

@@ -65,14 +65,14 @@ html, body {
     z-index: 1000;
 }
 
-.navbar-toggler[aria-expanded=false] > .fa-chevron-down {
+#sidebar-button:not(.sidebar-active) > .fa-chevron-right {
     transition: .3s transform;
     transform: rotate(0deg);
 }
 
-.navbar-toggler[aria-expanded=true] > .fa-chevron-down {
+#sidebar-button.sidebar-active > .fa-chevron-right {
     transition: .3s transform;
-    transform: rotate(180deg);
+    transform: rotate(90deg);
 }
 
 .dropdown-menu {
@@ -115,11 +115,7 @@ html, body {
 }
 
 #sidebar-button {
-    float: left;
-    font-size: 20pt;
-    margin-top: 10px;
     color: #9d9d9d;
-    cursor: pointer;
 }
 #sidebar-button.sidebar-active {
     color: #fff;

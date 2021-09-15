@@ -55,6 +55,7 @@ Feature: Edit diagnosis for a patient
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
+    And I scroll to the "Medical History Record" section
     And I expand the "Medical History Record" section
     And I fill "Date" with "1-2-1991" in MultiSection "MedicalHistoryRecord" index "0"
     And I press the "Save" button

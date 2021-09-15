@@ -7,7 +7,9 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
   <div class="container-fluid">
       {% if show_sidebar_button %}
-        <span id="sidebar-button" class="fa fa-list navbar-left d-lg-none"></span>
+          <button type="button" class="btn" id="sidebar-button" aria-label="Toggle patient menu">
+              <span class="fa fa-chevron-right navbar-left d-lg-none"></span>
+          </button>
       {% endif %}
       <a class="navbar-brand project_title" href="{% project_title_link %}">
         {% project_logo as PL %}
@@ -17,11 +19,11 @@
           &nbsp;
         {% endif %}
         {% if PT %}
-          <span class="d-none d-md-inline">{% project_title %}</span>
+          <span class="d-none d-lg-inline">{% project_title %}</span>
         {% endif %}
       </a>
       <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapsing-links" aria-controls="navbar-collapsing-links" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="fa fa-chevron-down"></span>
+          <span class="fa fa-bars"></span>
       </button>
     {% block navbar_links %}
       {% include "rdrf_cdes/navbar_links.html" %}
