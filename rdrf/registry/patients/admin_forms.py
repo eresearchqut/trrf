@@ -531,7 +531,7 @@ class PatientForm(forms.ModelForm):
             current_registry = reg.first()
             if current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM) and reg_clinicians.count() > 1:
                 raise ValidationError(
-                    "You may only select one clinician"
+                    _("You may only select one clinician")
                 )
         return reg_clinicians
 
