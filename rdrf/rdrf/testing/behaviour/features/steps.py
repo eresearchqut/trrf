@@ -192,8 +192,7 @@ def click_patient_listing(step, patient_name):
 @step('I click on "(.*)" in "(.*)" group in sidebar')
 def click_sidebar_group_item(step, item_name, group_name):
     # E.g. And I click "Clinical Data" in "Main" group in sidebar
-    wrap = world.browser.find_element_by_id("wrap")
-    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    sidebar = world.browser.find_element_by_id("sidebar")
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="card-header"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
@@ -203,8 +202,7 @@ def click_sidebar_group_item(step, item_name, group_name):
 
 @step('I press "(.*)" button in "(.*)" group in sidebar')
 def click_button_sidebar_group(step, button_name, group_name):
-    wrap = world.browser.find_element_by_id("wrap")
-    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    sidebar = world.browser.find_element_by_id("sidebar")
     form_group_panel = sidebar.find_element_by_xpath(
         '//div[@class="card-header"][contains(., "%s")]' %
         group_name).find_element_by_xpath("..")
@@ -301,8 +299,7 @@ def error_message_is(step, error_message):
 
 @step('location is "(.*)"')
 def location_is(step, location_name):
-    wrap = world.browser.find_element_by_id("wrap")
-    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    sidebar = world.browser.find_element_by_id("sidebar")
     location_parts = location_name.split("/")
     if len(location_parts) == 1:
         sidebar.find_element_by_xpath('//div[@class="card-body"][contains(., "%s")]' % location_name)
@@ -460,8 +457,7 @@ def goto_patient(step):
 
 @step('the page header should be "(.*)"')
 def the_page_header_should_be(step, header):
-    wrap = world.browser.find_element_by_id("wrap")
-    sidebar = wrap.find_element_by_xpath('//div[@class="well"]')
+    sidebar = world.browser.find_element_by_id("sidebar")
     panel_body = sidebar.find_element_by_xpath('//div[@class="card-body"]')
     panel_body.find_element_by_xpath('//a[contains(., "%s")][@class="selected-link"]' % header)
 
