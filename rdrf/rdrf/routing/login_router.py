@@ -80,7 +80,7 @@ class RouterView(View):
 
     def _display_message(self, request, days_left):
         sentence1 = ungettext(
-            'Your password will expire in %(days)d days.',
+            'Your password will expire in %(days)d day.',
             'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
         link = f'<a href="{reverse("password_change")}" class="alert-link">{_("Change Password")}</a>'
         sentence2 = _('Please use %(link)s to change it.') % {'link': link}
