@@ -72,7 +72,7 @@
                     <td class="col-md-3" style="text-align: center;">{{patient.first_save|date:"d F Y"}}</td>
                     <td class="col-md-3" style="text-align: center;">{{patient.last_update|date:"d F Y"}}</td>
                     <td class="col-md-1" style="text-align: center;">
-                        {% if patient.cnt_total_answer == patient.cnt_completed_answer %}
+                        {% if patient.cnt_total_questions == patient.cnt_completed_answers %}
                             <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
                         {% else %}
                             <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>

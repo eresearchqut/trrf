@@ -43,8 +43,8 @@ class ConsentList(StaffMemberRequiredMixin, View):
             consent_section_label=F('consents__consent_question__section__section_label'),
             first_save=Min('consents__first_save'),
             last_update=Max('consents__last_update'),
-            cnt_total_answer=Count('consents__consent_question'),
-            cnt_completed_answer=Count(Case(When(consents__answer=True, then=1)))
+            cnt_total_questions=Count('consents__consent_question'),
+            cnt_completed_answers=Count(Case(When(consents__answer=True, then=1)))
         ).filter(
             consent_section_label__isnull=False
         )
