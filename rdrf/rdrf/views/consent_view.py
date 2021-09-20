@@ -1,6 +1,7 @@
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+from django.db.models import Min, Max, Count, Case, When, F
 from django.views.generic.base import View
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -10,7 +11,6 @@ from django.utils.translation import ugettext as _
 from registry.patients.models import ConsentValue
 from registry.patients.models import Patient
 
-from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
 from rdrf.models.definition.models import Registry
 
@@ -29,7 +29,6 @@ class ConsentList(StaffMemberRequiredMixin, View):
 
         context = {}
 
-        consent_sections = ConsentSection.objects.filter(registry__code=registry_code)
         if request.user.is_superuser:
             patients = Patient.objects.filter(rdrf_registry__code=registry_code, active=True)
         else:
@@ -38,36 +37,19 @@ class ConsentList(StaffMemberRequiredMixin, View):
                 working_groups__in=request.user.working_groups.all(),
                 active=True)
 
-        patient_list = {}
-        for patient in patients:
-            sections = {}
-            for consent_section in consent_sections:
-                if consent_section.applicable_to(patient):
-                    answers = []
-                    first_saves = []
-                    last_updates = []
-                    questions = ConsentQuestion.objects.filter(section=consent_section)
-                    for question in questions:
-                        try:
-                            cv = ConsentValue.objects.get(
-                                patient=patient, consent_question=question)
-                            answers.append(cv.answer)
-                            if cv.first_save:
-                                first_saves.append(cv.first_save)
-                            if cv.last_update:
-                                last_updates.append(cv.last_update)
-                        except ConsentValue.DoesNotExist:
-                            answers.append(False)
-                    first_save = min(first_saves) if first_saves else None
-                    last_update = max(last_updates) if last_updates else None
-                    sections[consent_section] = {
-                        "first_save": first_save,
-                        "last_update": last_update,
-                        "signed": all(answers)
-                    }
-            patient_list[patient] = sections
+        # Aggregate consent values by Patient and ConsentSection
+        consents = patients.annotate(
+            consent_section_id=F('consents__consent_question__section__id'),
+            consent_section_label=F('consents__consent_question__section__section_label'),
+            first_save=Min('consents__first_save'),
+            last_update=Max('consents__last_update'),
+            cnt_total_answer=Count('consents__consent_question'),
+            cnt_completed_answer=Count(Case(When(consents__answer=True, then=1)))
+        ).filter(
+            consent_section_label__isnull=False
+        )
 
-        context['consents'] = patient_list
+        context['consents'] = consents
         context['registry'] = Registry.objects.get(code=registry_code).name
         context['registry_code'] = registry_code
 
