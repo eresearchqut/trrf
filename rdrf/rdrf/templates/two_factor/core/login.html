@@ -2,6 +2,16 @@
 
 {% load i18n static two_factor %}
 
+{% block extrahead %}
+<script>
+function isIE() {
+  return (window.navigator.userAgent.indexOf('MSIE ') > 0 || window.navigator.userAgent.indexOf('Trident/') > 0);
+}
+
+if (isIE()) alert("{% trans "This site does not support Internet Explorer. Please use another browser." %}");
+</script>
+{% endblock %}
+
 {% block content %}
   <form action="" method="post">
     {% csrf_token %}
