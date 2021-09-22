@@ -89,8 +89,8 @@ class ParentWithPatientRegistrationForm(PatientRegistrationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field, tooltip in self.tooltip_info.items():
-            self.fields[field].widget.attrs['data-toggle'] = 'tooltip'
-            self.fields[field].widget.attrs['data-placement'] = 'left'
+            self.fields[field].widget.attrs['data-bs-toggle'] = 'tooltip'
+            self.fields[field].widget.attrs['data-bs-placement'] = 'left'
             self.fields[field].widget.attrs['title'] = tooltip
 
     parent_guardian_first_name = CharField(required=True)

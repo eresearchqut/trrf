@@ -12,8 +12,8 @@ services:
     image: selenium/node-chrome-debug:3.141
     shm_size: 2G
     environment:
-      - SCREEN_WIDTH=1366
-      - SCREEN_HEIGHT=768
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1080
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444
@@ -26,8 +26,8 @@ services:
     image: selenium/node-firefox-debug:3.141
     shm_size: 2G
     environment:
-      - SCREEN_WIDTH=1366
-      - SCREEN_HEIGHT=768
+      - SCREEN_WIDTH=1920
+      - SCREEN_HEIGHT=1080
       - SCREEN_DEPTH=16
       - HUB_PORT_4444_TCP_ADDR=hub
       - HUB_PORT_4444_TCP_PORT=4444

@@ -2,7 +2,7 @@ from django.urls import reverse
 
 
 class Locator(object):
-    GLYPHICON = "glyphicon-user"
+    ICON = "fa-user"
 
     def __init__(self, registry_model, instance):
         self.registry_model = registry_model
@@ -11,16 +11,16 @@ class Locator(object):
     @property
     def link(self):
         """
-        return html with glyphicon
-        e.g. <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> XXXFred FLINTSTONE</i>
+        return html with icon
+        e.g. <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> XXXFred FLINTSTONE</i>
         """
         if self.instance is None:
             return ""
         descriptor = self.get_description()
         link = self.get_link()
         location_link = "<a href='%s'>%s</a>" % (link, descriptor)
-        return """<i class="text-muted"><span class="glyphicon {0}" aria-hidden="true"></span> {1}</i>""".format(
-            self.GLYPHICON, location_link)
+        return """<i class="text-muted"><span class="fa {0}" aria-hidden="true"></span> {1}</i>""".format(
+            self.ICON, location_link)
 
     def get_description(self):
         raise NotImplementedError("subclass responsiblity")

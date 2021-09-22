@@ -198,7 +198,7 @@ class CountryWidget(widgets.Select):
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
             "onchange": "select_country(this)",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
@@ -234,7 +234,7 @@ class StateWidget(widgets.Select):
 
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
             "onclick": "if (this.value === '') $('#' + this.id.replace('state', 'country')).trigger('change')"
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
@@ -273,7 +273,7 @@ class ParameterisedSelectWidget(widgets.Select):
 
         final_attrs = self.build_attrs(attrs, {
             "name": name,
-            "class": "form-control",
+            "class": "form-select",
         })
         output = [format_html("<select{}>", flatatt(final_attrs))]
         output.append("<option value='---'>---------</option>")
@@ -299,7 +299,7 @@ class StateListWidget(ParameterisedSelectWidget):
     def render(self, name, value, attrs, renderer=None):
         country_states = pycountry.subdivisions.get(
             country_code=self._widget_context['questionnaire_context'].upper())
-        output = ["<select class='form-control' id='%s' name='%s'>" % (name, name)]
+        output = ["<select class='form-select' id='%s' name='%s'>" % (name, name)]
         empty_option = "<option value='---'>---------</option>"
         output.append(empty_option)
         for state in country_states:
@@ -368,7 +368,7 @@ class RadioSelect(widgets.RadioSelect):
         elif has_short_texts_only and no_of_choices <= 3:
             cols_per_row = 2
 
-        return f"col-xs-12 col-sm-{math.ceil((cols_per_row + 2) / 2) * 2} col-md-{cols_per_row}"
+        return f"col-12 col-sm-{math.ceil((cols_per_row + 2) / 2) * 2} col-md-{cols_per_row}"
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -436,7 +436,7 @@ class MultipleFileInput(Widget):
         attrs = attrs or {}
         items = self._render_each(name, value, attrs)
 
-        elements = ("<div class=\"col-xs-12 multi-file\">%s</div>" % item for item in items)
+        elements = ("<div class=\"row multi-file\">%s</div>" % item for item in items)
         return """
             <div class="row multi-file-widget" id="%s_id">
               %s
@@ -589,6 +589,9 @@ class SliderWidget(widgets.TextInput):
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
                      $(".slider .tooltip").css("z-index","0");
+
+                     // Hack to get compatibility for Bootstrap 5 with bootstrap-slider-11.0.2 which only officially supports Bootstrap 4
+                     $(".slider .tooltip .arrow").addClass("tooltip-arrow");
                  }});
              </script>
             """

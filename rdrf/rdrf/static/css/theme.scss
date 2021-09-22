@@ -3,8 +3,8 @@
 @import "modules/elements";
 
 /* vendor */
-@import "../vendor/bootstrap-3.4.1/css/bootstrap.min.css";
-@import "bootstrap/bootstrap-overrides";
+@import "../vendor/bootstrap-5.1.0/css/bootstrap.min.css";
+@import "bootstrap-overrides.css";
 
 /* config variables */
 @import "partials/config";

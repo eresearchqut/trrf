@@ -1,7 +1,7 @@
 /* modules */
 /* this mixin makes possible to add transition to a specific vendor, example: */
 /* -webkit-transition: -webkit-transform 0.5s linear; */
-@import url(../../vendor/bootstrap-3.4.1/css/bootstrap.min.css);
+@import url(../../vendor/bootstrap-5.1.0/css/bootstrap.min.css);
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,100,100italic,300italic,300,400italic,500,500italic,700,700italic,900,900italic);
 @import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700,900,200italic,300italic,400italic,600italic,700italic,900italic);
 @import url(https://fonts.googleapis.com/css?family=Lato:100,300,400,700,900,100italic,300italic,400italic,700italic,900italic);
@@ -279,7 +279,7 @@ a:focus, button:focus {
       .navbar.normal .navbar-collapse .navbar-nav > li > a:hover {
         color: #fff; }
     @media (max-width: 767px) {
-      .navbar.normal .navbar-collapse .navbar-nav > li.open ul.dropdown-menu a {
+      .navbar.normal .navbar-collapse .navbar-nav > li ul.dropdown-menu.show a {
         color: #fff;
         padding: 12px 18px 12px 30px; } }
     .navbar.normal .navbar-collapse .navbar-nav > li ul.dropdown-menu {
@@ -308,7 +308,7 @@ a:focus, button:focus {
   -webkit-font-smoothing: antialiased; }
   @media (min-width: 768px) {
     .navbar.hero {
-      background: transparent;
+      background: transparent !important;
       padding-top: 10px; }
       .navbar.hero .navbar-nav > .active > a {
         background: transparent;
@@ -332,12 +332,12 @@ a:focus, button:focus {
     transition: color 0.2s linear; }
     .navbar.hero .navbar-nav > li > a:hover {
       color: #fff; }
-  .navbar.hero .navbar-nav > li.open > a {
+  .navbar.hero .navbar-nav > li > a.show {
     color: #fff !important;
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 4px 4px 0 0; }
   @media (max-width: 767px) {
-    .navbar.hero .navbar-nav > li.open ul.dropdown-menu a {
+    .navbar.hero .navbar-nav > li ul.dropdown-menu.show a {
       color: #fff;
       padding: 12px 18px 12px 30px; } }
   .navbar.hero .navbar-nav > li ul.dropdown-menu {
@@ -428,14 +428,14 @@ a:focus, button:focus {
           .navbar.white .navbar-collapse .navbar-nav > li > a:hover {
             color: #fff; } }
     @media (min-width: 768px) {
-      .navbar.white .navbar-collapse .navbar-nav > li.open > a {
+      .navbar.white .navbar-collapse .navbar-nav > li > a.show {
         background: #fff;
         color: #333; } }
-    .navbar.white .navbar-collapse .navbar-nav > li.open > a .caret {
+    .navbar.white .navbar-collapse .navbar-nav > li > a.show .caret {
       border-top-color: #999;
       border-bottom-color: #999; }
     @media (max-width: 767px) {
-      .navbar.white .navbar-collapse .navbar-nav > li.open ul.dropdown-menu a {
+      .navbar.white .navbar-collapse .navbar-nav > li ul.dropdown-menu.show a {
         color: #fff;
         padding: 12px 18px 12px 30px; } }
     .navbar.white .navbar-collapse .navbar-nav > li ul.dropdown-menu {

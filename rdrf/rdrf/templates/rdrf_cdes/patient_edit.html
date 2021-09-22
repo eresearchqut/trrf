@@ -46,9 +46,17 @@
 
             var new_form = empty_form.clone(true, true);
 
+            var replace_prefix = function(elem, attr_name) {
+                elem.attr(attr_name, elem.attr(attr_name).replace(/__prefix__/g, total_forms.val()));
+            };
+
+            new_form.find("label").each(function() {
+                replace_prefix($(this), "for");
+            });
+
             new_form.find(":input").each(function() {
-                $(this).attr("id", $(this).attr("id").replace(/__prefix__/g, total_forms.val()));
-                $(this).attr("name", $(this).attr("name").replace(/__prefix__/g, total_forms.val()));
+                replace_prefix($(this), "id");
+                replace_prefix($(this), "name");
 
                 if ($(this).attr('id').match(/date/)) {
                     $(this).datepicker({
@@ -127,11 +135,11 @@
 {% block actions %}
 {% if actions %}
     <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-        <span class="glyphicon glyphicon-list"></span> {% trans "Actions" %}<span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+        <span class="fa fa-list"></span> {% trans "Actions" %}<span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
                     {% for action in actions %}
-                        <li><a href="{{action.link}}"><span class="glyphicon glyphicon-minus"></span> {{action.title|translate}}</a></li>
+                        <li><a class="dropdown-item" href="{{action.link}}"><span class="fa fa-minus"></span> {{action.title|translate}}</a></li>
                     {% endfor %}
         </ul>
     </li>
@@ -147,16 +155,16 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans "Save" %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-warning" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
-				<span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+			<a class="btn btn-secondary" href="{% url 'registry_form_print' registry_code form_name patient_id %}" target="_blank">
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
 			</a>
 		{% endif %}
 
@@ -168,12 +176,12 @@
                 {% include 'rdrf_cdes/archive_modal.html' %}
 
 
-	<a class="previous-form hidden-sm hidden-xs" href="{{ previous_form_link }}">
-		<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+	<a class="previous-form d-none d-md-inline-block" href="{{ previous_form_link }}">
+		<span class="fa fa-chevron-left" aria-hidden="true"></span>
 	</a>
 
-	<a class="next-form hidden-sm hidden-xs" href="{{ next_form_link }}">
-		<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+	<a class="next-form d-none d-md-inline-block" href="{{ next_form_link }}">
+		<span class="fa fa-chevron-right" aria-hidden="true"></span>
 	</a>
 
     <div class="row">
@@ -189,8 +197,8 @@
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 
                 {% csrf_token %}
-                <div class="panel panel-info trrf-page-header">
-                    <div class="panel-body">
+                <div class="card card-info trrf-page-header">
+                    <div class="card-body">
                         <h2>{% trans form_title %}</h2>
                     </div>
                 </div>
@@ -212,25 +220,25 @@
                         {% if form|is_formset_obj %}
                         <div id="mgmt_{{form.prefix}}">{{form.management_form}}</div>
                         <div style="display: none;" id="empty_{{form.prefix}}">
-                            <div class="form-group">
-                                <div class="col-sm-9 col-sm-offset-3">
-                                    <a class="btn btn-danger btn-xs pull-right" onclick="delete_form(this, '{{form.prefix}}')">
-                                        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span> {% trans 'Remove' %}
+                            <div class="row">
+                                <div class="col-sm-9 offset-sm-3">
+                                    <a class="btn btn-danger btn-xs float-end" onclick="delete_form(this, '{{form.prefix}}')">
+                                        <span class="fa fa-minus" aria-hidden="true"></span> {% trans 'Remove' %}
                                     </a>
                                 </div>
                             </div>
                             {% for element in form.empty_form %}
                                 {% if element.errors %}
-                                    <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                    <div class="row has-error" style="display: {{element.is_hidden|yesno:"None,flex"}}">
                                 {% else %}
-                                    <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                    <div class="row" style="display: {{element.is_hidden|yesno:"None,flex"}}">
                                 {% endif %}
                                         {% if element.label == "Delete" %}
                                         {% else %}
-                                            <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
+                                            <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                 {{ element.label|translate}}
                                                 {% if  element.field.required %}
-                                                    <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                    <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                 {% endif %}
                                             </label>
                                             <div class="col-sm-9">
@@ -241,7 +249,7 @@
                                                     </small>
 						                        {% endif %}
                                                 {% if element.errors %}
-                                                    <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                    <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                 {% endif %}
                                             </div>
                                         {% endif %}
@@ -252,17 +260,17 @@
                             {% if name in hidden_sectionlist %}
                             <div class="section_hidden">
                             {% endif %}
-                                <div class="panel panel-default collapsible">
-                                    <div class="panel-heading">
-                                        <div class="panel-title">
+                                <div class="card collapsible">
+                                    <div class="card-header">
+                                        <div class="card-title">
                                             <strong>{% trans name %}</strong>
 
-                                            <a class="btn btn-info btn-xs pull-right" style="color: white" onclick="add_form(this, '{{form.prefix}}')">
-                                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add' %}
+                                            <a class="btn btn-info btn-xs float-end" style="color: white" onclick="add_form(this, '{{form.prefix}}')">
+                                                <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add' %}
                                             </a>
                                         </div>
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         <div id="section_{{form.prefix}}">
                                         <div id="forms_{{form.prefix}}">
                                         {% for f in form %}
@@ -274,17 +282,17 @@
                                                                 <!-- Empty in order to skip adding delete field in case of can_delete == False -->
                                                             {% else %}
                                                                     {% if element.errors %}
-                                                                        <div class="form-group has-error" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                                        <div class="row has-error" style="display: {{element.is_hidden|yesno:"None,flex"}}">
                                                                     {% else %}
-                                                                        <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                                        <div class="row" style="display: {{element.is_hidden|yesno:"None,flex"}}">
                                                                     {% endif %}
-                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 control-label">
+                                                                    <label for="{{ element.id_for_label}}" class="col-sm-3 col-form-label">
                                                                         {% if element.label == "Delete" %}
                                                                             {% trans 'Mark for deletion' %}
                                                                         {% else %}
                                                                             {{ element.label|translate}}
                                                                             {% if  element.field.required %}
-                                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                                             {% endif %}
                                                                         {% endif %}
                                                                     </label>
@@ -296,7 +304,7 @@
                                                                             </small>
                                                                         {% endif %}
                                                                         {% if element.errors %}
-                                                                            <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                                            <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                                         {% endif %}
                                                                     </div>
                                                                 </div>
@@ -322,10 +330,10 @@
                             <div class="section_hidden">
                             {% endif %}
 
-                                <div class="panel panel-default collapsible">
-                                    <div class="panel-heading">
+                                <div class="card collapsible">
+                                    <div class="card-header">
 
-                                        <div class="panel-title">
+                                        <div class="card-title">
                                             <strong>{% trans name %}</strong>
 
                                             {% with link=section|get_information_link %}
@@ -344,28 +352,28 @@
                                         </div>
 
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="card-body">
                                         {% for s in section %}
                                             {% get_form_element form s as element %}
                                             {% if element %}
                                                 {% if element.errors %}
-                                                    <div class="form-group has-error">
+                                                    <div class="row has-error">
                                                 {% else %}
-                                                    <div class="form-group" style="display: {{element.is_hidden|yesno:"None,block"}}">
+                                                    <div class="row" style="display: {{element.is_hidden|yesno:"None,flex"}}">
                                                 {% endif %}
                                                     {% if link %}
-                                                        <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 control-label">
+                                                        <label for="{{ element.id_for_label}}" style="text-align: left" class="col-sm-11 col-form-label">
                                                             {{ element.label|translate }}
                                                             {% if  element.field.required %}
-                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-1">
                                                     {% else %}
-                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                             {{ element.label|translate }}
                                                             {% if  element.field.required %}
-                                                                <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                                                                <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                                                             {% endif %}
                                                         </label>
                                                         <div class="col-sm-9">
@@ -377,7 +385,7 @@
                                                                 </small>
                                                             {% endif %}
                                                             {% if element.errors %}
-                                                                <span class="label label-danger">{{ element.errors.as_text }}</span>
+                                                                <span class="badge bg-danger">{{ element.errors.as_text }}</span>
                                                             {% endif %}
                                                     </div>
                                                 </div>

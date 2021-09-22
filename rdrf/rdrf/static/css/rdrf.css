@@ -65,6 +65,20 @@ html, body {
     z-index: 1000;
 }
 
+#sidebar-button:not(.sidebar-active) > .fa-chevron-right {
+    transition: .3s transform;
+    transform: rotate(0deg);
+}
+
+#sidebar-button.sidebar-active > .fa-chevron-right {
+    transition: .3s transform;
+    transform: rotate(90deg);
+}
+
+.dropdown-menu {
+    z-index: 2000;
+}
+
 @media only screen and (min-width: 990px) {
     #footer-version {
         text-align: left;
@@ -81,7 +95,7 @@ html, body {
         height: 100%;
         width: 300px;
         padding: 0;
-        top: 51px;
+        top: 54px;
         z-index: 100000;
 
         box-shadow: 5px 0 5px -5px #888888;
@@ -101,11 +115,7 @@ html, body {
 }
 
 #sidebar-button {
-    float: left;
-    font-size: 20pt;
-    margin-top: 10px;
     color: #9d9d9d;
-    cursor: pointer;
 }
 #sidebar-button.sidebar-active {
     color: #fff;
@@ -189,6 +199,8 @@ form .aligned ul.errorlist {
 
 .multi-file .btn-link.btn-danger {
   color: #a94442;
+  background-color: #ffffff;
+  border-color: transparent;
 }
 
 .multi-file .checkbox {
@@ -230,8 +242,6 @@ form .aligned ul.errorlist {
 
 .project_logo {
     height: 48px;
-    margin-top: -16px;
-    float: left;
 }
 
 .section_blacklist_hidden {

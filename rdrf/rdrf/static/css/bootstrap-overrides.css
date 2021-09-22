@@ -1,0 +1,68 @@
+/* Fix the admin menu that gets cut off to the right of the page since Bootstrap 5 no longer has .navbar-right styles. */
+.navbar-right ul.dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+/* Implement some default margins, Bootstrap 5 doesn't supply it out of the box. */
+.card, .list-group {
+  margin-bottom: 20px;
+}
+
+form .row {
+  margin-bottom: 15px;
+}
+
+#sidebar .card-body p {
+  margin-bottom: 10px;
+}
+
+/* Right align labels in a Horizontal form (identified by col-form-label) as per previous styling*/
+@media(min-width: 576px) {
+  form .row .col-form-label {
+    text-align: right;
+  }
+}
+
+/* Re-implement cursor styles applied to disabled nav items */
+.nav-item.disabled a.nav-link {
+  cursor: not-allowed;
+}
+
+/* Re-implement btn-xs which no longer exists */
+.btn-xs {
+  padding: .1rem .25rem;
+  font-size: .85rem;
+  border-radius: .2rem;
+}
+
+/* Workaround for Bootstrap 5 default text underlining of all hyperlinks. */
+#sidebar .card-body a,
+.card-header a,
+label a {
+  text-decoration: none;
+}
+
+#sidebar .card-body a:hover,
+#sidebar .card-body a:focus,
+.card-header a:hover,
+.card-header a:focus,
+label a:hover,
+label a:focus {
+  text-decoration: underline;
+}
+
+/*Fix for conflicts between timepicki, datatables and bootstrap pagination classes*/
+.pagination .page-item.next {
+  background: none;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  border: none;
+  cursor: auto;
+}
+
+/*Fix for progress bar label not displaying at 0%*/
+.progress-bar {
+  overflow: visible;
+}

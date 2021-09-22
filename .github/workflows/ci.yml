@@ -124,11 +124,15 @@ jobs:
         run: mkdir -p data/aloe/dev
       - name: Integration tests
         run: ./scripts/end2end-tests.sh
+      - name: Tar test output
+        if: ${{ always() }}
+        run: tar -cvf aloe-results.tar data/aloe/dev
       - name: Upload test output
+        if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
           name: Aloe output
-          path: data/aloe/dev
+          path: aloe-results.tar
 
   system_checks:
     name: System checks

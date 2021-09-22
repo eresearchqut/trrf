@@ -8,20 +8,20 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="fieldHistoryModalLabel">
-          Previous answers for '{{ cde.name }}'
-        </h4>
+          <h4 class="modal-title" id="fieldHistoryModalLabel">
+              Previous answers for '{{ cde.name }}'
+          </h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="row">
           <div class="col-sm-4 col-md-3 col-lg-2">
-            <ul class="nav nav-pills nav-stacked">
-              <li role="presentation" class="active">
-                <a href="#cde-history-table" data-toggle="pill">Table</a>
+            <ul class="nav nav-pills flex-row">
+              <li role="presentation" class="nav-item">
+                <a class="nav-link active" href="#cde-history-table" data-bs-toggle="pill">Table</a>
               </li>
-              <li role="presentation">
-                <a href="#cde-history-chart" data-toggle="pill">Chart</a>
+              <li role="presentation" class="nav-item">
+                <a class="nav-link" href="#cde-history-chart" data-bs-toggle="pill">Chart</a>
               </li>
             </ul>
           </div>
@@ -49,7 +49,7 @@
 		      <td>{{snapshot.user}}</td>
                       <td class="text-right">
                         <button type="button" data-id="{{ snapshot.id }}"
-                                class="btn btn-default btn-xs cde-history-restore invisibutton">
+                                class="btn btn-outline-secondary btn-xs cde-history-restore invisibutton">
                           Restore
                         </button>
                       </td>
@@ -71,7 +71,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->

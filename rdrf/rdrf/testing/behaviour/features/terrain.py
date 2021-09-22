@@ -69,6 +69,7 @@ def delete_cookies():
 def before_scenario(scenario, outline, steps):
     logger.info('Scenario: ' + scenario.name)
     delete_cookies()
+    world.browser.maximize_window()
 
 
 @after.each_example

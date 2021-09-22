@@ -7,10 +7,10 @@ function update_cde($target_cde, visibility_array) {
                 $target_cde.prop('disabled', visibility == "disabled");
                 break;
             case "visible":
-                $target_cde.parents('.form-group').show();
+                $target_cde.parents('.rdrf-cde-field').show();
                 break;
             case "hidden":
-                $target_cde.parents('.form-group').hide();
+                $target_cde.parents('.rdrf-cde-field').hide();
         }
     }
 }
@@ -20,10 +20,10 @@ function update_section($target_section, visibility_array) {
         var visibility = visibility_array[idx];
         switch(visibility) {
             case "visible":
-                $target_section.parents('.panel').show();
+                $target_section.parents('.card').show();
                 break;
             case "hidden":
-                $target_section.parents('.panel').hide();
+                $target_section.parents('.card').hide();
         }
     }
 }

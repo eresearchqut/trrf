@@ -127,7 +127,7 @@
                     columns: {{columns|safe }}
                     }).on("draw", function () {
                         $("#loading_text").hide();
-                        $('button[data-toggle=popover]').popover({
+                        $('button[data-bs-toggle=popover]').popover({
                             'html': true,
                             'title': '',
                             'trigger': 'click',
@@ -185,7 +185,7 @@
         <br>
         <div class="btn-group" role="group" aria-label="...">
             <button id="add_patient" class="btn btn-success">
-                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
+                <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
             </button>
         </div>
     {% endif %}

@@ -76,26 +76,26 @@
 
             <div class="col-md-6">
                 <div id="login_details">
-                    <div class="form-group">
+                    <div class="row">
                         <div class="alert alert-info">
                             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="row">
                         <h5><div class="label label-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
                         <input class="form-control" placeholder="{% trans 'Username' %}" id="id_username" maxlength="50" name="username" type="email" value="{{username}}" required />
                     </div>
-                    <div class="form-group">
+                    <div class="row">
                         <input class="form-control" placeholder="{% trans 'Password' %}" id="id_password1" name="password1" type="password" required />
                     </div>
-                    <div class="form-group">
+                    <div class="row">
                         <input class="form-control" placeholder="{% trans 'Repeat Password' %}" id="id_password2" name="password2" type="password" required />
                     </div>
 
                     {% if preferred_languages %}
-                    <div class="form-group">
-                        <select class="form-control" name="preferred_language" id="id_preferred_language" required>
+                    <div class="row">
+                        <select class="form-select" name="preferred_language" id="id_preferred_language" required>
                             <option value=0>{% trans "Preferred language for communication" %}</option>
                                 {% for preferred_language in preferred_languages %}
                                     <option value="{{ preferred_language.code }}">{% trans preferred_language.name %}</option>
@@ -113,10 +113,10 @@
                 <div id="the-form">
                     <h2>{% trans "Clinician Details" %}</h2>
                     <div id="clinician_form">
-                        <div class="form-group">
+                        <div class="row">
                             <input class="form-control" placeholder="{% trans 'Clinician Given Names' %}" id="id_clinician_first_name" maxlength="30" name="clinician_first_name" type="text" value="{{first_name}}" required />
                         </div>
-                        <div class="form-group">
+                        <div class="row">
                             <input class="form-control" placeholder="{% trans 'Clinician Surname' %}" id="id_clinician_last_name" maxlength="30" name="clinician_last_name" value="{{last_name}}" type="text" required />
                         </div>
                     </div>
@@ -129,7 +129,7 @@
                         <div class="g-recaptcha" data-sitekey="{% recaptcha_site_key %}"  data-callback='reCaptchaCallback'></div>
                     </div>
                     <div class="col-md-6">
-                        <button type="button" id="registration-submit" class="btn btn-success pull-right">Submit</button>
+                        <button type="button" id="registration-submit" class="btn btn-success float-end">Submit</button>
                     </div>
                 </div>
 

@@ -351,7 +351,7 @@ CSP_SCRIPT_SRC = get_csp(
 CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
 CSP_FONT_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
 CSP_FRAME_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
-CSP_IMG_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
+CSP_IMG_SRC = get_csp(["'self'", "data:"], [_CSP_STATIC_URL])
 CSP_CONNECT_SRC = ["'self'", "https://bam.nr-data.net"]
 
 # The maximum size in bytes that a request body may be before a

@@ -85,7 +85,7 @@ function widgetNameChangeHandler() {
     $.get(url, function(data) {
         $(".field-widget_settings").remove();
         $(".field-widget_name").after(data);
-        $(".field-widget_settings").removeClass('hidden');
+        $(".field-widget_settings").removeClass('d-none');
     });
 }
 

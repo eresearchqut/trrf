@@ -26,9 +26,9 @@
                     var last_update = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.last_update);
                     var question_answer = $("<td>").attr("class", "col-md-1").attr("style", "text-align:center;");
                     if (value.answer == false) {
-                        question_answer.html("<span style='color: red;' class='glyphicon glyphicon-remove' aria-hidden='true'></span>");
+                        question_answer.html("<span style='color: red;' class='fa fa-times' aria-hidden='true'></span>");
                     } else {
-                        question_answer.html("<span style='color: green;' class='glyphicon glyphicon-ok' aria-hidden='true'></span>");
+                        question_answer.html("<span style='color: green;' class='fa fa-check' aria-hidden='true'></span>");
                     }
                     questions.append(row.append(question_cell).append(first_save).append(last_update).append(question_answer));
                     patient_id = value.patient_id;
@@ -36,7 +36,7 @@
                 });
                 $("#consent-header").html("<strong>" + patient + "</strong> (<i>" + section + "</i>)");
                 $("#consent-body").empty().append(questions);
-                $("#myModal").modal();
+                new bootstrap.Modal($("#myModal")).show();
             });
         }
     </script>
@@ -50,12 +50,12 @@
         <b>{% trans "Patient Consents" %}</b> - {{registry}}
     </blockquote>
 
-    <p class="pull-right">
-        <a class="btn btn-success" href="{% url 'print_consent_list' registry_code %}" target="_blank">
-            <span class="glyphicon glyphicon-print" aria-hidden="true"></span> {% trans "Print" %}
+    <div class="d-block overflow-auto mb-2">
+        <a class="btn btn-secondary float-end" href="{% url 'print_consent_list' registry_code %}" target="_blank">
+            <span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
         </a>
-    </p>
-
+    </div>
+    
     <table class="table table-striped table-hover" id="list_of_patients">
         <thead>
             <tr>
@@ -66,16 +66,16 @@
             </tr>
         </thead>
         <tbody>
-            {%  for patient in consents %}
+            {% for patient in consents %}
                 <tr onclick="get_consent_details('{% url 'consent_details' registry_code patient.consent_section_id patient.id %}', '{{patient}}', '{{patient.consent_section_label|translate}}')">
                     <td class="col-md-5"><strong>{{patient}}</strong> - {{patient.consent_section_label|translate}}</td>
                     <td class="col-md-3" style="text-align: center;">{{patient.first_save|date:"d F Y"}}</td>
                     <td class="col-md-3" style="text-align: center;">{{patient.last_update|date:"d F Y"}}</td>
                     <td class="col-md-1" style="text-align: center;">
                         {% if patient.cnt_total_questions == patient.cnt_completed_answers %}
-                            <span class="glyphicon glyphicon-ok" style='color: green;' aria-hidden="true"></span>
+                            <span class="fa fa-check" style='color: green;' aria-hidden="true"></span>
                         {% else %}
-                            <span class="glyphicon glyphicon-remove" style='color: red;' aria-hidden="true"></span>
+                            <span class="fa fa-times" style='color: red;' aria-hidden="true"></span>
                         {% endif %}
                     </td>
                 </tr>
@@ -88,13 +88,13 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" id="consent-header"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="consent-body">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" data-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">{% trans "Close" %}</button>
                 </div>
             </div>
         </div>

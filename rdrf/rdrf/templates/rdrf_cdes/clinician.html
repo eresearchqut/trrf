@@ -40,7 +40,7 @@
     $(document).ready(function(){
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
+            $("select").addClass("form-select");
 
             $(window).bind('beforeunload', function(e){
                 if($('#main-form').serialize()!=$('#main-form').data('serialize')) {
@@ -78,23 +78,23 @@
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
 		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
-			<span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span> {% trans 'Save' %}
+			<span class="fa fa-save" aria-hidden="true"></span> {% trans 'Save' %}
 		</button>
 
 		<a href="" class="btn btn-danger">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> {% trans 'Cancel' %}
+			<span class="fa fa-times" aria-hidden="true"></span> {% trans 'Cancel' %}
 		</a>
 	</div>
 {% endblock %}
 
 {% block content %}
 
-			<a class="previous-form hidden-sm hidden-xs" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			<a class="previous-form d-none d-md-inline-block" href="{{ previous_form_link }}">
+				<span class="fa fa-chevron-left" aria-hidden="true"></span>
 			</a>
 
-			<a class="next-form hidden-sm hidden-xs" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			<a class="next-form d-none d-md-inline-block" href="{{ next_form_link }}">
+				<span class="fa fa-chevron-right" aria-hidden="true"></span>
 			</a>
     <div class="row">
         <div class="col-md-12">
@@ -106,16 +106,16 @@
 
             <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
 	      {% csrf_token %}
-          <div class="panel panel-info">
-              <div class="panel-body">
+          <div class="card card-info">
+              <div class="card-body">
                   {{ message.print }}
                   {% trans "Please click the green 'save' button before progressing to the next module." %}
           </div>
       </div>
 
-              <div id="clinician_panel" class="panel panel-default">
-		<div class="panel-heading"><strong>{{form_name}}</strong></div>
-                <div class="panel-body">
+              <div id="clinician_panel" class="card">
+		<div class="card-header"><strong>{{form_name}}</strong></div>
+                <div class="card-body">
 		   <div class="alert alert-warning">
                             {% blocktrans trimmed %}
                             Please select your supervising clinician below. This clinician should be someone that you are able to access through an appointment at a later date for them to verify that the data you have entered is correct. If your clinician is not listed below, please choose ‘other’ and provide their details.
@@ -123,12 +123,12 @@
                         </div>
                     {% for field in form %}
                     {% if field.name == "user" %}
-		       <div class="form-group">
+		       <div class="row">
 		    {% else %}
-		       <div class="form-group hideable">
+		       <div class="row hideable">
                     {% endif %}
 
-		    <label  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 control-label">
+		    <label for="id_{{ field.name }}"  style="text-align: left; display: {{field.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                         {{ field.label|translate }}
 			<br>
 			{% if not field.is_hidden %}
@@ -137,7 +137,7 @@
                           </small>
 		        {% endif %}
                         {% if field.required %}
-                          <span class="glyphicon glyphicon-asterisk" style="color: red;" aria-hidden="true"></span>
+                          <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
                         {% endif %}
                     </label>
 
@@ -149,7 +149,7 @@
                         {% endif %}
 
 			{% if field.errors %}
-                          <span class="label label-danger">{{ field.errors.as_text }}</span>
+                          <span class="badge bg-danger">{{ field.errors.as_text }}</span>
                         {% endif %}
                     </div>
 

@@ -192,7 +192,7 @@
         <button id="hide-description-btn" type="button" class="btn btn-primary btn-sm">{% trans "Hide description" %}</button>
         <button id="hide-form-btn" type="button" class="btn btn-primary btn-sm">{% trans "Hide form" %}</button>
 
-        <div class="pull-right">
+        <div class="float-end">
             <button type="button" class="btn btn-warning btn-sm" id="sql-submit-query">{% trans "Validate" %}</button>
             <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
             <button type="button" name="" id="submit-query" class="btn btn-success btn-sm">{% trans "Run" %}</button>
@@ -200,41 +200,37 @@
 
         <div id="query-description">
             <hr>
-            <div class="form-group" style="margin-top: 30px;">
+            <div class="row" style="margin-top: 30px;">
                 <input type="text" class="form-control" id="title" name='title' placeholder="Title" value="{{form.title.value|default_if_none:""}}">
             </div>
             
-            <div class="form-group">
+            <div class="row">
                 <textarea  placeholder="Description" class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value}}</textarea>
             </div>
         </div>
         
-        <div id="query-form-table">        
+        <div id="query-form-table">
             <hr/>
-    
+
             <div class="row">
-                <div class="col-md-12">    
-                    <div class="form-group">
-                        <label for="registry">{% trans "Registry" %}</label>
-                            {{form.registry}}
-                    </div>
+                <div class="col-md-12">
+                    <label for="registry" class="form-label">{% trans "Registry" %}</label>
+                    {{form.registry}}
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-12">    
-                    <div class="form-group">
-                        <label for="registry">{% trans "Access" %}</label>
-                            {{form.access_group}}
-                    </div>
+                <div class="col-md-12">
+                    <label for="registry" class="form-label">{% trans "Access" %}</label>
+                    {{form.access_group}}
                 </div>
             </div>
     
             <div id="search_type" class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="mongo_search_type">{% trans "Report Type" %}</label>
-                            {{form.mongo_search_type}}
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="mongo_search_type" class="form-label">{% trans "Report Type" %}</label>
+                        {{form.mongo_search_type}}
                     </div>
                 </div>
             </div>
@@ -265,17 +261,14 @@
             </div>
 
 
-	     <div id="max_items" class="row">
-	       <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="max_items">{% trans 'Maximum number of items in multisection to return' %}</label>
-                            {{form.max_items}}
-                    </div>
+            <div id="max_items" class="row">
+                <div class="col-md-12">
+                    <label for="max_items" class="form-label">{% trans 'Maximum number of items in multisection to return' %}</label>
+                    {{form.max_items}}
                 </div>
+            </div>
 
-	    </div>
 
-    
             <div class="row" id="mongo-parameters-find">
                 <div class="col-md-6">
                     <textarea style="display:none;" class="form-control" cols="40" id="criteria" name="criteria" rows="10">{{form.criteria.value}}</textarea>

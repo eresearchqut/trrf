@@ -88,22 +88,22 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <div class="panel panel-info trrf-page-header">
-                <div class="panel-body">
+            <div class="card card-info trrf-page-header">
+                <div class="card-body">
                     <h2>{% trans form_title %}</h2>
                     <div class="input-group">
                         <input type="text" id="search" class="form-control" placeholder="Search for..."
                                aria-label="Search" autofocus="autofocus">
                         <span class="input-group-btn">
-                            <button id="search-button" class="btn btn-default" type="button">
-                                <i class="glyphicon glyphicon-search" aria-hidden="true"></i>
+                            <button id="search-button" class="btn btn-outline-secondary" type="button">
+                                <i class="fa fa-search" aria-hidden="true"></i>
                             </button>
                         </span>
                     </div>
                 </div>
             </div>
-            <div class="panel panel-default">
-                <div class="panel-body">
+            <div class="card">
+                <div class="card-body">
                     {% if no_form_links %}
                         <span>{% trans "No forms available" %}</span>
                     {% else %}

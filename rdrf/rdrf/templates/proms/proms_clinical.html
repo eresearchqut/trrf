@@ -23,7 +23,7 @@
        $(document).ready(function(){
             $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
             $("textarea").addClass("form-control");
-            $("select").addClass("form-control");
+            $("select").addClass("form-select");
         });
     </script>
 
@@ -39,12 +39,12 @@
 
 {% block content %}
 
-			<a class="previous-form hidden-sm hidden-xs" href="{{ previous_form_link }}">
-				<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+			<a class="previous-form d-none d-md-inline-block" href="{{ previous_form_link }}">
+				<span class="fa fa-chevron-left" aria-hidden="true"></span>
 			</a>
 
-			<a class="next-form hidden-sm hidden-xs" href="{{ next_form_link }}">
-				<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+			<a class="next-form d-none d-md-inline-block" href="{{ next_form_link }}">
+				<span class="fa fa-chevron-right" aria-hidden="true"></span>
 			</a>
     <br>
     <div class="row">
@@ -57,13 +57,13 @@
 
     </div>
 
-    <div id="existing_surveys_panel" class="panel panel-default" style="color:#337ab7">
-	    <div class="panel-heading"><strong>{% trans 'Existing Surveys' %}</strong>
-            <a class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#new_survey_request_modal">
-                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add 
+    <div id="existing_surveys_panel" class="card" style="color:#337ab7">
+	    <div class="card-header"><strong>{% trans 'Existing Surveys' %}</strong>
+            <a class="btn btn-info btn-xs float-end" data-bs-toggle="modal" data-bs-target="#new_survey_request_modal">
+                <span class="fa fa-plus" aria-hidden="true"></span> Add
             </a>
 		</div>
-        <div class="panel-body">
+        <div class="card-body">
     	    <table class="table table-striped table-list">
                 <thead>
                     <tr>
@@ -109,9 +109,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="new_survey_request_label">New Survey Request</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div id="modal-body" class="modal-body">
 	<form id="survey_request_form" method="POST">{% csrf_token %}
@@ -119,7 +117,7 @@
       </form>
       </div>
       <div class="modal-footer">
-        <button id="close_button" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="close_button" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button id="save_button" type="button" class="btn btn-primary" onClick="submitNewSurveyRequest()">Save</button>
       </div>
     </div>

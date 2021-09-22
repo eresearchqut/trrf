@@ -29,6 +29,13 @@
       z-index: initial;
       position: initial;
     }
+    #changelist-filter a {
+        overflow: visible;
+        text-decoration: none;
+    }
+    #changelist-filter a:hover {
+        text-decoration: underline;
+    }
     .admin-table td, .admin-table th {
       max-width: 150px;
       overflow: hidden;
@@ -37,6 +44,9 @@
     div.tooltip-inner {
       max-width: 350px;
       word-wrap: break-word;
+    }
+    #toolbar {
+      text-align: right;
     }
   </style>
 {% endblock %}
@@ -51,6 +61,7 @@
         $("tr input.action-select").actions();
         if ($("input[value='Search']")) {
             $("#add_button").insertAfter($("input[value='Search']"));
+            $("#add_button").removeClass("d-none");
         }
     });
 })(django.jQuery);
@@ -67,12 +78,12 @@ $(function () {
     }
 
     cell
-      .attr("data-toggle", "tooltip")
-      .attr("data-placement", "top")
+      .attr("data-bs-toggle", "tooltip")
+      .attr("data-bs-placement", "top")
       .attr("title", textCell.innerHTML)
       .css("text-overflow", "ellipsis")
       .tooltip({
-        container: "body"
+        container: cell
       });
   });
 });
@@ -96,13 +107,13 @@ $(function () {
 {% block content %}
   <div id="content-main">
     {% url cl.opts|admin_urlname:'add' as add_url %}
-    <a href="{% add_preserved_filters add_url is_popup %}" class="btn btn-success btn-xs pull-right" style="margin-left: 5px;" id="add_button">
-      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add
+    <a href="{% add_preserved_filters add_url is_popup %}" class="d-none btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
+      <span class="fa fa-plus" aria-hidden="true"></span> Add
     </a>
     <div class="row">
         <div class="col-md-12">
-            <p><h3><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> {% blocktrans with cl.opts.verbose_name_plural|title as name %}{{ name }}{% endblocktrans %}</h3></p>
-            <i class="text-muted"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
+            <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% blocktrans with cl.opts.verbose_name_plural|title as name %}{{ name }}{% endblocktrans %}</h3></p>
+            <i class="text-muted"><span class="fa fa-user" aria-hidden="true"></span> {{user.first_name}} {{user.last_name}} ({{user.title}})</i>
         </div>
     </div>
 
@@ -163,7 +174,7 @@ $(function () {
     <script>
         $(document).ready(function($) {
             $("#add_button").insertAfter($("input[value='Search']"));
-            $("#toolbar").attr("style", "text-align:right");
+            $("#add_button").removeClass("d-none");
         });
     </script>
 {% endblock %}

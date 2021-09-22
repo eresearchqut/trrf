@@ -173,11 +173,25 @@ def show_stats(export_name):
 
 
 def click(element):
-    scrollelementintomiddle = "var viewPortHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);" + \
-                              "var elementTop  = arguments[0].getBoundingClientRect().top;" + \
-                              "window.scrollBy(0, elementTop-(viewPortHeight/2));"
-    world.browser.execute_script(scrollelementintomiddle, element)
-    element.click()
+    from selenium.common.exceptions import WebDriverException
+    try:
+        element.click()
+    except WebDriverException:
+        # Make sure the element is accessible before clicking it
+        scroll_element_into_view(element, True)
+        element.click()
+
+
+def scroll_element_into_view(element, execute_pause=False):
+    world.browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+    if execute_pause:
+        pause(2)
+
+
+def pause(seconds):
+    import time
+    n = int(seconds)
+    time.sleep(n)
 
 
 def debug_links():
@@ -204,7 +218,7 @@ def scroll_to_multisection_cde(section, cde, item=1):
                                                                  item))
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
-    xpath = "//div[@class='panel-heading' and contains(., '%s')]" % section
+    xpath = "//div[@class='card-header' and contains(., '%s')]" % section
     panel_heading = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
     if is_section_collapsed(world.browser.find_element_by_xpath(xpath)):
         click(panel_heading)
@@ -237,7 +251,7 @@ def scroll_to_cde(section, cde, item=None):
     """
     input_element = None
     section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='panel-heading'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+        ".//div[@class='card-header'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
     if is_section_collapsed(section_div_heading):
         click(section_div_heading)
 
@@ -277,12 +291,12 @@ def scroll_to_cde(section, cde, item=None):
 
 
 def is_section_collapsed(section):
-    section_body = section.find_element_by_xpath(".//following-sibling::div[contains(@class, 'panel-body')]")
+    section_body = section.find_element_by_xpath(".//following-sibling::div[contains(@class, 'card-body')]")
     css_class = section_body.get_attribute('class')
     if css_class is None:
         return False
     css_classes = css_class.split(' ')
-    return 'collapse' in css_classes and 'in' not in css_classes
+    return 'collapse' in css_classes and 'show' not in css_classes
 
 
 def wait_for_first_section():
