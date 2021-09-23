@@ -240,11 +240,11 @@ form .aligned ul.errorlist {
 /**************************************************************************
  * Project Title and Logo                                                 */
 
-.project-title {
+.project_title {
     height: 40px;
 }
 
-.project-logo {
+.project_logo {
     max-height: 100%;
     vertical-align: top;
 }
