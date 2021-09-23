@@ -373,7 +373,7 @@ class RadioSelect(widgets.RadioSelect):
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         force_vertical = self.attrs.pop("force_vertical") if "force_vertical" in self.attrs else False
-        context["column_width"] = "col-sm-12" if force_vertical else self._get_column_width()
+        context["column_width"] = "col-12" if force_vertical else self._get_column_width()
         return context
 
 
