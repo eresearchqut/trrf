@@ -244,7 +244,7 @@
 			</div>
 			<!-- end of hidden empty form for {{s}} -->
 
-                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-success btn-small" onclick="add_form('{{formset.prefix}}');"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
+                        <button id="add_button_for_section_{{s}}" type="button" class="btn btn-info btn-small" onclick="add_form('{{formset.prefix}}');"><i class="icon-white icon-plus"></i> {% trans 'Add' %}</button>
 			<div id="forms_{{formset.prefix}}">
 
                             {% for f in forms|get_forms:s %}

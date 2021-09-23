@@ -340,7 +340,7 @@
 
                         {% if forms|is_formset:s and not changes_since_version %}
                             {% with formset=forms|get_form_object:s %}
-                                <a class="btn btn-primary btn-xs float-end" onclick="add_form(this, '{{formset.prefix}}');">
+                                <a class="btn btn-info btn-xs float-end" onclick="add_form(this, '{{formset.prefix}}');">
                                     <span class="fa fa-plus" aria-hidden="true"></span> {% trans "Add" %}
                                 </a>
                             {% endwith %}
