@@ -240,10 +240,13 @@ form .aligned ul.errorlist {
 /**************************************************************************
  * Project Title and Logo                                                 */
 
-.project_logo {
-    height: 48px;
-    margin-top: -16px;
-    margin-bottom: -10px;
+.project-title {
+    height: 40px;
+}
+
+.project-logo {
+    max-height: 100%;
+    vertical-align: top;
 }
 
 .section_blacklist_hidden {
