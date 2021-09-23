@@ -510,11 +510,11 @@ AUTH_USER_MODEL = 'groups.CustomUser'
 AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR = "password_change_date"
 
 # How long a user's password is good for. None or 0 means no expiration.
-PASSWORD_EXPIRY_DAYS = env.get("password_expiry_days", 180)
-# How long before expiry will the frontend start bothering the user
-PASSWORD_EXPIRY_WARNING_DAYS = env.get("password_expiry_warning_days", 30)
-# Disable the user's account if they haven't logged in for this time
-ACCOUNT_EXPIRY_DAYS = env.get("account_expiry_days", 100)
+PASSWORD_EXPIRY_DAYS = env.get("password_expiry_days", 0)
+# How long before expiry will the frontend start bothering the user. None or 0 means no expiration.
+PASSWORD_EXPIRY_WARNING_DAYS = env.get("password_expiry_warning_days", 0)
+# Disable the user's account if they haven't logged in for this time. None or 0 means no expiration.
+ACCOUNT_EXPIRY_DAYS = env.get("account_expiry_days", 0)
 
 # Allow users to unlock their accounts by requesting a reset link in email and then visiting it
 ACCOUNT_SELF_UNLOCK_ENABLED = env.get("account_self_unlock_enabled", True)
