@@ -228,6 +228,7 @@ form .aligned ul.errorlist {
 
 .radio-select {
     padding-top: 7px;
+    overflow: auto;
 }
 
 .radio-select input[type=radio] {
