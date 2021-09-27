@@ -146,28 +146,7 @@
     <div class="container" style="padding-top: 50px;">
         <br>
 
-        {% if form.non_field_errors or form.errors %}
-            <div class="alert alert-danger">
-                {% if form.non_field_errors %}
-                    {% for err in form.non_field_errors %}
-                        <p class="form-error">{{ err }}</p>
-                    {% endfor %}
-                {% endif %}
-                {% if form.errors %}
-                    {% for field in form %}
-                        {% if field.errors %}
-                            <p><strong>{{field.label}}</strong>:
-                                <ul>
-                                    {% for err in field.errors %}
-                                        <li>{{ err|striptags }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </p>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            </div>
-        {% endif %}
+        {%  include "rdrf_cdes/form_list_errors.html" %}
 
         {% block content %}
         {% endblock %}

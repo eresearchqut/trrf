@@ -195,6 +195,11 @@ class CountryWidget(widgets.Select):
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
+    @staticmethod
+    def choices():
+        return [(c.alpha_2, c.name)
+                for c in sorted(pycountry.countries, key=attrgetter("name"))]
+
     def render(self, name, value, attrs, renderer=None):
         final_attrs = self.build_attrs(attrs, {
             "name": name,
