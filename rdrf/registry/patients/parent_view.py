@@ -56,29 +56,27 @@ class BaseParentView(View):
 class ParentView(BaseParentView):
 
     def get(self, request, registry_code):
-        return self._render_parent(request, registry_code)
+        return self._render_parent(request, registry_code, ParentAddPatientForm())
 
     def _get_parent_patients(self, parent):
         for patient in parent.patient.all():
             self.rdrf_context_manager.get_or_create_default_context(patient)
             yield patient
 
-    def _render_parent(self, request, registry_code, extra_context={}):
+    def _render_parent(self, request, registry_code, form):
         self.rdrf_context_manager = RDRFContextManager(self.registry)
         fth = FormTitleHelper(self.registry, "")
 
-        default_context = {
+        context = {
             "parent": self.parent,
             "patients": [{
                 "patient": patient,
                 "consent": consent_status_for_patient(registry_code, patient)
             } for patient in self._get_parent_patients(self.parent)],
             "registry_code": registry_code,
-            "form": ParentAddPatientForm(),
+            "form": form,
             "form_titles": fth.all_titles_for_user(request.user)
         }
-
-        context = {**default_context, **extra_context}
 
         return render(request, 'rdrf_cdes/parent.html', context)
 
@@ -86,7 +84,7 @@ class ParentView(BaseParentView):
         form = ParentAddPatientForm(request.POST)
 
         if not form.is_valid():
-            return self._render_parent(request, registry_code, {'form': form})
+            return self._render_parent(request, registry_code, form)
 
         form_clean = form.cleaned_data
         patient = Patient.objects.create(
