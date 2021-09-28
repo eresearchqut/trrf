@@ -99,19 +99,31 @@ class ParentView(BaseParentView):
 
         patient.save()
 
-        use_parent_address = form_clean['use_parent_address']
-
         address_type, created = AddressType.objects.get_or_create(type=self._ADDRESS_TYPE)
 
-        PatientAddress.objects.create(
-            patient=patient,
-            address_type=address_type,
-            address=self.parent.address if use_parent_address else form_clean["address"],
-            suburb=self.parent.suburb if use_parent_address else form_clean["suburb"],
-            state=self.parent.state if use_parent_address else form_clean["state"],
-            postcode=self.parent.postcode if use_parent_address else form_clean["postcode"],
-            country=self.parent.country if use_parent_address else form_clean["country"]
-        )
+        address_fields = {
+            "patient": patient,
+            "address_type": address_type
+        }
+
+        if form_clean['use_parent_address']:
+            address_fields.update({
+                "address": self.parent.address,
+                "suburb": self.parent.suburb,
+                "state": self.parent.state,
+                "postcode": self.parent.postcode,
+                "country": self.parent.country
+            })
+        else:
+            address_fields.update({
+                "address": form_clean["address"],
+                "suburb": form_clean["suburb"],
+                "state": form_clean["state"],
+                "postcode": form_clean["postcode"],
+                "country": form_clean["country"]
+            })
+
+        PatientAddress.objects.create(**address_fields)
 
         self.parent.patient.add(patient)
         self.parent.save()
