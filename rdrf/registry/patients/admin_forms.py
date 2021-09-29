@@ -685,7 +685,7 @@ class ParentAddPatientForm(forms.Form):
     use_parent_address = forms.BooleanField(required=False)
     address = forms.CharField(required=True, max_length=100)
     suburb = forms.CharField(required=True, max_length=30)
-    country = forms.ChoiceField(required=True, widget=CountryWidget(), choices=CountryWidget.choices(), initial="")
+    country = forms.ChoiceField(required=True, widget=CountryWidget, choices=CountryWidget.choices(), initial="")
     state = forms.CharField(required=True, widget=StateWidget)
     postcode = forms.CharField(required=True, max_length=30)
 
