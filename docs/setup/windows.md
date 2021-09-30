@@ -92,6 +92,24 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     docker-compose up    
     ```
 
+### Running aloe (end to end) tests
+Note: The *.feature files need to be non-executable to be run by the end2end-tests.sh script.  
+Windows will have set these files to be executable, and requires the [following workaround](https://forums.docker.com/t/all-files-appear-as-executable-in-file-paths-using-bind-mount/99921/3) needs to be applied
+to allow the file permissions to be updated:
+1. Modify (or create if doesn't already exist) /etc/wsl.conf
+   ```
+   [automount]
+   options = "metadata"
+   ```
+2. Exit out of wsl, then stop wsl in Powershell with `wsl --shutdown`
+3. Open wsl and update the permissions of the `*.feature` files:
+   ```
+   chmod 600 ~/path/to/trrf/rdrf/rdrf/testing/behaviour/features/*.feature
+   ```
+4. Optionally, connect with a VNC Viewer (e.g. RealVNC Vnc Viewer) to see the tests running:
+   * VNC Server address: `localhost:5901`
+   * Password: `secret`
+
 ## IDE Setup (Pycharm)
 
 ### General development setup
@@ -126,7 +144,8 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
 git config --global core.symlinks
 
 ```
-2. Clone the customer site repository 
+2. Run Git Bash as an administrator, and then clone the customer site repository. The elevated permissions are required
+for the symlinks in the repository to be created.
 3. Initialise the Git submodules
 ```
 cd path/to/mnd
@@ -155,9 +174,15 @@ pip install -r test-requirements.txt
 6. Configure the python interpreter in IntelliJ using wsl as the interpreter
    * Python Interpreter path needs to point to the python exe in the virtual environment you created for this site.
    e.g. `/home/totagian/.pyenv/versions/mnd/bin/python`
-7. Run docker compose
-   1. There is a [bug in Docker Compose that causes it to fail with a symlinked Dockerfile](https://github.com/docker/compose/issues/7397). Run the following as a workaround:  
-       ```
-       DOCKER_BUILDKIT=0 docker-compose build
-       ```
-   2. Finally, run the site with `docker-compose up`.
+7. Run docker compose: `docker-compose up`  
+Note: There is a [bug in Docker Compose that causes it to fail with a symlinked Dockerfile](https://github.com/docker/compose/issues/7397).  
+Here are some workarounds to try:
+   1. Disable the Docker Buildkit and build the node service
+   ```
+   DOCKER_BUILDKIT=0 docker-compose build --no-cache node
+   ```
+   2. If that didn't work, try this: 
+      1. Modify the path to the node service's dockerfile in `docker-compose.yml` to point to the non symlinked file e.g. `rdrf/docker/dev/Dockerfile-node`. 
+      2. Build the node service: `docker-compose build --no-cache node`
+      3. Revert your changes to `docker-compose.yml`
+      4. Run `docker-compose up`
