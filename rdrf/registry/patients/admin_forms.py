@@ -677,6 +677,26 @@ class PatientForm(forms.ModelForm):
         return closure
 
 
+class ParentAddPatientForm(forms.Form):
+    first_name = forms.CharField(required=True, max_length=30)
+    surname = forms.CharField(required=True, max_length=30)
+    date_of_birth = forms.DateField(required=True)
+    gender = forms.ChoiceField(choices=Patient.SEX_CHOICES, widget=forms.RadioSelect, required=True)
+    use_parent_address = forms.BooleanField(required=False)
+    address = forms.CharField(required=True, max_length=100)
+    suburb = forms.CharField(required=True, max_length=30)
+    country = forms.ChoiceField(required=True, widget=CountryWidget, choices=CountryWidget.choices(), initial="")
+    state = forms.CharField(required=True, widget=StateWidget)
+    postcode = forms.CharField(required=True, max_length=30)
+
+    def _clean_fields(self):
+        base_required_fields = ['address', 'suburb', 'country', 'state', 'postcode']
+        if self.data.get('use_parent_address', False):
+            for f in base_required_fields:
+                self.fields[f].required = False
+        super()._clean_fields()
+
+
 class ParentGuardianForm(forms.ModelForm):
     class Meta:
         model = ParentGuardian

@@ -8,12 +8,11 @@
 {% block extrastyle %}
     <link rel="stylesheet" href="{% static 'css/jquery-1.12.1/themes/smoothness/jquery-ui.min.css' %}">
     <script type="text/javascript" src="{% static 'js/vendor/jquery-ui-1.12.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/input_styling.js' %}"></script>
     <script type="text/javascript">
-        function not_implemented() {
-            alert("This feature is coming soon...");
-        }
-
         $(document).ready(function(){
+
+            setInputStyling();
 
             $("#id_date_of_birth").datepicker({
                 "dateFormat": "yy-mm-dd"
@@ -24,11 +23,7 @@
             });
 
             $("#id_use_parent_address").click(function() {
-                if($(this).prop("checked")) {
-                    $("#new_patient_address").slideUp();
-                } else {
-                    $("#new_patient_address").slideDown();
-                }
+                togglePatientAddress($(this));
             });
 
             var state_lookup_url = "{% url 'v1:state_lookup' 'XX' %}";
@@ -42,10 +37,39 @@
                     });
                 });
             });
+
+            {% if form.non_field_errors or form.errors %}
+                const $modal_element = $("#new_patient_modal");
+                new bootstrap.Modal($modal_element).show();
+                togglePatientAddress($("#id_use_parent_address"));
+            {% endif %}
         });
 
         function go_to_page(obj) {
             window.location.href = $(obj).find(":selected").val();
+        }
+
+        function togglePatientAddress($useParentAddress) {
+            const showAddress = $useParentAddress.is(':not(:checked)');
+            const $new_patient_address = $("#new_patient_address");
+            const address_fields = $new_patient_address.find(':input');
+            const toggleRequiredAddressAttributesFn = function(isAddressRequired) {
+                address_fields.each(function(i, elem) {
+                    if (isAddressRequired) {
+                        $(elem).attr('required', 'required');
+                    } else {
+                        $(elem).removeAttr('required');
+                    }
+                });
+            };
+
+            if (showAddress) {
+                $new_patient_address.slideDown();
+                toggleRequiredAddressAttributesFn(true);
+            } else {
+                $new_patient_address.slideUp()
+                toggleRequiredAddressAttributesFn(false);
+            }
         }
     </script>
 {% endblock %}
@@ -86,35 +110,38 @@
                     </div>
                     <form class="form-horizontal" method="POST">
                         <div class="modal-body">
+                            {%  include "rdrf_cdes/form_list_errors.html" %}
                             {% csrf_token %}
                             <input type="hidden" name="id_parent" value="{{parent.id}}">
                             <div class="row top-separator">
                                 <label for="first_name" class="col-sm-2 col-form-label">{% trans 'First Name' %}</label>
                                 <div class="col-sm-10">
-                                    <input class="form-control" id="id_first_name" maxlength="30" name="first_name" type="text" required />
+                                    {{ form.first_name }}
                                 </div>
                             </div>
                             <div class="row">
                                 <label for="surname" class="col-sm-2 col-form-label">{% trans 'Surname' %}</label>
                                 <div class="col-sm-10">
-                                    <input class="form-control" id="id_surname" maxlength="30" name="surname" type="text" required />
+                                    {{ form.surname }}
                                 </div>
                             </div>
                             <div class="row">
                                 <label for="date_of_birth" class="col-sm-2 col-form-label">{% trans 'Date of Birth' %}</label>
                                 <div class="col-sm-10">
-                                    <input class="form-control" id="id_date_of_birth" name="date_of_birth" type="text" required />
+                                    {{ form.date_of_birth }}
                                 </div>
                             </div>
                             <div class="row">
                                 <label class="col-sm-2 col-form-label">{% trans 'Gender' %}</label>
                                 <div class="col-sm-10">
                                     <div class="radio">
-                                        <label><input type="radio" id="id_gender_m" name="gender" value="1" required>{% trans 'Male' %}</label>
-                                        <br>
-                                        <label><input type="radio" id="id_gender_f" name="gender" value="2" required>{% trans 'Female' %}</label>
-                                        <br>
-                                        <label><input type="radio" id="id_gender_i" name="gender" value="3" required>{% trans 'Indeterminate' %}</label>
+                                        {% for choice in form.gender %}
+                                            <label class="col-12">
+                                                {{ choice.tag }}
+                                                {% trans choice.choice_label %}
+                                            </label>
+                                            <br/>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
@@ -122,7 +149,7 @@
                             <div class="row">
                                 <label class="col-sm-2 col-form-label">{% trans "Use parent's address?" %}</label>
                                 <div class="col-sm-10">
-                                    <input name="use_parent_address" type="checkbox" id="id_use_parent_address" />
+                                    {{ form.use_parent_address }}
                                 </div>
                             </div>
 
@@ -130,39 +157,31 @@
                                 <div class="row">
                                     <label class="col-sm-2 col-form-label">{% trans 'Address' %}</label>
                                     <div class="col-sm-10">
-                                        <input class="form-control" id="id_address" maxlength="100" name="address" type="text" />
+                                        {{ form.address }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <label class="col-sm-2 col-form-label">{% trans 'Suburb' %}</label>
                                     <div class="col-sm-10">
-                                        <input class="form-control" id="id_suburb" maxlength="30" name="suburb" type="text" />
+                                        {{ form.suburb }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <label class="col-sm-2 col-form-label">{% trans 'Postcode' %}</label>
                                     <div class="col-sm-10">
-                                        <input class="form-control" id="id_postcode" maxlength="30" name="postcode" type="text" />
+                                        {{ form.postcode }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <label class="col-sm-2 col-form-label">{% trans 'Country' %}</label>
                                     <div class="col-sm-10">
-                                        <select class="form-select" id="id_country" name="country">
-                                            <option value="-1">{% trans 'Choose one' %}...</option>
-                                            {% get_countries as countries %}
-                                            {% for con in countries %}
-                                                <option value="{{con.alpha_2}}">{% trans con.name %}</option>
-                                            {% endfor %}
-                                        </select>
+                                        {{ form.country }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <label class="col-sm-2 col-form-label">{% trans 'State' %}</label>
                                     <div class="col-sm-10">
-                                        <select class="form-select" id="id_state" maxlength="30" name="state">
-                                            <option value="-1">{% trans "State / County / Province / Region" %}</option>
-                                        </select>
+                                        {{ form.state }}
                                     </div>
                                 </div>
                             </div>
