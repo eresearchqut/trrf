@@ -80,7 +80,7 @@ $(document).ready(function (){
             </div>
               <div class="mb-3 form-check">
                   <input type="checkbox" id="id_toggle-password" class="form-check-input">
-                  <label class="form-check-label" for="id_toggle-password">Show Password</label>
+                  <label class="form-check-label" for="id_toggle-password">{% trans "Show Password" %}</label>
               </div>
           {% elif wizard.steps.current == 'token' %}
             <input type="hidden" name="login_view-current_step" value="token" id="id_login_view-current_step">
