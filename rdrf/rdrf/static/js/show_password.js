@@ -5,7 +5,7 @@ function initToggleShowPassword($password_fields, $password_toggle) {
     let enable_timeout = true;
 
     const timeout_sec = 60;
-    const password_timeout_msg = gettext("Passwords will be automatically hidden after " + timeout_sec + " seconds.");
+    const password_timeout_msg = interpolate("Passwords will be automatically hidden after %s seconds.", [timeout_sec]);
     const turn_off_timeout_msg = gettext("Don't automatically hide passwords.");
     const $timeout_message = $("<div />", {
             class: "small text-muted mb-3",
