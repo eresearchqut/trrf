@@ -1,5 +1,4 @@
 function initToggleShowPassword($password_fields, $password_toggle) {
-
     /* Private Fields */
     let timeout_id;
     let enable_timeout = true;
@@ -15,17 +14,15 @@ function initToggleShowPassword($password_fields, $password_toggle) {
     });
 
     /* Private Functions */
-    const toggleFieldType = function(type) {
-        $password_fields.attr("type", type);
-    };
-    const resetPasswordFields = function() {
+    const toggleFieldType = (type) => $password_fields.attr("type", type);
+    const resetPasswordFields = () => {
         toggleFieldType("password");
         $timeout_message.hide();
         $password_toggle.prop("checked", false);
     };
 
     /* Init */
-    $password_toggle.on('click', function() {
+    $password_toggle.on('click', () => {
         if ($password_toggle.is(":checked")) {
             toggleFieldType("text");
 
@@ -40,12 +37,11 @@ function initToggleShowPassword($password_fields, $password_toggle) {
         }
     });
 
-    $timeout_message.find("#turn_off_timeout").on("click", function() {
+    $timeout_message.find("#turn_off_timeout").on("click", () => {
         enable_timeout = false;
         clearTimeout(timeout_id);
         $timeout_message.hide();
     });
 
     $timeout_message.insertAfter($password_toggle.parent("div"));
-
 }
