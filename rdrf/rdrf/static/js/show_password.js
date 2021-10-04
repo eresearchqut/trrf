@@ -11,7 +11,7 @@ function initToggleShowPassword($password_fields, $password_toggle) {
             class: "small text-muted mb-3",
             style: "display: none",
             html: password_timeout_msg + " <br />" +
-                "<button type='button' class='p-0 btn btn-link btn-sm turn-off-timeout'>" + turn_off_timeout_msg + "</button>"
+                "<button id='turn_off_timeout' type='button' class='p-0 btn btn-link btn-sm'>" + turn_off_timeout_msg + "</button>"
     });
 
     /* Private Functions */
@@ -40,7 +40,7 @@ function initToggleShowPassword($password_fields, $password_toggle) {
         }
     });
 
-    $timeout_message.find(".turn-off-timeout").on("click", function() {
+    $timeout_message.find("#turn_off_timeout").on("click", function() {
         enable_timeout = false;
         clearTimeout(timeout_id);
         $timeout_message.hide();
