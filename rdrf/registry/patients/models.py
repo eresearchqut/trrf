@@ -174,7 +174,7 @@ class PatientManager(models.Manager):
         if user.is_curator:
             return qs.filter(
                 rdrf_registry=registry_model,
-                working_groups__in=user.working_groups.all())
+                working_groups__in=user.working_groups.all()).distinct()
         if user.is_working_group_staff:
             return qs.filter(working_groups__in=user.working_groups.all())
         if user.is_clinician:
