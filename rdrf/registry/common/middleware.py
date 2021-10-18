@@ -58,14 +58,17 @@ class UserSentryMiddleware(MiddlewareMixin):
 
 class LaxSameSiteCookieMiddleware(MiddlewareMixin):
     """
-    Sets 'SameSite: Lax' on cookies when resetting user passwords.
+    Sets 'SameSite: Lax' on cookies when resetting user passwords,
+    and when logging in during passwordless registration.
     Must be installed before SessionMiddleware.
 
     This mitigates a bug where redirect-urls from email clients cause cookies
     to not be set when part of a redirect chain.
     """
     applied_views = [
-        'password_reset_confirm'
+        'password_reset_confirm',
+        'registration_activate',
+        'registration_activation_complete',
     ]
 
     def process_response(self, request, response):
