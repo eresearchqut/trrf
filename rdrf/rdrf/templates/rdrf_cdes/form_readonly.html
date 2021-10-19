@@ -155,7 +155,7 @@
 
 
 {% block content %}<br>
-    <div class="alert alert-danger">This form is readonly</div>
+    <div class="alert alert-warning">{% trans "This form is read-only. You do not have permission to edit this form." %}</div>
     {{ block.super }}
     	<a class="previous-form d-none d-md-inline-block" href="{{ previous_form_link }}">
 		<span class="fa fa-chevron-left" aria-hidden="true"></span>
