@@ -272,9 +272,9 @@
 		</a>
 
 		{% if show_print_button %}
-			<a class="btn btn-secondary" href="{% url 'registry_form_print' registry_code form_name patient_id context_id %}" target="_blank">
+			<button type="button" class="btn btn-secondary" onclick="window.print();">
 				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
-			</a>
+			</button>
 		{% endif %}
 	</div>
 {% endblock %}
