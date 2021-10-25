@@ -32,7 +32,7 @@ table {
 
 @media print {
 
-    .navbar, #sidebar, .panel-collapse-icon, .btn, .alert, .previous-form, .next-form {
+    .navbar, #sidebar, .panel-collapse-icon, .btn, .alert, .previous-form, .next-form, script {
         display: none !important;
     }
 
