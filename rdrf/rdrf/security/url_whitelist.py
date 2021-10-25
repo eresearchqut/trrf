@@ -364,7 +364,6 @@ SECURITY_WHITELISTED_URLS = (
     "registry_form_dsl_help",
     "registry_form_field_history",
     "registry_form_list",
-    "registry_form_print",
     "report_datatable",
     "reports",
     "resend_email",

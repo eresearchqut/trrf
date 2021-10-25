@@ -1132,12 +1132,6 @@ class FormView(View):
         return "rdrf_cdes/form.html"
 
 
-class FormPrintView(FormView):
-
-    def _get_template(self):
-        return "rdrf_cdes/form_print.html"
-
-
 class FormListView(TemplateView):
     template_name = "rdrf_cdes/form_list.html"
 
@@ -1274,7 +1268,6 @@ class QuestionnaireView(FormView):
             context["registry"] = self.registry
             context["country_code"] = questionnaire_context
             context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
-            context["show_print_button"] = False
 
             return self._render_context(request, context)
         except RegistryForm.DoesNotExist:
@@ -1799,7 +1792,6 @@ class CustomConsentFormView(View):
             "previous_form_link": wizard.previous_link,
             "parent": parent,
             "consent": consent_status_for_patient(registry_code, patient_model),
-            "show_print_button": True,
             "can_sign_consent": can_sign_consent(request.user, patient_model)
         }
 
