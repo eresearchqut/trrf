@@ -567,7 +567,7 @@ class SliderWidget(widgets.TextInput):
             widget_attrs = ''
 
         context = f"""
-             <div>
+             <div class="rdrf-cde-slider">
                 <div style="float:left; margin-right:20px;"><b>{_(left_label)}</b></div>
                 <div style="float:left">
                     <input type="hidden" id="{attrs['id']}" name="{name}" value="{value}"/>

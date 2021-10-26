@@ -25,3 +25,41 @@ table {
 .table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
     border-top: 0;
 }
+
+.col-12.float-start {
+    float: none !important;
+}
+
+@media print {
+
+    .navbar, #sidebar, .panel-collapse-icon, .btn, .alert, .previous-form, .next-form, script {
+        display: none !important;
+    }
+
+    .banner, .footer-wrap {
+        box-shadow: none;
+        -webkit-box-shadow: none;
+        position: static;
+    }
+
+    #content {
+        padding-top: 0px !important;
+    }
+
+    .card-body.collapse {
+        display: block !important;
+    }
+
+    .rdrf-cde-slider {
+        margin-top: 25px;
+    }
+
+    .progress-bar, .tooltip-inner {
+        color: #000;
+    }
+
+    .progress, .slider-track, .slider-handle {
+        border: 1px solid #000;
+    }
+
+}
