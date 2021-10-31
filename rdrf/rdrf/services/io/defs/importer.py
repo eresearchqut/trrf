@@ -194,6 +194,7 @@ class Importer(object):
             self._check_forms(registry)
             self._check_sections(registry)
             self._check_cdes(registry)
+            self._check_group_permissions()
 
             self.state = ImportState.SOUND
 
@@ -274,6 +275,15 @@ class Importer(object):
                     raise RegistryImportError(
                         "Section %s in form %s has not been created?!" %
                         (section_code, form.name))
+
+    def _check_group_permissions(self):
+        if "group_permissions" in self.data:
+            groups_in_db = set([group.name for group in Group.objects.all()])
+            groups_in_yaml = set([grp_map["name"] for grp_map in self.data["group_permissions"]])
+
+            if groups_in_db != groups_in_yaml:
+                msg = f"in db: {groups_in_db}, in yaml: {groups_in_yaml}"
+                raise RegistryImportError(f"Imported registry has different groups to yaml file: {msg}")
 
     def _create_groups(self, permissible_value_group_maps):
         for pvg_map in permissible_value_group_maps:
@@ -743,6 +753,10 @@ class Importer(object):
             self._create_surveys(r)
             logger.info("imported surveys OK")
 
+        if "group_permissions" in self.data:
+            self._create_group_permissions(self.data["group_permissions"])
+            logger.info("imported group permissions OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -1089,3 +1103,16 @@ class Importer(object):
                 cde_policy.save()
                 cde_policy.groups_allowed.set(groups)
                 cde_policy.save()
+
+    def _create_group_permissions(self, data):
+        from django.contrib.auth.models import Permission
+        for group_dict in data:
+            group = Group.objects.get(name=group_dict["name"])
+            group_permissions = []
+            for permission_dict in group_dict["permissions"]:
+                permission = Permission.objects.get(content_type__id=permission_dict["content_type"], codename=permission_dict["codename"])
+                group_permissions.append(permission)
+                logger.info(f"Add {permission.codename} to group {group.name}")
+
+            group.permissions.set(group_permissions)
+            group.save()

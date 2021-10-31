@@ -3,7 +3,7 @@ import json
 import logging
 from operator import attrgetter
 import yaml
-
+from django.contrib.auth.models import Group
 
 from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
@@ -255,6 +255,7 @@ class Exporter:
         data["working_groups"] = self._get_working_groups()
         data["patient_stages"] = self._get_patient_stages()
         data["patient_stage_rules"] = self._get_patient_stage_rules()
+        data["group_permissions"] = self._get_group_permissions()
 
         if export_type in [
                 ExportType.REGISTRY_ONLY,
@@ -660,6 +661,24 @@ class Exporter:
                 "order": rule.order,
             }
             data.append(rule_dict)
+        return data
+
+    def _get_group_permissions(self):
+        data = []
+        for group in Group.objects.all():
+            permissions = []
+            for permission in group.permissions.all():
+                permission_dict = {
+                    "name": permission.name,
+                    "codename": permission.codename,
+                    "content_type": permission.content_type_id
+                }
+                permissions.append(permission_dict)
+            group_dict = {
+                "name": group.name,
+                "permissions": permissions
+            }
+            data.append(group_dict)
         return data
 
 
