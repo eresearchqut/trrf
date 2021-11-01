@@ -1106,11 +1106,14 @@ class Importer(object):
 
     def _create_group_permissions(self, data):
         from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
         for group_dict in data:
             group = Group.objects.get(name=group_dict["name"])
             group_permissions = []
             for permission_dict in group_dict["permissions"]:
-                permission = Permission.objects.get(content_type__id=permission_dict["content_type"], codename=permission_dict["codename"])
+                permission = Permission.objects.get(
+                    content_type=ContentType.objects.get_by_natural_key(*permission_dict["content_type"]),
+                    codename=permission_dict["codename"])
                 group_permissions.append(permission)
                 logger.info(f"Add {permission.codename} to group {group.name}")
 

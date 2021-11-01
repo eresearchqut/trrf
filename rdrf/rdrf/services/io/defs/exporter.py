@@ -671,7 +671,7 @@ class Exporter:
                 permission_dict = {
                     "name": permission.name,
                     "codename": permission.codename,
-                    "content_type": permission.content_type_id
+                    "content_type": permission.content_type.natural_key()
                 }
                 permissions.append(permission_dict)
             group_dict = {
