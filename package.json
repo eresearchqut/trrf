@@ -9,7 +9,7 @@
     "chartjs-adapter-moment": "1.0.0.js",
     "datatables": "1.10.22",
     "jquery": "3.5.1",
-    "jquery-ui": "1.12.1",
+    "jquery-ui": "1.13.0",
     "jquery-userTimeout": "0.5.1",
     "jquery-validation": "1.19.3",
     "jsignature": "2.1.3",
