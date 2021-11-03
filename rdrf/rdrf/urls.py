@@ -104,7 +104,7 @@ proms_patterns = [
 
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
-    re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
+    re_path(r'^import/?$', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
@@ -113,7 +113,7 @@ proms_patterns = [
 ]
 
 normalpatterns += [
-    re_path(r'^actions/?', ActionExecutorView.as_view(), name='action'),
+    re_path(r'^actions/?$', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),
 
@@ -170,13 +170,13 @@ normalpatterns += [
     re_path(r'', include(('registry.urls', 'registry_urls'), namespace="registry")),
 
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
-    re_path(r'^import/?', import_registry_view.ImportRegistryView.as_view(),
+    re_path(r'^import/?$', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
-    re_path(r'^reports/?', report_view.ReportView.as_view(), name="reports"),
+    re_path(r'^reports/?$', report_view.ReportView.as_view(), name="reports"),
     re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
             name="report_datatable"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
-    re_path(r'^patientslisting/?', patients_listing.PatientsListingView.as_view(),
+    re_path(r'^patientslisting/?$', patients_listing.PatientsListingView.as_view(),
             name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
             RDRFContextCreateView.as_view(),
