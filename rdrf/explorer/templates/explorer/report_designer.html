@@ -1,0 +1,146 @@
+{% extends "explorer/base.html" %}
+{% load i18n %}
+{% block content %}
+
+{#    TODO translation tags#}
+<h1>New Report Query</h1>
+
+<div class="alert alert-light">
+TODO instructions? Do we need extra helpful info here  etc.
+</div>
+
+<form name='query-form' id='query-form' class="form mt-3" method='post'>
+{% csrf_token %}
+    <fieldset>
+        <legend>Description</legend>
+        <div class="row">
+            <label for="title" class="col-sm-2 col-form-label">Title</label>
+            <div class="col-sm-10">
+                <input type="text" id="title" class="form-control" value="{{form.title.value|default_if_none:""}}">
+            </div>
+        </div>
+        <div class="row">
+            <label for="description" class="col-sm-2 col-form-label">Description</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value|default_if_none:""}}</textarea>
+            </div>
+            <div class="offset-sm-2 col-sm-10 form-text">A textual description of the purpose of this report that is displayed alongside the results.</div>
+        </div>
+        <div class="row">
+            <label for="registry" class="col-sm-2 col-form-label">Registry</label>
+            <div class="col-sm-10">
+                {{ form.registry }}
+            </div>
+        </div>
+        <div class="row">
+            <label for="access_group" class="col-sm-2 col-form-label">Access Groups</label>
+            <div class="col-sm-10">
+                {{ form.access_group }}
+            </div>
+            <div class="offset-sm-2 col-sm-10 form-text">The access groups that will have access to this report data.</div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Content</legend>
+        <div class="row">
+            <label for="demographic_fields" class="col-sm-2 col-form-label">Demographic Fields</label>
+            <div class="col-sm-10 mt-2">
+                <ul class="list-unstyled">
+                    {% for model in demographic_models_v2 %}
+                        {% for field in model.fields %}
+                            <li>
+                                <label class="form-check-label">
+                                    <input type="checkbox" name="demographic_fields" class="form-check-input" value="{{ field.value }}">
+                                    {{ model.model }}: {{ field.name }}
+                                </label>
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Filters</legend>
+        <div class="row">
+            <label for="filter_by" class="col-sm-2 col-form-label">Filter by:</label>
+            <div class="col-sm-10">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <label class="form-check-label align-top">
+                            <input type="checkbox" name="filter_by_working_group" value="True">
+                            Patient in working group
+                        </label>
+                        <label for="filter_by_working_group_value" class="visually-hidden">Filter working group value in</label>
+                        {# TODO filter working groups by registry #}
+                        <select id="filter_by_working_group_value" multiple="multiple">
+                            <option value="">Please select...</option>
+                            {% for working_group in working_groups %}
+                                <option value="{{ working_group.id }}">{{ working_group.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    <li class="list-group-item">
+                        <label class="form-check-label">
+                            <input type="checkbox" name="filter_by_consent" value="True">
+                            Consent equals
+                        </label>
+                        <label for="filter_by_consent_value" class="visually-hidden">Filter consent value equals</label>
+                        <select id="filter_by_consent_value">
+                            <option value="None">None</option>
+                            <option value="True" selected>True</option>
+                            <option value="False">False</option>
+                        </select>
+                    </li>
+                    <li class="list-group-item">
+                        <label class="form-check-label">
+                            <input type="checkbox" name="filter_by_consent" value="True">
+                            Consent answer to clinical trials equals
+                        </label>
+                        <label for="filter_by_consent_clinical_trials_value" class="visually-hidden">Filter consent value equals</label>
+                        <select id="filter_by_consent_clinical_trials_value">
+                            <option value="None">None</option>
+                            <option value="True" selected>True</option>
+                            <option value="False">False</option>
+                        </select>
+                    </li>
+                    {% for question in consent_questions %}
+                        <li class="list-group-item">
+                            <label class="form-check-label">
+                                <input type="checkbox" name="filter_by_consent_question" value="True">
+                                Consent answer to {{ question.code }} equals
+                            </label>
+                            <label for="filter_by_consent_clinical_trials_value" class="visually-hidden">Filter {{ question.code }} equals</label>
+                            <select id="filter_by_consent_clinical_trials_value">
+                                <option value="None">None</option>
+                                <option value="True" selected>True</option>
+                                <option value="False">False</option>
+                            </select>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        </div>
+        <div class="row">
+            <label for="filter_rule" class="col-sm-2 col-form-label">Filter rule:</label>
+            <div class="col-sm-10">
+                <select id="filter_rule" class="form-select">
+                    <option value="">Please select...</option>
+                    <option value="ALL">ALL filter conditions must be met</option>
+                    <option value="ANY">ANY filter condition can be met</option>
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Create Report</button>
+    </div>
+</form>
+        TODO - report type <br />
+        TODO - multisection limit <br />
+        TODO - clinical field selector <br />
+{% endblock %}

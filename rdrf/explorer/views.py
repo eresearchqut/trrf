@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from itertools import product
 import logging
@@ -14,10 +15,11 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.generic.base import View
 
 from explorer import __version__
-from .forms import QueryForm
+from .forms import QueryForm, ReportDesignerForm
 from .models import Query
+from .report_configuration import REPORT_CONFIGURATION
 from .utils import DatabaseUtils
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, ConsentQuestion
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
@@ -56,6 +58,58 @@ class NewQueryView(SuperuserRequiredMixin, View):
             return redirect(m)
         return HttpResponse()
 
+class ReportDesignerView(SuperuserRequiredMixin, View):
+    def get(self, request):
+
+        demographic_models = []
+
+        def get_field(model, field):
+            return {"name": field.name, "value": json.dumps({"model": model.__name__, "field": field.name})}
+
+        def get_field_v2(model, name, value):
+            # return {"name": model}
+            return {"name": name, "value": json.dumps({"model": model, "field": value})}
+
+        for model in REPORT_CONFIGURATION['models']:
+            model_dict = {"model": model.__name__, "fields": [get_field(model, field) for field in model._meta.local_fields]}
+            demographic_models.append(model_dict)
+
+        demographic_models_v2 = []
+        for model, fields in REPORT_CONFIGURATION['demographic_model'].items():
+            logger.info(f"{model}->{fields}")
+            model_dict = {"model": model, "fields": [get_field_v2(model, name,value) for name,value in fields.items()]}
+            demographic_models_v2.append(model_dict)
+
+        params = _get_default_params(request, ReportDesignerForm)
+        params["demographic_models"] = demographic_models
+        params["demographic_models_v2"] = demographic_models_v2
+        params["consent_questions"] = ConsentQuestion.objects.all()
+        params["working_groups"] = WorkingGroup.objects.all()
+        return render(request, 'explorer/report_designer.html', params)
+
+    def post(self, request):
+        demographic_fields = request.POST.getlist('demographic_fields')
+
+        logger.info(demographic_fields)
+        models = {}
+
+        for field in demographic_fields:
+            field_dict = json.loads(field)
+            model_name = field_dict['model']
+            models.setdefault(model_name, []).append(field_dict['field'])
+
+        logger.info(models)
+
+        # for model_name in models:
+        #     match = next(filter(lambda model: model.__name__ == model_name, REPORT_CONFIGURATION['models']))
+        #     logger.info(match.__name__)
+        #     logger.info(model_name)
+        #     values = models.get(model_name)
+        #     logger.info(match.objects.all().values(*values))
+        #     # for model in REPORT_CONFIGURATION['models'] if model_name == model.__name__
+        #
+        # logger.info(models)
+        return HttpResponseRedirect(reverse('rdrf:explorer_report_designer'))
 
 class DeleteQueryView(SuperuserRequiredMixin, View):
 

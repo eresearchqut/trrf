@@ -1,6 +1,6 @@
 from django.urls import re_path
 from explorer.views import MainView
-from explorer.views import QueryView, NewQueryView
+from explorer.views import QueryView, NewQueryView, ReportDesignerView
 from explorer.views import DeleteQueryView, DownloadQueryView
 from explorer.views import SqlQueryView
 
@@ -16,6 +16,8 @@ urlpatterns = [
 
     re_path(r'^sql$',
             SqlQueryView.as_view(), name='explorer_sql_query'),
+
+    re_path(r'^new_v2$', ReportDesignerView.as_view(), name='explorer_report_designer'),
 
     re_path(r'^new$', NewQueryView.as_view(), name='explorer_new'),
 

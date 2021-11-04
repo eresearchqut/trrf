@@ -7,6 +7,10 @@ body {
     margin-bottom: 30px;
 }
 
+.form .row .col-form-label {
+    text-align: left;
+}
+
 #footer {
     position: absolute;
     bottom: 0;
