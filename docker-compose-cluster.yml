@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  cluster:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    image: ${TRRF_IMAGE_NAME}
+    env_file:
+      - docker/dev/envs/postgres
+      - docker/dev/envs/runserver
+      - .env_local
+    restart: on-failure
+    volumes:
+      - .:/app
+      - ./data/dev/:/data
+    depends_on:
+      - runserver
+    command: cluster
+

@@ -163,6 +163,13 @@ function _runserver() {
     exec django-admin.py ${RUNSERVER_OPTS}
 }
 
+function _cluster() {
+    _django_migrate
+
+    set -x
+    exec django-admin.py qcluster
+}
+
 
 function _aloe() {
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
@@ -230,6 +237,12 @@ if [ "$1" = 'runserver_plus' ]; then
     info "[Run] Starting runserver_plus"
     RUNSERVER_CMD=runserver_plus
     _runserver
+fi
+
+# django-q cluster entrypoint
+if [ "$1" = 'cluster' ]; then
+    info "[Run] Starting cluster"
+    _cluster
 fi
 
 # runtests entrypoint
