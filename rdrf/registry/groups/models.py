@@ -232,6 +232,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return False
 
+    def is_readonly(self, registry_form_model):
+        return any(group in registry_form_model.groups_readonly.all() for group in self.groups.all())
+
     def set_password(self, raw_password):
         super().set_password(raw_password)
         self.force_password_change = False

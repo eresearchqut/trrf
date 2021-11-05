@@ -224,6 +224,9 @@ class Exporter:
             d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
         return d
 
+    def _get_forms_readonly_groups(self):
+        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in self.registry.forms}
+
     def _export(self, format, export_type):
         data = {}
         data["RDRF_VERSION"] = VERSION
@@ -236,6 +239,7 @@ class Exporter:
         data["consent_sections"] = self._get_consent_sections()
         data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
+        data["forms_readonly_groups"] = self._get_forms_readonly_groups()
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()

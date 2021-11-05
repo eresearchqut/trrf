@@ -31,7 +31,6 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
 
-from rdrf.helpers.utils import create_permission
 from .patient_stage_changes import PatientStageChanges
 
 
@@ -656,10 +655,6 @@ class Importer(object):
             if not created:
                 f.sections = sections
 
-            permission_code_name = "form_%s_is_readonly" % f.id
-            permission_name = "Form '%s' is readonly (%s)" % (f.name, f.registry.code.upper())
-            create_permission("rdrf", "registryform", permission_code_name, permission_name)
-
             f.name = frm_map["name"]
             if "display_name" in frm_map:
                 f.display_name = frm_map["display_name"]
@@ -959,6 +954,14 @@ class Importer(object):
                         g.save()
                     form_model.groups_allowed.add(g)
                     form_model.save()
+        if "forms_readonly_groups" in self.data:
+            data = self.data["forms_readonly_groups"]
+            for form_name in data:
+                groups_readonly = Group.objects.filter(name__in=(data[form_name]))
+                form_model = RegistryForm.objects.get(name=form_name, registry=registry)
+                form_model.groups_readonly.set(groups_readonly)
+                form_model.save()
+                logger.info(f"Import groups_readonly for form {form_name}: {groups_readonly}")
 
     def _create_working_groups(self, registry):
         if "working_groups" in self.data:

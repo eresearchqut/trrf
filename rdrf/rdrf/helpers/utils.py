@@ -229,17 +229,6 @@ def make_index_map(to_remove, count):
     return dict(list(zip(list(range(count)), cut)))
 
 
-def create_permission(app_label, model, code_name, name):
-    content_type = ContentType.objects.get(app_label=app_label, model=model)
-
-    try:
-        with transaction.atomic():
-            Permission.objects.create(
-                codename=code_name, name=name, content_type=content_type)
-    except IntegrityError:
-        pass
-
-
 def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
     from registry.patients.models import Patient
     if user is not None:

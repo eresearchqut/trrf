@@ -522,6 +522,9 @@ class FormView(View):
         self.CREATE_MODE = False  # Normal edit view; False means Create View and context saved AFTER validity check
         sections_to_save = []  # when a section is validated it is added to this list
         all_sections_valid = True
+
+        form_obj = self.get_registry_form(form_id)
+
         if context_id == 'add':
             # The following switches on CREATE_MODE if conditions satisfied
             self._enable_context_creation_after_save(request,
@@ -530,7 +533,7 @@ class FormView(View):
                                                      patient_id)
         if request.user.is_superuser:
             pass
-        elif request.user.is_working_group_staff or request.user.has_perm("rdrf.form_%s_is_readonly" % form_id):
+        elif request.user.is_working_group_staff or request.user.is_readonly(form_obj):
             raise PermissionDenied()
 
         self.user = request.user
@@ -573,7 +576,6 @@ class FormView(View):
         xray_recorder.end_subsegment()
 
         xray_recorder.begin_subsegment("form")
-        form_obj = self.get_registry_form(form_id)
         # this allows form level timestamps to be saved
         dyn_patient.current_form_model = form_obj
         self.registry_form = form_obj
@@ -1124,9 +1126,7 @@ class FormView(View):
 
     # fixme: could replace with TemplateView.get_template_names()
     def _get_template(self):
-        if self.user and self.user.has_perm(
-            "rdrf.form_%s_is_readonly" %
-                self.form_id) and not self.user.is_superuser:
+        if self.user and self.user.is_readonly(self.registry_form) and not self.user.is_superuser:
             return "rdrf_cdes/form_readonly.html"
 
         return "rdrf_cdes/form.html"
