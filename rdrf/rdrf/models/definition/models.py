@@ -844,6 +844,7 @@ class RegistryForm(models.Model):
         blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
+    groups_readonly = models.ManyToManyField(Group, blank=True, related_name='groups_readonly')
     applicability_condition = models.TextField(blank=True,
                                                null=True,
                                                help_text="E.g. patient.deceased == True")

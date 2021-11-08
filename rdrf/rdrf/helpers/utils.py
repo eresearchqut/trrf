@@ -1,24 +1,20 @@
-from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-from django.urls import reverse
-from django.db import IntegrityError
-from django.db import transaction
-from django.utils.html import strip_tags
-from django.utils.encoding import smart_bytes
-from functools import total_ordering
-
 import datetime
-import dateutil.parser
 import logging
-import re
 import os.path
+import re
 import subprocess
 import uuid
+from functools import total_ordering
 
-from .registry_features import RegistryFeatures
+import dateutil.parser
+from django.conf import settings
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from django.urls import reverse
+from django.utils.encoding import smart_bytes
+from django.utils.html import strip_tags
+
 from .cde_data_types import CDEDataTypes
+from .registry_features import RegistryFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -227,17 +223,6 @@ def make_index_map(to_remove, count):
     to_remove = set(to_remove)
     cut = [i for i in range(count) if i not in to_remove]
     return dict(list(zip(list(range(count)), cut)))
-
-
-def create_permission(app_label, model, code_name, name):
-    content_type = ContentType.objects.get(app_label=app_label, model=model)
-
-    try:
-        with transaction.atomic():
-            Permission.objects.create(
-                codename=code_name, name=name, content_type=content_type)
-    except IntegrityError:
-        pass
 
 
 def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):

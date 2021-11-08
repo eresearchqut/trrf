@@ -3,7 +3,7 @@ import json
 import logging
 from operator import attrgetter
 import yaml
-
+from django.contrib.auth.models import Group
 
 from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
@@ -224,6 +224,9 @@ class Exporter:
             d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
         return d
 
+    def _get_forms_readonly_groups(self):
+        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in self.registry.forms}
+
     def _export(self, format, export_type):
         data = {}
         data["RDRF_VERSION"] = VERSION
@@ -236,6 +239,7 @@ class Exporter:
         data["consent_sections"] = self._get_consent_sections()
         data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
+        data["forms_readonly_groups"] = self._get_forms_readonly_groups()
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
@@ -255,6 +259,7 @@ class Exporter:
         data["working_groups"] = self._get_working_groups()
         data["patient_stages"] = self._get_patient_stages()
         data["patient_stage_rules"] = self._get_patient_stage_rules()
+        data["group_permissions"] = self._get_group_permissions()
 
         if export_type in [
                 ExportType.REGISTRY_ONLY,
@@ -660,6 +665,24 @@ class Exporter:
                 "order": rule.order,
             }
             data.append(rule_dict)
+        return data
+
+    def _get_group_permissions(self):
+        data = []
+        for group in Group.objects.all():
+            permissions = []
+            for permission in group.permissions.all():
+                permission_dict = {
+                    "name": permission.name,
+                    "codename": permission.codename,
+                    "content_type": permission.content_type.natural_key()
+                }
+                permissions.append(permission_dict)
+            group_dict = {
+                "name": group.name,
+                "permissions": permissions
+            }
+            data.append(group_dict)
         return data
 
 
