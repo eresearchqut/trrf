@@ -172,6 +172,10 @@ class LookupWidget(widgets.TextInput):
             </script>
         """ % (name, name, value or '', name, self.SOURCE_URL)
 
+    @staticmethod
+    def lookup_field_value(value):
+        return str(value)
+
 
 class DateWidget(widgets.TextInput):
 
