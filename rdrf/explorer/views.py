@@ -1,34 +1,32 @@
 import json
-from datetime import datetime
-from itertools import product
 import logging
 import re
+from datetime import datetime
+from itertools import product
 from tempfile import NamedTemporaryFile
 
 from csp.decorators import csp_update
 from django.conf import settings
-
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.views.generic.base import View
 
 from explorer import __version__
-from .forms import QueryForm, ReportDesignerForm
-from .models import Query
-from .report_configuration import REPORT_CONFIGURATION
-from .utils import DatabaseUtils
-from rdrf.models.definition.models import Registry, ConsentQuestion
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Section
-from registry.groups.models import WorkingGroup
-from rdrf.security.mixins import SuperuserRequiredMixin
-from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
-from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
-
 from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from rdrf.schema.schema import schema
+from rdrf.security.mixins import SuperuserRequiredMixin
+from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from registry.groups.models import WorkingGroup
+from .forms import QueryForm, ReportDesignerForm
+from .models import Query, ReportDesign
+from .utils import DatabaseUtils
 
 logger = logging.getLogger(__name__)
 
@@ -57,59 +55,6 @@ class NewQueryView(SuperuserRequiredMixin, View):
             query_form.save_m2m()
             return redirect(m)
         return HttpResponse()
-
-class ReportDesignerView(SuperuserRequiredMixin, View):
-    def get(self, request):
-
-        demographic_models = []
-
-        def get_field(model, field):
-            return {"name": field.name, "value": json.dumps({"model": model.__name__, "field": field.name})}
-
-        def get_field_v2(model, name, value):
-            # return {"name": model}
-            return {"name": name, "value": json.dumps({"model": model, "field": value})}
-
-        for model in REPORT_CONFIGURATION['models']:
-            model_dict = {"model": model.__name__, "fields": [get_field(model, field) for field in model._meta.local_fields]}
-            demographic_models.append(model_dict)
-
-        demographic_models_v2 = []
-        for model, fields in REPORT_CONFIGURATION['demographic_model'].items():
-            logger.info(f"{model}->{fields}")
-            model_dict = {"model": model, "fields": [get_field_v2(model, name,value) for name,value in fields.items()]}
-            demographic_models_v2.append(model_dict)
-
-        params = _get_default_params(request, ReportDesignerForm)
-        params["demographic_models"] = demographic_models
-        params["demographic_models_v2"] = demographic_models_v2
-        params["consent_questions"] = ConsentQuestion.objects.all()
-        params["working_groups"] = WorkingGroup.objects.all()
-        return render(request, 'explorer/report_designer.html', params)
-
-    def post(self, request):
-        demographic_fields = request.POST.getlist('demographic_fields')
-
-        logger.info(demographic_fields)
-        models = {}
-
-        for field in demographic_fields:
-            field_dict = json.loads(field)
-            model_name = field_dict['model']
-            models.setdefault(model_name, []).append(field_dict['field'])
-
-        logger.info(models)
-
-        # for model_name in models:
-        #     match = next(filter(lambda model: model.__name__ == model_name, REPORT_CONFIGURATION['models']))
-        #     logger.info(match.__name__)
-        #     logger.info(model_name)
-        #     values = models.get(model_name)
-        #     logger.info(match.objects.all().values(*values))
-        #     # for model in REPORT_CONFIGURATION['models'] if model_name == model.__name__
-        #
-        # logger.info(models)
-        return HttpResponseRedirect(reverse('rdrf:explorer_report_designer'))
 
 class DeleteQueryView(SuperuserRequiredMixin, View):
 
@@ -528,3 +473,59 @@ class MultisectionHandler(object):
             new_rows.append(new_row)
 
         return new_rows
+
+# Reporting Views - Future State
+class ReportsView(SuperuserRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'explorer/reports_list.html', {
+            'reports': ReportDesign.objects.all()
+        })
+
+class ReportDownloadView(SuperuserRequiredMixin, View):
+    def get(self, request, query_id):
+
+        report = ReportDesign.objects.get(id=query_id)
+        query = report.compiled_query
+
+        result = schema.execute(query)
+        content = json.dumps(result.data)
+
+        logger.info(query)
+        logger.info(result)
+
+        response = StreamingHttpResponse(content, content_type='text/json')
+        response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report.title
+        return response
+
+class ReportDesignView(SuperuserRequiredMixin, View):
+    def get(self, request, query_id=None):
+
+        if query_id:
+            report = get_object_or_404(ReportDesign, id=query_id)
+            report_design_form = ReportDesignerForm(instance=report)
+            report_design_form.setup_initials()
+        else:
+            report_design_form = ReportDesignerForm()
+
+        params = _get_default_params(request, report_design_form)
+        return render(request, 'explorer/report_designer.html', params)
+
+    def post(self, request, query_id=None):
+
+        if query_id:
+            report = get_object_or_404(ReportDesign, id=query_id)
+            form = ReportDesignerForm(request.POST, instance=report)
+        else:
+            form = ReportDesignerForm(request.POST)
+
+        form.save_to_model()
+
+        logger.info(form.instance.id)
+
+        return redirect('rdrf:explorer_report_designer', query_id=form.instance.id)
+
+class ReportDeleteView(SuperuserRequiredMixin, View):
+    def get(self, request, query_id):
+        report = get_object_or_404(ReportDesign, id=query_id)
+        report.delete()
+        return redirect('rdrf:explorer_reports_list')

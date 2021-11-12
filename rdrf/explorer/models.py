@@ -5,13 +5,14 @@ from django.core.exceptions import ValidationError
 from contextlib import suppress
 
 from rdrf.forms.widgets.widgets import get_widget_class
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, ConsentQuestion
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql, get_display_value
+from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
 
 import json
@@ -263,7 +264,6 @@ class QueryManager(models.Manager):
 
         return super().get_queryset().filter(registry__in=registries, access_group__in=user.get_groups())
 
-
 class Query(models.Model):
     MONGO_SEARCH_TYPES = (
         ('C', 'Current'),
@@ -337,3 +337,71 @@ class Query(models.Model):
         except KeyError as ke:
             errors.append("key error: %s" % ke)
         return errors
+
+# Reporting Models - Future State
+class ReportDesign(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
+    access_groups = models.ManyToManyField(Group)
+    filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
+    filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
+    compiled_query = models.TextField(null=True)
+
+    class Meta:
+        ordering = ['title']
+
+    def compile_query(self):
+        # logger.info("Compile to query - BEGIN")
+
+        models = {}
+        model_schema = {}
+
+        for df in self.demographicfield_set.all():
+            field_dict = json.loads(df.field)
+            model_name = field_dict['model']
+            schema_lookup = field_dict['schema_lookup']
+            model_schema[model_name] = schema_lookup
+            models.setdefault(model_name, []).append(field_dict['field'])
+
+        other_models = ""
+        for name, schema_lookup in model_schema.items():
+            if name != 'Patient':
+                other_models = f"""
+                        ,{schema_lookup} {{
+                            {",".join(models[name])}
+                        }}
+                    """
+
+        filters = []
+
+        if self.filter_working_groups:
+            filters.append(
+                f"workingGroupIds: [{','.join([json.dumps(str(wg.id)) for wg in self.filter_working_groups.all()])}]")
+
+        if self.filter_consents:
+            # TODO fix multiple generated consents__answer
+            filters_consent = [f'"consents__consent_question__code={consent.code}", "consents__answer=True"' for consent
+                               in self.filter_consents.all()]
+
+        filters.append(f"filters: [{','.join(filters_consent)}]")
+
+        query = f"""
+    query {{
+        allPatients({",".join(filters)}) {{
+            {",".join(models['Patient'])}
+            {other_models}
+        }}
+    }}
+    """
+
+        self.compiled_query = query
+
+# TODO represent this in a better way
+class DemographicField(models.Model):
+    field = models.CharField(max_length=255)
+    report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)
+
+class CdeField(models.Model):
+    field = models.CharField(max_length=255)
+    report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)

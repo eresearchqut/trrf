@@ -350,6 +350,8 @@ SECURITY_WHITELISTED_URLS = (
     "rdrf:explorer_query_download",
     "rdrf:explorer_sql_query",
     "rdrf:explorer_report_designer",
+    "rdrf:explorer_report_download",
+    "rdrf:explorer_reports_list",
     "registration_activate",
     "registration_activation_complete",
     "registration_complete",

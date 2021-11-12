@@ -8,6 +8,8 @@ from django.utils.translation import ugettext as _
 
 from django_js_reverse.views import urls_js
 
+from graphene_django.views import GraphQLView
+
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
@@ -298,6 +300,7 @@ normalpatterns += [
 patterns = [
     path('favicon.ico', favicon_view.redirect_to_static, name='favicon'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
+    path('graphql', GraphQLView.as_view(graphiql=True))
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
