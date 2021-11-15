@@ -233,9 +233,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return False
 
     def is_readonly(self, registry_form_model):
-        return self.has_perm("rdrf.form_%s_is_readonly" % registry_form_model.id)
-        # ERE-1540, Turn on after each registry has been reconfigured:
-        # return any(group in registry_form_model.groups_readonly.all() for group in self.groups.all())
+        return any(group in registry_form_model.groups_readonly.all() for group in self.groups.all())
 
     def set_password(self, raw_password):
         super().set_password(raw_password)
