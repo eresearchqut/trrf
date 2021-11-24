@@ -45,7 +45,8 @@ def get_demographic_field_choices():
 def get_cde_choices():
 
     def get_value(form, section, cde):
-        return json.dumps({'registry': form.registry.code, 'form': form.name, 'section': section.code, 'cde': cde.code})
+        return f"{form.name}_{section.code}_{cde.code}"
+        # return json.dumps({'registry': form.registry.code, 'form': form.name, 'section': section.code, 'cde': cde.code})
 
     cde_fields = []
     for form in RegistryForm.objects.all():

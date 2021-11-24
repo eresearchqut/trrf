@@ -366,12 +366,16 @@ class ReportDesign(models.Model):
 
         other_models = ""
         for name, schema_lookup in model_schema.items():
+            logger.info(f"name: {name}, schema lookup: {schema_lookup}")
             if name != 'Patient':
                 other_models = f"""
+                         {other_models}
                         ,{schema_lookup} {{
                             {",".join(models[name])}
                         }}
                     """
+
+        logger.info(other_models)
 
         filters = []
 
@@ -386,11 +390,16 @@ class ReportDesign(models.Model):
 
         filters.append(f"filters: [{','.join(filters_consent)}]")
 
+        cde_keys = []
+        for cdefield in self.cdefield_set.all():
+            cde_keys.append(json.dumps(cdefield.field))
+
         query = f"""
     query {{
         allPatients({",".join(filters)}) {{
             {",".join(models['Patient'])}
-            {other_models}
+            {other_models},
+            clinicalData(cdeKeys: [{",".join(cde_keys)}]){{form, section, cde, value}}
         }}
     }}
     """

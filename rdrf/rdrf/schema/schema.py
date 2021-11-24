@@ -1,5 +1,6 @@
 import graphene
 import logging
+import json
 from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
 
@@ -9,13 +10,17 @@ from registry.patients.models import Patient, PatientAddress, AddressType, Conse
 
 logger = logging.getLogger(__name__)
 
-class ClinicalDataType(DjangoObjectType):
-    class Meta:
-        model = ClinicalData
-        fields = ('data',)
+class ClinicalDataType(graphene.ObjectType):
+    form = graphene.String()
+    section = graphene.String()
+    cde = graphene.String()
+    # TODO how to get around this limitation. Some values are just strings and some are lists,
+    #  but how do I represent this with a typed field?
+    value = graphene.List(graphene.String)
+
 
 class PatientType(DjangoObjectType):
-    clinical_data = graphene.Field(ClinicalDataType)
+    clinical_data = graphene.List(ClinicalDataType, cde_keys=graphene.List(graphene.String))
 
     class Meta:
         model = Patient
@@ -31,10 +36,17 @@ class PatientType(DjangoObjectType):
                   'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
 
 
-    def resolve_clinical_data(self, info):
-        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection='cdes')
-        logger.info(clinical_data)
-        return clinical_data.first()
+    def resolve_clinical_data(self, info, cde_keys=[]):
+        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection='cdes').first()
+        values = []
+        for form in clinical_data.data['forms']:
+            for section in form['sections']:
+                for cde in section['cdes']:
+                    if 'code' in cde and f"{form['name']}_{section['code']}_{cde['code']}" in cde_keys:
+                            cde_value = cde['value'] if type(cde['value']) is list else [(cde['value'])]
+                            values.append(ClinicalDataType(form['name'], section['code'], cde['code'], cde_value))
+
+        return values
 
 
 class ConsentQuestionType(DjangoObjectType):
@@ -73,20 +85,14 @@ class Query(graphene.ObjectType):
                                  filters=graphene.List(graphene.String),
                                  working_group_ids=graphene.List(graphene.String))
 
-    # all_patients = graphene.List(PatientType,
-    #                              registry_code=graphene.String(),
-    #                              working_group_id=graphene.String(),
-    #                              consents=graphene.List(graphene.String))
-
-    # def resolve_all_patients(self, info, registry_code="", working_group_id="", consents=[]):
-
     def resolve_all_patients(self, info, filters=[], working_group_ids=[]):
         query_args = dict([query_filter.split('=') for query_filter in filters])
 
         if working_group_ids:
             query_args['working_groups__id__in'] = working_group_ids
-            # This works too: Patient.objects.filter(id__in=Subquery(Patient.objects.filter(working_groups__id__in=[1,3]).values('id')))
 
+
+        # This works too: return Patient.objects.filter(id__in=Subquery(Patient.objects.filter(working_groups__id__in=[1,3]).values('id')))
         return Patient.objects.filter(**query_args).prefetch_related('working_groups').distinct()
 
 schema = graphene.Schema(query=Query)

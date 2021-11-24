@@ -1,4 +1,4 @@
-{% extends "explorer/base.html" %}
+{% extends "explorer_v2/base.html" %}
 {% load i18n %}
 {% block content %}
 
@@ -118,7 +118,13 @@ TODO instructions? Do we need extra helpful info here  etc.
     </fieldset>
 
     <div class="col-12">
-        <button class="btn btn-primary" type="submit">Create Report</button>
+        <button class="btn btn-primary" type="submit">
+            {% if form.instance.id %}
+                Create Report
+            {% else %}
+                Save Report
+            {% endif %}
+        </button>
     </div>
 </form>
         TODO - report type <br />

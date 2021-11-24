@@ -1,0 +1,35 @@
+{% extends "explorer_v2/base.html" %}
+{% load i18n %}
+{% block content %}
+
+    <h1>{% trans "Reports" %}</h1>
+    <p>
+        <a href="{% url 'rdrf:explorer_report_designer' %}" class="btn btn-sm btn-success float-end"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>
+    </p>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>{% trans "Registry" %}</th>
+                <th>{% trans "Report" %}</th>
+                <th>{% trans "Download" %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.registry.name }}</td>
+                <td>{{ report.title }}</td>
+                <td>
+                    <a href="{%  url 'rdrf:explorer_report_download_csv' report.id %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
+                    <a href="{%  url 'rdrf:explorer_report_download' report.id %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
+                </td>
+                <td>
+                    <a href="{%  url 'rdrf:explorer_report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
+                    <a href="{%  url 'rdrf:explorer_report_delete' report.id %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %} <i class="fa fa-trash-o"></i> </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

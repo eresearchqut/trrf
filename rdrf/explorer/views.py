@@ -28,6 +28,9 @@ from .forms import QueryForm, ReportDesignerForm
 from .models import Query, ReportDesign
 from .utils import DatabaseUtils
 
+from flatten_json import flatten
+import pandas as pd
+
 logger = logging.getLogger(__name__)
 
 
@@ -477,11 +480,11 @@ class MultisectionHandler(object):
 # Reporting Views - Future State
 class ReportsView(SuperuserRequiredMixin, View):
     def get(self, request):
-        return render(request, 'explorer/reports_list.html', {
+        return render(request, 'explorer_v2/reports_list.html', {
             'reports': ReportDesign.objects.all()
         })
 
-class ReportDownloadView(SuperuserRequiredMixin, View):
+class ReportDownloadJsonView(SuperuserRequiredMixin, View):
     def get(self, request, query_id):
 
         report = ReportDesign.objects.get(id=query_id)
@@ -497,6 +500,23 @@ class ReportDownloadView(SuperuserRequiredMixin, View):
         response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report.title
         return response
 
+class ReportDownloadCsvView(SuperuserRequiredMixin, View):
+    def get(self, request, query_id):
+
+        report = ReportDesign.objects.get(id=query_id)
+        query = report.compiled_query
+
+        result = schema.execute(query)
+        result_flat = [flatten(p) for p in result.data['allPatients']]
+        df = pd.DataFrame(result_flat)
+
+        logger.info(result_flat)
+        logger.info(df)
+
+        response = StreamingHttpResponse(df.to_csv(), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % report.title
+        return response
+
 class ReportDesignView(SuperuserRequiredMixin, View):
     def get(self, request, query_id=None):
 
@@ -508,7 +528,7 @@ class ReportDesignView(SuperuserRequiredMixin, View):
             report_design_form = ReportDesignerForm()
 
         params = _get_default_params(request, report_design_form)
-        return render(request, 'explorer/report_designer.html', params)
+        return render(request, 'explorer_v2/report_designer.html', params)
 
     def post(self, request, query_id=None):
 
