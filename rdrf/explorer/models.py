@@ -394,15 +394,47 @@ class ReportDesign(models.Model):
         for cdefield in self.cdefield_set.all():
             cde_keys.append(json.dumps(cdefield.field))
 
-        query = f"""
-    query {{
-        allPatients({",".join(filters)}) {{
-            {",".join(models['Patient'])}
-            {other_models},
-            clinicalData(cdeKeys: [{",".join(cde_keys)}]){{form, section, cde, value}}
+            query = f"""
+        query {{
+            allPatients({",".join(filters)}) {{
+                {",".join(models['Patient'])}
+                {other_models},
+                clinicalData(cdeKeys: [{",".join(cde_keys)}]){{
+                  contextFormGroups{{ name, 
+                    forms {{name, timestamp, 
+                      sections{{
+                        code,
+                        ... on ClinicalDataSection {{
+                          cdes{{ 
+                            code
+                            ... on ClinicalDataCde {{value}}
+                            ... on ClinicalDataCdeMultiValue {{values}}
+                          }}
+                        }}
+                        ... on ClinicalDataMultiSection {{
+                          cdesList{{ 
+                            code
+                            ... on ClinicalDataCde {{value}}
+                            ... on ClinicalDataCdeMultiValue {{values}}
+                          }}
+                        }}
+                      }}
+                    }}
+                  }}
+                }}
+            }}
         }}
-    }}
-    """
+        """
+
+    #     query = f"""
+    # query {{
+    #     allPatients({",".join(filters)}) {{
+    #         {",".join(models['Patient'])}
+    #         {other_models},
+    #         clinicalData(cdeKeys: [{",".join(cde_keys)}]){{form, section, cde, value}}
+    #     }}
+    # }}
+    # """
 
         self.compiled_query = query
 

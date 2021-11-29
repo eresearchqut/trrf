@@ -4,6 +4,7 @@ import logging
 from django.contrib.auth.models import Group
 from django.forms import ModelForm, Select, SelectMultiple, MultipleChoiceField, ChoiceField, ModelMultipleChoiceField
 
+from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, Registry, RegistryForm
 from registry.groups.models import WorkingGroup
 from .models import Query, ReportDesign, DemographicField, CdeField
@@ -45,7 +46,7 @@ def get_demographic_field_choices():
 def get_cde_choices():
 
     def get_value(form, section, cde):
-        return f"{form.name}_{section.code}_{cde.code}"
+        return mongo_key(form.name, section.code, cde.code)
         # return json.dumps({'registry': form.registry.code, 'form': form.name, 'section': section.code, 'cde': cde.code})
 
     cde_fields = []

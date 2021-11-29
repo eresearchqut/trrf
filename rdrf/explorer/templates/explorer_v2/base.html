@@ -35,19 +35,19 @@
         
             <nav class="navbar navbar-dark bg-dark navbar-expand mb-3" role="navigation">
                 <div class="container flex-column flex-md-row">
-                    <a class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %} <sup>{{version}}</sup></a>
+                    <a class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %}</a>
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_main' %}">{% trans "List" %}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_reports_list' %}">{% trans "List" %}</a></li>
                         {% if request.user.is_superuser %}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_new' %}">{% trans "New" %}</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_report_designer' %}">{% trans "New" %}</a></li>
                         {% endif %}
                     </ul>
 
-                    {% if status %}
-                        <p class="navbar-text"><b><font color="green">{% trans "Connected" %}</font></b></p>
-                    {% else %}
-                        <p class="navbar-text"><b><font color="red">{% trans "Not connected" %}</font></b></p>
-                    {% endif%}
+{#                    {% if status %}#}
+{#                        <p class="navbar-text"><b><font color="green">{% trans "Connected" %}</font></b></p>#}
+{#                    {% else %}#}
+{#                        <p class="navbar-text"><b><font color="red">{% trans "Not connected" %}</font></b></p>#}
+{#                    {% endif%}#}
                 </div>
             </nav>
         
