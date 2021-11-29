@@ -221,4 +221,4 @@ class Query(graphene.ObjectType):
         # This works too: return Patient.objects.filter(id__in=Subquery(Patient.objects.filter(working_groups__id__in=[1,3]).values('id')))
         return Patient.objects.filter(**query_args).prefetch_related('working_groups').distinct()
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, types=[ClinicalDataMultiSection, ClinicalDataSection, ClinicalDataCde, ClinicalDataCdeMultiValue])
