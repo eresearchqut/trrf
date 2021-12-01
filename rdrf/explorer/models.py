@@ -377,26 +377,30 @@ class ReportDesign(models.Model):
 
         logger.info(other_models)
 
-        filters = []
+        patient_query_params = []
 
-        if self.filter_working_groups:
-            filters.append(
-                f"workingGroupIds: [{','.join([json.dumps(str(wg.id)) for wg in self.filter_working_groups.all()])}]")
+        filters = [f'"rdrf_registry__code={self.registry.code}"']
 
         if self.filter_consents:
-            # TODO fix multiple generated consents__answer
-            filters_consent = [f'"consents__consent_question__code={consent.code}", "consents__answer=True"' for consent
-                               in self.filter_consents.all()]
+            filters.append(f'"consents__answer=True"')
+            filters.extend([f'"consents__consent_question__code={consent_question.code}"' for consent_question in self.filter_consents.all()])
 
-        filters.append(f"filters: [{','.join(filters_consent)}]")
+        if self.filter_working_groups:
+            patient_query_params.append(
+                f"workingGroupIds: [{','.join([json.dumps(str(wg.id)) for wg in self.filter_working_groups.all()])}]")
+
+
+
+        patient_query_params.append(f"filters: [{','.join(filters)}]")
 
         cde_keys = []
-        for cdefield in self.cdefield_set.all():
-            cde_keys.append(json.dumps(cdefield.field))
+        for cde_field in self.cdefield_set.all():
+            cde_field_dict = json.loads(cde_field.field)
+            cde_keys.append(json.dumps(cde_field_dict['cde_key']))
 
-            query = f"""
+        query = f"""
         query {{
-            allPatients({",".join(filters)}) {{
+            allPatients({",".join(patient_query_params)}) {{
                 {",".join(models['Patient'])}
                 {other_models},
                 clinicalData(cdeKeys: [{",".join(cde_keys)}]){{

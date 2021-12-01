@@ -2,6 +2,105 @@
 {% load i18n %}
 {% block content %}
 
+<script type="text/javascript">
+
+    let ui = {};
+
+    const id_test = $('#selected_cde_field_cnt');
+
+    function get_registry_attr_selector(registry) {
+        return "[value*='\"registry\": \"" + registry + "\"']";
+    }
+
+    function filter_select_by_registry($ui, registry) {
+        const matching_registry_value = get_registry_attr_selector(registry);
+
+        $ui.find('option:not(' + matching_registry_value + ', [value=""])').hide()
+        $ui.find('optgroup:not(:has(option' + matching_registry_value + '))').hide()
+
+        $ui.find('option' + matching_registry_value + '').show()
+        $ui.find('optgroup:has(option' + matching_registry_value + ')').show()
+    }
+
+    function filter_checkboxes_by_registry($uiListGroup, registry) {
+        const matching_registry_value = get_registry_attr_selector(registry);
+
+        $uiListGroup.find(':checkbox(:not(' + matching_registry_value + '))').closest('li').hide();
+        $uiListGroup.find(':checkbox' + matching_registry_value).closest('li').show();
+    }
+
+    function filter_cde_by_section(registry, selected_section) {
+
+        if (selected_section.trim() == "") {
+            ui.cdeSelect.find('optgroup, optgroup > option').show();
+            filter_select_by_registry(ui.cdeSelect, registry);
+            return;
+        }
+
+        const selected_section_json = JSON.parse(selected_section);
+        const form = selected_section_json.form;
+        const section = selected_section_json.section;
+
+        const matching_section_optgroup = 'optgroup[label="' + form + ' - ' + section + '"]';
+
+        ui.cdeSelect.find(':not(' + matching_section_optgroup + ')').hide();
+
+        // Show matching optgroup and options within it
+        ui.cdeSelect.find(matching_section_optgroup).show();
+        ui.cdeSelect.find(matching_section_optgroup + ' > option').show();
+
+    }
+
+    function update_selected_cde_count($cdeSelect) {
+        const num_selected_values = $cdeSelect.find('option:selected').length;
+        ui.selectedCdeFieldCnt.text(num_selected_values);
+    }
+
+    function update_components_by_registry(selected_registry) {
+        filter_select_by_registry(ui.filterCdeSelect, selected_registry);
+        filter_select_by_registry(ui.cdeSelect, selected_registry);
+        filter_checkboxes_by_registry(ui.filterConsentList, selected_registry);
+
+        // deselect any values
+        ui.filterCdeSelect.val("").trigger("change");
+        ui.cdeSelect.val("").trigger("change");
+        ui.filterConsentList.find(":checkbox:checked").removeAttr("checked");
+    }
+
+    $(document).ready(function() {
+        ui = {
+            registrySelect: $('#id_registry'),
+            filterCdeSelect: $('#id_search_cdes_by_section'),
+            cdeSelect: $('#id_cde_fields'),
+            filterConsentList: $('#id_filter_consents_list'),
+            selectedCdeFieldCnt: $('#selected_cde_field_cnt'),
+            btnClearCdeFilter: $('#id_clear_cde_filter')
+        }
+
+        // change handlers
+        ui.registrySelect.on('change', function() {
+            update_components_by_registry($(this).val());
+        });
+
+        ui.filterCdeSelect.change(function() {
+            filter_cde_by_section(ui.registrySelect.val(), $(this).val());
+        });
+
+        ui.cdeSelect.on('change', function() {
+            update_selected_cde_count($(this));
+        });
+
+        ui.btnClearCdeFilter.on('click', function() {
+            ui.filterCdeSelect.val('');
+            ui.filterCdeSelect.trigger('change');
+        });
+
+        // setup initial state
+        update_components_by_registry(ui.registrySelect.val());
+        update_selected_cde_count(ui.cdeSelect);
+    });
+</script>
+
 {#    TODO translation tags#}
 <h1>
     {% if form.instance.id %}
@@ -10,10 +109,6 @@
         New Report Query
     {% endif %}
 </h1>
-
-<div class="alert alert-light">
-TODO instructions? Do we need extra helpful info here  etc.
-</div>
 
 <form name='query-form' id='query-form' class="form mt-3" method='post'>
 {% csrf_token %}
@@ -31,7 +126,7 @@ TODO instructions? Do we need extra helpful info here  etc.
             <div class="col-sm-10">
                 <textarea class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value|default_if_none:""}}</textarea>
             </div>
-            <div class="offset-sm-2 col-sm-10 form-text">A textual description of the purpose of this report that is displayed alongside the results.</div>
+            <div class="offset-sm-2 col-sm-10 form-text">A textual description of the purpose of this report.</div>
         </div>
         <div class="row">
             <label for="registry" class="col-sm-2 col-form-label">Registry</label>
@@ -58,7 +153,18 @@ TODO instructions? Do we need extra helpful info here  etc.
         <div class="row">
             <label for="cde_fields" class="col-sm-2 col-form-label">Clinical Data Fields</label>
             <div class="col-sm-10 mt-2">
-                {{ form.cde_fields }}
+                <div class="col-12">
+                    <div class="input-group">
+                        <label class="input-group-text" for="search_cdes_by_section">Filter fields by</label>
+                        {{ form.search_cdes_by_section }}
+                        <button id="id_clear_cde_filter" class="btn btn-outline-secondary" type="button"><i class="fa fa-times"></i> Clear filter</button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    {{ form.cde_fields }}
+                    <span class="badge bg-primary"><span id="selected_cde_field_cnt">0</span> fields selected.</span>
+                    <span class="form-text">Hold Ctrl to add fields to existing selection.</span>
+                </div>
             </div>
         </div>
     </fieldset>
@@ -73,10 +179,8 @@ TODO instructions? Do we need extra helpful info here  etc.
         <div class="row">
             <label for="filter_consents" class="col-sm-2 col-form-label">Consent Items:</label>
             <div class="col-sm-10 mt-2">
-                <ul class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
-
+                <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
                 {% for choice in form.filter_consents.field.choices %}
-
                     {% if choice.0 %}
                     <li>
                         <label class="form-check-label">
@@ -94,39 +198,16 @@ TODO instructions? Do we need extra helpful info here  etc.
             </div>
             <div class="offset-sm-2 col-sm-10 form-text">Filter the report to only include patients that have consented to the selected consent items.</div>
         </div>
-{#        <div class="row">#}
-{#            <label for="filter_by" class="col-sm-2 col-form-label">Filter by:</label>#}
-{#            <div class="col-sm-10">#}
-{#                <ul class="list-group">#}
-{#                    <li class="list-group-item">#}
-{#                        <label class="form-check-label">#}
-{#                            <input type="checkbox" name="filter_by_consent" value="True">#}
-{#                            Consent answer to clinical trials equals#}
-{#                        </label>#}
-{#                        <label for="filter_by_consent_clinical_trials_value" class="visually-hidden">Filter consent value equals</label>#}
-{#                        <select id="filter_by_consent_clinical_trials_value">#}
-{#                            <option value="None">None</option>#}
-{#                            <option value="True" selected>True</option>#}
-{#                            <option value="False">False</option>#}
-{#                        </select>#}
-{#                    </li>#}
-{#                </ul>#}
-{##}
-{#            </div>#}
-{##}
-{#        </div>#}
     </fieldset>
 
-    <div class="col-12">
+    <div class="col-12 offset-sm-2 mb-4">
         <button class="btn btn-primary" type="submit">
             {% if form.instance.id %}
-                Create Report
-            {% else %}
                 Save Report
+            {% else %}
+                Create Report
             {% endif %}
         </button>
     </div>
 </form>
-        TODO - report type <br />
-        TODO - multisection limit <br />
 {% endblock %}

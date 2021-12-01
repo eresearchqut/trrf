@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 
 from csp.decorators import csp_update
 from django.conf import settings
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -540,9 +541,9 @@ class ReportDesignView(SuperuserRequiredMixin, View):
 
         form.save_to_model()
 
-        logger.info(form.instance.id)
+        messages.success(request, f'Report "{form.instance.title}" has been saved successfully.')
 
-        return redirect('rdrf:explorer_report_designer', query_id=form.instance.id)
+        return redirect('rdrf:explorer_reports_list')
 
 class ReportDeleteView(SuperuserRequiredMixin, View):
     def get(self, request, query_id):

@@ -52,17 +52,11 @@
             </nav>
         
         <div id="content" class="container">
-            <div class="alert alert-danger" id="response_error" style="display: none;"></div>
-            {% if success_msg %}
-                <div class="alert alert-success">{{success_msg}}</div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</div>
+                {% endfor %}
             {% endif %}
-    
-            {% if error_msg %}
-                <div class="alert alert-danger">{{error_msg}}</div>
-            {% endif %}
-
-			<!-- For Javascript errors -->
-			<div id="js-errors" class="alert alert-danger" style="display: none"></div>
 
             {% block content %}
             {% endblock %}
