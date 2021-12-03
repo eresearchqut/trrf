@@ -35,6 +35,7 @@ class LinkDefs:
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
     Explorer = make_link("rdrf:explorer_main", _("Explorer"))
+    ExplorerV2 = make_link("rdrf:explorer_reports_list", _("Explorer_v2"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))
@@ -162,6 +163,7 @@ class RegularLinks(Links):
         LinkDefs.BlacklistedMimeTypesConfig
     )
     EXPLORER = make_entries(LinkDefs.Explorer)
+    EXPLORER_V2 = make_entries(LinkDefs.ExplorerV2)
     REPORTING = make_entries(LinkDefs.Reports)
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
@@ -300,6 +302,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.AUDITING,
             **RegularLinks.DOCTORS,
             **RegularLinks.EXPLORER,
+            **RegularLinks.EXPLORER_V2,
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,

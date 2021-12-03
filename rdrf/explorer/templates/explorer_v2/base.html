@@ -1,10 +1,11 @@
 <!DOCTYPE HTML>
 {% load static %}
+{% load project_title %}
 {% load i18n %}
     
 <html>
     <head>
-        <title>{% trans "TRRF Reporting Tool" %}</title>
+        <title>{% project_title %}</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
@@ -32,44 +33,34 @@
     <body>
 
         <div id="wrap">
-        
-            <nav class="navbar navbar-dark bg-dark navbar-expand mb-3" role="navigation">
-                <div class="container flex-column flex-md-row">
-                    <a class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %}</a>
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_reports_list' %}">{% trans "List" %}</a></li>
-                        {% if request.user.is_superuser %}
-                            <li class="nav-item"><a class="nav-link" href="{% url 'rdrf:explorer_report_designer' %}">{% trans "New" %}</a></li>
-                        {% endif %}
-                    </ul>
+            {% include "rdrf_cdes/navbar.html" %}
+            <div class="container" style="margin-top: 56px;">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</div>
+                    {% endfor %}
+                {% endif %}
 
-{#                    {% if status %}#}
-{#                        <p class="navbar-text"><b><font color="green">{% trans "Connected" %}</font></b></p>#}
-{#                    {% else %}#}
-{#                        <p class="navbar-text"><b><font color="red">{% trans "Not connected" %}</font></b></p>#}
-{#                    {% endif%}#}
-                </div>
-            </nav>
-        
-        <div id="content" class="container">
-            {% if messages %}
-                {% for message in messages %}
-                    <div {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{message}}</div>
-                {% endfor %}
-            {% endif %}
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        This form contains errors:
+                        <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
 
-            {% block content %}
+                {% block content %}
+                {% endblock %}
+            </div>
+
+            {% block footer %}
+            {% include 'rdrf_cdes/footer.html' %}
             {% endblock %}
-        </div>
-
-{#        <div id="footer">#}
-{#            <div class="container">#}
-{#                <h6 class="text-muted">{% trans "Project developed at" %} <a href="http://ccg.murdoch.edu.au" target="_blank">Centre for Comparative Genomics</a>, <a href="http://www.murdoch.edu.au" target="_blank">Murdoch University</a> &copy <script>document.write(new Date().getFullYear())</script></h6>#}
-{#            </div>#}
-{#        </div>#}
-        {% block footer %}
-        {% include 'rdrf_cdes/footer.html' %}
-        {% endblock %}
         </div>
         
     </body>

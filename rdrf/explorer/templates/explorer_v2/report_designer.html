@@ -6,34 +6,9 @@
 
     let ui = {};
 
-    const id_test = $('#selected_cde_field_cnt');
-
-    function get_registry_attr_selector(registry) {
-        return "[value*='\"registry\": \"" + registry + "\"']";
-    }
-
-    function filter_select_by_registry($ui, registry) {
-        const matching_registry_value = get_registry_attr_selector(registry);
-
-        $ui.find('option:not(' + matching_registry_value + ', [value=""])').hide()
-        $ui.find('optgroup:not(:has(option' + matching_registry_value + '))').hide()
-
-        $ui.find('option' + matching_registry_value + '').show()
-        $ui.find('optgroup:has(option' + matching_registry_value + ')').show()
-    }
-
-    function filter_checkboxes_by_registry($uiListGroup, registry) {
-        const matching_registry_value = get_registry_attr_selector(registry);
-
-        $uiListGroup.find(':checkbox(:not(' + matching_registry_value + '))').closest('li').hide();
-        $uiListGroup.find(':checkbox' + matching_registry_value).closest('li').show();
-    }
-
-    function filter_cde_by_section(registry, selected_section) {
-
+    function filter_cde_by_section(selected_section) {
         if (selected_section.trim() == "") {
-            ui.cdeSelect.find('optgroup, optgroup > option').show();
-            filter_select_by_registry(ui.cdeSelect, registry);
+            ui.selectCdeFields.find('optgroup, optgroup > option').show();
             return;
         }
 
@@ -41,143 +16,146 @@
         const form = selected_section_json.form;
         const section = selected_section_json.section;
 
-        const matching_section_optgroup = 'optgroup[label="' + form + ' - ' + section + '"]';
+        const matching_optgroups_selectors =
+            ['optgroup[label="' + form + ' - ' + section + '"]', "optgroup:has(option:selected)"];
 
-        ui.cdeSelect.find(':not(' + matching_section_optgroup + ')').hide();
+        const show_optgroups_selector = matching_optgroups_selectors.join(',');
+        const show_options_selector = matching_optgroups_selectors.map(x => x + ' > option').join(',');
 
-        // Show matching optgroup and options within it
-        ui.cdeSelect.find(matching_section_optgroup).show();
-        ui.cdeSelect.find(matching_section_optgroup + ' > option').show();
+        ui.selectCdeFields.find(':not(' + show_optgroups_selector + ')').hide();
+        ui.selectCdeFields.find(show_optgroups_selector).show();
+        ui.selectCdeFields.find(show_options_selector).show();
+    }
 
+    function filter_cde_by_selected() {
+        const optgroup_with_selected_options = "optgroup:has(option:selected)";
+
+        ui.selectCdeFields.find(":not(" + optgroup_with_selected_options + ")").hide();
+        ui.selectCdeFields.find(optgroup_with_selected_options).show();
+        ui.selectCdeFields.find(optgroup_with_selected_options + " > option").show();
     }
 
     function update_selected_cde_count($cdeSelect) {
         const num_selected_values = $cdeSelect.find('option:selected').length;
-        ui.selectedCdeFieldCnt.text(num_selected_values);
-    }
-
-    function update_components_by_registry(selected_registry) {
-        filter_select_by_registry(ui.filterCdeSelect, selected_registry);
-        filter_select_by_registry(ui.cdeSelect, selected_registry);
-        filter_checkboxes_by_registry(ui.filterConsentList, selected_registry);
-
-        // deselect any values
-        ui.filterCdeSelect.val("").trigger("change");
-        ui.cdeSelect.val("").trigger("change");
-        ui.filterConsentList.find(":checkbox:checked").removeAttr("checked");
+        ui.txtSelectCdeFieldsCount.text(num_selected_values);
     }
 
     $(document).ready(function() {
         ui = {
-            registrySelect: $('#id_registry'),
-            filterCdeSelect: $('#id_search_cdes_by_section'),
-            cdeSelect: $('#id_cde_fields'),
-            filterConsentList: $('#id_filter_consents_list'),
-            selectedCdeFieldCnt: $('#selected_cde_field_cnt'),
-            btnClearCdeFilter: $('#id_clear_cde_filter')
+            selectFilterCdesBySection: $('#id_search_cdes_by_section'),
+            selectCdeFields: $('#id_cde_fields'),
+            txtSelectCdeFieldsCount: $('#selected_cde_field_cnt'),
+            btnClearCdeFilter: $('#id_clear_cde_filter'),
+            btnFilterCdeBySelected: $('#id_cde_filter_by_selected')
         }
 
-        // change handlers
-        ui.registrySelect.on('change', function() {
-            update_components_by_registry($(this).val());
+        ui.selectFilterCdesBySection.change(function() {
+            filter_cde_by_section($(this).val());
         });
 
-        ui.filterCdeSelect.change(function() {
-            filter_cde_by_section(ui.registrySelect.val(), $(this).val());
-        });
-
-        ui.cdeSelect.on('change', function() {
+        ui.selectCdeFields.on('change', function() {
             update_selected_cde_count($(this));
         });
 
         ui.btnClearCdeFilter.on('click', function() {
-            ui.filterCdeSelect.val('');
-            ui.filterCdeSelect.trigger('change');
+            ui.selectFilterCdesBySection.val('');
+            ui.selectFilterCdesBySection.trigger('change');
         });
 
+        ui.btnFilterCdeBySelected.on('click', function() {
+            filter_cde_by_selected();
+        })
+
         // setup initial state
-        update_components_by_registry(ui.registrySelect.val());
-        update_selected_cde_count(ui.cdeSelect);
+        update_selected_cde_count(ui.selectCdeFields);
     });
 </script>
-
-{#    TODO translation tags#}
 <h1>
     {% if form.instance.id %}
-        Edit Report
+        {% trans "Edit Report" %}
     {% else %}
-        New Report Query
+        {% trans "New Report" %}
     {% endif %}
 </h1>
 
 <form name='query-form' id='query-form' class="form mt-3" method='post'>
 {% csrf_token %}
-
     <fieldset>
-        <legend>Description</legend>
+        <legend>{% trans "Description" %}</legend>
         <div class="row">
-            <label for="title" class="col-sm-2 col-form-label">Title</label>
+            <label for="title" class="col-sm-2 col-form-label">
+                {{ form.title.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
             <div class="col-sm-10">
                 <input type="text" id="title" name="title" class="form-control" value="{{form.title.value|default_if_none:""}}">
             </div>
         </div>
         <div class="row">
-            <label for="description" class="col-sm-2 col-form-label">Description</label>
+            <label for="description" class="col-sm-2 col-form-label">{{ form.description.label }}</label>
             <div class="col-sm-10">
-                <textarea class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value|default_if_none:""}}</textarea>
+                <textarea class="form-control" cols="40" id="description" name="description" rows="3">
+                    {{form.description.value|default_if_none:""}}
+                </textarea>
             </div>
-            <div class="offset-sm-2 col-sm-10 form-text">A textual description of the purpose of this report.</div>
+            <div class="offset-sm-2 col-sm-10 form-text">{% trans "A textual description of the purpose of this report." %}</div>
         </div>
         <div class="row">
-            <label for="registry" class="col-sm-2 col-form-label">Registry</label>
-            <div class="col-sm-10">
-                {{ form.registry }}
-            </div>
-        </div>
-        <div class="row">
-            <label for="access_group" class="col-sm-2 col-form-label">Access Groups</label>
+            <label for="access_group" class="col-sm-2 col-form-label">{{ form.access_groups.label }}</label>
             <div class="col-sm-10">
                 {{ form.access_groups }}
             </div>
-            <div class="offset-sm-2 col-sm-10 form-text">The user groups that will have access to this report data.</div>
+            <div class="offset-sm-2 col-sm-10 form-text">{% trans "The user groups that will have access to this report data." %}</div>
         </div>
     </fieldset>
     <fieldset>
         <legend>Content</legend>
         <div class="row">
-            <label for="demographic_fields" class="col-sm-2 col-form-label">Demographic Fields</label>
+            <label for="demographic_fields" class="col-sm-2 col-form-label">
+                {{ form.demographic_fields.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
             <div class="col-sm-10 mt-2">
                 {{ form.demographic_fields }}
             </div>
         </div>
         <div class="row">
-            <label for="cde_fields" class="col-sm-2 col-form-label">Clinical Data Fields</label>
+            <label for="cde_fields" class="col-sm-2 col-form-label">{{ form.cde_fields.label }}</label>
             <div class="col-sm-10 mt-2">
                 <div class="col-12">
                     <div class="input-group">
-                        <label class="input-group-text" for="search_cdes_by_section">Filter fields by</label>
+                        <label class="input-group-text" for="search_cdes_by_section">{% trans "Filter by section:" %}</label>
                         {{ form.search_cdes_by_section }}
-                        <button id="id_clear_cde_filter" class="btn btn-outline-secondary" type="button"><i class="fa fa-times"></i> Clear filter</button>
+                        <button id="id_cde_filter_by_selected" class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-filter"></i> {% trans "Filter by selected" %}
+                        </button>
+                        <button id="id_clear_cde_filter" class="btn btn-outline-primary" type="button">
+                            <i class="fa fa-times"></i> {% trans "Clear filter" %}
+                        </button>
                     </div>
                 </div>
                 <div class="col-12">
                     {{ form.cde_fields }}
-                    <span class="badge bg-primary"><span id="selected_cde_field_cnt">0</span> fields selected.</span>
-                    <span class="form-text">Hold Ctrl to add fields to existing selection.</span>
+                    <span class="badge bg-primary"><span id="selected_cde_field_cnt">0</span> {% trans "fields selected." %}</span>
+                    <span class="form-text">{% trans "Hold Ctrl to add fields to existing selection." %}</span>
                 </div>
             </div>
         </div>
     </fieldset>
     <fieldset>
-        <legend>Filters</legend>
+        <legend>Patient Filters</legend>
         <div class="row">
-            <label for="filter_working_groups" class="col-sm-2 col-form-label">Working Groups</label>
+            <label for="registry" class="col-sm-2 col-form-label">{{ form.registry.label }}</label>
+            <div class="col-sm-10">
+                {{ form.registry }}
+            </div>
+        </div>
+        <div class="row">
+            <label for="filter_working_groups" class="col-sm-2 col-form-label">{{ form.filter_working_groups.label }}</label>
             <div class="col-sm-10 mt-2">
                 {{ form.filter_working_groups }}
             </div>
         </div>
         <div class="row">
-            <label for="filter_consents" class="col-sm-2 col-form-label">Consent Items:</label>
+            <label for="filter_consents" class="col-sm-2 col-form-label">{{ form.filter_consents.label }}</label>
             <div class="col-sm-10 mt-2">
                 <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
                 {% for choice in form.filter_consents.field.choices %}
@@ -196,18 +174,21 @@
                 {% endfor %}
                 </ul>
             </div>
-            <div class="offset-sm-2 col-sm-10 form-text">Filter the report to only include patients that have consented to the selected consent items.</div>
+            <div class="offset-sm-2 col-sm-10 form-text">
+                {% trans "Filter the report to only include patients that have consented to the selected consent items." %}
+            </div>
         </div>
     </fieldset>
 
-    <div class="col-12 offset-sm-2 mb-4">
-        <button class="btn btn-primary" type="submit">
+    <div class="col-10 offset-sm-2 mb-4">
+        <button class="btn btn-success" type="submit">
             {% if form.instance.id %}
-                Save Report
+                {% trans "Save Report" %}
             {% else %}
-                Create Report
+                {% trans "Create Report" %}
             {% endif %}
         </button>
+        <a class="btn btn-danger float-end" href="{% url 'rdrf:explorer_reports_list' %}">Cancel</a>
     </div>
 </form>
 {% endblock %}

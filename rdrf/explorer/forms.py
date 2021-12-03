@@ -2,14 +2,16 @@ import json
 import logging
 
 from django.contrib.auth.models import Group
-from django.forms import ModelForm, Select, SelectMultiple, MultipleChoiceField, ChoiceField, ModelMultipleChoiceField, \
-    ModelChoiceField, CheckboxSelectMultiple
+from django.forms import ModelForm, Select, SelectMultiple, ChoiceField, ModelMultipleChoiceField, \
+    ModelChoiceField, MultipleChoiceField, CheckboxSelectMultiple
 
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, Registry, RegistryForm
 from registry.groups.models import WorkingGroup
 from .models import Query, ReportDesign, DemographicField, CdeField
 from .report_configuration import REPORT_CONFIGURATION
+
+from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +84,12 @@ def get_filter_consent_choices():
 
 class ReportDesignerForm(ModelForm):
 
-    demographic_fields = ChoiceField(widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), choices=get_demographic_field_choices())
-    cde_fields = ChoiceField(widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), choices=get_cde_choices(), required=False)
-    filter_consents = MultipleChoiceField(widget=CheckboxSelectMultiple, choices=get_filter_consent_choices())
-    # filter_consents = ModelMultipleChoiceField(queryset=ConsentQuestion.objects.all().order_by('position'), to_field_name = 'code')
-    search_cdes_by_section = ChoiceField(widget=Select(attrs={'class': 'form-select'}), choices=get_section_choices(), required=False)
-    registry = ModelChoiceField(widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name = 'code')
+    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), choices=get_demographic_field_choices())
+    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), choices=get_cde_choices(), required=False)
+    # filter_consents = MultipleChoiceField(label=_('Consent Items'), widget=CheckboxSelectMultiple, choices=get_filter_consent_choices(), required=False)
+    filter_consents = ModelMultipleChoiceField(queryset=ConsentQuestion.objects.all().order_by('position'))
+    search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), choices=get_section_choices(), required=False)
+    registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name = 'code', required=False)
 
     class Meta:
         model = ReportDesign
@@ -95,53 +97,52 @@ class ReportDesignerForm(ModelForm):
             'id',
             'title',
             'description',
-            # 'registry',
             'access_groups',
             'filter_working_groups'
         ]
         widgets = {
-            # 'registry': Select(attrs={'class': 'form-select'}),
             'access_groups': SelectMultiple(attrs={'class': 'form-select'}),
             'filter_working_groups': SelectMultiple(attrs={'class': 'form-select'})
+        }
+        labels = {
+            'title': _('Title'),
+            'description': _('Description'),
+            'access_groups': _('Access Groups'),
+            'filter_working_groups': _('Working Groups'),
         }
 
     def setup_initials(self):
         # TODO how to do this a better way without a setup method?
         if self.instance.id:
-            self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
+            self.fields['filter_consents'].initial = [consent.id for consent in self.instance.filter_consents.all()]
             self.fields['demographic_fields'].initial = [demo_field.field for demo_field in self.instance.demographicfield_set.all()]
             self.fields['cde_fields'].initial = [cde_field.field for cde_field in self.instance.cdefield_set.all()]
-            self.fields['registry'].initial = self.instance.registry.code
+            self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
 
     def save_to_model(self):
-        logger.info('!! DEBUG **')
+
+        clean_data = self.cleaned_data
 
         report_design, created = ReportDesign.objects.update_or_create(
             id=self.instance.id,
-            defaults={'title': self.data['title'],
-                      'description': self.data['description'],
-                      'registry': Registry.objects.get(code=self.data['registry'])}
+            defaults={'title': clean_data['title'],
+                      'description': clean_data['description'],
+                      'registry': clean_data['registry']}
         )
 
-        report_design.access_groups.set(Group.objects.filter(id__in=self.data.getlist('access_groups')))
-        report_design.filter_working_groups.set(WorkingGroup.objects.filter(id__in=self.data.getlist('filter_working_groups')))
+        report_design.access_groups.set(clean_data['access_groups'])
+        report_design.filter_working_groups.set(clean_data['filter_working_groups'])
+        report_design.filter_consents.set(clean_data['filter_consents'])
 
-        filter_consent_fields = self.data.getlist('filter_consents')
-        report_design.filter_consents.set(
-            ConsentQuestion.objects.filter(code__in=[json.loads(consent)['consent_question']
-                                                     for consent in filter_consent_fields]))
-
-        demographic_fields = self.data.getlist('demographic_fields')
         DemographicField.objects.filter(report_design=report_design).delete()
-        for field in demographic_fields:
+        for field in clean_data['demographic_fields']:
             DemographicField.objects.create(
                 field=field,
                 report_design=report_design
             )
 
-        cde_fields = self.data.getlist('cde_fields')
         CdeField.objects.filter(report_design=report_design).delete()
-        for field in cde_fields:
+        for field in clean_data['cde_fields']:
             CdeField.objects.create(
                 field=field,
                 report_design=report_design

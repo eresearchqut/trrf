@@ -342,8 +342,8 @@ class Query(models.Model):
 class ReportDesign(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    access_groups = models.ManyToManyField(Group)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE, blank=True, null=True)
+    access_groups = models.ManyToManyField(Group, blank=True)
     filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
     filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
     compiled_query = models.TextField(null=True)
@@ -378,8 +378,10 @@ class ReportDesign(models.Model):
         logger.info(other_models)
 
         patient_query_params = []
+        filters = []
 
-        filters = [f'"rdrf_registry__code={self.registry.code}"']
+        if self.registry:
+            filters = [f'"rdrf_registry__code={self.registry.code}"']
 
         if self.filter_consents:
             filters.append(f'"consents__answer=True"')

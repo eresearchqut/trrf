@@ -539,11 +539,13 @@ class ReportDesignView(SuperuserRequiredMixin, View):
         else:
             form = ReportDesignerForm(request.POST)
 
-        form.save_to_model()
+        if form.is_valid():
+            form.save_to_model()
+            messages.success(request, f'Report "{form.instance.title}" has been saved successfully.')
+            return redirect('rdrf:explorer_reports_list')
+        else:
+            return render(request, 'explorer_v2/report_designer.html', _get_default_params(request, form))
 
-        messages.success(request, f'Report "{form.instance.title}" has been saved successfully.')
-
-        return redirect('rdrf:explorer_reports_list')
 
 class ReportDeleteView(SuperuserRequiredMixin, View):
     def get(self, request, query_id):
