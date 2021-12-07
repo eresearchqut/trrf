@@ -10,6 +10,18 @@ from django.conf import settings
 
 from registry import groups
 from rdrf.helpers.registry_features import RegistryFeatures
+from collections import namedtuple
+from functools import reduce
+import logging
+from operator import attrgetter
+
+from django.urls import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
+from django.urls.exceptions import NoReverseMatch
+from django.conf import settings
+
+from registry import groups
+from rdrf.helpers.registry_features import RegistryFeatures
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +47,7 @@ class LinkDefs:
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
     Explorer = make_link("rdrf:explorer_main", _("Explorer"))
-    ExplorerV2 = make_link("rdrf:explorer_reports_list", _("Explorer_v2"))
+    ExplorerV2 = make_link("rdrf:explorer_reports_list", _("Reports v2"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))
@@ -279,6 +291,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.CONSENT,
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.DOCTORS,
+            **RegularLinks.EXPLORER_V2,
             **RegularLinks.REPORTING,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.QUESTIONNAIRE,
@@ -287,6 +300,7 @@ class RegularMenuConfig(MenuConfig):
         self.clinical = {
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.QUESTIONNAIRE,
+            **RegularLinks.EXPLORER_V2,
             **RegularLinks.REPORTING,
         }
 
@@ -302,7 +316,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.AUDITING,
             **RegularLinks.DOCTORS,
             **RegularLinks.EXPLORER,
-            **RegularLinks.EXPLORER_V2,
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
@@ -320,6 +333,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REGISTRATION,
             **RegularLinks.REPORTING,
+            **RegularLinks.EXPLORER_V2,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,

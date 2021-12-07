@@ -479,19 +479,25 @@ class MultisectionHandler(object):
         return new_rows
 
 # Reporting Views - Future State
-class ReportsView(SuperuserRequiredMixin, View):
+class ReportsAccessCheckMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+class ReportsView(View):
     def get(self, request):
         return render(request, 'explorer_v2/reports_list.html', {
-            'reports': ReportDesign.objects.all()
+            'reports': ReportDesign.objects.reports_for_user(request.user)
         })
 
-class ReportDownloadJsonView(SuperuserRequiredMixin, View):
-    def get(self, request, query_id):
+class ReportDownloadJsonView(ReportsAccessCheckMixin, View):
+    def get(self, request, report_id):
 
-        report = ReportDesign.objects.get(id=query_id)
+        report = ReportDesign.objects.get(id=report_id)
         query = report.compiled_query
 
-        result = schema.execute(query)
+        result = schema.execute(query, context_value=request)
         content = json.dumps(result.data)
 
         logger.info(query)
@@ -501,28 +507,25 @@ class ReportDownloadJsonView(SuperuserRequiredMixin, View):
         response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report.title
         return response
 
-class ReportDownloadCsvView(SuperuserRequiredMixin, View):
-    def get(self, request, query_id):
+class ReportDownloadCsvView(ReportsAccessCheckMixin, View):
+    def get(self, request, report_id):
 
-        report = ReportDesign.objects.get(id=query_id)
+        report = ReportDesign.objects.get(id=report_id)
         query = report.compiled_query
 
-        result = schema.execute(query)
+        result = schema.execute(query, context_value=request)
         result_flat = [flatten(p) for p in result.data['allPatients']]
         df = pd.DataFrame(result_flat)
-
-        logger.info(result_flat)
-        logger.info(df)
 
         response = StreamingHttpResponse(df.to_csv(), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % report.title
         return response
 
 class ReportDesignView(SuperuserRequiredMixin, View):
-    def get(self, request, query_id=None):
+    def get(self, request, report_id=None):
 
-        if query_id:
-            report = get_object_or_404(ReportDesign, id=query_id)
+        if report_id:
+            report = get_object_or_404(ReportDesign, id=report_id)
             report_design_form = ReportDesignerForm(instance=report)
             report_design_form.setup_initials()
         else:
@@ -531,10 +534,10 @@ class ReportDesignView(SuperuserRequiredMixin, View):
         params = _get_default_params(request, report_design_form)
         return render(request, 'explorer_v2/report_designer.html', params)
 
-    def post(self, request, query_id=None):
+    def post(self, request, report_id=None):
 
-        if query_id:
-            report = get_object_or_404(ReportDesign, id=query_id)
+        if report_id:
+            report = get_object_or_404(ReportDesign, id=report_id)
             form = ReportDesignerForm(request.POST, instance=report)
         else:
             form = ReportDesignerForm(request.POST)
@@ -548,7 +551,7 @@ class ReportDesignView(SuperuserRequiredMixin, View):
 
 
 class ReportDeleteView(SuperuserRequiredMixin, View):
-    def get(self, request, query_id):
-        report = get_object_or_404(ReportDesign, id=query_id)
+    def get(self, request, report_id):
+        report = get_object_or_404(ReportDesign, id=report_id)
         report.delete()
         return redirect('rdrf:explorer_reports_list')

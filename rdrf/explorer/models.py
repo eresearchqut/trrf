@@ -339,21 +339,38 @@ class Query(models.Model):
         return errors
 
 # Reporting Models - Future State
+class ReportDesignManager(models.Manager):
+
+    def reports_for_user(self, user):
+        if user.is_superuser:
+            return super().get_queryset()
+        if not (user.is_curator or user.is_clinician):
+            return self.none()
+
+        registries = user.get_registries()
+        if user.is_clinician and not user.ethically_cleared:
+            # Registries that do NOT require ethical clearance
+            registries = (
+                r for r in registries if not r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
+            )
+
+        return super().get_queryset().filter(registry__in=registries, access_groups__in=user.get_groups())
+
 class ReportDesign(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    registry = models.ForeignKey(Registry, on_delete=models.CASCADE, blank=True, null=True)
+    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     access_groups = models.ManyToManyField(Group, blank=True)
     filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
     filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
     compiled_query = models.TextField(null=True)
 
+    objects = ReportDesignManager()
+
     class Meta:
         ordering = ['title']
 
     def compile_query(self):
-        # logger.info("Compile to query - BEGIN")
-
         models = {}
         model_schema = {}
 
@@ -377,11 +394,8 @@ class ReportDesign(models.Model):
 
         logger.info(other_models)
 
-        patient_query_params = []
+        patient_query_params = [f'registryCode:"{self.registry.code}"']
         filters = []
-
-        if self.registry:
-            filters = [f'"rdrf_registry__code={self.registry.code}"']
 
         if self.filter_consents:
             filters.append(f'"consents__answer=True"')

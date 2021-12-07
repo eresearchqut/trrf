@@ -1,12 +1,13 @@
-import graphene
 import logging
+
+import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
 
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import Registry, ConsentQuestion, ClinicalData, RDRFContext
 from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient, PatientAddress, AddressType, ConsentValue
+from registry.patients.models import Patient, PatientAddress, AddressType, ConsentValue, NextOfKinRelationship
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ class PatientType(DjangoObjectType):
                   'next_of_kin_given_names','next_of_kin_relationship','next_of_kin_address','next_of_kin_suburb',
                   'next_of_kin_state','next_of_kin_postcode','next_of_kin_home_phone','next_of_kin_mobile_phone',
                   'next_of_kin_work_phone','next_of_kin_email','next_of_kin_parent_place_of_birth',
-                  'next_of_kin_country','active','inactive_reason','user','carer','living_status','patient_type',
+                  'next_of_kin_country','active','inactive_reason','living_status','patient_type',
                   'stage','created_at','last_updated_at','last_updated_overall_at','created_by',
                   'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
 
@@ -185,6 +186,11 @@ class ConsentValueType(DjangoObjectType):
         model = ConsentValue
         fields = ('consent_question', 'answer')
 
+class NextOfKinRelationshipType(DjangoObjectType):
+    class Meta:
+        model = NextOfKinRelationship
+        fields = ('relationship',)
+
 class PatientAddressType(DjangoObjectType):
     class Meta:
         model = PatientAddress
@@ -208,18 +214,23 @@ class RegistryType(DjangoObjectType):
 class Query(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='_debug')
     all_patients = graphene.List(PatientType,
+                                 registry_code=graphene.String(required=True),
                                  filters=graphene.List(graphene.String),
                                  working_group_ids=graphene.List(graphene.String))
 
-    def resolve_all_patients(self, info, filters=[], working_group_ids=[]):
+    def resolve_all_patients(self, info, registry_code, filters=[], working_group_ids=[]):
+        registry = Registry.objects.get(code=registry_code)
+
         query_args = dict([query_filter.split('=') for query_filter in filters])
+
+        query_args['rdrf_registry__id'] = registry.id
 
         if working_group_ids:
             query_args['working_groups__id__in'] = working_group_ids
 
-
-        # This works too: return Patient.objects.filter(id__in=Subquery(Patient.objects.filter(working_groups__id__in=[1,3]).values('id')))
-        logger.info(query_args)
-        return Patient.objects.filter(**query_args).prefetch_related('working_groups').distinct()
+        return Patient.objects\
+            .get_by_user_and_registry(info.context.user, registry)\
+            .filter(**query_args).prefetch_related('working_groups')\
+            .distinct()
 
 schema = graphene.Schema(query=Query, types=[ClinicalDataMultiSection, ClinicalDataSection, ClinicalDataCde, ClinicalDataCdeMultiValue])

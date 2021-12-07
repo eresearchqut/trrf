@@ -5,36 +5,46 @@
     <div>
         <div class="row">
             <div class="col-sm-6"><h1>{% trans "Reports" %}</h1></div>
+            {% if request.user.is_superuser  %}
             <div class="col-sm-6 d-sm-flex align-items-center justify-content-end">
                 <a href="{% url 'rdrf:explorer_report_designer' %}" class="btn btn-success"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>
             </div>
+            {% endif %}
         </div>
     </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>{% trans "Registry" %}</th>
-                <th>{% trans "Report" %}</th>
-                <th>{% trans "Download" %}</th>
-                <th>{% trans "Actions" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for report in reports %}
-            <tr>
-                <td>{{ report.registry.name }}</td>
-                <td>{{ report.title }}</td>
-                <td>
-                    <a href="{%  url 'rdrf:explorer_report_download_csv' report.id %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
-                    <a href="{%  url 'rdrf:explorer_report_download' report.id %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
-                </td>
-                <td>
-                    <a href="{%  url 'rdrf:explorer_report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
-                    <a href="{%  url 'rdrf:explorer_report_delete' report.id %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %} <i class="fa fa-trash-o"></i> </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% if reports %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% trans "Registry" %}</th>
+                    <th>{% trans "Report" %}</th>
+                    <th>{% trans "Download" %}</th>
+                    {% if request.user.is_superuser  %}
+                        <th>{% trans "Actions" %}</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ report.registry.name }}</td>
+                    <td>{{ report.title }}</td>
+                    <td>
+                        <a href="{%  url 'rdrf:explorer_report_download_csv' report.id %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
+                        <a href="{%  url 'rdrf:explorer_report_download' report.id %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
+                    </td>
+                    {% if request.user.is_superuser  %}
+                    <td>
+                        <a href="{%  url 'rdrf:explorer_report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
+                        <a href="{%  url 'rdrf:explorer_report_delete' report.id %}" class="btn btn-sm btn-outline-danger">{% trans "Delete" %} <i class="fa fa-trash-o"></i> </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info"><p class="mb-0">You don't have any reports to view.</p></div>
+    {% endif %}
 {% endblock %}

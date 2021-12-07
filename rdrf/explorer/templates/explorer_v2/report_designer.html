@@ -6,9 +6,43 @@
 
     let ui = {};
 
+    function get_selector_registry_by_value(registry) {
+        return `[value*='"registry": "` + registry + `"']`;
+    }
+
+    function filter_select($select, selector) {
+        $select.find('option:not(' + selector + ', [value=""])').hide()
+        $select.find('optgroup:not(:has(option' + selector + '))').hide()
+
+        $select.find('option' + selector + '').show()
+        $select.find('optgroup:has(option' + selector + ')').show()
+    }
+
+    function filter_checkboxes($uiListGroup, selector) {
+        $uiListGroup.find(':checkbox(:not(' + selector + '))').closest('li').hide();
+        $uiListGroup.find(':checkbox' + selector).closest('li').show();
+    }
+
+    function update_components_by_registry(selected_registry, deselect_values) {
+        const selector_registry_by_value = get_selector_registry_by_value(selected_registry);
+
+        filter_select(ui.selectFilterCdesBySection, selector_registry_by_value);
+        filter_select(ui.selectCdeFields, selector_registry_by_value);
+        filter_select(ui.selectWorkingGroups, selector_registry_by_value);
+        filter_checkboxes(ui.selectConsentFilters, selector_registry_by_value);
+
+        if (deselect_values) {
+            ui.selectFilterCdesBySection.val("").trigger("change");
+            ui.selectCdeFields.val("").trigger("change");
+            ui.selectWorkingGroups.val("").trigger("change")
+            ui.selectConsentFilters.find(":checkbox:checked").removeAttr("checked");
+        }
+    }
+
     function filter_cde_by_section(selected_section) {
         if (selected_section.trim() == "") {
             ui.selectCdeFields.find('optgroup, optgroup > option').show();
+            filter_select(ui.selectCdeFields, get_selector_registry_by_value(ui.selectRegistry.val()));
             return;
         }
 
@@ -42,14 +76,21 @@
 
     $(document).ready(function() {
         ui = {
+            selectRegistry: $('#id_registry'),
             selectFilterCdesBySection: $('#id_search_cdes_by_section'),
             selectCdeFields: $('#id_cde_fields'),
+            selectWorkingGroups: $('#id_filter_working_groups'),
+            selectConsentFilters: $('#id_filter_consents_list'),
             txtSelectCdeFieldsCount: $('#selected_cde_field_cnt'),
             btnClearCdeFilter: $('#id_clear_cde_filter'),
             btnFilterCdeBySelected: $('#id_cde_filter_by_selected')
         }
 
-        ui.selectFilterCdesBySection.change(function() {
+        ui.selectRegistry.change(function() {
+            update_components_by_registry($(this).val(), true);
+        });
+
+        ui.selectFilterCdesBySection.on('change', function() {
             filter_cde_by_section($(this).val());
         });
 
@@ -68,6 +109,7 @@
 
         // setup initial state
         update_selected_cde_count(ui.selectCdeFields);
+        update_components_by_registry(ui.selectRegistry.val(), false);
     });
 </script>
 <h1>
@@ -98,6 +140,14 @@
                 </textarea>
             </div>
             <div class="offset-sm-2 col-sm-10 form-text">{% trans "A textual description of the purpose of this report." %}</div>
+        </div>
+        <div class="row">
+            <label for="registry" class="col-sm-2 col-form-label">
+                {{ form.registry.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
+            <div class="col-sm-10">
+                {{ form.registry }}
+            </div>
         </div>
         <div class="row">
             <label for="access_group" class="col-sm-2 col-form-label">{{ form.access_groups.label }}</label>
@@ -143,12 +193,6 @@
     <fieldset>
         <legend>Patient Filters</legend>
         <div class="row">
-            <label for="registry" class="col-sm-2 col-form-label">{{ form.registry.label }}</label>
-            <div class="col-sm-10">
-                {{ form.registry }}
-            </div>
-        </div>
-        <div class="row">
             <label for="filter_working_groups" class="col-sm-2 col-form-label">{{ form.filter_working_groups.label }}</label>
             <div class="col-sm-10 mt-2">
                 {{ form.filter_working_groups }}
@@ -158,16 +202,16 @@
             <label for="filter_consents" class="col-sm-2 col-form-label">{{ form.filter_consents.label }}</label>
             <div class="col-sm-10 mt-2">
                 <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
-                {% for choice in form.filter_consents.field.choices %}
-                    {% if choice.0 %}
+                {% for value, label in form.filter_consents.field.choices %}
+                    {% if value %}
                     <li>
                         <label class="form-check-label">
-                            <input type="checkbox" name="filter_consents" value="{{ choice.0 }}"
-                                {% if choice.0 in form.filter_consents.initial %}
+                            <input type="checkbox" name="filter_consents" value="{{ value }}"
+                                {% if value in form.filter_consents.initial %}
                                     checked="checked"
                                 {% endif %}
                             >
-                            {{ choice.1 }}
+                            {{ label }}
                         </label>
                     </li>
                     {% endif %}

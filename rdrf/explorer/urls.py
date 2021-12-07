@@ -19,10 +19,10 @@ urlpatterns = [
             SqlQueryView.as_view(), name='explorer_sql_query'),
 
     re_path(r'^report$', ReportDesignView.as_view(), name='explorer_report_designer'),
-    re_path(r'^report/(?P<query_id>\w+)/?$', ReportDesignView.as_view(), name='explorer_report_designer'),
-    re_path(r'^report/(?P<query_id>\w+)/delete/?$', ReportDeleteView.as_view(), name='explorer_report_delete'),
-    re_path(r'^report/download/(?P<query_id>\w+)/?$', ReportDownloadJsonView.as_view(), name='explorer_report_download'),
-    re_path(r'^report/download_csv/(?P<query_id>\w+)/?$', ReportDownloadCsvView.as_view(), name='explorer_report_download_csv'),
+    re_path(r'^report/(?P<report_id>\w+)/?$', ReportDesignView.as_view(), name='explorer_report_designer'),
+    re_path(r'^report/(?P<report_id>\w+)/delete/?$', ReportDeleteView.as_view(), name='explorer_report_delete'),
+    re_path(r'^report/download/(?P<report_id>\w+)/?$', ReportDownloadJsonView.as_view(), name='explorer_report_download'),
+    re_path(r'^report/download_csv/(?P<report_id>\w+)/?$', ReportDownloadCsvView.as_view(), name='explorer_report_download_csv'),
     re_path(r'^reports$', ReportsView.as_view(), name='explorer_reports_list'),
 
     re_path(r'^new$', NewQueryView.as_view(), name='explorer_new'),

@@ -1,17 +1,15 @@
 import json
 import logging
 
-from django.contrib.auth.models import Group
-from django.forms import ModelForm, Select, SelectMultiple, ChoiceField, ModelMultipleChoiceField, \
-    ModelChoiceField, MultipleChoiceField, CheckboxSelectMultiple
+from django.forms import ModelForm, Select, SelectMultiple, ChoiceField, ModelChoiceField, MultipleChoiceField, \
+    CheckboxSelectMultiple
+from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, Registry, RegistryForm
 from registry.groups.models import WorkingGroup
 from .models import Query, ReportDesign, DemographicField, CdeField
 from .report_configuration import REPORT_CONFIGURATION
-
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +72,12 @@ def get_section_choices():
 
     return fields
 
+def get_working_group_field_value(wg):
+    return json.dumps({'registry': wg.registry.code, 'wg': wg.id})
+
+def get_working_group_choices():
+    return [(get_working_group_field_value(wg), wg.display_name) for wg in WorkingGroup.objects.all()]
+
 def get_filter_consent_field_value(consent_question):
     return json.dumps({'registry': consent_question.section.registry.code, 'consent_question': consent_question.code})
 
@@ -84,12 +88,20 @@ def get_filter_consent_choices():
 
 class ReportDesignerForm(ModelForm):
 
+    registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name = 'code')
     demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), choices=get_demographic_field_choices())
-    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), choices=get_cde_choices(), required=False)
-    # filter_consents = MultipleChoiceField(label=_('Consent Items'), widget=CheckboxSelectMultiple, choices=get_filter_consent_choices(), required=False)
-    filter_consents = ModelMultipleChoiceField(queryset=ConsentQuestion.objects.all().order_by('position'))
     search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), choices=get_section_choices(), required=False)
-    registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name = 'code', required=False)
+    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), choices=get_cde_choices(), required=False)
+    filter_consents = MultipleChoiceField(
+        label=_('Consent Items'),
+        widget=CheckboxSelectMultiple,
+        choices=get_filter_consent_choices(),
+        required=False)
+    filter_working_groups =MultipleChoiceField(
+        label=_('Working groups'),
+        widget=SelectMultiple(attrs={'class': 'form-select'}),
+        choices=get_working_group_choices(),
+        required=False)
 
     class Meta:
         model = ReportDesign
@@ -98,26 +110,37 @@ class ReportDesignerForm(ModelForm):
             'title',
             'description',
             'access_groups',
-            'filter_working_groups'
         ]
         widgets = {
             'access_groups': SelectMultiple(attrs={'class': 'form-select'}),
-            'filter_working_groups': SelectMultiple(attrs={'class': 'form-select'})
         }
         labels = {
             'title': _('Title'),
             'description': _('Description'),
             'access_groups': _('Access Groups'),
-            'filter_working_groups': _('Working Groups'),
         }
 
     def setup_initials(self):
-        # TODO how to do this a better way without a setup method?
         if self.instance.id:
-            self.fields['filter_consents'].initial = [consent.id for consent in self.instance.filter_consents.all()]
+            self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
             self.fields['demographic_fields'].initial = [demo_field.field for demo_field in self.instance.demographicfield_set.all()]
             self.fields['cde_fields'].initial = [cde_field.field for cde_field in self.instance.cdefield_set.all()]
-            self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
+            self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
+            self.fields['filter_working_groups'].initial = [get_working_group_field_value(wg) for wg in self.instance.filter_working_groups.all()]
+
+    def clean_filter_working_groups(self):
+        def get_wg_from_field(field):
+            field_dict = json.loads(field)
+            return WorkingGroup.objects.get(id=field_dict['wg'])
+
+        return [get_wg_from_field(field) for field in self.cleaned_data['filter_working_groups']]
+
+    def clean_filter_consents(self):
+        def get_consent_from_field(field):
+            field_dict = json.loads(field)
+            return ConsentQuestion.objects.get(code = field_dict['consent_question'])
+
+        return [get_consent_from_field(field) for field in self.cleaned_data['filter_consents']]
 
     def save_to_model(self):
 
