@@ -37,12 +37,12 @@ class QueryForm(ModelForm):
 
 
 def get_demographic_field_choices():
-    def get_field_value(model_name, model_schema_lookup, field):
-        return json.dumps({"model": model_name, "schema_lookup": model_schema_lookup, "field": field})
+    def get_field_value(model_name, model_field_lookup, field):
+        return json.dumps({"model": model_name, "model_field_lookup": model_field_lookup, "field": field})
 
     demographic_fields = []
     for model, model_attrs in REPORT_CONFIGURATION['demographic_model'].items():
-        field_choices = [(get_field_value(model, model_attrs['schema_lookup'], value), key) for key, value in model_attrs['fields'].items()]
+        field_choices = [(get_field_value(model, model_attrs['model_field_lookup'], value), key) for key, value in model_attrs['fields'].items()]
         demographic_fields.append((model, field_choices))
     return demographic_fields
 
@@ -171,7 +171,7 @@ class ReportDesignerForm(ModelForm):
                 report_design=report_design
             )
 
-        report_design.compile_query()
+        # report_design.compile_query()
         report_design.save()
 
         self.instance = report_design

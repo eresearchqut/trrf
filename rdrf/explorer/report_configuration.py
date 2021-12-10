@@ -1,7 +1,7 @@
 REPORT_CONFIGURATION = {
     'demographic_model':
        {'Patient': {
-             'schema_lookup': "patient",
+             'model_field_lookup': "patient",
              'fields': {
                   'Id': 'id',
                   'Consent': 'consent',
@@ -41,7 +41,7 @@ REPORT_CONFIGURATION = {
                   'Living Status': 'livingStatus',
                   'Patient Type': 'patientType'}},
          "Patient Address": {
-              'schema_lookup': 'patientaddressSet',
+              'model_field_lookup': 'patientaddressSet',
               'fields': {
                   'Address Type': 'addressType { type }',
                   'Street Address': 'address',
@@ -50,7 +50,7 @@ REPORT_CONFIGURATION = {
                   'Postcode': 'postcode',
                   'Country': 'country'}},
          "Working Groups": {
-              'schema_lookup': 'workingGroups',
+              'model_field_lookup': 'workingGroups',
               'fields': {
                   'Name': 'name'
               }

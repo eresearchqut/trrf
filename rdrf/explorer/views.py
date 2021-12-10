@@ -27,6 +27,7 @@ from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from registry.groups.models import WorkingGroup
 from .forms import QueryForm, ReportDesignerForm
 from .models import Query, ReportDesign
+from .reports.generator import Report
 from .utils import DatabaseUtils
 
 from flatten_json import flatten
@@ -493,25 +494,20 @@ class ReportsView(View):
 
 class ReportDownloadJsonView(ReportsAccessCheckMixin, View):
     def get(self, request, report_id):
+        report_design = get_object_or_404(ReportDesign, pk=report_id)
+        report = Report(report_design=report_design)
 
-        report = ReportDesign.objects.get(id=report_id)
-        query = report.compiled_query
-
-        result = schema.execute(query, context_value=request)
-        content = json.dumps(result.data)
-
-        logger.info(query)
-        logger.info(result)
-
-        response = StreamingHttpResponse(content, content_type='text/json')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report.title
+        response = StreamingHttpResponse(report.get_json(request), content_type='text/json')
+        response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report_design.title
         return response
 
 class ReportDownloadCsvView(ReportsAccessCheckMixin, View):
     def get(self, request, report_id):
+        report_design = get_object_or_404(ReportDesign, pk=report_id)
+        report = Report(report_design=report_design)
 
-        report = ReportDesign.objects.get(id=report_id)
-        query = report.compiled_query
+        query = report.get_graphql_query()
+        logger.info(query)
 
         result = schema.execute(query, context_value=request)
         result_flat = [flatten(p) for p in result.data['allPatients']]

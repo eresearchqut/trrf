@@ -1,55 +1,65 @@
+import logging
+
 import pandas as pd
-from django.db import connection
-import json
 
-p = Patient.objects.all()
+from rdrf.schema.schema import schema
 
-formdef = pd.read_sql("""SELECT form.form_id,
-       form.form_name,
-       section.section_id,
-       section.section_name,
-       section.section_code,
-       cde.code           AS cde_code,
-       cde.name           AS cde_name,
-       cde.datatype       AS cde_datatype,
-       cde.allow_multiple AS cde_allow_multiple,
-       cde.is_required AS cde_required,
-       cde.max_length as cde_max_length,
-       cde.min_value as cde_min_value,
-       cde.max_value as cde_max_value,
-       cde.pattern as cde_pattern,
-       cde.calculation as cde_calculation,
-       cde.widget_name AS cde_widget_name,
-       cde.widget_settings as cde_widget_settings,
-       pvg.pvg_codes,
-       pvg.pvg_values
-FROM (SELECT id                                    AS form_id,
-             name                                  AS form_name,
-             regexp_split_to_table(sections, E',') AS section_code
-      FROM rdrf_registryform) AS form
-         JOIN (SELECT id                                    AS section_id,
-                      display_name                          AS section_name,
-                      code                                  AS section_code,
-                      regexp_split_to_table(elements, E',') AS cde_code
-               FROM rdrf_section) AS section
-              ON form.section_code = section.section_code
-         JOIN rdrf_commondataelement cde ON section.cde_code = cde.code
-         LEFT OUTER JOIN (SELECT array_to_string(array_agg(code ORDER BY id), ',')  AS pvg_codes,
-                                 array_to_string(array_agg(value ORDER BY id), ',') AS pvg_values,
-                                 pv_group_id
-                          FROM rdrf_cdepermittedvalue
-                          GROUP BY pv_group_id
-) AS pvg ON cde.pv_group_id = pvg.pv_group_id""", connection)
+logger = logging.getLogger(__name__)
+query=\
+"""
+query {
+  allPatients(registryCode: "ang") {
+    id, familyName, givenNames, 
+    clinicalDataFlat(cdeKeys: ["NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn", "Sleep____ANGBEHDEVSLEEPDIARY____ANGBEHDEVSLEEPDAY", "ChangeInSeizureActivity____SeizureChange____6MoSeizType"])
+    	{cfg {name, sortOrder, entryNum}, form, section, sectionCnt,
+        cde {
+            code
+            ... on ClinicalDataCde {value}
+            ... on ClinicalDataCdeMultiValue {values}
+        } 
+    }
+  }
+}
+"""
+result = schema.execute(query)
+# logger.info(result)
+
+data_allpatients = result.data['allPatients']
+logger.info(data_allpatients)
+
+df = pd.json_normalize(data_allpatients,
+                       # max_level=1,
+                       record_path=['clinicalDataFlat'],
+                       meta=['id', 'familyName', 'givenNames'],
+                       errors='ignore')
 
 
-cd_records = [];
-for record in ClinicalData.objects.filter(collection="cdes").values():
-    cd_records.append(record['data'])
+logger.info(df)
 
-with open("/data/output/clinical_data.json", "w") as outfile:
-    json.dump(cd_records, outfile)
+df['cde.value'] = df['cde.value'].combine_first(df['cde.values'])
+logger.info('after combine:')
+logger.info(df)
+
+pivoted = df.pivot(index=['id', 'givenNames', 'familyName'], columns=['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt', 'cde.code'], values=['cde.value'])
+logger.info("Pivoted:")
+pivoted = pivoted.sort_index(axis=1, level=['cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt', 'cde.code'])
+pivoted = pivoted.droplevel('cfg.sortOrder', axis=1)
+logger.info(pivoted)
 
 
-formdef.to_csv('/data/output/formdef.csv')
+transformed = pivoted
+# for column in transformed.columns:
+#     logger.info(column)
+# transformed.columns = ("_".join([column for column in [column_series for column_series in transformed.columns] if column != 'value']))
 
-print('done')
+transformed.columns = transformed.columns.to_series().str.join('_')
+transformed.columns = transformed.columns.to_series().str.lstrip('cde.value_')
+transformed.reset_index(inplace=True)
+transformed = transformed.loc[:, transformed.columns.notnull()] # get rid of null columns (caused by patients with no matching clinical data)
+# transformed = transformed.sort_index(axis=1)
+
+
+logger.info("Transformed:")
+logger.info(transformed)
+
+transformed.to_csv('out.csv')

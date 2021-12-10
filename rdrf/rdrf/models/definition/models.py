@@ -238,7 +238,7 @@ class Registry(models.Model):
         """
         Registry specific fields for the demographic form
         """
-        from rdrf.forms.dynamic.field_lookup import FieldFactory
+        from rdrf.forms.dynamic.model_field_lookup import FieldFactory
         field_pairs = []  # list of pairs of cde and field object
         if self.patient_data_section:
             patient_cde_models = self.patient_data_section.cde_models
