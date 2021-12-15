@@ -38,21 +38,17 @@ REPORT_CONFIGURATION = {
                   'Active': 'active',
                   'Inactive Reason': 'inactiveReason',
                   'Living Status': 'livingStatus',
-                  'Patient Type': 'patientType'}},
+                  'Patient Type': 'patientType',
+                  'Working Groups': 'workingGroups'}},
          "Patient Address": {
               'model_field_lookup': 'patientaddressSet',
+              'pivot_field': 'addressType { type }',
               'fields': {
                   'Address Type': 'addressType { type }',
                   'Street Address': 'address',
                   'Suburb': 'suburb',
                   'State': 'state',
                   'Postcode': 'postcode',
-                  'Country': 'country'}},
-         "Working Groups": {
-              'model_field_lookup': 'workingGroups',
-              'fields': {
-                  'Name': 'name'
-              }
-         }
+                  'Country': 'country'}}
     }
 }

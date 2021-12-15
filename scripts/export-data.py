@@ -5,6 +5,7 @@ import re
 import pandas as pd
 
 from explorer.models import ReportDesign
+from explorer.report_configuration import REPORT_CONFIGURATION
 from explorer.reports.generator import Report
 from rdrf.schema.schema import schema
 
@@ -12,45 +13,56 @@ logger = logging.getLogger(__name__)
 
 
 def export_to_csv(report):
+    # TODO replace db field names with human readable names
+    def convert_query_field_to_column_label(query_field):
+        # E.g. for workingGroup {id}
+        # group 1 = "workingGroup"
+        # group 2 = " {id} "
+        # group 3 = "id"
+        regex = re.compile(r"(.+)({(.*)})")
+        # Get rid of any spaces
+        query_field = re.sub(r"\s", "", query_field)
+        # replace " { field }" with ".field"
+        query_field = regex.sub(r"\1.\3", query_field)
+        return query_field
+
+
     result = schema.execute(report.get_graphql_query())
 
     data_allpatients = result.data['allPatients']
 
-    report_fields = {'patient': ['id']}
-
-    # E.g. for workingGroup {id}
-    # group 1 = "workingGroup"
-    # group 2 = " {id} "
-    # group 3 = "id"
-    regex = re.compile(r"(.+)({(.*)})")
+    report_fields = {'Patient': ['id']}
 
     for df in report.report_design.demographicfield_set.all():
         df_dict = json.loads(df.field)
-        model_name = df_dict['model_field_lookup']
+        model_name = df_dict['model']
         field = df_dict['field']
-
-        # Get rid of any spaces
-        field = re.sub(r"\s", "", field)
-        # replace " { field }" with ".field"
-        field = regex.sub(r"\1.\3", field)
-
-        report_fields.setdefault(model_name, []).append(field)
+        report_fields.setdefault(model_name, []).append(convert_query_field_to_column_label(field))
 
     # Step 1 - Build a single dataframe of demographic data with 1:many or many:many relationship with patient
     dataframes = []
+
     for model, fields in report_fields.items():
-        if model == 'patient':
+        if model == 'Patient':
             continue
-        prefix = f"{model}."
-        pivot_cols = [f"{prefix}id"]
-        dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model], record_prefix=prefix)
-        fields_with_prefix = [f"{prefix}{field}" for field in fields]
+
+        model_cfg = REPORT_CONFIGURATION['demographic_model'][model]
+        model_lookup = model_cfg['model_field_lookup']
+        pivot_field = convert_query_field_to_column_label(model_cfg['pivot_field'])
+
+        dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model_lookup], record_prefix=model_lookup)
+        pivot_cols = [f"{model_lookup}{pivot_field}"]
         dataframe = dataframe.pivot(index=['id'],
                                     columns=pivot_cols,
-                                    values=fields_with_prefix)
+                                    values=[f"{model_lookup}{field}" for field in fields if field != pivot_field])
 
         dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
+        def suffix_to_prefix(col):
+            return re.sub(r'(.*)(_(.*))', r'\3_\1', col)
+
         dataframe.columns = dataframe.columns.to_series().str.join('_')
+        dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
+        dataframe.columns = dataframe.columns.to_series().apply(suffix_to_prefix)
         dataframe.reset_index(inplace=True)
         dataframes.append(dataframe)
 
@@ -65,11 +77,11 @@ def export_to_csv(report):
     # Step 2 - Clinical Data
     df = pd.json_normalize(data_allpatients,
                            record_path=['clinicalDataFlat'],
-                           meta=report_fields['patient'],
+                           meta=report_fields['Patient'],
                            errors='ignore')
 
     demographic_field_cols = []
-    demographic_field_cols.extend(report_fields['patient'])
+    demographic_field_cols.extend(report_fields['Patient'])
 
     if merged is not None:
         demographic_field_cols.extend(list(merged.columns))

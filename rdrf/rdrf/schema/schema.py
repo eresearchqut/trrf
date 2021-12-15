@@ -97,6 +97,7 @@ class PatientType(DjangoObjectType):
     clinical_data_flat = graphene.List(ClinicalDataTypeFlat, cde_keys=graphene.List(graphene.String))
     clinical_data = graphene.Field(ClinicalDataType, cde_keys=graphene.List(graphene.String))
     sex = graphene.String
+    working_groups = graphene.List(graphene.String)
 
     class Meta:
         model = Patient
@@ -109,7 +110,10 @@ class PatientType(DjangoObjectType):
                   'next_of_kin_work_phone','next_of_kin_email','next_of_kin_parent_place_of_birth',
                   'next_of_kin_country','active','inactive_reason','living_status','patient_type',
                   'stage','created_at','last_updated_at','last_updated_overall_at','created_by',
-                  'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
+                  'rdrf_registry', 'patientaddress_set', 'consents')
+
+    def resolve_working_groups(self, info):
+        return [wg.name for wg in self.working_groups.all()]
 
     def resolve_clinical_data_flat(self, info, cde_keys=[]):
         clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").all()
