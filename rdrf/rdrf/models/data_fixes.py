@@ -13,6 +13,7 @@ class CdeMappings:
         "Integer": CDEDataTypes.INTEGER,
         "Range": CDEDataTypes.RANGE,
         "String": CDEDataTypes.STRING,
+        "Lookup": CDEDataTypes.LOOKUP,
         "text": CDEDataTypes.STRING,
         "Email": CDEDataTypes.EMAIL,
     }

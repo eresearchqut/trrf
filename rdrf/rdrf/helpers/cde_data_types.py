@@ -9,4 +9,5 @@ class CDEDataTypes:
     INTEGER = 'integer'
     RANGE = 'range'
     STRING = 'string'
+    LOOKUP = 'lookup'
     TIME = 'time'

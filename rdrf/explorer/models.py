@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from contextlib import suppress
 
+from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
@@ -128,6 +129,8 @@ class FieldValue(models.Model):
                 model.file_name = value.get("file_name", None)
             except BaseException:
                 pass
+        elif datatype == 'lookup':
+            model.raw_value = get_widget_class(cde_model.widget_name).report_value(value)
         else:
             try:
                 model.raw_value = str(value)

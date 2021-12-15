@@ -613,6 +613,7 @@ class CommonDataElement(models.Model):
         (CDEDataTypes.INTEGER, 'Integer'),
         (CDEDataTypes.RANGE, 'Range'),
         (CDEDataTypes.STRING, 'String'),
+        (CDEDataTypes.LOOKUP, 'Lookup'),
         (CDEDataTypes.TIME, 'Time'),
     ]
 
