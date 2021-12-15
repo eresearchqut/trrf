@@ -14,11 +14,10 @@ logger = logging.getLogger(__name__)
 
 def export_to_csv(report):
     # TODO replace db field names with human readable names
+    result = schema.execute(report.get_graphql_query())
+
     def convert_query_field_to_column_label(query_field):
-        # E.g. for workingGroup {id}
-        # group 1 = "workingGroup"
-        # group 2 = " {id} "
-        # group 3 = "id"
+        # E.g. for "workingGroup {id}", group 1: "workingGroup", 2: " {id} ", 3: "id"
         regex = re.compile(r"(.+)({(.*)})")
         # Get rid of any spaces
         query_field = re.sub(r"\s", "", query_field)
@@ -26,15 +25,12 @@ def export_to_csv(report):
         query_field = regex.sub(r"\1.\3", query_field)
         return query_field
 
-
-    result = schema.execute(report.get_graphql_query())
-
     data_allpatients = result.data['allPatients']
 
     report_fields = {'Patient': ['id']}
 
-    for df in report.report_design.demographicfield_set.all():
-        df_dict = json.loads(df.field)
+    for df_clinical in report.report_design.demographicfield_set.all():
+        df_dict = json.loads(df_clinical.field)
         model_name = df_dict['model']
         field = df_dict['field']
         report_fields.setdefault(model_name, []).append(convert_query_field_to_column_label(field))
@@ -49,14 +45,17 @@ def export_to_csv(report):
         model_cfg = REPORT_CONFIGURATION['demographic_model'][model]
         model_lookup = model_cfg['model_field_lookup']
         pivot_field = convert_query_field_to_column_label(model_cfg['pivot_field'])
+        record_prefix = f"{model}_"
 
-        dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model_lookup], record_prefix=model_lookup)
-        pivot_cols = [f"{model_lookup}{pivot_field}"]
+        dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model_lookup],
+                                      record_prefix=record_prefix)
+        pivot_cols = [f"{record_prefix}{pivot_field}"]
         dataframe = dataframe.pivot(index=['id'],
                                     columns=pivot_cols,
-                                    values=[f"{model_lookup}{field}" for field in fields if field != pivot_field])
+                                    values=[f"{record_prefix}{field}" for field in fields if field != pivot_field])
 
         dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
+
         def suffix_to_prefix(col):
             return re.sub(r'(.*)(_(.*))', r'\3_\1', col)
 
@@ -65,17 +64,17 @@ def export_to_csv(report):
         dataframe.columns = dataframe.columns.to_series().apply(suffix_to_prefix)
         dataframe.reset_index(inplace=True)
         dataframes.append(dataframe)
+        logger.info(dataframe)
 
-
-    merged = None
+    df_demographics = None
     for df in dataframes:
-        if merged is None:
-            merged = df
+        if df_demographics is None:
+            df_demographics = df
         else:
-            merged = pd.merge(left=merged, right=df, on='id', how='outer')
+            df_demographics = pd.merge(left=df_demographics, right=df, on='id', how='outer')
 
     # Step 2 - Clinical Data
-    df = pd.json_normalize(data_allpatients,
+    df_clinical = pd.json_normalize(data_allpatients,
                            record_path=['clinicalDataFlat'],
                            meta=report_fields['Patient'],
                            errors='ignore')
@@ -83,28 +82,30 @@ def export_to_csv(report):
     demographic_field_cols = []
     demographic_field_cols.extend(report_fields['Patient'])
 
-    if merged is not None:
-        demographic_field_cols.extend(list(merged.columns))
-        df = pd.merge(left=df, right=merged, on='id', how='outer')
+    if df_demographics is not None:
+        demographic_field_cols.extend(list(df_demographics.columns))
+        df_clinical = pd.merge(left=df_clinical, right=df_demographics, on='id', how='outer')
         # df = pd.merge(left=df, right=merged, on='id')
 
     from collections import OrderedDict
     demographic_field_cols = list(OrderedDict((x, True) for x in demographic_field_cols).keys())
-    # logger.info(demographic_field_cols)
 
     # Early exit if report does not contain any clinical data
-    if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
-        df.drop(columns=['cfg', 'form', 'section', 'sectionCnt', 'cde'], inplace=True)
-        return df.to_csv()
+    if 'cde.value' not in df_clinical.columns and 'cde.values' not in df_clinical.columns:
+        df_clinical.drop(columns=['cfg', 'form', 'section', 'sectionCnt', 'cde'], inplace=True)
+        return df_clinical.to_csv()
 
     # Merge the value and values columns together
-    if 'cde.value' not in df.columns:
-        df['cde.value'] = None
-    if 'cde.values' in df.columns:
-        df['cde.value'] = df['cde.value'].combine_first(df['cde.values'])
+    if 'cde.value' not in df_clinical.columns:
+        df_clinical['cde.value'] = None
+    if 'cde.values' in df_clinical.columns:
+        df_clinical['cde.value'] = df_clinical['cde.value'].combine_first(df_clinical['cde.values'])
+
+    logger.info("hello world")
+    logger.info(report_fields['Patient'])
 
     # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
-    pivoted = df.pivot(index=demographic_field_cols,
+    pivoted = df_clinical.pivot(index=demographic_field_cols,
                        columns=['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
                                 'cde.code'],
                        values=['cde.value'])
@@ -126,7 +127,7 @@ def export_to_csv(report):
 
     return pivoted.to_csv()
 
-report = Report(report_design=ReportDesign.objects.get(id=7))
+report = Report(report_design=ReportDesign.objects.get(id=3))
 csv = export_to_csv(report)
 logger.info(csv)
 
