@@ -1,5 +1,5 @@
 # Container to build our prod image
-FROM python:3.8 as builder
+FROM python:3.9 as builder
 
 ENV PYTHONUNBUFFERED 1
 
@@ -37,7 +37,7 @@ COPY requirements/* ./
 RUN pip install -r requirements.txt
 
 # Actual image we are building
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 ENV PYTHONUNBUFFERED 1
 
