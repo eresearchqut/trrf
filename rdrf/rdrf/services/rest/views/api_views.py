@@ -129,7 +129,7 @@ class ListStates(APIView):
         try:
             states = sorted(pycountry.subdivisions.get(
                 country_code=country_code), key=attrgetter('name'))
-        except KeyError:
+        except LookupError:
             # For now returning empty list because the old api view was doing the same
             # raise BadRequestError("Invalid country code '%s'" % country_code)
             states = []
