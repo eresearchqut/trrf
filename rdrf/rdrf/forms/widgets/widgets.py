@@ -229,7 +229,7 @@ class StateWidget(widgets.Select):
     def render(self, name, value, attrs, renderer=None):
         try:
             state = pycountry.subdivisions.get(code=value)
-        except KeyError:
+        except LookupError:
             state = None
 
         if state is not None:
