@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 from datetime import datetime
@@ -20,7 +19,6 @@ from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
-from rdrf.schema.schema import schema
 from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
@@ -29,9 +27,6 @@ from .forms import QueryForm, ReportDesignerForm
 from .models import Query, ReportDesign
 from .reports.generator import Report
 from .utils import DatabaseUtils
-
-from flatten_json import flatten
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -497,7 +492,7 @@ class ReportDownloadJsonView(ReportsAccessCheckMixin, View):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
         report = Report(report_design=report_design)
 
-        response = StreamingHttpResponse(report.get_json(request), content_type='text/json')
+        response = StreamingHttpResponse(report.export_to_json(request), content_type='text/json')
         response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report_design.title
         return response
 
@@ -506,15 +501,28 @@ class ReportDownloadCsvView(ReportsAccessCheckMixin, View):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
         report = Report(report_design=report_design)
 
-        query = report.get_graphql_query()
-        logger.info(query)
+        response = StreamingHttpResponse(report.export_to_csv(request), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % report_design.title
+        return response
 
-        result = schema.execute(query, context_value=request)
-        result_flat = [flatten(p) for p in result.data['allPatients']]
-        df = pd.DataFrame(result_flat)
+class ReportDownloadView(ReportsAccessCheckMixin, View):
+    def get(self, request, report_id, export_format):
 
-        response = StreamingHttpResponse(df.to_csv(), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % report.title
+        report_design = get_object_or_404(ReportDesign, pk=report_id)
+        report = Report(report_design=report_design)
+
+        if export_format == 'csv':
+            file_extension = 'csv'
+            content = report.export_to_csv(request)
+        else:
+            file_extension = 'json'
+            content = report.export_to_json(request)
+
+        content_type = f'text/{file_extension}'
+        filename = f"report_{report_design.title}.{file_extension}"
+
+        response = StreamingHttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
 class ReportDesignView(SuperuserRequiredMixin, View):

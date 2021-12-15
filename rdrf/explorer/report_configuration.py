@@ -3,7 +3,6 @@ REPORT_CONFIGURATION = {
        {'Patient': {
              'model_field_lookup': "patient",
              'fields': {
-                  'Id': 'id',
                   'Consent': 'consent',
                   'Consent Clinical Trials': 'consentClinicalTrials',
                   'Consent Sent Information': 'consentSentInformation',

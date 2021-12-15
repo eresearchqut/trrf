@@ -114,14 +114,10 @@ class PatientType(DjangoObjectType):
     def resolve_clinical_data_flat(self, info, cde_keys=[]):
         clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").all()
 
-        if not clinical_data:
-            return [{}]
-
         context_form_ids = clinical_data.values_list("context_id", flat=True)
         context_lookup = {context.id: context for context in (RDRFContext.objects.filter(pk__in=list(context_form_ids)))}
 
         cfg_data_cnt_lookup = {context.context_form_group.id: 1 for context in RDRFContext.objects.filter(pk__in=list(context_form_ids))}
-        logger.info(cfg_data_cnt_lookup)
 
         values = []
 
@@ -152,7 +148,8 @@ class PatientType(DjangoObjectType):
                                 add_value(cfg, form, section, section_cnt, cde, cde_keys)
 
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
-        return values
+
+        return values if values else [{}]
 
     def resolve_clinical_data(self, info, cde_keys=[]):
 
@@ -252,7 +249,7 @@ class NextOfKinRelationshipType(DjangoObjectType):
 class PatientAddressType(DjangoObjectType):
     class Meta:
         model = PatientAddress
-        fields = ('address_type', 'address', 'suburb', 'country', 'state', 'postcode')
+        fields = ('id', 'address_type', 'address', 'suburb', 'country', 'state', 'postcode')
 
 class AddressTypeType(DjangoObjectType):
     class Meta:
