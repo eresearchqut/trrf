@@ -140,7 +140,7 @@ class FieldValue(models.Model):
         return model
 
     def set_datatype(self, datatype):
-        if datatype in ['string', 'striing']:
+        if datatype in ['string']:
             return 'string'
         if datatype in ['integer', 'ineger']:
             return 'integer'
@@ -191,7 +191,7 @@ class FieldValue(models.Model):
 
     def get_typed_value(self):
         # 'text', 'email', 'range', 'integer',
-        # 'file', 'string', 'float', 'String', 'date', 'striing',
+        # 'file', 'string', 'float', 'String', 'date',
         # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}
 
         datatype = self.cde.datatype.strip().lower()
