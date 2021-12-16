@@ -140,7 +140,7 @@ class FieldValue(models.Model):
         return model
 
     def set_datatype(self, datatype):
-        if datatype in ['string']:
+        if datatype in ['string', 'lookup']:
             return 'string'
         if datatype in ['integer', 'ineger']:
             return 'integer'
