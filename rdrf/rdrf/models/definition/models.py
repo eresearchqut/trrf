@@ -721,6 +721,9 @@ class CommonDataElement(models.Model):
                 return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return ""
+        elif self.datatype == CDEDataTypes.LOOKUP:
+            from rdrf.forms.widgets.widgets import get_widget_class
+            return get_widget_class(self.widget_name).denormalized_value(stored_value)
 
         if stored_value == "NaN":
             # the DataTable was not escaping this value and interpreting it as NaN
