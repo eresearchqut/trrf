@@ -35,7 +35,6 @@ REPORT_CONFIGURATION = {
                   'Next Of Kin Email': 'nextOfKinEmail',
                   'Next Of Kin Parent Place Of Birth': 'nextOfKinParentPlaceOfBirth',
                   'Next Of Kin Country': 'nextOfKinCountry',
-                  'Active': 'active',
                   'Inactive Reason': 'inactiveReason',
                   'Living Status': 'livingStatus',
                   'Patient Type': 'patientType'}},

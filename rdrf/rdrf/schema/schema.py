@@ -35,6 +35,7 @@ class ClinicalDataCdeMultiValue(graphene.ObjectType):
 
 class ContextFormGroupFlat(graphene.ObjectType):
     name = graphene.String()
+    default_name = graphene.String()
     sort_order = graphene.String()
     entry_num = graphene.String()
 
@@ -133,6 +134,7 @@ class PatientType(DjangoObjectType):
             cfg_data_cnt_lookup[cfg_id] = (cfg_cnt + 1)
             cfg = {
                 'name': context.context_form_group.name,
+                'default_name': context.context_form_group.get_default_name(self, context),
                 'sort_order': context.context_form_group.sort_order,
                 'entry_num': cfg_cnt
             }
@@ -292,7 +294,7 @@ class Query(graphene.ObjectType):
             .filter(**query_args).prefetch_related('working_groups')\
             .distinct()
 
-        # TODO uncomment before commit
+        # # TODO uncomment before commit
         # return Patient.objects\
         #     .get_by_user_and_registry(info.context.user, registry)\
         #     .filter(**query_args).prefetch_related('working_groups')\

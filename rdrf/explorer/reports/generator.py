@@ -83,7 +83,7 @@ query {{
         {",".join(patient_fields)}
         {related_demographic_fields_query},
         clinicalDataFlat(cdeKeys: [{",".join(cde_keys)}])
-            {{cfg {{name, sortOrder, entryNum}}, form, section, sectionCnt,
+            {{cfg {{name, defaultName, sortOrder, entryNum}}, form, section, sectionCnt,
             cde {{
                 code
                 ... on ClinicalDataCde {{value}}
@@ -103,42 +103,39 @@ query {{
     def export_to_csv(self, request):
         result = schema.execute(self.get_graphql_query(), context_value=request)
 
-        def convert_query_field_to_column_label(query_field):
-            # E.g. for workingGroup {id}
-            # group 1 = "workingGroup"
-            # group 2 = " {id} "
-            # group 3 = "id"
-            regex = re.compile(r"(.+)({(.*)})")
-            # Get rid of any spaces
-            query_field = re.sub(r"\s", "", query_field)
+        def graphql_to_pandas_field(graphql_field):
+            # E.g. for workingGroup {id}, matching groups: ["workingGroup", " {id} ", "id"]
+            pandas_field = re.sub(r"\s", "", graphql_field)
             # replace " { field }" with ".field"
-            query_field = regex.sub(r"\1.\3", query_field)
-            return query_field
+            pandas_field = re.sub(r"(.+)({(.*)})", r"\1.\3", pandas_field)
+            return pandas_field
 
         data_allpatients = result.data['allPatients']
 
+        # Build definition of report fields grouped by model
         report_fields = {'Patient': ['id']}
-
         for df in self.report_design.demographicfield_set.all():
             df_dict = json.loads(df.field)
             model_name = df_dict['model']
             field = df_dict['field']
-            report_fields.setdefault(model_name, []).append(convert_query_field_to_column_label(field))
+            report_fields.setdefault(model_name, []).append(graphql_to_pandas_field(field))
 
-        # Step 1 - Build a single dataframe of demographic data with 1:many or many:many relationship with patient
+        # Dynamically build a dataframe for each set of demographic data with 1:many or many:many relationship with patient
         dataframes = []
-
         for model, fields in report_fields.items():
             if model == 'Patient':
                 continue
 
-            model_cfg = REPORT_CONFIGURATION['demographic_model'][model]
-            model_lookup = model_cfg['model_field_lookup']
-            pivot_field = convert_query_field_to_column_label(model_cfg['pivot_field'])
+            model_config = REPORT_CONFIGURATION['demographic_model'][model]
+            model_lookup = model_config['model_field_lookup']
+            pivot_field = graphql_to_pandas_field(model_config['pivot_field'])
             record_prefix = f"{model}_"
 
+            # Normalize the json data into a pandas dataframe following the record path for this specific related model
             dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model_lookup],
                                           record_prefix=record_prefix)
+
+            # Pivot on the configured field for this model
             pivot_cols = [f"{record_prefix}{pivot_field}"]
             dataframe = dataframe.pivot(index=['id'],
                                         columns=pivot_cols,
@@ -146,7 +143,9 @@ query {{
 
             dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
 
+            # Work on the column names to make them more readable
             def suffix_to_prefix(col):
+                # e.g. for Address_Home, return Home_Address
                 return re.sub(r'(.*)(_(.*))', r'\3_\1', col)
 
             dataframe.columns = dataframe.columns.to_series().str.join('_')
@@ -155,6 +154,7 @@ query {{
             dataframe.reset_index(inplace=True)
             dataframes.append(dataframe)
 
+        # Merge all the dynamically built dataframes into one (merged)
         merged = None
         for df in dataframes:
             if merged is None:
@@ -162,36 +162,39 @@ query {{
             else:
                 merged = pd.merge(left=merged, right=df, on='id', how='outer')
 
-        # Step 2 - Clinical Data
+        # Normalise the rest of the patient and clinical data
         df = pd.json_normalize(data_allpatients,
                                record_path=['clinicalDataFlat'],
                                meta=report_fields['Patient'],
                                errors='ignore')
 
+        # Build a list of the columns related to demographic fields used in this reporting
         demographic_field_cols = []
         demographic_field_cols.extend(report_fields['Patient'])
 
+        # Merge clinical data dataframe with related demographic data dataframe
         if merged is not None:
             demographic_field_cols.extend(list(merged.columns))
             df = pd.merge(left=df, right=merged, on='id', how='outer')
-            # df = pd.merge(left=df, right=merged, on='id')
 
         from collections import OrderedDict
         demographic_field_cols = list(OrderedDict((x, True) for x in demographic_field_cols).keys())
-        # logger.info(demographic_field_cols)
 
-        # Early exit if report does not contain any clinical data
+        # Early exit if there is no clinical data included in the report
         if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
             df.drop(columns=['cfg', 'form', 'section', 'sectionCnt', 'cde'], inplace=True)
             return df.to_csv()
 
-        # Merge the value and values columns together
+        # Merge the value and values columns together so we can pivot it
         if 'cde.value' not in df.columns:
             df['cde.value'] = None
         if 'cde.values' in df.columns:
             df['cde.value'] = df['cde.value'].combine_first(df['cde.values'])
 
         # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
+        # TODO get all cols and minus cde columns from them to avoid this multi step building of the demographic_field_cols variable
+        # TODO use labels as headings
+        # TODO figure out how to get the context form group 'defaultName' to display as expected
         pivoted = df.pivot(index=demographic_field_cols,
                            columns=['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
                                     'cde.code'],
