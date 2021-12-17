@@ -159,7 +159,7 @@ class LookupWidget(widgets.TextInput):
         return {CDEDataTypes.STRING}
 
     @staticmethod
-    def report_value(raw_value):
+    def denormalized_value(raw_value):
         return raw_value
 
     def render(self, name, value, attrs, renderer=None):

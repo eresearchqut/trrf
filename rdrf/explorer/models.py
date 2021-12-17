@@ -130,7 +130,7 @@ class FieldValue(models.Model):
             except BaseException:
                 pass
         elif datatype == 'lookup':
-            model.raw_value = get_widget_class(cde_model.widget_name).report_value(value)
+            model.raw_value = get_widget_class(cde_model.widget_name).denormalized_value(value)
         else:
             try:
                 model.raw_value = str(value)
