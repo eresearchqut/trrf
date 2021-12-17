@@ -7,7 +7,7 @@ from rdrf.models.definition.models import ClinicalData
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.cde_data_types import CDEDataTypes
-from rdrf.helpers.utils import cached
+from rdrf.helpers.utils import cached, get_display_value
 from registry.patients.models import Patient
 import logging
 from django.contrib.auth.models import Group
@@ -235,7 +235,7 @@ class DataSource:
             # the dynamic data record is empty
             return None
 
-        value = self.cde_model.get_display_value(raw_value)
+        value = get_display_value(raw_value)
         return fix_display_value(self.cde_model.datatype, value)
 
 
@@ -384,7 +384,7 @@ class MultiSectionExtractor:
 
     def _get_reporting_value(self, cde_code, raw_value, is_file=False):
         cde_model = get_cde_model(cde_code)
-        display_value = cde_model.get_display_value(raw_value)
+        display_value = get_display_value(cde_model, raw_value)
         if is_file:
             try:
                 filename = display_value.get("file_name", "NO_FILE")

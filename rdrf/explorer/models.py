@@ -11,7 +11,7 @@ from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql
+from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql, get_display_value
 from registry.patients.models import Patient
 
 import json
@@ -99,7 +99,7 @@ class FieldValue(models.Model):
             except BaseException:
                 pass
         elif cde_model.pv_group:
-            model.display_value = cde_model.get_display_value(value)
+            model.display_value = get_display_value(cde_model, value)
         elif datatype in ['integer', 'int', 'ineger']:
             try:
                 model.raw_integer = int(value)

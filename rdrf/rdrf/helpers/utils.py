@@ -350,6 +350,42 @@ def get_cde_value(form_model, section_model, cde_model, patient_record, form_ind
                         return values[form_index]
 
 
+def get_display_value(cde_model, stored_value, permitted_values_map=None):
+    if stored_value is None:
+        return ""
+    elif stored_value == "NaN":
+        # the DataTable was not escaping this value and interpreting it as NaN
+        return ":NaN"
+    elif cde_model.pv_group:
+        # if a range, return the display value
+        try:
+            if isinstance(stored_value, list):
+                return stored_value
+            if permitted_values_map:
+                display_value = permitted_values_map[(stored_value, cde_model.pv_group_id)]
+            else:
+                display_value = cde_model.pv_group.cde_values_dict[stored_value]
+            return display_value
+        except Exception as ex:
+            logger.error("bad value for cde %s %s: %s" % (cde_model.code,
+                                                          stored_value,
+                                                          ex))
+    elif cde_model.datatype.lower() == CDEDataTypes.DATE:
+        try:
+            return parse_iso_datetime(stored_value).date()
+        except ValueError:
+            return ""
+    elif cde_model.datatype == CDEDataTypes.LOOKUP:
+        from rdrf.forms.widgets.widgets import get_widget_class
+        return get_widget_class(cde_model.widget_name).denormalized_value(stored_value)
+
+    if stored_value == "NaN":
+        # the DataTable was not escaping this value and interpreting it as NaN
+        return ":NaN"
+
+    return stored_value
+
+
 def report_function(func):
     """
     decorator to mark a function as available in the reporting interface

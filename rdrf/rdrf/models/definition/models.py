@@ -24,7 +24,7 @@ from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
 
 
-from rdrf.helpers.utils import check_calculation
+from rdrf.helpers.utils import check_calculation, get_display_value
 from rdrf.helpers.utils import format_date, is_alphanumeric, parse_iso_datetime
 from rdrf.events.events import EventType
 
@@ -694,41 +694,6 @@ class CommonDataElement(models.Model):
                 return parse_iso_datetime(stored_value).date()
             except ValueError:
                 return None
-        return stored_value
-
-    def get_display_value(self, stored_value, permitted_values_map=None):
-        if stored_value is None:
-            return ""
-        elif stored_value == "NaN":
-            # the DataTable was not escaping this value and interpreting it as NaN
-            return ":NaN"
-        elif self.pv_group:
-            # if a range, return the display value
-            try:
-                if isinstance(stored_value, list):
-                    return stored_value
-                if permitted_values_map:
-                    display_value = permitted_values_map[(stored_value, self.pv_group_id)]
-                else:
-                    display_value = self.pv_group.cde_values_dict[stored_value]
-                return display_value
-            except Exception as ex:
-                logger.error("bad value for cde %s %s: %s" % (self.code,
-                                                              stored_value,
-                                                              ex))
-        elif self.datatype.lower() == CDEDataTypes.DATE:
-            try:
-                return parse_iso_datetime(stored_value).date()
-            except ValueError:
-                return ""
-        elif self.datatype == CDEDataTypes.LOOKUP:
-            from rdrf.forms.widgets.widgets import get_widget_class
-            return get_widget_class(self.widget_name).denormalized_value(stored_value)
-
-        if stored_value == "NaN":
-            # the DataTable was not escaping this value and interpreting it as NaN
-            return ":NaN"
-
         return stored_value
 
     def clean(self):
@@ -1628,7 +1593,7 @@ class ContextFormGroup(models.Model):
             cde_model = CommonDataElement.objects.get(code=cde_code)
             # This does not actually do type conversion for dates -
             # it just looks up range display codes.
-            display_value = cde_model.get_display_value(cde_value)
+            display_value = get_display_value(cde_model, cde_value)
             if isinstance(display_value, datetime.date):
                 display_value = format_date(display_value)
             return display_value
