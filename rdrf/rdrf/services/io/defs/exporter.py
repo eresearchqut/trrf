@@ -12,7 +12,7 @@ from rdrf import VERSION
 import datetime
 from rdrf.models.definition.models import DemographicFields, RegistryForm
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
-from registry.patients.models import PatientStage, PatientStageRule
+from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
 from explorer.models import Query
 
@@ -259,6 +259,7 @@ class Exporter:
         data["working_groups"] = self._get_working_groups()
         data["patient_stages"] = self._get_patient_stages()
         data["patient_stage_rules"] = self._get_patient_stage_rules()
+        data["next_of_kin_relationships"] = self._get_next_of_kin_relationships()
         data["group_permissions"] = self._get_group_permissions()
 
         if export_type in [
@@ -666,6 +667,9 @@ class Exporter:
             }
             data.append(rule_dict)
         return data
+
+    def _get_next_of_kin_relationships(self):
+        return list(NextOfKinRelationship.objects.all().values_list("relationship", flat=True))
 
     def _get_group_permissions(self):
         data = []
