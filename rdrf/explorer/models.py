@@ -4,13 +4,14 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from contextlib import suppress
 
+from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
 from rdrf.models.definition.models import Section
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql
+from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql, get_display_value
 from registry.patients.models import Patient
 
 import json
@@ -98,7 +99,7 @@ class FieldValue(models.Model):
             except BaseException:
                 pass
         elif cde_model.pv_group:
-            model.display_value = cde_model.get_display_value(value)
+            model.display_value = get_display_value(cde_model, value)
         elif datatype in ['integer', 'int', 'ineger']:
             try:
                 model.raw_integer = int(value)
@@ -128,6 +129,8 @@ class FieldValue(models.Model):
                 model.file_name = value.get("file_name", None)
             except BaseException:
                 pass
+        elif datatype == 'lookup':
+            model.raw_value = get_widget_class(cde_model.widget_name).denormalized_value(value)
         else:
             try:
                 model.raw_value = str(value)
@@ -137,7 +140,7 @@ class FieldValue(models.Model):
         return model
 
     def set_datatype(self, datatype):
-        if datatype in ['string', 'striing']:
+        if datatype in ['string', 'lookup']:
             return 'string'
         if datatype in ['integer', 'ineger']:
             return 'integer'
@@ -188,7 +191,7 @@ class FieldValue(models.Model):
 
     def get_typed_value(self):
         # 'text', 'email', 'range', 'integer',
-        # 'file', 'string', 'float', 'String', 'date', 'striing',
+        # 'file', 'string', 'float', 'String', 'date',
         # 'calculated', 'Integer', 'Ineger', 'textarea', 'boolean'}
 
         datatype = self.cde.datatype.strip().lower()

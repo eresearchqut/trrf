@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import ProgrammingError, connection, transaction
 
 from rdrf.helpers.cde_data_types import CDEDataTypes
-from rdrf.helpers.utils import timed
+from rdrf.helpers.utils import timed, get_display_value
 from rdrf.models.definition.models import RDRFContext, Registry, RegistryForm, Section
 from rdrf.models.definition.models import CommonDataElement, ClinicalData, CDEPermittedValue
 
@@ -578,7 +578,7 @@ class DatabaseUtils(object):
             return None
         if datatype == CDEDataTypes.FILE:
             return "FILE"
-        return cde_model.get_display_value(stored_value, self.permitted_values_map)
+        return get_display_value(cde_model, stored_value, self.permitted_values_map)
 
     def run_mongo(self):
         raise NotImplementedError("MongoDB is no longer supported in the RDRF")

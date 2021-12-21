@@ -158,6 +158,10 @@ class LookupWidget(widgets.TextInput):
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
+    @staticmethod
+    def denormalized_value(raw_value):
+        return raw_value
+
     def render(self, name, value, attrs, renderer=None):
         return """
             <input type="text" name="%s" id="id_%s" value="%s">
