@@ -182,6 +182,7 @@ class Command(BaseCommand):
         yield from self._yield_consent_strings()
         yield from self._yield_menu_items()
         yield from self._yield_permission_strings()
+        yield from self._yield_next_of_kin_relationship_strings()
         yield from self._yield_misc_strings()
 
     def _yield_registry_level_strings(self):
@@ -316,3 +317,7 @@ class Command(BaseCommand):
 
         for permission_object in Permission.objects.all():
             yield None, permission_object.name
+
+    def _yield_next_of_kin_relationship_strings(self):
+        for relationship in self.data.get("next_of_kin_relationships", []):
+            yield None, relationship

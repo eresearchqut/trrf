@@ -111,7 +111,7 @@ class Doctor(models.Model):
 
 
 class NextOfKinRelationship(models.Model):
-    relationship = models.CharField(max_length=100, verbose_name=_("Relationship"))
+    relationship = models.CharField(unique=True, max_length=100, verbose_name=_("Relationship"))
 
     history = HistoricalRecords()
 

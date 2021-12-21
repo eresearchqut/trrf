@@ -22,7 +22,7 @@ from rdrf.models.definition.models import FormTitle
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 
 from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient, PatientStage, PatientStageRule
+from registry.patients.models import Patient, PatientStage, PatientStageRule, NextOfKinRelationship
 
 from explorer.models import Query
 
@@ -752,6 +752,10 @@ class Importer(object):
             self._create_group_permissions(self.data["group_permissions"])
             logger.info("imported group permissions OK")
 
+        if "next_of_kin_relationships" in self.data:
+            self._create_next_of_kin_relationships(self.data["next_of_kin_relationships"])
+            logger.info("imported group permissions OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -1122,3 +1126,7 @@ class Importer(object):
 
             group.permissions.set(group_permissions)
             group.save()
+
+    def _create_next_of_kin_relationships(self, data):
+        for relationship in data:
+            NextOfKinRelationship.objects.get_or_create(relationship=relationship)
