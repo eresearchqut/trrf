@@ -291,13 +291,8 @@ class Query(graphene.ObjectType):
             query_args['working_groups__id__in'] = working_group_ids
 
         return Patient.objects\
+            .get_by_user_and_registry(info.context.user, registry)\
             .filter(**query_args).prefetch_related('working_groups')\
             .distinct()
-
-        # # TODO uncomment before commit
-        # return Patient.objects\
-        #     .get_by_user_and_registry(info.context.user, registry)\
-        #     .filter(**query_args).prefetch_related('working_groups')\
-        #     .distinct()
 
 schema = graphene.Schema(query=Query, types=[ClinicalDataMultiSection, ClinicalDataSection, ClinicalDataCde, ClinicalDataCdeMultiValue])
