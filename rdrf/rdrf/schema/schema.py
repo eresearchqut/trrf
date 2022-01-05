@@ -5,7 +5,8 @@ from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
 
 from rdrf.helpers.utils import mongo_key
-from rdrf.models.definition.models import Registry, ConsentQuestion, ClinicalData, RDRFContext, ContextFormGroup
+from rdrf.models.definition.models import Registry, ConsentQuestion, ClinicalData, RDRFContext, ContextFormGroup, \
+    Section, CommonDataElement
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient, PatientAddress, AddressType, ConsentValue, NextOfKinRelationship
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ClinicalDataCdeInterface(graphene.Interface):
     code = graphene.String()
+    name = graphene.String()
 
     @classmethod
     def resolve_type(self, instance, info):
@@ -33,70 +35,21 @@ class ClinicalDataCdeMultiValue(graphene.ObjectType):
     def resolve_values(self, info):
         return self['value']
 
-class ContextFormGroupFlat(graphene.ObjectType):
+class ContextFormGroup(graphene.ObjectType):
     name = graphene.String()
     default_name = graphene.String()
     sort_order = graphene.String()
     entry_num = graphene.String()
 
-class ClinicalDataTypeFlat(graphene.ObjectType):
-    cfg = graphene.Field(ContextFormGroupFlat)
+class ClinicalDataType(graphene.ObjectType):
+    cfg = graphene.Field(ContextFormGroup)
     form = graphene.String()
     section = graphene.String()
     section_cnt = graphene.String()
     cde = graphene.Field(ClinicalDataCdeInterface)
-    # cde = graphene.String()
-    # value = graphene.List(graphene.String)
-
-
-
-
-
-class ClinicalDataSectionInterface(graphene.Interface):
-    code = graphene.String()
-
-    @classmethod
-    def resolve_type(self, instance, info):
-        return ClinicalDataMultiSection
-        if 'allow_multiple' in instance and instance['allow_multiple'] is True:
-            return ClinicalDataMultiSection
-        else:
-            return ClinicalDataSection
-
-class ClinicalDataSection(graphene.ObjectType):
-    class Meta:
-        interfaces = (ClinicalDataSectionInterface,)
-
-    cdes = graphene.List(ClinicalDataCdeInterface)
-
-class ClinicalDataMultiSection(graphene.ObjectType):
-    class Meta:
-        interfaces = (ClinicalDataSectionInterface,)
-
-    cdes_list = graphene.List(graphene.List(ClinicalDataCdeInterface))
-
-    def resolve_cdes_list(self, info):
-        return self['cdes']
-
-class ClinicalDataForm(graphene.ObjectType):
-    name = graphene.String()
-    context_id = graphene.String()
-    context_name = graphene.String()
-    sections = graphene.List(ClinicalDataSectionInterface)
-    timestamp = graphene.String()
-
-class ContextFormGroupType(graphene.ObjectType):
-    name = graphene.String()
-    # entry_name =
-    forms = graphene.List(ClinicalDataForm)
-
-class ClinicalDataType(graphene.ObjectType):
-    context_form_groups = graphene.List(ContextFormGroupType)
-
 
 class PatientType(DjangoObjectType):
-    clinical_data_flat = graphene.List(ClinicalDataTypeFlat, cde_keys=graphene.List(graphene.String))
-    clinical_data = graphene.Field(ClinicalDataType, cde_keys=graphene.List(graphene.String))
+    clinical_data_flat = graphene.List(ClinicalDataType, cde_keys=graphene.List(graphene.String))
     sex = graphene.String
 
     class Meta:
@@ -124,8 +77,12 @@ class PatientType(DjangoObjectType):
 
         def add_value(cfg, form, section, section_cnt, cde, cde_keys):
             if 'code' in cde and mongo_key(form['name'], section['code'], cde['code']) in cde_keys:
-                # cde_value = cde['value'] if type(cde['value']) is list else [(cde['value'])]
-                values.append({'cfg': cfg, 'form': form['name'], 'section': section['code'], 'section_cnt': section_cnt, 'cde': {'code': cde['code'], 'value': cde['value']}})
+                section_name = Section.objects.get(code=section['code']).display_name
+                cde_name = CommonDataElement.objects.get(code=cde['code']).name
+                values.append({'cfg': cfg,
+                               'form': form['name'],
+                               'section': section_name, 'section_cnt': section_cnt,
+                               'cde': {'code': cde['code'], 'name': cde_name, 'value': cde['value']}})
 
         for idx, entry in enumerate(clinical_data):
             context = context_lookup[entry.context_id]
@@ -141,6 +98,7 @@ class PatientType(DjangoObjectType):
             if 'forms' in entry.data:
                 for form in entry.data['forms']:
                     for section in form['sections']:
+                        logger.info(section)
                         for idx, cde in enumerate(section['cdes']):
                             section_cnt = idx + 1 # 1-based index for output
                             if 'allow_multiple' in section and section['allow_multiple'] is True:
@@ -152,86 +110,6 @@ class PatientType(DjangoObjectType):
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
 
         return values if values else [{}]
-
-    def resolve_clinical_data(self, info, cde_keys=[]):
-
-        def is_multisection(section):
-            logger.info(section)
-            return 'allow_multiple' in section and section['allow_multiple'] is True
-
-        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes")
-
-        context_form_ids = clinical_data.values_list("context_id", flat=True)
-        context_form_group_names = RDRFContext.objects.filter(pk__in=list(context_form_ids)).values("pk",
-                                                                                                    "context_form_group__name")
-        cfg_lookup = {cfg["pk"]: cfg["context_form_group__name"] for cfg in context_form_group_names}
-
-        values = {}
-        for datum in clinical_data:
-            forms = []
-            for form in datum.data['forms']:
-                sections = []
-                for section in form['sections']:
-                    cdes = []
-                    for cde in section['cdes']:
-                        if is_multisection(section):
-                            cdes_list = []
-                            for c in cde:
-                                if mongo_key(form['name'], section['code'], c['code']) in cde_keys:
-                                    cdes_list.append(c)
-                            if cdes_list: cdes.append(cdes_list)
-                        else:
-                            if mongo_key(form['name'], section['code'], cde['code']) in cde_keys:
-                                cdes.append(cde)
-                    if cdes: sections.append({'code': section['code'], 'allow_multiple': section['allow_multiple'], 'cdes': cdes})
-                if sections: forms.append({'name': form['name'], 'timestamp': datum.data['timestamp'], 'sections': sections})
-            if forms: values.setdefault(cfg_lookup[datum.context_id], []).extend(forms)
-
-        return {"context_form_groups": [{"name": key, "forms": value} for key, value in values.items()]}
-
-
-    # def resolve_clinical_data(self, info, cde_keys=[]):
-    #
-    #     def is_multisection(section):
-    #         return 'allow_multiple' in section and section['allow_multiple'] is True
-    #
-    #     clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes")
-    #
-    #     context_form_ids = clinical_data.values_list("context_id", flat=True)
-    #     rdrf_contexts = RDRFContext.objects.filter(pk__in=list(context_form_ids))
-    #     cfg_object_lookup = {rc.id: rc.context_form_group for rc in rdrf_contexts}
-    #     logger.info(rdrf_contexts)
-    #     context_form_group_names = rdrf_contexts.values("pk","context_form_group__name")
-    #     cfg_lookup = {cfg["pk"]: cfg["context_form_group__name"] for cfg in context_form_group_names}
-    #
-    #     values = {}
-    #     for datum in clinical_data:
-    #         rdrf_context = rdrf_contexts.get(id=datum.context_id)
-    #         cfg = cfg_object_lookup[datum.context_id]
-    #
-    #         forms = []
-    #         for form in datum.data['forms']:
-    #             sections = []
-    #             for section in form['sections']:
-    #                 cdes = []
-    #                 for cde in section['cdes']:
-    #                     if is_multisection(section):
-    #                         cdes_list = []
-    #                         for c in cde:
-    #                             if mongo_key(form['name'], section['code'], c['code']) in cde_keys:
-    #                                 cdes_list.append(c)
-    #                         if cdes_list: cdes.append(cdes_list)
-    #                     else:
-    #                         if mongo_key(form['name'], section['code'], cde['code']) in cde_keys:
-    #                             cdes.append([cde])
-    #                     # else:
-    #                     #     if mongo_key(form['name'], section['code'], cde['code']) in cde_keys:
-    #                     #         cdes.append(cde)
-    #                 if cdes: sections.append({'code': section['code'], 'allow_multiple': section['allow_multiple'], 'cdes': cdes})
-    #             if sections: forms.append({'name': form['name'], 'timestamp': datum.data['timestamp'], 'context_id': rdrf_context.id, 'context_name': cfg.get_default_name(self, rdrf_context), 'sections': sections})
-    #         if forms: values.setdefault(cfg_lookup[datum.context_id], []).extend(forms)
-    #
-    #     return {"context_form_groups": [{"name": key, "forms": value} for key, value in values.items()]}
 
 class ConsentQuestionType(DjangoObjectType):
     class Meta:
@@ -295,4 +173,4 @@ class Query(graphene.ObjectType):
             .filter(**query_args).prefetch_related('working_groups')\
             .distinct()
 
-schema = graphene.Schema(query=Query, types=[ClinicalDataMultiSection, ClinicalDataSection, ClinicalDataCde, ClinicalDataCdeMultiValue])
+schema = graphene.Schema(query=Query, types=[ClinicalDataCde, ClinicalDataCdeMultiValue])
