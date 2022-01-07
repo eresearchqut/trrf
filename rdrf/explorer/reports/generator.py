@@ -7,28 +7,6 @@ import re
 
 logger = logging.getLogger(__name__)
 
-class ReportColumn:
-    def humanise_label(self):
-            # TODO REFACTOR
-            report_config = REPORT_CONFIGURATION['demographic_model']
-            report_fields_lookup = {}
-            for model, model_config in report_config.items():
-                fields_keyed_by_value = dict((v, k) for k, v in model_config['fields'].items())
-                report_fields_lookup[model] = fields_keyed_by_value
-
-            fields_with_relations = re.search(r'(.*)_(.*)_(.*)', col)
-            if fields_with_relations:
-                try:
-                    field_label = report_fields_lookup[fields_with_relations.group(2)].get(
-                        fields_with_relations.group(3))
-                    label = f"{fields_with_relations.group(1)}_{fields_with_relations.group(2)}_{field_label}"
-                except Exception as e:
-                    logger.error(e)
-                    label = col
-            else:
-                label = report_fields_lookup['Patient'].get(col)
-            return label if label else col
-
 class Report:
 
     def __init__(self, report_design):
@@ -43,7 +21,7 @@ class Report:
             report_fields_lookup[model] = fields_keyed_by_value
         return report_fields_lookup
 
-    def humanise_column_label(self, col):
+    def __humanise_column_label(self, col):
         pivoted_field_labels = re.search(r'(.*)_(.*)_(.*)', col)
         if pivoted_field_labels:
             try:
@@ -59,7 +37,18 @@ class Report:
             label = self.report_fields_lookup['Patient'].get(col)
         return label if label else col
 
-    def get_graphql_query(self):
+    def __reformat_pivoted_column_labels(self, col):
+        # Check for Nan
+        if col != col: return col
+
+        re_cfg_default_name = re.search(r'a\.cfg\.defaultName_(.*?)_(.*?)_', col)
+        if re_cfg_default_name:
+            label = f"{re_cfg_default_name.group(1)}_{re_cfg_default_name.group(2)}_Name"
+        else:
+            label = re.sub(r'b\.cde\.value_', "", col)
+        return label
+
+    def __get_graphql_query(self):
 
         def get_patient_filters():
             patient_filters = []
@@ -108,8 +97,6 @@ f"""
        }}
 """
 
-        logger.info(related_demographic_fields_query)
-
         patient_query_params = [
             f'registryCode:"{self.report_design.registry.code}"',
             f"filters: [{','.join(get_patient_filters())}]",
@@ -127,7 +114,7 @@ query {{
     allPatients({",".join(patient_query_params)}) {{
         {",".join(patient_fields)}
         {related_demographic_fields_query},
-        clinicalDataFlat(cdeKeys: [{",".join(cde_keys)}])
+        clinicalData(cdeKeys: [{",".join(cde_keys)}])
             {{cfg {{name, defaultName, sortOrder, entryNum}}, form, section, sectionCnt,
             cde {{
                 name
@@ -141,12 +128,12 @@ query {{
         return query
 
     def export_to_json(self, request):
-        result = schema.execute(self.get_graphql_query(), context_value=request)
+        result = schema.execute(self.__get_graphql_query(), context_value=request)
         logger.debug(result)
         return json.dumps(result.data)
 
     def export_to_csv(self, request):
-        result = schema.execute(self.get_graphql_query(), context_value=request)
+        result = schema.execute(self.__get_graphql_query(), context_value=request)
 
         def graphql_to_pandas_field(graphql_field):
             # E.g. for workingGroup {id}, matching groups: ["workingGroup", " {id} ", "id"]
@@ -189,7 +176,6 @@ query {{
             dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
             dataframe.columns = dataframe.columns.to_series().str.join('_')
             dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
-            dataframe.reset_index(inplace=True)
             dataframes.append(dataframe)
 
         # Merge all the dynamically built dataframes into one (merged)
@@ -213,7 +199,7 @@ query {{
         if merged is not None:
             df = pd.merge(left=df, right=merged, on='id', how='outer')
 
-        df.columns = df.columns.to_series().apply(self.humanise_column_label)
+        df.columns = df.columns.to_series().apply(self.__humanise_column_label)
 
         # Early exit if there is no clinical data included in the report
         if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
@@ -226,40 +212,29 @@ query {{
         if 'cde.values' in df.columns:
             df['cde.value'] = df['cde.value'].combine_first(df['cde.values'])
 
-        # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
-        # TODO figure out how to get the context form group 'defaultName' to display as expected **  Currently working on this
+        # Capture the demographic cols required for the pivot index before we go and rename columns
+        demographic_cols = [col for col in df.columns if col == 'id' or col not in clinical_cols]
 
-        pivoted = df.pivot(index=[col for col in df.columns if col not in clinical_cols],
+        # Rename the columns being pivoted to occur alphabetically in the order desired in the output report
+        # https://github.com/pandas-dev/pandas/issues/17041#issuecomment-317576297
+        df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName', 'cde.value': 'b.cde.value'})
+
+        # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
+        pivoted = df.pivot(index=demographic_cols,
                            columns=['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
                                     'cde.name'],
-                           values=['cfg.defaultName', 'cde.value'])
-        logger.info('** pivoted DF COLUMNS **')
-        logger.info(pivoted.columns)
+                           values=['a.cfg.defaultName', 'b.cde.value'])
+
         # Re-order the columns
         pivoted = pivoted.sort_index(axis=1, level=['cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
                                                     'cde.name'])
-        logger.info('** resorted DF COLUMNS **')
-        logger.info(pivoted.columns)
-
 
         # Remove context form group's sort order as we don't need to see this in the results.
         pivoted = pivoted.droplevel('cfg.sortOrder', axis=1)
 
-        # Flatten the column levels into one
-        def fix_pivoted_column_labels(col):
-            # Check for Nan
-            if col != col: return col
-
-            re_cfg_default_name = re.search(r'cfg\.defaultName_(.*?)_(.*?)_', col)
-            if re_cfg_default_name:
-                label = f"{re_cfg_default_name.group(1)}_{re_cfg_default_name.group(2)}_Name"
-            else:
-                label = re.sub(r'cde\.value_', "", col)
-            return label
-
+        # Flatten the column levels into one, and reformat labels
         pivoted.columns = pivoted.columns.to_series().str.join('_')
-        pivoted.columns = pivoted.columns.to_series().apply(fix_pivoted_column_labels)
-        pivoted.reset_index(inplace=True)
+        pivoted.columns = pivoted.columns.to_series().apply(self.__reformat_pivoted_column_labels)
 
         # Remove null columns (caused by patients with no matching clinical data)
         pivoted = pivoted.loc[:, pivoted.columns.notnull()]

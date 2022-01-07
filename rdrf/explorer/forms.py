@@ -33,9 +33,7 @@ class QueryForm(ModelForm):
             'created_by'
         ]
 
-# Future State
-
-
+# Reporting v2
 def get_demographic_field_choices():
     def get_field_value(model_name, model_field_lookup, field):
         return json.dumps({"model": model_name, "model_field_lookup": model_field_lookup, "field": field})
@@ -171,9 +169,6 @@ class ReportDesignerForm(ModelForm):
                 report_design=report_design
             )
 
-        # report_design.compile_query()
         report_design.save()
 
         self.instance = report_design
-
-        logger.info(f"save complete for report_design with id {report_design.id}")

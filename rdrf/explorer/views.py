@@ -474,7 +474,7 @@ class MultisectionHandler(object):
 
         return new_rows
 
-# Reporting Views - Future State
+# Reporting v2 Views
 class ReportsAccessCheckMixin:
     def dispatch(self, request, *args, **kwargs):
         if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
@@ -487,39 +487,20 @@ class ReportsView(View):
             'reports': ReportDesign.objects.reports_for_user(request.user)
         })
 
-class ReportDownloadJsonView(ReportsAccessCheckMixin, View):
-    def get(self, request, report_id):
-        report_design = get_object_or_404(ReportDesign, pk=report_id)
-        report = Report(report_design=report_design)
-
-        response = StreamingHttpResponse(report.export_to_json(request), content_type='text/json')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.json"' % report_design.title
-        return response
-
-class ReportDownloadCsvView(ReportsAccessCheckMixin, View):
-    def get(self, request, report_id):
-        report_design = get_object_or_404(ReportDesign, pk=report_id)
-        report = Report(report_design=report_design)
-
-        response = StreamingHttpResponse(report.export_to_csv(request), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="query_%s.csv"' % report_design.title
-        return response
-
 class ReportDownloadView(ReportsAccessCheckMixin, View):
-    def get(self, request, report_id, export_format):
-
+    def get(self, request, report_id, format):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
         report = Report(report_design=report_design)
 
-        if export_format == 'csv':
-            file_extension = 'csv'
+        if format == 'csv':
             content = report.export_to_csv(request)
-        else:
-            file_extension = 'json'
+        elif format == 'json':
             content = report.export_to_json(request)
+        else:
+            raise Exception("Unsupported download format")
 
-        content_type = f'text/{file_extension}'
-        filename = f"report_{report_design.title}.{file_extension}"
+        content_type = f'text/{format}'
+        filename = f"report_{report_design.title}.{format}"
 
         response = StreamingHttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'

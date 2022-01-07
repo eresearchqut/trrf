@@ -338,7 +338,7 @@ class Query(models.Model):
             errors.append("key error: %s" % ke)
         return errors
 
-# Reporting Models - Future State
+# Reporting v2 models
 class ReportDesignManager(models.Manager):
 
     def reports_for_user(self, user):
@@ -363,100 +363,11 @@ class ReportDesign(models.Model):
     access_groups = models.ManyToManyField(Group, blank=True)
     filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
     filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
-    # compiled_query = models.TextField(null=True)
 
     objects = ReportDesignManager()
 
     class Meta:
         ordering = ['title']
-
-    # def compile_query(self):
-    #     models = {}
-    #     model_schema = {}
-    #
-    #     for df in self.demographicfield_set.all():
-    #         field_dict = json.loads(df.field)
-    #         model_name = field_dict['model']
-    #         model_field_lookup = field_dict['model_field_lookup']
-    #         model_schema[model_name] = model_field_lookup
-    #         models.setdefault(model_name, []).append(field_dict['field'])
-    #
-    #     other_models = ""
-    #     for name, model_field_lookup in model_schema.items():
-    #         logger.info(f"name: {name}, schema lookup: {model_field_lookup}")
-    #         if name != 'Patient':
-    #             other_models = f"""
-    #                      {other_models}
-    #                     ,{model_field_lookup} {{
-    #                         {",".join(models[name])}
-    #                     }}
-    #                 """
-    #
-    #     logger.info(other_models)
-    #
-    #     patient_query_params = [f'registryCode:"{self.registry.code}"']
-    #     filters = []
-    #
-    #     if self.filter_consents:
-    #         filters.append(f'"consents__answer=True"')
-    #         filters.extend([f'"consents__consent_question__code={consent_question.code}"' for consent_question in self.filter_consents.all()])
-    #
-    #     if self.filter_working_groups:
-    #         patient_query_params.append(
-    #             f"workingGroupIds: [{','.join([json.dumps(str(wg.id)) for wg in self.filter_working_groups.all()])}]")
-    #
-    #
-    #
-    #     patient_query_params.append(f"filters: [{','.join(filters)}]")
-    #
-    #     cde_keys = []
-    #     for cde_field in self.cdefield_set.all():
-    #         cde_field_dict = json.loads(cde_field.field)
-    #         cde_keys.append(json.dumps(cde_field_dict['cde_key']))
-    #
-    #     query = f"""
-    #     query {{
-    #         allPatients({",".join(patient_query_params)}) {{
-    #             {",".join(models['Patient'])}
-    #             {other_models},
-    #             clinicalData(cdeKeys: [{",".join(cde_keys)}]){{
-    #               contextFormGroups{{ name,
-    #                 forms {{name, timestamp,
-    #                   sections{{
-    #                     code,
-    #                     ... on ClinicalDataSection {{
-    #                       cdes{{
-    #                         code
-    #                         ... on ClinicalDataCde {{value}}
-    #                         ... on ClinicalDataCdeMultiValue {{values}}
-    #                       }}
-    #                     }}
-    #                     ... on ClinicalDataMultiSection {{
-    #                       cdesList{{
-    #                         code
-    #                         ... on ClinicalDataCde {{value}}
-    #                         ... on ClinicalDataCdeMultiValue {{values}}
-    #                       }}
-    #                     }}
-    #                   }}
-    #                 }}
-    #               }}
-    #             }}
-    #         }}
-    #     }}
-    #     """
-    #
-    # #     query = f"""
-    # # query {{
-    # #     allPatients({",".join(filters)}) {{
-    # #         {",".join(models['Patient'])}
-    # #         {other_models},
-    # #         clinicalData(cdeKeys: [{",".join(cde_keys)}]){{form, section, cde, value}}
-    # #     }}
-    # # }}
-    # # """
-    #
-    #     self.compiled_query = query
 
 # TODO represent this in a better way
 class DemographicField(models.Model):

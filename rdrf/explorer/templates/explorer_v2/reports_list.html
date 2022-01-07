@@ -31,8 +31,8 @@
                     <td>{{ report.registry.name }}</td>
                     <td>{{ report.title }}</td>
                     <td>
-                        <a href="{%  url 'rdrf:explorer_report_download_csv' report.id %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
-                        <a href="{%  url 'rdrf:explorer_report_download' report.id %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
+                        <a href="{%  url 'rdrf:explorer_report_download' report.id 'csv' %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
+                        <a href="{%  url 'rdrf:explorer_report_download' report.id 'json' %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
                     </td>
                     {% if request.user.is_superuser  %}
                     <td>

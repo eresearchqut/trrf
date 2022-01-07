@@ -49,7 +49,7 @@ class ClinicalDataType(graphene.ObjectType):
     cde = graphene.Field(ClinicalDataCdeInterface)
 
 class PatientType(DjangoObjectType):
-    clinical_data_flat = graphene.List(ClinicalDataType, cde_keys=graphene.List(graphene.String))
+    clinical_data = graphene.List(ClinicalDataType, cde_keys=graphene.List(graphene.String))
     sex = graphene.String
 
     class Meta:
@@ -65,7 +65,7 @@ class PatientType(DjangoObjectType):
                   'stage','created_at','last_updated_at','last_updated_overall_at','created_by',
                   'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
 
-    def resolve_clinical_data_flat(self, info, cde_keys=[]):
+    def resolve_clinical_data(self, info, cde_keys=[]):
         clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").all()
 
         context_form_ids = clinical_data.values_list("context_id", flat=True)
@@ -98,7 +98,6 @@ class PatientType(DjangoObjectType):
             if 'forms' in entry.data:
                 for form in entry.data['forms']:
                     for section in form['sections']:
-                        logger.info(section)
                         for idx, cde in enumerate(section['cdes']):
                             section_cnt = idx + 1 # 1-based index for output
                             if 'allow_multiple' in section and section['allow_multiple'] is True:
@@ -143,7 +142,6 @@ class WorkingGroupType(DjangoObjectType):
         fields = ('name',)
 
     def resolve_display_name(self, info):
-        logger.info(self)
         return self.display_name
 
 class RegistryType(DjangoObjectType):

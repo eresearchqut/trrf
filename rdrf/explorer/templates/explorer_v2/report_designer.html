@@ -69,6 +69,14 @@
         ui.selectCdeFields.find(optgroup_with_selected_options + " > option").show();
     }
 
+    function init_selected_registry() {
+        // Pre-select the registry if there's only one option available
+        const registryOptions = ui.selectRegistry.find("option[value!='']");
+        if (registryOptions.length == 1) {
+            registryOptions.attr('selected', 'selected');
+        }
+    }
+
     function update_selected_cde_count($cdeSelect) {
         const num_selected_values = $cdeSelect.find('option:selected').length;
         ui.txtSelectCdeFieldsCount.text(num_selected_values);
@@ -108,6 +116,7 @@
         })
 
         // setup initial state
+        init_selected_registry();
         update_selected_cde_count(ui.selectCdeFields);
         update_components_by_registry(ui.selectRegistry.val(), false);
     });
