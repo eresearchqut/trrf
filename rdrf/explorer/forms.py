@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, Registry, RegistryForm
 from registry.groups.models import WorkingGroup
-from .models import Query, ReportDesign, DemographicField, CdeField
+from .models import Query, ReportDesign, ReportDemographicField, ReportClinicalDataField
 from .report_configuration import REPORT_CONFIGURATION
 
 logger = logging.getLogger(__name__)
@@ -34,25 +34,27 @@ class QueryForm(ModelForm):
         ]
 
 # Reporting v2
-def get_demographic_field_choices():
-    def get_field_value(model_name, model_field_lookup, field):
-        return json.dumps({"model": model_name, "model_field_lookup": model_field_lookup, "field": field})
+def get_demographic_field_value(model_name, field):
+    return json.dumps({"model": model_name, "field": field})
 
+def get_demographic_field_choices():
     demographic_fields = []
     for model, model_attrs in REPORT_CONFIGURATION['demographic_model'].items():
-        field_choices = [(get_field_value(model, model_attrs['model_field_lookup'], value), key) for key, value in model_attrs['fields'].items()]
+        field_choices = [(get_demographic_field_value(model, value), key) for key, value in model_attrs['fields'].items()]
         demographic_fields.append((model, field_choices))
     return demographic_fields
 
+def get_clinical_data_field_value(registry, cde_key):
+    return json.dumps({'registry': registry.code, 'cde_key': cde_key})
+
 def get_cde_choices():
-
-    def get_value(form, section, cde):
-        return json.dumps({'registry': form.registry.code, 'cde_key': mongo_key(form.name, section.code, cde.code)})
-
     cde_fields = []
     for form in RegistryForm.objects.all():
         for section in form.section_models:
-            form_section_cdes = [(get_value(form, section, cde), cde.name) for cde in section.cde_models]
+            form_section_cdes = [
+                (get_clinical_data_field_value(form.registry, mongo_key(form.name, section.code, cde.code)), cde.name)
+                for cde in section.cde_models
+            ]
             cde_fields.append((f"{form.name} - {section.display_name}", form_section_cdes))
 
     return cde_fields
@@ -121,8 +123,8 @@ class ReportDesignerForm(ModelForm):
     def setup_initials(self):
         if self.instance.id:
             self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
-            self.fields['demographic_fields'].initial = [demo_field.field for demo_field in self.instance.demographicfield_set.all()]
-            self.fields['cde_fields'].initial = [cde_field.field for cde_field in self.instance.cdefield_set.all()]
+            self.fields['demographic_fields'].initial = [get_demographic_field_value(rdf.model, rdf.field) for rdf in self.instance.reportdemographicfield_set.all()]
+            self.fields['cde_fields'].initial = [get_clinical_data_field_value(self.instance.registry, rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
             self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
             self.fields['filter_working_groups'].initial = [get_working_group_field_value(wg) for wg in self.instance.filter_working_groups.all()]
 
@@ -155,17 +157,20 @@ class ReportDesignerForm(ModelForm):
         report_design.filter_working_groups.set(clean_data['filter_working_groups'])
         report_design.filter_consents.set(clean_data['filter_consents'])
 
-        DemographicField.objects.filter(report_design=report_design).delete()
+        ReportDemographicField.objects.filter(report_design=report_design).delete()
         for field in clean_data['demographic_fields']:
-            DemographicField.objects.create(
-                field=field,
+            field_dict = json.loads(field)
+            ReportDemographicField.objects.create(
+                model=field_dict['model'],
+                field=field_dict['field'],
                 report_design=report_design
             )
 
-        CdeField.objects.filter(report_design=report_design).delete()
+        ReportClinicalDataField.objects.filter(report_design=report_design).delete()
         for field in clean_data['cde_fields']:
-            CdeField.objects.create(
-                field=field,
+            field_dict = json.loads(field)
+            ReportClinicalDataField.objects.create(
+                cde_key=field_dict['cde_key'],
                 report_design=report_design
             )
 

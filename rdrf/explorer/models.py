@@ -369,11 +369,13 @@ class ReportDesign(models.Model):
     class Meta:
         ordering = ['title']
 
-# TODO represent this in a better way
-class DemographicField(models.Model):
-    field = models.CharField(max_length=255)
+class ReportClinicalDataField(models.Model):
     report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)
 
-class CdeField(models.Model):
-    field = models.CharField(max_length=255)
+    cde_key = models.CharField(max_length=255)
+
+class ReportDemographicField(models.Model):
     report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)
+
+    model = models.CharField(max_length=255)
+    field = models.CharField(max_length=255)

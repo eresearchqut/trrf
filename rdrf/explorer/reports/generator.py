@@ -72,21 +72,18 @@ class Report:
         other_demographic_fields = {}
 
         # Separate patient fields from other related to patient fields.
-        for demographic_field in self.report_design.demographicfield_set.all():
-            field_dict = json.loads(demographic_field.field)
-            model_name = field_dict['model']
-
-            if model_name == 'Patient':
-                patient_fields.append(field_dict['field'])
+        for demographic_field in self.report_design.reportdemographicfield_set.all():
+            if demographic_field.model == 'Patient':
+                patient_fields.append(demographic_field.field)
             else:
-                other_demographic_fields.setdefault(model_name, []).append(field_dict)
+                other_demographic_fields.setdefault(demographic_field.model, []).append(demographic_field.field)
 
         related_demographic_fields_query = ""
 
         for model_name, fields in other_demographic_fields.items():
             model_config = REPORT_CONFIGURATION['demographic_model'][model_name]
             pivot_field = model_config['pivot_field']
-            selected_fields = [field_dict['field'] for field_dict in fields]
+            selected_fields = fields[:]
             if pivot_field not in selected_fields:
                 selected_fields.append(pivot_field)
             related_demographic_fields_query = \
@@ -103,10 +100,7 @@ f"""
             f"workingGroupIds: [{','.join(get_patient_working_group_filters())}]",
             ]
 
-        cde_keys = []
-        for cde_field in self.report_design.cdefield_set.all():
-            cde_field_dict = json.loads(cde_field.field)
-            cde_keys.append(json.dumps(cde_field_dict['cde_key']))
+        cde_keys = [json.dumps(rcdf.cde_key) for rcdf in self.report_design.reportclinicaldatafield_set.all()]
 
         query = \
 f"""
@@ -146,11 +140,8 @@ query {{
 
         # Build definition of report fields grouped by model
         report_fields = {'Patient': ['id']}
-        for df in self.report_design.demographicfield_set.all():
-            df_dict = json.loads(df.field)
-            model_name = df_dict['model']
-            field = df_dict['field']
-            report_fields.setdefault(model_name, []).append(graphql_to_pandas_field(field))
+        for df in self.report_design.reportdemographicfield_set.all():
+            report_fields.setdefault(df.model, []).append(graphql_to_pandas_field(df.field))
 
         # Dynamically build a dataframe for each set of demographic data with 1:many or many:many relationship with patient
         dataframes = []
