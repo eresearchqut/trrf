@@ -632,17 +632,17 @@ class PatientForm(forms.ModelForm):
 
             patient_model.working_groups.set(self.cleaned_data["working_groups"])
 
-            current_clinicians = set(self.cleaned_data["registered_clinicians"])
-            patient_model.registered_clinicians.set(current_clinicians)
-            if patient_model.registered_clinicians.exists():
-                clinician_wgs = set([wg for c in patient_model.registered_clinicians.all() for wg in c.working_groups.all()])
-                patient_model.working_groups.add(*clinician_wgs)
-
             registries = self.cleaned_data["rdrf_registry"]
             for reg in registries:
                 patient_model.rdrf_registry.add(reg)
 
             if any([r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries]):
+                current_clinicians = set(self.cleaned_data["registered_clinicians"])
+                patient_model.registered_clinicians.set(current_clinicians)
+                if patient_model.registered_clinicians.exists():
+                    clinician_wgs = set(
+                        [wg for c in patient_model.registered_clinicians.all() for wg in c.working_groups.all()])
+                    patient_model.working_groups.add(*clinician_wgs)
                 self.notify_clinicians(patient_model, existing_clinicians, current_clinicians)
 
             patient_model.save()
