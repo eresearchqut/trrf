@@ -15,11 +15,7 @@ class Report:
         self.report_fields_lookup = self.__init_report_fields_lookup()
 
     def __init_report_fields_lookup(self):
-        report_fields_lookup = {}
-        for model, model_config in self.report_config.items():
-            fields_keyed_by_value = dict((v, k) for k, v in model_config['fields'].items())
-            report_fields_lookup[model] = fields_keyed_by_value
-        return report_fields_lookup
+        return {model: model_config['fields'] for model, model_config in self.report_config.items()}
 
     def __humanise_column_label(self, col):
         pivoted_field_labels = re.search(r'(.*)_(.*)_(.*)', col)
@@ -29,7 +25,7 @@ class Report:
                 model_field = pivoted_field_labels.group(2)
                 pivoted_value = pivoted_field_labels.group(3)
                 model_label = self.report_config[model]['label']
-                field_label = self.report_fields_lookup[model].get(model_field)
+                field_label = self.report_config[model]['fields'][model_field]
                 label = f"{pivoted_value}_{model_label}_{field_label}"
             except Exception as e:
                 logger.error(e)
@@ -84,9 +80,7 @@ class Report:
         for model_name, fields in other_demographic_fields.items():
             model_config = self.report_config[model_name]
             pivot_field = model_config['pivot_field']
-            selected_fields = fields[:]
-            if pivot_field not in selected_fields:
-                selected_fields.append(pivot_field)
+            selected_fields = fields.copy() if pivot_field in fields else fields.copy() + pivot_field
             related_demographic_fields_query = \
 f"""
         {related_demographic_fields_query}

@@ -40,7 +40,7 @@ def get_demographic_field_value(model_name, field):
 def get_demographic_field_choices():
     demographic_fields = []
     for model, model_attrs in REPORT_CONFIGURATION['demographic_model'].items():
-        field_choices = [(get_demographic_field_value(model, value), key) for key, value in model_attrs['fields'].items()]
+        field_choices = [(get_demographic_field_value(model, key), value) for key, value in model_attrs['fields'].items()]
         demographic_fields.append((model_attrs['label'], field_choices))
     return demographic_fields
 
