@@ -188,7 +188,7 @@ query {{
 
         # Normalise the rest of the patient and clinical data
         df = pd.json_normalize(data_allpatients,
-                               record_path=['clinicalDataFlat'],
+                               record_path=['clinicalData'],
                                meta=report_fields['Patient'],
                                errors='ignore')
 
