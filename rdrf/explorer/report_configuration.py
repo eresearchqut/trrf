@@ -1,7 +1,7 @@
 REPORT_CONFIGURATION = {
     'demographic_model':
-       {'Patient': {
-             'model_field_lookup': "patient",
+       {'patient': {
+             'label': "Patient",
              'fields': {
                   'Consent': 'consent',
                   'Consent Clinical Trials': 'consentClinicalTrials',
@@ -38,8 +38,8 @@ REPORT_CONFIGURATION = {
                   'Inactive Reason': 'inactiveReason',
                   'Living Status': 'livingStatus',
                   'Patient Type': 'patientType'}},
-         "Patient Address": {
-              'model_field_lookup': 'patientaddressSet',
+         "patientaddressSet": {
+              'label': 'Patient Address',
               'pivot_field': 'addressType { type }',
               'fields': {
                   'Address Type': 'addressType { type }',
@@ -48,8 +48,8 @@ REPORT_CONFIGURATION = {
                   'State': 'state',
                   'Postcode': 'postcode',
                   'Country': 'country'}},
-         "Working Groups": {
-              'model_field_lookup': 'workingGroups',
+         "workingGroups": {
+              'label': 'Working Groups',
               'pivot_field': 'name',
               'fields': {
                   'Name': 'displayName'

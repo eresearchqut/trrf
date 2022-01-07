@@ -11,12 +11,12 @@ class Report:
 
     def __init__(self, report_design):
         self.report_design = report_design
+        self.report_config = REPORT_CONFIGURATION['demographic_model']
         self.report_fields_lookup = self.__init_report_fields_lookup()
 
     def __init_report_fields_lookup(self):
-        report_config = REPORT_CONFIGURATION['demographic_model']
         report_fields_lookup = {}
-        for model, model_config in report_config.items():
+        for model, model_config in self.report_config.items():
             fields_keyed_by_value = dict((v, k) for k, v in model_config['fields'].items())
             report_fields_lookup[model] = fields_keyed_by_value
         return report_fields_lookup
@@ -28,13 +28,14 @@ class Report:
                 model = pivoted_field_labels.group(1)
                 model_field = pivoted_field_labels.group(2)
                 pivoted_value = pivoted_field_labels.group(3)
-                model_field_label = self.report_fields_lookup[model].get(model_field)
-                label = f"{pivoted_value}_{model}_{model_field_label}"
+                model_label = self.report_config[model]['label']
+                field_label = self.report_fields_lookup[model].get(model_field)
+                label = f"{pivoted_value}_{model_label}_{field_label}"
             except Exception as e:
                 logger.error(e)
                 label = col
         else:
-            label = self.report_fields_lookup['Patient'].get(col)
+            label = self.report_fields_lookup['patient'].get(col)
         return label if label else col
 
     def __reformat_pivoted_column_labels(self, col):
@@ -73,7 +74,7 @@ class Report:
 
         # Separate patient fields from other related to patient fields.
         for demographic_field in self.report_design.reportdemographicfield_set.all():
-            if demographic_field.model == 'Patient':
+            if demographic_field.model == 'patient':
                 patient_fields.append(demographic_field.field)
             else:
                 other_demographic_fields.setdefault(demographic_field.model, []).append(demographic_field.field)
@@ -81,7 +82,7 @@ class Report:
         related_demographic_fields_query = ""
 
         for model_name, fields in other_demographic_fields.items():
-            model_config = REPORT_CONFIGURATION['demographic_model'][model_name]
+            model_config = self.report_config[model_name]
             pivot_field = model_config['pivot_field']
             selected_fields = fields[:]
             if pivot_field not in selected_fields:
@@ -89,7 +90,7 @@ class Report:
             related_demographic_fields_query = \
 f"""
         {related_demographic_fields_query}
-       ,{model_config['model_field_lookup']} {{
+       ,{model_name} {{
             {",".join(selected_fields)}
        }}
 """
@@ -139,23 +140,22 @@ query {{
         data_allpatients = result.data['allPatients']
 
         # Build definition of report fields grouped by model
-        report_fields = {'Patient': ['id']}
+        report_fields = {'patient': ['id']}
         for df in self.report_design.reportdemographicfield_set.all():
             report_fields.setdefault(df.model, []).append(graphql_to_pandas_field(df.field))
 
         # Dynamically build a dataframe for each set of demographic data with 1:many or many:many relationship with patient
         dataframes = []
         for model, fields in report_fields.items():
-            if model == 'Patient':
+            if model == 'patient':
                 continue
 
-            model_config = REPORT_CONFIGURATION['demographic_model'][model]
-            model_lookup = model_config['model_field_lookup']
+            model_config = self.report_config[model]
             pivot_field = graphql_to_pandas_field(model_config['pivot_field'])
             record_prefix = f"{model}_"
 
             # Normalize the json data into a pandas dataframe following the record path for this specific related model
-            dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model_lookup],
+            dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model],
                                           record_prefix=record_prefix)
 
             # Pivot on the configured field for this model
@@ -180,7 +180,7 @@ query {{
         # Normalise the rest of the patient and clinical data
         df = pd.json_normalize(data_allpatients,
                                record_path=['clinicalData'],
-                               meta=report_fields['Patient'],
+                               meta=report_fields['patient'],
                                errors='ignore')
 
         # Capture clinical columns before this dataframe is merged with demographic data
