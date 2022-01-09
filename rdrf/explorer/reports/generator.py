@@ -65,21 +65,20 @@ class Report:
 
             return wg_filters
 
+        # Build list of patient fields to report on
         patient_fields = ['id']
-        other_demographic_fields = {}
+        patient_fields.extend(
+            self.report_design.reportdemographicfield_set.filter(model='patient').values_list('field', flat=True))
 
-        # Separate patient fields from other related to patient fields.
-        for demographic_field in self.report_design.reportdemographicfield_set.all():
-            if demographic_field.model == 'patient':
-                patient_fields.append(demographic_field.field)
-            else:
+        # Build list of other demographic fields to report on, group by model
+        other_demographic_fields = {}
+        for demographic_field in self.report_design.reportdemographicfield_set.exclude(model='patient'):
                 other_demographic_fields.setdefault(demographic_field.model, []).append(demographic_field.field)
 
         related_demographic_fields_query = ""
 
         for model_name, fields in other_demographic_fields.items():
-            model_config = self.report_config[model_name]
-            pivot_field = model_config['pivot_field']
+            pivot_field = self.report_config[model_name]['pivot_field']
             selected_fields = fields.copy() if pivot_field in fields else fields.copy() + pivot_field
             related_demographic_fields_query = \
 f"""
@@ -118,7 +117,6 @@ query {{
 
     def export_to_json(self, request):
         result = schema.execute(self.__get_graphql_query(), context_value=request)
-        logger.debug(result)
         return json.dumps(result.data)
 
     def export_to_csv(self, request):
@@ -205,14 +203,13 @@ query {{
         df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName', 'cde.value': 'b.cde.value'})
 
         # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
+        cde_pivot_cols = ['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt', 'cde.name']
         pivoted = df.pivot(index=demographic_cols,
-                           columns=['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
-                                    'cde.name'],
+                           columns=cde_pivot_cols,
                            values=['a.cfg.defaultName', 'b.cde.value'])
 
         # Re-order the columns
-        pivoted = pivoted.sort_index(axis=1, level=['cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt',
-                                                    'cde.name'])
+        pivoted = pivoted.sort_index(axis=1, level=cde_pivot_cols)
 
         # Remove context form group's sort order as we don't need to see this in the results.
         pivoted = pivoted.droplevel('cfg.sortOrder', axis=1)
