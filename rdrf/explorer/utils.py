@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from django.db import ProgrammingError, connection, transaction
 
+from rdrf.forms.widgets.widgets import get_widget_class, get_all_widgets
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.utils import timed, get_display_value
 from rdrf.models.definition.models import RDRFContext, Registry, RegistryForm, Section
@@ -644,6 +645,7 @@ def create_field_values(registry_model, patient_model, context_model):
         forms_mapping = {f.name: f for f in RegistryForm.objects.filter(registry=registry_model)}
         section_mapping = {s.code: s for s in Section.objects.all()}
         cde_mapping = {cde.code: cde for cde in CommonDataElement.objects.all().select_related("pv_group")}
+        widget_mapping = {name: get_widget_class(name) for name in get_all_widgets()}
 
         field_values = []
 
@@ -660,6 +662,7 @@ def create_field_values(registry_model, patient_model, context_model):
                         cde_model = cde_mapping.get(cde_dict["code"])
                         if not cde_model:
                             continue
+                        widget = widget_mapping.get(cde_model.widget_name)
 
                         field_values.append(FieldValue.put(registry_model,
                                                            patient_model,
@@ -667,6 +670,7 @@ def create_field_values(registry_model, patient_model, context_model):
                                                            form_model,
                                                            section_model,
                                                            cde_model,
+                                                           widget,
                                                            0,
                                                            cde_dict["value"]))
                 else:
@@ -675,6 +679,7 @@ def create_field_values(registry_model, patient_model, context_model):
                             cde_model = cde_mapping.get(cde_dict["code"])
                             if not cde_model:
                                 continue
+                            widget = widget_mapping.get(cde_model.widget_name)
 
                             field_values.append(FieldValue.put(registry_model,
                                                                patient_model,
@@ -682,6 +687,7 @@ def create_field_values(registry_model, patient_model, context_model):
                                                                form_model,
                                                                section_model,
                                                                cde_model,
+                                                               widget,
                                                                index,
                                                                cde_dict["value"]))
 

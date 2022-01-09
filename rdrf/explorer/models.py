@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from contextlib import suppress
 
-from rdrf.forms.widgets.widgets import get_widget_class
+from rdrf.forms.widgets.widgets import get_widget_class, LookupWidget
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
@@ -73,7 +73,7 @@ class FieldValue(models.Model):
                 return model.raw_value
 
     @classmethod
-    def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, index, value):
+    def put(cls, registry_model, patient_model, context_model, form_model, section_model, cde_model, widget, index, value):
         datatype = cde_model.datatype.strip().lower()
         model = cls(
             registry=registry_model,
@@ -95,7 +95,10 @@ class FieldValue(models.Model):
 
         if datatype == 'string':
             try:
-                model.raw_value = str(value)
+                if widget and issubclass(widget, LookupWidget):
+                    model.raw_value = widget.lookup_field_value(value)
+                else:
+                    model.raw_value = str(value)
             except BaseException:
                 pass
         elif cde_model.pv_group:
