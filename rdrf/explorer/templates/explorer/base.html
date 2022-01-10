@@ -29,7 +29,7 @@
     </head>
     
     <body>
-        
+
         <nav class="navbar navbar-dark bg-dark navbar-expand mb-3" role="navigation">
             <div class="container flex-column flex-md-row">
                 <a class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %} <sup>{{version}}</sup></a>
@@ -60,6 +60,8 @@
 
 			<!-- For Javascript errors -->
 			<div id="js-errors" class="alert alert-danger" style="display: none"></div>
+
+            {% include "rdrf_cdes/report_deprecation_warning.html" %}
 
             {% block content %}
             {% endblock %}
