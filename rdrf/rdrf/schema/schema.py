@@ -4,9 +4,9 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
 
-from rdrf.helpers.utils import mongo_key
+from rdrf.helpers.utils import mongo_key, get_form_section_code
 from rdrf.models.definition.models import Registry, ConsentQuestion, ClinicalData, RDRFContext, ContextFormGroup, \
-    Section, CommonDataElement
+    Section, CommonDataElement, RegistryForm
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient, PatientAddress, AddressType, ConsentValue, NextOfKinRelationship
 
@@ -35,17 +35,21 @@ class ClinicalDataCdeMultiValue(graphene.ObjectType):
     def resolve_values(self, info):
         return self['value']
 
-class ContextFormGroup(graphene.ObjectType):
+class ClinicalDataSection(graphene.ObjectType):
+    code = graphene.String()
+    name = graphene.String()
+    entry_num = graphene.String()
+
+class ContextFormGroupType(graphene.ObjectType):
     name = graphene.String()
     default_name = graphene.String()
     sort_order = graphene.String()
     entry_num = graphene.String()
 
 class ClinicalDataType(graphene.ObjectType):
-    cfg = graphene.Field(ContextFormGroup)
+    cfg = graphene.Field(ContextFormGroupType)
     form = graphene.String()
-    section = graphene.String()
-    section_cnt = graphene.String()
+    section = graphene.Field(ClinicalDataSection)
     cde = graphene.Field(ClinicalDataCdeInterface)
 
 class PatientType(DjangoObjectType):
@@ -81,7 +85,7 @@ class PatientType(DjangoObjectType):
                 cde_name = CommonDataElement.objects.get(code=cde['code']).name
                 values.append({'cfg': cfg,
                                'form': form['name'],
-                               'section': section_name, 'section_cnt': section_cnt,
+                               'section': {'code': section['code'], 'name': section_name, 'entry_num': section_cnt},
                                'cde': {'code': cde['code'], 'name': cde_name, 'value': cde['value']}})
 
         for idx, entry in enumerate(clinical_data):
@@ -107,6 +111,26 @@ class PatientType(DjangoObjectType):
                                 add_value(cfg, form, section, section_cnt, cde, cde_keys)
 
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
+
+        # Create an empty clinical data value if patient has no clinical data for any required cde_keys
+        # This is required particularly if none of the reported patients have entries for a cde
+        for cde_key in cde_keys:
+            form_name, section_code, cde_code = get_form_section_code(cde_key)
+            form = RegistryForm.objects.get(name=form_name)
+            section = Section.objects.get(code=section_code)
+            cde = CommonDataElement.objects.get(code=cde_code)
+
+            found = next((v for v in values if cde_key == mongo_key(v['form'], v['section']['code'], v['cde']['code'])), None)
+            if not found:
+                cfg = ContextFormGroup.objects.filter(items__registry_form=form).first()
+                if cfg:
+                    cfg_value = {'name': cfg.name, 'sort_order': cfg.sort_order, 'entry_num': 1}
+                else:
+                    cfg_value = {'name': 'Default', 'sort_order': 1, 'entry_num': 1}
+                values.append({'cfg': cfg_value,
+                               'form': form.name,
+                               'section': {'code': section.code, 'name': section.display_name, 'entry_num': 1},
+                               'cde': {'code': cde.code, 'name': cde.name, 'value': ''}})
 
         return values if values else [{}]
 

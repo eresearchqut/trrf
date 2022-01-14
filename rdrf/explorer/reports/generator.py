@@ -54,14 +54,14 @@ class Report:
                 patient_filters.append(f'"consents__answer=True"')
                 patient_filters.extend(
                     [f'"consents__consent_question__code={consent_question.code}"' for consent_question in
-                     self.report_design.filter_consents])
+                     self.report_design.filter_consents.all()])
 
             return patient_filters
 
         def get_patient_working_group_filters():
             wg_filters = []
             if self.report_design.filter_working_groups.all():
-                wg_filters = [json.dumps(str(wg.id)) for wg in self.report_design.filter_working_groups]
+                wg_filters = [json.dumps(str(wg.id)) for wg in self.report_design.filter_working_groups.all()]
 
             return wg_filters
 
@@ -103,7 +103,7 @@ query {{
         {",".join(patient_fields)}
         {related_demographic_fields_query},
         clinicalData(cdeKeys: [{",".join(cde_keys)}])
-            {{cfg {{name, defaultName, sortOrder, entryNum}}, form, section, sectionCnt,
+            {{cfg {{name, defaultName, sortOrder, entryNum}}, form, section {{name, entryNum}},
             cde {{
                 name
                 ... on ClinicalDataCde {{value}}
@@ -186,7 +186,7 @@ query {{
 
         # Early exit if there is no clinical data included in the report
         if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
-            df.drop(columns=['cfg', 'form', 'section', 'sectionCnt', 'cde'], inplace=True)
+            df.drop(columns=['cfg', 'form', 'section', 'cde'], inplace=True)
             return df.to_csv()
 
         # Merge the value and values columns together so we can pivot it
@@ -203,7 +203,7 @@ query {{
         df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName', 'cde.value': 'b.cde.value'})
 
         # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
-        cde_pivot_cols = ['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section', 'sectionCnt', 'cde.name']
+        cde_pivot_cols = ['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section.name', 'section.entryNum', 'cde.name']
         pivoted = df.pivot(index=demographic_cols,
                            columns=cde_pivot_cols,
                            values=['a.cfg.defaultName', 'b.cde.value'])
