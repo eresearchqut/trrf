@@ -53,8 +53,8 @@ class ClinicalDataType(graphene.ObjectType):
     cde = graphene.Field(ClinicalDataCdeInterface)
 
 class PatientType(DjangoObjectType):
+    sex = graphene.String()
     clinical_data = graphene.List(ClinicalDataType, cde_keys=graphene.List(graphene.String))
-    sex = graphene.String
 
     class Meta:
         model = Patient
@@ -68,6 +68,9 @@ class PatientType(DjangoObjectType):
                   'next_of_kin_country','active','inactive_reason','living_status','patient_type',
                   'stage','created_at','last_updated_at','last_updated_overall_at','created_by',
                   'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
+
+    def resolve_sex(self, info):
+        return dict(Patient.SEX_CHOICES).get(self.sex)
 
     def resolve_clinical_data(self, info, cde_keys=[]):
         clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").all()

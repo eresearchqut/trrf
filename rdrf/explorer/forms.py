@@ -128,6 +128,13 @@ class ReportDesignerForm(ModelForm):
             self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
             self.fields['filter_working_groups'].initial = [get_working_group_field_value(wg) for wg in self.instance.filter_working_groups.all()]
 
+    def clean(self):
+        super(ReportDesignerForm, self).clean()
+        cleaned_title = self.cleaned_data['title']
+        if not self.instance.id or self.instance.title != cleaned_title:
+            if ReportDesign.objects.filter(registry=self.cleaned_data['registry'], title=cleaned_title).first():
+                self.add_error('title', _(f'A report in this registry with the title "{cleaned_title}" already exists.'))
+
     def clean_filter_working_groups(self):
         def get_wg_from_field(field):
             field_dict = json.loads(field)

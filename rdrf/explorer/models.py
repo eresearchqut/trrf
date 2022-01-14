@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
@@ -367,7 +368,10 @@ class ReportDesign(models.Model):
     objects = ReportDesignManager()
 
     class Meta:
-        ordering = ['title']
+        ordering = ['registry', 'title']
+        constraints = [
+            UniqueConstraint(fields=['registry', 'title'], name='unique_report_title')
+        ]
 
 class ReportClinicalDataField(models.Model):
     report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)
