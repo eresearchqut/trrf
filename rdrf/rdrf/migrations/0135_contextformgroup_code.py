@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 
-def set_abbreviated_name_on_cfg(apps, schema_editor):
+def set_cfg_code(apps, schema_editor):
     ContextFormGroup = apps.get_model('rdrf', 'ContextFormGroup')
     cfgs = ContextFormGroup.objects.all()
     for idx, cfg in enumerate(cfgs):
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             field=models.CharField(max_length=30, null=True, unique=True),
         ),
         migrations.RunPython(
-            set_abbreviated_name_on_cfg,
+            set_cfg_code,
             migrations.RunPython.noop
         ),
         migrations.AlterField(

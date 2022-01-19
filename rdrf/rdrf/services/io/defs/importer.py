@@ -923,6 +923,7 @@ class Importer(object):
             cfg, created = ContextFormGroup.objects.get_or_create(
                 registry=registry, name=cfg_dict["name"])
             cfg.context_type = cfg_dict["context_type"]
+            cfg.code = cfg_dict["code"]
             cfg.name = cfg_dict["name"]
             cfg.naming_scheme = cfg_dict["naming_scheme"]
             cfg.is_default = cfg_dict["is_default"]
