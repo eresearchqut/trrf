@@ -12,45 +12,52 @@ from registry.patients.models import Patient, PatientAddress, AddressType, Conse
 
 logger = logging.getLogger(__name__)
 
-class ClinicalDataCdeInterface(graphene.Interface):
+class CdeInterface(graphene.Interface):
     code = graphene.String()
     name = graphene.String()
+    abbreviated_name = graphene.String()
 
     @classmethod
     def resolve_type(self, instance, info):
-        return ClinicalDataCdeMultiValue if type(instance['value']) is list else ClinicalDataCde
+        return CdeMultiValueType if type(instance['value']) is list else CdeValueType
 
-class ClinicalDataCde(graphene.ObjectType):
+class CdeValueType(graphene.ObjectType):
     class Meta:
-        interfaces = (ClinicalDataCdeInterface,)
+        interfaces = (CdeInterface,)
 
     value = graphene.String()
 
-class ClinicalDataCdeMultiValue(graphene.ObjectType):
+class CdeMultiValueType(graphene.ObjectType):
     class Meta:
-        interfaces = (ClinicalDataCdeInterface,)
+        interfaces = (CdeInterface,)
 
     values = graphene.List(graphene.String)
 
     def resolve_values(self, info):
         return self['value']
 
-class ClinicalDataSection(graphene.ObjectType):
+class SectionType(graphene.ObjectType):
     code = graphene.String()
     name = graphene.String()
+    abbreviated_name = graphene.String()
     entry_num = graphene.String()
+
+class RegistryFormType(graphene.ObjectType):
+    name = graphene.String()
+    abbreviated_name = graphene.String()
 
 class ContextFormGroupType(graphene.ObjectType):
     name = graphene.String()
+    abbreviated_name = graphene.String()
     default_name = graphene.String()
     sort_order = graphene.String()
     entry_num = graphene.String()
 
 class ClinicalDataType(graphene.ObjectType):
     cfg = graphene.Field(ContextFormGroupType)
-    form = graphene.String()
-    section = graphene.Field(ClinicalDataSection)
-    cde = graphene.Field(ClinicalDataCdeInterface)
+    form = graphene.Field(RegistryFormType)
+    section = graphene.Field(SectionType)
+    cde = graphene.Field(CdeInterface)
 
 class PatientType(DjangoObjectType):
     sex = graphene.String()
@@ -82,14 +89,16 @@ class PatientType(DjangoObjectType):
 
         values = []
 
-        def add_value(cfg, form, section, section_cnt, cde, cde_keys):
-            if 'code' in cde and mongo_key(form['name'], section['code'], cde['code']) in cde_keys:
-                section_name = Section.objects.get(code=section['code']).display_name
-                cde_name = CommonDataElement.objects.get(code=cde['code']).name
-                values.append({'cfg': cfg,
-                               'form': form['name'],
-                               'section': {'code': section['code'], 'name': section_name, 'entry_num': section_cnt},
-                               'cde': {'code': cde['code'], 'name': cde_name, 'value': cde['value']}})
+        def add_value(cfg, form_model, section_model, section_cnt, cde_model, cde_value):
+            values.append({'cfg': cfg,
+                           'form': {'name': form_model.name, 'abbreviated_name': form_model.abbreviated_name},
+                           'section': {'code': section_model.code, 'name': section_model.display_name, 'abbreviated_name': section_model.abbreviated_name, 'entry_num': section_cnt},
+                           'cde': {'code': cde_model.code, 'name': cde_model.name, 'abbreviated_name': cde_model.abbreviated_name, 'value': cde_value}})
+
+        def add_value_from_data_entry(cfg, form_model, section_model, section_cnt, cde_entry, cde_keys):
+            if 'code' in cde_entry and mongo_key(form_model.name, section_model.code, cde_entry['code']) in cde_keys:
+                cde_obj = CommonDataElement.objects.get(code=cde_entry['code'])
+                add_value(cfg, form_model, section_model, section_cnt, cde_obj, cde_entry['value'])
 
         for idx, entry in enumerate(clinical_data):
             context = context_lookup[entry.context_id]
@@ -99,19 +108,22 @@ class PatientType(DjangoObjectType):
             cfg = {
                 'name': context.context_form_group.name,
                 'default_name': context.context_form_group.get_default_name(self, context),
+                'abbreviated_name': context.context_form_group.abbreviated_name,
                 'sort_order': context.context_form_group.sort_order,
                 'entry_num': cfg_cnt
             }
             if 'forms' in entry.data:
                 for form in entry.data['forms']:
+                    form_model = RegistryForm.objects.get(name=form['name'])
                     for section in form['sections']:
+                        section_model = Section.objects.get(code=section['code'])
                         for idx, cde in enumerate(section['cdes']):
                             section_cnt = idx + 1 # 1-based index for output
                             if 'allow_multiple' in section and section['allow_multiple'] is True:
                                 for cde_entry in cde:
-                                    add_value(cfg, form, section, section_cnt, cde_entry, cde_keys)
+                                    add_value_from_data_entry(cfg, form_model, section_model, section_cnt, cde_entry, cde_keys)
                             else:
-                                add_value(cfg, form, section, section_cnt, cde, cde_keys)
+                                add_value_from_data_entry(cfg, form_model, section_model, section_cnt, cde, cde_keys)
 
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
 
@@ -123,17 +135,22 @@ class PatientType(DjangoObjectType):
             section = Section.objects.get(code=section_code)
             cde = CommonDataElement.objects.get(code=cde_code)
 
-            found = next((v for v in values if cde_key == mongo_key(v['form'], v['section']['code'], v['cde']['code'])), None)
+            found = next((v for v in values if cde_key == mongo_key(v['form']['name'], v['section']['code'], v['cde']['code'])), None)
             if not found:
                 cfg = ContextFormGroup.objects.filter(items__registry_form=form).first()
+
                 if cfg:
-                    cfg_value = {'name': cfg.name, 'sort_order': cfg.sort_order, 'entry_num': 1}
+                    cfg_value = {
+                        'name': cfg.name,
+                        'default_name': cfg.name,
+                        'abbreviated_name': cfg.abbreviated_name,
+                        'sort_order': cfg.sort_order,
+                        'entry_num': 1
+                    }
                 else:
-                    cfg_value = {'name': 'Default', 'sort_order': 1, 'entry_num': 1}
-                values.append({'cfg': cfg_value,
-                               'form': form.name,
-                               'section': {'code': section.code, 'name': section.display_name, 'entry_num': 1},
-                               'cde': {'code': cde.code, 'name': cde.name, 'value': ''}})
+                    cfg_value = {'name': 'Default', 'abbreviated_name': 'Default', 'sort_order': 1, 'entry_num': 1}
+
+                add_value(cfg_value, form, section, 1, cde, '')
 
         return values if values else [{}]
 
@@ -198,4 +215,4 @@ class Query(graphene.ObjectType):
             .filter(**query_args).prefetch_related('working_groups')\
             .distinct()
 
-schema = graphene.Schema(query=Query, types=[ClinicalDataCde, ClinicalDataCdeMultiValue])
+schema = graphene.Schema(query=Query, types=[CdeValueType, CdeMultiValueType])

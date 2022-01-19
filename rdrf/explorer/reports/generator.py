@@ -1,3 +1,4 @@
+from explorer.models import ReportCdeHeadingFormat
 from explorer.report_configuration import REPORT_CONFIGURATION
 from rdrf.schema.schema import schema
 import pandas as pd
@@ -103,12 +104,15 @@ query {{
         {",".join(patient_fields)}
         {related_demographic_fields_query},
         clinicalData(cdeKeys: [{",".join(cde_keys)}])
-            {{cfg {{name, defaultName, sortOrder, entryNum}}, form, section {{name, entryNum}},
-            cde {{
-                name
-                ... on ClinicalDataCde {{value}}
-                ... on ClinicalDataCdeMultiValue {{values}}
-            }} 
+            {{
+                cfg {{name, abbreviatedName, defaultName, sortOrder, entryNum}}, 
+                form {{name, abbreviatedName}}, 
+                section {{code, name, abbreviatedName, entryNum}},
+                cde {{
+                    code, name, abbreviatedName
+                    ... on CdeValueType {{value}}
+                    ... on CdeMultiValueType {{values}}
+                }} 
         }}
     }}
 }}
@@ -128,6 +132,13 @@ query {{
             # replace " { field }" with ".field"
             pandas_field = re.sub(r"(.+)({(.*)})", r"\1.\3", pandas_field)
             return pandas_field
+
+        def raise_pivot_exception(e):
+            if self.report_design.cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value \
+                    and str(e).startswith('Index contains duplicate entries'):
+                raise ValueError('The data being reported on contains CDEs with duplicate abbreviated names and cannot be processed.')
+            else:
+                raise e
 
         data_allpatients = result.data['allPatients']
 
@@ -200,13 +211,24 @@ query {{
 
         # Rename the columns being pivoted to occur alphabetically in the order desired in the output report
         # https://github.com/pandas-dev/pandas/issues/17041#issuecomment-317576297
-        df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName', 'cde.value': 'b.cde.value'})
+        df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName',
+                                         'cde.value': 'b.cde.value'})
 
         # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
-        cde_pivot_cols = ['cfg.name', 'cfg.sortOrder', 'cfg.entryNum', 'form', 'section.name', 'section.entryNum', 'cde.name']
-        pivoted = df.pivot(index=demographic_cols,
-                           columns=cde_pivot_cols,
-                           values=['a.cfg.defaultName', 'b.cde.value'])
+        cfg_name_col, form_name_col, section_name_col, cde_name_col = {
+            ReportCdeHeadingFormat.ABBR_NAME.value: ('cfg.abbreviatedName', 'form.abbreviatedName', 'section.abbreviatedName', 'cde.abbreviatedName'),
+            ReportCdeHeadingFormat.LABEL.value: ('cfg.name', 'form.name', 'section.name', 'cde.name'),
+            ReportCdeHeadingFormat.CODE.value: ('cfg.abbreviatedName', 'form.name', 'section.code', 'cde.code')
+        }[self.report_design.cde_heading_format]
+
+        cde_pivot_cols = [cfg_name_col, 'cfg.sortOrder', 'cfg.entryNum', form_name_col, section_name_col, 'section.entryNum', cde_name_col]
+
+        try:
+            pivoted = df.pivot(index=demographic_cols,
+                               columns=cde_pivot_cols,
+                               values=['a.cfg.defaultName', 'b.cde.value'])
+        except ValueError as e:
+            raise_pivot_exception(e)
 
         # Re-order the columns
         pivoted = pivoted.sort_index(axis=1, level=cde_pivot_cols)

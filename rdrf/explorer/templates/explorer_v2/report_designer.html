@@ -175,6 +175,16 @@
             </div>
         </div>
         <div class="row">
+            <label for="cde_heading_format" class="col-sm-2 col-form-label">
+                {{ form.cde_heading_format.label }}
+            </label>
+            <div class="col-sm-10 mt-2">{{ form.cde_heading_format }}</div>
+            <div id="cde_format_label_help" class="offset-sm-2 col-sm-10 form-text">
+                <p>{% trans "CDE Headings are made up of the following parts: Context Form Group, Registry Form, Section, Common Data Element." %}</p>
+                <p>{% trans "This setting determines whether to use the full name label for each of these parts or their respective configured Abbreviated Name." %}</p>
+            </div>
+        </div>
+        <div class="row">
             <label for="cde_fields" class="col-sm-2 col-form-label">{{ form.cde_fields.label }}</label>
             <div class="col-sm-10 mt-2">
                 <div class="col-12">

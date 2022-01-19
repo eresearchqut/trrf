@@ -89,9 +89,9 @@ def get_filter_consent_choices():
 class ReportDesignerForm(ModelForm):
 
     registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name = 'code')
-    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), choices=get_demographic_field_choices())
-    search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), choices=get_section_choices(), required=False)
-    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), choices=get_cde_choices(), required=False)
+    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}))
+    search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), required=False)
+    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), required=False)
     filter_consents = MultipleChoiceField(
         label=_('Consent Items'),
         widget=CheckboxSelectMultiple,
@@ -103,6 +103,15 @@ class ReportDesignerForm(ModelForm):
         choices=get_working_group_choices(),
         required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(ReportDesignerForm, self).__init__(*args, **kwargs)
+        # Initialise choice during object initialisation to avoid compilation errors
+        # when attempting to modify the models that are queried to build these choices.
+        self.fields['demographic_fields'].choices = get_demographic_field_choices()
+        self.fields['search_cdes_by_section'].choices = get_section_choices()
+        self.fields['cde_fields'].choices = get_cde_choices()
+
+
     class Meta:
         model = ReportDesign
         fields = [
@@ -110,14 +119,17 @@ class ReportDesignerForm(ModelForm):
             'title',
             'description',
             'access_groups',
+            'cde_heading_format'
         ]
         widgets = {
             'access_groups': SelectMultiple(attrs={'class': 'form-select'}),
+            'cde_heading_format': Select(attrs={'class': 'form-select'}),
         }
         labels = {
             'title': _('Title'),
             'description': _('Description'),
             'access_groups': _('Access Groups'),
+            'cde_heading_format': _('Clinical Data Heading Format')
         }
 
     def setup_initials(self):
@@ -157,7 +169,8 @@ class ReportDesignerForm(ModelForm):
             id=self.instance.id,
             defaults={'title': clean_data['title'],
                       'description': clean_data['description'],
-                      'registry': clean_data['registry']}
+                      'registry': clean_data['registry'],
+                      'cde_heading_format': clean_data['cde_heading_format']}
         )
 
         report_design.access_groups.set(clean_data['access_groups'])
@@ -165,11 +178,12 @@ class ReportDesignerForm(ModelForm):
         report_design.filter_consents.set(clean_data['filter_consents'])
 
         ReportDemographicField.objects.filter(report_design=report_design).delete()
-        for field in clean_data['demographic_fields']:
+        for idx, field in enumerate(clean_data['demographic_fields']):
             field_dict = json.loads(field)
             ReportDemographicField.objects.create(
                 model=field_dict['model'],
                 field=field_dict['field'],
+                sort_order=idx,
                 report_design=report_design
             )
 

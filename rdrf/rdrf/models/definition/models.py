@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import RegexValidator
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -66,6 +67,9 @@ class Section(models.Model):
     """
     code = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=200)
+    abbreviated_name = models.CharField(max_length=100,
+                                        help_text='Abbreviated name for identification of this Section in other contexts (e.g. reports)',
+                                        validators=[RegexValidator(regex='^[A-Za-z\s-]+$')])
     questionnaire_display_name = models.CharField(max_length=200, blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(
@@ -619,6 +623,9 @@ class CommonDataElement(models.Model):
 
     code = models.CharField(max_length=30, primary_key=True)
     name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
+    abbreviated_name = models.CharField(max_length=100,
+                                        help_text='Abbreviated name for identification of this CDE in other contexts (e.g. reports)',
+                                        validators=[RegexValidator(regex='^[A-Za-z\s-]+$')])
     desc = models.TextField(blank=True, help_text="origin of field")
     datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=CDEDataTypes.STRING)
     instructions = models.TextField(
@@ -795,6 +802,9 @@ class RegistryForm(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     name = models.CharField(max_length=80,
                             help_text="Internal name used by system: Alphanumeric, no spaces")
+    abbreviated_name = models.CharField(max_length=100,
+                                        help_text='Abbreviated name for identification of this RegistryForm in other contexts (e.g. reports)',
+                                        validators=[RegexValidator(regex='^[A-Za-z\s-]+$')])
     display_name = models.CharField(max_length=200,
                                     blank=True,
                                     null=True,
@@ -1501,6 +1511,9 @@ class ContextFormGroup(models.Model):
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
     code = models.CharField(max_length=30, unique=True)
     name = models.CharField(max_length=80)
+    abbreviated_name = models.CharField(max_length=100,
+                                        help_text='Abbreviated name for identification of CFG in other contexts (e.g. reports)',
+                                        validators=[RegexValidator(regex='^[A-Za-z\s-]+$')])
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
     is_default = models.BooleanField(default=False)
     naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)

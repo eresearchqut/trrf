@@ -6,6 +6,8 @@ from django.core.exceptions import ValidationError
 from contextlib import suppress
 
 from rdrf.forms.widgets.widgets import get_widget_class
+from enum import Enum, unique
+
 from rdrf.models.definition.models import Registry, ConsentQuestion
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import RDRFContext
@@ -15,6 +17,8 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import parse_iso_date, check_suspicious_sql, get_display_value
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
+
+from django.utils.translation import ugettext_lazy as _
 
 import json
 
@@ -357,13 +361,26 @@ class ReportDesignManager(models.Manager):
 
         return super().get_queryset().filter(registry__in=registries, access_groups__in=user.get_groups())
 
+@unique
+class ReportCdeHeadingFormat(Enum):
+    LABEL = 'LABEL'
+    ABBR_NAME = 'ABBR_NAME'
+    CODE = 'CODE'
+
 class ReportDesign(models.Model):
+
+    CDE_HEADING_FORMATS = (
+        (ReportCdeHeadingFormat.LABEL.value, _('Use full labels')),
+        (ReportCdeHeadingFormat.ABBR_NAME.value, _('Use abbreviated name')),
+        (ReportCdeHeadingFormat.CODE.value, _('Use unique codes')))
+
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     access_groups = models.ManyToManyField(Group, blank=True)
     filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
     filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
+    cde_heading_format = models.CharField(max_length=30, choices=CDE_HEADING_FORMATS, default=ReportCdeHeadingFormat.LABEL.value)
 
     objects = ReportDesignManager()
 
@@ -383,3 +400,7 @@ class ReportDemographicField(models.Model):
 
     model = models.CharField(max_length=255)
     field = models.CharField(max_length=255)
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+
+    class Meta:
+        ordering = ['sort_order']
