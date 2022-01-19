@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
+from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from rdrf.events.events import EventType
-from rdrf.models.definition.models import Registry, EmailNotification, ConsentSection, ConsentQuestion
+from rdrf.models.definition.models import EmailTemplate, Registry, EmailNotification, ConsentSection, ConsentQuestion
 from registry.patients.constants import PatientState
 from registry.patients.models import Patient, PatientStage, PatientStageRule
 
@@ -37,12 +38,20 @@ class RegistrationTest(TestCase):
     def setUp(self):
         super().setUp()
         self.registry = Registry.objects.get(code='reg4')
-        EmailNotification.objects.create(
+        template = EmailTemplate.objects.create(
+            language='en',
+            description='New Patient Registered',
+            subject='Welcome',
+            body='Thanks for your registration!',
+        )
+        notification = EmailNotification.objects.create(
             registry=self.registry,
             description=EventType.NEW_PATIENT,
-            recipient='{{user.email}}',
-            email_from='no-reply@reg4.net'
+            recipient='{{patient.user.email}}',
+            email_from='no-reply@reg4.net',
         )
+        notification.email_templates.add(template)
+
         self.informed_consent, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Informed Consent")
         self.eligibility, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Eligibility")
         self.informed_consent.allowed_next_stages.add(self.eligibility)
@@ -107,6 +116,31 @@ class RegistrationTest(TestCase):
             "patient_consent_file-MAX_NUM_FORMS": 0,
             "patient_consent_file-__prefix__-patient": patient.id
         }
+
+
+class PatientNotificationTest(RegistrationTest):
+
+    def test_new_patient_registered_notification_sent_on_registration(self):
+        """
+        When a patient is registered a NEW PATIENT REGISTERED notification should be sent if set up properly.
+        """
+        patient = self.register_patient()
+        self.assertIsNotNone(patient, "Patient not created !")
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.to, [self.PATIENT_EMAIL])
+
+    def test_new_patient_added_notification_NOT_sent_on_registration(self):
+        """
+        When a patient is registered a NEW PATIENT ADDED notification should NOT be sent if set up properly.
+        """
+        notification = EmailNotification.objects.first()
+        notification.description = EventType.NEW_PATIENT_ADDED
+        notification.pk = None
+        notification.save()
+        patient = self.register_patient()
+        self.assertIsNotNone(patient, "Patient not created !")
+        self.assertEqual(len(mail.outbox), 1)
 
 
 class PatientStageFlowTest(RegistrationTest):
