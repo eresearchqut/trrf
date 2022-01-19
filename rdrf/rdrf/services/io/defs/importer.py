@@ -796,11 +796,10 @@ class Importer(object):
             survey_model.name = survey_dict["name"]
             survey_model.display_name = survey_dict.get("display_name", "")
             survey_model.is_followup = survey_dict.get("is_followup", False)
-            context_form_group_name = survey_dict.get("context_form_group", None)
-            if context_form_group_name:
+            context_form_group_code = survey_dict.get("context_form_group", None)
+            if context_form_group_code:
                 from rdrf.models.definition.models import ContextFormGroup
-                cfg = ContextFormGroup.objects.get(name=context_form_group_name,
-                                                   registry=registry_model)
+                cfg = ContextFormGroup.objects.get(code=context_form_group_code)
             else:
                 cfg = None
 
@@ -920,8 +919,7 @@ class Importer(object):
         for cfg_dict in default_first(self.data):
             if cfg_dict is None:
                 continue
-            cfg, created = ContextFormGroup.objects.get_or_create(
-                registry=registry, name=cfg_dict["name"])
+            cfg, created = ContextFormGroup.objects.get_or_create(code=cfg_dict["code"])
             cfg.context_type = cfg_dict["context_type"]
             cfg.code = cfg_dict["code"]
             cfg.name = cfg_dict["name"]

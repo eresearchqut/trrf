@@ -603,7 +603,7 @@ class Exporter:
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
             if survey_model.context_form_group:
-                cfg = survey_model.context_form_group.name
+                cfg = survey_model.context_form_group.code
             else:
                 cfg = ""
             survey_dict["context_form_group"] = cfg
