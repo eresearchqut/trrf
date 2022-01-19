@@ -47,7 +47,7 @@ def run_set_abbreviations_on_clinical_data_parts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0133_registryform_groups_readonly'),
+        ('rdrf', '0134_add_lookup_cde_type'),
     ]
 
     operations = [

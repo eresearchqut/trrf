@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('groups', '0017_staff_help_text'),
         ('auth', '0011_update_proxy_permissions'),
-        ('rdrf', '0134_auto_20220114_1530'),
+        ('rdrf', '0134_add_lookup_cde_type'),
         ('explorer', '0010_fieldvalue_raw_boolean'),
     ]
 
