@@ -60,7 +60,7 @@ def migrate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0135_split_new_patient_event_types'),
+        ('rdrf', '0136_split_new_patient_event_types'),
     ]
 
     operations = [

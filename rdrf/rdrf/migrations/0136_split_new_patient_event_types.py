@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0134_add_lookup_cde_type'),
+        ('rdrf', '0135_contextformgroup_code'),
     ]
 
     operations = [
