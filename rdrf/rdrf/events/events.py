@@ -1,8 +1,8 @@
 class EventType:
     OTHER_CLINICIAN = "other-clinician"
-    NEW_PATIENT = "new-patient"
+    NEW_PATIENT_USER_REGISTERED = "new-patient-user-registered"
     NEW_PATIENT_PARENT = "new-patient-parent"
-    NEW_PATIENT_ADDED = "new-patient-added"
+    NEW_PATIENT_USER_ADDED = "new-patient-user-added"
     ACCOUNT_LOCKED = "account-locked"
     ACCOUNT_VERIFIED = "account-verified"
     PASSWORD_EXPIRY_WARNING = "password-expiry-warning"
@@ -22,7 +22,7 @@ class EventType:
     CLINICIAN_ASSIGNED = "clinician-assigned"
     CLINICIAN_UNASSIGNED = "clinician-unassigned"
 
-    REGISTRATION_TYPES = [NEW_PATIENT, NEW_PATIENT_PARENT]
+    REGISTRATION_TYPES = [NEW_PATIENT_USER_REGISTERED, NEW_PATIENT_PARENT]
     CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]
 
     @classmethod
