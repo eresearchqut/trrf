@@ -6,7 +6,7 @@ def set_cfg_code(apps, schema_editor):
     ContextFormGroup = apps.get_model('rdrf', 'ContextFormGroup')
     cfgs = ContextFormGroup.objects.all()
     for idx, cfg in enumerate(cfgs):
-        cfg.code = f'CFG-{(idx+1)}'
+        cfg.code = f'CFG{(idx+1)}'
         cfg.save()
 
 

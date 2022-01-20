@@ -1642,6 +1642,12 @@ class ContextFormGroup(models.Model):
             return "Display name will default to 'Modules' if left blank"
 
     def clean(self):
+        if not is_alphanumeric(self.code):
+            raise ValidationError(
+                "Context Form Group [%s] code - only letters and numbers are allowed !" %
+                self.code
+            )
+
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
                                                    is_default=True).exclude(pk=self.pk)
         num_defaults = defaults.count()
