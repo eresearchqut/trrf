@@ -1,9 +1,10 @@
-from rdrf.schema.schema import schema
-import pandas as pd
 import json
 import logging
 import re
 
+import pandas as pd
+
+from rdrf.schema.schema import schema
 from report.models import ReportCdeHeadingFormat
 from report.report_configuration import REPORT_CONFIGURATION
 
@@ -219,7 +220,7 @@ query {{
         cfg_name_col, form_name_col, section_name_col, cde_name_col = {
             ReportCdeHeadingFormat.ABBR_NAME.value: ('cfg.abbreviatedName', 'form.abbreviatedName', 'section.abbreviatedName', 'cde.abbreviatedName'),
             ReportCdeHeadingFormat.LABEL.value: ('cfg.name', 'form.name', 'section.name', 'cde.name'),
-            ReportCdeHeadingFormat.CODE.value: ('cfg.abbreviatedName', 'form.name', 'section.code', 'cde.code')
+            ReportCdeHeadingFormat.CODE.value: ('cfg.code', 'form.name', 'section.code', 'cde.code')
         }[self.report_design.cde_heading_format]
 
         cde_pivot_cols = [cfg_name_col, 'cfg.sortOrder', 'cfg.entryNum', form_name_col, section_name_col, 'section.entryNum', cde_name_col]
