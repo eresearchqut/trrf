@@ -1499,6 +1499,7 @@ class ContextFormGroup(models.Model):
                                  related_name="context_form_groups",
                                  on_delete=models.CASCADE)
     context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
+    code = models.CharField(max_length=30, unique=True)
     name = models.CharField(max_length=80)
     naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
     is_default = models.BooleanField(default=False)
@@ -1641,6 +1642,12 @@ class ContextFormGroup(models.Model):
             return "Display name will default to 'Modules' if left blank"
 
     def clean(self):
+        if not is_alphanumeric(self.code):
+            raise ValidationError(
+                "Context Form Group [%s] code - only letters and numbers are allowed !" %
+                self.code
+            )
+
         defaults = ContextFormGroup.objects.filter(registry=self.registry,
                                                    is_default=True).exclude(pk=self.pk)
         num_defaults = defaults.count()

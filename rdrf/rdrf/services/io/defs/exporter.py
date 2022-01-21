@@ -540,6 +540,7 @@ class Exporter:
         for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by("name"):
             cfg_dict = {}
             cfg_dict["context_type"] = cfg.context_type
+            cfg_dict["code"] = cfg.code
             cfg_dict["name"] = cfg.name
             cfg_dict["naming_scheme"] = cfg.naming_scheme
             cfg_dict["is_default"] = cfg.is_default
@@ -602,7 +603,7 @@ class Exporter:
             survey_dict["questions"] = []
             survey_dict["is_followup"] = survey_model.is_followup
             if survey_model.context_form_group:
-                cfg = survey_model.context_form_group.name
+                cfg = survey_model.context_form_group.code
             else:
                 cfg = ""
             survey_dict["context_form_group"] = cfg
