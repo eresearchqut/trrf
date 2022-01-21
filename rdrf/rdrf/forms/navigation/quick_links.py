@@ -47,7 +47,7 @@ class LinkDefs:
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
     LegacyExplorer = make_link("rdrf:explorer_main", _("Explorer"))
-    Reports = make_link("rdrf:explorer_reports_list", _("Reports"))
+    Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))

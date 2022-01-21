@@ -1,4 +1,4 @@
-{% extends "explorer_v2/base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% block content %}
 
@@ -249,7 +249,7 @@
                 {% trans "Create Report" %}
             {% endif %}
         </button>
-        <a class="btn btn-danger float-end" href="{% url 'rdrf:explorer_reports_list' %}">Cancel</a>
+        <a class="btn btn-danger float-end" href="{% url 'report:reports_list' %}">Cancel</a>
     </div>
 </form>
 {% endblock %}

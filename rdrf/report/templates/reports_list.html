@@ -1,4 +1,4 @@
-{% extends "explorer_v2/base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 
 {% block content %}
@@ -19,7 +19,7 @@
             <div class="col-sm-6"><h1>{% trans "Reports" %}</h1></div>
             {% if request.user.is_superuser  %}
             <div class="col-sm-6 d-sm-flex align-items-center justify-content-end">
-                <a href="{% url 'rdrf:explorer_report_designer' %}" class="btn btn-success"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>
+                <a href="{% url 'report:report_designer' %}" class="btn btn-success"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>
             </div>
             {% endif %}
         </div>
@@ -43,14 +43,14 @@
                     <td>{{ report.registry.name }}</td>
                     <td>{{ report.title }}</td>
                     <td>
-                        <a href="{%  url 'rdrf:explorer_report_download' report.id 'csv' %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
-                        <a href="{%  url 'rdrf:explorer_report_download' report.id 'json' %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
+                        <a href="{%  url 'report:report_download' report.id 'csv' %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
+                        <a href="{%  url 'report:report_download' report.id 'json' %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
                     </td>
                     {% if request.user.is_superuser  %}
                     <td>
-                        <a href="{%  url 'rdrf:explorer_report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
+                        <a href="{%  url 'report:report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
                         <button type="button" class="btn btn-sm btn-outline-danger"
-                                data-delete-url="{%  url 'rdrf:explorer_report_delete' report.id %}" data-report-title="{{ report.title }}"
+                                data-delete-url="{%  url 'report:report_delete' report.id %}" data-report-title="{{ report.title }}"
                                 data-bs-toggle="modal" data-bs-target="#deleteModal">
                             {% trans "Delete" %} <i class="fa fa-trash-o"></i>
                         </button>

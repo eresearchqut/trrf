@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 
 from csp.decorators import csp_update
 from django.conf import settings
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
@@ -24,9 +23,8 @@ from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from registry.groups.models import WorkingGroup
-from .forms import QueryForm, ReportDesignerForm
-from .models import Query, ReportDesign
-from .reports.generator import Report
+from .forms import QueryForm
+from .models import Query
 from .utils import DatabaseUtils
 
 logger = logging.getLogger(__name__)
@@ -487,70 +485,3 @@ class MultisectionHandler(object):
             new_rows.append(new_row)
 
         return new_rows
-
-# Reporting v2 Views
-class ReportsAccessCheckMixin:
-    def dispatch(self, request, *args, **kwargs):
-        if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
-class ReportsView(View):
-    def get(self, request):
-        return render(request, 'explorer_v2/reports_list.html', {
-            'reports': ReportDesign.objects.reports_for_user(request.user)
-        })
-
-class ReportDownloadView(ReportsAccessCheckMixin, View):
-    def get(self, request, report_id, format):
-        report_design = get_object_or_404(ReportDesign, pk=report_id)
-        report = Report(report_design=report_design)
-
-        if format == 'csv':
-            content = report.export_to_csv(request)
-        elif format == 'json':
-            content = report.export_to_json(request)
-        else:
-            raise Exception("Unsupported download format")
-
-        content_type = f'text/{format}'
-        filename = f"report_{report_design.title}.{format}"
-
-        response = StreamingHttpResponse(content, content_type=content_type)
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-
-class ReportDesignView(SuperuserRequiredMixin, View):
-    def get(self, request, report_id=None):
-
-        if report_id:
-            report = get_object_or_404(ReportDesign, id=report_id)
-            report_design_form = ReportDesignerForm(instance=report)
-            report_design_form.setup_initials()
-        else:
-            report_design_form = ReportDesignerForm()
-
-        params = _get_default_params(request, report_design_form)
-        return render(request, 'explorer_v2/report_designer.html', params)
-
-    def post(self, request, report_id=None):
-
-        if report_id:
-            report = get_object_or_404(ReportDesign, id=report_id)
-            form = ReportDesignerForm(request.POST, instance=report)
-        else:
-            form = ReportDesignerForm(request.POST)
-
-        if form.is_valid():
-            form.save_to_model()
-            messages.success(request, f'Report "{form.instance.title}" has been saved successfully.')
-            return redirect('rdrf:explorer_reports_list')
-        else:
-            return render(request, 'explorer_v2/report_designer.html', _get_default_params(request, form))
-
-
-class ReportDeleteView(SuperuserRequiredMixin, View):
-    def get(self, request, report_id):
-        report = get_object_or_404(ReportDesign, id=report_id)
-        report.delete()
-        return redirect('rdrf:explorer_reports_list')

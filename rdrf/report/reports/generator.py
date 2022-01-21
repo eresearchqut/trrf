@@ -1,10 +1,11 @@
-from explorer.models import ReportCdeHeadingFormat
-from explorer.report_configuration import REPORT_CONFIGURATION
 from rdrf.schema.schema import schema
 import pandas as pd
 import json
 import logging
 import re
+
+from report.models import ReportCdeHeadingFormat
+from report.report_configuration import REPORT_CONFIGURATION
 
 logger = logging.getLogger(__name__)
 

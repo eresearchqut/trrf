@@ -200,7 +200,8 @@ INSTALLED_APPS = [
     'aws_xray_sdk.ext.django',
     'django_countries',
     'graphene_django',
-    'django_filters'
+    'django_filters',
+    'report'
 ]
 
 

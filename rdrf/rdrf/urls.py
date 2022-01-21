@@ -178,6 +178,7 @@ normalpatterns += [
     re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
             name="report_datatable"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
+    re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListingView.as_view(),
             name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
