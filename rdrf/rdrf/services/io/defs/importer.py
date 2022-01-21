@@ -919,7 +919,7 @@ class Importer(object):
         for cfg_dict in default_first(self.data):
             if cfg_dict is None:
                 continue
-            cfg, created = ContextFormGroup.objects.get_or_create(code=cfg_dict["code"])
+            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, code=cfg_dict["code"])
             cfg.context_type = cfg_dict["context_type"]
             cfg.code = cfg_dict["code"]
             cfg.name = cfg_dict["name"]
