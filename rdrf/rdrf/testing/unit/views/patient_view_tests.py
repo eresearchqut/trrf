@@ -46,7 +46,7 @@ class AddPatientViewTest(TestCase):
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
-            description=EventType.NEW_PATIENT,
+            description=EventType.NEW_PATIENT_USER_REGISTERED,
             recipient='{{patient.user.email}}',
             email_from='no-reply@reg4.net',
         )
@@ -98,7 +98,7 @@ class PatientNotificationTest(AddPatientViewTest):
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
-            description=EventType.NEW_PATIENT_ADDED,
+            description=EventType.NEW_PATIENT_USER_ADDED,
             recipient='{{patient.user.email}}',
             email_from='no-reply@reg4.net',
         )

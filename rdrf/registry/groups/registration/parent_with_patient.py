@@ -45,8 +45,8 @@ class ParentWithPatientRegistration(BaseRegistration):
             "activation_url": self.get_registration_activation_url(registration),
         }
 
-        process_notification(registry_code, EventType.NEW_PATIENT, template_data)
-        logger.info("Registration process - sent notification for NEW_PATIENT")
+        process_notification(registry_code, EventType.NEW_PATIENT_USER_REGISTERED, template_data)
+        logger.info("Registration process - sent notification for NEW_PATIENT_USER_REGISTERED")
 
     def _create_parent(self):
         form_data = self.form.cleaned_data

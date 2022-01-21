@@ -46,7 +46,7 @@ class RegistrationTest(TestCase):
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
-            description=EventType.NEW_PATIENT,
+            description=EventType.NEW_PATIENT_USER_REGISTERED,
             recipient='{{patient.user.email}}',
             email_from='no-reply@reg4.net',
         )
@@ -122,7 +122,7 @@ class PatientNotificationTest(RegistrationTest):
 
     def test_new_patient_registered_notification_sent_on_registration(self):
         """
-        When a patient is registered a NEW PATIENT REGISTERED notification should be sent if set up properly.
+        When a patient is registered a NEW PATIENT USER REGISTERED notification should be sent if set up properly.
         """
         patient = self.register_patient()
         self.assertIsNotNone(patient, "Patient not created !")
@@ -132,10 +132,10 @@ class PatientNotificationTest(RegistrationTest):
 
     def test_new_patient_added_notification_NOT_sent_on_registration(self):
         """
-        When a patient is registered a NEW PATIENT ADDED notification should NOT be sent if set up properly.
+        When a patient is registered a NEW PATIENT USER ADDED notification should NOT be sent if set up properly.
         """
         notification = EmailNotification.objects.first()
-        notification.description = EventType.NEW_PATIENT_ADDED
+        notification.description = EventType.NEW_PATIENT_USER_ADDED
         notification.pk = None
         notification.save()
         patient = self.register_patient()

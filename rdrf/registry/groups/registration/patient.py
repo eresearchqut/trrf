@@ -41,7 +41,7 @@ class PatientRegistration(BaseRegistration):
 
         # self_registration is True when the patient registers through the registration
         # and False when the patient is added using Add Patient from the Patient List page
-        event_type = EventType.NEW_PATIENT if self_registration else EventType.NEW_PATIENT_ADDED
+        event_type = EventType.NEW_PATIENT_USER_REGISTERED if self_registration else EventType.NEW_PATIENT_USER_ADDED
 
         process_notification(registry_code, event_type, template_data)
         logger.info(f"Registration process - sent notification for {event_type}")
