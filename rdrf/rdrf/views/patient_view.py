@@ -393,7 +393,7 @@ class PatientFormMixin:
                 registration = import_string(settings.REGISTRATION_CLASS)(self.request)
                 registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
                                                self.object.given_names, self.object.family_name)
-                registration.send_activation_email(self.registry_model.code, user, self.object)
+                registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
 
             # patient relatives
             patient_relative_formset = forms.get('patient_relatives_form')

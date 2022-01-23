@@ -1362,8 +1362,9 @@ class EmailNotification(models.Model):
     EMAIL_NOTIFICATIONS = (
         (EventType.ACCOUNT_LOCKED, "Account Locked"),
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
-        (EventType.NEW_PATIENT, "New Patient Registered"),
+        (EventType.NEW_PATIENT_USER_REGISTERED, 'User associated with patient was created by registering ["registration" feature required]'),
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
+        (EventType.NEW_PATIENT_USER_ADDED, 'User associated with patient was created on the "Add Patient Page" ["patients_create_users" feature required]'),
         (EventType.ACCOUNT_VERIFIED, "Account Verified"),
         (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
         (EventType.REMINDER, "Reminder"),
