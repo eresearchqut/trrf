@@ -10,8 +10,6 @@ from rdrf.models.definition.models import Registry, ClinicalData
 from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
 
-from aws_xray_sdk.core import xray_recorder
-
 logger = logging.getLogger(__name__)
 
 
@@ -769,18 +767,12 @@ class DynamicDataWrapper(object):
 
     def save_form_progress(self, registry_code, context_model=None):
         from rdrf.forms.progress.form_progress import FormProgress
-        xray_recorder.begin_subsegment("build_objects")
         registry_model = Registry.objects.get(code=registry_code)
         form_progress = FormProgress(registry_model)
-        xray_recorder.end_subsegment()
 
-        xray_recorder.begin_subsegment("load_dynamic_data")
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
-        xray_recorder.end_subsegment()
 
-        xray_recorder.begin_subsegment("save_progress")
         progress = form_progress.save_progress(self.obj, dynamic_data, context_model)
-        xray_recorder.end_subsegment()
         return progress
 
     def _convert_date_to_datetime(self, data):
