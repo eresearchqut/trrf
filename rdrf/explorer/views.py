@@ -1,39 +1,45 @@
-from datetime import datetime
-from itertools import product
 import logging
 import re
+from datetime import datetime
+from itertools import product
 from tempfile import NamedTemporaryFile
 
 from csp.decorators import csp_update
 from django.conf import settings
-
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
-from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.views.generic.base import View
 
 from explorer import __version__
-from .forms import QueryForm
-from .models import Query
-from .utils import DatabaseUtils
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
-from registry.groups.models import WorkingGroup
 from rdrf.security.mixins import SuperuserRequiredMixin
-from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
-
-from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from registry.groups.models import WorkingGroup
+from .forms import QueryForm
+from .models import Query
+from .utils import DatabaseUtils
 
 logger = logging.getLogger(__name__)
+
+
+def check_legacy_reports_enabled():
+    legacy_reports_enabled = any(r.has_feature(RegistryFeatures.LEGACY_REPORTS) for r in Registry.objects.all())
+    if not legacy_reports_enabled:
+        raise Http404('Explorer reports not enabled')
 
 
 class MainView(View):
 
     def get(self, request):
+        check_legacy_reports_enabled()
         return render(request, 'explorer/query_list.html', {
             'object_list': Query.objects.reports_for_user(request.user)
         })
@@ -43,11 +49,13 @@ class NewQueryView(SuperuserRequiredMixin, View):
 
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request):
+        check_legacy_reports_enabled()
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
         return render(request, 'explorer/query.html', params)
 
     def post(self, request):
+        check_legacy_reports_enabled()
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
             m = query_form.save(commit=False)
@@ -60,6 +68,7 @@ class NewQueryView(SuperuserRequiredMixin, View):
 class DeleteQueryView(SuperuserRequiredMixin, View):
 
     def get(self, request, query_id):
+        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
         return redirect('rdrf:explorer_main')
@@ -77,6 +86,7 @@ class QueryView(AccessCheckMixin, View):
 
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, query_id):
+        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
@@ -85,6 +95,7 @@ class QueryView(AccessCheckMixin, View):
         return render(request, 'explorer/query.html', params)
 
     def post(self, request, query_id):
+        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
@@ -120,6 +131,7 @@ class QueryView(AccessCheckMixin, View):
 class DownloadQueryView(AccessCheckMixin, View):
 
     def post(self, request, query_id, action):
+        check_legacy_reports_enabled()
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
@@ -177,6 +189,7 @@ class DownloadQueryView(AccessCheckMixin, View):
             return response
 
     def get(self, request, query_id, action):
+        check_legacy_reports_enabled()
         if action not in ['download', 'view']:
             raise Exception("bad action")
 
@@ -242,6 +255,7 @@ class DownloadQueryView(AccessCheckMixin, View):
 class SqlQueryView(SuperuserRequiredMixin, View):
 
     def post(self, request):
+        check_legacy_reports_enabled()
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]

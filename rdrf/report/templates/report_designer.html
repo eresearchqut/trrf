@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+
+<script type="text/javascript">
+
+    let ui = {};
+
+    function get_selector_registry_by_value(registry) {
+        return `[value*='"registry": "` + registry + `"']`;
+    }
+
+    function filter_select($select, selector) {
+        $select.find('option:not(' + selector + ', [value=""])').hide()
+        $select.find('optgroup:not(:has(option' + selector + '))').hide()
+
+        $select.find('option' + selector + '').show()
+        $select.find('optgroup:has(option' + selector + ')').show()
+    }
+
+    function filter_checkboxes($uiListGroup, selector) {
+        $uiListGroup.find(':checkbox(:not(' + selector + '))').closest('li').hide();
+        $uiListGroup.find(':checkbox' + selector).closest('li').show();
+    }
+
+    function update_components_by_registry(selected_registry, deselect_values) {
+        const selector_registry_by_value = get_selector_registry_by_value(selected_registry);
+
+        filter_select(ui.selectFilterCdesBySection, selector_registry_by_value);
+        filter_select(ui.selectCdeFields, selector_registry_by_value);
+        filter_select(ui.selectWorkingGroups, selector_registry_by_value);
+        filter_checkboxes(ui.selectConsentFilters, selector_registry_by_value);
+
+        if (deselect_values) {
+            ui.selectFilterCdesBySection.val("").trigger("change");
+            ui.selectCdeFields.val("").trigger("change");
+            ui.selectWorkingGroups.val("").trigger("change")
+            ui.selectConsentFilters.find(":checkbox:checked").removeAttr("checked");
+        }
+    }
+
+    function filter_cde_by_section(selected_section) {
+        if (selected_section.trim() == "") {
+            ui.selectCdeFields.find('optgroup, optgroup > option').show();
+            filter_select(ui.selectCdeFields, get_selector_registry_by_value(ui.selectRegistry.val()));
+            return;
+        }
+
+        const selected_section_json = JSON.parse(selected_section);
+        const form = selected_section_json.form;
+        const section = selected_section_json.section;
+
+        const matching_optgroups_selectors =
+            ['optgroup[label="' + form + ' - ' + section + '"]', "optgroup:has(option:selected)"];
+
+        const show_optgroups_selector = matching_optgroups_selectors.join(',');
+        const show_options_selector = matching_optgroups_selectors.map(x => x + ' > option').join(',');
+
+        ui.selectCdeFields.find(':not(' + show_optgroups_selector + ')').hide();
+        ui.selectCdeFields.find(show_optgroups_selector).show();
+        ui.selectCdeFields.find(show_options_selector).show();
+    }
+
+    function filter_cde_by_selected() {
+        const optgroup_with_selected_options = "optgroup:has(option:selected)";
+
+        ui.selectCdeFields.find(":not(" + optgroup_with_selected_options + ")").hide();
+        ui.selectCdeFields.find(optgroup_with_selected_options).show();
+        ui.selectCdeFields.find(optgroup_with_selected_options + " > option").show();
+    }
+
+    function init_selected_registry() {
+        // Pre-select the registry if there's only one option available
+        const registryOptions = ui.selectRegistry.find("option[value!='']");
+        if (registryOptions.length == 1) {
+            registryOptions.attr('selected', 'selected');
+        }
+    }
+
+    function update_selected_cde_count($cdeSelect) {
+        const num_selected_values = $cdeSelect.find('option:selected').length;
+        ui.txtSelectCdeFieldsCount.text(num_selected_values);
+    }
+
+    $(document).ready(function() {
+        ui = {
+            selectRegistry: $('#id_registry'),
+            selectFilterCdesBySection: $('#id_search_cdes_by_section'),
+            selectCdeFields: $('#id_cde_fields'),
+            selectWorkingGroups: $('#id_filter_working_groups'),
+            selectConsentFilters: $('#id_filter_consents_list'),
+            txtSelectCdeFieldsCount: $('#selected_cde_field_cnt'),
+            btnClearCdeFilter: $('#id_clear_cde_filter'),
+            btnFilterCdeBySelected: $('#id_cde_filter_by_selected')
+        }
+
+        ui.selectRegistry.change(function() {
+            update_components_by_registry($(this).val(), true);
+        });
+
+        ui.selectFilterCdesBySection.on('change', function() {
+            filter_cde_by_section($(this).val());
+        });
+
+        ui.selectCdeFields.on('change', function() {
+            update_selected_cde_count($(this));
+        });
+
+        ui.btnClearCdeFilter.on('click', function() {
+            ui.selectFilterCdesBySection.val('');
+            ui.selectFilterCdesBySection.trigger('change');
+        });
+
+        ui.btnFilterCdeBySelected.on('click', function() {
+            filter_cde_by_selected();
+        })
+
+        // setup initial state
+        init_selected_registry();
+        update_selected_cde_count(ui.selectCdeFields);
+        update_components_by_registry(ui.selectRegistry.val(), false);
+    });
+</script>
+<h1>
+    {% if form.instance.id %}
+        {% trans "Edit Report" %}
+    {% else %}
+        {% trans "New Report" %}
+    {% endif %}
+</h1>
+
+<form name='query-form' id='query-form' class="form mt-3" method='post'>
+{% csrf_token %}
+    <fieldset>
+        <legend>{% trans "Description" %}</legend>
+        <div class="row">
+            <label for="title" class="col-sm-2 col-form-label">
+                {{ form.title.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
+            <div class="col-sm-10">
+                <input type="text" id="title" name="title" class="form-control" value="{{form.title.value|default_if_none:""}}">
+            </div>
+        </div>
+        <div class="row">
+            <label for="description" class="col-sm-2 col-form-label">{{ form.description.label }}</label>
+            <div class="col-sm-10">
+                <textarea class="form-control" cols="40" id="description" name="description" rows="3">{{form.description.value|default_if_none:""}}</textarea>
+            </div>
+            <div class="offset-sm-2 col-sm-10 form-text">{% trans "A textual description of the purpose of this report." %}</div>
+        </div>
+        <div class="row">
+            <label for="registry" class="col-sm-2 col-form-label">
+                {{ form.registry.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
+            <div class="col-sm-10">
+                {{ form.registry }}
+            </div>
+        </div>
+        <div class="row">
+            <label for="access_group" class="col-sm-2 col-form-label">{{ form.access_groups.label }}</label>
+            <div class="col-sm-10">
+                {{ form.access_groups }}
+            </div>
+            <div class="offset-sm-2 col-sm-10 form-text">{% trans "The user groups that will have access to this report data." %}</div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Content</legend>
+        <div class="row">
+            <label for="demographic_fields" class="col-sm-2 col-form-label">
+                {{ form.demographic_fields.label }} <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
+            </label>
+            <div class="col-sm-10 mt-2">
+                {{ form.demographic_fields }}
+            </div>
+        </div>
+        <div class="row">
+            <label for="cde_heading_format" class="col-sm-2 col-form-label">
+                {{ form.cde_heading_format.label }}
+            </label>
+            <div class="col-sm-10 mt-2">{{ form.cde_heading_format }}</div>
+            <div id="cde_format_label_help" class="offset-sm-2 col-sm-10 form-text">
+                <p>{% trans "CDE Headings are made up of the following parts: Context Form Group, Registry Form, Section, Common Data Element." %}</p>
+                <p>{% trans "This setting determines whether to use the full name label for each of these parts or their respective configured Abbreviated Name." %}</p>
+            </div>
+        </div>
+        <div class="row">
+            <label for="cde_fields" class="col-sm-2 col-form-label">{{ form.cde_fields.label }}</label>
+            <div class="col-sm-10 mt-2">
+                <div class="col-12">
+                    <div class="input-group">
+                        <label class="input-group-text" for="search_cdes_by_section">{% trans "Filter by section:" %}</label>
+                        {{ form.search_cdes_by_section }}
+                        <button id="id_cde_filter_by_selected" class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-filter"></i> {% trans "Filter by selected" %}
+                        </button>
+                        <button id="id_clear_cde_filter" class="btn btn-outline-primary" type="button">
+                            <i class="fa fa-times"></i> {% trans "Clear filter" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    {{ form.cde_fields }}
+                    <span class="badge bg-primary"><span id="selected_cde_field_cnt">0</span> {% trans "fields selected." %}</span>
+                    <span class="form-text">{% trans "Hold Ctrl to add fields to existing selection." %}</span>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Patient Filters</legend>
+        <div class="row">
+            <label for="filter_working_groups" class="col-sm-2 col-form-label">{{ form.filter_working_groups.label }}</label>
+            <div class="col-sm-10 mt-2">
+                {{ form.filter_working_groups }}
+            </div>
+        </div>
+        <div class="row">
+            <label for="filter_consents" class="col-sm-2 col-form-label">{{ form.filter_consents.label }}</label>
+            <div class="col-sm-10 mt-2">
+                <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
+                {% for value, label in form.filter_consents.field.choices %}
+                    {% if value %}
+                    <li>
+                        <label class="form-check-label">
+                            <input type="checkbox" name="filter_consents" value="{{ value }}"
+                                {% if value in form.filter_consents.initial %}
+                                    checked="checked"
+                                {% endif %}
+                            >
+                            {{ label }}
+                        </label>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+            </div>
+            <div class="offset-sm-2 col-sm-10 form-text">
+                {% trans "Filter the report to only include patients that have consented to the selected consent items." %}
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="col-10 offset-sm-2 mb-4">
+        <button class="btn btn-success" type="submit">
+            {% if form.instance.id %}
+                {% trans "Save Report" %}
+            {% else %}
+                {% trans "Create Report" %}
+            {% endif %}
+        </button>
+        <a class="btn btn-danger float-end" href="{% url 'report:reports_list' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

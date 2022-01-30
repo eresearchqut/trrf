@@ -1,0 +1,6 @@
+{% load i18n %}
+<div class="alert alert-warning">
+    <p>{% trans 'The TRRF Reporting Tool has now been deprecated.' %}</p>
+    <p>{% trans 'We suggest checking out the newly redeveloped Reports module with enhanced user interface and reporting capabilities.' %}</p>
+    <p><a href="{% url 'report:reports_list' %}">{%  trans 'Visit the new Reports module' %}</a></p>
+</div>

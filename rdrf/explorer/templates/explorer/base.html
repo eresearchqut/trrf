@@ -29,7 +29,7 @@
     </head>
     
     <body>
-        
+
         <nav class="navbar navbar-dark bg-dark navbar-expand mb-3" role="navigation">
             <div class="container flex-column flex-md-row">
                 <a class="navbar-brand" href="explorer">{% trans "TRRF Reporting Tool" %} <sup>{{version}}</sup></a>
@@ -41,7 +41,7 @@
                 </ul>
 
                 {% if status %}
-                    <p class="navbar-text"><b><font color="green">{% trans "Connected" %}</font></p>
+                    <p class="navbar-text"><b><font color="green">{% trans "Connected" %}</font></b></p>
                 {% else %}
                     <p class="navbar-text"><b><font color="red">{% trans "Not connected" %}</font></b></p>
                 {% endif%}
@@ -60,6 +60,8 @@
 
 			<!-- For Javascript errors -->
 			<div id="js-errors" class="alert alert-danger" style="display: none"></div>
+
+            {% include "rdrf_cdes/report_deprecation_warning.html" %}
 
             {% block content %}
             {% endblock %}

@@ -15,6 +15,7 @@ from rdrf.models.definition.models import Section, CommonDataElement, CDEPermitt
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
 from explorer.models import Query
+from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +244,7 @@ class Exporter:
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
+        data["reports_v2"] = self._get_reports_v2()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
         data["email_notifications"] = self._get_email_notifications()
@@ -520,6 +522,18 @@ class Exporter:
             queries.append(q)
 
         return queries
+
+    def _get_reports_v2(self):
+        return [{'title': r.title,
+                 'description': r.description,
+                 'registry': r.registry.code,
+                 'access_groups': [ag.name for ag in r.access_groups.all()],
+                 'filter_working_groups': [wg.name for wg in r.filter_working_groups.all()],
+                 'filter_consents': [{'section': c.section.code, 'code': c.code} for c in r.filter_consents.all()],
+                 'clinical_data_fields': [f.cde_key for f in r.reportclinicaldatafield_set.all()],
+                 'demographic_fields': [{'model': f.model, 'field': f.field} for f in r.reportdemographicfield_set.all()]
+                 }
+                for r in (ReportDesign.objects.filter(registry=self.registry))]
 
     def _get_cde_policies(self):
         from rdrf.models.definition.models import CdePolicy

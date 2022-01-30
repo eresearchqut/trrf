@@ -8,10 +8,12 @@ from functools import total_ordering
 
 import dateutil.parser
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.utils.html import strip_tags
+from django.utils.translation import ugettext as _
 
 from .cde_data_types import CDEDataTypes
 from .registry_features import RegistryFeatures
@@ -831,3 +833,8 @@ def check_suspicious_sql(sql_query, user):
 
 def is_alphanumeric(input_str):
     return re.match(r"^[a-zA-Z0-9]*$", input_str) is not None
+
+
+def validate_abbreviated_name(value):
+    if re.match(r'^[A-Za-z\s-]+$', value) is None:
+        raise ValidationError(_('Abbreviated name contains invalid characters. Accepted characters: Alphanumeric, spaces and dashes.'))

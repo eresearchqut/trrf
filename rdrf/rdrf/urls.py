@@ -8,6 +8,8 @@ from django.utils.translation import ugettext as _
 
 from django_js_reverse.views import urls_js
 
+from graphene_django.views import GraphQLView
+
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
@@ -176,6 +178,7 @@ normalpatterns += [
     re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
             name="report_datatable"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
+    re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListingView.as_view(),
             name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
@@ -298,6 +301,7 @@ normalpatterns += [
 patterns = [
     path('favicon.ico', favicon_view.redirect_to_static, name='favicon'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
+    path('graphql', GraphQLView.as_view(graphiql=True))
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:

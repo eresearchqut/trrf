@@ -198,7 +198,10 @@ INSTALLED_APPS = [
     'django_js_reverse',
     'stronghold',
     'aws_xray_sdk.ext.django',
-    'django_countries'
+    'django_countries',
+    'graphene_django',
+    'django_filters',
+    'report'
 ]
 
 
@@ -345,7 +348,7 @@ _CSP_STATIC_URL = get_static_url_domain(env.get("STATIC_URL", ""))
 CSP_DEFAULT_SRC = ["'self'"]
 CSP_OBJECT_SRC = ["'none'"]
 CSP_SCRIPT_SRC = get_csp(
-    ["'self'", "'unsafe-inline'"],
+    ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
     [_CSP_STATIC_URL]
 )
 CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
@@ -707,3 +710,16 @@ if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION:
     CSP_IMG_SRC += ["https://cdn.crowdin.com", "https://*.downloads.crowdin.com", "data:"]
     CSP_CONNECT_SRC += ["https://eresearchqut.crowdin.com"]
     CSP_FRAME_SRC += ["https://cdn.crowdin.com", "https://eresearchqut.crowdin.com"]
+
+# Graphene_django for GraphQL
+CSP_STYLE_SRC += ["https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.css"]
+CSP_SCRIPT_SRC += ["https://cdn.jsdelivr.net/npm/whatwg-fetch@3.2.0/dist/fetch.umd.js",
+                   "https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js",
+                   "https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js",
+                   "https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js",
+                   "https://cdn.jsdelivr.net/npm/subscriptions-transport-ws@0.9.17/browser/client.js"]
+
+GRAPHENE = {
+    "SCHEMA": "rdrf.schema.schema.schema",
+    "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
+}

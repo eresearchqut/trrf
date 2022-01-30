@@ -53,10 +53,11 @@ packages = ['rdrf',
             'registry.patients',
             'registry.groups',
             'explorer',
+            'report'
             ]
 
 for package in ['rdrf', 'registry.common',
-                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer']:
+                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer', 'report']:
     package_data[package] = []
     if "." in package:
         base_dir, package_dir = package.split(".")
