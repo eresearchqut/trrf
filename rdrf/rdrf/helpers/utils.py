@@ -836,5 +836,6 @@ def is_alphanumeric(input_str):
 
 
 def validate_abbreviated_name(value):
-    if re.match(r'^[A-Za-z\s-]+$', value) is None:
+    if re.match(r'^[A-Za-z0-9\s-]+$', value) is None:
+        logger.info(f'validation failed for {value}')
         raise ValidationError(_('Abbreviated name contains invalid characters. Accepted characters: Alphanumeric, spaces and dashes.'))

@@ -342,7 +342,8 @@ class Importer(object):
     def _create_cdes(self, cde_maps):
         unknown_attributes = set()
         for cde_map in cde_maps:
-            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
+            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"],
+                                                                         defaults={'abbreviated_name': cde_map['abbreviated_name']})
 
             if not created:
                 registries_already_using = _registries_using_cde(cde_model)
@@ -643,7 +644,8 @@ class Importer(object):
             self._create_form_sections(frm_map)
 
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
-                                                            defaults={'sections': sections})
+                                                            defaults={'sections': sections,
+                                                                      'abbreviated_name': frm_map['abbreviated_name']})
             if not created:
                 f.sections = sections
 
@@ -880,7 +882,8 @@ class Importer(object):
 
     def _create_form_sections(self, frm_map):
         for section_map in frm_map["sections"]:
-            s, created = Section.objects.get_or_create(code=section_map["code"])
+            s, created = Section.objects.get_or_create(code=section_map["code"],
+                                                       defaults={'abbreviated_name': section_map['abbreviated_name']})
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
             if "questionnaire_display_name" in section_map:
@@ -917,7 +920,8 @@ class Importer(object):
         for cfg_dict in default_first(self.data):
             if cfg_dict is None:
                 continue
-            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, code=cfg_dict["code"])
+            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, code=cfg_dict["code"],
+                                                                  defaults={'abbreviated_name': cfg_dict["abbreviated_name"]})
             cfg.context_type = cfg_dict["context_type"]
             cfg.code = cfg_dict["code"]
             cfg.name = cfg_dict["name"]
@@ -1096,7 +1100,7 @@ class Importer(object):
                 ReportClinicalDataField.objects.filter(report_design=report).delete()
 
             for df in d['demographic_fields']:
-                report.reportdemographicfield_set.create(model=df['model'], field=df['field'])
+                report.reportdemographicfield_set.create(model=df['model'], field=df['field'], sort_order=df['sort_order'])
 
             for cdf in d['clinical_data_fields']:
                 report.reportclinicaldatafield_set.create(cde_key=cdf)

@@ -329,7 +329,8 @@ class FormTestCase(RDRFTestCase):
         return p
 
     def create_section(self, code, display_name, elements, allow_multiple=False, extra=1):
-        section, created = Section.objects.get_or_create(code=code)
+        section, created = Section.objects.get_or_create(code=code,
+                                                         defaults={'abbreviated_name': code})
         section.display_name = display_name
         section.elements = ",".join(elements)
         section.allow_multiple = allow_multiple
@@ -340,7 +341,7 @@ class FormTestCase(RDRFTestCase):
     def create_form(self, name, sections, is_questionnnaire=False):
         sections = ",".join([section.code for section in sections])
         form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
-                                                           defaults={'sections': sections})
+                                                           defaults={'sections': sections, 'abbreviated_name': name})
         if not created:
             form.sections = sections
         form.name = name

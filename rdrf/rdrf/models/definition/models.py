@@ -325,6 +325,7 @@ class Registry(models.Model):
             qsection = Section()
             qsection.code = self._generated_section_questionnaire_code(
                 form_name, original_section_code)
+            qsection.abbreviated_name = original_section.abbreviated_name
             qsection.questionnaire_help = original_section.questionnaire_help
             try:
                 original_form = RegistryForm.objects.get(registry=self, name=form_name)
@@ -362,6 +363,7 @@ class Registry(models.Model):
         generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
             registry=self,
             name=generated_questionnaire_form_name,
+            abbreviated_name=generated_questionnaire_form_name[0:100],
             sections=patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
         )
         generated_questionnaire_form.registry = self

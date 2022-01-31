@@ -193,6 +193,7 @@ class Exporter:
         section_map["display_name"] = section_model.display_name
         section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
         section_map["code"] = section_model.code
+        section_map["abbreviated_name"] = section_model.abbreviated_name
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple
         section_map["elements"] = section_model.get_elements()
@@ -202,6 +203,7 @@ class Exporter:
     def _create_form_map(self, form_model):
         frm_map = {}
         frm_map["name"] = form_model.name
+        frm_map["abbreviated_name"] = form_model.abbreviated_name
         frm_map["header"] = form_model.header
         frm_map["display_name"] = form_model.display_name
         frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
@@ -531,7 +533,7 @@ class Exporter:
                  'filter_working_groups': [wg.name for wg in r.filter_working_groups.all()],
                  'filter_consents': [{'section': c.section.code, 'code': c.code} for c in r.filter_consents.all()],
                  'clinical_data_fields': [f.cde_key for f in r.reportclinicaldatafield_set.all()],
-                 'demographic_fields': [{'model': f.model, 'field': f.field} for f in r.reportdemographicfield_set.all()]
+                 'demographic_fields': [{'model': f.model, 'field': f.field, 'sort_order': f.sort_order} for f in r.reportdemographicfield_set.all()]
                  }
                 for r in (ReportDesign.objects.filter(registry=self.registry))]
 
@@ -556,6 +558,7 @@ class Exporter:
             cfg_dict["context_type"] = cfg.context_type
             cfg_dict["code"] = cfg.code
             cfg_dict["name"] = cfg.name
+            cfg_dict["abbreviated_name"] = cfg.abbreviated_name
             cfg_dict["naming_scheme"] = cfg.naming_scheme
             cfg_dict["is_default"] = cfg.is_default
             cfg_dict["naming_cde_to_use"] = cfg.naming_cde_to_use

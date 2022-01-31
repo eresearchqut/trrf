@@ -351,6 +351,7 @@ SECURITY_WHITELISTED_URLS = (
     "rdrf:explorer_sql_query",
     "report:report_designer",
     "report:report_download",
+    "report:report_delete",
     "report:reports_list",
     "registration_activate",
     "registration_activation_complete",
