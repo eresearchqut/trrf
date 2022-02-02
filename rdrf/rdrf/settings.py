@@ -144,6 +144,7 @@ MESSAGE_TAGS = {
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 MIDDLEWARE = (
+    'registry.common.middleware.XrayExceptionMiddleware',
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
