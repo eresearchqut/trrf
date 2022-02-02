@@ -11,6 +11,8 @@ from rdrf.helpers.registry_features import RegistryFeatures
 
 from ..dynamic.value_fetcher import DynamicValueFetcher
 
+from aws_xray_sdk.core import xray_recorder
+
 
 logger = logging.getLogger(__name__)
 
@@ -346,21 +348,26 @@ class FormProgress:
         if patient_model is not None:
             self.current_patient = patient_model
 
+        xray_recorder.begin_subsegment("get_metadata")
         progress_metadata = self._get_progress_metadata()
+        xray_recorder.end_subsegment()
         if not progress_metadata:
             return
 
         groups_progress = {}
         forms_progress = {}
 
+        xray_recorder.begin_subsegment("get_dynamic_data")
         existing_patient_data = patient_model.get_dynamic_data(self.registry_model) if patient_model else {}
         existing_form_dyn_data = {
             el['name']: {"forms": [el]} for el in existing_patient_data['forms']
         } if existing_patient_data else {}
+        xray_recorder.end_subsegment()
 
         forms = dynamic_data.get("forms", [])
         current_form_name = forms[0]["name"] if forms else ""
 
+        xray_recorder.begin_subsegment("form_progress_calculator")
         has_cfg_forms = context_model and context_model.context_form_group
         form_models = context_model.context_form_group.forms if has_cfg_forms else self.registry_model.forms
         for form_model in form_models:
@@ -401,6 +408,7 @@ class FormProgress:
                         progress_group][ProgressMetric.CURRENT] or fpc.form_currency
                     groups_progress[progress_group][ProgressMetric.HAS_DATA] = groups_progress[
                         progress_group][ProgressMetric.HAS_DATA] or fpc.form_has_data
+        xray_recorder.end_subsegment()
 
         for group_name in groups_progress:
             groups_progress[group_name][ProgressMetric.PERCENTAGE] = percentage(
@@ -534,8 +542,11 @@ class FormProgress:
     def save_progress(self, patient_model, dynamic_data, context_model=None):
         if not dynamic_data:
             return self.progress_data
+        xray_recorder.begin_subsegment("calculate")
         self._calculate(dynamic_data, patient_model, context_model)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("update")
         record = self._get_query(patient_model, context_model).first()
         if not record:
             ctx = dict(context_id=context_model.id if context_model else None)
@@ -546,6 +557,7 @@ class FormProgress:
                                          data=ctx)
         record.data.update(self.progress_data)
         record.save()
+        xray_recorder.end_subsegment()
         return self.progress_data
 
     # a convenience method
