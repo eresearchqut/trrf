@@ -4,7 +4,19 @@ from django.urls import reverse, resolve
 from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
+from aws_xray_sdk import global_sdk_config
+from aws_xray_sdk.core import xray_recorder
+
 logger = logging.getLogger(__name__)
+
+
+class XrayExceptionMiddleware(MiddlewareMixin):
+    def process_exception(self, request, exception):
+        if not global_sdk_config.sdk_enabled():
+            return
+
+        while xray_recorder.current_subsegment():
+            xray_recorder.end_subsegment()
 
 
 class UserSentryMiddleware(MiddlewareMixin):
