@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
 from registry.groups.models import CustomUser
-from django.template import Context, Template
+from django.template import Context, Engine, Template
 
 import json
 import logging
@@ -120,8 +120,12 @@ class RdrfEmail(object):
 
         context = Context(self.template_data)
 
+        # Makes the full_url custom tag available in Email Templates without having to {% load full_url %}
+        # full_url is like url but it returns the full URL so it doesn't have to be hardcoded into the templates.
+        engine = Engine(builtins=['rdrf.templatetags.full_url'])
+
         template_subject = Template(email_template.subject)
-        template_body = Template(email_template.body)
+        template_body = Template(email_template.body, engine=engine)
 
         template_subject = template_subject.render(context)
         template_body = template_body.render(context)
@@ -176,19 +180,25 @@ class RdrfEmail(object):
         return self
 
 
+def process_given_notification(notification, template_data={}):
+    if notification.disabled:
+        logger.warning("Email %s disabled" % notification)
+        return False
+    else:
+        logger.info("Sending email %s" % notification)
+        email = RdrfEmail(email_notification=notification)
+        email.template_data = template_data
+        logger.debug("template_data = %s" % template_data)
+        return email.send()
+
+
 def process_notification(reg_code=None, description=None, template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
-    has_disabled = False
     sent_successfully = True
     for note in notes:
         if note.disabled:
             logger.warning("Email %s disabled" % note)
-            has_disabled = True
-        else:
-            logger.info("Sending email %s" % note)
-            email = RdrfEmail(email_notification=note)
-            email.template_data = template_data
-            logger.debug("template_data = %s" % template_data)
-            send_result = email.send()
-            sent_successfully = sent_successfully and send_result
-    return sent_successfully, has_disabled
+            continue
+        if not process_given_notification(note, template_data):
+            sent_successfully = False
+    return sent_successfully

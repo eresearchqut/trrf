@@ -312,3 +312,12 @@ form .aligned ul.errorlist {
     padding: 25px;
     margin: 25px;
 }
+
+/* Specific rules to draw attention to Warnings in Admin -> Notifications */
+#emailnotification_form .field-warnings label {
+    color: red;
+}
+
+#emailnotification_form .field-warnings {
+    color: red;
+}

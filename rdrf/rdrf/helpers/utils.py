@@ -9,6 +9,7 @@ from functools import total_ordering
 import dateutil.parser
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.utils.html import strip_tags
@@ -831,3 +832,11 @@ def check_suspicious_sql(sql_query, user):
 
 def is_alphanumeric(input_str):
     return re.match(r"^[a-zA-Z0-9]*$", input_str) is not None
+
+
+def get_base_url():
+    domain = Site.objects.get_current().domain
+    protocol = "https"
+    if domain == "localhost:8000":
+        protocol = "http"
+    return f"{protocol}://{domain}"

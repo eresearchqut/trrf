@@ -3,7 +3,8 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.utils.datastructures import MultiValueDictKeyError
 from django.forms.fields import MultipleChoiceField
 from rdrf.helpers.utils import is_uploaded_file
-from rdrf.db import filestorage
+from rdrf.models.definition.models import CDEFile
+from rdrf.services.io.notifications.file_notifications import handle_file_notifications
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.cde_data_types import CDEDataTypes
@@ -18,7 +19,7 @@ class FileCommand:
     UPLOAD = "UPLOAD"
 
 
-class RegistrySpecificFieldsHandler(object):
+class RegistrySpecificFieldsHandler:
 
     def __init__(self, registry_model, patient_model):
         self.registry_model = registry_model
@@ -60,6 +61,8 @@ class RegistrySpecificFieldsHandler(object):
 
             self.mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
+            handle_file_notifications(self.registry_model, self.patient_model, self.mongo_wrapper.filestorage)
+
     def allowed_to_write_data(self):
         if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
             return self.patient_model.is_index
@@ -69,17 +72,18 @@ class RegistrySpecificFieldsHandler(object):
     def _delete_existing_file_in_fs(self, file_cde_model):
         existing_data = self.get_registry_specific_data()
         file_upload_wrapper = existing_data[self.registry_model.code][file_cde_model.code]
-        filestorage.delete_file_wrapper(file_upload_wrapper)
+        self.mongo_wrapper.delete_file(file_upload_wrapper)
 
     def _process_file_cde_value(self, file_cde_model, form_value):
         if is_uploaded_file(form_value):
-            return filestorage.store_file(
+            return self.mongo_wrapper.store_file(
                 self.registry_model.code,
                 self.patient_model.user,
                 self.patient_model,
-                file_cde_model.code, form_value,
-                form_name="reg_spec",
-                section_code="reg_spec")
+                file_cde_model.code,
+                form_value,
+                form_name=CDEFile.REGISTRY_SPECIFIC_KEY,
+                section_code=CDEFile.REGISTRY_SPECIFIC_KEY)
         else:
             return form_value
 
