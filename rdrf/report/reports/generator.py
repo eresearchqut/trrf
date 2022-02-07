@@ -84,11 +84,10 @@ class Report:
 
         for model_name, fields in other_demographic_fields.items():
             pivot_field = self.report_config[model_name]['pivot_field']
-            selected_fields = fields.copy() if pivot_field in fields else fields.copy() + pivot_field
-            related_demographic_fields_query = \
+            selected_fields = fields.copy() if pivot_field in fields else fields.copy() + [pivot_field]
+            related_demographic_fields_query = related_demographic_fields_query + \
                 f"""
-                    {related_demographic_fields_query}
-                   ,{model_name} {{
+                    ,{model_name} {{
                         {",".join(selected_fields)}
                     }}
                 """
@@ -106,17 +105,17 @@ class Report:
             query {{
                 allPatients({",".join(patient_query_params)}) {{
                     {",".join(patient_fields)}
-                    {related_demographic_fields_query},
+                    {related_demographic_fields_query}
                     clinicalData(cdeKeys: [{",".join(cde_keys)}])
-                        {{
-                            cfg {{name, abbreviatedName, defaultName, sortOrder, entryNum}},
-                            form {{name, abbreviatedName}},
-                            section {{code, name, abbreviatedName, entryNum}},
-                            cde {{
-                                code, name, abbreviatedName
-                                ... on CdeValueType {{value}}
-                                ... on CdeMultiValueType {{values}}
-                            }}
+                    {{
+                        cfg {{code, name, abbreviatedName, defaultName, sortOrder, entryNum}},
+                        form {{name, niceName, abbreviatedName}},
+                        section {{code, name, abbreviatedName, entryNum}},
+                        cde {{
+                            code, name, abbreviatedName
+                            ... on CdeValueType {{value}}
+                            ... on CdeMultiValueType {{values}}
+                        }}
                     }}
                 }}
             }}
@@ -221,7 +220,7 @@ class Report:
         # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
         cfg_name_col, form_name_col, section_name_col, cde_name_col = {
             ReportCdeHeadingFormat.ABBR_NAME.value: ('cfg.abbreviatedName', 'form.abbreviatedName', 'section.abbreviatedName', 'cde.abbreviatedName'),
-            ReportCdeHeadingFormat.LABEL.value: ('cfg.name', 'form.name', 'section.name', 'cde.name'),
+            ReportCdeHeadingFormat.LABEL.value: ('cfg.name', 'form.niceName', 'section.name', 'cde.name'),
             ReportCdeHeadingFormat.CODE.value: ('cfg.code', 'form.name', 'section.code', 'cde.code')
         }[self.report_design.cde_heading_format]
 

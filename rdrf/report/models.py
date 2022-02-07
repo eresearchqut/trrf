@@ -21,9 +21,9 @@ class ReportDesignManager(models.Manager):
         registries = user.get_registries()
         if user.is_clinician and not user.ethically_cleared:
             # Registries that do NOT require ethical clearance
-            registries = (
+            registries = [
                 r for r in registries if not r.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
-            )
+            ]
 
         return super().get_queryset().filter(registry__in=registries, access_groups__in=user.get_groups())
 

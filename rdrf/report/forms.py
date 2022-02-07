@@ -16,9 +16,9 @@ def get_demographic_field_value(model_name, field):
     return json.dumps({"model": model_name, "field": field})
 
 
-def get_demographic_field_choices():
+def get_demographic_field_choices(cfg_demographic_model):
     demographic_fields = []
-    for model, model_attrs in REPORT_CONFIGURATION['demographic_model'].items():
+    for model, model_attrs in cfg_demographic_model.items():
         field_choices = [(get_demographic_field_value(model, key), value) for key, value in model_attrs['fields'].items()]
         demographic_fields.append((model_attrs['label'], field_choices))
     return demographic_fields
@@ -91,7 +91,7 @@ class ReportDesignerForm(ModelForm):
         super(ReportDesignerForm, self).__init__(*args, **kwargs)
         # Initialise choices during object initialisation to avoid compilation errors
         # when attempting to modify the models that are queried to build these choices.
-        self.fields['demographic_fields'].choices = get_demographic_field_choices()
+        self.fields['demographic_fields'].choices = get_demographic_field_choices(REPORT_CONFIGURATION['demographic_model'])
         self.fields['search_cdes_by_section'].choices = get_section_choices()
         self.fields['cde_fields'].choices = get_cde_choices()
         self.fields['filter_consents'].choices = get_filter_consent_choices()
@@ -131,6 +131,7 @@ class ReportDesignerForm(ModelForm):
         if not self.instance.id or self.instance.title != cleaned_title:
             if ReportDesign.objects.filter(registry=self.cleaned_data['registry'], title=cleaned_title).first():
                 self.add_error('title', _(f'A report in this registry with the title "{cleaned_title}" already exists.'))
+        return self.cleaned_data
 
     def clean_filter_working_groups(self):
         def get_wg_from_field(field):

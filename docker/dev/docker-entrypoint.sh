@@ -238,7 +238,7 @@ if [ "$1" = 'runtests' ]; then
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
 
     set -x
-    args="rdrf/rdrf/testing/unit"
+    args="rdrf/rdrf/testing/unit rdrf/report/tests"
     if [ "$2" != "" ]; then
         # pass through any arguments (if provided) to pytest
         args="${@:2}"
@@ -253,7 +253,7 @@ if [ "$1" = 'runtests_coverage' ]; then
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
 
     set -ex
-    args="rdrf/rdrf/testing/unit"
+    args="rdrf/rdrf/testing/unit rdrf/report/tests"
     if [ "$2" != "" ]; then
         # pass through any arguments (if provided) to pytest
         args="${@:2}"

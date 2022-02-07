@@ -49,10 +49,12 @@ class SectionType(graphene.ObjectType):
 
 class RegistryFormType(graphene.ObjectType):
     name = graphene.String()
+    nice_name = graphene.String()
     abbreviated_name = graphene.String()
 
 
 class ContextFormGroupType(graphene.ObjectType):
+    code = graphene.String()
     name = graphene.String()
     abbreviated_name = graphene.String()
     default_name = graphene.String()
@@ -85,10 +87,10 @@ class PatientType(DjangoObjectType):
                   'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
 
     def resolve_sex(self, info):
-        return dict(Patient.SEX_CHOICES).get(self.sex)
+        return dict(Patient.SEX_CHOICES).get(self.sex, self.sex)
 
     def resolve_clinical_data(self, info, cde_keys=[]):
-        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").all()
+        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").order_by('created_at').all()
 
         context_form_ids = clinical_data.values_list("context_id", flat=True)
         context_lookup = {context.id: context for context in (RDRFContext.objects.filter(pk__in=list(context_form_ids)))}
@@ -99,7 +101,7 @@ class PatientType(DjangoObjectType):
 
         def add_value(cfg, form_model, section_model, section_cnt, cde_model, cde_value):
             values.append({'cfg': cfg,
-                           'form': {'name': form_model.name, 'abbreviated_name': form_model.abbreviated_name},
+                           'form': {'name': form_model.name, 'nice_name': form_model.nice_name, 'abbreviated_name': form_model.abbreviated_name},
                            'section': {'code': section_model.code, 'name': section_model.display_name, 'abbreviated_name': section_model.abbreviated_name, 'entry_num': section_cnt},
                            'cde': {'code': cde_model.code, 'name': cde_model.name, 'abbreviated_name': cde_model.abbreviated_name, 'value': cde_value}})
 
@@ -114,6 +116,7 @@ class PatientType(DjangoObjectType):
             cfg_cnt = cfg_data_cnt_lookup[cfg_id]
             cfg_data_cnt_lookup[cfg_id] = (cfg_cnt + 1)
             cfg = {
+                'code': context.context_form_group.code,
                 'name': context.context_form_group.name,
                 'default_name': context.context_form_group.get_default_name(self, context),
                 'abbreviated_name': context.context_form_group.abbreviated_name,
@@ -125,14 +128,14 @@ class PatientType(DjangoObjectType):
                     form_model = RegistryForm.objects.get(name=form['name'])
                     for section in form['sections']:
                         section_model = Section.objects.get(code=section['code'])
-                        for idx, cde in enumerate(section['cdes']):
-                            section_cnt = idx + 1  # 1-based index for output
+                        section_entry_num = 0
+                        for cde in section['cdes']:
                             if 'allow_multiple' in section and section['allow_multiple'] is True:
+                                section_entry_num = section_entry_num + 1
                                 for cde_entry in cde:
-                                    add_value_from_data_entry(cfg, form_model, section_model, section_cnt, cde_entry, cde_keys)
+                                    add_value_from_data_entry(cfg, form_model, section_model, section_entry_num, cde_entry, cde_keys)
                             else:
-                                add_value_from_data_entry(cfg, form_model, section_model, section_cnt, cde, cde_keys)
-
+                                add_value_from_data_entry(cfg, form_model, section_model, 1, cde, cde_keys)
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
 
         # Create an empty clinical data value if patient has no clinical data for any required cde_keys
