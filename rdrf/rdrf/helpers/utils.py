@@ -4,7 +4,7 @@ import logging
 import os.path
 import re
 import subprocess
-from urllib.parse import urlsplit, urlunsplit, SplitResult
+from urllib.parse import urlsplit, urlunsplit
 import uuid
 
 import dateutil.parser
@@ -836,7 +836,7 @@ def is_alphanumeric(input_str):
 
 
 def make_full_url(relative_url):
-    splitted  = urlsplit(relative_url)
+    splitted = urlsplit(relative_url)
     domain = Site.objects.get_current().domain.rstrip('/')
     scheme = 'https' if domain != 'localhost:8000' else 'http'
     augmented = splitted._replace(scheme=scheme, netloc=domain)
