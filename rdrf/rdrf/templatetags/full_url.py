@@ -1,6 +1,6 @@
 from django import template
 
-from rdrf.helpers.utils import get_base_url
+from rdrf.helpers.utils import make_full_url
 
 
 register = template.Library()
@@ -18,4 +18,4 @@ class WrapperNode(template.base.Node):
 
     def render(self, context):
         url = self.url_node.render(context)
-        return get_base_url() + url
+        return make_full_url(url)

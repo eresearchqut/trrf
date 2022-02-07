@@ -703,7 +703,6 @@ class DynamicDataWrapper(object):
                           index_map=None,
                           additional_data=None):
         self._convert_date_to_datetime(form_data)
-        logger.debug('save_dynamic_data %s\n%s', collection_name, form_data)
 
         if self.CREATE_MODE:
             record = None

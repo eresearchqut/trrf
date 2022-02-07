@@ -1912,9 +1912,6 @@ class CDEFile(models.Model):
     filename = models.CharField(max_length=255)
     mime_type = models.CharField(max_length=255, null=True, blank=True)
 
-    def is_registry_specific(self):
-        return self.form_name == self.REGISTRY_SPECIFIC_KEY
-
     def __str__(self):
         return self.item.name
 

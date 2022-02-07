@@ -4,7 +4,7 @@ import logging
 from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from rdrf.helpers.utils import get_base_url
+from rdrf.helpers.utils import make_full_url
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
@@ -71,4 +71,4 @@ class BaseRegistration(abc.ABC):
         activation_url = reverse(
             "registration_activate",
             kwargs={"activation_key": registration_profile.activation_key})
-        return get_base_url() + activation_url
+        return make_full_url(activation_url)

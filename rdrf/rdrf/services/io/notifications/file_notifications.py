@@ -2,7 +2,7 @@ from itertools import groupby
 import logging
 from django.urls import reverse
 from rdrf.events.events import EventType
-from rdrf.helpers.utils import get_base_url
+from rdrf.helpers.utils import make_full_url
 from rdrf.models.definition.models import CDEFile, CommonDataElement, EmailNotification, RegistryForm, Section
 
 from .email_notification import process_given_notification
@@ -30,17 +30,18 @@ def handle_file_notifications(registry, patient, storage):
 def _notification_interested_in_upload(notification, cde_file):
     if not notification.file_uploaded_cdes.exists():
         return True
-    return cde_file.cde_code in set(cde.code for cde in notification.file_uploaded_cdes.all())
+    return cde_file.cde_code in set(notification.file_uploaded_cdes.values_list('code', flat=True))
 
 
 def _setup_template_data(registry, patient, uploads):
     patient_edit_url = reverse('patient_edit', kwargs={'registry_code': registry.code, 'patient_id': patient.pk})
-    patient_url = get_base_url() + patient_edit_url
+    patient_url = make_full_url(patient_edit_url)
 
     def location(cde_file):
         return (cde_file.form_name, cde_file.section_code, cde_file.cde_code)
 
     template_data = {
+        'registry': registry.code,
         'patient': patient,
         'patient_url': patient_url,
         'file_info': [(_cde_info(registry, *loc), [f.filename for f in files]) for loc, files in groupby(uploads, location)],
