@@ -13,6 +13,9 @@ from report.models import ReportCdeHeadingFormat, ReportDesign
 
 
 class FormHelpersTestCase(TestCase):
+
+    maxDiff = None
+
     def test_get_demographic_field_value(self):
         self.assertEqual('{"model": "patient", "field": "dateOfBirth"}',  get_demographic_field_value('patient', 'dateOfBirth') )
         self.assertEqual('{"model": "patientaddressSet", "field": "addressType { type }"}',  get_demographic_field_value('patientaddressSet', 'addressType { type }') )
@@ -66,8 +69,8 @@ class FormHelpersTestCase(TestCase):
         Section.objects.create(code='Section2', display_name='Section B')
         Section.objects.create(code='Section3', display_name='Section C')
         Section.objects.create(code='Section4', display_name='Section D')
-        RegistryForm.objects.create(registry=reg1, name='Form1', sections='Section1,Section2', abbreviated_name='1')
-        RegistryForm.objects.create(registry=reg1, name='Form2', sections='Section3,Section4', abbreviated_name='2')
+        RegistryForm.objects.create(registry=reg1, name='Form1', sections='Section1,Section2', abbreviated_name='1', position=1)
+        RegistryForm.objects.create(registry=reg1, name='Form2', sections='Section3,Section4', abbreviated_name='2', position=2)
 
         self.assertEqual([("", "Show all Clinical Data Fields"),
                           ("Form1", [('{"registry": "reg1", "form": "Form1", "section": "Section A"}', 'Section A'),
