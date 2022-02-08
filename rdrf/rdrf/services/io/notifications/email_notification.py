@@ -194,11 +194,13 @@ def process_given_notification(notification, template_data={}):
 
 def process_notification(reg_code=None, description=None, template_data={}):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
+    has_disabled = False
     sent_successfully = True
     for note in notes:
         if note.disabled:
             logger.warning("Email %s disabled" % note)
+            has_disabled = True
             continue
-        if not process_given_notification(note, template_data):
-            sent_successfully = False
-    return sent_successfully
+        send_result = process_given_notification(note, template_data)
+        sent_successfully = sent_successfully and send_result
+    return sent_successfully, has_disabled
