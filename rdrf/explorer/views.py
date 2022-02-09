@@ -23,6 +23,7 @@ from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from registry.groups.models import WorkingGroup
+from rdrf.views.decorators.report_decorators import is_legacy_reports_enabled
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils
@@ -30,16 +31,10 @@ from .utils import DatabaseUtils
 logger = logging.getLogger(__name__)
 
 
-def check_legacy_reports_enabled():
-    legacy_reports_enabled = any(r.has_feature(RegistryFeatures.LEGACY_REPORTS) for r in Registry.objects.all())
-    if not legacy_reports_enabled:
-        raise Http404('Explorer reports not enabled')
-
-
 class MainView(View):
 
+    @is_legacy_reports_enabled
     def get(self, request):
-        check_legacy_reports_enabled()
         return render(request, 'explorer/query_list.html', {
             'object_list': Query.objects.reports_for_user(request.user)
         })
@@ -47,15 +42,15 @@ class MainView(View):
 
 class NewQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request):
-        check_legacy_reports_enabled()
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
         return render(request, 'explorer/query.html', params)
 
+    @is_legacy_reports_enabled
     def post(self, request):
-        check_legacy_reports_enabled()
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
             m = query_form.save(commit=False)
@@ -67,8 +62,8 @@ class NewQueryView(SuperuserRequiredMixin, View):
 
 class DeleteQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     def get(self, request, query_id):
-        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
         return redirect('rdrf:explorer_main')
@@ -84,9 +79,9 @@ class AccessCheckMixin:
 
 class QueryView(AccessCheckMixin, View):
 
+    @is_legacy_reports_enabled
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, query_id):
-        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         query_form = QueryForm(instance=query_model)
         params = _get_default_params(request, query_form)
@@ -94,8 +89,8 @@ class QueryView(AccessCheckMixin, View):
         params['registries'] = Registry.objects.all()
         return render(request, 'explorer/query.html', params)
 
+    @is_legacy_reports_enabled
     def post(self, request, query_id):
-        check_legacy_reports_enabled()
         query_model = get_object_or_404(Query, pk=query_id)
         registry_model = query_model.registry
         query_form = QueryForm(request.POST, instance=query_model)
@@ -130,8 +125,8 @@ class QueryView(AccessCheckMixin, View):
 
 class DownloadQueryView(AccessCheckMixin, View):
 
+    @is_legacy_reports_enabled
     def post(self, request, query_id, action):
-        check_legacy_reports_enabled()
         if action not in ["download", "view"]:
             raise Exception("bad action")
 
@@ -188,8 +183,8 @@ class DownloadQueryView(AccessCheckMixin, View):
             response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
             return response
 
+    @is_legacy_reports_enabled
     def get(self, request, query_id, action):
-        check_legacy_reports_enabled()
         if action not in ['download', 'view']:
             raise Exception("bad action")
 
@@ -254,8 +249,8 @@ class DownloadQueryView(AccessCheckMixin, View):
 
 class SqlQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     def post(self, request):
-        check_legacy_reports_enabled()
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)
         mongo_search_type = form.data["mongo_search_type"]

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load lookup %}
+
+{% block content %}
+    <div class="alert alert-danger mt-4">
+        <h4 class="alert-heading"><i class="fa fa-warning"></i> {% trans "An error occurred generating this report." %}</h4>
+        {% if 'duplicate_headers' in errors %}
+            {% for error_key, error_val in errors.items %}
+                {% if error_key == 'duplicate_headers' %}
+                    <p>
+                        {% trans "The following Clinical Data items configured for this report have been identified to produce a duplicate CSV Header." %}
+                    </p>
+                    <p>{% trans "Please ask your registry administrator to review the settings for the following items:" %}</p>
+                    <ul>
+                    {% for key, val in error_val.items %}
+                        <li><strong>{{ key }}</strong>
+                            <ul>
+                                {% for i in val %}
+                                    <li>{% trans "Context Form Group" %}: {{ i|lookup:'cfg' }},
+                                        {% trans "Form" %}: {{ i|lookup:'form' }},
+                                        {% trans "Section" %}: {{ i|lookup:'section' }},
+                                        {% trans "Common Data Element" %}: {{ i|lookup:'cde' }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+    <a href="{% url 'report:reports_list' %}">Go back to Reports</a>
+{% endblock %}

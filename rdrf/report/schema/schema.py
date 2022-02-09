@@ -90,15 +90,6 @@ class PatientType(DjangoObjectType):
         return dict(Patient.SEX_CHOICES).get(self.sex, self.sex)
 
     def resolve_clinical_data(self, info, cde_keys=[]):
-        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").order_by('created_at').all()
-
-        context_form_ids = clinical_data.values_list("context_id", flat=True)
-        context_lookup = {context.id: context for context in (RDRFContext.objects.filter(pk__in=list(context_form_ids)))}
-
-        cfg_data_cnt_lookup = {context.context_form_group.id: 1 for context in RDRFContext.objects.filter(pk__in=list(context_form_ids))}
-
-        values = []
-
         def add_value(cfg, form_model, section_model, section_cnt, cde_model, cde_value):
             values.append({'cfg': cfg,
                            'form': {'name': form_model.name, 'nice_name': form_model.nice_name, 'abbreviated_name': form_model.abbreviated_name},
@@ -110,18 +101,25 @@ class PatientType(DjangoObjectType):
                 cde_obj = CommonDataElement.objects.get(code=cde_entry['code'])
                 add_value(cfg, form_model, section_model, section_cnt, cde_obj, cde_entry['value'])
 
+        clinical_data = ClinicalData.objects.filter(django_id=self.id, django_model='Patient', collection="cdes").order_by('created_at').all()
+
+        patient_contexts = RDRFContext.objects.filter(pk__in=list(clinical_data.values_list("context_id", flat=True)))
+
+        context_lookup = {context.id: context for context in patient_contexts}
+        cfg_counter_lookup = {context.context_form_group.id: 1 for context in patient_contexts}
+
+        values = []
+
         for idx, entry in enumerate(clinical_data):
             context = context_lookup[entry.context_id]
-            cfg_id = context.context_form_group.id
-            cfg_cnt = cfg_data_cnt_lookup[cfg_id]
-            cfg_data_cnt_lookup[cfg_id] = (cfg_cnt + 1)
-            cfg = {
-                'code': context.context_form_group.code,
-                'name': context.context_form_group.name,
-                'default_name': context.context_form_group.get_default_name(self, context),
-                'abbreviated_name': context.context_form_group.abbreviated_name,
-                'sort_order': context.context_form_group.sort_order,
-                'entry_num': cfg_cnt
+            cfg = context.context_form_group
+            cfg_dict = {
+                'code': cfg.code,
+                'name': cfg.name,
+                'default_name': cfg.get_default_name(self, context),
+                'abbreviated_name': cfg.abbreviated_name,
+                'sort_order': cfg.sort_order,
+                'entry_num': cfg_counter_lookup[cfg.id]
             }
             if 'forms' in entry.data:
                 for form in entry.data['forms']:
@@ -131,12 +129,13 @@ class PatientType(DjangoObjectType):
                         section_entry_num = 0
                         for cde in section['cdes']:
                             if 'allow_multiple' in section and section['allow_multiple'] is True:
-                                section_entry_num = section_entry_num + 1
+                                section_entry_num += 1
                                 for cde_entry in cde:
-                                    add_value_from_data_entry(cfg, form_model, section_model, section_entry_num, cde_entry, cde_keys)
+                                    add_value_from_data_entry(cfg_dict, form_model, section_model, section_entry_num, cde_entry, cde_keys)
                             else:
-                                add_value_from_data_entry(cfg, form_model, section_model, 1, cde, cde_keys)
+                                add_value_from_data_entry(cfg_dict, form_model, section_model, 1, cde, cde_keys)
             values = sorted(values, key=lambda value: value['cfg']['sort_order'])
+            cfg_counter_lookup[cfg.id] += 1
 
         # Create an empty clinical data value if patient has no clinical data for any required cde_keys
         # This is required particularly if none of the reported patients have entries for a cde
@@ -148,14 +147,14 @@ class PatientType(DjangoObjectType):
 
             found = next((v for v in values if cde_key == mongo_key(v['form']['name'], v['section']['code'], v['cde']['code'])), None)
             if not found:
-                cfg = ContextFormGroup.objects.filter(items__registry_form=form).first()
+                cfg_dict = ContextFormGroup.objects.filter(items__registry_form=form).first()
 
-                if cfg:
+                if cfg_dict:
                     cfg_value = {
-                        'name': cfg.name,
-                        'default_name': cfg.name,
-                        'abbreviated_name': cfg.abbreviated_name,
-                        'sort_order': cfg.sort_order,
+                        'name': cfg_dict.name,
+                        'default_name': cfg_dict.name,
+                        'abbreviated_name': cfg_dict.abbreviated_name,
+                        'sort_order': cfg_dict.sort_order,
                         'entry_num': 1
                     }
                 else:
@@ -217,18 +216,21 @@ class Query(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='_debug')
     all_patients = graphene.List(PatientType,
                                  registry_code=graphene.String(required=True),
-                                 filters=graphene.List(graphene.String),
+                                 consent_question_codes=graphene.List(graphene.String),
                                  working_group_ids=graphene.List(graphene.String))
 
-    def resolve_all_patients(self, info, registry_code, filters=[], working_group_ids=[]):
+    def resolve_all_patients(self, info, registry_code, consent_question_codes=[], working_group_ids=[]):
         registry = Registry.objects.get(code=registry_code)
 
-        query_args = dict([query_filter.split('=') for query_filter in filters])
-
+        query_args = dict()
         query_args['rdrf_registry__id'] = registry.id
 
         if working_group_ids:
             query_args['working_groups__id__in'] = working_group_ids
+
+        if consent_question_codes:
+            query_args['consents__answer'] = True
+            query_args['consents__consent_question__code__in'] = consent_question_codes
 
         return Patient.objects\
             .get_by_user_and_registry(info.context.user, registry)\

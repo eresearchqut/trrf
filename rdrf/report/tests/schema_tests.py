@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
     CommonDataElement
-from rdrf.schema.schema import PatientType
+from report.schema.schema import PatientType
 from registry.patients.models import Patient
 
 

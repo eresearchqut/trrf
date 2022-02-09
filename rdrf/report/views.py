@@ -32,6 +32,9 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
         report = Report(report_design=report_design)
 
         if format == 'csv':
+            is_valid, errors = report.validate_for_csv_export()
+            if not is_valid:
+                return render(request, 'report_download_errors.html', {'errors': errors})
             content = report.export_to_csv(request)
         elif format == 'json':
             content = report.export_to_json(request)
@@ -48,7 +51,6 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
 
 class ReportDesignView(SuperuserRequiredMixin, View):
     def get(self, request, report_id=None):
-
         if report_id:
             report = get_object_or_404(ReportDesign, id=report_id)
             report_design_form = ReportDesignerForm(instance=report)
@@ -60,7 +62,6 @@ class ReportDesignView(SuperuserRequiredMixin, View):
         return render(request, 'report_designer.html', params)
 
     def post(self, request, report_id=None):
-
         if report_id:
             report = get_object_or_404(ReportDesign, id=report_id)
             form = ReportDesignerForm(request.POST, instance=report)
@@ -85,7 +86,6 @@ class ReportDeleteView(SuperuserRequiredMixin, View):
 def _get_default_params(request, form):
     return {
         'version': __version__,
-        'status': True,
         'error_msg': None,
         'form': form,
         'csrf_token_name': settings.CSRF_COOKIE_NAME,

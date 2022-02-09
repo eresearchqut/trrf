@@ -43,12 +43,12 @@
                     <td>{{ report.registry.name }}</td>
                     <td>{{ report.title }}</td>
                     <td>
-                        <a href="{%  url 'report:report_download' report.id 'csv' %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
-                        <a href="{%  url 'report:report_download' report.id 'json' %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
+                        <a href="{% url 'report:report_download' report.id 'csv' %}" class="btn btn-sm btn-outline-secondary">csv <i class="fa fa-file-text-o"></i> </a>
+                        <a href="{% url 'report:report_download' report.id 'json' %}" class="btn btn-sm btn-outline-secondary">json <i class="fa fa-file-text"></i> </a>
                     </td>
                     {% if request.user.is_superuser  %}
                     <td>
-                        <a href="{%  url 'report:report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
+                        <a href="{% url 'report:report_designer' report.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %} <i class="fa fa-edit"></i> </a>
                         <button type="button" class="btn btn-sm btn-outline-danger"
                                 data-delete-url="{%  url 'report:report_delete' report.id %}" data-report-title="{{ report.title }}"
                                 data-bs-toggle="modal" data-bs-target="#deleteModal">

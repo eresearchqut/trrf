@@ -67,6 +67,7 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
+        path('graphql', GraphQLView.as_view(graphiql=True))
     ]
 
 
@@ -301,7 +302,6 @@ normalpatterns += [
 patterns = [
     path('favicon.ico', favicon_view.redirect_to_static, name='favicon'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
-    path('graphql', GraphQLView.as_view(graphiql=True))
 ]
 
 if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:

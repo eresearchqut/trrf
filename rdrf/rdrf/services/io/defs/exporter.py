@@ -535,7 +535,13 @@ class Exporter:
                  'clinical_data_fields': [f.cde_key for f in r.reportclinicaldatafield_set.all()],
                  'demographic_fields': [{'model': f.model, 'field': f.field, 'sort_order': f.sort_order} for f in r.reportdemographicfield_set.all()]
                  }
-                for r in (ReportDesign.objects.filter(registry=self.registry))]
+                for r in (ReportDesign.objects.filter(registry=self.registry)
+                                              .select_related('registry')
+                                              .prefetch_related('access_groups',
+                                                                'filter_working_groups',
+                                                                'filter_consents',
+                                                                'reportclinicaldatafield_set',
+                                                                'reportdemographicfield_set'))]
 
     def _get_cde_policies(self):
         from rdrf.models.definition.models import CdePolicy

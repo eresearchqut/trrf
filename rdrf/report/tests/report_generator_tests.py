@@ -1,8 +1,9 @@
 from django.test import TestCase
 
-from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuestion
+from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuestion, RegistryForm, Section, \
+    CommonDataElement, ContextFormGroup
 from registry.groups.models import WorkingGroup
-from report.models import ReportDesign
+from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.reports.generator import Report
 
 
@@ -50,7 +51,7 @@ class ReportGeneratorTestCase(TestCase):
         expected = \
             """
             query {
-                allPatients(registryCode:"ang",filters: [],workingGroupIds: []) {
+                allPatients(registryCode:"ang",consentQuestionCodes: [],workingGroupIds: []) {
                     id
                     
                     clinicalData(cdeKeys: [])
@@ -104,7 +105,7 @@ class ReportGeneratorTestCase(TestCase):
         expected = \
             """
             query {
-                allPatients(registryCode:"ang",filters: ["consents__answer=True","consents__consent_question__code=cq1","consents__consent_question__code=cq2"],workingGroupIds: ["1","2"]) {
+                allPatients(registryCode:"ang",consentQuestionCodes: ["cq1","cq2"],workingGroupIds: ["1","2"]) {
                     id,familyName,givenNames
                     
                     ,patientaddressSet {
@@ -130,3 +131,44 @@ class ReportGeneratorTestCase(TestCase):
             }
             """
         self.assertEqual(expected, actual)
+
+    def test_pre_export_validation(self):
+        reg_ang = Registry.objects.create(code='ang')
+        CommonDataElement.objects.create(code='TimeToBed', name='Time to bed', abbreviated_name='Time')
+        CommonDataElement.objects.create(code='TimeAwake', name='Time Awake in the morning', abbreviated_name='Time')
+        CommonDataElement.objects.create(code='DayOfWeek', name='Day of Week', abbreviated_name='Day')
+        CommonDataElement.objects.create(code='BestDay', name='Day of Week', abbreviated_name='Best Day')
+        Section.objects.create(code='SleepSection', elements='TimeToBed,TimeAwake,DayOfWeek,BestDay', display_name='Sleep', abbreviated_name='SleepSEC')
+        form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM', registry=reg_ang)
+        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='CFG-1', name='Sleep Group', abbreviated_name='SleepCFG')
+        cfg.items.create(registry_form=form)
+
+        report_design = ReportDesign.objects.create(registry=reg_ang)
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeToBed')
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeAwake')
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____BestDay')
+
+        # Uses CODE for heading format (guaranteed to be unique)
+        report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
+        report = Report(report_design)
+
+        is_valid, errors = report.validate_for_csv_export()
+        self.assertTrue(is_valid)
+        self.assertEqual({}, errors)
+
+        # Uses LABEL for heading format
+        report_design.cde_heading_format = ReportCdeHeadingFormat.LABEL.value
+        report = Report(report_design)
+
+        is_valid, errors = report.validate_for_csv_export()
+        self.assertFalse(is_valid)
+        self.assertEqual(['Sleep Group_Sleep Form_Sleep_Day of Week'], [*errors['duplicate_headers'].keys()])
+
+        # Uses ABBR_NAME for heading format
+        report_design.cde_heading_format = ReportCdeHeadingFormat.ABBR_NAME.value
+        report = Report(report_design)
+
+        is_valid, errors = report.validate_for_csv_export()
+        self.assertFalse(is_valid)
+        self.assertEqual(['SleepCFG_SleepFRM_SleepSEC_Time'], [*errors['duplicate_headers'].keys()])
