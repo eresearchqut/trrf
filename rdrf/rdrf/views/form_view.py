@@ -29,6 +29,7 @@ from rdrf.helpers.utils import parse_iso_date
 from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.models.definition.models import RDRFContext
+from rdrf.services.io.notifications.file_notifications import handle_file_notifications
 
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -611,6 +612,7 @@ class FormView(View):
 
             if not section_model.allow_multiple:
                 form = form_class(request.POST, files=request.FILES)
+
                 if form.is_valid():
                     dynamic_data = form.cleaned_data
                     section_info = SectionInfo(
@@ -704,6 +706,10 @@ class FormView(View):
                 form_instance = section_info.recreate_form_instance()
                 form_section[section_info.section_code] = form_instance
 
+            xray_recorder.end_subsegment()
+
+            xray_recorder.begin_subsegment("file_notifications")
+            handle_file_notifications(registry, patient, dyn_patient.filestorage)
             xray_recorder.end_subsegment()
 
             xray_recorder.begin_subsegment("progress")

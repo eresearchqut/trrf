@@ -189,6 +189,15 @@ form .aligned ul.errorlist {
   margin: 5px 0px;
 }
 
+/* Specific rules to draw attention to Warnings in Admin -> Notifications */
+#emailnotification_form .field-warnings label {
+    color: red;
+}
+
+#emailnotification_form .field-warnings {
+    color: red;
+}
+
 /**************************************************************************
  * Multifile CDEs                                                         */
 
@@ -312,3 +321,4 @@ form .aligned ul.errorlist {
     padding: 25px;
     margin: 25px;
 }
+

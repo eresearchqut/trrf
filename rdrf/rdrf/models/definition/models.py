@@ -1382,7 +1382,13 @@ class EmailNotification(models.Model):
         (EventType.DUPLICATE_PATIENT_SET, "Duplicate Patient Set"),
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
+        (EventType.FILE_UPLOADED, "File Uploaded"),
     )
+
+    NOTIFICATION_REQUIRES_REGISTRY_FEATURE = {
+        EventType.NEW_PATIENT_USER_REGISTERED: RegistryFeatures.REGISTRATION,
+        EventType.NEW_PATIENT_USER_ADDED: RegistryFeatures.PATIENTS_CREATE_USERS,
+    }
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
@@ -1390,7 +1396,19 @@ class EmailNotification(models.Model):
     recipient = models.CharField(max_length=100, null=True, blank=True)
     group_recipient = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
     email_templates = models.ManyToManyField(EmailTemplate)
+    file_uploaded_cdes = models.ManyToManyField(
+        CommonDataElement, blank=True, limit_choices_to={'datatype': CDEDataTypes.FILE},
+        help_text='Select File CDEs to be notified about. Leave empty to be notified on all file uploads<br />',
+    )
     disabled = models.BooleanField(null=False, blank=False, default=False)
+
+    @property
+    def warnings(self):
+        feature = self.NOTIFICATION_REQUIRES_REGISTRY_FEATURE.get(self.description)
+        if feature is None or self.registry.has_feature(feature):
+            return None
+        msg = _('Incorrect configuration: The registry "%(registry)s" does NOT have the required "%(registry_feature)s" feature enabled.')
+        return msg % {'registry': self.registry, 'registry_feature': feature}
 
     def __str__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
@@ -1882,6 +1900,8 @@ class CDEFile(models.Model):
 
     See filestorage.py for usage of this model.
     """
+    REGISTRY_SPECIFIC_KEY = 'reg_spec'
+
     registry_code = models.CharField(max_length=10)
     uploaded_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.PROTECT)
     patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.PROTECT)
