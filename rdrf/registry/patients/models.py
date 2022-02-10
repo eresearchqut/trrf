@@ -24,6 +24,7 @@ from rdrf.models.definition.models import Registry, Section, ConsentQuestion
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.services.io.notifications.email_notification import process_notification
+from rdrf.services.io.notifications.file_notifications import handle_file_notifications
 
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
@@ -698,6 +699,8 @@ class Patient(models.Model):
             mongo_data[key] = value
             mongo_data[timestamp] = t
             wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+
+        handle_file_notifications(registry_model, self, wrapper.filestorage)
 
         # update form progress
         registry_model = Registry.objects.get(code=registry_code)

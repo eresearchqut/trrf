@@ -144,6 +144,7 @@ MESSAGE_TAGS = {
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 MIDDLEWARE = (
+    'registry.common.middleware.XrayExceptionMiddleware',
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
@@ -447,16 +448,21 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
+        # Used to log detailed information about unhandled errors when Debug is False
+        'log_detailed_error': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'rdrf.helpers.log.StreamDetailedErrorHandler',
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True
+            'class': 'rdrf.helpers.log.AdminShortEmailHandler',
         },
     },
     'loggers': {
         '': {
-            'handlers': ['console'],
+            'handlers': ['console', 'log_detailed_error'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False
         },

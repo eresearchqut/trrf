@@ -60,7 +60,7 @@ class Report:
             return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
-            return [json.dumps(str(wg.id)) for wg in self.report_design.filter_working_groups.all()]
+            return [json.dumps(str(wg.id)) for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
         # Build list of patient fields to report on
         patient_fields = ['id']
@@ -157,7 +157,7 @@ class Report:
             if cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
                 return 'cfg.name', 'form.niceName', 'section.name', 'cde.name'
             if cde_heading_format == ReportCdeHeadingFormat.CODE.value:
-                return  'cfg.code', 'form.name', 'section.code', 'cde.code'
+                return 'cfg.code', 'form.name', 'section.code', 'cde.code'
 
             raise Exception(_('CDE Heading Format not supported.'))
 

@@ -4,11 +4,13 @@ from itertools import zip_longest
 import logging
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from rdrf.db import filestorage
+from rdrf.db.filestorage import create_filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
 from rdrf.models.definition.models import Registry, ClinicalData
 from rdrf.helpers.utils import get_code, models_from_mongo_key, is_delimited_key, mongo_key, is_multisection
 from rdrf.helpers.utils import is_file_cde, is_multiple_file_cde, is_uploaded_file
+
+from aws_xray_sdk.core import xray_recorder
 
 logger = logging.getLogger(__name__)
 
@@ -101,33 +103,6 @@ def get_mongo_value(registry_code, nested_data, delimited_key, multisection_inde
     for cde in cdes:
         return cde["value"]
     return None
-
-
-def update_multisection_file_cdes(registry_code, patient_record, user, multisection_code, form_section_items, form_model,
-                                  existing_nested_data, index_map):
-
-    updates = []
-
-    for item_index, section_item_dict in enumerate(form_section_items):
-        for key, value in section_item_dict.items():
-            cde_code = get_code(key)
-            if is_file_cde(cde_code):
-                actual_index = index_map[item_index]
-
-                existing_value = get_mongo_value(
-                    registry_code, existing_nested_data, key, multisection_index=actual_index)
-
-                # antecedent here will never return true and the definition is not correct
-                if is_multiple_file_cde(cde_code):
-                    new_val = DynamicDataWrapper.handle_file_uploads(registry_code, patient_record, user, key, value, existing_value)
-                else:
-                    new_val = DynamicDataWrapper.handle_file_upload(registry_code, patient_record, user, key, value, existing_value)
-                updates.append((item_index, key, new_val))
-
-    for index, key, value in updates:
-        form_section_items[index][key] = value
-
-    return form_section_items
 
 
 def build_form_data(data):
@@ -454,6 +429,8 @@ class DynamicDataWrapper(object):
         # holds reference to the complete data record for this object
         self.patient_record = None
 
+        self.filestorage = create_filestorage()
+
     def __str__(self):
         return "Dynamic Data Wrapper for %s id=%s" % (self.obj.__class__.__name__, self.obj.pk)
 
@@ -577,8 +554,16 @@ class DynamicDataWrapper(object):
         from rdrf.models.definition.models import Section
         return Section.objects.filter(code=code).exists()
 
-    @staticmethod
-    def handle_file_upload(registry_code, patient_record, uploaded_by, key, value, current_value):
+    def store_file(self, *args, **kwargs):
+        return self.filestorage.store_file(*args, **kwargs)
+
+    def store_file_by_key(self, *args, **kwargs):
+        return self.filestorage.store_file_by_key(*args, **kwargs)
+
+    def delete_file(self, *args, **kwargs):
+        return self.filestorage.delete_file(*args, **kwargs)
+
+    def handle_file_upload(self, registry_code, patient_record, uploaded_by, key, value, current_value):
         to_delete = False
         ret_value = value
         if value is False and current_value:
@@ -595,17 +580,16 @@ class DynamicDataWrapper(object):
             # A file was uploaded.
             # Store file and convert value into a file wrapper
             to_delete = False
-            ret_value = filestorage.store_file_by_key(registry_code, patient_record, uploaded_by, key, value)
+            ret_value = self.store_file_by_key(registry_code, patient_record, uploaded_by, key, value)
 
         if to_delete:
-            filestorage.delete_file_wrapper(file_ref)
+            self.delete_file(file_ref)
 
         return ret_value
 
-    @classmethod
-    def handle_file_uploads(cls, registry_code, patient_record, uploaded_by, key, value, current_value):
+    def handle_file_uploads(self, registry_code, patient_record, uploaded_by, key, value, current_value):
         updated = [
-            cls.handle_file_upload(registry_code, patient_record, uploaded_by, key, val, cur)
+            self.handle_file_upload(registry_code, patient_record, uploaded_by, key, val, cur)
             for val, cur in zip_longest(value, current_value or [])
         ]
         return list(filter(bool, updated))
@@ -622,8 +606,34 @@ class DynamicDataWrapper(object):
                     new_data[key] = self.handle_file_upload(registry, patient_record, self.user, key, value, existing_value)
 
             elif (self._is_section_code(key) and self.current_form_model and index_map is not None):
-                new_data[key] = update_multisection_file_cdes(registry, patient_record, self.user, key, value, self.current_form_model,
-                                                              existing_record, index_map)
+                new_data[key] = self.update_multisection_file_cdes(
+                    registry, patient_record, self.user, key, value, self.current_form_model, existing_record, index_map)
+
+    def update_multisection_file_cdes(self, registry_code, patient_record, user, multisection_code, form_section_items, form_model,
+                                      existing_nested_data, index_map):
+
+        updates = []
+
+        for item_index, section_item_dict in enumerate(form_section_items):
+            for key, value in section_item_dict.items():
+                cde_code = get_code(key)
+                if is_file_cde(cde_code):
+                    actual_index = index_map[item_index]
+
+                    existing_value = get_mongo_value(
+                        registry_code, existing_nested_data, key, multisection_index=actual_index)
+
+                    # antecedent here will never return true and the definition is not correct
+                    if is_multiple_file_cde(cde_code):
+                        new_val = self.handle_file_uploads(registry_code, patient_record, user, key, value, existing_value)
+                    else:
+                        new_val = self.handle_file_upload(registry_code, patient_record, user, key, value, existing_value)
+                    updates.append((item_index, key, new_val))
+
+        for index, key, value in updates:
+            form_section_items[index][key] = value
+
+        return form_section_items
 
     def update_dynamic_data(self, registry_model, cdes_record):
         logger.info("About to update %s in %s with new cdes_record %s" % (self.obj, registry_model, cdes_record))
@@ -767,12 +777,18 @@ class DynamicDataWrapper(object):
 
     def save_form_progress(self, registry_code, context_model=None):
         from rdrf.forms.progress.form_progress import FormProgress
+        xray_recorder.begin_subsegment("build_objects")
         registry_model = Registry.objects.get(code=registry_code)
         form_progress = FormProgress(registry_model)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("load_dynamic_data")
         dynamic_data = self.load_dynamic_data(registry_code, "cdes", flattened=False)
+        xray_recorder.end_subsegment()
 
+        xray_recorder.begin_subsegment("save_progress")
         progress = form_progress.save_progress(self.obj, dynamic_data, context_model)
+        xray_recorder.end_subsegment()
         return progress
 
     def _convert_date_to_datetime(self, data):

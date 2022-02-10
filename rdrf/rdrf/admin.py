@@ -2,6 +2,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse
+from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
@@ -353,10 +354,48 @@ class CdePolicyAdmin(admin.ModelAdmin):
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
     list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
+    readonly_fields = ("warnings", )
+    UPDATE_ONLY_FIELDS = ("file_uploaded_cdes", "warnings")
+
+    def no_warnings(self, obj):
+        return obj is None or obj.warnings is None
+    no_warnings.boolean = True
+    # Changing the display name to the opposite, as users would expect "red-cross" if there are warnings
+    # and green check if there are none
+    no_warnings.short_description = "Warnings"
+
+    def any_warnings(self,):
+        for obj in EmailNotification.objects.all():
+            if not self.no_warnings(obj):
+                return True
+        return False
 
     def get_changeform_initial_data(self, request):
         from django.conf import settings
         return {'email_from': settings.DEFAULT_FROM_EMAIL}
+
+    def get_list_display(self, request):
+        list_display = super().get_list_display(request)
+
+        if self.any_warnings():
+            with_warnings_col = (list_display[0], "no_warnings") + list_display[1:]
+            return with_warnings_col
+        return list_display
+
+    def get_fields(self, request, obj=None):
+        all_fields = super().get_fields(request, obj)
+        to_remove = set()
+        # Always remove to change it's position
+        to_remove.add("warnings")
+        if obj is None:
+            to_remove.update(self.UPDATE_ONLY_FIELDS)
+        else:
+            if obj.description != EventType.FILE_UPLOADED:
+                to_remove.add("file_uploaded_cdes")
+        fields = [f for f in all_fields if f not in to_remove]
+        if not self.no_warnings(obj):
+            fields.insert(2, 'warnings')
+        return fields
 
 
 class EmailTemplateAdmin(admin.ModelAdmin):

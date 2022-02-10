@@ -7,13 +7,12 @@ from tempfile import NamedTemporaryFile
 from csp.decorators import csp_update
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse, Http404
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views.generic.base import View
 
 from explorer import __version__
-from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
 from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 from rdrf.models.definition.models import Registry
@@ -22,8 +21,8 @@ from rdrf.models.definition.models import Section
 from rdrf.security.mixins import SuperuserRequiredMixin
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
 from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
-from registry.groups.models import WorkingGroup
 from rdrf.views.decorators.report_decorators import is_legacy_reports_enabled
+from registry.groups.models import WorkingGroup
 from .forms import QueryForm
 from .models import Query
 from .utils import DatabaseUtils

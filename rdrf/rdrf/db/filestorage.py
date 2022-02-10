@@ -1,5 +1,6 @@
 import botocore
 from collections import namedtuple
+from enum import Enum
 import logging
 import magic
 import re
@@ -9,17 +10,53 @@ from django.core.files.storage import default_storage
 
 from storages.backends.s3boto3 import S3Boto3Storage
 
-from rdrf.models.definition.models import Registry, CDEFile
 from rdrf.helpers.utils import models_from_mongo_key
+from rdrf.models.definition.models import Registry, CDEFile
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["get_id", "delete_file_wrapper", "get_file",
-           "store_file", "store_file_by_key", "StorageFileInfo"]
+__all__ = ["get_id", "delete_file_wrapper", "get_file", "create_filestorage", "StorageFileInfo"]
 
 
 StorageFileInfo = namedtuple('StorageFileInfo', 'item filename uploaded_by patient mime_type', defaults=(None, None, None, None, None))
 EMPTY_FILE_INFO = StorageFileInfo()
+
+
+FileStorageEventType = Enum("FileStorageEventType", "UPLOADED DELETED")
+FileStorageEvent = namedtuple("FileStorageEvent", "type cde_file")
+
+
+class ActionLoggingFileStorage:
+    def __init__(self):
+        self.actions = []
+
+    @property
+    def uploads(self):
+        return [action for action_type, action in self.actions if action_type == FileStorageEventType.UPLOADED]
+
+    def upload_to_cde_file(self, upload):
+        return CDEFile.objects.filter(pk=upload.get('django_file_id')).first()
+
+    def log_upload(self, upload):
+        self.actions.append(FileStorageEvent(FileStorageEventType.UPLOADED, self.upload_to_cde_file(upload)))
+
+    def store_file_by_key(self, registry_code, patient_record, uploaded_by, key, value):
+        upload = store_file_by_key(registry_code, patient_record, uploaded_by, key, value)
+        self.log_upload(upload)
+        return upload
+
+    def store_file(self, registry_code, uploaded_by, patient, cde_code, file_obj, form_name=None, section_code=None):
+        upload = store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_name, section_code)
+        self.log_upload(upload)
+        return upload
+
+    def delete_file(self, file_ref):
+        cde_file = delete_file_wrapper(file_ref)
+        self.actions.append(FileStorageEvent(FileStorageEventType.DELETED, cde_file))
+
+
+def create_filestorage():
+    return ActionLoggingFileStorage()
 
 
 def get_id(value):
@@ -32,12 +69,13 @@ def delete_file_wrapper(file_ref):
     django_file_id = file_ref.get("django_file_id")
     if django_file_id is not None:
         try:
-            CDEFile.objects.get(id=django_file_id).delete()
+            cde_file = CDEFile.objects.get(id=django_file_id)
+            cde_file.delete()
+            return cde_file
         except CDEFile.DoesNotExist:
             logger.warning("Tried to delete CDEFile id=%s which doesn't exist" % django_file_id)
         except Exception:
             logger.exception("Couldn't delete CDEFile id=%s" % django_file_id)
-        return django_file_id
 
     return None
 

@@ -2,9 +2,9 @@ import abc
 import logging
 
 from django.contrib.auth.models import Group
-from django.contrib.sites.models import Site
 from django.urls import reverse
 
+from rdrf.helpers.utils import make_full_url
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
@@ -67,16 +67,8 @@ class BaseRegistration(abc.ABC):
         django_user.last_name = last_name
         return django_user
 
-    @staticmethod
-    def get_base_url():
-        domain = Site.objects.get_current().domain
-        protocol = "https"
-        if domain == "localhost:8000":
-            protocol = "http"
-        return f"{protocol}://{domain}"
-
     def get_registration_activation_url(self, registration_profile):
         activation_url = reverse(
             "registration_activate",
-            kwargs={"activation_key": registration_profile.activation_key}).lstrip("/")
-        return f"{self.get_base_url()}/{activation_url}"
+            kwargs={"activation_key": registration_profile.activation_key})
+        return make_full_url(activation_url)
