@@ -54,7 +54,7 @@ class Report:
             label = re.sub(r'b\.cde\.value_', "", col)
         return label
 
-    def __get_graphql_query(self):
+    def __get_graphql_query(self, offset=None, limit=None):
 
         def get_patient_consent_question_filters():
             return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
@@ -89,6 +89,12 @@ class Report:
             f"consentQuestionCodes: [{','.join(get_patient_consent_question_filters())}]",
             f"workingGroupIds: [{','.join(get_patient_working_group_filters())}]",
         ]
+
+        if offset:
+            patient_query_params.append(f'offset: {offset}')
+
+        if limit:
+            patient_query_params.append(f'limit: {limit}')
 
         cde_keys = [json.dumps(rcdf.cde_key) for rcdf in self.report_design.reportclinicaldatafield_set.all()]
 
@@ -138,8 +144,22 @@ class Report:
         return len(duplicate_headings) == 0, {'duplicate_headers': duplicate_headings}
 
     def export_to_json(self, request):
-        result = schema.execute(self.__get_graphql_query(), context_value=request)
-        return json.dumps(result.data)
+
+        limit = 20
+        offset = 0
+
+        while True:
+            result = schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
+            all_patients = result.data['allPatients']
+            num_patients = len(all_patients)
+            offset += num_patients
+
+            for patient in all_patients:
+                patient_json = json.dumps(patient)
+                yield f'{patient_json}\n'
+
+            if num_patients < limit:
+                break
 
     def export_to_csv(self, request):
         result = schema.execute(self.__get_graphql_query(), context_value=request)

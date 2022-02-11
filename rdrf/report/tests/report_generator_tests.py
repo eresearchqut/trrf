@@ -71,6 +71,35 @@ class ReportGeneratorTestCase(TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_graphql_query_pagination(self):
+        reg_ang = Registry.objects.create(code='ang')
+        report_design = ReportDesign.objects.create(registry=reg_ang)
+        report = Report(report_design)
+
+        actual = report._Report__get_graphql_query(limit=15, offset=30)
+        expected = \
+            """
+            query {
+                allPatients(registryCode:"ang",consentQuestionCodes: [],workingGroupIds: [],offset: 30,limit: 15) {
+                    id
+                    
+                    clinicalData(cdeKeys: [])
+                    {
+                        cfg {code, name, abbreviatedName, defaultName, sortOrder, entryNum},
+                        form {name, niceName, abbreviatedName},
+                        section {code, name, abbreviatedName, entryNum},
+                        cde {
+                            code, name, abbreviatedName
+                            ... on CdeValueType {value}
+                            ... on CdeMultiValueType {values}
+                        }
+                    }
+                }
+            }
+            """
+
+        self.assertEqual(expected, actual)
+
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
 

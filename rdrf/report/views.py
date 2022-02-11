@@ -35,13 +35,15 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
             is_valid, errors = report.validate_for_csv_export()
             if not is_valid:
                 return render(request, 'report_download_errors.html', {'errors': errors})
+            content_type = 'text/csv'
             content = report.export_to_csv(request)
         elif format == 'json':
+            # Line delimited json to support streaming of data
+            content_type = 'application/json-seq'
             content = report.export_to_json(request)
         else:
             raise Exception("Unsupported download format")
 
-        content_type = f'text/{format}'
         filename = f"report_{report_design.title}.{format}"
 
         response = StreamingHttpResponse(content, content_type=content_type)

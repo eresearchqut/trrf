@@ -217,9 +217,14 @@ class Query(graphene.ObjectType):
     all_patients = graphene.List(PatientType,
                                  registry_code=graphene.String(required=True),
                                  consent_question_codes=graphene.List(graphene.String),
-                                 working_group_ids=graphene.List(graphene.String))
+                                 working_group_ids=graphene.List(graphene.String),
+                                 offset=graphene.Int(),
+                                 limit=graphene.Int())
 
-    def resolve_all_patients(self, info, registry_code, consent_question_codes=[], working_group_ids=[]):
+    def resolve_all_patients(self, info, registry_code, offset=None, limit=None, consent_question_codes=[], working_group_ids=[]):
+        if limit and offset:
+            limit += offset
+
         registry = Registry.objects.get(code=registry_code)
 
         query_args = dict()
@@ -235,7 +240,7 @@ class Query(graphene.ObjectType):
         return Patient.objects\
             .get_by_user_and_registry(info.context.user, registry)\
             .filter(**query_args).prefetch_related('working_groups')\
-            .distinct()
+            .distinct()[offset:limit]
 
 
 schema = graphene.Schema(query=Query, types=[CdeValueType, CdeMultiValueType])
