@@ -25,10 +25,10 @@ class ReportGeneratorTestCase(TestCase):
         self.assertEqual('Next Of Kin Relationship', report._Report__humanise_column_label('nextOfKinRelationship { relationship }'))
 
         # Pivoted col headers
-        self.assertEqual('addressType { type }_Patient Address_Address Type',
-                         report._Report__humanise_column_label('patientaddressSet_addressType { type }_addressType { type }'))
-        self.assertEqual('addressType { type }_Patient Address_Street Address',
-                         report._Report__humanise_column_label('patientaddressSet_address_addressType { type }'))
+        self.assertEqual('Home_Patient Address_Address Type',
+                         report._Report__humanise_column_label('patientaddressSet_addressType_type_Home'))
+        self.assertEqual('Postal_Patient Address_Street Address',
+                         report._Report__humanise_column_label('patientaddressSet_address_Postal'))
         self.assertEqual('name_Working Groups_Name',
                          report._Report__humanise_column_label('workingGroups_displayName_name'))
 

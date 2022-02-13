@@ -36,7 +36,7 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
             if not is_valid:
                 return render(request, 'report_download_errors.html', {'errors': errors})
             content_type = 'text/csv'
-            content = report.export_to_csv(request)
+            content = report.export_to_csv(request).getvalue()
         elif format == 'json':
             # Line delimited json to support streaming of data
             content_type = 'application/json-seq'
@@ -45,7 +45,6 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
             raise Exception("Unsupported download format")
 
         filename = f"report_{report_design.title}.{format}"
-
         response = StreamingHttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

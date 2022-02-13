@@ -1,3 +1,4 @@
+import io
 import json
 import logging
 import re
@@ -25,12 +26,22 @@ class Report:
     def __init_report_fields_lookup(self):
         return {model: model_config['fields'] for model, model_config in self.report_config.items()}
 
+    def __pandas_to_graphql_field(self, pandas_field):
+        # E.g. for addressType_type, matching groups: ["addressType", "type"]
+        regex = re.search(r'(.+?)_(.*)', pandas_field)
+        if regex:
+            # replace "_field" with "{ field }"
+            graphql_field = f"{regex.group(1)} {{ {regex.group(2)} }}"
+            return graphql_field
+        else:
+            return pandas_field
+
     def __humanise_column_label(self, col):
-        pivoted_field_labels = re.search(r'(.*)_(.*)_(.*)', col)
+        pivoted_field_labels = re.search(r'(.+?)_(.*)_(.*)', col)
         if pivoted_field_labels:
             try:
                 model = pivoted_field_labels.group(1)
-                model_field = pivoted_field_labels.group(2)
+                model_field = self.__pandas_to_graphql_field(pivoted_field_labels.group(2))
                 pivoted_value = pivoted_field_labels.group(3)
                 model_label = self.report_config[model]['label']
                 field_label = self.report_config[model]['fields'][model_field]
@@ -181,6 +192,11 @@ class Report:
 
             raise Exception(_('CDE Heading Format not supported.'))
 
+        def stream_to_csv(dataframe):
+            stream = io.StringIO()
+            dataframe.to_csv(stream, chunksize=20)
+            return stream
+
         data_allpatients = result.data['allPatients']
 
         # Build definition of report fields grouped by model
@@ -206,7 +222,7 @@ class Report:
             pivot_cols = [f"{record_prefix}{pivot_field}"]
             dataframe = dataframe.pivot(index=['id'],
                                         columns=pivot_cols,
-                                        values=[f"{record_prefix}{field}" for field in fields if field != pivot_field])
+                                        values=[f"{record_prefix}{field}" for field in fields])
 
             dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
             dataframe.columns = dataframe.columns.to_series().str.join('_')
@@ -239,7 +255,7 @@ class Report:
         # Early exit if there is no clinical data included in the report
         if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
             df.drop(columns=['cfg', 'form', 'section', 'cde'], inplace=True)
-            return df.to_csv()
+            return stream_to_csv(df)
 
         # Merge the value and values columns together so we can pivot it
         if 'cde.value' not in df.columns:
@@ -279,4 +295,4 @@ class Report:
         # Remove duplicate columns (caused by repeated context form group's defaultName from how it's pivoted)
         pivoted = pivoted.loc[:, ~pivoted.columns.duplicated()]
 
-        return pivoted.to_csv()
+        return stream_to_csv(pivoted)
