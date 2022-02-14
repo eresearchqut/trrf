@@ -445,12 +445,15 @@ class MultipleFileInput(Widget):
         attrs = attrs or {}
         items = self._render_each(name, value, attrs)
 
-        elements = ("<div class=\"row multi-file\">%s</div>" % item for item in items)
+        elements = (f'<div class="row multi-file"><div>{item}</div></div>' for item in items)
+        template = next(elements)
+        divider = '\n<div class="row justify-content-center"><hr class="w-75"></div>\n'
         return """
             <div class="row multi-file-widget" id="%s_id">
-              %s
+                %s
+                %s
             </div>
-        """ % (name, "\n".join(elements))
+        """ % (name, template, divider.join(elements))
 
     class TemplateFile(object):
         url = ""
@@ -460,7 +463,7 @@ class MultipleFileInput(Widget):
 
     def _render_base(self, name, value, attrs, index):
         input_name = self.input_name(name, index)
-        base = widgets.ClearableFileInput().render(input_name, value, attrs)
+        base = CustomFileInput().render(input_name, value, attrs)
         hidden = HiddenInput().render(input_name + "-index", index, {})
         return "%s\n%s" % (base, hidden)
 
@@ -474,7 +477,7 @@ class MultipleFileInput(Widget):
         """
         Gets file input value from each sub-fileinput.
         """
-        base_widget = widgets.ClearableFileInput()
+        base_widget = CustomFileInput()
 
         indices = (self.input_index(name, n, "-index") for n in data)
         clears = (self.input_index(name, n, "-clear") for n in data)
@@ -571,38 +574,38 @@ class SliderWidget(widgets.TextInput):
             widget_attrs = ''
 
         context = f"""
-             <div class="rdrf-cde-slider">
+            <div class="rdrf-cde-slider">
                 <div style="float:left; margin-right:20px;"><b>{_(left_label)}</b></div>
                 <div style="float:left">
                     <input type="hidden" id="{attrs['id']}" name="{name}" value="{value}"/>
                 </div>
                 <div style="float:left;margin-left:20px;"><b>{_(right_label)}</b></div>
-             </div>
-             <br/>
-             <script>
-                 $(function() {{
-                     $( "#{attrs['id']}" ).bootstrapSlider({{
-                         tooltip: 'always',
-                         id: '{attrs['id']}-slider',
-                         value: '{value}',
-                         {widget_attrs}
-                     }});
+            </div>
+            <br/>
+            <script>
+                $(function() {{
+                    $( "#{attrs['id']}" ).bootstrapSlider({{
+                        tooltip: 'always',
+                        id: '{attrs['id']}-slider',
+                        value: '{value}',
+                        {widget_attrs}
+                    }});
 
-                     // Set the uninitialised / null value to ""
-                     $( "#{attrs['id']}" ).val("{value}");
-                     // Set the uninitialised / null value to "-" in the tooltip
-                     if ("{value}" === "") {{
-                         $("#{attrs['id']}-slider .tooltip-inner").html("-");
-                     }};
+                    // Set the uninitialised / null value to ""
+                    $( "#{attrs['id']}" ).val("{value}");
+                    // Set the uninitialised / null value to "-" in the tooltip
+                    if ("{value}" === "") {{
+                        $("#{attrs['id']}-slider .tooltip-inner").html("-");
+                    }};
 
                      // Set z-index to 0 for slider tooltip so it's not displayed through
                      // form headers
-                     $(".slider .tooltip").css("z-index","0");
+                    $(".slider .tooltip").css("z-index","0");
 
                      // Hack to get compatibility for Bootstrap 5 with bootstrap-slider-11.0.2 which only officially supports Bootstrap 4
-                     $(".slider .tooltip .arrow").addClass("tooltip-arrow");
-                 }});
-             </script>
+                    $(".slider .tooltip .arrow").addClass("tooltip-arrow");
+                }});
+            </script>
             """
 
         return context

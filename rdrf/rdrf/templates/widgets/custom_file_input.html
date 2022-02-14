@@ -30,9 +30,19 @@
         {% if widget.virus_check_result == 'scanning' %}
             setup_virus_status_check("{{widget.value.url}}","{{widget.virus_check_id}}", "{{widget.value}}", 5000);
         {% endif %}
+
+        $("#{{ widget.checkbox_id }}").change(function(event) {
+          var fileInput = $("#{{ widget.attrs.id }}");
+          if (this.checked) {
+            fileInput.val('');
+          }
+          fileInput.prop('disabled', this.checked);
+        });
+
     </script>
     <div>
         {{ widget.input_text }}:
     </div>
 {% endif %}
 <input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+
