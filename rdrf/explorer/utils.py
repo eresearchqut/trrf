@@ -221,6 +221,11 @@ class DatabaseUtils(object):
                     for context_id in context_models:
                         row = copy(row_dict)
                         # row["context_id"] = context_id
+                        create_field_values(
+                            self.registry_model,
+                            Patient.objects.get(id=patient_id),
+                            RDRFContext.objects.get(id=context_id)
+                        )
                         qry = q.filter(patient_id=patient_id, context_id=context_id)
                         self._get_fvs_by_datatype(qry, row)
                         yield row

@@ -38,7 +38,6 @@ from rdrf.helpers.utils import consent_status_for_patient
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
-from explorer.utils import create_field_values
 
 
 from django.shortcuts import redirect
@@ -727,20 +726,6 @@ class FormView(View):
                 form_user=self.request.user.username)
             xray_recorder.end_subsegment()
 
-            xray_recorder.begin_subsegment("report_fields")
-            # save report friendly field values
-            try:
-                logger.debug("trying to create field values for %s" % patient)
-                if self.rdrf_context:
-                    create_field_values(registry,
-                                        patient,
-                                        self.rdrf_context)
-                logger.debug("created field values for patient %s" % patient)
-            except Exception as ex:
-                logger.debug("error creating field values: %s" % ex)
-                raise
-            xray_recorder.end_subsegment()
-
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 xray_recorder.begin_subsegment("existing_form")
                 # we've created the context on the fly so no redirect to the edit view on
@@ -748,13 +733,6 @@ class FormView(View):
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
                 dyn_patient.save_form_progress(
                     registry_code, context_model=newly_created_context)
-
-                try:
-                    create_field_values(registry,
-                                        patient,
-                                        newly_created_context)
-                except Exception as ex:
-                    logger.debug("Error creating field values for new context: %s" % ex)
 
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
