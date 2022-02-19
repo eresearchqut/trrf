@@ -83,7 +83,7 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, index_map={}):
+def wrap_file_cdes(registry_code, file_cdes, section_data, mongo_data, multisection=False, index_map={}):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful
@@ -121,7 +121,7 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, 
     #               no upload and value False in form to indicate clearing - don't wrap
     #               upload of file : wrap form data
 
-    from rdrf.helpers.utils import is_file_cde, get_code, get_form_section_code
+    from rdrf.helpers.utils import get_code, get_form_section_code
 
     def is_existing_in_mongo(section_index, key, value):
         if mongo_data is None:
@@ -145,7 +145,8 @@ def wrap_file_cdes(registry_code, section_data, mongo_data, multisection=False, 
             # not a delimited mongo key
             return False
 
-        if is_file_cde(cde_code):
+        is_file_cde = cde_code in file_cdes
+        if is_file_cde:
             u = is_upload_file(value)
             fs = is_filestorage_dict(value)
             im = is_existing_in_mongo(section_index, key, value)

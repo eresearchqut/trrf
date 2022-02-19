@@ -2,6 +2,8 @@ from collections import namedtuple
 from collections.abc import Iterable
 from datetime import datetime
 from decimal import Decimal
+from functools import lru_cache, reduce
+from operator import add
 import re
 
 
@@ -49,6 +51,17 @@ class SectionHelper:
 CDEInfo = namedtuple('CDEInfo', 'name type allow_multiple is_multi_section formset_prefix')
 
 
+@lru_cache
+def prefetch_form_data(form):
+    from rdrf.models.definition.models import CommonDataElement
+    section_models = form.section_models
+    cde_codes = set(reduce(add, [s.get_elements() for s in section_models], []))
+    cdes = {cde.code: cde for cde in CommonDataElement.objects.filter(code__in=cde_codes).select_related('pv_group').prefetch_related('pv_group__permitted_value_set')}
+    section_cdes = {s.code: [cdes[code] for code in s.get_elements()] for s in section_models}
+
+    return section_models, section_cdes
+
+
 class CDEHelper:
 
     def __init__(self, form):
@@ -60,15 +73,16 @@ class CDEHelper:
 
     @staticmethod
     def get_cde_sections_dict(form):
+        section_models, section_cdes = prefetch_form_data(form)
         return {
             m.code: s.code
-            for s in form.section_models
-            for m in s.cde_models
+            for s in section_models
+            for m in section_cdes[s.code]
         }
 
     @staticmethod
     def get_section_names_dict(form):
-
+        section_models, _ = prefetch_form_data(form)
         return {
             s.code: (
                 CDEInfo(
@@ -79,12 +93,12 @@ class CDEHelper:
                     formset_prefix=f"formset_{s.code}" if s.allow_multiple else ''
                 )
             )
-            for s in form.section_models
+            for s in section_models
         }
 
     @staticmethod
     def get_cde_names_dict(form):
-
+        section_models, section_cdes = prefetch_form_data(form)
         return {
             make_key(s.code, m.code): (
                 CDEInfo(
@@ -95,12 +109,13 @@ class CDEHelper:
                     formset_prefix=f"formset_{s.code}" if s.allow_multiple else ''
                 )
             )
-            for s in form.section_models
-            for m in s.cde_models
+            for s in section_models
+            for m in section_cdes[s.code]
         }
 
     @staticmethod
     def get_cde_values_dict(form):
+        section_models, section_cdes = prefetch_form_data(form)
         return {
             m.code: {
                 'type': m.datatype,
@@ -108,22 +123,23 @@ class CDEHelper:
                 'max_value': m.max_value,
                 'max_length': m.max_length,
                 'values': {
-                    el['value'].lower(): el['code'] for el in m.pv_group.as_dict['values']
+                    el.value.lower(): el.code for el in m.pv_group.permitted_value_set.all()
                 } if m.pv_group else {},
                 'codes': [
-                    el['code'] for el in m.pv_group.as_dict['values']
+                    el.code for el in m.pv_group.permitted_value_set.all()
                 ] if m.pv_group else []
 
             }
-            for s in form.section_models
-            for m in s.cde_models
+            for s in section_models
+            for m in section_cdes[s.code]
         }
 
     def get_cde_section(self, cde):
         return self.section_dict.get(cde, None)
 
     def get_cdes_for_section(self, section_code):
-        return [m.code for s in self.form.section_models for m in s.cde_models if s.code == section_code]
+        _, section_cdes = prefetch_form_data(self.form)
+        return [m.code for m in section_cdes[section_code]]
 
     def get_cde_info(self, cde):
         default_info = CDEInfo(cde, None, False, False, '')

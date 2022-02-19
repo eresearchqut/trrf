@@ -1,3 +1,4 @@
+from functools import lru_cache
 from lark import Lark, Transformer
 from .constants import QUALIFIERS, INVERSE_ACTION_MAP, DSL_DEFINITION, PREDEFINED_VALUES
 from .parse_utils import EnrichedCDE
@@ -143,6 +144,7 @@ class TreeTransformer(Transformer):
         return BooleanOp(input[0].value)
 
 
+@lru_cache
 def parse_dsl(dsl):
     p = Lark(DSL_DEFINITION, parser='lalr', start='start', debug=False)
     return p.parse(dsl)
