@@ -264,6 +264,7 @@ def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
 
 
 def consent_status_for_patient(registry_code, patient):
+    from rdrf.models.definition.models import ConsentSection
     from registry.patients.models import ConsentValue
 
     values = ConsentValue.objects.filter(
@@ -277,6 +278,15 @@ def consent_status_for_patient(registry_code, patient):
         section = v.consent_question.section
         sections[section.code] = section
         answers[section.code][v.consent_question.code] = v.answer
+
+    if not values:
+        # Special case for New Patients, who do NOT have ConsentValues yet
+        sections = (s for s in ConsentSection.objects.filter(registry__code=registry_code) if s.applicable_to(patient))
+        for section in sections:
+            if section.questions.exists():
+                return False
+        return True
+
     return all(sections[section_code].is_valid(section_answers) for section_code, section_answers in answers.items())
 
 
