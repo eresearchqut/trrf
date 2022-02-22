@@ -3,3 +3,7 @@ sphinxcontrib-fulltoc
 Werkzeug
 python-Levenshtein
 ipython
+# TODO change this to django-silk when the following issue is released:
+# https://github.com/jazzband/django-silk/issues/522 
+# Currently is fixed, but not released. Can't use silk with multiple DATABASES until fix gets in.
+git+https://github.com/jazzband/django-silk.git#egg=django-silk

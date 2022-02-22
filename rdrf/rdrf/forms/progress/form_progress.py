@@ -128,9 +128,8 @@ class FormProgressCalculator:
             cdes_required = set(cdes_required) - hidden_cdes
 
             for section_model in form_model.section_models:
-                for cde_model in section_model.cde_models:
-                    if cde_model.code in cdes_required:
-                        yield section_model, cde_model
+                for cde in [e for e in section_model.get_elements() if e in cdes_required]:
+                    yield section_model, cde
 
     def _get_num_items(self, section_model):
         if not section_model.allow_multiple:
@@ -160,16 +159,16 @@ class FormProgressCalculator:
 
         value_fetcher = DynamicValueFetcher(self.dynamic_data)
 
-        for section_model, cde_model in self._get_progress_cdes():
+        for section_model, cde_code in self._get_progress_cdes():
             result[ProgressMetric.REQUIRED] += self._get_num_items(section_model)
 
             try:
-                values = value_fetcher.find_cde_values(self.form_model.name, section_model.code, cde_model.code)
+                values = value_fetcher.find_cde_values(self.form_model.name, section_model.code, cde_code)
                 result[ProgressMetric.FILLED] += len([value for value in values if value])
             except Exception as ex:
                 logger.error(
                     "Error getting value for %s %s: %s" %
-                    (section_model.code, cde_model.code, ex))
+                    (section_model.code, cde_code, ex))
 
         if result[ProgressMetric.REQUIRED] > 0:
             result[ProgressMetric.PERCENTAGE] = int(
@@ -230,9 +229,9 @@ class FormProgressCalculator:
 
         code_values_dict = {}
         for cde_dict in self._form_section_traversal():
-            if cde_dict and "code" in cde_dict:
+            if cde_dict and "code" in cde_dict and cde_dict.get('value'):
                 code_values_dict[cde_dict["code"]] = True
-        cdes_status.update(code_values_dict)
+        cdes_status.update({k: v for k, v in code_values_dict.items() if k in required_cdes})
         return cdes_status
 
     def calculate_progress(self):
@@ -306,12 +305,8 @@ class FormProgress:
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
-        result = {}
-        for form_model in self.registry_model.forms:
-            if not form_model.is_questionnaire:
-                result[form_model.name] = set([cde_model.code for cde_model in
-                                               form_model.complete_form_cdes.all()])
-        return result
+        forms = self.registry_model.registryform_set.filter(is_questionnaire=False).prefetch_related('complete_form_cdes')
+        return {form.name: set(cde.code for cde in form.complete_form_cdes.all()) for form in forms}
 
     def _get_applicable_form_progress_dict(self, unfiltered_dict):
         filtered_dict = {}

@@ -156,6 +156,7 @@ function _runserver() {
 
     _django_migrate
     _django_fixtures
+    mkdir -p /data/python_profiling
 
     info "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
     set -x
