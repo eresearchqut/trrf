@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import json
 import logging
-from operator import attrgetter
 import re
 
 
@@ -222,7 +221,7 @@ class FieldFactory:
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            values = sorted(self.data_defs.permitted_values_by_group[self.cde.pv_group.code], key=attrgetter('position'))
+            values = sorted(self.data_defs.permitted_values_by_group[self.cde.pv_group.code], key=lambda v: v.position or v.pk)
             for permitted_value in values:
                 value = _(permitted_value.value)
                 if self.context == FieldContext.QUESTIONNAIRE:
