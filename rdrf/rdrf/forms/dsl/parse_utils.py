@@ -26,7 +26,8 @@ class SectionHelper:
 
     def __init__(self, form):
         self.form = form
-        self.section_codes = set(s.code for s in self.form.section_models)
+        self.section_models, self.section_cdes = prefetch_form_data(form)
+        self.section_codes = set(s.code for s in self.section_models)
 
     def is_section(self, code):
         return code in self.section_codes
@@ -35,16 +36,13 @@ class SectionHelper:
         return self.section_codes
 
     def get_section_cdes(self, section_code):
-        s = [s for s in self.form.section_models if s.code == section_code]
-        if s and s[0]:
-            return [make_key(s[0].code, m.code) for m in s[0].cde_models]
-        return []
+        return [make_key(section_code, m.code) for m in self.section_cdes.get(section_code, ())]
 
     def get_cde_to_section_dict(self):
         return {
             make_key(s.code, m.code): (s.code, s.allow_multiple)
-            for s in self.form.section_models
-            for m in s.cde_models
+            for s in self.section_models
+            for m in self.section_cdes[s.code]
         }
 
 

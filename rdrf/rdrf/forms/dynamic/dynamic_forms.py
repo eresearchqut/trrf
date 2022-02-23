@@ -47,6 +47,7 @@ def get_cde_policy(registry, cde):
 
 def create_form_class_for_section(
         registry,
+        data_defs,
         registry_form,
         section,
         questionnaire_context=None,
@@ -69,12 +70,14 @@ def create_form_class_for_section(
     if previous_values is None:
         previous_values = {}
 
-    cde_models = section.cde_models
+    cde_codes = section.get_elements()
+    cde_models = [data_defs.form_cdes[cde_code] for cde_code in cde_codes]
+
     if allowed_cdes:
         cde_models = (c for c in cde_models if c.code in allowed_cdes)
     base_fields = OrderedDict()
     for cde in cde_models:
-        cde_policy = get_cde_policy(registry, cde)
+        cde_policy = data_defs.cde_policies.get(cde.code)
         if cde_policy and user_groups:
             if not cde_policy.is_allowed(user_groups.all(),
                                          patient_model,
@@ -83,6 +86,7 @@ def create_form_class_for_section(
 
         cde_field = FieldFactory(
             registry,
+            data_defs,
             registry_form,
             section,
             cde,

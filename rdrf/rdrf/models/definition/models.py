@@ -182,7 +182,7 @@ class Registry(models.Model):
     def registry_type(self):
         if not self.has_feature(RegistryFeatures.CONTEXTS):
             return RegistryType.NORMAL
-        elif ContextFormGroup.objects.filter(registry=self).count() == 0:
+        elif not self.context_form_groups.exists():
             return RegistryType.HAS_CONTEXTS
         else:
             return RegistryType.HAS_CONTEXT_GROUPS
@@ -245,7 +245,7 @@ class Registry(models.Model):
         if self.patient_data_section:
             patient_cde_models = self.patient_data_section.cde_models
             for cde_model in patient_cde_models:
-                field_factory = FieldFactory(self, None, self.patient_data_section, cde_model)
+                field_factory = FieldFactory(self, None, None, self.patient_data_section, cde_model)
                 field = field_factory.create_field()
                 field_pairs.append((cde_model, field))
         # The fields were appearing in the "reverse" order, hence this
@@ -400,9 +400,9 @@ class Registry(models.Model):
             code=self.code
         )
 
-    @property
+    @cached_property
     def forms(self):
-        return [f for f in RegistryForm.objects.filter(registry=self).order_by('position')]
+        return [f for f in self.registryform_set.select_related('registry').all()]
 
     def has_feature(self, feature):
         if "features" in self.metadata:
@@ -958,7 +958,7 @@ class RegistryForm(models.Model):
             except Section.DoesNotExist:
                 raise ValidationError("Section %s does not exist!" % section_code)
 
-    def applicable_to(self, patient):
+    def applicable_to(self, patient, patient_in_registry_checked=False):
         # 2 levels of restriction:
         # by patient type , set up in the registry metadata
         # and further by a dynamic condition
@@ -971,12 +971,12 @@ class RegistryForm(models.Model):
         if patient is None:
             return False
 
-        if not patient.in_registry(self.registry.code):
+        if not patient_in_registry_checked and not patient.in_registry(self.registry.code):
             return False
-        else:
-            allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
-            if self.name not in allowed_forms:
-                return False
+
+        allowed_forms = [f.name for f in applicable_forms( self.registry, patient)]
+        if self.name not in allowed_forms:
+            return False
 
         # In allowed list for patient type, but is there a patient condition also?
 
@@ -1528,13 +1528,13 @@ class ContextFormGroup(models.Model):
     ordering = models.CharField(max_length=1, default="C", choices=ORDERING_TYPES)
     sort_order = models.PositiveIntegerField(null=False, blank=False, default=1)
 
-    @property
+    @cached_property
     def forms(self):
         def sort_func(form):
             return form.position
 
-        return sorted([item.registry_form for item in self.items.all()],
-                      key=sort_func)
+        items = [item.registry_form for item in self.items.select_related('registry_form', 'registry_form__registry').all()]
+        return sorted(items, key=sort_func)
 
     def __str__(self):
         return self.name
