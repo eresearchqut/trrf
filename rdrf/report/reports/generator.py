@@ -4,14 +4,13 @@ import logging
 import re
 
 import pandas as pd
-
+from django.conf import settings
+from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
-from report.schema.schema import schema
 from report.models import ReportCdeHeadingFormat
-from report.report_configuration import REPORT_CONFIGURATION
-
-from django.utils.translation import ugettext_lazy as _
+from report.schema.schema import schema
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ class Report:
 
     def __init__(self, report_design):
         self.report_design = report_design
-        self.report_config = REPORT_CONFIGURATION['demographic_model']
+        self.report_config = import_string(settings.REPORT_CONFIGURATION)['demographic_model']
         self.report_fields_lookup = self.__init_report_fields_lookup()
 
     def __init_report_fields_lookup(self):
@@ -37,21 +36,25 @@ class Report:
             return pandas_field
 
     def __humanise_column_label(self, col):
-        pivoted_field_labels = re.search(r'(.+?)_(.*)_(.*)', col)
-        if pivoted_field_labels:
+        label_groups = re.search(r'(.+?)_(.*)_(.*)', col)
+        pivot_label = None
+        if label_groups:
+            pivot_label = f'{label_groups.group(3)}_'
+        else:
+            label_groups = re.search(r'(.*)_(.*)', col)
+
+        if label_groups:
             try:
-                model = pivoted_field_labels.group(1)
-                model_field = self.__pandas_to_graphql_field(pivoted_field_labels.group(2))
-                pivoted_value = pivoted_field_labels.group(3)
+                model = label_groups.group(1)
+                model_field = self.__pandas_to_graphql_field(label_groups.group(2))
                 model_label = self.report_config[model]['label']
                 field_label = self.report_config[model]['fields'][model_field]
-                label = f"{pivoted_value}_{model_label}_{field_label}"
+                return f"{pivot_label or ''}{model_label}_{field_label}"
             except Exception as e:
                 logger.error(e)
-                label = col
+                return col
         else:
-            label = self.report_fields_lookup['patient'].get(col)
-        return label if label else col
+            return self.report_fields_lookup['patient'].get(col) or col
 
     def __reformat_pivoted_column_labels(self, col):
         # Check for Nan
@@ -86,8 +89,11 @@ class Report:
         related_demographic_fields_query = ""
 
         for model_name, fields in other_demographic_fields.items():
-            pivot_field = self.report_config[model_name]['pivot_field']
-            selected_fields = fields.copy() if pivot_field in fields else fields.copy() + [pivot_field]
+            pivot_field = self.report_config[model_name].get('pivot_field', None)
+            if pivot_field and pivot_field not in fields:
+                selected_fields = fields.copy() + [pivot_field]
+            else:
+                selected_fields = fields.copy()
             related_demographic_fields_query = related_demographic_fields_query + \
                 f"""
                     ,{model_name} {{
@@ -176,6 +182,8 @@ class Report:
         result = schema.execute(self.__get_graphql_query(), context_value=request)
 
         def graphql_to_pandas_field(graphql_field):
+            if not graphql_field:
+                return None
             # E.g. for workingGroup {id}, matching groups: ["workingGroup", " {id} ", "id"]
             pandas_field = re.sub(r"\s", "", graphql_field)
             # replace " { field }" with ".field"
@@ -204,29 +212,42 @@ class Report:
         for df in self.report_design.reportdemographicfield_set.all():
             report_fields.setdefault(df.model, []).append(graphql_to_pandas_field(df.field))
 
-        # Dynamically build a dataframe for each set of demographic data with 1:many or many:many relationship with patient
+        # Dynamically build a dataframe for each set of demographic related data
         dataframes = []
         for model, fields in report_fields.items():
             if model == 'patient':
                 continue
 
-            model_config = self.report_config[model]
-            pivot_field = graphql_to_pandas_field(model_config['pivot_field'])
             record_prefix = f"{model}_"
+            model_config = self.report_config[model]
+            pivot_field = graphql_to_pandas_field(model_config.get('pivot_field'))
+            is_one_to_one = model_config.get('one_to_one', False)
 
-            # Normalize the json data into a pandas dataframe following the record path for this specific related model
-            dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model],
-                                          record_prefix=record_prefix)
+            if is_one_to_one:
+                # We can't use the record_path parameter of json_normalize because the data element for this model does not contain an array of items
+                my_fields = ['id']
+                my_fields.extend([f"{record_prefix}{field}" for field in fields])
+                dataframe = pd.json_normalize(data_allpatients, meta=['id'])
+                dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
 
-            # Pivot on the configured field for this model
-            pivot_cols = [f"{record_prefix}{pivot_field}"]
-            dataframe = dataframe.pivot(index=['id'],
-                                        columns=pivot_cols,
-                                        values=[f"{record_prefix}{field}" for field in fields])
+                # Only take the columns that are relevant to this model, otherwise we end up with duplicates.
+                dataframe = dataframe[my_fields]
+            else:
+                # Normalize the json data into a pandas dataframe following the record path for this specific related model
+                dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model], record_prefix=record_prefix)
 
-            dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
-            dataframe.columns = dataframe.columns.to_series().str.join('_')
-            dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
+                if pivot_field:
+                    if not dataframe.empty:
+                        pivot_cols = [f"{record_prefix}{pivot_field}"]
+                        dataframe = dataframe.pivot(index=['id'],
+                                                    columns=pivot_cols,
+                                                    values=[f"{record_prefix}{field}" for field in fields])
+
+                        dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
+                        dataframe.columns = dataframe.columns.to_series().str.join('_')
+
+                dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
+
             dataframes.append(dataframe)
 
         # Merge all the dynamically built dataframes into one (merged)

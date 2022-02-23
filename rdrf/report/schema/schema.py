@@ -4,6 +4,9 @@ import graphene
 from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
 
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 from rdrf.helpers.utils import mongo_key, get_form_section_code
 from rdrf.models.definition.models import Registry, ConsentQuestion, ClinicalData, RDRFContext, ContextFormGroup, \
     Section, CommonDataElement, RegistryForm
@@ -213,8 +216,10 @@ class RegistryType(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
+    patient_type = import_string(settings.REPORT_PATIENT_CLASS)
+
     debug = graphene.Field(DjangoDebug, name='_debug')
-    all_patients = graphene.List(PatientType,
+    all_patients = graphene.List(patient_type,
                                  registry_code=graphene.String(required=True),
                                  consent_question_codes=graphene.List(graphene.String),
                                  working_group_ids=graphene.List(graphene.String),

@@ -696,6 +696,10 @@ SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
 # Quicklinks settings
 QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 
+# Reports settings
+REPORT_PATIENT_CLASS = 'report.schema.schema.PatientType'
+REPORT_CONFIGURATION = 'report.report_configuration.REPORT_CONFIGURATION'
+
 # Use the setting below in registries derived from trrf to setup extra UI widgets
 # it shoud be a string indicating the module where registry specific widgets are defined
 # EXTRA_WIDGETS = '<fill module name here>'

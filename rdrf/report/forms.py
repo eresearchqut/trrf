@@ -1,15 +1,14 @@
 import json
 
+from django.conf import settings
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
     Select, ModelForm
-
+from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
-from report.report_configuration import REPORT_CONFIGURATION
-
-from django.utils.translation import ugettext_lazy as _
 
 
 def get_demographic_field_value(model_name, field):
@@ -56,7 +55,8 @@ def get_section_choices():
 
 
 def get_working_group_field_value(wg):
-    return json.dumps({'registry': wg.registry.code, 'wg': wg.id})
+    return json.dumps({'registry': wg.registry.code if wg.registry else '',
+                       'wg': wg.id})
 
 
 def get_working_group_choices():
@@ -89,9 +89,10 @@ class ReportDesignerForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ReportDesignerForm, self).__init__(*args, **kwargs)
+        report_configuration = import_string(settings.REPORT_CONFIGURATION)
         # Initialise choices during object initialisation to avoid compilation errors
         # when attempting to modify the models that are queried to build these choices.
-        self.fields['demographic_fields'].choices = get_demographic_field_choices(REPORT_CONFIGURATION['demographic_model'])
+        self.fields['demographic_fields'].choices = get_demographic_field_choices(report_configuration['demographic_model'])
         self.fields['search_cdes_by_section'].choices = get_section_choices()
         self.fields['cde_fields'].choices = get_cde_choices()
         self.fields['filter_consents'].choices = get_filter_consent_choices()
