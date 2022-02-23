@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 from functools import total_ordering
 import logging
@@ -19,6 +20,7 @@ from django.utils.translation import ugettext as _
 
 from .cde_data_types import CDEDataTypes
 from .registry_features import RegistryFeatures
+
 
 logger = logging.getLogger(__name__)
 
@@ -264,25 +266,30 @@ def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
 
 
 def consent_status_for_patient(registry_code, patient):
+    from rdrf.models.definition.models import ConsentSection
     from registry.patients.models import ConsentValue
-    from rdrf.models.definition.models import ConsentSection, ConsentQuestion
 
-    consent_sections = ConsentSection.objects.filter(
-        registry__code=registry_code)
-    answers = {}
-    valid = []
-    for consent_section in consent_sections:
-        if consent_section.applicable_to(patient):
-            questions = ConsentQuestion.objects.filter(section=consent_section)
-            for question in questions:
-                try:
-                    cv = ConsentValue.objects.get(
-                        patient=patient, consent_question=question)
-                    answers[cv.consent_question.code] = cv.answer
-                except ConsentValue.DoesNotExist:
-                    pass
-            valid.append(consent_section.is_valid(answers))
-    return all(valid)
+    values = ConsentValue.objects.filter(
+        patient=patient,
+        consent_question__section__registry__code=registry_code
+    ).select_related("consent_question", "consent_question__section")
+
+    answers = defaultdict(dict)
+    sections = {}
+    for v in values:
+        section = v.consent_question.section
+        sections[section.code] = section
+        answers[section.code][v.consent_question.code] = v.answer
+
+    if not values:
+        # Special case for New Patients, who do NOT have ConsentValues yet
+        sections = (s for s in ConsentSection.objects.filter(registry__code=registry_code) if s.applicable_to(patient))
+        for section in sections:
+            if section.questions.exists():
+                return False
+        return True
+
+    return all(sections[section_code].is_valid(section_answers) for section_code, section_answers in answers.items())
 
 
 def get_error_messages(forms):
@@ -849,3 +856,10 @@ def make_full_url(relative_url):
     scheme = 'https' if domain != 'localhost:8000' else 'http'
     augmented = splitted._replace(scheme=scheme, netloc=domain)
     return urlunsplit(augmented)
+
+
+def silk_profile(*args, **kwargs):
+    if settings.PROFILING:
+        from silk.profiling.profiler import silk_profile
+        return silk_profile(*args, **kwargs)
+    return lambda x: x

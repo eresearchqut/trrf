@@ -55,7 +55,9 @@ class SectionManager(models.Manager):
         return self.get(code=code)
 
     def get_by_comma_separated_codes(self, codes):
-        return self.filter(code__in=[s.strip() for s in codes.split(",")])
+        codes = [s.strip() for s in codes.split(",")]
+        sections = {s.code: s for s in self.filter(code__in=codes)}
+        return [section for code in codes if (section := sections.get(code))]
 
 
 class Section(models.Model):

@@ -116,6 +116,7 @@ proms_patterns = [
 ]
 
 normalpatterns += [
+    re_path(r'^silk/', include('silk.urls', namespace='silk')) if settings.PROFILING else None,
     re_path(r'^actions/?$', ActionExecutorView.as_view(), name='action'),
     re_path(r'^translations/jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     re_path(r'^useraudit/', include('useraudit.urls',)),

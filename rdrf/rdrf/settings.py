@@ -33,6 +33,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 X_FRAME_OPTIONS = env.get("x_frame_options", 'DENY')
 
 DEBUG = env.get("debug", not PRODUCTION)
+PROFILING = env.get("profiling", False)
 
 SITE_ID = env.get("site_id", 1)
 APPEND_SLASH = env.get("append_slash", True)
@@ -143,9 +144,10 @@ MESSAGE_TAGS = {
 # shows up messages addressed to other users.
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-MIDDLEWARE = (
+MIDDLEWARE = [x for x in (
     'registry.common.middleware.XrayExceptionMiddleware',
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
+    'silk.middleware.SilkyMiddleware' if PROFILING else None,
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
     'csp.middleware.CSPMiddleware',
@@ -163,10 +165,10 @@ MIDDLEWARE = (
     'django_user_agents.middleware.UserAgentMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     'stronghold.middleware.LoginRequiredMiddleware',
-)
+) if x is not None]
 
 
-INSTALLED_APPS = [
+INSTALLED_APPS = [x for x in (
     'rdrf',
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -200,10 +202,11 @@ INSTALLED_APPS = [
     'stronghold',
     'aws_xray_sdk.ext.django',
     'django_countries',
+    'silk' if PROFILING else None,
     'graphene_django',
     'django_filters',
-    'report'
-]
+    'report',
+) if x is not None]
 
 
 # these determine which authentication method to use
@@ -720,6 +723,11 @@ if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION:
     CSP_IMG_SRC += ["https://cdn.crowdin.com", "https://*.downloads.crowdin.com", "data:"]
     CSP_CONNECT_SRC += ["https://eresearchqut.crowdin.com"]
     CSP_FRAME_SRC += ["https://cdn.crowdin.com", "https://eresearchqut.crowdin.com"]
+
+SILKY_META = True
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+SILKY_PYTHON_PROFILER_RESULT_PATH = '/data/python_profiling'
 
 # Graphene_django for GraphQL
 if DEBUG:

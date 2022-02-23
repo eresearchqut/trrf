@@ -1,9 +1,15 @@
+from collections import OrderedDict
+from functools import cached_property, reduce
+import json
+import logging
+import operator
+import os
+
 from csp.decorators import csp_update
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.views.generic.base import View, TemplateView
 from django.template.context_processors import csrf
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse, JsonResponse
@@ -14,18 +20,18 @@ from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
 from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
-from rdrf.models.definition.models import CDEFile, Section, CommonDataElement
+from rdrf.models.definition.models import CDEFile, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
 from django.http import Http404
 from rdrf.forms.dsl.code_generator import CodeGenerator
+from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.file_upload import wrap_fs_data_for_form
 from rdrf.forms.file_upload import wrap_file_cdes
 from rdrf.db import filestorage
-from rdrf.helpers.utils import de_camelcase, location_name, is_multisection, make_index_map
-from rdrf.helpers.utils import parse_iso_date
+from rdrf.helpers.utils import de_camelcase, location_name, make_index_map, parse_iso_date, silk_profile
 from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
 from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
 from rdrf.models.definition.models import RDRFContext
@@ -38,7 +44,6 @@ from rdrf.helpers.utils import consent_status_for_patient
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
-from explorer.utils import create_field_values
 
 
 from django.shortcuts import redirect
@@ -47,9 +52,6 @@ from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from django.utils.translation import ugettext as _
 
-import json
-import os
-from collections import OrderedDict
 from django.conf import settings
 from rdrf.services.rpc.actions import ActionExecutor
 from rdrf.helpers.utils import FormLink, consent_check
@@ -75,7 +77,6 @@ from rdrf.security.mixins import StaffMemberRequiredMixin
 
 from aws_xray_sdk.core import xray_recorder
 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +139,7 @@ class SectionInfo(object):
 
     def __init__(self,
                  section_code,
+                 file_cdes,
                  patient_wrapper,
                  is_multiple,
                  registry_code,
@@ -148,6 +150,7 @@ class SectionInfo(object):
                  form_class=None,
                  prefix=None):
         self.section_code = section_code
+        self.file_cdes = file_cdes
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
         self.registry_code = registry_code
@@ -183,6 +186,7 @@ class SectionInfo(object):
 
         wrapped_data = wrap_file_cdes(
             self.registry_code,
+            self.file_cdes,
             dynamic_data,
             current_data,
             multisection=self.is_multiple)
@@ -512,6 +516,7 @@ class FormView(View):
         # the ids of each cde on the form
         return ",".join(form_class().fields.keys())
 
+    @silk_profile(name='Form View Post')
     def post(self, request, registry_code, form_id, patient_id, context_id=None):
         xray_recorder.begin_subsegment('formview_post')
         xray_recorder.begin_subsegment("auth")
@@ -582,7 +587,7 @@ class FormView(View):
         self.registry_form = form_obj
 
         form_display_name = form_obj.display_name if form_obj.display_name else form_obj.name
-        sections, display_names, ids = self._get_sections(form_obj)
+        dd = DataDefinitions(form_obj)
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -593,8 +598,8 @@ class FormView(View):
         # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
         section_field_ids_map = {}
 
-        for section_index, s in enumerate(sections):
-            section_model = Section.objects.get(code=s)
+        for section_model in dd.section_models:
+            s = section_model.code
             form_class = create_form_class_for_section(
                 registry,
                 form_obj,
@@ -617,6 +622,7 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     section_info = SectionInfo(
                         s,
+                        dd.file_cde_codes,
                         dyn_patient,
                         False,
                         registry_code,
@@ -626,7 +632,7 @@ class FormView(View):
                     sections_to_save.append(section_info)
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     form_data = wrap_file_cdes(
-                        registry_code, dynamic_data, current_data, multisection=False)
+                        registry_code, dd.file_cde_codes, dynamic_data, current_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     all_sections_valid = False
@@ -666,19 +672,22 @@ class FormView(View):
 
                     current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     section_dict = {s: dynamic_data}
-                    section_info = SectionInfo(s,
-                                               dyn_patient,
-                                               True,
-                                               registry_code,
-                                               "cdes",
-                                               section_dict,
-                                               index_map,
-                                               form_set_class=form_set_class,
-                                               prefix=prefix)
+                    section_info = SectionInfo(
+                        s,
+                        dd.file_cde_codes,
+                        dyn_patient,
+                        True,
+                        registry_code,
+                        "cdes",
+                        section_dict,
+                        index_map,
+                        form_set_class=form_set_class,
+                        prefix=prefix)
 
                     sections_to_save.append(section_info)
                     form_data = wrap_file_cdes(
                         registry_code,
+                        dd.file_cde_codes,
                         dynamic_data,
                         current_data,
                         multisection=True,
@@ -708,6 +717,8 @@ class FormView(View):
 
             xray_recorder.end_subsegment()
 
+            prefetch_form_data.cache_clear()
+
             xray_recorder.begin_subsegment("file_notifications")
             handle_file_notifications(registry, patient, dyn_patient.filestorage)
             xray_recorder.end_subsegment()
@@ -727,20 +738,6 @@ class FormView(View):
                 form_user=self.request.user.username)
             xray_recorder.end_subsegment()
 
-            xray_recorder.begin_subsegment("report_fields")
-            # save report friendly field values
-            try:
-                logger.debug("trying to create field values for %s" % patient)
-                if self.rdrf_context:
-                    create_field_values(registry,
-                                        patient,
-                                        self.rdrf_context)
-                logger.debug("created field values for patient %s" % patient)
-            except Exception as ex:
-                logger.debug("error creating field values: %s" % ex)
-                raise
-            xray_recorder.end_subsegment()
-
             if self.CREATE_MODE and dyn_patient.rdrf_context_id != "add":
                 xray_recorder.begin_subsegment("existing_form")
                 # we've created the context on the fly so no redirect to the edit view on
@@ -748,13 +745,6 @@ class FormView(View):
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
                 dyn_patient.save_form_progress(
                     registry_code, context_model=newly_created_context)
-
-                try:
-                    create_field_values(registry,
-                                        patient,
-                                        newly_created_context)
-                except Exception as ex:
-                    logger.debug("Error creating field values for new context: %s" % ex)
 
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
@@ -822,19 +812,19 @@ class FormView(View):
             'form_display_name': form_display_name,
             'patient_id': patient_id,
             'patient_link': PatientLocator(registry, patient).link,
-            'sections': sections,
+            'sections': dd.sections,
             'patient_info': patient_info_component.html,
             'section_field_ids_map': section_field_ids_map,
-            'section_ids': ids,
+            'section_ids': dd.ids,
             'forms': form_section,
             'my_contexts_url': patient.get_contexts_url(self.registry),
-            'display_names': display_names,
+            'display_names': dd.display_names,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
             "form_links": self._get_formlinks(request.user, self.rdrf_context),
-            "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
+            "metadata_json_for_sections": self._get_metadata_json_dict(dd),
             "has_form_progress": self.registry_form.has_progress_indicator,
             "location": location_name(self.registry_form, self.rdrf_context),
             "next_form_link": wizard.next_link,
@@ -864,11 +854,12 @@ class FormView(View):
                 progress_percentage = 0
 
             context["form_progress"] = progress_percentage
-            initial_completion_cdes = {cde_model.name: False for cde_model in
-                                       self.registry_form.complete_form_cdes.all()}
-
-            context["form_progress_cdes"] = progress_dict.get(
-                self.registry_form.name + "_form_cdes_status", initial_completion_cdes)
+            progress_cdes = progress_dict.get(self.registry_form.name + "_form_cdes_status")
+            if progress_cdes is None:
+                context["form_progress_cdes"] = {cde_model.name: False for cde_model in self.registry_form.complete_form_cdes.all()}
+            else:
+                cdes = {cde.code: cde.name for cde in self.registry_form.complete_form_cdes.all()}
+                context["form_progress_cdes"] = {cdes.get(code, code): value for code, value in progress_cdes.items()}
 
         context.update(csrf(request))
         self.registry_form = self.get_registry_form(form_id)
@@ -902,21 +893,6 @@ class FormView(View):
 
         xray_recorder.end_subsegment()
         return response
-
-    def _get_sections(self, form):
-        section_parts = form.get_sections()
-        sections = []
-        display_names = {}
-        ids = {}
-        for s in section_parts:
-            try:
-                sec = Section.objects.get(code=s.strip())
-                display_names[s] = sec.display_name
-                ids[s] = sec.id
-                sections.append(s)
-            except ObjectDoesNotExist:
-                logger.error("Section %s does not exist" % s)
-        return sections, display_names, ids
 
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
@@ -958,7 +934,9 @@ class FormView(View):
         """
         user = kwargs.get("user", None)
         patient_model = kwargs.get("patient_model", None)
-        sections, display_names, ids = self._get_sections(self.registry_form)
+
+        dd = DataDefinitions(self.registry_form)
+
         form_section = {}
         section_element_map = {}
         total_forms_ids = {}
@@ -977,9 +955,10 @@ class FormView(View):
         allowed_cdes = form_changes.allowed_cdes if changes_since_version else []
         previous_values = form_changes.previous_values if changes_since_version else {}
 
+        sections = dd.sections
         remove_sections = []
-        for s in sections:
-            section_model = Section.objects.get(code=s)
+        for section_model in dd.section_models:
+            s = section_model.code
             form_class = self._get_form_class_for_section(
                 self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
             if not form_class:
@@ -1055,8 +1034,8 @@ class FormView(View):
             'patient_name': self._get_patient_name(),
             'sections': sections,
             'forms': form_section,
-            'display_names': display_names,
-            'section_ids': ids,
+            'display_names': dd.display_names,
+            'section_ids': dd.ids,
             "not_linked": patient_model.is_linked if patient_model else True,
             'section_element_map': section_element_map,
             "total_forms_ids": total_forms_ids,
@@ -1064,7 +1043,7 @@ class FormView(View):
             "initial_forms_ids": initial_forms_ids,
             "formset_prefixes": formset_prefixes,
             "form_links": form_links,
-            "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form),
+            "metadata_json_for_sections": self._get_metadata_json_dict(dd),
             "has_form_progress": self.registry_form.has_progress_indicator,
             "have_dynamic_data": bool(self.dynamic_data),
             "settings": settings,
@@ -1102,9 +1081,8 @@ class FormView(View):
     def _get_patient_object(self):
         return Patient.objects.get(pk=self.patient_id)
 
-    def _get_metadata_json_dict(self, registry_form):
+    def _get_metadata_json_dict(self, defs):
         """
-        :param registry_form model instance
         :return: a dictionary of section --> metadata json for cdes in the section
         Used by the dynamic formset plugin client side to override behaviour
 
@@ -1112,21 +1090,18 @@ class FormView(View):
         """
         json_dict = {}
         from rdrf.helpers.utils import id_on_page
-        for section in registry_form.get_sections():
+        for section_model in defs.section_models:
             metadata = {}
-            section_model = Section.objects.filter(code=section).first()
-            if section_model:
-                for cde_code in section_model.get_elements():
-                    cde = CommonDataElement.objects.filter(code=cde_code).first()
-                    if cde:
-                        cde_code_on_page = id_on_page(registry_form, section_model, cde)
-                        if cde.datatype.lower() == CDEDataTypes.DATE:
-                            # date widgets are complex
-                            metadata[cde_code_on_page] = {}
-                            metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
+            for cde_code in section_model.get_elements():
+                cde = defs.form_cdes[cde_code]
+                cde_code_on_page = id_on_page(defs.registry_form, section_model, cde)
+                if cde.datatype.lower() == CDEDataTypes.DATE:
+                    # date widgets are complex
+                    metadata[cde_code_on_page] = {}
+                    metadata[cde_code_on_page]["row_selector"] = cde_code_on_page + "_month"
 
             if metadata:
-                json_dict[section] = json.dumps(metadata)
+                json_dict[section_model.code] = json.dumps(metadata)
 
         return json_dict
 
@@ -1342,7 +1317,7 @@ class QuestionnaireView(FormView):
 
         questionnaire_form = registry.questionnaire
         self.registry_form = questionnaire_form
-        sections, display_names, ids = self._get_sections(registry.questionnaire)
+        dd = DataDefinitions(registry.questionnaire)
         # section --> dynamic data for questionnaire response object if no errors
         data_map = {}
         # section --> form instances if there are errors and form needs to be redisplayed
@@ -1355,8 +1330,8 @@ class QuestionnaireView(FormView):
         # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
         section_field_ids_map = {}
 
-        for section in sections:
-            section_model = Section.objects.get(code=section)
+        for section_model in dd.section_models:
+            section = section_model.code
             section_elements = section_model.get_elements()
             section_element_map[section] = section_elements
             form_class = create_form_class_for_section(
@@ -1409,16 +1384,11 @@ class QuestionnaireView(FormView):
                 registry_code, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
 
-            for section in sections:
-                data_map[section]['questionnaire_context'] = self.questionnaire_context
-                if is_multisection(section):
-                    questionnaire_response_wrapper.save_dynamic_data(
-                        registry_code, "cdes", data_map[section], multisection=True,
-                        additional_data={"questionnaire_context": self.questionnaire_context})
-                else:
-                    questionnaire_response_wrapper.save_dynamic_data(
-                        registry_code, "cdes", data_map[section],
-                        additional_data={"questionnaire_context": self.questionnaire_context})
+            for section in dd.section_models:
+                data_map[section.code]['questionnaire_context'] = self.questionnaire_context
+                questionnaire_response_wrapper.save_dynamic_data(
+                    registry_code, "cdes", data_map[section.code], multisection=section.allow_multiple,
+                    additional_data={"questionnaire_context": self.questionnaire_context})
 
             def get_completed_questions(
                     questionnaire_form_model,
@@ -1561,15 +1531,15 @@ class QuestionnaireView(FormView):
                 'form_display_name': registry.questionnaire.name,
                 'patient_id': 'dummy',
                 'patient_name': '',
-                'sections': sections,
+                'sections': dd.sections,
                 'forms': form_section,
-                'display_names': display_names,
+                'display_names': dd.display_names,
                 'section_element_map': section_element_map,
                 'section_field_ids_map': section_field_ids_map,
                 "total_forms_ids": total_forms_ids,
                 "initial_forms_ids": initial_forms_ids,
                 "formset_prefixes": formset_prefixes,
-                "metadata_json_for_sections": self._get_metadata_json_dict(self.registry_form)
+                "metadata_json_for_sections": self._get_metadata_json_dict(dd)
             }
 
             context.update(csrf(request))
@@ -2046,3 +2016,36 @@ class CdeAvailableWidgetsView(View):
     def get(self, request, data_type):
         widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
         return JsonResponse({'widgets': widgets})
+
+
+class DataDefinitions:
+    def __init__(self, registry_form):
+        self.registry_form = registry_form
+
+    @cached_property
+    def section_models(self):
+        return self.registry_form.section_models
+
+    @cached_property
+    def sections(self):
+        return [s.code for s in self.section_models]
+
+    @cached_property
+    def ids(self):
+        return {s.code: s.id for s in self.section_models}
+
+    @cached_property
+    def display_names(self):
+        return {s.code: s.display_name for s in self.section_models}
+
+    @cached_property
+    def form_cde_codes(self):
+        return set(reduce(operator.add, [section.get_elements() for section in self.section_models]))
+
+    @cached_property
+    def form_cdes(self):
+        return {cde.code: cde for cde in CommonDataElement.objects.filter(code__in=self.form_cde_codes)}
+
+    @cached_property
+    def file_cde_codes(self):
+        return set(cde_code for cde_code, cde in self.form_cdes.items() if cde.datatype == CDEDataTypes.FILE)

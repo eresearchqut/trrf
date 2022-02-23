@@ -245,7 +245,7 @@ function rdrfSetupFileUploads() {
 
     function makeCopy(n) {
       var copy = template.clone().children().each(function() {
-        var elem = $(this);
+        var elem = $(this).children().first();
         _.each(["name", "id", "for"], function(attr) {
           var val = elem.attr(attr);
           if (val) {
@@ -264,20 +264,6 @@ function rdrfSetupFileUploads() {
         .append($('<div class="col-9"></div>').append(input).append(index))
         .append($('<div class="col-3"></div>').append(remove).append(clear.hide()));
     }
-
-    widget.children(".multi-file")
-      .each(function() {
-        var elem = $(this);
-        if (elem.find("a").attr("href")) {
-          var a = elem.find("a").addClass("col-9");
-          var cb = elem.find("input[type='checkbox']")
-              .addClass("form-check-input")
-              .wrap('<div class="col-3"><div class="form-check"><label></label></div></div>')
-              .after("Clear").parent().parent().parent();
-          var index = elem.find("input[type='hidden']");
-          elem.empty().append(a).append(cb).append(index);
-        }
-      });
 
     var nextIndex = function() {
       var indices = widget.find("input[type='hidden']")
