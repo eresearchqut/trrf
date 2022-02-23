@@ -5,7 +5,6 @@ import logging
 from django.urls import reverse
 
 from rdrf.models.definition.models import RDRFContext
-from rdrf.models.definition.models import RegistryForm
 from rdrf.helpers.registry_features import RegistryFeatures
 
 
@@ -63,9 +62,10 @@ class NavigationWizard(object):
 
         # there is one context per fixed group (always)
         for fixed_form_group in self._fixed_form_groups():
-            context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
-                                                object_id=self.patient_model.pk,
-                                                content_type__model="patient"))
+            context_models = list(RDRFContext.objects.filter(
+                context_form_group=fixed_form_group,
+                object_id=self.patient_model.pk,
+                content_type__model="patient"))
 
             num_contexts = len(context_models)
             assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
@@ -74,8 +74,7 @@ class NavigationWizard(object):
             for form_model in fixed_form_group.forms:
                 if self.user.can_view(form_model):
                     form_groups_dict[fixed_form_group.sort_order].append(
-                        self._construct_fixed_form_link(context_model, form_model)
-                    )
+                        self._construct_fixed_form_link(context_model, form_model))
 
         # for each multiple group, link through each assessment created for that group
         # in form order

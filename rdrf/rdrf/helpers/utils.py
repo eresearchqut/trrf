@@ -41,7 +41,7 @@ def mongo_key(form_name, section_code, cde_code):
 
 def mongo_key_from_models(form_model, section_model, cde_model):
     return mongo_key(form_model.name, section_model.code, cde_model.code)
-    
+
 
 def models_from_mongo_key(registry_model, delimited_key):
     from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
@@ -71,8 +71,8 @@ def dd_models_from_mongo_key(data_definitions, key):
         raise BadKeyError()
     try:
         return (
-            data_definitions.registry_form, 
-            data_definitions.sections_by_code[section_code], 
+            data_definitions.registry_form,
+            data_definitions.sections_by_code[section_code],
             data_definitions.form_cdes[cde_code])
     except KeyError:
         raise BadKeyError()
@@ -251,7 +251,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
 
     context_form_group = context_model.context_form_group if context_model else None
     container_model = context_form_group or registry_model
-    
+
     return [
         FormLink(
             patient_id,
@@ -701,7 +701,7 @@ def get_supported_languages():
 def applicable_forms(registry_model, patient_model):
     patient_type = patient_model.patient_type or "default"
     return applicable_forms_for_patient_type(registry_model, patient_type)
-    
+
 
 @lru_cache
 def applicable_forms_for_patient_type(registry_model, patient_type):

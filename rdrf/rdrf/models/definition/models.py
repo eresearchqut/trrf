@@ -974,7 +974,7 @@ class RegistryForm(models.Model):
         if not patient_in_registry_checked and not patient.in_registry(self.registry.code):
             return False
 
-        allowed_forms = [f.name for f in applicable_forms( self.registry, patient)]
+        allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
         if self.name not in allowed_forms:
             return False
 
