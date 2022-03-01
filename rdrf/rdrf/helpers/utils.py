@@ -1,6 +1,6 @@
 from collections import defaultdict
 import datetime
-from functools import lru_cache, total_ordering
+from functools import total_ordering
 import logging
 import os.path
 import re
@@ -703,7 +703,6 @@ def applicable_forms(registry_model, patient_model):
     return applicable_forms_for_patient_type(registry_model, patient_type)
 
 
-@lru_cache
 def applicable_forms_for_patient_type(registry_model, patient_type):
     patient_type_map = registry_model.metadata.get("patient_types")
     # type map looks like:

@@ -17,7 +17,7 @@ from django.test import RequestFactory, TestCase
 
 from rdrf.helpers.transform_cd_dict import (get_cd_form, get_section,
                                             transform_cd_dict)
-from rdrf.helpers.utils import TimeStripper, applicable_forms_for_patient_type, check_calculation, de_camelcase
+from rdrf.helpers.utils import TimeStripper, check_calculation, de_camelcase
 from rdrf.models.definition.models import (CDEPermittedValue,
                                            CDEPermittedValueGroup,
                                            ClinicalData, CommonDataElement,
@@ -310,8 +310,6 @@ class FormTestCase(RDRFTestCase):
         self.patient_address.save()
 
         self.request_factory = RequestFactory()
-
-        applicable_forms_for_patient_type.cache_clear()
 
     def create_patient(self):
         from rdrf.db.contexts_api import RDRFContextManager
