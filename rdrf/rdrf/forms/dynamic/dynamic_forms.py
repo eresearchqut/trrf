@@ -7,7 +7,7 @@ from django.forms import BaseForm
 from django.utils.formats import date_format
 
 from rdrf.forms.dynamic.field_lookup import FieldFactory
-from rdrf.models.definition.models import CdePolicy, CommonDataElement
+from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
@@ -36,13 +36,6 @@ def create_form_class(owner_class_name):
 
     form_class = type(form_class_name, (BaseForm,), form_class_dict)
     return form_class
-
-
-def get_cde_policy(registry, cde):
-    try:
-        return CdePolicy.objects.get(registry=registry, cde=cde)
-    except CdePolicy.DoesNotExist:
-        return None
 
 
 def create_form_class_for_section(

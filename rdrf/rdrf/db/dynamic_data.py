@@ -552,11 +552,6 @@ class DynamicDataWrapper(object):
             record.data.update(registry_data)
             record.save()
 
-    def _is_section_code(self, code):
-        # Supplied code will be non-delimited
-        from rdrf.models.definition.models import Section
-        return Section.objects.filter(code=code).exists()
-
     def store_file(self, *args, **kwargs):
         return self.filestorage.store_file(*args, **kwargs)
 
