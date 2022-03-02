@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import logging
 import math
 
@@ -225,7 +226,7 @@ class FormProgressCalculator:
             hidden_cdes = self._get_hidden_cdes(form_model)
             required_cdes = set(required_cdes) - hidden_cdes
 
-        cdes_status = {code: False for code in required_cdes}
+        cdes_status = OrderedDict((cde, False) for _, cde in self._get_progress_cdes())
 
         code_values_dict = {}
         for cde_dict in self._form_section_traversal():
