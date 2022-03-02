@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from functools import cached_property, reduce
 import json
 import logging
@@ -19,7 +19,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
-from rdrf.models.definition.models import RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
+from rdrf.models.definition.models import CDEPermittedValue, CdePolicy, RegistryForm, Registry, QuestionnaireResponse, ContextFormGroup
 from rdrf.models.definition.models import CDEFile, CommonDataElement
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
@@ -139,10 +139,10 @@ class SectionInfo(object):
 
     def __init__(self,
                  section_code,
-                 file_cdes,
+                 data_defs,
                  patient_wrapper,
                  is_multiple,
-                 registry_code,
+                 registry,
                  collection_name,
                  data,
                  index_map=None,
@@ -150,10 +150,10 @@ class SectionInfo(object):
                  form_class=None,
                  prefix=None):
         self.section_code = section_code
-        self.file_cdes = file_cdes
+        self.data_defs = data_defs
         self.patient_wrapper = patient_wrapper
         self.is_multiple = is_multiple
-        self.registry_code = registry_code
+        self.registry = registry
         self.collection_name = collection_name
         self.data = data
         self.index_map = index_map
@@ -166,10 +166,11 @@ class SectionInfo(object):
     def save(self):
         if not self.is_multiple:
             self.patient_wrapper.save_dynamic_data(
-                self.registry_code, self.collection_name, self.data)
+                self.registry, self.collection_name, self.data_defs, self.data)
         else:
-            self.patient_wrapper.save_dynamic_data(self.registry_code,
+            self.patient_wrapper.save_dynamic_data(self.registry,
                                                    self.collection_name,
+                                                   self.data_defs,
                                                    self.data,
                                                    multisection=True,
                                                    index_map=self.index_map)
@@ -177,7 +178,7 @@ class SectionInfo(object):
     def recreate_form_instance(self):
         # called when all sections on a form are valid
         # We do this to create a form instance which has correct links to uploaded files
-        current_data = self.patient_wrapper.load_dynamic_data(self.registry_code, "cdes")
+        current_data = self.patient_wrapper.load_dynamic_data(self.registry.code, "cdes")
         if self.is_multiple:
             # the cleaned data from the form submission
             dynamic_data = self.data[self.section_code]
@@ -185,8 +186,8 @@ class SectionInfo(object):
             dynamic_data = self.data
 
         wrapped_data = wrap_file_cdes(
-            self.registry_code,
-            self.file_cdes,
+            self.registry,
+            self.data_defs.file_cde_codes,
             dynamic_data,
             current_data,
             multisection=self.is_multiple)
@@ -597,11 +598,13 @@ class FormView(View):
         # this is used by formset plugin:
         # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
         section_field_ids_map = {}
+        current_dynamic_data = None
 
         for section_model in dd.section_models:
             s = section_model.code
             form_class = create_form_class_for_section(
                 registry,
+                dd,
                 form_obj,
                 section_model,
                 injected_model="Patient",
@@ -622,17 +625,17 @@ class FormView(View):
                     dynamic_data = form.cleaned_data
                     section_info = SectionInfo(
                         s,
-                        dd.file_cde_codes,
+                        dd,
                         dyn_patient,
                         False,
-                        registry_code,
+                        registry,
                         "cdes",
                         dynamic_data,
                         form_class=form_class)
                     sections_to_save.append(section_info)
-                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    current_dynamic_data = current_dynamic_data or dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     form_data = wrap_file_cdes(
-                        registry_code, dd.file_cde_codes, dynamic_data, current_data, multisection=False)
+                        registry, dd.file_cde_codes, dynamic_data, current_dynamic_data, multisection=False)
                     form_section[s] = form_class(dynamic_data, initial=form_data)
                 else:
                     all_sections_valid = False
@@ -670,14 +673,14 @@ class FormView(View):
                     for i in reversed(to_remove):
                         del dynamic_data[i]
 
-                    current_data = dyn_patient.load_dynamic_data(self.registry.code, "cdes")
+                    current_dynamic_data = current_dynamic_data or dyn_patient.load_dynamic_data(self.registry.code, "cdes")
                     section_dict = {s: dynamic_data}
                     section_info = SectionInfo(
                         s,
-                        dd.file_cde_codes,
+                        dd,
                         dyn_patient,
                         True,
-                        registry_code,
+                        registry,
                         "cdes",
                         section_dict,
                         index_map,
@@ -686,10 +689,10 @@ class FormView(View):
 
                     sections_to_save.append(section_info)
                     form_data = wrap_file_cdes(
-                        registry_code,
+                        registry,
                         dd.file_cde_codes,
                         dynamic_data,
-                        current_data,
+                        current_dynamic_data,
                         multisection=True,
                         index_map=index_map)
                     form_section[s] = form_set_class(initial=form_data, prefix=prefix)
@@ -726,7 +729,7 @@ class FormView(View):
             xray_recorder.begin_subsegment("progress")
             if not self.CREATE_MODE:
                 progress_dict = dyn_patient.save_form_progress(
-                    registry_code, context_model=self.rdrf_context)
+                    registry, context_model=self.rdrf_context)
             xray_recorder.end_subsegment()
 
             xray_recorder.begin_subsegment("save_snapshot")
@@ -744,7 +747,7 @@ class FormView(View):
                 # the new context
                 newly_created_context = RDRFContext.objects.get(id=dyn_patient.rdrf_context_id)
                 dyn_patient.save_form_progress(
-                    registry_code, context_model=newly_created_context)
+                    registry, context_model=newly_created_context)
 
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
@@ -897,9 +900,10 @@ class FormView(View):
     def get_registry_form(self, form_id):
         return RegistryForm.objects.get(id=form_id)
 
-    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
+    def _get_form_class_for_section(self, registry, data_defs, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
             registry,
+            data_defs,
             registry_form,
             section,
             injected_model="Patient",
@@ -960,7 +964,7 @@ class FormView(View):
         for section_model in dd.section_models:
             s = section_model.code
             form_class = self._get_form_class_for_section(
-                self.registry, self.registry_form, section_model, allowed_cdes, previous_values)
+                self.registry, dd, self.registry_form, section_model, allowed_cdes, previous_values)
             if not form_class:
                 remove_sections.append(s)
                 continue
@@ -1336,6 +1340,7 @@ class QuestionnaireView(FormView):
             section_element_map[section] = section_elements
             form_class = create_form_class_for_section(
                 registry,
+                dd,
                 questionnaire_form,
                 section_model,
                 questionnaire_context=self.questionnaire_context)
@@ -1381,13 +1386,13 @@ class QuestionnaireView(FormView):
             questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
             questionnaire_response_wrapper.current_form_model = questionnaire_form
             questionnaire_response_wrapper.save_dynamic_data(
-                registry_code, "cdes", {
+                registry, "cdes", {
                     "custom_consent_data": custom_consent_helper.custom_consent_data})
 
             for section in dd.section_models:
                 data_map[section.code]['questionnaire_context'] = self.questionnaire_context
                 questionnaire_response_wrapper.save_dynamic_data(
-                    registry_code, "cdes", data_map[section.code], multisection=section.allow_multiple,
+                    registry, "cdes", data_map[section.code], multisection=section.allow_multiple,
                     additional_data={"questionnaire_context": self.questionnaire_context})
 
             def get_completed_questions(
@@ -1553,9 +1558,9 @@ class QuestionnaireView(FormView):
     def _get_patient_name(self):
         return "questionnaire"
 
-    def _get_form_class_for_section(self, registry, registry_form, section, allowed_cdes, previous_values):
+    def _get_form_class_for_section(self, registry, data_defs, registry_form, section, allowed_cdes, previous_values):
         return create_form_class_for_section(
-            registry, registry_form, section,
+            registry, data_defs, registry_form, section,
             allowed_cdes=allowed_cdes,
             previous_values=previous_values,
             questionnaire_context=self.questionnaire_context
@@ -2027,6 +2032,10 @@ class DataDefinitions:
         return self.registry_form.section_models
 
     @cached_property
+    def sections_by_code(self):
+        return {s.code: s for s in self.section_models}
+
+    @cached_property
     def sections(self):
         return [s.code for s in self.section_models]
 
@@ -2044,8 +2053,23 @@ class DataDefinitions:
 
     @cached_property
     def form_cdes(self):
-        return {cde.code: cde for cde in CommonDataElement.objects.filter(code__in=self.form_cde_codes)}
+        qs = CommonDataElement.objects.filter(code__in=self.form_cde_codes).select_related('pv_group').prefetch_related('pv_group__permitted_value_set')
+        return {cde.code: cde for cde in qs}
 
     @cached_property
     def file_cde_codes(self):
         return set(cde_code for cde_code, cde in self.form_cdes.items() if cde.datatype == CDEDataTypes.FILE)
+
+    @cached_property
+    def cde_policies(self):
+        cde_codes = self.file_cde_codes
+        policies = CdePolicy.objects.filter(registry=self.registry_form.registry, cde__code__in=cde_codes)
+        return {policy.cde.code: policy for policy in policies}
+
+    @cached_property
+    def permitted_values_by_group(self):
+        all_pv_groups = set(cde.pv_group for cde in self.form_cdes.values() if cde.pv_group)
+        values = defaultdict(list)
+        for v in CDEPermittedValue.objects.filter(pv_group__in=all_pv_groups).select_related('pv_group'):
+            values[v.pv_group.code].append(v)
+        return values
