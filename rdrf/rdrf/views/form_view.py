@@ -1060,13 +1060,21 @@ class FormView(View):
 
             form_progress = FormProgress(self.registry_form.registry)
 
-            form_progress_percentage = form_progress.get_form_progress(self.registry_form,
-                                                                       patient_model,
-                                                                       self.rdrf_context)
+            form_progress_percentage = form_progress.get_form_progress(
+                self.registry_form, patient_model, self.rdrf_context)
 
-            form_cdes_status = form_progress.get_form_cdes_status(self.registry_form,
-                                                                  patient_model,
-                                                                  self.rdrf_context)
+            form_cdes_status_by_code = form_progress.get_form_cdes_status(
+                self.registry_form, patient_model, self.rdrf_context)
+
+            ordered_cde_codes = (cde
+                                 for section in sections
+                                 for cde in section_element_map[section]
+                                 if cde in form_cdes_status_by_code)
+
+            def cde_name(cde_code):
+                return dd.form_cdes[cde_code].name
+
+            form_cdes_status = OrderedDict((cde_name(cde), form_cdes_status_by_code[cde]) for cde in ordered_cde_codes)
 
             context["form_progress"] = form_progress_percentage
             context["form_progress_cdes"] = form_cdes_status
