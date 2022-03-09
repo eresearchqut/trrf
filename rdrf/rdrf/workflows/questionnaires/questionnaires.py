@@ -207,7 +207,7 @@ class QuestionnaireReverseMapper(object):
 
         self._update_timestamps(form_names, dynamic_data_dict)
         wrapper.save_dynamic_data(
-            self.registry.code, "cdes", dynamic_data_dict, parse_all_forms=True)
+            self.registry, "cdes", dynamic_data_dict, parse_all_forms=True)
 
     def _update_timestamps(self, form_names, dynamic_data_dict):
         # These timestamps are used by the form progress indicator in the

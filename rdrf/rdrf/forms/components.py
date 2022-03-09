@@ -275,7 +275,7 @@ class RDRFContextLauncherComponent(RDRFComponent):
                 form.list_link = self._get_form_list_link(form)
                 return form
 
-        cfg_qs = ContextFormGroup.objects.filter(
+        cfg_qs = ContextFormGroup.objects.select_related('registry').filter(
             registry=self.registry_model,
             context_type="M"
         ).order_by("sort_order", "name")

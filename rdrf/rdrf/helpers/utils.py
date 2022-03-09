@@ -67,6 +67,19 @@ def models_from_mongo_key(registry_model, delimited_key):
     return form_model, section_model, cde_model
 
 
+def dd_models_from_mongo_key(data_definitions, key):
+    form_name, section_code, cde_code = get_form_section_code(key)
+    if form_name != data_definitions.registry_form.name:
+        raise BadKeyError()
+    try:
+        return (
+            data_definitions.registry_form,
+            data_definitions.sections_by_code[section_code],
+            data_definitions.form_cdes[cde_code])
+    except KeyError:
+        raise BadKeyError()
+
+
 def is_delimited_key(s):
     try:
         parts = s.split(settings.FORM_SECTION_DELIMITER)
@@ -232,27 +245,24 @@ def make_index_map(to_remove, count):
 
 
 def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
-    from registry.patients.models import Patient
-    if user is not None:
-        if context_model and context_model.context_form_group:
-            # show links to forms restricted to this config object
-            container_model = context_model.context_form_group
-        else:
-            container_model = registry_model
-
-        patient_model = Patient.objects.get(id=patient_id)
-
-        return [
-            FormLink(
-                patient_id,
-                registry_model,
-                form,
-                selected=(
-                    form.name == current_form_name),
-                context_model=context_model) for form in container_model.forms
-            if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model)]
-    else:
+    if user is None:
         return []
+    patient_model = registry_model.patients.filter(pk=patient_id).first()
+    if patient_model is None:
+        return []
+
+    context_form_group = context_model.context_form_group if context_model else None
+    container_model = context_form_group or registry_model
+
+    return [
+        FormLink(
+            patient_id,
+            registry_model,
+            form,
+            selected=(
+                form.name == current_form_name),
+            context_model=context_model) for form in container_model.forms
+        if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model, patient_in_registry_checked=True)]
 
 
 def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
@@ -691,27 +701,27 @@ def get_supported_languages():
 
 
 def applicable_forms(registry_model, patient_model):
-    patient_type_map = registry_model.metadata.get("patient_types", None)
+    patient_type = patient_model.patient_type or "default"
+    return applicable_forms_for_patient_type(registry_model, patient_type)
+
+
+def applicable_forms_for_patient_type(registry_model, patient_type):
+    patient_type_map = registry_model.metadata.get("patient_types")
     # type map looks like:
     # { "carrier": { "name": "Female Carrier", "forms": ["CarrierForm"]} }
+
     all_forms = registry_model.forms
 
     if patient_type_map is None:
         return all_forms
-    else:
-        # we don't store type as "default"
-        patient_type = patient_model.patient_type
-        if not patient_type:
-            patient_type = "default"
 
-        if patient_type in patient_type_map:
-            applicable_form_names = patient_type_map[patient_type].get("forms",
-                                                                       all_forms)
-            forms = [form for form in all_forms
-                     if form.name in applicable_form_names]
-            return forms
-        else:
-            return []
+    if patient_type not in patient_type_map:
+        return []
+
+    applicable_form_names = set(patient_type_map[patient_type].get("forms"))
+    if not applicable_form_names:
+        return all_forms
+    return [form for form in all_forms if form.name in applicable_form_names]
 
 
 def is_generated_form(form_model):

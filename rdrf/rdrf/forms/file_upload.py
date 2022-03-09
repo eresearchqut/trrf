@@ -14,7 +14,7 @@ def is_filestorage_dict(value):
     return filestorage.get_id(value)
 
 
-class FileUpload(object):
+class FileUpload:
 
     """
     A wrapper to send to the django widget which will display the file upload
@@ -83,7 +83,7 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry_code, file_cdes, section_data, mongo_data, multisection=False, index_map={}):
+def wrap_file_cdes(registry, file_cdes, section_data, mongo_data, multisection=False, index_map={}):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful
@@ -156,10 +156,10 @@ def wrap_file_cdes(registry_code, file_cdes, section_data, mongo_data, multisect
         return False
 
     def wrap_upload(key, value):
-        return FileUpload(registry_code, key, {"file_name": value.name, "django_file_id": 0})
+        return FileUpload(registry, key, {"file_name": value.name, "django_file_id": 0})
 
     def wrap_filestorage_dict(key, value):
-        return FileUpload(registry_code, key, value)
+        return FileUpload(registry, key, value)
 
     def get_mongo_value(section_index, key):
         if section_index is None:

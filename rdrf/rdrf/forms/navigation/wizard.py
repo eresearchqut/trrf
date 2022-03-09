@@ -1,12 +1,13 @@
+
 from collections import defaultdict
+import logging
 
 from django.urls import reverse
+
 from rdrf.models.definition.models import RDRFContext
-from rdrf.models.definition.models import RegistryForm
 from rdrf.helpers.registry_features import RegistryFeatures
 
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -61,11 +62,19 @@ class NavigationWizard(object):
 
         # there is one context per fixed group (always)
         for fixed_form_group in self._fixed_form_groups():
+            context_models = list(RDRFContext.objects.filter(
+                context_form_group=fixed_form_group,
+                object_id=self.patient_model.pk,
+                content_type__model="patient"))
+
+            num_contexts = len(context_models)
+            assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
+
+            context_model = context_models[0]
             for form_model in fixed_form_group.forms:
                 if self.user.can_view(form_model):
                     form_groups_dict[fixed_form_group.sort_order].append(
-                        self._construct_fixed_form_link(fixed_form_group, form_model)
-                    )
+                        self._construct_fixed_form_link(context_model, form_model))
 
         # for each multiple group, link through each assessment created for that group
         # in form order
@@ -140,16 +149,7 @@ class NavigationWizard(object):
                     self.registry_model.code,
                     self.patient_model.pk]))
 
-    def _construct_fixed_form_link(self, fixed_form_group, form_model):
-        context_models = list(RDRFContext.objects.filter(context_form_group=fixed_form_group,
-                                                         object_id=self.patient_model.pk,
-                                                         content_type__model="patient"))
-
-        num_contexts = len(context_models)
-        assert num_contexts == 1, "There should only be one context model for this fixed context there are: %s" % num_contexts
-
-        context_model = context_models[0]
-
+    def _construct_fixed_form_link(self, context_model, form_model):
         return self._form_link(form_model, context_model)
 
     def _free_forms(self):
@@ -179,12 +179,10 @@ class NavigationWizard(object):
                 if name in special_names:
                     continue
                 # form link so get the models
-                form_model = RegistryForm.objects.get(pk=form_id)
                 link_parts = link.split("/")
                 context_id = int(link_parts[-1])
-                if form_model.pk == self.current_form_model.pk:
-                    if context_id == int(self.context_id):
-                        return index
+                if form_id == self.current_form_model.pk and context_id == int(self.context_id):
+                    return index
 
         # shouldn't get here ...
         raise Exception("could not determine current index!")
