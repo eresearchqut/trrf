@@ -47,6 +47,7 @@ from rdrf.views.session_refresh_view import session_refresh
 from rdrf.views.actions import ActionExecutorView
 import logging
 
+from report.schema.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
-        path('graphql', GraphQLView.as_view(graphiql=True))
+        path('graphql', GraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True))
     ]
 
 
