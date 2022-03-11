@@ -253,6 +253,23 @@ class Query(graphene.ObjectType):
 schema = graphene.Schema(query=Query, types=[CdeValueType, CdeMultiValueType])
 
 
+def list_patients(user, registry_code, consent_question_codes, working_group_ids):
+    registry = Registry.objects.get(code=registry_code)
+    query_args = dict()
+    query_args['rdrf_registry__id'] = registry.id
+
+    if working_group_ids:
+        query_args['working_groups__id__in'] = working_group_ids
+
+    if consent_question_codes:
+        query_args['consents__answer'] = True
+        query_args['consents__consent_question__code__in'] = consent_question_codes
+    return Patient.objects \
+        .get_by_user_and_registry(user, registry) \
+        .filter(**query_args).prefetch_related('working_groups') \
+        .distinct()
+
+
 _graphql_field_pattern = re.compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
 
 
@@ -450,9 +467,22 @@ def create_dynamic_schema():
         "resolve_test": lambda root, info: "Test value"
     })
 
+    def resolve_patients(parent, _info, registry_code, offset=None, limit=None, consent_question_codes=[], working_group_ids=[]):
+        if limit and offset:
+            limit += offset
+
+        return list_patients(_info.context.user, registry_code, consent_question_codes, working_group_ids)[offset:limit]
+
     dynamic_query = type("DynamicQuery", (graphene.ObjectType,), {
-        "patients": graphene.List(dynamic_patient),
-        "resolve_patients": lambda root, info: Patient.objects.all()
+        "patients": graphene.List(dynamic_patient,
+                                 registry_code=graphene.String(required=True),
+                                 consent_question_codes=graphene.List(graphene.String),
+                                 working_group_ids=graphene.List(graphene.String),
+                                 offset=graphene.Int(),
+                                 limit=graphene.Int()),
+        "resolve_patients":  resolve_patients
     })
+
+
 
     return graphene.Schema(query=dynamic_query)
