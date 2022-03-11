@@ -7,6 +7,7 @@ from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuest
 from registry.groups.models import WorkingGroup
 from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.reports.generator import Report
+from graphql import parse, print_ast
 
 
 class ReportGeneratorTestCase(TestCase):
@@ -137,51 +138,49 @@ class ReportGeneratorTestCase(TestCase):
 
         actual = report._Report__get_graphql_query()
 
-        expected = \
-            """
-            query {
-                patients(registryCode: "ang", consentQuestionCodes: ["cq1","cq2"], workingGroupIds: ["1","2"]) {
-                    id
-                    familyName
-                    givenNames
-                    
-                    patientaddressSet {
-                        state
-                        country
-                        addressType { type }
-                    }
-                
-                    workingGroups {
-                        name
-                    }
-                
-                    clinicalData {
-                        History {
-                            NewbornAndInfancyHistory {
-                                ANGNewbornInfancyReside {
-                                    ResideNewborn
-                                    ResideInfancy
-                                }
-                            }
-                        }
-                        Sleep {
-                            SleepForm {
-                                key
-                                data {
-                                    SleepSection {
-                                        DayOfWeek
-                                        TimeToBed
-                                        TimeAwake
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        expected = """{
+  patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
+    id
+    familyName
+    givenNames
+    patientaddressSet {
+      state
+      country
+      addressType {
+        type
+      }
+    }
+    workingGroups {
+      name
+    }
+    clinicalData {
+      History {
+        NewbornAndInfancyHistory {
+          ANGNewbornInfancyReside {
+            ResideNewborn
+            ResideInfancy
+          }
+        }
+      }
+      Sleep {
+        SleepForm {
+          key
+          data {
+            SleepSection {
+              DayOfWeek
+              TimeToBed
+              TimeAwake
             }
-            """
+          }
+        }
+      }
+    }
+  }
+}
+"""
 
-        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(actual)))
 
     def test_pre_export_validation(self):
         reg_ang = Registry.objects.create(code='ang')

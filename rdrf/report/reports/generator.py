@@ -118,7 +118,6 @@ class Report:
         # - create a dictionary to respectively group together cfg, form, sections by keys
         cfg_dicts = {}
         for key in cde_keys:
-            logger.info(key)
             form,section,cde = models_from_mongo_key(self.report_design.registry, key)
             cfgs = ContextFormGroup.objects.filter(items__registry_form=form)
             for cfg in cfgs:
