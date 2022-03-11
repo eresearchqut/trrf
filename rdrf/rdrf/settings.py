@@ -466,7 +466,7 @@ LOGGING = {
     'loggers': {
         '': {
             'handlers': ['console', 'log_detailed_error'],
-            'level': 'ERROR' if DEBUG else 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False
         },
         'django': {
