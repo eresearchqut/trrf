@@ -10,7 +10,6 @@ from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
-from report.schema.schema import schema
 
 from gql_query_builder import GqlQuery
 
