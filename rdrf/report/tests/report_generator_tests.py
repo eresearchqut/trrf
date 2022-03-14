@@ -1,3 +1,5 @@
+import logging
+
 from django.test import TestCase
 
 from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuestion, RegistryForm, Section, \
@@ -5,11 +7,15 @@ from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuest
 from registry.groups.models import WorkingGroup
 from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.reports.generator import Report
+from graphql import parse, print_ast
 
 
 class ReportGeneratorTestCase(TestCase):
 
     maxDiff = None
+
+    def _remove_duplicate_spaces(self, query_str):
+        return " ".join(query_str.split())
 
     def test_humanise_column_labels(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -51,25 +57,15 @@ class ReportGeneratorTestCase(TestCase):
         expected = \
             """
             query {
-                allPatients(registryCode:"ang",consentQuestionCodes: [],workingGroupIds: []) {
+                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
                     id
-                    
-                    clinicalData(cdeKeys: [])
-                    {
-                        cfg {code, name, abbreviatedName, defaultName, sortOrder, entryNum},
-                        form {name, niceName, abbreviatedName},
-                        section {code, name, abbreviatedName, entryNum},
-                        cde {
-                            code, name, abbreviatedName
-                            ... on CdeValueType {value}
-                            ... on CdeMultiValueType {values}
-                        }
+                    clinicalData {
                     }
                 }
             }
             """
 
-        self.assertEqual(expected, actual)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
 
     def test_graphql_query_pagination(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -80,28 +76,37 @@ class ReportGeneratorTestCase(TestCase):
         expected = \
             """
             query {
-                allPatients(registryCode:"ang",consentQuestionCodes: [],workingGroupIds: [],offset: 30,limit: 15) {
+                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: [], offset: 30, limit: 15) {
                     id
-                    
-                    clinicalData(cdeKeys: [])
-                    {
-                        cfg {code, name, abbreviatedName, defaultName, sortOrder, entryNum},
-                        form {name, niceName, abbreviatedName},
-                        section {code, name, abbreviatedName, entryNum},
-                        cde {
-                            code, name, abbreviatedName
-                            ... on CdeValueType {value}
-                            ... on CdeMultiValueType {values}
-                        }
+                    clinicalData {
                     }
                 }
             }
             """
 
-        self.assertEqual(expected, actual)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
 
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
+        CommonDataElement.objects.create(code='TimeToBed', name='Time to bed', abbreviated_name='Time')
+        CommonDataElement.objects.create(code='TimeAwake', name='Time Awake in the morning', abbreviated_name='Time')
+        CommonDataElement.objects.create(code='DayOfWeek', name='Day of Week', abbreviated_name='Day')
+        Section.objects.create(code='SleepSection', elements='TimeToBed,TimeAwake,DayOfWeek',
+                               display_name='Sleep', abbreviated_name='SleepSEC')
+        form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM',
+                                           registry=reg_ang)
+        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='Sleep', name='Sleep Group',
+                                              abbreviated_name='SLE', context_type='M')
+        cfg.items.create(registry_form=form)
+        CommonDataElement.objects.create(code='ResideNewborn', name='x', abbreviated_name='Newborn')
+        CommonDataElement.objects.create(code='ResideInfancy', name='x', abbreviated_name='Infancy')
+        Section.objects.create(code='ANGNewbornInfancyReside', elements='ResideNewborn,ResideInfancy',
+                               display_name='Reside Newborn/Infancy', abbreviated_name='NewInfReside')
+        form = RegistryForm.objects.create(name='NewbornAndInfancyHistory', sections='ANGNewbornInfancyReside', abbreviated_name='NewInfForm',
+                                           registry=reg_ang)
+        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='History', name='History of Newborn/Infancy',
+                                              abbreviated_name='Hist')
+        cfg.items.create(registry_form=form)
 
         cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
 
@@ -118,9 +123,11 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='patientaddressSet', field='country', sort_order=3)
         report_design.reportdemographicfield_set.create(model='workingGroups', field='name', sort_order=4)
 
+        report_design.reportclinicaldatafield_set.create(cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn')
+        report_design.reportclinicaldatafield_set.create(cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideInfancy')
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
         report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeToBed')
         report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeAwake')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
 
         report_design.filter_consents.add(cq1)
         report_design.filter_consents.add(cq2)
@@ -131,35 +138,49 @@ class ReportGeneratorTestCase(TestCase):
 
         actual = report._Report__get_graphql_query()
 
-        expected = \
-            """
-            query {
-                allPatients(registryCode:"ang",consentQuestionCodes: ["cq1","cq2"],workingGroupIds: ["1","2"]) {
-                    id,familyName,givenNames
-                    
-                    ,patientaddressSet {
-                        state,country,addressType { type }
-                    }
-                
-                    ,workingGroups {
-                        name
-                    }
-                
-                    clinicalData(cdeKeys: ["SleepForm____SleepSection____DayOfWeek","SleepForm____SleepSection____TimeAwake","SleepForm____SleepSection____TimeToBed"])
-                    {
-                        cfg {code, name, abbreviatedName, defaultName, sortOrder, entryNum},
-                        form {name, niceName, abbreviatedName},
-                        section {code, name, abbreviatedName, entryNum},
-                        cde {
-                            code, name, abbreviatedName
-                            ... on CdeValueType {value}
-                            ... on CdeMultiValueType {values}
-                        }
-                    }
-                }
+        expected = """{
+  patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
+    id
+    familyName
+    givenNames
+    patientaddressSet {
+      state
+      country
+      addressType {
+        type
+      }
+    }
+    workingGroups {
+      name
+    }
+    clinicalData {
+      History {
+        NewbornAndInfancyHistory {
+          ANGNewbornInfancyReside {
+            ResideNewborn
+            ResideInfancy
+          }
+        }
+      }
+      Sleep {
+        SleepForm {
+          key
+          data {
+            SleepSection {
+              DayOfWeek
+              TimeToBed
+              TimeAwake
             }
-            """
-        self.assertEqual(expected, actual)
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(actual)))
 
     def test_pre_export_validation(self):
         reg_ang = Registry.objects.create(code='ang')

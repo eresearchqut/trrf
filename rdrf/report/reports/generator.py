@@ -10,7 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
-from report.schema.schema import schema
+
+from gql_query_builder import GqlQuery
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +75,22 @@ class Report:
             return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
-            return [json.dumps(str(wg.id)) for wg in self.report_design.filter_working_groups.all().order_by('id')]
+            return [f'"{str(wg.id)}"' for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
-        # Build list of patient fields to report on
+        # Build Patient filters
+        patient_filters = {
+            'registryCode': f'"{self.report_design.registry.code}"',
+            'consentQuestionCodes': f"[{','.join(get_patient_consent_question_filters())}]",
+            'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
+        }
+
+        if offset:
+            patient_filters['offset'] = offset
+
+        if limit:
+            patient_filters['limit'] = limit
+
+        # Build simple patient demographic fields
         patient_fields = ['id']
         patient_fields.extend(
             self.report_design.reportdemographicfield_set.filter(model='patient').values_list('field', flat=True))
@@ -86,56 +100,60 @@ class Report:
         for demographic_field in self.report_design.reportdemographicfield_set.exclude(model='patient'):
             other_demographic_fields.setdefault(demographic_field.model, []).append(demographic_field.field)
 
-        related_demographic_fields_query = ""
-
+        fields_nested_demographics = []
         for model_name, fields in other_demographic_fields.items():
             pivot_field = self.report_config[model_name].get('pivot_field', None)
             if pivot_field and pivot_field not in fields:
                 selected_fields = fields.copy() + [pivot_field]
             else:
                 selected_fields = fields.copy()
-            related_demographic_fields_query = related_demographic_fields_query + \
-                f"""
-                    ,{model_name} {{
-                        {",".join(selected_fields)}
-                    }}
-                """
+            fields_demographic = GqlQuery().fields(selected_fields).query(model_name).generate()
+            fields_nested_demographics.append(fields_demographic)
 
-        patient_query_params = [
-            f'registryCode:"{self.report_design.registry.code}"',
-            f"consentQuestionCodes: [{','.join(get_patient_consent_question_filters())}]",
-            f"workingGroupIds: [{','.join(get_patient_working_group_filters())}]",
-        ]
+        # Build Clinical data
+        # TODO add sort_order to report_design model for clinicaldatafields rather than assuming it's safe to order by id
+        cde_keys = [rcdf.cde_key for rcdf in self.report_design.reportclinicaldatafield_set.all().order_by('id')]
 
-        if offset:
-            patient_query_params.append(f'offset: {offset}')
+        # - create a dictionary to respectively group together cfg, form, sections by keys
+        cfg_dicts = {}
+        for key in cde_keys:
+            form,section,cde = models_from_mongo_key(self.report_design.registry, key)
+            cfgs = ContextFormGroup.objects.filter(items__registry_form=form)
+            for cfg in cfgs:
+                cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
+                form_dict = cfg_dict['forms'].setdefault(form.name, {'sections': {}})
+                section_dict = form_dict['sections'].setdefault(section.code, {'cdes': []})
+                section_dict['cdes'].append(cde.code)
 
-        if limit:
-            patient_query_params.append(f'limit: {limit}')
+        # - build the clinical data query
+        fields_clinical_data = []
+        for cfg_code, cfg in cfg_dicts.items():
+            fields_form = []
+            for form_name, form in cfg['forms'].items():
+                fields_section = []
+                for section_code, section in form['sections'].items():
+                    field_section = GqlQuery().fields(section['cdes'], name=section_code).generate()
+                    fields_section.append(field_section)
 
-        cde_keys = [json.dumps(rcdf.cde_key) for rcdf in self.report_design.reportclinicaldatafield_set.all()]
+                if cfg['is_fixed']:
+                    field_form = GqlQuery().fields(fields_section, name=form_name).generate()
+                else:
+                    field_data = GqlQuery().fields(fields_section, name='data').generate()
+                    field_form = GqlQuery().fields(['key', field_data], name=form_name).generate()
 
-        query = \
-            f"""
-            query {{
-                allPatients({",".join(patient_query_params)}) {{
-                    {",".join(patient_fields)}
-                    {related_demographic_fields_query}
-                    clinicalData(cdeKeys: [{",".join(cde_keys)}])
-                    {{
-                        cfg {{code, name, abbreviatedName, defaultName, sortOrder, entryNum}},
-                        form {{name, niceName, abbreviatedName}},
-                        section {{code, name, abbreviatedName, entryNum}},
-                        cde {{
-                            code, name, abbreviatedName
-                            ... on CdeValueType {{value}}
-                            ... on CdeMultiValueType {{values}}
-                        }}
-                    }}
-                }}
-            }}
-            """
-        return query
+                fields_form.append(field_form)
+
+            field_cfg = GqlQuery().fields(fields_form, name=cfg_code).generate()
+            fields_clinical_data.append(field_cfg)
+
+        field_clinical_data = GqlQuery().fields(fields_clinical_data).query('clinicalData').generate()
+
+        # Build query
+        fields_patient = []
+        fields_patient.extend(patient_fields)
+        fields_patient.extend(fields_nested_demographics)
+        fields_patient.append(field_clinical_data)
+        return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
 
     def validate_for_csv_export(self):
         if self.report_design.cde_heading_format == ReportCdeHeadingFormat.CODE.value:
