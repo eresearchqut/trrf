@@ -7,7 +7,7 @@ from django.forms import BaseForm
 from django.utils.formats import date_format
 
 from rdrf.forms.dynamic.field_lookup import FieldFactory
-from rdrf.models.definition.models import CdePolicy, CommonDataElement
+from rdrf.models.definition.models import CommonDataElement
 from rdrf.helpers.cde_data_types import CDEDataTypes
 
 logger = logging.getLogger(__name__)
@@ -38,15 +38,9 @@ def create_form_class(owner_class_name):
     return form_class
 
 
-def get_cde_policy(registry, cde):
-    try:
-        return CdePolicy.objects.get(registry=registry, cde=cde)
-    except CdePolicy.DoesNotExist:
-        return None
-
-
 def create_form_class_for_section(
         registry,
+        data_defs,
         registry_form,
         section,
         questionnaire_context=None,
@@ -69,12 +63,14 @@ def create_form_class_for_section(
     if previous_values is None:
         previous_values = {}
 
-    cde_models = section.cde_models
+    cde_codes = section.get_elements()
+    cde_models = [data_defs.form_cdes[cde_code] for cde_code in cde_codes]
+
     if allowed_cdes:
         cde_models = (c for c in cde_models if c.code in allowed_cdes)
     base_fields = OrderedDict()
     for cde in cde_models:
-        cde_policy = get_cde_policy(registry, cde)
+        cde_policy = data_defs.cde_policies.get(cde.code)
         if cde_policy and user_groups:
             if not cde_policy.is_allowed(user_groups.all(),
                                          patient_model,
@@ -83,6 +79,7 @@ def create_form_class_for_section(
 
         cde_field = FieldFactory(
             registry,
+            data_defs,
             registry_form,
             section,
             cde,

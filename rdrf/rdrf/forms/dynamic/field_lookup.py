@@ -36,7 +36,7 @@ class FieldContext:
     QUESTIONNAIRE = "Questionnaire"
 
 
-class FieldFactory(object):
+class FieldFactory:
     # registry overrides
     CUSTOM_FIELDS_MODULE = "custom_fields"
     CUSTOM_FIELD_FUNCTION_NAME_TEMPLATE = "custom_field_%s"
@@ -63,12 +63,13 @@ class FieldFactory(object):
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, registry_form, section, cde, questionnaire_context=None,
+    def __init__(self, registry, data_defs, registry_form, section, cde, questionnaire_context=None,
                  injected_model=None, injected_model_id=None, is_superuser=False):
         """
         :param cde: Common Data Element model instance
         """
         self.registry = registry
+        self.data_defs = data_defs
         self.registry_form = registry_form
         self.section = section
         self.cde = cde
@@ -220,8 +221,11 @@ class FieldFactory(object):
     def _get_permitted_value_choices(self):
         choices = [(self.UNSET_CHOICE, "---")]
         if self.cde.pv_group:
-            for permitted_value in self.cde.pv_group.permitted_value_set.all().order_by(
-                    'position'):
+            if self.data_defs:
+                values = sorted(self.data_defs.permitted_values_by_group[self.cde.pv_group.code], key=lambda v: v.position or 0)
+            else:
+                values = self.cde.pv_group.permitted_value_set.all().order_by('position')
+            for permitted_value in values:
                 value = _(permitted_value.value)
                 if self.context == FieldContext.QUESTIONNAIRE:
                     q_value = getattr(permitted_value, 'questionnaire_value')

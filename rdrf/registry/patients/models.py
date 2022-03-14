@@ -694,16 +694,15 @@ class Patient(models.Model):
 
         if mongo_data is None:
             # No dynamic data has been persisted yet
-            wrapper.save_dynamic_data(registry_code, "cdes", {key: value, timestamp: t})
+            wrapper.save_dynamic_data(registry_model, "cdes", {key: value, timestamp: t})
         else:
             mongo_data[key] = value
             mongo_data[timestamp] = t
-            wrapper.save_dynamic_data(registry_code, "cdes", mongo_data)
+            wrapper.save_dynamic_data(registry_model, "cdes", mongo_data)
 
         handle_file_notifications(registry_model, self, wrapper.filestorage)
 
         # update form progress
-        registry_model = Registry.objects.get(code=registry_code)
         form_progress_calculator = FormProgress(registry_model)
         form_progress_calculator.save_for_patient(self, context_model)
 
@@ -1061,7 +1060,7 @@ class Patient(models.Model):
         contexts = []
         content_type = ContentType.objects.get_for_model(self)
 
-        for context_model in RDRFContext.objects.filter(
+        for context_model in RDRFContext.objects.select_related('context_form_group').filter(
                 content_type=content_type,
                 object_id=self.pk).order_by("created_at"):
             contexts.append(context_model)
