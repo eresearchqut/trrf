@@ -68,7 +68,7 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
-        path('graphql', GraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True))
+        path('graphql', lambda request: GraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
 
