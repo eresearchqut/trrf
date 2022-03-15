@@ -33,9 +33,9 @@ def get_section_fields(_section_key, section_cdes):
                     return cde_value["value"]
 
         if cde.allow_multiple:
-            fields[field_name] = graphene.List(graphene.String)
+            fields[field_name] = graphene.List(graphene.String, description=cde.name)
         else:
-            fields[field_name] = graphene.String()
+            fields[field_name] = graphene.String(description=cde.name)
         fields[f"resolve_{field_name}"] = partial(cde_resolver, cde_model=cde)
 
     return fields
@@ -58,9 +58,9 @@ def get_form_fields(form_key, section_models, section_cdes):
                     return section_data["cdes"]
 
         if section.allow_multiple:
-            fields[field_name] = graphene.List(section_type)
+            fields[field_name] = graphene.List(section_type, description=section.display_name)
         else:
-            fields[field_name] = graphene.Field(section_type)
+            fields[field_name] = graphene.Field(section_type, description=section.display_name)
         fields[f"resolve_{field_name}"] = partial(section_resolver, section_model=section)
     return fields
 
@@ -93,7 +93,7 @@ def get_cfg_forms(cfg_key, cfg_model):
                 f"DynamicForm_{form_key}",
                 (graphene.ObjectType,),
                 get_form_fields(form_key, section_models, section_cdes)
-            ))
+            ), description=form.name)
             fields[f"resolve_{field_name}"] = partial(form_resolver, form_model=form)
     else:
         assert len(form_models) == 1, "Too many forms for multiple context"
@@ -125,12 +125,12 @@ def get_cfg_forms(cfg_key, cfg_model):
             f"DynamicForm_{form_key}",
             (graphene.ObjectType,),
             {
-                "key": graphene.String(),
+                "key": graphene.String(description=cfg_model.naming_info),
                 "data": graphene.Field(type(
                     f"DynamicFormData_{form_key}",
                     (graphene.ObjectType,),
                     get_form_fields(form_key, section_models, section_cdes)
-                ))
+                ), description=form.name)
             }
         ))
         fields[f"resolve_{field_name}"] = partial(longitudinal_form_resolver, form_model=form)
@@ -160,7 +160,7 @@ def get_clinical_data_fields():
             f"DynamicCFG_{cfg_key}",
             (graphene.ObjectType,),
             get_cfg_forms(cfg_key, cfg)
-        ))
+        ), description=cfg.name)
         fields[f"resolve_{field_name}"] = partial(cfg_resolver, cfg_model=cfg)
     return fields
 
@@ -201,7 +201,7 @@ def create_dynamic_patient_type():
             "clinical_data": graphene.Field(type(
                 "DynamicClinicalData",
                 (graphene.ObjectType,),
-                get_clinical_data_fields())
+                get_clinical_data_fields()),
             ),
             "resolve_clinical_data": clinical_data_resolver,
         })
