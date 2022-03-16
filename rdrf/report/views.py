@@ -36,7 +36,7 @@ class ReportDownloadView(ReportsAccessCheckMixin, View):
             if not is_valid:
                 return render(request, 'report_download_errors.html', {'errors': errors})
             content_type = 'text/csv'
-            content = report.export_to_csv(request).getvalue()
+            content = report.export_to_csv(request)
         elif format == 'json':
             # Line delimited json to support streaming of data
             content_type = 'application/json-seq'

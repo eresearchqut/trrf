@@ -3,15 +3,70 @@ import re
 from functools import partial
 
 import graphene
+from django.db.models import Count, Max
 from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
-from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup
-from registry.patients.models import Patient
+from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
+from registry.groups.models import WorkingGroup
+from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue
 
 logger = logging.getLogger(__name__)
 
 _graphql_field_pattern = re.compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
+
+
+class ConsentQuestionType(DjangoObjectType):
+    class Meta:
+        model = ConsentQuestion
+        fields = ('code', 'question_label')
+
+
+class ConsentValueType(DjangoObjectType):
+    class Meta:
+        model = ConsentValue
+        fields = ('consent_question', 'answer')
+
+
+class NextOfKinRelationshipType(DjangoObjectType):
+    class Meta:
+        model = NextOfKinRelationship
+        fields = ('relationship',)
+
+
+class PatientAddressType(DjangoObjectType):
+    class Meta:
+        model = PatientAddress
+        fields = ('id', 'address_type', 'address', 'suburb', 'country', 'state', 'postcode')
+
+
+class AddressTypeType(DjangoObjectType):
+    class Meta:
+        model = AddressType
+        fields = ('type',)
+
+
+class WorkingGroupType(DjangoObjectType):
+    display_name = graphene.String()
+
+    class Meta:
+        model = WorkingGroup
+        fields = ('name',)
+
+    def resolve_display_name(self, info):
+        return self.display_name
+
+
+class RegistryType(DjangoObjectType):
+    class Meta:
+        model = Registry
+        fields = ('name', 'code')
+
+
+class DataSummaryType(graphene.ObjectType):
+    max_address_count = graphene.Int()
+    max_working_group_count = graphene.Int()
+    # TODO add clinicians
 
 
 def get_schema_field_name(s):
@@ -212,6 +267,28 @@ def create_dynamic_patient_type():
 # TODO: memoize + possible cache clearing when registry definition changes?
 # TODO: Replace partial resolvers with single resolve function for each level
 # TODO: Replace Metaprogramming with a low-level library like graphql-core
+def list_patients_query(user,
+                        registry_code,
+                        consent_question_codes=None,
+                        working_group_ids=None):
+    registry = Registry.objects.get(code=registry_code)
+
+    patient_query = Patient.objects \
+        .get_by_user_and_registry(user, registry) \
+        .prefetch_related('working_groups')
+
+    if working_group_ids:
+        patient_query = patient_query.filter(working_groups__id__in=working_group_ids)
+
+    if consent_question_codes:
+        patient_query = patient_query.filter(
+            consents__answer=True,
+            consents__consent_question__code__in=consent_question_codes
+        )
+
+    return patient_query.distinct()
+
+
 def create_dynamic_schema():
     if not Registry.objects.all().exists():
         return None
@@ -227,22 +304,15 @@ def create_dynamic_schema():
         if limit and offset:
             limit += offset
 
-        registry = Registry.objects.get(code=registry_code)
+        return list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)[offset:limit]
 
-        patient_query = Patient.objects \
-            .get_by_user_and_registry(info.context.user, registry) \
-            .prefetch_related('working_groups')
-
-        if working_group_ids:
-            patient_query = patient_query.filter(working_groups__id__in=working_group_ids)
-
-        if consent_question_codes:
-            patient_query = patient_query.filter(
-                consents__answer=True,
-                consents__consent_question__code__in=consent_question_codes
-            )
-
-        return patient_query.distinct()[offset:limit]
+    def resolve_data_summary(_parent, info, registry_code, consent_question_codes=[], working_group_ids=[]):
+        patients = list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)
+        # TODO use resolvers so that we aren't loading this data up unnecessarily.
+        return {
+            'max_address_count': patients.annotate(Count('patientaddress')).aggregate(Max('patientaddress__count')).get('patientaddress__count__max'),
+            'max_working_group_count': patients.annotate(Count('working_groups')).aggregate(Max('working_groups__count')).get('working_groups__count__max')
+        }
 
     dynamic_query = type("DynamicQuery", (graphene.ObjectType,), {
         "patients": graphene.List(dynamic_patient,
@@ -251,7 +321,12 @@ def create_dynamic_schema():
                                   working_group_ids=graphene.List(graphene.String),
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),
-        "resolve_patients": resolve_patients
+        "resolve_patients": resolve_patients,
+        "data_summary": graphene.Field(DataSummaryType,
+                                       registry_code=graphene.String(required=True),
+                                       consent_question_codes=graphene.List(graphene.String),
+                                       working_group_ids=graphene.List(graphene.String)),
+        'resolve_data_summary': resolve_data_summary
     })
 
     return graphene.Schema(query=dynamic_query)

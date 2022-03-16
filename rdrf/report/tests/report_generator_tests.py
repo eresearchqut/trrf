@@ -1,13 +1,12 @@
-import logging
-
 from django.test import TestCase
+
+from graphql import parse, print_ast
 
 from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuestion, RegistryForm, Section, \
     CommonDataElement, ContextFormGroup
 from registry.groups.models import WorkingGroup
 from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.reports.generator import Report
-from graphql import parse, print_ast
 
 
 class ReportGeneratorTestCase(TestCase):
@@ -16,37 +15,6 @@ class ReportGeneratorTestCase(TestCase):
 
     def _remove_duplicate_spaces(self, query_str):
         return " ".join(query_str.split())
-
-    def test_humanise_column_labels(self):
-        reg_ang = Registry.objects.create(code='ang')
-        report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
-
-        # Fall through logic
-        self.assertEqual('Standard column label', report._Report__humanise_column_label('Standard column label'))
-
-        # Patient demographic col headers
-        self.assertEqual('Family Name', report._Report__humanise_column_label('familyName'))
-        self.assertEqual('Date Of Birth', report._Report__humanise_column_label('dateOfBirth'))
-        self.assertEqual('Next Of Kin Relationship', report._Report__humanise_column_label('nextOfKinRelationship { relationship }'))
-
-        # Pivoted col headers
-        self.assertEqual('Home_Patient Address_Address Type',
-                         report._Report__humanise_column_label('patientaddressSet_addressType_type_Home'))
-        self.assertEqual('Postal_Patient Address_Street Address',
-                         report._Report__humanise_column_label('patientaddressSet_address_Postal'))
-        self.assertEqual('name_Working Groups_Name',
-                         report._Report__humanise_column_label('workingGroups_displayName_name'))
-
-    def test_reformat_pivoted_column_labels(self):
-        reg_ang = Registry.objects.create(code='ang')
-        report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
-
-        self.assertEqual('SleepGroup_2_Name', report._Report__reformat_pivoted_column_labels('a.cfg.defaultName_SleepGroup_2_a_b_c_d'))
-        self.assertEqual('CFG7_1_Sleep_ANGBEHDEVSLEEPDIARY_1_ANGBEHDEVSLEEPDAY',
-                         report._Report__reformat_pivoted_column_labels('b.cde.value_CFG7_1_Sleep_ANGBEHDEVSLEEPDIARY_1_ANGBEHDEVSLEEPDAY'))
-        self.assertEqual('c.no.match', report._Report__reformat_pivoted_column_labels('c.no.match'))
 
     def test_graphql_query_minimal_data(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -59,8 +27,6 @@ class ReportGeneratorTestCase(TestCase):
             query {
                 patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
                     id
-                    clinicalData {
-                    }
                 }
             }
             """
@@ -78,8 +44,6 @@ class ReportGeneratorTestCase(TestCase):
             query {
                 patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: [], offset: 30, limit: 15) {
                     id
-                    clinicalData {
-                    }
                 }
             }
             """
@@ -146,9 +110,6 @@ class ReportGeneratorTestCase(TestCase):
     patientaddressSet {
       state
       country
-      addressType {
-        type
-      }
     }
     workingGroups {
       name
@@ -190,7 +151,7 @@ class ReportGeneratorTestCase(TestCase):
         CommonDataElement.objects.create(code='BestDay', name='Day of Week', abbreviated_name='Best Day')
         Section.objects.create(code='SleepSection', elements='TimeToBed,TimeAwake,DayOfWeek,BestDay', display_name='Sleep', abbreviated_name='SleepSEC')
         form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM', registry=reg_ang)
-        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='CFG-1', name='Sleep Group', abbreviated_name='SleepCFG')
+        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='CFG1', name='Sleep Group', abbreviated_name='SleepCFG')
         cfg.items.create(registry_form=form)
 
         report_design = ReportDesign.objects.create(registry=reg_ang)

@@ -40,7 +40,8 @@ REPORT_CONFIGURATION = {
                 'patientType': 'Patient Type'}},
         'patientaddressSet': {
             'label': 'Patient Address',
-            'pivot_field': 'addressType { type }',
+            'multi_field': True,
+            'variant_lookup': 'maxAddressCount',
             'fields': {
                 'addressType { type }': 'Address Type',
                 'address': 'Street Address',
@@ -50,7 +51,8 @@ REPORT_CONFIGURATION = {
                 'country': 'Country'}},
         'workingGroups': {
             'label': 'Working Groups',
-            'pivot_field': 'name',
+            'multi_field': True,
+            'variant_lookup': 'maxWorkingGroupCount',
             'fields': {
                 'displayName': 'Name'
             }

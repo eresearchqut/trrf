@@ -1,17 +1,19 @@
+import csv
 import io
 import json
 import logging
 import re
+from collections import OrderedDict
 
-import pandas as pd
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.utils.translation import ugettext_lazy as _
-from rdrf.helpers.utils import models_from_mongo_key
-from rdrf.models.definition.models import ContextFormGroup
-from report.models import ReportCdeHeadingFormat
-
+from flatten_json import flatten
 from gql_query_builder import GqlQuery
+
+from rdrf.helpers.utils import models_from_mongo_key, mongo_key
+from rdrf.models.definition.models import ContextFormGroup, RDRFContext, ClinicalData
+from report.models import ReportCdeHeadingFormat
+from report.schema.schema import list_patients_query, create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
@@ -22,73 +24,33 @@ class Report:
         self.report_design = report_design
         self.report_config = import_string(settings.REPORT_CONFIGURATION)['demographic_model']
         self.report_fields_lookup = self.__init_report_fields_lookup()
+        self.patient_filters = self.__init_patient_filters()
+        self.schema = create_dynamic_schema()
 
     def __init_report_fields_lookup(self):
         return {model: model_config['fields'] for model, model_config in self.report_config.items()}
 
-    def __pandas_to_graphql_field(self, pandas_field):
-        # E.g. for addressType_type, matching groups: ["addressType", "type"]
-        regex = re.search(r'(.+?)_(.*)', pandas_field)
-        if regex:
-            # replace "_field" with "{ field }"
-            graphql_field = f"{regex.group(1)} {{ {regex.group(2)} }}"
-            return graphql_field
-        else:
-            return pandas_field
-
-    def __humanise_column_label(self, col):
-        label_groups = re.search(r'(.+?)_(.*)_(.*)', col)
-        pivot_label = None
-        if label_groups:
-            pivot_label = f'{label_groups.group(3)}_'
-        else:
-            label_groups = re.search(r'(.*)_(.*)', col)
-
-        if label_groups:
-            try:
-                model = label_groups.group(1)
-                model_field = self.__pandas_to_graphql_field(label_groups.group(2))
-                model_label = self.report_config[model]['label']
-                field_label = self.report_config[model]['fields'][model_field]
-                return f"{pivot_label or ''}{model_label}_{field_label}"
-            except Exception as e:
-                logger.error(e)
-                return col
-        else:
-            return self.report_fields_lookup['patient'].get(col) or col
-
-    def __reformat_pivoted_column_labels(self, col):
-        # Check for Nan
-        if col != col:
-            return col
-
-        re_cfg_default_name = re.search(r'a\.cfg\.defaultName_(.*?)_(.*?)_', col)
-        if re_cfg_default_name:
-            label = f"{re_cfg_default_name.group(1)}_{re_cfg_default_name.group(2)}_Name"
-        else:
-            label = re.sub(r'b\.cde\.value_', "", col)
-        return label
-
-    def __get_graphql_query(self, offset=None, limit=None):
-
+    def __init_patient_filters(self):
         def get_patient_consent_question_filters():
             return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
             return [f'"{str(wg.id)}"' for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
-        # Build Patient filters
-        patient_filters = {
+        return {
             'registryCode': f'"{self.report_design.registry.code}"',
             'consentQuestionCodes': f"[{','.join(get_patient_consent_question_filters())}]",
             'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
         }
 
+    def __get_graphql_query(self, offset=None, limit=None):
+
+        # Build Patient filters
         if offset:
-            patient_filters['offset'] = offset
+            self.patient_filters['offset'] = offset
 
         if limit:
-            patient_filters['limit'] = limit
+            self.patient_filters['limit'] = limit
 
         # Build simple patient demographic fields
         patient_fields = ['id']
@@ -102,12 +64,7 @@ class Report:
 
         fields_nested_demographics = []
         for model_name, fields in other_demographic_fields.items():
-            pivot_field = self.report_config[model_name].get('pivot_field', None)
-            if pivot_field and pivot_field not in fields:
-                selected_fields = fields.copy() + [pivot_field]
-            else:
-                selected_fields = fields.copy()
-            fields_demographic = GqlQuery().fields(selected_fields).query(model_name).generate()
+            fields_demographic = GqlQuery().fields(fields).query(model_name).generate()
             fields_nested_demographics.append(fields_demographic)
 
         # Build Clinical data
@@ -117,7 +74,7 @@ class Report:
         # - create a dictionary to respectively group together cfg, form, sections by keys
         cfg_dicts = {}
         for key in cde_keys:
-            form,section,cde = models_from_mongo_key(self.report_design.registry, key)
+            form, section, cde = models_from_mongo_key(self.report_design.registry, key)
             cfgs = ContextFormGroup.objects.filter(items__registry_form=form)
             for cfg in cfgs:
                 cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
@@ -146,14 +103,13 @@ class Report:
             field_cfg = GqlQuery().fields(fields_form, name=cfg_code).generate()
             fields_clinical_data.append(field_cfg)
 
-        field_clinical_data = GqlQuery().fields(fields_clinical_data).query('clinicalData').generate()
-
         # Build query
         fields_patient = []
         fields_patient.extend(patient_fields)
         fields_patient.extend(fields_nested_demographics)
-        fields_patient.append(field_clinical_data)
-        return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
+        if fields_clinical_data:
+            fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
+        return GqlQuery().fields(fields_patient).query('patients', input=self.patient_filters).operation().generate()
 
     def validate_for_csv_export(self):
         if self.report_design.cde_heading_format == ReportCdeHeadingFormat.CODE.value:
@@ -184,8 +140,8 @@ class Report:
         offset = 0
 
         while True:
-            result = schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
-            all_patients = result.data['allPatients']
+            result = self.schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
+            all_patients = result.data['patients']
             num_patients = len(all_patients)
             offset += num_patients
 
@@ -197,141 +153,218 @@ class Report:
                 break
 
     def export_to_csv(self, request):
-        result = schema.execute(self.__get_graphql_query(), context_value=request)
+        def get_demographic_headers():
+            def get_flat_json_path(report_model, report_field, i=None):
+                if not report_field:
+                    return None
+                if report_model == 'patient':
+                    prefix = ''
+                else:
+                    prefix = f'{report_model}_'
 
-        def graphql_to_pandas_field(graphql_field):
-            if not graphql_field:
-                return None
-            # E.g. for workingGroup {id}, matching groups: ["workingGroup", " {id} ", "id"]
-            pandas_field = re.sub(r"\s", "", graphql_field)
-            # replace " { field }" with ".field"
-            pandas_field = re.sub(r"(.+)({(.*)})", r"\1.\3", pandas_field)
-            return pandas_field
+                field_json_path = re.sub(r"\s", "", report_field)
+                field_json_path = re.sub(r"(.+)({(.*)})", r"\1_\3", field_json_path)
+                if i is not None:
+                    return f"{prefix}{i}_{field_json_path}"
+                else:
+                    return f"{prefix}{field_json_path}"
 
-        def get_cde_pivot_columns(cde_heading_format):
-            if cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:
-                return 'cfg.abbreviatedName', 'form.abbreviatedName', 'section.abbreviatedName', 'cde.abbreviatedName'
-            if cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
-                return 'cfg.name', 'form.niceName', 'section.name', 'cde.name'
-            if cde_heading_format == ReportCdeHeadingFormat.CODE.value:
-                return 'cfg.code', 'form.name', 'section.code', 'cde.code'
+            def get_variants(lookup_key):
+                query = GqlQuery().fields([lookup_key]).query('dataSummary',
+                                                              input=self.patient_filters).operation().generate()
+                summary_result = self.schema.execute(query, context_value=request)
+                return summary_result.data['dataSummary'][lookup_key]
 
-            raise Exception(_('CDE Heading Format not supported.'))
+            fieldnames_dict = OrderedDict()
+            fieldnames_dict['id'] = 'ID'
 
-        def stream_to_csv(dataframe):
-            stream = io.StringIO()
-            dataframe.to_csv(stream, chunksize=20)
-            return stream
+            # e.g. {'patientAddress': 2}
+            processed_multifield_models = {}
 
-        data_allpatients = result.data['allPatients']
+            for rdf in self.report_design.reportdemographicfield_set.all():
+                model_config = self.report_config[rdf.model]
 
-        # Build definition of report fields grouped by model
-        report_fields = {'patient': ['id']}
-        for df in self.report_design.reportdemographicfield_set.all():
-            report_fields.setdefault(df.model, []).append(graphql_to_pandas_field(df.field))
+                if rdf.model == 'patient':
+                    # Get label for simple fields
+                    fieldnames_dict[get_flat_json_path(rdf.model, rdf.field)] = model_config['fields'][rdf.field]
+                else:
+                    if model_config.get('multi_field', False):
+                        if not processed_multifield_models.get(rdf.model):
+                            # Lookup how many variants of this model is relevant to our patient dataset
+                            num_variants = get_variants(model_config['variant_lookup'])
 
-        # Dynamically build a dataframe for each set of demographic related data
-        dataframes = []
-        for model, fields in report_fields.items():
-            if model == 'patient':
-                continue
+                            # Process all the fields for this model now
+                            model_fields = self.report_design.reportdemographicfield_set.filter(
+                                model=rdf.model).values_list("field", flat=True)
 
-            record_prefix = f"{model}_"
-            model_config = self.report_config[model]
-            pivot_field = graphql_to_pandas_field(model_config.get('pivot_field'))
-            is_one_to_one = model_config.get('one_to_one', False)
+                            for i in range(0, (num_variants or 0)):
+                                for mf in model_fields:
+                                    fieldnames_dict[get_flat_json_path(rdf.model, mf,
+                                                                       i)] = f"{model_config['label']}_{model_config['fields'][mf]}_{i}"
 
-            if is_one_to_one:
-                # We can't use the record_path parameter of json_normalize because the data element for this model does not contain an array of items
-                my_fields = ['id']
-                my_fields.extend([f"{record_prefix}{field}" for field in fields])
-                dataframe = pd.json_normalize(data_allpatients, meta=['id'])
-                dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
+                            # Mark as processed
+                            processed_multifield_models[rdf.model] = num_variants
 
-                # Only take the columns that are relevant to this model, otherwise we end up with duplicates.
-                dataframe = dataframe[my_fields]
-            else:
-                # Normalize the json data into a pandas dataframe following the record path for this specific related model
-                dataframe = pd.json_normalize(data_allpatients, meta=['id'], record_path=[model], record_prefix=record_prefix)
+                    else:
+                        fieldnames_dict[get_flat_json_path(rdf.model,
+                                                           rdf.field)] = f"{model_config['label']}_{model_config['fields'][rdf.field]}"
 
-                if pivot_field:
-                    if not dataframe.empty:
-                        pivot_cols = [f"{record_prefix}{pivot_field}"]
-                        dataframe = dataframe.pivot(index=['id'],
-                                                    columns=pivot_cols,
-                                                    values=[f"{record_prefix}{field}" for field in fields])
+            return fieldnames_dict
 
-                        dataframe = dataframe.sort_index(axis=1, level=pivot_cols, sort_remaining=False)
-                        dataframe.columns = dataframe.columns.to_series().str.join('_')
+        def get_clinical_data_headers(cde_keys):
+            def form_key(cfg, cfg_num, form, longitudinal_selector):
+                if cfg.is_fixed:
+                    return form.name
+                else:
+                    return f'{form.name}_{cfg_num}_{longitudinal_selector}'
 
-                dataframe.columns = dataframe.columns.to_series().str.replace('.', '_')
+            def form_label(cfg, cfg_num, form_label_text):
+                if cfg.is_fixed:
+                    return form_label_text
+                else:
+                    return f'{form_label_text}_{(cfg_num+1)}'
 
-            dataframes.append(dataframe)
+            def section_key(section, section_num):
+                if section.allow_multiple:
+                    return f'{section.code}_{section_num}'
+                else:
+                    return section.code
 
-        # Merge all the dynamically built dataframes into one (merged)
-        merged = None
-        for df in dataframes:
-            if merged is None:
-                merged = df
-            else:
-                merged = pd.merge(left=merged, right=df, on='id', how='outer')
+            def section_label(section, section_num, section_label_text):
+                if section.allow_multiple:
+                    return f'{section_label_text}_{(section_num+1)}'
+                else:
+                    return section_label_text
 
-        # Normalise the rest of the patient and clinical data
-        df = pd.json_normalize(data_allpatients,
-                               record_path=['clinicalData'],
-                               meta=report_fields['patient'],
-                               errors='ignore')
+            def report_formatted_headings_dict():
+                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:
+                    return {
+                        'cfg': cfg.abbreviated_name,
+                        'form': form.abbreviated_name,
+                        'section': section.abbreviated_name,
+                        'cde': cde.abbreviated_name
+                    }
+                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
+                    return {
+                        'cfg': cfg.name,
+                        'form': form.nice_name,
+                        'section': section.display_name,
+                        'cde': cde.name
+                    }
+                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.CODE.value:
+                    return {
+                        'cfg': cfg.code,
+                        'form': form.name,
+                        'section': section.code,
+                        'cde': cde.code
+                    }
 
-        # Capture clinical columns before this dataframe is merged with demographic data
-        clinical_cols = df.columns
+            def form_header_item(cfg, cfg_num, form):
+                fmt_headings = report_formatted_headings_dict()
+                key = f'clinicalData_{cfg.code}_{form_key(cfg, cfg_num, form, "key")}'
+                label = f'{fmt_headings["cfg"]}_{form_label(cfg, cfg_num, fmt_headings["form"])}_Name'
+                return key, label
 
-        # Merge clinical data dataframe with related demographic data dataframe
-        if merged is not None:
-            df = pd.merge(left=df, right=merged, on='id', how='outer')
+            def cde_header_item(cfg, cfg_num, form, section, section_num, cde):
+                fmt_headings = report_formatted_headings_dict()
+                key = f'clinicalData_{cfg.code}_{form_key(cfg, cfg_num, form, "data")}_{section_key(section, section_num)}_{cde.code}'
+                label = "_".join([fmt_headings["cfg"],
+                                  form_label(cfg, cfg_num, fmt_headings["form"]),
+                                  section_label(section, section_num, fmt_headings["section"]),
+                                  fmt_headings["cde"]])
+                return key, label
 
-        df.columns = df.columns.to_series().apply(self.__humanise_column_label)
+            def add_to_cd_headers(cfg, cfg_num, form, section, section_num, cde, cde_value):
+                if mongo_key(form.name, section.code, cde.code) in cde_keys:
+                    if cfg.is_multiple:
+                        items = form_header_item(cfg, cfg_num, form)
+                        form_header_key, form_header_label = items
+                        cd_headers[form_header_key] = {"header": form_header_label}
+                    cde_key, cde_header = cde_header_item(cfg, cfg_num, form, section, section_num, cde)
 
-        # Early exit if there is no clinical data included in the report
-        if 'cde.value' not in df.columns and 'cde.values' not in df.columns:
-            df.drop(columns=['cfg', 'form', 'section', 'cde'], inplace=True)
-            return stream_to_csv(df)
+                    cnt_cde_values = len(cde_value) if type(cde_value) is list else 1
+                    max_cnt_cde_values = max(cnt_cde_values, cd_headers.get(cde_key, {"count": 1})['count'])
+                    cd_headers[cde_key] = {"header": cde_header, "count": max_cnt_cde_values}
 
-        # Merge the value and values columns together so we can pivot it
-        if 'cde.value' not in df.columns:
-            df['cde.value'] = None
-        if 'cde.values' in df.columns:
-            df['cde.value'] = df['cde.value'].combine_first(df['cde.values'])
+            cd_headers = OrderedDict()  # Structure = {key: {header: "value", count: 1}}
 
-        # Capture the demographic cols required for the pivot index before we go and rename columns
-        demographic_cols = [col for col in df.columns if col == 'id' or col not in clinical_cols]
+            patients = list_patients_query(request.user,
+                                           self.report_design.registry.code,
+                                           [cq.code for cq in self.report_design.filter_consents.all()],
+                                           [wg.id for wg in self.report_design.filter_working_groups.all()])
 
-        # Rename the columns being pivoted to occur alphabetically in the order desired in the output report
-        # https://github.com/pandas-dev/pandas/issues/17041#issuecomment-317576297
-        df.rename(inplace=True, columns={'cfg.defaultName': 'a.cfg.defaultName',
-                                         'cde.value': 'b.cde.value'})
+            for patient in patients:
+                clinical_data = ClinicalData.objects.filter(django_id=patient.id,
+                                                            django_model='Patient',
+                                                            collection="cdes").order_by('created_at').all()
 
-        # Pivot the cde values by their uniquely identifying columns (context form group, form, section, cde)
-        cfg_name_col, form_name_col, section_name_col, cde_name_col = get_cde_pivot_columns(self.report_design.cde_heading_format)
+                patient_contexts = RDRFContext.objects.filter(pk__in=list(clinical_data.values_list("context_id", flat=True)))
 
-        cde_pivot_cols = [cfg_name_col, 'cfg.sortOrder', 'cfg.entryNum', form_name_col, section_name_col, 'section.entryNum', cde_name_col]
+                context_lookup = {context.id: context for context in patient_contexts}
+                cfg_counter_lookup = {context.context_form_group.id: 0 for context in patient_contexts}
 
-        pivoted = df.pivot(index=demographic_cols,
-                           columns=cde_pivot_cols,
-                           values=['a.cfg.defaultName', 'b.cde.value'])
+                for idx, entry in enumerate(clinical_data):
+                    context = context_lookup[entry.context_id]
+                    cfg = context.context_form_group
+                    cfg_entry_num = cfg_counter_lookup[cfg.id]
+                    for form_data in entry.data.get("forms", []):
+                        form = next((f for f in cfg.forms if f.name == form_data['name']))
+                        sections = form.section_models
+                        for section_data in form_data.get("sections", []):
+                            section = next(s for s in sections if s.code == section_data['code'])
+                            cdes = section.cde_models
+                            for i, cde_data in enumerate(section_data.get("cdes", [])):
+                                if section.allow_multiple:
+                                    for cde_entry in cde_data:
+                                        cde = next(c for c in cdes if c.code == cde_entry['code'])
+                                        add_to_cd_headers(cfg, cfg_entry_num, form, section, i, cde, cde_entry['value'])
 
-        # Re-order the columns
-        pivoted = pivoted.sort_index(axis=1, level=cde_pivot_cols)
+                                else:
+                                    cde = next(c for c in cdes if c.code == cde_data['code'])
+                                    add_to_cd_headers(cfg, cfg_entry_num, form, section, 0, cde, cde_data['value'])
 
-        # Remove context form group's sort order as we don't need to see this in the results.
-        pivoted = pivoted.droplevel('cfg.sortOrder', axis=1)
+                    # Increment CFG counter for longitudinal entries
+                    cfg_counter_lookup[cfg.id] += 1
 
-        # Flatten the column levels into one, and reformat labels
-        pivoted.columns = pivoted.columns.to_series().str.join('_')
-        pivoted.columns = pivoted.columns.to_series().apply(self.__reformat_pivoted_column_labels)
+            # Generate flattened cd_headers
+            flat_cd_headers = OrderedDict()
+            for key, val in cd_headers.items():
+                cde_cnt = val.get("count", 1)
+                header = val["header"]
+                if cde_cnt == 1:
+                    flat_cd_headers[key] = header
+                else:
+                    for i in range(0, cde_cnt):
+                        flat_cd_headers[f"{key}_{i}"] = f"{header}_{i+1}"
 
-        # Remove null columns (caused by patients with no matching clinical data)
-        pivoted = pivoted.loc[:, pivoted.columns.notnull()]
-        # Remove duplicate columns (caused by repeated context form group's defaultName from how it's pivoted)
-        pivoted = pivoted.loc[:, ~pivoted.columns.duplicated()]
+            return flat_cd_headers
 
-        return stream_to_csv(pivoted)
+        # Build Headers
+        cde_keys = [rcdf.cde_key for rcdf in self.report_design.reportclinicaldatafield_set.all().order_by('id')]
+
+        headers = OrderedDict()
+        headers.update(get_demographic_headers())
+        headers.update(get_clinical_data_headers(cde_keys))
+
+        output = io.StringIO()
+        header_writer = csv.DictWriter(output, fieldnames=headers.values())
+        header_writer.writeheader()
+        yield output.getvalue()
+
+        # Build/Chunk Patient Data
+        limit = 20
+        num_patients = 20
+        offset = 0
+
+        while num_patients >= limit:
+            result = self.schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
+            flat_patient_data = [flatten(p) for p in result.data['patients']]
+
+            num_patients = len(flat_patient_data)
+            offset += num_patients
+
+            output = io.StringIO()
+            data_writer = csv.DictWriter(output, fieldnames=(headers.keys()), extrasaction='ignore')
+            data_writer.writerows(flat_patient_data)
+
+            yield output.getvalue()
