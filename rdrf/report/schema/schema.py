@@ -264,9 +264,6 @@ def create_dynamic_patient_type():
     return type("DynamicPatient", (DjangoObjectType,), patient_fields)
 
 
-# TODO: memoize + possible cache clearing when registry definition changes?
-# TODO: Replace partial resolvers with single resolve function for each level
-# TODO: Replace Metaprogramming with a low-level library like graphql-core
 def list_patients_query(user,
                         registry_code,
                         consent_question_codes=None,
@@ -289,6 +286,9 @@ def list_patients_query(user,
     return patient_query.distinct()
 
 
+# TODO: memoize + possible cache clearing when registry definition changes?
+# TODO: Replace partial resolvers with single resolve function for each level
+# TODO: Replace Metaprogramming with a low-level library like graphql-core
 def create_dynamic_schema():
     if not Registry.objects.all().exists():
         return None

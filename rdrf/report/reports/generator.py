@@ -154,7 +154,7 @@ class Report:
 
     def export_to_csv(self, request):
         def get_demographic_headers():
-            def get_flat_json_path(report_model, report_field, i=None):
+            def get_flat_json_path(report_model, report_field, variant_index=None):
                 if not report_field:
                     return None
                 if report_model == 'patient':
@@ -162,12 +162,24 @@ class Report:
                 else:
                     prefix = f'{report_model}_'
 
-                field_json_path = re.sub(r"\s", "", report_field)
-                field_json_path = re.sub(r"(.+)({(.*)})", r"\1_\3", field_json_path)
-                if i is not None:
-                    return f"{prefix}{i}_{field_json_path}"
+                # When report_field contains nested fields (indicated by the presence of curly braces),
+                # Then apply further transformation to the report field to flatten it
+                if re.search('[{}]', report_field):
+                    # e.g. addressType { type }
+                    # 1. Remove spaces = addressType{type}
+                    json_field_path = re.sub(r"\s", "", report_field)
+                    # 2. Replace curly brace with a single underscore to separate the parts = addressType_type
+                    # --> regex group 1 = addressType
+                    # --> regex group 2 = {type}
+                    # --> regex group 3 = type
+                    json_field_path = re.sub(r"(.+)({(.*)})", r"\1_\3", json_field_path)
                 else:
-                    return f"{prefix}{field_json_path}"
+                    json_field_path = report_field
+
+                if variant_index is not None:
+                    return f"{prefix}{variant_index}_{json_field_path}"
+                else:
+                    return f"{prefix}{json_field_path}"
 
             def get_variants(lookup_key):
                 query = GqlQuery().fields([lookup_key]).query('dataSummary',
@@ -197,7 +209,7 @@ class Report:
                             model_fields = self.report_design.reportdemographicfield_set.filter(
                                 model=rdf.model).values_list("field", flat=True)
 
-                            for i in range(0, (num_variants or 0)):
+                            for i in range(num_variants or 0):
                                 for mf in model_fields:
                                     fieldnames_dict[get_flat_json_path(rdf.model, mf,
                                                                        i)] = f"{model_config['label']}_{model_config['fields'][mf]}_{i}"
@@ -303,7 +315,7 @@ class Report:
                 context_lookup = {context.id: context for context in patient_contexts}
                 cfg_counter_lookup = {context.context_form_group.id: 0 for context in patient_contexts}
 
-                for idx, entry in enumerate(clinical_data):
+                for entry in clinical_data:
                     context = context_lookup[entry.context_id]
                     cfg = context.context_form_group
                     cfg_entry_num = cfg_counter_lookup[cfg.id]
@@ -334,13 +346,14 @@ class Report:
                 if cde_cnt == 1:
                     flat_cd_headers[key] = header
                 else:
-                    for i in range(0, cde_cnt):
+                    for i in range(cde_cnt):
                         flat_cd_headers[f"{key}_{i}"] = f"{header}_{i+1}"
 
             return flat_cd_headers
 
         # Build Headers
-        cde_keys = [rcdf.cde_key for rcdf in self.report_design.reportclinicaldatafield_set.all().order_by('id')]
+        # TODO introduce sort_order for reportclinicaldatafield
+        cde_keys = self.report_design.reportclinicaldatafield_set.order_by('id').values_list('cde_key', flat=True)
 
         headers = OrderedDict()
         headers.update(get_demographic_headers())
