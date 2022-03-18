@@ -280,7 +280,7 @@ class Importer(object):
             groups_in_db = set([group.name for group in Group.objects.all()])
             groups_in_yaml = set([grp_map["name"] for grp_map in self.data["group_permissions"]])
 
-            if groups_in_db != groups_in_yaml:
+            if not groups_in_yaml.issubset(groups_in_db):
                 msg = f"in db: {groups_in_db}, in yaml: {groups_in_yaml}"
                 raise RegistryImportError(f"Imported registry has different groups to yaml file: {msg}")
 
