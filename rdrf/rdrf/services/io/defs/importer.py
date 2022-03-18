@@ -1114,7 +1114,7 @@ class Importer(object):
         from django.contrib.auth.models import Permission
         from django.contrib.contenttypes.models import ContentType
         for group_dict in data:
-            group = Group.objects.get(name=group_dict["name"])
+            group, _ = Group.objects.get_or_create(name=group_dict["name"])
             group_permissions = []
             for permission_dict in group_dict["permissions"]:
                 permission = Permission.objects.get(
