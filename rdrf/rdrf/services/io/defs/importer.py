@@ -284,7 +284,7 @@ class Importer(object):
                 msg = f"in db: {groups_in_db}, in yaml: {groups_in_yaml}"
                 raise RegistryImportError(f"Imported registry has different groups to yaml file: {msg}")
 
-    def _create_groups(self, permissible_value_group_maps):
+    def _create_pvgs(self, permissible_value_group_maps):
         for pvg_map in permissible_value_group_maps:
             pvg, created = CDEPermittedValueGroup.objects.get_or_create(code=pvg_map["code"])
             pvg.save()
@@ -468,7 +468,7 @@ class Importer(object):
             return False
 
     def _create_registry_objects(self):
-        self._create_groups(self.data["pvgs"])
+        self._create_pvgs(self.data["pvgs"])
         logger.info("imported pvgs OK")
         self._create_cdes(self.data["cdes"])
         logger.info("imported cdes OK")
