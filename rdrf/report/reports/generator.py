@@ -10,10 +10,11 @@ from django.utils.module_loading import import_string
 from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
-from rdrf.helpers.utils import models_from_mongo_key, mongo_key
-from rdrf.models.definition.models import ContextFormGroup, RDRFContext, ClinicalData
+from rdrf.helpers.utils import models_from_mongo_key
+from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
-from report.schema.schema import list_patients_query, create_dynamic_schema
+from report.reports.clinical_data_generator import ClinicalDataGenerator
+from report.schema.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +213,7 @@ class Report:
                             for i in range(num_variants or 0):
                                 for mf in model_fields:
                                     fieldnames_dict[get_flat_json_path(rdf.model, mf,
-                                                                       i)] = f"{model_config['label']}_{model_config['fields'][mf]}_{i}"
+                                                                       i)] = f"{model_config['label']}_{model_config['fields'][mf]}_{i + 1}"
 
                             # Mark as processed
                             processed_multifield_models[rdf.model] = num_variants
@@ -223,141 +224,10 @@ class Report:
 
             return fieldnames_dict
 
-        def get_clinical_data_headers(cde_keys):
-            def form_key(cfg, cfg_num, form, longitudinal_selector):
-                if cfg.is_fixed:
-                    return form.name
-                else:
-                    return f'{form.name}_{cfg_num}_{longitudinal_selector}'
-
-            def form_label(cfg, cfg_num, form_label_text):
-                if cfg.is_fixed:
-                    return form_label_text
-                else:
-                    return f'{form_label_text}_{(cfg_num+1)}'
-
-            def section_key(section, section_num):
-                if section.allow_multiple:
-                    return f'{section.code}_{section_num}'
-                else:
-                    return section.code
-
-            def section_label(section, section_num, section_label_text):
-                if section.allow_multiple:
-                    return f'{section_label_text}_{(section_num+1)}'
-                else:
-                    return section_label_text
-
-            def report_formatted_headings_dict():
-                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:
-                    return {
-                        'cfg': cfg.abbreviated_name,
-                        'form': form.abbreviated_name,
-                        'section': section.abbreviated_name,
-                        'cde': cde.abbreviated_name
-                    }
-                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
-                    return {
-                        'cfg': cfg.name,
-                        'form': form.nice_name,
-                        'section': section.display_name,
-                        'cde': cde.name
-                    }
-                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.CODE.value:
-                    return {
-                        'cfg': cfg.code,
-                        'form': form.name,
-                        'section': section.code,
-                        'cde': cde.code
-                    }
-
-            def form_header_item(cfg, cfg_num, form):
-                fmt_headings = report_formatted_headings_dict()
-                key = f'clinicalData_{cfg.code}_{form_key(cfg, cfg_num, form, "key")}'
-                label = f'{fmt_headings["cfg"]}_{form_label(cfg, cfg_num, fmt_headings["form"])}_Name'
-                return key, label
-
-            def cde_header_item(cfg, cfg_num, form, section, section_num, cde):
-                fmt_headings = report_formatted_headings_dict()
-                key = f'clinicalData_{cfg.code}_{form_key(cfg, cfg_num, form, "data")}_{section_key(section, section_num)}_{cde.code}'
-                label = "_".join([fmt_headings["cfg"],
-                                  form_label(cfg, cfg_num, fmt_headings["form"]),
-                                  section_label(section, section_num, fmt_headings["section"]),
-                                  fmt_headings["cde"]])
-                return key, label
-
-            def add_to_cd_headers(cfg, cfg_num, form, section, section_num, cde, cde_value):
-                if mongo_key(form.name, section.code, cde.code) in cde_keys:
-                    if cfg.is_multiple:
-                        items = form_header_item(cfg, cfg_num, form)
-                        form_header_key, form_header_label = items
-                        cd_headers[form_header_key] = {"header": form_header_label}
-                    cde_key, cde_header = cde_header_item(cfg, cfg_num, form, section, section_num, cde)
-
-                    cnt_cde_values = len(cde_value) if type(cde_value) is list else 1
-                    max_cnt_cde_values = max(cnt_cde_values, cd_headers.get(cde_key, {"count": 1})['count'])
-                    cd_headers[cde_key] = {"header": cde_header, "count": max_cnt_cde_values}
-
-            cd_headers = OrderedDict()  # Structure = {key: {header: "value", count: 1}}
-
-            patients = list_patients_query(request.user,
-                                           self.report_design.registry.code,
-                                           [cq.code for cq in self.report_design.filter_consents.all()],
-                                           [wg.id for wg in self.report_design.filter_working_groups.all()])
-
-            for patient in patients:
-                clinical_data = ClinicalData.objects.filter(django_id=patient.id,
-                                                            django_model='Patient',
-                                                            collection="cdes").order_by('created_at').all()
-
-                patient_contexts = RDRFContext.objects.filter(pk__in=list(clinical_data.values_list("context_id", flat=True)))
-
-                context_lookup = {context.id: context for context in patient_contexts}
-                cfg_counter_lookup = {context.context_form_group.id: 0 for context in patient_contexts}
-
-                for entry in clinical_data:
-                    context = context_lookup[entry.context_id]
-                    cfg = context.context_form_group
-                    cfg_entry_num = cfg_counter_lookup[cfg.id]
-                    for form_data in entry.data.get("forms", []):
-                        form = next((f for f in cfg.forms if f.name == form_data['name']))
-                        sections = form.section_models
-                        for section_data in form_data.get("sections", []):
-                            section = next(s for s in sections if s.code == section_data['code'])
-                            cdes = section.cde_models
-                            for i, cde_data in enumerate(section_data.get("cdes", [])):
-                                if section.allow_multiple:
-                                    for cde_entry in cde_data:
-                                        cde = next(c for c in cdes if c.code == cde_entry['code'])
-                                        add_to_cd_headers(cfg, cfg_entry_num, form, section, i, cde, cde_entry['value'])
-
-                                else:
-                                    cde = next(c for c in cdes if c.code == cde_data['code'])
-                                    add_to_cd_headers(cfg, cfg_entry_num, form, section, 0, cde, cde_data['value'])
-
-                    # Increment CFG counter for longitudinal entries
-                    cfg_counter_lookup[cfg.id] += 1
-
-            # Generate flattened cd_headers
-            flat_cd_headers = OrderedDict()
-            for key, val in cd_headers.items():
-                cde_cnt = val.get("count", 1)
-                header = val["header"]
-                if cde_cnt == 1:
-                    flat_cd_headers[key] = header
-                else:
-                    for i in range(cde_cnt):
-                        flat_cd_headers[f"{key}_{i}"] = f"{header}_{i+1}"
-
-            return flat_cd_headers
-
         # Build Headers
-        # TODO introduce sort_order for reportclinicaldatafield
-        cde_keys = self.report_design.reportclinicaldatafield_set.order_by('id').values_list('cde_key', flat=True)
-
         headers = OrderedDict()
         headers.update(get_demographic_headers())
-        headers.update(get_clinical_data_headers(cde_keys))
+        headers.update(ClinicalDataGenerator().csv_headers(request.user, self.report_design))
 
         output = io.StringIO()
         header_writer = csv.DictWriter(output, fieldnames=headers.values())

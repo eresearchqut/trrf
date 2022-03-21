@@ -306,7 +306,7 @@ def create_dynamic_schema():
 
         return list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)[offset:limit]
 
-    def resolve_data_summary(_parent, info, registry_code, consent_question_codes=[], working_group_ids=[]):
+    def resolve_data_summary(_parent, info, registry_code, consent_question_codes=None, working_group_ids=None):
         patients = list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)
         # TODO use resolvers so that we aren't loading this data up unnecessarily.
         return {
