@@ -63,12 +63,6 @@ class RegistryType(DjangoObjectType):
         fields = ('name', 'code')
 
 
-class DataSummaryType(graphene.ObjectType):
-    max_address_count = graphene.Int()
-    max_working_group_count = graphene.Int()
-    # TODO add clinicians
-
-
 def get_schema_field_name(s):
     if not _graphql_field_pattern.match(s):
         new_str = f"field_{s}"
@@ -264,6 +258,17 @@ def create_dynamic_patient_type():
     return type("DynamicPatient", (DjangoObjectType,), patient_fields)
 
 
+def create_dynamic_data_summary_type():
+    data_summary_fields = {
+        'max_address_count': graphene.Int(),
+        'resolve_max_address_count': resolve_max_address_count,
+        'max_working_group_count': graphene.Int(),
+        'resolve_max_working_group_count': resolve_max_working_group_count
+        # TODO add clinicians?
+    }
+    return type("DynamicDataSummary", (graphene.ObjectType,), data_summary_fields)
+
+
 def list_patients_query(user,
                         registry_code,
                         consent_question_codes=None,
@@ -286,6 +291,16 @@ def list_patients_query(user,
     return patient_query.distinct()
 
 
+def resolve_max_address_count(data_summary, info):
+    patients = list_patients_query(info.context.user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
+    return patients.annotate(Count('patientaddress')).aggregate(Max('patientaddress__count')).get('patientaddress__count__max') or 0
+
+
+def resolve_max_working_group_count(data_summary, info):
+    patients = list_patients_query(info.context.user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
+    return patients.annotate(Count('working_groups')).aggregate(Max('working_groups__count')).get('working_groups__count__max')
+
+
 # TODO: memoize + possible cache clearing when registry definition changes?
 # TODO: Replace partial resolvers with single resolve function for each level
 # TODO: Replace Metaprogramming with a low-level library like graphql-core
@@ -293,6 +308,7 @@ def create_dynamic_schema():
     if not Registry.objects.all().exists():
         return None
     dynamic_patient = create_dynamic_patient_type()
+    dynamic_data_summary = create_dynamic_data_summary_type()
 
     def resolve_patients(_parent,
                          info,
@@ -307,12 +323,9 @@ def create_dynamic_schema():
         return list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)[offset:limit]
 
     def resolve_data_summary(_parent, info, registry_code, consent_question_codes=None, working_group_ids=None):
-        patients = list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids)
-        # TODO use resolvers so that we aren't loading this data up unnecessarily.
-        return {
-            'max_address_count': patients.annotate(Count('patientaddress')).aggregate(Max('patientaddress__count')).get('patientaddress__count__max'),
-            'max_working_group_count': patients.annotate(Count('working_groups')).aggregate(Max('working_groups__count')).get('working_groups__count__max')
-        }
+        return {"registry_code": registry_code,
+                "consent_question_codes": consent_question_codes,
+                "working_group_ids": working_group_ids}
 
     dynamic_query = type("DynamicQuery", (graphene.ObjectType,), {
         "patients": graphene.List(dynamic_patient,
@@ -322,7 +335,7 @@ def create_dynamic_schema():
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),
         "resolve_patients": resolve_patients,
-        "data_summary": graphene.Field(DataSummaryType,
+        "data_summary": graphene.Field(dynamic_data_summary,
                                        registry_code=graphene.String(required=True),
                                        consent_question_codes=graphene.List(graphene.String),
                                        working_group_ids=graphene.List(graphene.String)),

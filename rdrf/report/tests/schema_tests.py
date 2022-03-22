@@ -7,8 +7,8 @@ from graphene.test import Client
 
 from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
     CommonDataElement
-from registry.groups.models import CustomUser
-from registry.patients.models import Patient
+from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.models import Patient, AddressType
 from report.schema.schema import create_dynamic_schema
 
 
@@ -24,6 +24,87 @@ class SchemaTest(TestCase):
             user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
 
         cls.query_context = TestContext()
+
+    def test_query_data_summary_max_address_count(self):
+        create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        # Setup address types
+        type_home = AddressType.objects.create(type='Home')
+        type_postal = AddressType.objects.create(type='Postal')
+        type_secondary = AddressType.objects.create(type='Secondary')
+
+        p1 = create_patient()
+        p2 = create_patient()
+        p3 = create_patient()
+
+        p1.rdrf_registry.set([self.registry])
+        p2.rdrf_registry.set([self.registry])
+        p3.rdrf_registry.set([Registry.objects.create(code='another')])
+
+        client = Client(create_dynamic_schema())
+        query = """
+        {
+            dataSummary(registryCode: "test") {
+                maxAddressCount
+            }
+        }
+        """
+
+        # No addresses
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxAddressCount": 0}}}, result)
+
+        # Patients with varying number of addresses across different registries
+        p1.patientaddress_set.create(address_type=type_home).save()
+        p2.patientaddress_set.create(address_type=type_home).save()
+        p2.patientaddress_set.create(address_type=type_postal).save()
+        p3.patientaddress_set.create(address_type=type_home).save()
+        p3.patientaddress_set.create(address_type=type_postal).save()
+        p3.patientaddress_set.create(address_type=type_secondary).save()
+
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxAddressCount": 2}}}, result)
+
+    def test_query_data_summary_max_working_group_count(self):
+        create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        # Setup working groups
+        wg1 = WorkingGroup.objects.create(name="WG1")
+        wg2 = WorkingGroup.objects.create(name="WG2")
+        wg3 = WorkingGroup.objects.create(name="WG3")
+        wg4 = WorkingGroup.objects.create(name="WG3")
+
+        p1 = create_patient()
+        p2 = create_patient()
+        p3 = create_patient()
+        p4 = create_patient()
+
+        p1.rdrf_registry.set([self.registry])
+        p2.rdrf_registry.set([self.registry])
+        p3.rdrf_registry.set([Registry.objects.create(code='another')])
+        p4.rdrf_registry.set([self.registry])
+
+        client = Client(create_dynamic_schema())
+        query = """
+        {
+            dataSummary(registryCode: "test") {
+                maxWorkingGroupCount
+            }
+        }
+        """
+
+        # No working groups assigned to patients yet
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 0}}}, result)
+
+        # Patients with varying number of addresses across different registries
+        p1.working_groups.set([wg1])
+        p2.working_groups.set([wg2, wg3])
+        p3.working_groups.set([wg1, wg2, wg3, wg4])
+        p4.working_groups.set([wg1, wg2, wg3])
+
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 3}}}, result)
 
     def test_query_sex(self):
         patients = [
