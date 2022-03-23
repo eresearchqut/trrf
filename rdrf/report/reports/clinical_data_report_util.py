@@ -129,13 +129,13 @@ class ClinicalDataReportUtil:
                                        report_design.registry.code,
                                        [cq.code for cq in report_design.filter_consents.all()],
                                        [wg.id for wg in report_design.filter_working_groups.all()])
-        xray_recorder.end_segment()
+        xray_recorder.end_subsegment()
 
         xray_recorder.begin_subsegment('load all clinical data')
         all_clinical_data = ClinicalData.objects.filter(django_id__in=(list(patients.values_list("id", flat=True))),
                                                         django_model='Patient',
                                                         collection="cdes").all()
-        xray_recorder.end_segment()
+        xray_recorder.end_subsegment()
 
         self.report_cdes = report_design.reportclinicaldatafield_set.values_list('cde_key', flat=True)
 
@@ -159,7 +159,7 @@ class ClinicalDataReportUtil:
             # e.g. {'cfg-1': {'patientA': 1, 'patientB': 3}}
             cfg_contexts_counter.setdefault(cfg.code, {}).setdefault(context.object_id, 0)
             cfg_contexts_counter[cfg.code][context.object_id] += 1
-        xray_recorder.end_segment()
+        xray_recorder.end_subsegment()
 
         # Step 2 - Generate headers from report summary
         xray_recorder.begin_subsegment('generate headers from summary')
@@ -192,6 +192,6 @@ class ClinicalDataReportUtil:
                                 else:
                                     for cde_i in range(cde_data['count']):
                                         headers.update({f"{cde_key}_{cde_i}": f"{cde_label}_{cde_i+1}"})
-        xray_recorder.end_segment()
-        xray_recorder.end_segment()
+        xray_recorder.end_subsegment()
+        xray_recorder.end_subsegment()
         return headers
