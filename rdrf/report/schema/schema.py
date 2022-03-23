@@ -59,12 +59,14 @@ class WorkingGroupType(DjangoObjectType):
 
 class RegisteredClinician(DjangoObjectType):
     working_groups = graphene.String()
+
     class Meta:
         model = CustomUser
         fields = ('first_name', 'last_name', 'email', 'ethically_cleared')
 
     def resolve_working_groups(clinician, info):
         return ",".join([wg.display_name for wg in clinician.working_groups.all()])
+
 
 class RegistryType(DjangoObjectType):
     class Meta:
@@ -305,11 +307,12 @@ def list_patients_query(user,
 def list_patients_for_data_summary(user, data_summary):
     return list_patients_query(user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
 
+
 def resolve_max_address_count(data_summary, info):
     return list_patients_for_data_summary(info.context.user, data_summary)\
-               .annotate(Count('patientaddress'))\
-               .aggregate(Max('patientaddress__count'))\
-               .get('patientaddress__count__max') or 0
+        .annotate(Count('patientaddress'))\
+        .aggregate(Max('patientaddress__count'))\
+        .get('patientaddress__count__max') or 0
 
 
 def resolve_max_working_group_count(data_summary, info):

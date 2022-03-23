@@ -69,7 +69,10 @@ class Report:
             fields_nested_demographics.append(fields_demographic)
 
         # Build Clinical data
-        # TODO add sort_order to report_design model for clinicaldatafields rather than assuming it's safe to order by id
+        # Order by ID for the benefit of the unit tests to ensure the graphql query is generated in a predictable order
+        # However, the order of the clinical data in a CSV export is currently determined by the order it appears in a
+        # patient's clinical record. Revisit this in the future if there's a need to allow the user to set the order on
+        # the fields in a report design.
         cde_keys = [rcdf.cde_key for rcdf in self.report_design.reportclinicaldatafield_set.all().order_by('id')]
 
         # - create a dictionary to respectively group together cfg, form, sections by keys
