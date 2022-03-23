@@ -9,8 +9,7 @@ from report.schema.schema import list_patients_query
 
 logger = logging.getLogger(__name__)
 
-
-class ClinicalDataGenerator:
+class ClinicalDataReportUtil:
 
     def __init__(self):
         self.report_cdes = []

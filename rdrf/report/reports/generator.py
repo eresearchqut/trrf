@@ -13,7 +13,7 @@ from gql_query_builder import GqlQuery
 from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
-from report.reports.clinical_data_generator import ClinicalDataGenerator
+from report.reports.clinical_data_report_util import ClinicalDataReportUtil
 from report.schema.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
@@ -213,11 +213,10 @@ class Report:
                             for i in range(num_variants or 0):
                                 for mf in model_fields:
                                     fieldnames_dict[get_flat_json_path(rdf.model, mf,
-                                                                       i)] = f"{model_config['label']}_{model_config['fields'][mf]}_{i + 1}"
+                                                                       i)] = f"{model_config['label']}_{i + 1}_{model_config['fields'][mf]}"
 
                             # Mark as processed
                             processed_multifield_models[rdf.model] = num_variants
-
                     else:
                         fieldnames_dict[get_flat_json_path(rdf.model,
                                                            rdf.field)] = f"{model_config['label']}_{model_config['fields'][rdf.field]}"
@@ -227,7 +226,7 @@ class Report:
         # Build Headers
         headers = OrderedDict()
         headers.update(get_demographic_headers())
-        headers.update(ClinicalDataGenerator().csv_headers(request.user, self.report_design))
+        headers.update(ClinicalDataReportUtil().csv_headers(request.user, self.report_design))
 
         output = io.StringIO()
         header_writer = csv.DictWriter(output, fieldnames=headers.values())

@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
-
 from graphene.test import Client
 
 from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
     CommonDataElement
+from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, AddressType
 from report.schema.schema import create_dynamic_schema
@@ -97,7 +98,7 @@ class SchemaTest(TestCase):
         result = client.execute(query, context_value=self.query_context)
         self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 0}}}, result)
 
-        # Patients with varying number of addresses across different registries
+        # Patients with varying number of working groups across different registries
         p1.working_groups.set([wg1])
         p2.working_groups.set([wg2, wg3])
         p3.working_groups.set([wg1, wg2, wg3, wg4])
@@ -105,6 +106,51 @@ class SchemaTest(TestCase):
 
         result = client.execute(query, context_value=self.query_context)
         self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 3}}}, result)
+
+    def test_query_data_summary_max_clinician_count(self):
+        create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        # Setup clinicians
+        group_clinician = Group.objects.create(name=RDRF_GROUPS.CLINICAL)
+
+        c1 = CustomUser.objects.create(username='clinician1')
+        c2 = CustomUser.objects.create(username='clinician2')
+        c3 = CustomUser.objects.create(username='clinician3')
+        c4 = CustomUser.objects.create(username='clinician4')
+        c5 = CustomUser.objects.create(username='clinician5')
+        c6 = CustomUser.objects.create(username='clinician6')
+
+        for clinician in (c1,c2,c3, c4, c5, c6):
+            clinician.groups.add(group_clinician)
+
+        p1 = create_patient()
+        p2 = create_patient()
+        p3 = create_patient()
+
+        p1.rdrf_registry.set([self.registry])
+        p2.rdrf_registry.set([self.registry])
+        p3.rdrf_registry.set([Registry.objects.create(code='another')])
+
+        client = Client(create_dynamic_schema())
+        query = """
+        {
+            dataSummary(registryCode: "test") {
+                maxClinicianCount
+            }
+        }
+        """
+
+        # No clinicians assigned to patients yet
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxClinicianCount": 0}}}, result)
+
+        # Patients with varying number of addresses across different registries
+        p1.registered_clinicians.set([c1, c3])
+        p2.registered_clinicians.set([c1, c2, c3, c4])
+        p3.registered_clinicians.set([c1, c2, c3, c5, c6])
+
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxClinicianCount": 4}}}, result)
 
     def test_query_sex(self):
         patients = [

@@ -9,7 +9,7 @@ from rdrf.models.definition.models import Registry, ClinicalData, CommonDataElem
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from report.models import ReportDesign, ReportCdeHeadingFormat
-from report.reports.clinical_data_generator import ClinicalDataGenerator
+from report.reports.clinical_data_report_util import ClinicalDataReportUtil
 
 
 class ClinicalDataGeneratorTestCase(TestCase):
@@ -208,7 +208,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
 
-        generator = ClinicalDataGenerator()
+        generator = ClinicalDataReportUtil()
 
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
         expected = OrderedDict()

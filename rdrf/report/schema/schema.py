@@ -8,7 +8,7 @@ from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
-from registry.groups.models import WorkingGroup
+from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,15 @@ class WorkingGroupType(DjangoObjectType):
     def resolve_display_name(self, info):
         return self.display_name
 
+
+class RegisteredClinician(DjangoObjectType):
+    working_groups = graphene.String()
+    class Meta:
+        model = CustomUser
+        fields = ('first_name', 'last_name', 'email', 'ethically_cleared')
+
+    def resolve_working_groups(clinician, info):
+        return ",".join([wg.display_name for wg in clinician.working_groups.all()])
 
 class RegistryType(DjangoObjectType):
     class Meta:
@@ -239,7 +248,7 @@ def create_dynamic_patient_type():
                        'next_of_kin_work_phone', 'next_of_kin_email', 'next_of_kin_parent_place_of_birth',
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
-                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'consents')
+                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents')
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
@@ -263,8 +272,9 @@ def create_dynamic_data_summary_type():
         'max_address_count': graphene.Int(),
         'resolve_max_address_count': resolve_max_address_count,
         'max_working_group_count': graphene.Int(),
-        'resolve_max_working_group_count': resolve_max_working_group_count
-        # TODO add clinicians?
+        'resolve_max_working_group_count': resolve_max_working_group_count,
+        'max_clinician_count': graphene.Int(),
+        'resolve_max_clinician_count': resolve_max_clinician_count
     }
     return type("DynamicDataSummary", (graphene.ObjectType,), data_summary_fields)
 
@@ -277,7 +287,8 @@ def list_patients_query(user,
 
     patient_query = Patient.objects \
         .get_by_user_and_registry(user, registry) \
-        .prefetch_related('working_groups')
+        .prefetch_related('working_groups') \
+        .prefetch_related('registered_clinicians')
 
     if working_group_ids:
         patient_query = patient_query.filter(working_groups__id__in=working_group_ids)
@@ -291,14 +302,28 @@ def list_patients_query(user,
     return patient_query.distinct()
 
 
+def list_patients_for_data_summary(user, data_summary):
+    return list_patients_query(user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
+
 def resolve_max_address_count(data_summary, info):
-    patients = list_patients_query(info.context.user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
-    return patients.annotate(Count('patientaddress')).aggregate(Max('patientaddress__count')).get('patientaddress__count__max') or 0
+    return list_patients_for_data_summary(info.context.user, data_summary)\
+               .annotate(Count('patientaddress'))\
+               .aggregate(Max('patientaddress__count'))\
+               .get('patientaddress__count__max') or 0
 
 
 def resolve_max_working_group_count(data_summary, info):
-    patients = list_patients_query(info.context.user, data_summary['registry_code'], data_summary['consent_question_codes'], data_summary['working_group_ids'])
-    return patients.annotate(Count('working_groups')).aggregate(Max('working_groups__count')).get('working_groups__count__max')
+    return list_patients_for_data_summary(info.context.user, data_summary)\
+        .annotate(Count('working_groups'))\
+        .aggregate(Max('working_groups__count'))\
+        .get('working_groups__count__max')
+
+
+def resolve_max_clinician_count(data_summary, info):
+    return list_patients_for_data_summary(info.context.user, data_summary)\
+        .annotate(Count('registered_clinicians'))\
+        .aggregate(Max('registered_clinicians__count'))\
+        .get('registered_clinicians__count__max')
 
 
 # TODO: memoize + possible cache clearing when registry definition changes?

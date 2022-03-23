@@ -56,6 +56,18 @@ REPORT_CONFIGURATION = {
             'fields': {
                 'displayName': 'Name'
             }
+        },
+        'registeredClinicians': {
+            'label': 'Registered Clinicians',
+            'multi_field': True,
+            'variant_lookup': 'maxClinicianCount',
+            'fields': {
+                'firstName': 'First Name',
+                'lastName': 'Last Name',
+                'email': 'Email',
+                'ethicallyCleared': 'Ethically Cleared',
+                'workingGroups': 'Working Groups'
+            }
         }
     }
 }
