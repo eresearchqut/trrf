@@ -1,6 +1,8 @@
 import logging
 from collections import OrderedDict
 
+from aws_xray_sdk.core import xray_recorder
+
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ClinicalData, RDRFContext, ContextFormGroup, RegistryForm, Section, \
     CommonDataElement
@@ -120,14 +122,20 @@ class ClinicalDataReportUtil:
         return key, label
 
     def csv_headers(self, user, report_design):
+        xray_recorder.begin_subsegment('csv_headers')
+
+        xray_recorder.begin_subsegment('list_patients')
         patients = list_patients_query(user,
                                        report_design.registry.code,
                                        [cq.code for cq in report_design.filter_consents.all()],
                                        [wg.id for wg in report_design.filter_working_groups.all()])
+        xray_recorder.end_segment()
 
+        xray_recorder.begin_subsegment('load all clinical data')
         all_clinical_data = ClinicalData.objects.filter(django_id__in=(list(patients.values_list("id", flat=True))),
                                                         django_model='Patient',
                                                         collection="cdes").all()
+        xray_recorder.end_segment()
 
         self.report_cdes = report_design.reportclinicaldatafield_set.values_list('cde_key', flat=True)
 
@@ -135,6 +143,7 @@ class ClinicalDataReportUtil:
         cfg_contexts_counter = {}
 
         # Step 1 - Summarise all clinical data
+        xray_recorder.begin_subsegment('summarise clinical data')
         for entry in all_clinical_data:
             context = self.__context_lookup(entry.context_id)
             cfg = context.context_form_group
@@ -150,8 +159,10 @@ class ClinicalDataReportUtil:
             # e.g. {'cfg-1': {'patientA': 1, 'patientB': 3}}
             cfg_contexts_counter.setdefault(cfg.code, {}).setdefault(context.object_id, 0)
             cfg_contexts_counter[cfg.code][context.object_id] += 1
+        xray_recorder.end_segment()
 
         # Step 2 - Generate headers from report summary
+        xray_recorder.begin_subsegment('generate headers from summary')
         headers = OrderedDict()
 
         for cfg_code, cfg_data in report_items.items():
@@ -181,5 +192,6 @@ class ClinicalDataReportUtil:
                                 else:
                                     for cde_i in range(cde_data['count']):
                                         headers.update({f"{cde_key}_{cde_i}": f"{cde_label}_{cde_i+1}"})
-
+        xray_recorder.end_segment()
+        xray_recorder.end_segment()
         return headers
