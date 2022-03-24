@@ -2,6 +2,7 @@ import logging
 from collections import OrderedDict
 
 from aws_xray_sdk.core import xray_recorder
+from django.core.paginator import Paginator
 
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ClinicalData, RDRFContext, ContextFormGroup, RegistryForm, Section, \
@@ -135,7 +136,8 @@ class ClinicalDataReportUtil:
         xray_recorder.begin_subsegment('load all clinical data')
         all_clinical_data = ClinicalData.objects.filter(django_id__in=(list(patients.values_list("id", flat=True))),
                                                         django_model='Patient',
-                                                        collection="cdes").all()
+                                                        collection="cdes").order_by('id').all()
+
         xray_recorder.end_subsegment()
 
         self.report_cdes = report_design.reportclinicaldatafield_set.values_list('cde_key', flat=True)
@@ -145,21 +147,25 @@ class ClinicalDataReportUtil:
 
         # Step 1 - Summarise all clinical data
         xray_recorder.begin_subsegment('summarise clinical data')
-        for entry in all_clinical_data:
-            context = self.__context_lookup(entry.context_id)
-            cfg = context.context_form_group
 
-            cfg_data = report_items.get(cfg.code, {})
-            forms_data = self.__extract_forms_data(cfg_data.get('forms', {}), entry.data['forms'])
+        paginator = Paginator(all_clinical_data, 1000)
+        for page_number in paginator.page_range:
+            page = paginator.page(page_number)
+            for entry in page.object_list:
+                context = self.__context_lookup(entry.context_id)
+                cfg = context.context_form_group
 
-            if forms_data:
-                cfg_data = {'forms': forms_data}
-                report_items[cfg.code] = cfg_data
+                cfg_data = report_items.get(cfg.code, {})
+                forms_data = self.__extract_forms_data(cfg_data.get('forms', {}), entry.data['forms'])
 
-            # Keep count of number of longitudinal entries by patient
-            # e.g. {'cfg-1': {'patientA': 1, 'patientB': 3}}
-            cfg_contexts_counter.setdefault(cfg.code, {}).setdefault(context.object_id, 0)
-            cfg_contexts_counter[cfg.code][context.object_id] += 1
+                if forms_data:
+                    cfg_data = {'forms': forms_data}
+                    report_items[cfg.code] = cfg_data
+
+                # Keep count of number of longitudinal entries by patient
+                # e.g. {'cfg-1': {'patientA': 1, 'patientB': 3}}
+                cfg_contexts_counter.setdefault(cfg.code, {}).setdefault(context.object_id, 0)
+                cfg_contexts_counter[cfg.code][context.object_id] += 1
         xray_recorder.end_subsegment()
 
         # Step 2 - Generate headers from report summary
