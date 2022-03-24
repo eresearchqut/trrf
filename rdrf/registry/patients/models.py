@@ -495,10 +495,7 @@ class Patient(models.Model):
 
     @property
     def home_address(self):
-        try:
-            return self.patientaddress_set.get(address_type__type='Home')
-        except PatientAddress.DoesNotExist:
-            return None
+        return self.patientaddress_set.filter(address_type__type='Home').first()
 
     def clinical_data_currency(self, days=365):
         """
