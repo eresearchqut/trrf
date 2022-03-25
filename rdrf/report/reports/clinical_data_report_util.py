@@ -124,7 +124,7 @@ class ClinicalDataReportUtil:
         return key, label
 
     def csv_headers(self, user, report_design):
-        xray_recorder.begin_subsegment('csv_headers')
+        xray_recorder.begin_segment('csv_headers')
 
         xray_recorder.begin_subsegment('list_patients')
         patients = list_patients_query(user,
@@ -200,5 +200,5 @@ class ClinicalDataReportUtil:
                                     for cde_i in range(cde_data['count']):
                                         headers.update({f"{cde_key}_{cde_i}": f"{cde_label}_{cde_i+1}"})
         xray_recorder.end_subsegment()
-        xray_recorder.end_subsegment()
+        xray_recorder.end_segment()
         return headers
