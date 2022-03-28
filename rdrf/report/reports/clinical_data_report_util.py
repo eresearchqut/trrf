@@ -5,7 +5,7 @@ from django.db import connections
 from django.db.models import Count
 
 from rdrf import settings
-from rdrf.helpers.utils import mongo_key, get_form_section_code
+from rdrf.helpers.utils import get_form_section_code
 from rdrf.models.definition.models import RDRFContext, ContextFormGroup, RegistryForm, Section, \
     CommonDataElement
 from report.models import ReportCdeHeadingFormat
@@ -152,29 +152,25 @@ class ClinicalDataReportUtil:
 
         return sort_order_lookup
 
-
     def sorted_forms(self, unsorted_forms_dict, sort_order_lookup):
         return dict(sorted(unsorted_forms_dict.items(), key=lambda item: sort_order_lookup[item[0]]['order'])).items()
-
 
     def sorted_sections(self, unsorted_sections_dict, sort_order_lookup, form_name):
         return dict(sorted(unsorted_sections_dict.items(), key=lambda item: sort_order_lookup[form_name]['sections'][item[0]]['order'])).items()
 
-
     def sorted_cdes(self, unsorted_cdes_dict, sort_order_lookup, form_name, section_code):
         return dict(sorted(unsorted_cdes_dict.items(), key=lambda item: sort_order_lookup[form_name]['sections'][section_code]['cdes'][item[0]])).items()
-
 
     def get_max_count_cfg_entries(self, cfg):
         # Get counts of entries per patient (object_id) for this context form group
         # Take the first count in the result set, which works out to be the max count of number of patient entries
         max_cnt_entries = \
             RDRFContext.objects.filter(context_form_group=cfg) \
-                .values('context_form_group', 'object_id') \
-                .annotate(cnt_entries=Count('object_id')).order_by('-cnt_entries')[:1]
+                               .values('context_form_group', 'object_id') \
+                               .annotate(cnt_entries=Count('object_id')) \
+                               .order_by('-cnt_entries')[:1]
 
         return max_cnt_entries.first()['cnt_entries'] if max_cnt_entries else 1
-
 
     def get_cfg_data(self, cfg, cfgs_lookup, heading_format):
         cfg_lookup = cfgs_lookup.get(cfg.code, None)
@@ -194,7 +190,6 @@ class ClinicalDataReportUtil:
                                                [cq.code for cq in report_design.filter_consents.all()],
                                                [wg.id for wg in report_design.filter_working_groups.all()]).values_list("id", flat=True))
         cd_summary = self.__clinical_data_summary(patient_ids, cde_keys)
-
 
         # Step 2 - Generate headers from summary
         cfgs_lookup = {}  # e.g. {'cfgcode': {'count': 1, 'heading': 'formatted heading'}}
