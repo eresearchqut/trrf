@@ -13,7 +13,10 @@ from report.reports.clinical_data_report_util import ClinicalDataReportUtil
 
 
 class ClinicalDataGeneratorTestCase(TestCase):
+
     databases = ['default', 'clinical']
+    maxDiff = None
+
     @classmethod
     def setUpTestData(cls):
         # Setup for standard forms/sections & cdes
@@ -195,7 +198,28 @@ class ClinicalDataGeneratorTestCase(TestCase):
                                     collection="cdes",
                                     context_id=ctx4.id, data=multisection_data)
 
+    def test_form_section_cde_sort_order(self):
+        generator = ClinicalDataReportUtil()
 
+        cde_keys = ['sleep____sleepDiary____timeToBed', 'sleep____sleepDiary____timesAwoke',
+                    'recentSymptoms____symptoms____completedDate', 'recentSymptoms____symptoms____fatigue',
+                    'recentSymptoms____symptoms____pain', 'sleep____sleepDiary____dayOfWeek',
+                    'sleep____generalSleep____sleepConditions']
+
+        expected_sort_order = \
+            {'sleep': {'order': 0, 'sections': {'sleepDiary': { 'order': 0,
+                                                                'cdes': {'timeToBed': 0,
+                                                                         'timesAwoke': 1,
+                                                                         'dayOfWeek': 2}},
+                                                'generalSleep': {'order': 1, 'cdes': {'sleepConditions': 0}}}},
+             'recentSymptoms': {'order': 1, 'sections': {'symptoms': {'order': 0,
+                                                                      'cdes': {'completedDate': 0,
+                                                                               'fatigue': 1,
+                                                                               'pain': 2}}}}}
+
+        sort_order = generator.form_section_cde_sort_order(cde_keys)
+
+        self.assertEqual(sort_order, expected_sort_order)
 
 
     def test_generate_csv_headers(self):
@@ -213,6 +237,12 @@ class ClinicalDataGeneratorTestCase(TestCase):
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
         expected = OrderedDict()
         expected.update({
+            'clinicalData_sleepTracking_sleep_sleepDiary_0_timeToBed': 'sleepTracking_sleep_sleepDiary_1_timeToBed',
+            'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_0': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_1',
+            'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_1': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_2',
+            'clinicalData_sleepTracking_sleep_sleepDiary_1_timeToBed': 'sleepTracking_sleep_sleepDiary_2_timeToBed',
+            'clinicalData_sleepTracking_sleep_sleepDiary_1_timesAwoke_0': 'sleepTracking_sleep_sleepDiary_2_timesAwoke_1',
+            'clinicalData_sleepTracking_sleep_sleepDiary_1_timesAwoke_1': 'sleepTracking_sleep_sleepDiary_2_timesAwoke_2',
             'clinicalData_symptoms_recentSymptoms_0_key': 'symptoms_recentSymptoms_1_Name',
             'clinicalData_symptoms_recentSymptoms_0_data_symptoms_completedDate': 'symptoms_recentSymptoms_1_symptoms_completedDate',
             'clinicalData_symptoms_recentSymptoms_0_data_symptoms_fatigue': 'symptoms_recentSymptoms_1_symptoms_fatigue',
@@ -220,13 +250,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
             'clinicalData_symptoms_recentSymptoms_1_key': 'symptoms_recentSymptoms_2_Name',
             'clinicalData_symptoms_recentSymptoms_1_data_symptoms_completedDate': 'symptoms_recentSymptoms_2_symptoms_completedDate',
             'clinicalData_symptoms_recentSymptoms_1_data_symptoms_fatigue': 'symptoms_recentSymptoms_2_symptoms_fatigue',
-            'clinicalData_symptoms_recentSymptoms_1_data_symptoms_pain': 'symptoms_recentSymptoms_2_symptoms_pain',
-            'clinicalData_sleepTracking_sleep_sleepDiary_0_timeToBed': 'sleepTracking_sleep_sleepDiary_1_timeToBed',
-            'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_0': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_1',
-            'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_1': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_2',
-            'clinicalData_sleepTracking_sleep_sleepDiary_1_timeToBed': 'sleepTracking_sleep_sleepDiary_2_timeToBed',
-            'clinicalData_sleepTracking_sleep_sleepDiary_1_timesAwoke_0': 'sleepTracking_sleep_sleepDiary_2_timesAwoke_1',
-            'clinicalData_sleepTracking_sleep_sleepDiary_1_timesAwoke_1': 'sleepTracking_sleep_sleepDiary_2_timesAwoke_2',
+            'clinicalData_symptoms_recentSymptoms_1_data_symptoms_pain': 'symptoms_recentSymptoms_2_symptoms_pain'
         })
 
 
