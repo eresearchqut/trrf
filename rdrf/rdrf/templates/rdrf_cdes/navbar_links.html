@@ -2,12 +2,13 @@
 {% load translate %}
 {% load project_title %}
 {% load project_title_link %}
+{% load get_language_settings %}
 
 {% include "localisation/language_picker_form.html" %}
 <div class="collapse navbar-collapse justify-content-end" id="navbar-collapsing-links">
     <ul class="navbar-nav navbar-right">
       <li class="nav-item"><a class="nav-link d-md-none" href="{% project_title_link %}">{% project_title %}</a></li>
-        {% get_available_languages as LANGUAGES %}
+        {% get_language_settings as LANGUAGES %}
         {% get_current_language as CURRENT_LANGUAGE %}
         {% if LANGUAGES|length > 1 %}
             <li class="nav-item dropdown">

@@ -12,7 +12,6 @@
 {% load get_info_text_expression %}
 {% load i18n %}
 {% load translate %}
-{% load add_language_modifier %}
 
 
 {% block extrastyle %}
@@ -299,8 +298,7 @@
                                 <div class="card-header"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
                                 {% with info_text_expression=section|get_info_text_expression %}
-                                {% with docfile=link|add_language_modifier %}
-				{% with doc="docs/"|add:docfile %}
+				                {% with doc="docs/"|add:link %}
 
                                 {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
                                     {% if info_text_expression %}
@@ -311,8 +309,7 @@
                                             {% endautoescape %}
                                     {% endif %}
                                 {% endwith %}
-                                {% endwith %}
-		                {% endwith %}
+		                        {% endwith %}
                                 </div>
                                 <div class="card-body">
                                     {% for s in section %}

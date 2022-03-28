@@ -53,7 +53,7 @@ def run_set_abbreviations_on_clinical_data_parts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0138_file_uploaded_event'),
+        ('rdrf', '0139_language_code'),
     ]
 
     operations = [

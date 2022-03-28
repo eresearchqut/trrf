@@ -55,17 +55,23 @@ USE_I18N = env.get("use_i18n", True)
 DATE_FORMAT = "d-m-Y"
 
 # This must be a superset of LANGUAGES
-ALL_LANGUAGES = (("en", "English"),
-                 ("ar", "Arabic"),
-                 ("pl", "Polish"),
-                 ("es", "Spanish"),
-                 ("de", "German"),
-                 ("fr", "French"),
-                 ("it", "Italian"))
+ALL_LANGUAGES = (
+    ("en", "English"),
+    ("ar", "العربية"),
+    ("es", "Español"),
+    ("de", "Deutsch"),
+    ("fr", "Français"),
+    ("he", "עִבְרִית"),
+    ("it", "Italiano"),
+    ("pl", "Język polski"),
+    ("pt", "Português"),
+    ("zh-CN", "汉语"),
+    ("zh-TW", "漢語"),
+)
 
 # This must be a subset of ALL_LANGUAGES
-LANGUAGES_ASSOC_LIST = env.getlist("languages", ["en:English"])
-LANGUAGES = tuple(sorted([tuple(lang.split(":")) for lang in LANGUAGES_ASSOC_LIST], key=lambda l: l[1]))
+LANGUAGES_ASSOC_LIST = env.getlist("languages", ["en"])
+LANGUAGES = tuple(((lang, dict(ALL_LANGUAGES).get(lang, lang)) for lang in LANGUAGES_ASSOC_LIST))
 
 DATABASES = {
     'default': {
