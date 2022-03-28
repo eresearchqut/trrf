@@ -165,11 +165,11 @@ def django_migrate(args=[]):
 
 def django_admin(args, fail_on_error=False):
     logger.info(args)
-    return_code, _, _ = subprocess_logging(["django-admin.py"] + args)
+    return_code, _, _ = subprocess_logging(["django-admin"] + args)
 
     if fail_on_error and return_code != 0:
         raise Exception("'%s' command failed with error code %d" %
-                        (' '.join(["django-admin.py"] + args), return_code))
+                        (' '.join(["django-admin"] + args), return_code))
 
 
 def show_stats(export_name):

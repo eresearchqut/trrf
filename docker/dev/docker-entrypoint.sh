@@ -120,7 +120,7 @@ function defaults {
 function _django_check_deploy {
     info "running check --deploy"
     set -x
-    django-admin.py check --deploy --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-check.log
+    django-admin check --deploy --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-check.log
     set +x
 }
 
@@ -128,9 +128,9 @@ function _django_check_deploy {
 function _django_migrate {
     info "running migrate"
     set -x
-    django-admin.py migrate --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-migrate.log
-    django-admin.py migrate --database=clinical --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-migrate-clinical.log
-    django-admin.py update_permissions --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-permissions.log
+    django-admin migrate --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-migrate.log
+    django-admin migrate --database=clinical --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-migrate-clinical.log
+    django-admin update_permissions --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-permissions.log
     set +x
 }
 
@@ -138,7 +138,7 @@ function _django_migrate {
 function _django_collectstatic {
     info "running collectstatic"
     set -x
-    django-admin.py collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-collectstatic.log
+    django-admin collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1 | tee "${LOG_DIRECTORY}"/uwsgi-collectstatic.log
     set +x
 }
 
@@ -146,7 +146,7 @@ function _django_collectstatic {
 function _django_fixtures {
     info "loading fixtures ${DJANGO_FIXTURES}"
     set -x
-    django-admin.py init ${DJANGO_FIXTURES}
+    django-admin init ${DJANGO_FIXTURES}
     set +x
 }
 
@@ -161,7 +161,7 @@ function _runserver() {
     info "RUNSERVER_OPTS is ${RUNSERVER_OPTS}"
     set -x
     # shellcheck disable=SC2086
-    exec django-admin.py ${RUNSERVER_OPTS}
+    exec django-admin ${RUNSERVER_OPTS}
 }
 
 
@@ -169,7 +169,7 @@ function _aloe() {
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
     shift
     set -x
-    exec django-admin.py harvest --with-xunit --xunit-file="${WRITABLE_DIRECTORY}"/tests.xml --verbosity=3 "$@"
+    exec django-admin harvest --with-xunit --xunit-file="${WRITABLE_DIRECTORY}"/tests.xml --verbosity=3 "$@"
 }
 
 
@@ -211,7 +211,7 @@ if [ "$1" = 'uwsgi_ssl_fargate' ]; then
 
     info "running collectstatic"
     set -x
-    django-admin.py collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1
+    django-admin collectstatic --noinput --settings="${DJANGO_SETTINGS_MODULE}" 2>&1
 
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
