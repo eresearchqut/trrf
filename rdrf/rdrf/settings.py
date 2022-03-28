@@ -109,6 +109,8 @@ DATABASES["reporting"] = {
 
 DATABASE_ROUTERS = ["rdrf.db.db.RegistryRouter"]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 TEMPLATES = [
     {
