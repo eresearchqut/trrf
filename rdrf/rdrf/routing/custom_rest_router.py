@@ -1,5 +1,5 @@
 import types
-from django.conf.urls import url
+from django.urls import re_path
 from rest_framework import routers, viewsets
 
 # Based on http://stackoverflow.com/questions/18818179/routing-api-views-in-django-rest-framework
@@ -45,7 +45,7 @@ class DefaultRouterWithSimpleViews(routers.DefaultRouter):
             # The view name has to have suffix "-list" due to specifics
             # of the DefaultRouter implementation.
             view = viewset if isinstance(viewset, types.FunctionType) else viewset.as_view()
-            ret.append(url(regex, view, name='{0}-list'.format(basename)))
+            ret.append(re_path(regex, view, name='{0}-list'.format(basename)))
 
         return ret
 
