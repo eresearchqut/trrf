@@ -1,6 +1,6 @@
 sphinx
 sphinxcontrib-fulltoc
-Werkzeug
+Werkzeug==2.0.3
 python-Levenshtein
 ipython
 django-silk
