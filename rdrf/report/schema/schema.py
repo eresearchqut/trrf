@@ -1,15 +1,17 @@
 import logging
 import re
 from functools import partial
+from importlib import import_module
 
 import graphene
 from django.db.models import Count, Max
 from graphene_django import DjangoObjectType
-
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -225,20 +227,11 @@ def get_clinical_data_fields():
     return fields
 
 
-def create_dynamic_patient_type():
-    def clinical_data_resolver(patient, _info):
-        return patient, ClinicalData.objects.filter(
-            django_id=patient.id,
-            django_model='Patient',
-            collection="cdes"
-        ).order_by('created_at').all()
-
-    clinical_data_fields = get_clinical_data_fields()
-
-    patient_fields = {
+def get_patient_fields():
+    return {
         "Meta": type("Meta", (), {
             "model": Patient,
-            "fields": ('id', 'consent', 'consent_clinical_trials', 'consent_sent_information',
+            "fields": ['id', 'consent', 'consent_clinical_trials', 'consent_sent_information',
                        'consent_provided_by_parent_guardian', 'family_name', 'given_names', 'maiden_name', 'umrn',
                        'date_of_birth', 'date_of_death', 'place_of_birth', 'date_of_migration', 'country_of_birth',
                        'ethnic_origin', 'sex', 'home_phone', 'mobile_phone', 'work_phone', 'email',
@@ -250,11 +243,26 @@ def create_dynamic_patient_type():
                        'next_of_kin_work_phone', 'next_of_kin_email', 'next_of_kin_parent_place_of_birth',
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
-                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents')
+                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
     }
+
+
+def create_dynamic_patient_type():
+    def clinical_data_resolver(patient, _info):
+        return patient, ClinicalData.objects.filter(
+            django_id=patient.id,
+            django_model='Patient',
+            collection="cdes"
+        ).order_by('created_at').all()
+
+    clinical_data_fields = get_clinical_data_fields()
+
+    schema_module = import_module(settings.SCHEMA_MODULE)
+    patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
+    patient_fields = patient_fields_func()
 
     if clinical_data_fields:
         patient_fields.update({
