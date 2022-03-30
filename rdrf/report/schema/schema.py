@@ -4,14 +4,14 @@ from functools import partial
 from importlib import import_module
 
 import graphene
+from django.conf import settings
 from django.db.models import Count, Max
 from graphene_django import DjangoObjectType
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
+from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue
-
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,12 @@ def get_section_fields(_section_key, section_cdes):
         def cde_resolver(cdes, _info, cde_model):
             for cde_value in cdes:
                 if cde_value["code"] == cde_model.code:
-                    return cde_value["value"]
+                    datatype = cde_model.datatype.strip().lower()
+                    value = cde_value["value"]
+                    if datatype == 'lookup':
+                        return get_widget_class(cde_model.widget_name).denormalized_value(value)
+                    else:
+                        return value
 
         if cde.allow_multiple:
             fields[field_name] = graphene.List(graphene.String, description=cde.name)
