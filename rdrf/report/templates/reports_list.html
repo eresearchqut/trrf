@@ -1,10 +1,25 @@
 {% extends "base.html" %}
+{% load static %}
 {% load i18n %}
 
 {% block content %}
 
+    <link rel="stylesheet" href="{% static 'vendor/datatables-1.10.22/css/datatables.min.css' %}">
+    <script type="text/javascript" src="{% static 'vendor/datatables-1.10.22/js/datatables.min.js' %}"></script>
+
     <script type="text/javascript">
         $(document).ready(function() {
+            $('#reports_table').DataTable({
+                'columns': [
+                    {'name': 'Registry', 'orderable': true},
+                    {'name': 'Report', 'orderable': true},
+                    {'name': 'Export', 'orderable': false},
+                    {% if request.user.is_superuser  %}
+                        {'name': 'Actions', 'orderable': false}
+                    {% endif %}
+                ]
+            });
+
             $('#deleteModal').on('show.bs.modal', function(e) {
                 const report_title = $(e.relatedTarget).data('report-title');
                 const delete_url = $(e.relatedTarget).data('delete-url');
@@ -16,7 +31,7 @@
     </script>
     <div>
         <div class="row">
-            <div class="col-sm-6"><h1>{% trans "Reports" %}</h1></div>
+            <div class="col-sm-6 mb-4"><h1>{% trans "Reports" %}</h1></div>
             {% if request.user.is_superuser  %}
             <div class="col-sm-6 d-sm-flex align-items-center justify-content-end">
                 <a href="{% url 'report:report_designer' %}" class="btn btn-success"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>
@@ -26,7 +41,7 @@
     </div>
 
     {% if reports %}
-        <table class="table table-striped">
+        <table class="table table-striped" id="reports_table">
             <thead>
                 <tr>
                     <th>{% trans "Registry" %}</th>
