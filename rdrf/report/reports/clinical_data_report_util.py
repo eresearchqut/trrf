@@ -138,7 +138,7 @@ class ClinicalDataReportUtil:
 
         return summary
 
-    def form_section_cde_sort_order(self, cde_keys):
+    def __form_section_cde_sort_order(self, cde_keys):
         sort_order_lookup = {}  # {formkey: {order: 1, sections: {sectionkey: {order: 1, cdes: {cdekey: 1}}}}
 
         for cde_i, cde_key in enumerate(cde_keys):
@@ -152,16 +152,16 @@ class ClinicalDataReportUtil:
 
         return sort_order_lookup
 
-    def sorted_forms(self, unsorted_forms_dict, sort_order_lookup):
+    def __sorted_forms(self, unsorted_forms_dict, sort_order_lookup):
         return dict(sorted(unsorted_forms_dict.items(), key=lambda item: sort_order_lookup[item[0]]['order'])).items()
 
-    def sorted_sections(self, unsorted_sections_dict, sort_order_lookup, form_name):
+    def __sorted_sections(self, unsorted_sections_dict, sort_order_lookup, form_name):
         return dict(sorted(unsorted_sections_dict.items(), key=lambda item: sort_order_lookup[form_name]['sections'][item[0]]['order'])).items()
 
-    def sorted_cdes(self, unsorted_cdes_dict, sort_order_lookup, form_name, section_code):
+    def __sorted_cdes(self, unsorted_cdes_dict, sort_order_lookup, form_name, section_code):
         return dict(sorted(unsorted_cdes_dict.items(), key=lambda item: sort_order_lookup[form_name]['sections'][section_code]['cdes'][item[0]])).items()
 
-    def get_max_count_cfg_entries(self, cfg):
+    def __get_max_count_cfg_entries(self, cfg):
         # Get counts of entries per patient (object_id) for this context form group
         # Take the first count in the result set, which works out to be the max count of number of patient entries
         max_cnt_entries = \
@@ -172,10 +172,10 @@ class ClinicalDataReportUtil:
 
         return max_cnt_entries.first()['cnt_entries'] if max_cnt_entries else 1
 
-    def get_cfg_data(self, cfg, cfgs_lookup, heading_format):
+    def __get_cfg_data(self, cfg, cfgs_lookup, heading_format):
         cfg_lookup = cfgs_lookup.get(cfg.code, None)
         if not cfg_lookup:
-            cfg_lookup = {'count': self.get_max_count_cfg_entries(cfg),
+            cfg_lookup = {'count': self.__get_max_count_cfg_entries(cfg),
                           'header': self.__cfg_heading(cfg, heading_format)}
             cfgs_lookup[cfg.code] = cfg_lookup
 
@@ -193,18 +193,18 @@ class ClinicalDataReportUtil:
 
         # Step 2 - Generate headers from summary
         cfgs_lookup = {}  # e.g. {'cfgcode': {'count': 1, 'heading': 'formatted heading'}}
-        sort_order_lookup = self.form_section_cde_sort_order(cde_keys)
+        sort_order_lookup = self.__form_section_cde_sort_order(cde_keys)
 
         headers = OrderedDict()
 
-        for form_name, form_data in self.sorted_forms(cd_summary, sort_order_lookup):
+        for form_name, form_data in self.__sorted_forms(cd_summary, sort_order_lookup):
             form = RegistryForm.objects.get(name=form_name)
             form_heading = self.__form_heading(form, report_design.cde_heading_format)
 
             # TODO fix this so we only get the cfgs relevant to the contexts of the clinical data (separate sql TODO)
             for cfg in ContextFormGroup.objects.filter(items__registry_form=form):
 
-                cfg_heading, longitudinal_entries_cnt = self.get_cfg_data(cfg, cfgs_lookup, report_design.cde_heading_format)
+                cfg_heading, longitudinal_entries_cnt = self.__get_cfg_data(cfg, cfgs_lookup, report_design.cde_heading_format)
 
                 for cfg_i in range(longitudinal_entries_cnt):
                     form_key_prefix, form_label_prefix = self.__form_header_parts(cfg, cfg_heading, cfg_i, form, form_heading)
@@ -214,12 +214,12 @@ class ClinicalDataReportUtil:
                     else:
                         form_key_suffix = ''
 
-                    for section_code, section_data in self.sorted_sections(form_data, sort_order_lookup, form_name):
+                    for section_code, section_data in self.__sorted_sections(form_data, sort_order_lookup, form_name):
                         section = Section.objects.get(code=section_code)
                         section_heading = self.__section_heading(section, report_design.cde_heading_format)
                         for section_i in range(section_data['count']):
 
-                            for cde_code, cde_data in self.sorted_cdes(section_data['cdes'], sort_order_lookup, form_name, section_code):
+                            for cde_code, cde_data in self.__sorted_cdes(section_data['cdes'], sort_order_lookup, form_name, section_code):
 
                                 cde = CommonDataElement.objects.get(code=cde_code)
                                 cde_heading = self.__cde_heading(cde, report_design.cde_heading_format)
