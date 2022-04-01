@@ -2070,7 +2070,7 @@ class DataDefinitions:
 
     @cached_property
     def cde_policies(self):
-        cde_codes = self.file_cde_codes
+        cde_codes = self.form_cde_codes
         policies = CdePolicy.objects.filter(registry=self.registry_form.registry, cde__code__in=cde_codes)
         return {policy.cde.code: policy for policy in policies}
 
