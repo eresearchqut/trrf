@@ -10,6 +10,20 @@ from aws_xray_sdk.core import xray_recorder
 logger = logging.getLogger(__name__)
 
 
+class XrayMetadataMiddleware(MiddlewareMixin):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        if global_sdk_config.sdk_enabled():
+            document = xray_recorder.current_segment()
+            document.set_user(request.user)
+
+        return response
+
+
 class XrayExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if not global_sdk_config.sdk_enabled():
