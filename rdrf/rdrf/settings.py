@@ -706,7 +706,7 @@ SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
 QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 
 # Reports settings
-SCHEMA_MODULE = 'report.schema.schema'
+SCHEMA_MODULE = 'report.schema'
 SCHEMA_METHOD_PATIENT_FIELDS = 'get_patient_fields'
 REPORT_CONFIGURATION = 'report.report_configuration.REPORT_CONFIGURATION'
 
@@ -741,6 +741,5 @@ if DEBUG:
     CSP_EXCLUDE_URL_PREFIXES = '{0}/graphql'.format(SCRIPT_NAME)
 
 GRAPHENE = {
-    "SCHEMA": "report.schema.schema.schema",
     "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
 }

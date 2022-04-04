@@ -235,8 +235,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
         generator = ClinicalDataReportUtil()
 
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
-        expected = OrderedDict()
-        expected.update({
+        expected = OrderedDict({
             'clinicalData_sleepTracking_sleep_sleepDiary_0_timeToBed': 'sleepTracking_sleep_sleepDiary_1_timeToBed',
             'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_0': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_1',
             'clinicalData_sleepTracking_sleep_sleepDiary_0_timesAwoke_1': 'sleepTracking_sleep_sleepDiary_1_timesAwoke_2',
@@ -252,7 +251,6 @@ class ClinicalDataGeneratorTestCase(TestCase):
             'clinicalData_symptoms_recentSymptoms_1_data_symptoms_fatigue': 'symptoms_recentSymptoms_2_symptoms_fatigue',
             'clinicalData_symptoms_recentSymptoms_1_data_symptoms_pain': 'symptoms_recentSymptoms_2_symptoms_pain'
         })
-
 
         actual = generator.csv_headers(user, report_design)
         print("** actual **")

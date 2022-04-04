@@ -10,7 +10,7 @@ from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGro
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, AddressType
-from report.schema.schema import create_dynamic_schema
+from report.schema import create_dynamic_schema
 
 
 class SchemaTest(TestCase):

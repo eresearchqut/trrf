@@ -3,6 +3,7 @@ REPORT_CONFIGURATION = {
         'patient': {
             'label': "Patient",
             'fields': {
+                'id': 'ID',
                 'consent': 'Consent',
                 'consentClinicalTrials': 'Consent Clinical Trials',
                 'consentSentInformation': 'Consent Sent Information',

@@ -1,15 +1,16 @@
+import itertools
 import logging
 from collections import OrderedDict
 
 from django.db import connections
 from django.db.models import Count
 
-from rdrf import settings
+from django.conf import settings
 from rdrf.helpers.utils import get_form_section_code
 from rdrf.models.definition.models import RDRFContext, ContextFormGroup, RegistryForm, Section, \
     CommonDataElement
 from report.models import ReportCdeHeadingFormat
-from report.schema.schema import list_patients_query
+from report.schema import list_patients_query
 
 logger = logging.getLogger(__name__)
 
@@ -125,16 +126,24 @@ class ClinicalDataReportUtil:
             JOIN   cde_summary cs
             on     cs.form_name = ss.form_name
             AND    cs.section_code = ss.section_code
-            AND    concat(cs.form_name, (%(cde_delim)s), cs.section_code, (%(cde_delim)s), cs.cde_code) = ANY(%(cde_keys)s);
+            AND    concat(cs.form_name, (%(cde_delim)s), cs.section_code, (%(cde_delim)s), cs.cde_code) = ANY(%(cde_keys)s)
+            ORDER BY cs.form_name, cs.section_code, cs.cde_code;
         """
 
         summary = {}
         with connections['clinical'].cursor() as cursor:
             cursor.execute(sql, {'patient_ids': patient_ids, 'cde_delim': settings.FORM_SECTION_DELIMITER, 'cde_keys': cde_keys})
-            for row in cursor.fetchall():
-                form_name, section_code, max_cnt_sections, cde_code, max_cde_value_cnt = row
-                section_cdes = summary.setdefault(form_name, {}).setdefault(section_code, {'count': max_cnt_sections, 'cdes': {}}).get('cdes')
-                section_cdes.setdefault(cde_code, {'count': max_cde_value_cnt})
+            rows = cursor.fetchall()
+
+            summary = {
+                form_name: {
+                    section_code: {
+                        'count': section_count,
+                        'cdes': {row[3]: {'count': row[4]}
+                                 for row in cdes}}}
+            for form_name, sections in itertools.groupby(rows, lambda x: x[0])
+            for (section_code, section_count), cdes in itertools.groupby(sections, lambda x: (x[1], x[2]))
+            }
 
         return summary
 

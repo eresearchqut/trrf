@@ -75,7 +75,7 @@ def get_filter_consent_choices():
 class ReportDesignerForm(ModelForm):
 
     registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name='code')
-    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}))
+    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), required=False)
     search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), required=False)
     cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), required=False)
     filter_consents = MultipleChoiceField(
@@ -107,10 +107,6 @@ class ReportDesignerForm(ModelForm):
             'access_groups',
             'cde_heading_format'
         ]
-        widgets = {
-            'access_groups': SelectMultiple(attrs={'class': 'form-select'}),
-            'cde_heading_format': Select(attrs={'class': 'form-select'}),
-        }
         labels = {
             'title': _('Title'),
             'description': _('Description'),
@@ -128,7 +124,7 @@ class ReportDesignerForm(ModelForm):
 
     def clean(self):
         super(ReportDesignerForm, self).clean()
-        cleaned_title = self.cleaned_data['title']
+        cleaned_title = self.cleaned_data.get('title', '')
         if not self.instance.id or self.instance.title != cleaned_title:
             if ReportDesign.objects.filter(registry=self.cleaned_data['registry'], title=cleaned_title).first():
                 self.add_error('title', _(f'A report in this registry with the title "{cleaned_title}" already exists.'))

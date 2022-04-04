@@ -11,7 +11,7 @@ from report.models import ReportDesign
 class ReportDesignTestCase(TestCase):
 
     def get_reports_for_user(self, user):
-        return list(ReportDesign.objects.reports_for_user(user).all())
+        return list(ReportDesign.objects.reports_for_user(user))
 
     def test_reports_for_user(self):
         group_curator = Group.objects.create(name=RDRF_GROUPS.WORKING_GROUP_CURATOR)

@@ -14,7 +14,7 @@ from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
 from report.reports.clinical_data_report_util import ClinicalDataReportUtil
-from report.schema.schema import create_dynamic_schema
+from report.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class Report:
             self.patient_filters['limit'] = limit
 
         # Build simple patient demographic fields
-        patient_fields = ['id']
+        patient_fields = []
         patient_fields.extend(
             self.report_design.reportdemographicfield_set.filter(model='patient').values_list('field', flat=True))
 
@@ -192,7 +192,6 @@ class Report:
                 return summary_result.data['dataSummary'][lookup_key]
 
             fieldnames_dict = OrderedDict()
-            fieldnames_dict['id'] = 'ID'
 
             # e.g. {'patientAddress': 2}
             processed_multifield_models = {}

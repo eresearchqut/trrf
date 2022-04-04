@@ -1,12 +1,10 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 
-from rdrf import settings
 from rdrf.security.mixins import SuperuserRequiredMixin
-from report import __version__
 from report.forms import ReportDesignerForm
 from report.models import ReportDesign
 from report.reports.generator import Report
@@ -76,18 +74,13 @@ class ReportDesignView(SuperuserRequiredMixin, View):
         else:
             return render(request, 'report_designer.html', _get_default_params(request, form))
 
-
-class ReportDeleteView(SuperuserRequiredMixin, View):
-    def get(self, request, report_id):
+    def delete(self, request, report_id):
         report = get_object_or_404(ReportDesign, id=report_id)
         report.delete()
-        return redirect('report:reports_list')
+        return HttpResponse(status=204)
 
 
 def _get_default_params(request, form):
     return {
-        'version': __version__,
-        'error_msg': None,
-        'form': form,
-        'csrf_token_name': settings.CSRF_COOKIE_NAME,
+        'form': form
     }

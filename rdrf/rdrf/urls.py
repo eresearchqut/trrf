@@ -47,7 +47,7 @@ from rdrf.views.session_refresh_view import session_refresh
 from rdrf.views.actions import ActionExecutorView
 import logging
 
-from report.schema.schema import create_dynamic_schema
+from report.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
