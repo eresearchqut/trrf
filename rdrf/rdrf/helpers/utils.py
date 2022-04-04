@@ -377,18 +377,13 @@ def get_display_value(cde_model, stored_value, permitted_values_map=None):
         return ":NaN"
     elif cde_model.pv_group:
         # if a range, return the display value
-        try:
-            if isinstance(stored_value, list):
-                return stored_value
-            if permitted_values_map:
-                display_value = permitted_values_map[(stored_value, cde_model.pv_group_id)]
-            else:
-                display_value = cde_model.pv_group.cde_values_dict[stored_value]
-            return display_value
-        except Exception as ex:
-            logger.error("bad value for cde %s %s: %s" % (cde_model.code,
-                                                          stored_value,
-                                                          ex))
+        if isinstance(stored_value, list):
+            return stored_value
+        if permitted_values_map:
+            display_value = permitted_values_map.get((stored_value, cde_model.pv_group_id), stored_value)
+        else:
+            display_value = cde_model.pv_group.cde_values_dict.get(stored_value, stored_value)
+        return display_value
     elif cde_model.datatype.lower() == CDEDataTypes.DATE:
         try:
             return parse_iso_datetime(stored_value).date()
