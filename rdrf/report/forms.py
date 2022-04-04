@@ -1,6 +1,8 @@
 import json
 
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.db.models import Q
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
     Select, ModelForm
 from django.utils.module_loading import import_string
@@ -9,6 +11,8 @@ from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
+
+from registry.groups import GROUPS as RDRF_GROUPS
 
 
 def get_demographic_field_value(model_name, field):
@@ -97,6 +101,9 @@ class ReportDesignerForm(ModelForm):
         self.fields['cde_fields'].choices = get_cde_choices()
         self.fields['filter_consents'].choices = get_filter_consent_choices()
         self.fields['filter_working_groups'].choices = get_working_group_choices()
+
+        self.fields['access_groups'].queryset = Group.objects.filter(
+            Q(name__icontains=RDRF_GROUPS.WORKING_GROUP_CURATOR) | Q(name__icontains=RDRF_GROUPS.CLINICAL))
 
     class Meta:
         model = ReportDesign

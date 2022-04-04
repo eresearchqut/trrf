@@ -1,12 +1,18 @@
 import logging
 
 from django.core.exceptions import PermissionDenied
+
 from rdrf.security.security_checks import security_check_user_patient
 
 logger = logging.getLogger(__name__)
 
 
 def rpc_reporting_command(request, query_id, registry_id, command, arg):
+    from rdrf.helpers.registry_features import RegistryFeatures
+    from rdrf.models.definition.models import Registry
+    if not any(r.has_feature(RegistryFeatures.LEGACY_REPORTS) for r in Registry.objects.all()):
+        raise Exception('Explorer reports not enabled')
+
     # 2 possible commands/invocations client side from report definition screen:
     # get_field_data: used to build all the checkboxes for client
     # get_projection: process the checked checkboxes and get json representation

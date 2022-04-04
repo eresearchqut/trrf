@@ -12,12 +12,12 @@ from report.reports.generator import Report
 
 class ReportsAccessCheckMixin:
     def dispatch(self, request, *args, **kwargs):
-        if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
+        if not (request.user.is_superuser or request.user.is_curator or request.user.is_clinician):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
 
-class ReportsView(View):
+class ReportsView(ReportsAccessCheckMixin, View):
     def get(self, request):
         return render(request, 'reports_list.html', {
             'reports': ReportDesign.objects.reports_for_user(request.user)
