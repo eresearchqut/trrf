@@ -226,7 +226,7 @@ class ReportDesignFormTestCase(TestCase):
         form = ReportDesignerForm(data={"title": "Sleep Tracking Report",
                                         "description": "Reporting on general sleep trends",
                                         "registry": "ang",
-                                        "access_groups": [group_clinician.pk, group_parent.pk],
+                                        "access_groups": [group_clinician.pk, group_curator.pk],
                                         "filter_working_groups": [f'{{"registry": "ang", "wg": {wg2_ang.pk}}}'],
                                         "filter_consents": ['{"registry": "ang", "consent_question": "cq2"}', '{"registry": "ang", "consent_question": "cq3"}'],
                                         "demographic_fields": ['{"model": "patient", "field": "givenNames"}', '{"model": "patient", "field": "familyName"}'],
@@ -247,7 +247,7 @@ class ReportDesignFormTestCase(TestCase):
         self.assertEqual('Sleep Tracking Report', report_design.title)
         self.assertEqual('Reporting on general sleep trends', report_design.description)
         self.assertEqual(reg_ang, report_design.registry)
-        self.assertEqual([group_clinician, group_parent], list(report_design.access_groups.all()))
+        self.assertEqual([group_curator, group_clinician], list(report_design.access_groups.all()))
         self.assertEqual([wg2_ang], list(report_design.filter_working_groups.all()))
         self.assertEqual([cq2, cq3], list(report_design.filter_consents.all()))
         self.assertEqual(ReportCdeHeadingFormat.ABBR_NAME.value, report_design.cde_heading_format)
