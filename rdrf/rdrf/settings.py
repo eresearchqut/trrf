@@ -153,6 +153,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MIDDLEWARE = [x for x in (
     'registry.common.middleware.XrayExceptionMiddleware',
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
+    'registry.common.middleware.XrayMetadataMiddleware',
     'silk.middleware.SilkyMiddleware' if PROFILING else None,
     'useraudit.middleware.RequestToThreadLocalMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
