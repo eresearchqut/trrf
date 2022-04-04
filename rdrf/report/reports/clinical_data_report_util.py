@@ -141,8 +141,8 @@ class ClinicalDataReportUtil:
                         'count': section_count,
                         'cdes': {row[3]: {'count': row[4]}
                                  for row in cdes}}}
-            for form_name, sections in itertools.groupby(rows, lambda x: x[0])
-            for (section_code, section_count), cdes in itertools.groupby(sections, lambda x: (x[1], x[2]))
+                for form_name, sections in itertools.groupby(rows, lambda x: x[0])
+                for (section_code, section_count), cdes in itertools.groupby(sections, lambda x: (x[1], x[2]))
             }
 
         return summary

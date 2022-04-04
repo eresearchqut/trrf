@@ -26,7 +26,6 @@ class ReportGeneratorTestCase(TestCase):
             """
             query {
                 patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
-                    id
                 }
             }
             """
@@ -43,7 +42,6 @@ class ReportGeneratorTestCase(TestCase):
             """
             query {
                 patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: [], offset: 30, limit: 15) {
-                    id
                 }
             }
             """
@@ -104,7 +102,6 @@ class ReportGeneratorTestCase(TestCase):
 
         expected = """{
   patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
-    id
     familyName
     givenNames
     patientaddressSet {

@@ -17,6 +17,13 @@ class ReportsAccessCheckMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
+class ReportDownloadAccessCheckMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
 class ReportsView(ReportsAccessCheckMixin, View):
     def get(self, request):
         return render(request, 'reports_list.html', {
@@ -24,7 +31,7 @@ class ReportsView(ReportsAccessCheckMixin, View):
         })
 
 
-class ReportDownloadView(ReportsAccessCheckMixin, View):
+class ReportDownloadView(ReportDownloadAccessCheckMixin, View):
     def get(self, request, report_id, format):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
         report = Report(report_design=report_design)
