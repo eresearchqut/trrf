@@ -4720,6 +4720,7 @@
     "pk": "Address",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Address",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Address",
@@ -4740,6 +4741,7 @@
     "pk": "AddressType",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AddressType",
       "pv_group": "AddressType",
       "allow_multiple": false,
       "name": "Address type",
@@ -4760,6 +4762,7 @@
     "pk": "AffectedLeg",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AffectedLeg",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Is one leg noticeably more affected by the disease?",
@@ -4780,6 +4783,7 @@
     "pk": "AgeAtCataractSurgery",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeAtCataractSurgery",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age at cataract surgery",
@@ -4800,6 +4804,7 @@
     "pk": "AgeAtDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeAtDiagnosis",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age in years at clinical diagnosis",
@@ -4820,6 +4825,7 @@
     "pk": "AgeAtMolecularDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeAtMolecularDiagnosis",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age in years at molecular diagnosis",
@@ -4840,6 +4846,7 @@
     "pk": "AgeCardiacImpantReceived",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeCardiacImpantReceived",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age cardiac implant received",
@@ -4860,6 +4867,7 @@
     "pk": "AgeStartedUsingDeviceWalking",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeStartedUsingDeviceWalking",
       "pv_group": null,
       "allow_multiple": false,
       "name": "At what age did the patient commence using devices to assist with walking",
@@ -4880,6 +4888,7 @@
     "pk": "AgeStartedVentilationDevice",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeStartedVentilationDevice",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age ventilation device use commenced",
@@ -4900,6 +4909,7 @@
     "pk": "AgeWheelchairOrScooterUse",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AgeWheelchairOrScooterUse",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age when started using wheelchair/scooter",
@@ -4920,6 +4930,7 @@
     "pk": "AphereresisIntMeanCholReduct",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "AphereresisIntMeanCholReduct",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Interval mean LDL-cholesterol reduction (mmol/l)",
@@ -4940,6 +4951,7 @@
     "pk": "Apheresis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Apheresis",
       "pv_group": "fh_yes_no",
       "allow_multiple": false,
       "name": "Apheresis",
@@ -4960,6 +4972,7 @@
     "pk": "ApheresisComplications",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ApheresisComplications",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Have there been any complications?",
@@ -4980,6 +4993,7 @@
     "pk": "ApheresisStartDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ApheresisStartDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "When was apheresis started",
@@ -5000,6 +5014,7 @@
     "pk": "ArmFunction",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ArmFunction",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Arm Function: Is one arm noticeably more affected by the disease?",
@@ -5020,6 +5035,7 @@
     "pk": "BlackoutsOrFainting",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "BlackoutsOrFainting",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Blackouts or fainting",
@@ -5040,6 +5056,7 @@
     "pk": "CanWalk",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CanWalk",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Currently able to walk",
@@ -5060,6 +5077,7 @@
     "pk": "CardiacImplant",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CardiacImplant",
       "pv_group": "CardiacImplants",
       "allow_multiple": false,
       "name": "Cardiac Implant",
@@ -5080,6 +5098,7 @@
     "pk": "CataractDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CataractDiagnosis",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Cataract Diagnosis",
@@ -5100,6 +5119,7 @@
     "pk": "CataractSurgery",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CataractSurgery",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Cataract Surgery",
@@ -5120,6 +5140,7 @@
     "pk": "CDE00001",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00001",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Tendon xanthoma",
@@ -5140,6 +5161,7 @@
     "pk": "CDE00002",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00002",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Arcus cornealis prior to age 45 years",
@@ -5160,6 +5182,7 @@
     "pk": "CDE00003",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00003",
       "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Family History of Hypercholesterolaemia",
@@ -5180,6 +5203,7 @@
     "pk": "CDE00004",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00004",
       "pv_group": "FHFamHist2",
       "allow_multiple": false,
       "name": "Family History of Premature CVD (Men <55, Women <60)",
@@ -5200,6 +5224,7 @@
     "pk": "CDE00005",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00005",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Smoking",
@@ -5220,6 +5245,7 @@
     "pk": "CDE00006",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00006",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Hypertension",
@@ -5240,6 +5266,7 @@
     "pk": "CDE00007",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00007",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Diabetes",
@@ -5260,6 +5287,7 @@
     "pk": "CDE00008",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00008",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Systolic Blood Pressure",
@@ -5280,6 +5308,7 @@
     "pk": "CDE00009",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00009",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Diastolic Blood Pressure",
@@ -5300,6 +5329,7 @@
     "pk": "CDE00010",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00010",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Blood glucose concentration (mmol/L)",
@@ -5320,6 +5350,7 @@
     "pk": "CDE00011",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00011",
       "pv_group": "FHPremCVD2",
       "allow_multiple": false,
       "name": "Personal History of Premature CVD (Men <55, Women <60)",
@@ -5340,6 +5371,7 @@
     "pk": "CDE00012",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00012",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Cholesterol concentration (mmol/L)",
@@ -5360,6 +5392,7 @@
     "pk": "CDE00013",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00013",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LDL-cholesterol concentration (mmol/L)",
@@ -5380,6 +5413,7 @@
     "pk": "CDE00014",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00014",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Triglyceride concentration (mmol/L)",
@@ -5400,6 +5434,7 @@
     "pk": "CDE00015",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00015",
       "pv_group": null,
       "allow_multiple": false,
       "name": "HDL-cholesterol concentration (mmol/L)",
@@ -5420,6 +5455,7 @@
     "pk": "CDE00016",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00016",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Lp(a) concentration (g/L)",
@@ -5440,6 +5476,7 @@
     "pk": "CDE00017",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00017",
       "pv_group": "fh_yes_no",
       "allow_multiple": false,
       "name": "Is patient on medication now?",
@@ -5460,6 +5497,7 @@
     "pk": "CDE00018",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00018",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Cholesterol concentration (mmol/L)",
@@ -5480,6 +5518,7 @@
     "pk": "CDE00019",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00019",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LDL-cholesterol concentration (mmol/L)",
@@ -5500,6 +5539,7 @@
     "pk": "CDE00020",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00020",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Triglyceride concentration (mmol/L)",
@@ -5520,6 +5560,7 @@
     "pk": "CDE00021",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00021",
       "pv_group": null,
       "allow_multiple": false,
       "name": "HDL-cholesterol concentration (mmol/L)",
@@ -5540,6 +5581,7 @@
     "pk": "CDE00022",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00022",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Lp(a) concentration (g/L)",
@@ -5560,6 +5602,7 @@
     "pk": "CDE00023",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00023",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Dutch Lipid Clinic Network Criteria Score",
@@ -5580,6 +5623,7 @@
     "pk": "CDE00024",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00024",
       "pv_group": null,
       "allow_multiple": false,
       "name": "FH Diagnostic Categories",
@@ -5600,6 +5644,7 @@
     "pk": "CDE00025",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00025",
       "pv_group": "PVG-FH_GENETIC_VARIANT",
       "allow_multiple": false,
       "name": "Has this patient had an FH genetic variant detected?",
@@ -5620,6 +5665,7 @@
     "pk": "CDE00026",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00026",
       "pv_group": "PVG-FH-IndexOrRelative",
       "allow_multiple": false,
       "name": "Index or Relative",
@@ -5640,6 +5686,7 @@
     "pk": "CDE00027",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00027",
       "pv_group": "fh_relatives",
       "allow_multiple": false,
       "name": "Relationship to Index",
@@ -5660,6 +5707,7 @@
     "pk": "CDE00028",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00028",
       "pv_group": "fh_degree_of_relation",
       "allow_multiple": false,
       "name": "Degree of relation",
@@ -5680,6 +5728,7 @@
     "pk": "CDE00029",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00029",
       "pv_group": "fh_yes_no",
       "allow_multiple": false,
       "name": "FH Phenotype",
@@ -5700,6 +5749,7 @@
     "pk": "CDE00030",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00030",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Country of Origin",
@@ -5720,6 +5770,7 @@
     "pk": "CDE00031",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00031",
       "pv_group": "fh_genetic_typing_types",
       "allow_multiple": false,
       "name": "Provider of Genetic Typing",
@@ -5740,6 +5791,7 @@
     "pk": "CDE00032",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00032",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LDL Receptor Gene",
@@ -5760,6 +5812,7 @@
     "pk": "CDE00033",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00033",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Exon",
@@ -5780,6 +5833,7 @@
     "pk": "CDE00034",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00034",
       "pv_group": null,
       "allow_multiple": false,
       "name": "DNA:Allele 1",
@@ -5800,6 +5854,7 @@
     "pk": "CDE00035",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00035",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Protein",
@@ -5820,6 +5875,7 @@
     "pk": "CDE00036",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00036",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LDLR-dbID",
@@ -5840,6 +5896,7 @@
     "pk": "CDE00037",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDE00037",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Typing technique",
@@ -5860,6 +5917,7 @@
     "pk": "CDEAge",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEAge",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age",
@@ -5880,6 +5938,7 @@
     "pk": "CDEAgeDiagnosisFH",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEAgeDiagnosisFH",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age at Diagnosis of FH",
@@ -5900,6 +5959,7 @@
     "pk": "CDEBMI",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEBMI",
       "pv_group": null,
       "allow_multiple": false,
       "name": "BMI",
@@ -5920,6 +5980,7 @@
     "pk": "CDEfhApplicableStatins",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhApplicableStatins",
       "pv_group": "PVGfhStatinDrugs",
       "allow_multiple": true,
       "name": "If yes please choose the statin/s applicable",
@@ -5940,6 +6001,7 @@
     "pk": "CDEfhDrugs",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhDrugs",
       "pv_group": "PVGfhDrugs",
       "allow_multiple": true,
       "name": "If yes please choose drug/s applicable",
@@ -5960,6 +6022,7 @@
     "pk": "CDEfhDrugsOtherDrug",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhDrugsOtherDrug",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Other (free text)",
@@ -5980,6 +6043,7 @@
     "pk": "CDEfhDutchLipidClinicNetwork",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhDutchLipidClinicNetwork",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Dutch Lipid Clinic Network Criteria Score",
@@ -6000,6 +6064,7 @@
     "pk": "CDEfhHistoryDrugIntolerance",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhHistoryDrugIntolerance",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "History of Drug Intolerance",
@@ -6020,6 +6085,7 @@
     "pk": "CDEfhHistoryStatinMyopathy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhHistoryStatinMyopathy",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "History of Statin Myopathy",
@@ -6040,6 +6106,7 @@
     "pk": "CDEfhIntolerantDrugs",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhIntolerantDrugs",
       "pv_group": "PVGfhDrugs",
       "allow_multiple": true,
       "name": "If yes please choose drug/s applicable",
@@ -6060,6 +6127,7 @@
     "pk": "CDEfhOtherApplicableStatin",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhOtherApplicableStatin",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Other statin(s)",
@@ -6080,6 +6148,7 @@
     "pk": "CDEfhOtherIntolerantDrug",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEfhOtherIntolerantDrug",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Other (free text)",
@@ -6100,6 +6169,7 @@
     "pk": "CDEHeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEHeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Height",
@@ -6120,6 +6190,7 @@
     "pk": "CDEHospitalRecordNumber",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEHospitalRecordNumber",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Hospital Record Number",
@@ -6140,6 +6211,7 @@
     "pk": "CDEIndexOrRelative",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEIndexOrRelative",
       "pv_group": "PVG-FH-IndexOrRelative",
       "allow_multiple": false,
       "name": "Index or Relative",
@@ -6160,6 +6232,7 @@
     "pk": "CDEMutationType",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEMutationType",
       "pv_group": "MutationType",
       "allow_multiple": false,
       "name": "Genotype",
@@ -6180,6 +6253,7 @@
     "pk": "CDEName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Name",
@@ -6200,6 +6274,7 @@
     "pk": "CDEPatientCentre",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientCentre",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Centre",
@@ -6220,6 +6295,7 @@
     "pk": "CDEPatientDateOfBirth",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientDateOfBirth",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Date of Birth",
@@ -6240,6 +6316,7 @@
     "pk": "CDEPatientEmail",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientEmail",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Email",
@@ -6260,6 +6337,7 @@
     "pk": "CDEPatientFamilyName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientFamilyName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Family Name",
@@ -6280,6 +6358,7 @@
     "pk": "CDEPatientGivenNames",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientGivenNames",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Given Names",
@@ -6300,6 +6379,7 @@
     "pk": "CDEPatientHomePhone",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientHomePhone",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Home Phone",
@@ -6320,6 +6400,7 @@
     "pk": "CDEPatientMobilePhone",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientMobilePhone",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Mobile Phone",
@@ -6340,6 +6421,7 @@
     "pk": "CDEPatientSex",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEPatientSex",
       "pv_group": "Sex",
       "allow_multiple": false,
       "name": "Sex",
@@ -6360,6 +6442,7 @@
     "pk": "CDETodaysDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDETodaysDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Today's Date",
@@ -6380,6 +6463,7 @@
     "pk": "CDEWeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "CDEWeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Weight",
@@ -6400,6 +6484,7 @@
     "pk": "Comments",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Comments",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Comments",
@@ -6420,6 +6505,7 @@
     "pk": "Country",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Country",
       "pv_group": "Country",
       "allow_multiple": false,
       "name": "Country",
@@ -6440,6 +6526,7 @@
     "pk": "DateOfAssessment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DateOfAssessment",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Date of Assessment",
@@ -6460,6 +6547,7 @@
     "pk": "DM1AffectedStatus",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1AffectedStatus",
       "pv_group": "DM1AS",
       "allow_multiple": false,
       "name": "Affected Status",
@@ -6480,6 +6568,7 @@
     "pk": "DM1Anxiety",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Anxiety",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Anxiety",
@@ -6500,6 +6589,7 @@
     "pk": "DM1Apathy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Apathy",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Apathy",
@@ -6520,6 +6610,7 @@
     "pk": "DM1BestMotorLevel",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1BestMotorLevel",
       "pv_group": "DM1MotorFunction",
       "allow_multiple": false,
       "name": "Current best motor function",
@@ -6540,6 +6631,7 @@
     "pk": "DM1BodyWeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1BodyWeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Body Weight",
@@ -6560,6 +6652,7 @@
     "pk": "DM1CalculatedFVC",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1CalculatedFVC",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Calculated FVC",
@@ -6580,6 +6673,7 @@
     "pk": "DM1CancerOrTumor",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1CancerOrTumor",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Has the patient been diagnosed with cancer or a tumour",
@@ -6600,6 +6694,7 @@
     "pk": "DM1ChestInfections",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1ChestInfections",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Number of Chest infections in the last 12 months",
@@ -6620,6 +6715,7 @@
     "pk": "DM1Cholesterol",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Cholesterol",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Cholesterol",
@@ -6640,6 +6736,7 @@
     "pk": "DM1ChromosomeRegionText",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1ChromosomeRegionText",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Chromosome region targeted",
@@ -6660,6 +6757,7 @@
     "pk": "DM1ChronicInfection",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1ChronicInfection",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Chronic Infection",
@@ -6680,6 +6778,7 @@
     "pk": "DM1CognitiveImpairment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1CognitiveImpairment",
       "pv_group": "DM1CognitiveImpairment",
       "allow_multiple": false,
       "name": "Cognitive Impairment",
@@ -6700,6 +6799,7 @@
     "pk": "DM1Condition",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Condition",
       "pv_group": "DM1Condition",
       "allow_multiple": false,
       "name": "Condition",
@@ -6720,6 +6820,7 @@
     "pk": "DM1Constipation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Constipation",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Constipation",
@@ -6740,6 +6841,7 @@
     "pk": "DM1DateOfLastSpirometer",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1DateOfLastSpirometer",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Date of last spirometer reading of FVC",
@@ -6760,6 +6862,7 @@
     "pk": "DM1Depression",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Depression",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Depression",
@@ -6780,6 +6883,7 @@
     "pk": "DM1Diabetes",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Diabetes",
       "pv_group": "DM1Diabetes",
       "allow_multiple": false,
       "name": "Diabetes",
@@ -6800,6 +6904,7 @@
     "pk": "DM1DiabetesAge",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1DiabetesAge",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age at Diagnosis",
@@ -6820,6 +6925,7 @@
     "pk": "DM1DiseaseType",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1DiseaseType",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Disease Type",
@@ -6840,6 +6946,7 @@
     "pk": "DM1DnaRepeatSequence",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1DnaRepeatSequence",
       "pv_group": null,
       "allow_multiple": false,
       "name": "DNA repeat sequence",
@@ -6860,6 +6967,7 @@
     "pk": "DM1DrugName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1DrugName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Drug name",
@@ -6880,6 +6988,7 @@
     "pk": "DM1Dysphagia",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Dysphagia",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Dysphagia",
@@ -6900,6 +7009,7 @@
     "pk": "DM1EarlyWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1EarlyWeakness",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Was there any evidence of hypotonia or weakness within the first four weeks",
@@ -6920,6 +7030,7 @@
     "pk": "DM1Education",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Education",
       "pv_group": "DM1Education",
       "allow_multiple": false,
       "name": "Education",
@@ -6940,6 +7051,7 @@
     "pk": "DM1EmotionalCounseling",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1EmotionalCounseling",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Emotional & psychological counseling",
@@ -6960,6 +7072,7 @@
     "pk": "DM1EmploymentAffected",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1EmploymentAffected",
       "pv_group": "DM1AffectedEmployment",
       "allow_multiple": false,
       "name": "Has Myotonic dystrophy affected the patient's employment",
@@ -6980,6 +7093,7 @@
     "pk": "DM1EndocrineDisorders",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1EndocrineDisorders",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Endocrine disorders",
@@ -7000,6 +7114,7 @@
     "pk": "DM1EthnicOrigins",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1EthnicOrigins",
       "pv_group": "DM1EthnicOrigins",
       "allow_multiple": false,
       "name": "Ethnic Origins",
@@ -7020,6 +7135,7 @@
     "pk": "DM1FamilyDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FamilyDiagnosis",
       "pv_group": "DM1Condition",
       "allow_multiple": false,
       "name": "Diagnosis",
@@ -7040,6 +7156,7 @@
     "pk": "DM1FamilyPatientRecord",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FamilyPatientRecord",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Patient record within the registry",
@@ -7060,6 +7177,7 @@
     "pk": "DM1Fatigue",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Fatigue",
       "pv_group": "DM1FatigueYesNo",
       "allow_multiple": false,
       "name": "Fatigue",
@@ -7080,6 +7198,7 @@
     "pk": "DM1FatigueDrug",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueDrug",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Drug",
@@ -7100,6 +7219,7 @@
     "pk": "DM1FatigueDrugStatus",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueDrugStatus",
       "pv_group": "MuscleMedicationStatus",
       "allow_multiple": false,
       "name": "Status",
@@ -7120,6 +7240,7 @@
     "pk": "DM1FatigueInCar",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueInCar",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "In a car, while stopped for a few minutes in traffic",
@@ -7140,6 +7261,7 @@
     "pk": "DM1FatigueLying",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueLying",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Lying down to rest in the afternoon when circumstances permit",
@@ -7160,6 +7282,7 @@
     "pk": "DM1FatiguePassenger",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatiguePassenger",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "As a passenger in a car for an hour without a break",
@@ -7180,6 +7303,7 @@
     "pk": "DM1FatigueSittingInactive",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueSittingInactive",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Sitting, inactive, in a public place",
@@ -7200,6 +7324,7 @@
     "pk": "DM1FatigueSittingQuietly",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueSittingQuietly",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Sitting quietly after lunch without alcohol",
@@ -7220,6 +7345,7 @@
     "pk": "DM1FatigueSittingReading",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueSittingReading",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Sitting and Reading",
@@ -7240,6 +7366,7 @@
     "pk": "DM1FatigueSittingTalking",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueSittingTalking",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Sitting and talking to someone",
@@ -7260,6 +7387,7 @@
     "pk": "DM1FatigueTV",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FatigueTV",
       "pv_group": "DM1FatigueDozing",
       "allow_multiple": false,
       "name": "Watching TV",
@@ -7280,6 +7408,7 @@
     "pk": "DM1FirstSuspectedBy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FirstSuspectedBy",
       "pv_group": "DM1FSB",
       "allow_multiple": false,
       "name": "First Suspected By",
@@ -7300,6 +7429,7 @@
     "pk": "DM1FirstSymptom",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1FirstSymptom",
       "pv_group": "DM1FS",
       "allow_multiple": false,
       "name": "First Symptom",
@@ -7320,6 +7450,7 @@
     "pk": "DM1GallBladderDisease",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1GallBladderDisease",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Gall bladder disease",
@@ -7340,6 +7471,7 @@
     "pk": "DM1GastricNasalTube",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1GastricNasalTube",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Gastric Nasal Tube",
@@ -7360,6 +7492,7 @@
     "pk": "DM1GastrooesophagealReflux",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1GastrooesophagealReflux",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Gastro-oesophageal reflux",
@@ -7380,6 +7513,7 @@
     "pk": "DM1GeneticVariant",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1GeneticVariant",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Genetic Variant",
@@ -7400,6 +7534,7 @@
     "pk": "DM1Height",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Height",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Height",
@@ -7420,6 +7555,7 @@
     "pk": "DM1InvasiveVentilation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1InvasiveVentilation",
       "pv_group": "Dm1NonInvVen",
       "allow_multiple": false,
       "name": "Invasive ventilation",
@@ -7440,6 +7576,7 @@
     "pk": "DM1LiverDisease",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1LiverDisease",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Liver Disease",
@@ -7460,6 +7597,7 @@
     "pk": "DM1MeasuredFVC",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1MeasuredFVC",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Measured FVC",
@@ -7480,6 +7618,7 @@
     "pk": "DM1MedicalBracelet",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1MedicalBracelet",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Does the patient wear a Medicalert bracelet",
@@ -7500,6 +7639,7 @@
     "pk": "DM1Miscarriage",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Miscarriage",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Miscarriage",
@@ -7520,6 +7660,7 @@
     "pk": "DM1MuscleStrengthScore",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1MuscleStrengthScore",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Muscle Strength Score",
@@ -7540,6 +7681,7 @@
     "pk": "DM1NonInvasiveVentilation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1NonInvasiveVentilation",
       "pv_group": "Dm1NonInvVen",
       "allow_multiple": false,
       "name": "Non-Invasive ventilation",
@@ -7560,6 +7702,7 @@
     "pk": "DM1Notes",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Notes",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Notes",
@@ -7580,6 +7723,7 @@
     "pk": "DM1OBGYNissues",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1OBGYNissues",
       "pv_group": null,
       "allow_multiple": false,
       "name": "OB/GYN issues",
@@ -7600,6 +7744,7 @@
     "pk": "DM1Occupation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Occupation",
       "pv_group": "DM1Occupation",
       "allow_multiple": false,
       "name": "Occupation",
@@ -7620,6 +7765,7 @@
     "pk": "DM1OccupationalTherapy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1OccupationalTherapy",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Occupational Therapy",
@@ -7640,6 +7786,7 @@
     "pk": "DM1OtherRegistry",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1OtherRegistry",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Registry",
@@ -7660,6 +7807,7 @@
     "pk": "DM1Physiotherapy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Physiotherapy",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Physiotherapy",
@@ -7680,6 +7828,7 @@
     "pk": "DM1Pneumonia",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Pneumonia",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Pneumonia",
@@ -7700,6 +7849,7 @@
     "pk": "DM1PneumoniaAge",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1PneumoniaAge",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Pneumonia Age",
@@ -7720,6 +7870,7 @@
     "pk": "DM1PsyhologicalProblems",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1PsyhologicalProblems",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Psychological problems",
@@ -7740,6 +7891,7 @@
     "pk": "DM1Relationship",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Relationship",
       "pv_group": "Relationship",
       "allow_multiple": false,
       "name": "Relationship",
@@ -7760,6 +7912,7 @@
     "pk": "DM1SequenceRepeatNumber",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1SequenceRepeatNumber",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Sequence repeat number",
@@ -7780,6 +7933,7 @@
     "pk": "DM1Sex",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1Sex",
       "pv_group": "Gender",
       "allow_multiple": false,
       "name": "Sex",
@@ -7800,6 +7954,7 @@
     "pk": "DM1SexualDysfunction",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1SexualDysfunction",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Sexual Dysfunction",
@@ -7820,6 +7975,7 @@
     "pk": "DM1SocioComment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1SocioComment",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Comment",
@@ -7840,6 +7996,7 @@
     "pk": "DM1SpeechTherapy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1SpeechTherapy",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Speech therapy",
@@ -7860,6 +8017,7 @@
     "pk": "DM1TestingLaboratory",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1TestingLaboratory",
       "pv_group": "DM1TestingLaboratory",
       "allow_multiple": false,
       "name": "Testing Laboratory",
@@ -7880,6 +8038,7 @@
     "pk": "DM1TrialName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1TrialName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Trail name",
@@ -7900,6 +8059,7 @@
     "pk": "DM1TrialPhase",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1TrialPhase",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Trial Phase",
@@ -7920,6 +8080,7 @@
     "pk": "DM1TrialSponsor",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1TrialSponsor",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Trial Sponsor",
@@ -7940,6 +8101,7 @@
     "pk": "DM1TypingMethod",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1TypingMethod",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Typing Method",
@@ -7960,6 +8122,7 @@
     "pk": "DM1VocationalRehabilitation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DM1VocationalRehabilitation",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Vocational Rehabilitation",
@@ -7980,6 +8143,7 @@
     "pk": "Drug",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Drug",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Drug",
@@ -8000,6 +8164,7 @@
     "pk": "DrugDosage",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DrugDosage",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Dosage",
@@ -8020,6 +8185,7 @@
     "pk": "DrugName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "DrugName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Drug Name",
@@ -8040,6 +8206,7 @@
     "pk": "Dysarthria",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Dysarthria",
       "pv_group": "Dysarthria",
       "allow_multiple": false,
       "name": "Dysarthria",
@@ -8060,6 +8227,7 @@
     "pk": "ECG",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ECG",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "ECG",
@@ -8080,6 +8248,7 @@
     "pk": "ECGExaminationDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ECGExaminationDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "ECG Examination Date",
@@ -8100,6 +8269,7 @@
     "pk": "ECGPRInterval",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ECGPRInterval",
       "pv_group": null,
       "allow_multiple": false,
       "name": "ECG PR Interval",
@@ -8120,6 +8290,7 @@
     "pk": "ECGQRSDuration",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ECGQRSDuration",
       "pv_group": null,
       "allow_multiple": false,
       "name": "ECG QRS Duration",
@@ -8140,6 +8311,7 @@
     "pk": "ECGSinusRhythym",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "ECGSinusRhythym",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "ECG Sinus Rhythym",
@@ -8160,6 +8332,7 @@
     "pk": "Echocardiogram",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Echocardiogram",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Echocardiogram",
@@ -8180,6 +8353,7 @@
     "pk": "email",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "email",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Email",
@@ -8200,6 +8374,7 @@
     "pk": "EthnicOrigin",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "EthnicOrigin",
       "pv_group": "EthnicOrigin",
       "allow_multiple": false,
       "name": "Ethnic Origin",
@@ -8220,6 +8395,7 @@
     "pk": "FacialWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FacialWeakness",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Facial Weakness",
@@ -8240,6 +8416,7 @@
     "pk": "FamilyName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FamilyName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Family Name",
@@ -8260,6 +8437,7 @@
     "pk": "FamReceivedGeneticCounselling",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FamReceivedGeneticCounselling",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Has anyone in the patient's family received genetic counselling",
@@ -8280,6 +8458,7 @@
     "pk": "FHFamHistArcusCornealis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHFamHistArcusCornealis",
       "pv_group": "FHFamHist2",
       "allow_multiple": false,
       "name": "Family History of Arcus cornealis prior to 45 years of age",
@@ -8300,6 +8479,7 @@
     "pk": "FHFamHistTendonXanthoma",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHFamHistTendonXanthoma",
       "pv_group": "FHFamHist2",
       "allow_multiple": false,
       "name": "Family History of Tendon Xanthoma",
@@ -8320,6 +8500,7 @@
     "pk": "FHGeneticTestDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHGeneticTestDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Genetic Test Date",
@@ -8340,6 +8521,7 @@
     "pk": "FHHistoryOfRevascularisation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHHistoryOfRevascularisation",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Personal History of Revascularisation Procedure(s)",
@@ -8360,6 +8542,7 @@
     "pk": "FHLipidProfileUntreatedDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHLipidProfileUntreatedDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Date",
@@ -8380,6 +8563,7 @@
     "pk": "FHModeOfAssessment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHModeOfAssessment",
       "pv_group": "FHModeOfAssessment",
       "allow_multiple": false,
       "name": "Mode of Assessment",
@@ -8400,6 +8584,7 @@
     "pk": "FHMutation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHMutation",
       "pv_group": "FHMutation",
       "allow_multiple": false,
       "name": " Gene variant",
@@ -8420,6 +8605,7 @@
     "pk": "FHMutationDescription",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHMutationDescription",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Description of variant",
@@ -8440,6 +8626,7 @@
     "pk": "FHObesity",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHObesity",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Obesity",
@@ -8460,6 +8647,7 @@
     "pk": "FHPlasLipidProfileOnTreatDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHPlasLipidProfileOnTreatDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Date",
@@ -8480,6 +8668,7 @@
     "pk": "FHSDFirstInFamily",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHSDFirstInFamily",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Was the patient the first person in their family to have the diagnosis of FSHD?",
@@ -8500,6 +8689,7 @@
     "pk": "FHSecCausesHyperCholExcluded",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FHSecCausesHyperCholExcluded",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Secondary causes of hypercholesterolaemia excluded",
@@ -8520,6 +8710,7 @@
     "pk": "FlexorDigitorumProfundis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FlexorDigitorumProfundis",
       "pv_group": "MRCChoices",
       "allow_multiple": false,
       "name": "Flexor digitorum profundis",
@@ -8540,6 +8731,7 @@
     "pk": "FrequencyOfApheresis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FrequencyOfApheresis",
       "pv_group": "ApheresisFrequency",
       "allow_multiple": false,
       "name": "Frequency of apheresis",
@@ -8560,6 +8752,7 @@
     "pk": "FSHDAbdominalMuscleWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDAbdominalMuscleWeakness",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Abdominal muscle weakness",
@@ -8580,6 +8773,7 @@
     "pk": "FSHDAffectedEmplQ",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDAffectedEmplQ",
       "pv_group": "FSHDAffectedEmplQ",
       "allow_multiple": true,
       "name": "Has FSHD affected your employment?",
@@ -8600,6 +8794,7 @@
     "pk": "FSHDAgeAtClinicalDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDAgeAtClinicalDiagnosis",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age at Clinical Diagnosis",
@@ -8620,6 +8815,7 @@
     "pk": "FSHDAgeAtMolecularDiagnosis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDAgeAtMolecularDiagnosis",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Age At Molecular Diagnosis",
@@ -8640,6 +8836,7 @@
     "pk": "FSHDCurrentOccupationQ",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDCurrentOccupationQ",
       "pv_group": "FSHDOccupationQ",
       "allow_multiple": false,
       "name": "What is your current occupation?",
@@ -8660,6 +8857,7 @@
     "pk": "FSHDD4Z4MethodOfTesting",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDD4Z4MethodOfTesting",
       "pv_group": "FSHDMethodOfTestingD4Z4",
       "allow_multiple": false,
       "name": "D4Z4 Method of Testing",
@@ -8680,6 +8878,7 @@
     "pk": "FSHDD4Z4OtherMethodOfTesting",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDD4Z4OtherMethodOfTesting",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Other Method",
@@ -8700,6 +8899,7 @@
     "pk": "FSHDDeterioratePregnancyQ",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDDeterioratePregnancyQ",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Did your condition deteriorate during or in the 6 months following your pregnancy?",
@@ -8720,6 +8920,7 @@
     "pk": "FSHDDistalUpperLimbWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDDistalUpperLimbWeakness",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Distal upper limb weakness (elbow or wrist)",
@@ -8740,6 +8941,7 @@
     "pk": "FSHDEducationLevelQ",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDEducationLevelQ",
       "pv_group": "FSHDEducationLevelQ",
       "allow_multiple": false,
       "name": " Highest level of education completed",
@@ -8760,6 +8962,7 @@
     "pk": "FSHDEverPregnant",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDEverPregnant",
       "pv_group": "FSHDEverPregnant",
       "allow_multiple": false,
       "name": "Have you ever been pregnant?",
@@ -8780,6 +8983,7 @@
     "pk": "FSHDExperimentalTreatment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDExperimentalTreatment",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Have you ever received experimental treatment for FSHD?",
@@ -8800,6 +9004,7 @@
     "pk": "FSHDExperimentalTreatmentDesc",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDExperimentalTreatmentDesc",
       "pv_group": null,
       "allow_multiple": false,
       "name": "What was the treatment?",
@@ -8820,6 +9025,7 @@
     "pk": "FSHDFacialWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDFacialWeakness",
       "pv_group": "FSHDFacialWeakness",
       "allow_multiple": false,
       "name": "Facial Weakness",
@@ -8840,6 +9046,7 @@
     "pk": "FSHDFootDorsiflexorWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDFootDorsiflexorWeakness",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Foot dorsiflexor weakness",
@@ -8860,6 +9067,7 @@
     "pk": "fshdgenqtestresult",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "fshdgenqtestresult",
       "pv_group": "fshdqgentestresult",
       "allow_multiple": false,
       "name": "Genetic Test Result",
@@ -8880,6 +9088,7 @@
     "pk": "FSHDGenTestingSiteD4Z4",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDGenTestingSiteD4Z4",
       "pv_group": "FSHDSiteOfGeneticTesting",
       "allow_multiple": false,
       "name": "Testing Site of D4Z4",
@@ -8900,6 +9109,7 @@
     "pk": "FSHDHearingLoss",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDHearingLoss",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Hearing Loss",
@@ -8920,6 +9130,7 @@
     "pk": "FSHDHearingLossStartDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDHearingLossStartDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Hearing Loss Start Date",
@@ -8940,6 +9151,7 @@
     "pk": "FSHDHeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDHeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Height",
@@ -8960,6 +9172,7 @@
     "pk": "FSHDHipGirdleWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDHipGirdleWeakness",
       "pv_group": "FSHDHipGirdleWeakness",
       "allow_multiple": false,
       "name": "Hip Girdle Weakness",
@@ -8980,6 +9193,7 @@
     "pk": "FSHDLegFunction",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDLegFunction",
       "pv_group": "FSHDLegFunction",
       "allow_multiple": false,
       "name": "Leg function",
@@ -9000,6 +9214,7 @@
     "pk": "FSHDMedication",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDMedication",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Do you take medications?",
@@ -9020,6 +9235,7 @@
     "pk": "FSHDMedicationDesc",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDMedicationDesc",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Dosage details",
@@ -9040,6 +9256,7 @@
     "pk": "FSHDNoClinicalFeatures",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDNoClinicalFeatures",
       "pv_group": null,
       "allow_multiple": false,
       "name": "No Clinical Features",
@@ -9060,6 +9277,7 @@
     "pk": "FSHDPain",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDPain",
       "pv_group": "FSHDPain",
       "allow_multiple": false,
       "name": "Pain",
@@ -9080,6 +9298,7 @@
     "pk": "FSHDParticipation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDParticipation",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Have you ever participated in a research study for FSHD?",
@@ -9100,6 +9319,7 @@
     "pk": "FSHDPSShoulderWeakness",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDPSShoulderWeakness",
       "pv_group": "FSHDPeriscapularShoulderWeakness",
       "allow_multiple": false,
       "name": "Periscapular Shoulder Weakness",
@@ -9120,6 +9340,7 @@
     "pk": "FSHDQuestionnaireHeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDQuestionnaireHeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Height",
@@ -9140,6 +9361,7 @@
     "pk": "FSHDQWeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDQWeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Weight",
@@ -9160,6 +9382,7 @@
     "pk": "FSHDReceivedTherapy",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDReceivedTherapy",
       "pv_group": "TheraphyOptionsQ",
       "allow_multiple": false,
       "name": "Have you received the following?",
@@ -9180,6 +9403,7 @@
     "pk": "FSHDRetinalVascularDisease",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDRetinalVascularDisease",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Retinal vascular disease attributable to FSHD ",
@@ -9200,6 +9424,7 @@
     "pk": "FSHDRetVasDisStartDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDRetVasDisStartDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Retinal vascular disease start date",
@@ -9220,6 +9445,7 @@
     "pk": "FSHDScapularFixation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDScapularFixation",
       "pv_group": "FSHDScapularFixation",
       "allow_multiple": false,
       "name": "Scapular Fixation",
@@ -9240,6 +9466,7 @@
     "pk": "FSHDScapularFixationDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDScapularFixationDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Scapular Fixation Surgery Date",
@@ -9260,6 +9487,7 @@
     "pk": "FSHDTestContractedD4Z4",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDTestContractedD4Z4",
       "pv_group": "FSHDGeneticTestResult",
       "allow_multiple": false,
       "name": "Genetic Test Result Contracted D4Z4 from chromosome 4q35",
@@ -9280,6 +9508,7 @@
     "pk": "FSHDTestingSiteD4Z4Other",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDTestingSiteD4Z4Other",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Other Testing Site",
@@ -9300,6 +9529,7 @@
     "pk": "FSHDVitamins",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDVitamins",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Do you take vitamins or supplements for your health?",
@@ -9320,6 +9550,7 @@
     "pk": "FSHDWeight",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "FSHDWeight",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Weight",
@@ -9340,6 +9571,7 @@
     "pk": "GeneticTestDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "GeneticTestDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Genetic Test Date",
@@ -9360,6 +9592,7 @@
     "pk": "GeneticTestResultsAvailable",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "GeneticTestResultsAvailable",
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "allow_multiple": false,
       "name": "Are details of genetic testing available",
@@ -9380,6 +9613,7 @@
     "pk": "GivenNames",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "GivenNames",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Given Names",
@@ -9400,6 +9634,7 @@
     "pk": "HasReceivedGeneticCounselling",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HasReceivedGeneticCounselling",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Has the patient received genetic counselling",
@@ -9420,6 +9655,7 @@
     "pk": "HeartCondition",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HeartCondition",
       "pv_group": "HeartCondition",
       "allow_multiple": false,
       "name": "Heart Condition",
@@ -9440,6 +9676,7 @@
     "pk": "HeartConditionAge",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HeartConditionAge",
       "pv_group": null,
       "allow_multiple": false,
       "name": "At what age was the patient diagnosed with a heart condition",
@@ -9460,6 +9697,7 @@
     "pk": "HeartMedicationStatus",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HeartMedicationStatus",
       "pv_group": "HeartMedStatus",
       "allow_multiple": false,
       "name": "Status",
@@ -9480,6 +9718,7 @@
     "pk": "HeartPalpitations",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HeartPalpitations",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Heart Palpitations ",
@@ -9500,6 +9739,7 @@
     "pk": "HeartRacing",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "HeartRacing",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Does the patient experience: heart racing or beating irregularly",
@@ -9520,6 +9760,7 @@
     "pk": "Iliopsoas",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Iliopsoas",
       "pv_group": "MRCChoices",
       "allow_multiple": false,
       "name": "Iliopsoas",
@@ -9540,6 +9781,7 @@
     "pk": "InvasiveVentilation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "InvasiveVentilation",
       "pv_group": "Times",
       "allow_multiple": false,
       "name": "Invasive Ventilation",
@@ -9560,6 +9802,7 @@
     "pk": "InvasiveVentilationStart",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "InvasiveVentilationStart",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Invasive Ventilation Start Date",
@@ -9580,6 +9823,7 @@
     "pk": "LaboratoryReport",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "LaboratoryReport",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Laboratory Report",
@@ -9600,6 +9844,7 @@
     "pk": "LDLCholesterolAdjTreatment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "LDLCholesterolAdjTreatment",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LDL-cholesterol adjusted for treatment (mmol/L)",
@@ -9620,6 +9865,7 @@
     "pk": "LVEFDate",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "LVEFDate",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LVEF date",
@@ -9640,6 +9886,7 @@
     "pk": "LVEFScore",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "LVEFScore",
       "pv_group": null,
       "allow_multiple": false,
       "name": "LVEF Score (%)",
@@ -9660,6 +9907,7 @@
     "pk": "MedicalProfessionalType",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "MedicalProfessionalType",
       "pv_group": "MedicalProfessionalType",
       "allow_multiple": false,
       "name": "Type of Medical Professional",
@@ -9680,6 +9928,7 @@
     "pk": "MotorFunction",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "MotorFunction",
       "pv_group": "MotorFunction",
       "allow_multiple": false,
       "name": "Current best Motor Function",
@@ -9700,6 +9949,7 @@
     "pk": "MuscleMedicationStatus",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "MuscleMedicationStatus",
       "pv_group": "MuscleMedicationStatus",
       "allow_multiple": false,
       "name": "Status",
@@ -9720,6 +9970,7 @@
     "pk": "Myotonia",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Myotonia",
       "pv_group": "Myotonia",
       "allow_multiple": false,
       "name": "Myotonia",
@@ -9740,6 +9991,7 @@
     "pk": "NeckFlexion",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "NeckFlexion",
       "pv_group": "MRCChoices",
       "allow_multiple": false,
       "name": "Neck Flexion",
@@ -9760,6 +10012,7 @@
     "pk": "NonInvasiveVentilation",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "NonInvasiveVentilation",
       "pv_group": "FHNonInvasiveVentilationAmount",
       "allow_multiple": false,
       "name": "Non-Invasive Ventilation",
@@ -9780,6 +10033,7 @@
     "pk": "NonInvasiveVentilationStart",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "NonInvasiveVentilationStart",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Non-Invasive Ventilation Start Date",
@@ -9800,6 +10054,7 @@
     "pk": "NumChildbirths",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "NumChildbirths",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Number of Childbirths",
@@ -9820,6 +10075,7 @@
     "pk": "NumPregnancies",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "NumPregnancies",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Number of Pregnancies",
@@ -9840,6 +10096,7 @@
     "pk": "OtherRegistry",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "OtherRegistry",
       "pv_group": "YesNo",
       "allow_multiple": false,
       "name": "Is the patient participating in other registries?",
@@ -9860,6 +10117,7 @@
     "pk": "OtherRegistryDetails",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "OtherRegistryDetails",
       "pv_group": null,
       "allow_multiple": false,
       "name": "If yes please specify.",
@@ -9880,6 +10138,7 @@
     "pk": "Pathogenicity",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Pathogenicity",
       "pv_group": "YesNoUnknown",
       "allow_multiple": false,
       "name": "Pathogenicity",
@@ -9900,6 +10159,7 @@
     "pk": "PatientConsentClinicalTrials",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PatientConsentClinicalTrials",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Consent to clinical trials",
@@ -9920,6 +10180,7 @@
     "pk": "PatientConsentPartOfRegistry",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PatientConsentPartOfRegistry",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Patient consents to be part of registry",
@@ -9940,6 +10201,7 @@
     "pk": "PatientConsentSentInfo",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PatientConsentSentInfo",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Consent to being sent information",
@@ -9960,6 +10222,7 @@
     "pk": "Phone",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "Phone",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Phone",
@@ -9980,6 +10243,7 @@
     "pk": "PlasmaLipidTreatment",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PlasmaLipidTreatment",
       "pv_group": "PVGfhDrugs",
       "allow_multiple": false,
       "name": "Treatment",
@@ -10000,6 +10264,7 @@
     "pk": "PositiveFamilyHistory",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PositiveFamilyHistory",
       "pv_group": "FamilyHistory",
       "allow_multiple": true,
       "name": "Positive Family History",
@@ -10020,6 +10285,7 @@
     "pk": "postcode",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "postcode",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Postcode",
@@ -10040,6 +10306,7 @@
     "pk": "PreApheresisLDLCholesterol",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "PreApheresisLDLCholesterol",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Pre-apheresis LDL-cholesterol (mmol/l)",
@@ -10060,6 +10327,7 @@
     "pk": "State",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "State",
       "pv_group": "State",
       "allow_multiple": false,
       "name": "State",
@@ -10080,6 +10348,7 @@
     "pk": "SuburbTown",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "SuburbTown",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Suburb/Town",
@@ -10100,6 +10369,7 @@
     "pk": "SurgeryName",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "SurgeryName",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Surgery name",
@@ -10120,6 +10390,7 @@
     "pk": "TibialisAnterior",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "TibialisAnterior",
       "pv_group": "MRCChoices",
       "allow_multiple": false,
       "name": "Tibialis Anterior",
@@ -10140,6 +10411,7 @@
     "pk": "TypeOfApheresis",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "TypeOfApheresis",
       "pv_group": "ApheresisType",
       "allow_multiple": false,
       "name": "Type of apheresis",
@@ -10160,6 +10432,7 @@
     "pk": "VentilationType",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "VentilationType",
       "pv_group": "VentilationType",
       "allow_multiple": false,
       "name": "Non invasive ventilation type",
@@ -10180,6 +10453,7 @@
     "pk": "WalkAssistanceDevice",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WalkAssistanceDevice",
       "pv_group": "WalkAssisted",
       "allow_multiple": false,
       "name": "Current use of devices to assist with walking",
@@ -10200,6 +10474,7 @@
     "pk": "WeakerArm",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WeakerArm",
       "pv_group": "LeftRight",
       "allow_multiple": false,
       "name": "If yes which is weaker?",
@@ -10220,6 +10495,7 @@
     "pk": "WeakerLeg",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WeakerLeg",
       "pv_group": "LeftRight",
       "allow_multiple": false,
       "name": "If yes which is weaker?",
@@ -10240,6 +10516,7 @@
     "pk": "WheelchairMobilityScooterUse",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WheelchairMobilityScooterUse",
       "pv_group": "FHWCSUse",
       "allow_multiple": false,
       "name": "Wheelchair or Mobility Scooter Use",
@@ -10260,6 +10537,7 @@
     "pk": "WheelChairUse",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WheelChairUse",
       "pv_group": "WheelChairUse",
       "allow_multiple": false,
       "name": "Wheel Chair Use",
@@ -10280,6 +10558,7 @@
     "pk": "WheelChairUseAge",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "WheelChairUseAge",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Wheelchair use age",
@@ -10300,6 +10579,7 @@
     "pk": "TestDuration",
     "model": "rdrf.commondataelement",
     "fields": {
+      "abbreviated_name": "TestDuration",
       "pv_group": null,
       "allow_multiple": false,
       "name": "Duration",
@@ -10321,6 +10601,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "ClinicalData",
+      "abbreviated_name": "ClinicalData",
       "is_questionnaire": false,
       "registry": 3,
       "position": 0,
@@ -10333,6 +10614,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "GeneticData",
+      "abbreviated_name": "GeneticData",
       "is_questionnaire": false,
       "registry": 3,
       "position": 1,
@@ -10345,6 +10627,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "FSHDQuestionnaire",
+      "abbreviated_name": "FSHDQuestionnaire",
       "is_questionnaire": true,
       "registry": 4,
       "position": 0,
@@ -10357,6 +10640,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "FSHD",
+      "abbreviated_name": "FSHD",
       "is_questionnaire": false,
       "registry": 4,
       "position": 1,
@@ -10369,6 +10653,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "CascadeScreening",
+      "abbreviated_name": "CascadeScreening",
       "is_questionnaire": false,
       "registry": 1,
       "position": 0,
@@ -10381,6 +10666,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "GeneticData",
+      "abbreviated_name": "GeneticData",
       "is_questionnaire": false,
       "registry": 1,
       "position": 1,
@@ -10393,6 +10679,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "ClinicalData",
+      "abbreviated_name": "ClinicalData",
       "is_questionnaire": false,
       "registry": 1,
       "position": 2,
@@ -10405,6 +10692,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "Apheresis",
+      "abbreviated_name": "Apheresis",
       "is_questionnaire": false,
       "registry": 1,
       "position": 3,
@@ -10417,6 +10705,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "CascadeScreening",
+      "abbreviated_name": "CascadeScreening",
       "is_questionnaire": false,
       "registry": 5,
       "position": 0,
@@ -10429,6 +10718,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "GeneticData",
+      "abbreviated_name": "GeneticData",
       "is_questionnaire": false,
       "registry": 5,
       "position": 1,
@@ -10441,6 +10731,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "ClinicalData",
+      "abbreviated_name": "ClinicalData",
       "is_questionnaire": false,
       "registry": 5,
       "position": 2,
@@ -10453,6 +10744,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "Apheresis",
+      "abbreviated_name": "Apheresis",
       "is_questionnaire": false,
       "registry": 5,
       "position": 3,
@@ -10465,6 +10757,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "GeneralForm",
+      "abbreviated_name": "GeneralForm",
       "is_questionnaire": false,
       "registry": 6,
       "position": 0,
@@ -10477,6 +10770,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "Phenotype",
+      "abbreviated_name": "Phenotype",
       "is_questionnaire": false,
       "registry": 7,
       "position": 0,
@@ -10489,6 +10783,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "clinicalform",
+      "abbreviated_name": "clinicalform",
       "is_questionnaire": false,
       "registry": 8,
       "position": 0,
@@ -10501,6 +10796,7 @@
     "model": "rdrf.registryform",
     "fields": {
       "name": "GeneratedQuestionnaireForbfr",
+      "abbreviated_name": "GeneratedQuestionnaireForbfr",
       "is_questionnaire": true,
       "registry": 6,
       "position": 1,

@@ -49,3 +49,7 @@ lark-parser==0.10.0
 boto3==1.21.0
 django-js-reverse==0.9.1
 aws-xray-sdk==2.7.0
+graphene-django==2.15.0
+django-filter==2.4.0
+flatten_json==0.1.13
+gql-query-builder==0.1.7

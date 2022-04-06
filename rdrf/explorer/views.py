@@ -1,38 +1,38 @@
-from datetime import datetime
-from itertools import product
 import logging
 import re
+from datetime import datetime
+from itertools import product
 from tempfile import NamedTemporaryFile
 
 from csp.decorators import csp_update
 from django.conf import settings
-
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 from django.http import HttpResponse, FileResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.views.generic.base import View
 
 from explorer import __version__
-from .forms import QueryForm
-from .models import Query
-from .utils import DatabaseUtils
+from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
+from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
-from registry.groups.models import WorkingGroup
 from rdrf.security.mixins import SuperuserRequiredMixin
-from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
 from rdrf.services.io.reporting.reporting_table import ReportingTableGenerator
-
-from rdrf.helpers.utils import models_from_mongo_key, is_delimited_key, BadKeyError, cached
-from rdrf.helpers.utils import mongo_key_from_models, check_suspicious_sql
+from rdrf.services.io.reporting.spreadsheet_report import SpreadSheetReport
+from rdrf.views.decorators.report_decorators import is_legacy_reports_enabled
+from registry.groups.models import WorkingGroup
+from .forms import QueryForm
+from .models import Query
+from .utils import DatabaseUtils
 
 logger = logging.getLogger(__name__)
 
 
 class MainView(View):
 
+    @is_legacy_reports_enabled
     def get(self, request):
         return render(request, 'explorer/query_list.html', {
             'object_list': Query.objects.reports_for_user(request.user)
@@ -41,12 +41,14 @@ class MainView(View):
 
 class NewQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request):
         params = _get_default_params(request, QueryForm)
         params["new_query"] = "true"
         return render(request, 'explorer/query.html', params)
 
+    @is_legacy_reports_enabled
     def post(self, request):
         query_form = QueryForm(request.POST)
         if query_form.is_valid():
@@ -59,6 +61,7 @@ class NewQueryView(SuperuserRequiredMixin, View):
 
 class DeleteQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
         query_model.delete()
@@ -75,6 +78,7 @@ class AccessCheckMixin:
 
 class QueryView(AccessCheckMixin, View):
 
+    @is_legacy_reports_enabled
     @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
     def get(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
@@ -84,6 +88,7 @@ class QueryView(AccessCheckMixin, View):
         params['registries'] = Registry.objects.all()
         return render(request, 'explorer/query.html', params)
 
+    @is_legacy_reports_enabled
     def post(self, request, query_id):
         query_model = get_object_or_404(Query, pk=query_id)
         registry_model = query_model.registry
@@ -119,6 +124,7 @@ class QueryView(AccessCheckMixin, View):
 
 class DownloadQueryView(AccessCheckMixin, View):
 
+    @is_legacy_reports_enabled
     def post(self, request, query_id, action):
         if action not in ["download", "view"]:
             raise Exception("bad action")
@@ -176,6 +182,7 @@ class DownloadQueryView(AccessCheckMixin, View):
             response['Content-Disposition'] = 'attachment; filename="Longitudinal Report.xlsx"'
             return response
 
+    @is_legacy_reports_enabled
     def get(self, request, query_id, action):
         if action not in ['download', 'view']:
             raise Exception("bad action")
@@ -241,6 +248,7 @@ class DownloadQueryView(AccessCheckMixin, View):
 
 class SqlQueryView(SuperuserRequiredMixin, View):
 
+    @is_legacy_reports_enabled
     def post(self, request):
         form = QueryForm(request.POST)
         database_utils = DatabaseUtils(form, True)

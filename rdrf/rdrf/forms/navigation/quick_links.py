@@ -1,16 +1,15 @@
+import logging
 from collections import namedtuple
 from functools import reduce
-import logging
 from operator import attrgetter
 
-from django.urls import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
-from django.urls.exceptions import NoReverseMatch
 from django.conf import settings
+from django.urls import reverse_lazy
+from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import ugettext_lazy as _
 
-from registry import groups
 from rdrf.helpers.registry_features import RegistryFeatures
-
+from registry import groups
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +27,14 @@ def make_link(url, text):
 
 class LinkDefs:
     PatientsListing = make_link("patientslisting", _("Patient List"))
-    Reports = make_link("reports", _("Reports"))
+    LegacyReports = make_link("reports", _("Reports (Legacy)"))
     QuestionnaireResponses = make_link("admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
-    Explorer = make_link("rdrf:explorer_main", _("Explorer"))
+    LegacyExplorer = make_link("rdrf:explorer_main", _("Explorer"))
+    Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))
@@ -161,8 +161,14 @@ class RegularLinks(Links):
         LinkDefs.FormTitlesConfig,
         LinkDefs.BlacklistedMimeTypesConfig
     )
-    EXPLORER = make_entries(LinkDefs.Explorer)
-    REPORTING = make_entries(LinkDefs.Reports)
+
+    LEGACY_EXPLORER = {}
+    LEGACY_REPORTS = {}
+
+    ENABLED_LEGACY_EXPLORER = make_entries(LinkDefs.LegacyExplorer)
+    ENABLED_LEGACY_REPORTS = make_entries(LinkDefs.LegacyReports)
+
+    REPORTS = make_entries(LinkDefs.Reports)
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
 
@@ -254,6 +260,11 @@ class MenuConfig:
         # get links for the admin page
         return self.all
 
+    def reports_links(self):
+        if any(registry.has_feature(RegistryFeatures.LEGACY_REPORTS) for registry in self.registries):
+            RegularLinks.LEGACY_EXPLORER = RegularLinks.ENABLED_LEGACY_EXPLORER
+            RegularLinks.LEGACY_REPORTS = RegularLinks.ENABLED_LEGACY_REPORTS
+
     def build_menu(self):
         # enable dynamic links and build the menu
         self.consent_links()
@@ -263,6 +274,7 @@ class MenuConfig:
         self.permission_matrix_links()
         self.registration_links()
         self.patient_stages_links()
+        self.reports_links()
 
 
 class RegularMenuConfig(MenuConfig):
@@ -277,7 +289,8 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.CONSENT,
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.DOCTORS,
-            **RegularLinks.REPORTING,
+            **RegularLinks.REPORTS,
+            **RegularLinks.LEGACY_REPORTS,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.QUESTIONNAIRE,
         }
@@ -285,7 +298,8 @@ class RegularMenuConfig(MenuConfig):
         self.clinical = {
             **RegularLinks.DATA_ENTRY,
             **RegularLinks.QUESTIONNAIRE,
-            **RegularLinks.REPORTING,
+            **RegularLinks.REPORTS,
+            **RegularLinks.LEGACY_REPORTS,
         }
 
         # Super user has combined menu of all other users
@@ -299,7 +313,7 @@ class RegularMenuConfig(MenuConfig):
         self.settings = {
             **RegularLinks.AUDITING,
             **RegularLinks.DOCTORS,
-            **RegularLinks.EXPLORER,
+            **RegularLinks.LEGACY_EXPLORER,
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
@@ -316,7 +330,8 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.PERMISSIONS,
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REGISTRATION,
-            **RegularLinks.REPORTING,
+            **RegularLinks.LEGACY_REPORTS,
+            **RegularLinks.REPORTS,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,

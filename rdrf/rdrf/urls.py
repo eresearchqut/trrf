@@ -8,6 +8,8 @@ from django.utils.translation import ugettext as _
 
 from django_js_reverse.views import urls_js
 
+from graphene_django.views import GraphQLView
+
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFLoginAssistanceForm, RDRFPasswordResetForm, RDRFSetPasswordForm
@@ -45,6 +47,7 @@ from rdrf.views.session_refresh_view import session_refresh
 from rdrf.views.actions import ActionExecutorView
 import logging
 
+from report.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +68,7 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
+        path('graphql', lambda request: GraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
 
@@ -177,6 +181,7 @@ normalpatterns += [
     re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
             name="report_datatable"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
+    re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListingView.as_view(),
             name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',

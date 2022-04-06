@@ -1,38 +1,30 @@
 import json
 import logging
+
 import yaml
-
-
-from rdrf.helpers.registry_features import RegistryFeatures
-
-from rdrf.models.data_fixes import CdeMappings
-
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentConfiguration
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import DemographicFields
-from rdrf.models.definition.models import FormTitle
-
-from rdrf.forms.widgets.widgets import get_widgets_for_data_type
-
-from registry.groups.models import WorkingGroup
-from registry.patients.models import Patient, PatientStage, PatientStageRule, NextOfKinRelationship
-
-from explorer.models import Query
-
 from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
-
+from explorer.models import Query
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.data_fixes import CdeMappings
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentConfiguration
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import Section
+from registry.groups.models import WorkingGroup
+from registry.patients.models import Patient, PatientStage, PatientStageRule, NextOfKinRelationship
+from report.models import ReportDesign, ReportDemographicField, ReportClinicalDataField
 from .patient_stage_changes import PatientStageChanges
-
 
 logger = logging.getLogger(__name__)
 
@@ -350,7 +342,8 @@ class Importer(object):
     def _create_cdes(self, cde_maps):
         unknown_attributes = set()
         for cde_map in cde_maps:
-            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"])
+            cde_model, created = CommonDataElement.objects.get_or_create(code=cde_map["code"],
+                                                                         defaults={'abbreviated_name': cde_map['abbreviated_name']})
 
             if not created:
                 registries_already_using = _registries_using_cde(cde_model)
@@ -651,7 +644,8 @@ class Importer(object):
             self._create_form_sections(frm_map)
 
             f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
-                                                            defaults={'sections': sections})
+                                                            defaults={'sections': sections,
+                                                                      'abbreviated_name': frm_map['abbreviated_name']})
             if not created:
                 f.sections = sections
 
@@ -723,6 +717,12 @@ class Importer(object):
             logger.info("complete reports OK ")
         else:
             logger.info("no reports to import")
+
+        if "reports_v2" in self.data:
+            self._create_reports_v2(self.data["reports_v2"])
+            logger.info("complete reports_v2 OK")
+        else:
+            logger.info("no reports_v2 to import")
 
         if "cde_policies" in self.data:
             self._create_cde_policies(r)
@@ -882,7 +882,8 @@ class Importer(object):
 
     def _create_form_sections(self, frm_map):
         for section_map in frm_map["sections"]:
-            s, created = Section.objects.get_or_create(code=section_map["code"])
+            s, created = Section.objects.get_or_create(code=section_map["code"],
+                                                       defaults={'abbreviated_name': section_map['abbreviated_name']})
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
             if "questionnaire_display_name" in section_map:
@@ -919,7 +920,8 @@ class Importer(object):
         for cfg_dict in default_first(self.data):
             if cfg_dict is None:
                 continue
-            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, code=cfg_dict["code"])
+            cfg, created = ContextFormGroup.objects.get_or_create(registry=registry, code=cfg_dict["code"],
+                                                                  defaults={'abbreviated_name': cfg_dict["abbreviated_name"]})
             cfg.context_type = cfg_dict["context_type"]
             cfg.code = cfg_dict["code"]
             cfg.name = cfg_dict["name"]
@@ -1081,6 +1083,29 @@ class Importer(object):
             query.created_by = d["created_by"]
             query.created_at = d["created_at"]
             query.save()
+
+    def _create_reports_v2(self, data):
+        for d in data:
+            registry = Registry.objects.get(code=d['registry'])
+            report, created = ReportDesign.objects.get_or_create(registry=registry, title=d['title'])
+
+            report.description = d['description']
+
+            report.access_groups.set(Group.objects.filter(name__in=d['access_groups']))
+            report.filter_working_groups.set(WorkingGroup.objects.filter(name__in=d['filter_working_groups']))
+            report.filter_consents.set([ConsentQuestion.objects.get(code=c['code'], section__code=c['section']) for c in d['filter_consents']])
+
+            if not created:
+                ReportDemographicField.objects.filter(report_design=report).delete()
+                ReportClinicalDataField.objects.filter(report_design=report).delete()
+
+            for df in d['demographic_fields']:
+                report.reportdemographicfield_set.create(model=df['model'], field=df['field'], sort_order=df['sort_order'])
+
+            for cdf in d['clinical_data_fields']:
+                report.reportclinicaldatafield_set.create(cde_key=cdf)
+
+            report.save()
 
     def _create_cde_policies(self, registry_model):
         from rdrf.models.definition.models import CdePolicy

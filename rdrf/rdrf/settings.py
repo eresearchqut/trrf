@@ -210,6 +210,9 @@ INSTALLED_APPS = [x for x in (
     'aws_xray_sdk.ext.django',
     'django_countries',
     'silk' if PROFILING else None,
+    'graphene_django',
+    'django_filters',
+    'report',
 ) if x is not None]
 
 
@@ -703,6 +706,11 @@ SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
 # Quicklinks settings
 QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 
+# Reports settings
+SCHEMA_MODULE = 'report.schema'
+SCHEMA_METHOD_PATIENT_FIELDS = 'get_patient_fields'
+REPORT_CONFIGURATION = 'report.report_configuration.REPORT_CONFIGURATION'
+
 # Use the setting below in registries derived from trrf to setup extra UI widgets
 # it shoud be a string indicating the module where registry specific widgets are defined
 # EXTRA_WIDGETS = '<fill module name here>'
@@ -728,3 +736,11 @@ SILKY_META = True
 SILKY_PYTHON_PROFILER = True
 SILKY_PYTHON_PROFILER_BINARY = True
 SILKY_PYTHON_PROFILER_RESULT_PATH = '/data/python_profiling'
+
+# Graphene_django for GraphQL
+if DEBUG:
+    CSP_EXCLUDE_URL_PREFIXES = '{0}/graphql'.format(SCRIPT_NAME)
+
+GRAPHENE = {
+    "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
+}

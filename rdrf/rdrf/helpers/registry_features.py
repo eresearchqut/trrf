@@ -18,3 +18,4 @@ class RegistryFeatures:
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
     PATIENTS_CREATE_USERS = "patients_create_users"
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"
+    LEGACY_REPORTS = "legacy_reports"

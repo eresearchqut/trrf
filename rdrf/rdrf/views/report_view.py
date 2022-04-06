@@ -10,12 +10,14 @@ from django.views.generic.base import View
 from explorer.models import Query
 from rdrf.security.mixins import ReportAccessMixin
 from rdrf.services.io.reporting.reporting_table import ReportTable
+from rdrf.views.decorators.report_decorators import is_legacy_reports_enabled
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(ReportAccessMixin, View):
 
+    @is_legacy_reports_enabled
     def get(self, request):
         user = request.user
         context = {}
@@ -26,6 +28,7 @@ class ReportView(ReportAccessMixin, View):
 
 class ReportDataTableView(ReportAccessMixin, View):
 
+    @is_legacy_reports_enabled
     def get(self, request, query_model_id):
         user = request.user
         query_model = get_object_or_404(Query, pk=query_model_id)
@@ -48,6 +51,7 @@ class ReportDataTableView(ReportAccessMixin, View):
         if not Query.objects.reports_for_user(user).filter(pk=query_model.id).exists():
             raise PermissionDenied
 
+    @is_legacy_reports_enabled
     def post(self, request, query_model_id):
         user = request.user
         query_model = get_object_or_404(Query, pk=query_model_id)

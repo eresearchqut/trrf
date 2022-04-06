@@ -29,7 +29,6 @@ Feature: Admin Page and Settings
   Scenario: Admin user opens Settings menu
     Given I am logged in as admin
     When I click "Settings"
-    And I should see a link to "Explorer"
     And I should see a link to "User Failed Login Log"
     And I should see a link to "User Login Attempts Log"
     And I should see a link to "User Login Log"
@@ -56,7 +55,6 @@ Feature: Admin Page and Settings
     #And I should see a link to "Registry Sections"
     And I should see a link to "Groups"
     And I should see a link to "Importer"
-    And I should see a link to "Explorer"
     And I should see a link to "Demographics Fields"
     And I should see a link to "Next of Kin Relationship"
     And I should see a link to "Email Notifications"
