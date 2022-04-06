@@ -130,22 +130,20 @@ class ClinicalDataReportUtil:
             ORDER BY cs.form_name, cs.section_code, cs.cde_code;
         """
 
-        summary = {}
         with connections['clinical'].cursor() as cursor:
             cursor.execute(sql, {'patient_ids': patient_ids, 'cde_delim': settings.FORM_SECTION_DELIMITER, 'cde_keys': cde_keys})
             rows = cursor.fetchall()
 
-            summary = {
+            return {
                 form_name: {
                     section_code: {
                         'count': section_count,
                         'cdes': {row[3]: {'count': row[4]}
-                                 for row in cdes}}}
+                                 for row in cdes}}
+                    for (section_code, section_count), cdes in itertools.groupby(sections, lambda x: (x[1], x[2]))
+                }
                 for form_name, sections in itertools.groupby(rows, lambda x: x[0])
-                for (section_code, section_count), cdes in itertools.groupby(sections, lambda x: (x[1], x[2]))
             }
-
-        return summary
 
     def __form_section_cde_sort_order(self, cde_keys):
         sort_order_lookup = {}  # {formkey: {order: 1, sections: {sectionkey: {order: 1, cdes: {cdekey: 1}}}}
