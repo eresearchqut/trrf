@@ -1363,13 +1363,12 @@ class ConsentRule(models.Model):
 
 
 class DemographicFields(models.Model):
-    FIELD_CHOICES = []
     READONLY = 1
     HIDDEN = 2
     STATUS_CHOICES = [(READONLY, "Read only"), (HIDDEN, "Hidden")]
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups = models.ManyToManyField(Group, related_name='demographic_fields')
-    field = models.CharField(max_length=50, choices=FIELD_CHOICES)
+    field = models.CharField(max_length=50)
     status = models.IntegerField(choices=STATUS_CHOICES, default=2)
     is_section = models.BooleanField(null=False, default=False)
 
