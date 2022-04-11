@@ -134,7 +134,7 @@ class ClinicalDataReportUtil:
             cursor.execute(sql, {'patient_ids': patient_ids, 'cde_delim': settings.FORM_SECTION_DELIMITER, 'cde_keys': cde_keys})
             rows = cursor.fetchall()
 
-            return {
+            summary = {
                 form_name: {
                     section_code: {
                         'count': section_count,
@@ -144,6 +144,16 @@ class ClinicalDataReportUtil:
                 }
                 for form_name, sections in itertools.groupby(rows, lambda x: x[0])
             }
+
+        # Fill in the blanks with defaults
+        for form_name, section_code, cde_code in map(get_form_section_code, cde_keys):
+            # Check if any combination of this form, section, cde is not in the existing summary
+            if not (form_name in summary and section_code in summary[form_name] and cde_code in summary[form_name][section_code]['cdes']):
+                # Add defaults for for the data where it does not exist
+                section_data = summary.setdefault(form_name, {}).setdefault(section_code, {'count': 1, 'cdes': {}})
+                section_data['cdes'][cde_code] = {'count': 1}
+
+        return summary
 
     def __form_section_cde_sort_order(self, cde_keys):
         sort_order_lookup = {}  # {formkey: {order: 1, sections: {sectionkey: {order: 1, cdes: {cdekey: 1}}}}
