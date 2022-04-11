@@ -130,7 +130,7 @@ class ReportGeneratorTestCase(TestCase):
               DayOfWeek
               TimeToBed
               TimeAwake
-              field6startswithnumber
+              field6StartsWithNumber
             }
           }
         }

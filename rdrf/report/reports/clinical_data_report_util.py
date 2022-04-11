@@ -10,7 +10,7 @@ from rdrf.helpers.utils import get_form_section_code
 from rdrf.models.definition.models import RDRFContext, ContextFormGroup, RegistryForm, Section, \
     CommonDataElement
 from report.models import ReportCdeHeadingFormat
-from report.schema import list_patients_query, get_query_field_name
+from report.schema import list_patients_query, get_schema_field_name
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ class ClinicalDataReportUtil:
             return cfg.code
 
     def __form_header_parts(self, cfg, cfg_heading, cfg_i, form, form_label_text):
-        form_name_key = get_query_field_name(form.name)
+        form_name_key = get_schema_field_name(form.name)
         if cfg.is_fixed:
             form_key_suffix = form_name_key
             form_label_suffix = form_label_text
@@ -63,14 +63,14 @@ class ClinicalDataReportUtil:
         return key_prefix, label
 
     def __cde_header_parts(self, form_key_prefix, form_key_suffix, form_label_prefix, section, section_heading, section_num, cde, cde_heading):
-        section_code_key = get_query_field_name(section.code)
+        section_code_key = get_schema_field_name(section.code)
         if section.allow_multiple:
             section_key = f'{section_code_key}_{section_num}'
             section_label = f'{section_heading}_{(section_num + 1)}'
         else:
             section_key = section_code_key
             section_label = section_heading
-        key = f'{form_key_prefix}{form_key_suffix}_{section_key}_{get_query_field_name(cde.code)}'
+        key = f'{form_key_prefix}{form_key_suffix}_{section_key}_{get_schema_field_name(cde.code)}'
         label = f'{form_label_prefix}_{section_label}_{cde_heading}'
         return key, label
 
