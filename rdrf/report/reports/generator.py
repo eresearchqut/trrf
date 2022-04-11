@@ -14,7 +14,7 @@ from rdrf.helpers.utils import models_from_mongo_key
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
 from report.reports.clinical_data_report_util import ClinicalDataReportUtil
-from report.schema import create_dynamic_schema
+from report.schema import create_dynamic_schema, get_query_field_name
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +92,20 @@ class Report:
             fields_form = []
             for form_name, form in cfg['forms'].items():
                 fields_section = []
+                form_name_field = get_query_field_name(form_name)
                 for section_code, section in form['sections'].items():
-                    field_section = GqlQuery().fields(section['cdes'], name=section_code).generate()
+                    field_section = GqlQuery().fields(map(get_query_field_name, section['cdes']), name=get_query_field_name(section_code)).generate()
                     fields_section.append(field_section)
 
                 if cfg['is_fixed']:
-                    field_form = GqlQuery().fields(fields_section, name=form_name).generate()
+                    field_form = GqlQuery().fields(fields_section, name=form_name_field).generate()
                 else:
                     field_data = GqlQuery().fields(fields_section, name='data').generate()
-                    field_form = GqlQuery().fields(['key', field_data], name=form_name).generate()
+                    field_form = GqlQuery().fields(['key', field_data], name=form_name_field).generate()
 
                 fields_form.append(field_form)
 
-            field_cfg = GqlQuery().fields(fields_form, name=cfg_code).generate()
+            field_cfg = GqlQuery().fields(fields_form, name=get_query_field_name(cfg_code)).generate()
             fields_clinical_data.append(field_cfg)
 
         # Build query

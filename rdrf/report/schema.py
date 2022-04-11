@@ -6,6 +6,7 @@ from importlib import import_module
 import graphene
 from django.conf import settings
 from django.db.models import Count, Max
+from graphene.utils.str_converters import to_camel_case
 from graphene_django import DjangoObjectType
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
@@ -78,10 +79,15 @@ class RegistryType(DjangoObjectType):
 
 def get_schema_field_name(s):
     if not _graphql_field_pattern.match(s):
-        new_str = f"field_{s}"
+        new_str = to_camel_case(f"field_{s}")
         assert _graphql_field_pattern.match(new_str), f"Cannot use field '{s}' in graphql schema"
         return new_str
     return s
+
+
+def get_query_field_name(s):
+    name = get_schema_field_name(s)
+    return name.replace('_', '')
 
 
 def get_section_fields(_section_key, section_cdes):
