@@ -116,6 +116,14 @@ class Report:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
         return GqlQuery().fields(fields_patient).query('patients', input=self.patient_filters).operation().generate()
 
+    def validate_query(self, request):
+        result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
+
+        if result.errors:
+            return False, {'query_structure': result.errors}
+
+        return True, None
+
     def validate_for_csv_export(self):
         if self.report_design.cde_heading_format == ReportCdeHeadingFormat.CODE.value:
             return True, {}
