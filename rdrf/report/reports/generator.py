@@ -1,3 +1,4 @@
+import codecs
 import csv
 import io
 import json
@@ -47,11 +48,12 @@ class Report:
     def __get_graphql_query(self, offset=None, limit=None):
 
         # Build Patient filters
+        patient_filters = self.patient_filters.copy()
         if offset:
-            self.patient_filters['offset'] = offset
+            patient_filters['offset'] = offset
 
         if limit:
-            self.patient_filters['limit'] = limit
+            patient_filters['limit'] = limit
 
         # Build simple patient demographic fields
         patient_fields = []
@@ -114,7 +116,7 @@ class Report:
         fields_patient.extend(fields_nested_demographics)
         if fields_clinical_data:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
-        return GqlQuery().fields(fields_patient).query('patients', input=self.patient_filters).operation().generate()
+        return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
 
     def validate_query(self, request):
         result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
@@ -242,6 +244,7 @@ class Report:
         output = io.StringIO()
         header_writer = csv.DictWriter(output, fieldnames=headers.values())
         header_writer.writeheader()
+        yield codecs.BOM_UTF8  # Required by MS Excel to correctly load content in UTF-8, otherwise encoding is ignored.
         yield output.getvalue()
 
         # Build/Chunk Patient Data
