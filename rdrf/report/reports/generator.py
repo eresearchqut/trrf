@@ -11,7 +11,7 @@ from django.utils.module_loading import import_string
 from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
-from rdrf.helpers.utils import models_from_mongo_key
+from rdrf.helpers.utils import models_from_mongo_key, BadKeyError
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
 from report.reports.clinical_data_report_util import ClinicalDataReportUtil
@@ -119,7 +119,10 @@ class Report:
         return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
 
     def validate_query(self, request):
-        result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
+        try:
+            result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
+        except BadKeyError as ex:
+            return False, {'query_bad_key_error': str(ex)}
 
         if result.errors:
             return False, {'query_structure': result.errors}
