@@ -50,10 +50,11 @@ class ReportGeneratorTestCase(TestCase):
 
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
+        CommonDataElement.objects.create(code='6StartsWithNumber', name='Field starts with number', abbreviated_name='Number field')
         CommonDataElement.objects.create(code='TimeToBed', name='Time to bed', abbreviated_name='Time')
         CommonDataElement.objects.create(code='TimeAwake', name='Time Awake in the morning', abbreviated_name='Time')
         CommonDataElement.objects.create(code='DayOfWeek', name='Day of Week', abbreviated_name='Day')
-        Section.objects.create(code='SleepSection', elements='TimeToBed,TimeAwake,DayOfWeek',
+        Section.objects.create(code='SleepSection', elements='6StartsWithNumber,TimeToBed,TimeAwake,DayOfWeek',
                                display_name='Sleep', abbreviated_name='SleepSEC')
         form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM',
                                            registry=reg_ang)
@@ -90,6 +91,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
         report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeToBed')
         report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeAwake')
+        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____6StartsWithNumber')
 
         report_design.filter_consents.add(cq1)
         report_design.filter_consents.add(cq2)
@@ -128,6 +130,7 @@ class ReportGeneratorTestCase(TestCase):
               DayOfWeek
               TimeToBed
               TimeAwake
+              field6StartsWithNumber
             }
           }
         }
