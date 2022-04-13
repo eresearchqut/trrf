@@ -49,8 +49,7 @@ class ReportDownloadView(ReportDownloadAccessCheckMixin, View):
             is_valid, errors = report.validate_for_csv_export()
             if not is_valid:
                 return render(request, 'report_download_errors.html', {'errors': errors})
-            # Excel requires the BOM in a UTF-8 encoded file to display unicode characters correctly (smart quote from MS Word)
-            content_type = 'text/csv; charset=utf-8-sig'
+            content_type = 'text/csv; charset=utf-8'
             content = report.export_to_csv(request)
         elif format == 'json':
             # Line delimited json to support streaming of data
