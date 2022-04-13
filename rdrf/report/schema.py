@@ -7,6 +7,7 @@ import graphene
 from django.conf import settings
 from django.db.models import Count, Max
 from graphene_django import DjangoObjectType
+
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
@@ -78,7 +79,7 @@ class RegistryType(DjangoObjectType):
 
 def get_schema_field_name(s):
     if not _graphql_field_pattern.match(s):
-        new_str = f"field_{s}"
+        new_str = f"field{s}"
         assert _graphql_field_pattern.match(new_str), f"Cannot use field '{s}' in graphql schema"
         return new_str
     return s

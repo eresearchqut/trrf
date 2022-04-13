@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import StreamingHttpResponse, HttpResponse
@@ -8,6 +10,8 @@ from rdrf.security.mixins import SuperuserRequiredMixin
 from report.forms import ReportDesignerForm
 from report.models import ReportDesign
 from report.reports.generator import Report
+
+logger = logging.getLogger(__name__)
 
 
 class ReportsAccessCheckMixin:
@@ -36,11 +40,17 @@ class ReportDownloadView(ReportDownloadAccessCheckMixin, View):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
         report = Report(report_design=report_design)
 
+        is_valid, errors = report.validate_query(request)
+        if not is_valid:
+            logger.error(errors)
+            return render(request, 'report_download_errors.html', {'errors': errors})
+
         if format == 'csv':
             is_valid, errors = report.validate_for_csv_export()
             if not is_valid:
                 return render(request, 'report_download_errors.html', {'errors': errors})
-            content_type = 'text/csv'
+            # Excel requires the BOM in a UTF-8 encoded file to display unicode characters correctly (smart quote from MS Word)
+            content_type = 'text/csv; charset=utf-8-sig'
             content = report.export_to_csv(request)
         elif format == 'json':
             # Line delimited json to support streaming of data
