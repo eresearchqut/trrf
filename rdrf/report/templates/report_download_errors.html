@@ -28,6 +28,8 @@
                     </ul>
                 {% endif %}
             {% endfor %}
+        {% else %}
+            <p>{% trans "Please contact your system administrator for investigation." %}</p>
         {% endif %}
     </div>
     <a href="{% url 'report:reports_list' %}">Go back to Reports</a>
