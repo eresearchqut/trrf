@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="alert alert-danger mt-4">
-        <p class="alert-heading"><i class="fa fa-warning"></i> {% trans "An error occurred generating this report." %}</p>
+        <p class="alert-heading mb-0"><i class="fa fa-warning"></i> {% trans "An error occurred generating this report." %}</p>
     </div>
     {% if 'duplicate_headers' in errors %}
         {% for error_key, error_val in errors.items %}
@@ -34,6 +34,8 @@
                 </ul>
             {% endif %}
         {% endfor %}
+    {%  elif 'query_bad_key_error' in errors %}
+        <p>{% trans "This report references a clinical data field that no longer exists. To resolve this error, re-save the report (no changes required)." %}</p>
     {% else %}
         <p>{% trans "Please contact your system administrator for investigation." %}</p>
     {% endif %}
