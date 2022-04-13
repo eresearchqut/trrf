@@ -55,7 +55,7 @@ def prefetch_form_data(form):
     section_models = form.section_models
     cde_codes = set(reduce(add, [s.get_elements() for s in section_models], []))
     cdes = {cde.code: cde for cde in CommonDataElement.objects.filter(code__in=cde_codes).select_related('pv_group').prefetch_related('pv_group__permitted_value_set')}
-    section_cdes = {s.code: [cdes[code] for code in s.get_elements() if code in cdes] for s in section_models}
+    section_cdes = {s.code: [cdes[code] for code in s.get_elements()] for s in section_models}
 
     return section_models, section_cdes
 
