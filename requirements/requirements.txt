@@ -13,7 +13,6 @@ django-storages==1.12.3
 django-stronghold==0.4.0
 django-templatetag-sugar==1.0 # TODO remove
 django-useraudit==1.7.1
-django-uwsgi==0.2.2
 geoip2==3.0.0 # TODO remove
 jsonschema==4.4.0
 openpyxl==3.0.9
