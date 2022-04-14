@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 volumes:
   dev_db_data:
@@ -54,22 +54,6 @@ services:
       - clinicaldb
       - reportingdb
       - xray-daemon
-
-  node:
-    build:
-      context: .
-      dockerfile: docker/dev/Dockerfile-node
-    stop_signal: SIGKILL
-    image: ${NODE_IMAGE_NAME}
-    command: watch
-    working_dir: ${TRRF_SOURCE_DIR:-/app}/rdrf/rdrf/frontend
-
-    environment:
-        YARN_CACHE_FOLDER: /opt/yarn_cache
-    volumes:
-      - .:/app
-      - ./data/dev/:/data
-      - ./yarn_cache:/opt/yarn_cache
 
   xray-daemon:
     image: amazon/aws-xray-daemon:3.2.0

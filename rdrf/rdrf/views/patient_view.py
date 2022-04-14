@@ -629,7 +629,6 @@ class PatientEditView(PatientFormMixin, View):
             "forms": form_sections,
             "family_linkage_panel": family_linkage_panel.html,
             "patient": patient,
-            "proms_link": self._get_proms_link(registry_model, patient),
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": [],
@@ -667,11 +666,6 @@ class PatientEditView(PatientFormMixin, View):
         xray_recorder.end_subsegment()
 
         return response
-
-    def _get_proms_link(self, registry_model, patient_model):
-        if not registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
-            return None
-        return "todo"
 
     def post(self, request, registry_code, patient_id):
         xray_recorder.begin_subsegment("auth")

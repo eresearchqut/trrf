@@ -58,9 +58,6 @@ class LinkDefs:
 
     DemographicsFields = make_link("admin:rdrf_demographicfields_changelist", _("Registry Demographics Fields"))
     ConsentRules = make_link("admin:rdrf_consentrule_changelist", _("Consent Rules"))
-    Surveys = make_link("admin:rdrf_survey_changelist", _("Surveys"))
-    SurveyAssignments = make_link("admin:rdrf_surveyassignment_changelist", _("Survey Assignments"))
-    SurveyRequest = make_link("admin:rdrf_surveyrequest_changelist", _("Survey Request"))
 
     RegistryForms = make_link("admin:rdrf_registryform_changelist", _("Registry Forms"))
     Sections = make_link("admin:rdrf_section_changelist", _("Registry Sections"))
@@ -98,12 +95,6 @@ class Links:
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
     )
-
-    CIC = make_entries(
-        LinkDefs.Surveys,
-        LinkDefs.SurveyAssignments,
-        LinkDefs.SurveyRequest
-    ) if settings.SYSTEM_ROLE.is_cic_role else {}
 
     # When enabled, doctors links
     ENABLED_DOCTORS = make_entries(LinkDefs.Doctors)
@@ -171,10 +162,6 @@ class RegularLinks(Links):
     REPORTS = make_entries(LinkDefs.Reports)
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
-
-
-class PromsLinks(Links):
-    OTHER = make_entries(LinkDefs.Importer)
 
 
 class MenuConfig:
@@ -338,9 +325,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.STAGES
         }
 
-        if settings.SYSTEM_ROLE.is_cic_non_proms:
-            normal_menus.update({**RegularLinks.CIC, })
-
         # menu with everything, used for the admin page
         self.all = normal_menus
         if settings.DESIGN_MODE:
@@ -362,39 +346,14 @@ class RegularMenuConfig(MenuConfig):
         return ret_val
 
 
-class PromsMenuConfig(MenuConfig):
-
-    def __init__(self, registries):
-        super().__init__(registries)
-        proms_menus = {
-            **PromsLinks.CIC,
-            **PromsLinks.USER_MANAGEMENT,
-            **PromsLinks.OTHER,
-        }
-        # menu with everything, used for the admin page
-        self.all = proms_menus
-        if settings.DESIGN_MODE:
-            self.all.update({**Links.REGISTRY_DESIGN})
-
-    def settings_links(self):
-        return {}
-
-    def menu_links(self, groups, reports_disabled=False):
-        return {}
-
-
 class QuickLinks:
     """
     A convenience class to make it easy to see what links are provided to users on the "Home" screen
     """
     REGULAR_MENU_CONFIG = RegularMenuConfig
-    PROMS_MENU_CONFIG = PromsMenuConfig
 
     def __init__(self, registries):
-        if settings.SYSTEM_ROLE.is_cic_proms:
-            self.menu_config = self.PROMS_MENU_CONFIG(registries)
-        else:
-            self.menu_config = self.REGULAR_MENU_CONFIG(registries)
+        self.menu_config = self.REGULAR_MENU_CONFIG(registries)
         self.menu_config.build_menu()
 
     def menu_links(self, groups, reports_disabled=False):

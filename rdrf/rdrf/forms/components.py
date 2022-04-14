@@ -174,20 +174,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "family_linkage_link": self._get_family_linkage_link(),
             "consent_locked": self.consent_locked,
             "clinician_form_link": self._get_clinician_form_link(),
-            "proms_link": self._get_proms_link(),
-            "can_add_proms": not self._proms_adding_disabled(),
         }
         return data
-
-    def _proms_adding_disabled(self):
-        return self.registry_model.has_feature(RegistryFeatures.PROMS_ADDING_DISABLED)
-
-    def _get_proms_link(self):
-        if not self.registry_model.has_feature(RegistryFeatures.PROMS_CLINICAL):
-            return None
-        return reverse("proms_clinical_view",
-                       args=[self.registry_model.code,
-                             self.patient_model.pk])
 
     def _get_clinician_form_link(self):
         if not self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM):

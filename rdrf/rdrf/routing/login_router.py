@@ -9,10 +9,6 @@ from useraudit.password_expiry import should_warn_about_password_expiry, days_to
 
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
-from django.conf import settings
-from django.http import Http404
-
-from rdrf.system_role import SystemRoles
 
 
 # todo update ophg registries to use new demographics and patients listing
@@ -22,8 +18,6 @@ def in_fkrp(user):
     return "fkrp" in user_reg_codes
 
 
-_ADMIN_PATIENT_LISTING = "admin:patients_patient_changelist"
-_HOME_PAGE = "admin:index"
 _PATIENTS_LISTING = "patientslisting"
 
 
@@ -35,12 +29,7 @@ class RouterView(View):
         redirect_url = None
 
         if user.is_authenticated:
-            if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
-                if user.is_superuser:
-                    redirect_url = reverse(_HOME_PAGE)
-                else:
-                    raise Http404()
-            elif user.is_superuser:
+            if user.is_superuser:
                 redirect_url = reverse(_PATIENTS_LISTING)
             elif user.is_clinician:
                 redirect_url = reverse(_PATIENTS_LISTING)

@@ -26,12 +26,6 @@ from rdrf.models.definition.models import ConsentRule
 from rdrf.models.definition.models import ClinicalData
 from rdrf.models.definition.models import FormTitle
 from rdrf.models.definition.models import BlacklistedMimeType
-from rdrf.models.proms.models import Survey
-from rdrf.models.proms.models import SurveyQuestion
-from rdrf.models.proms.models import Precondition
-from rdrf.models.proms.models import SurveyAssignment
-from rdrf.models.proms.models import SurveyRequest
-from rdrf.system_role import SystemRoles
 
 
 from reversion.admin import VersionAdmin
@@ -371,7 +365,6 @@ class EmailNotificationAdmin(admin.ModelAdmin):
         return False
 
     def get_changeform_initial_data(self, request):
-        from django.conf import settings
         return {'email_from': settings.DEFAULT_FROM_EMAIL}
 
     def get_list_display(self, request):
@@ -426,37 +419,6 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
 class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
     list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
-
-
-class PreconditionAdmin(admin.ModelAdmin):
-    model = Precondition
-    list_display = ('survey', 'cde', 'value')
-
-
-class SurveyQuestionAdmin(admin.StackedInline):
-    model = SurveyQuestion
-    extra = 0
-    ordering = ('position',)
-    list_display = ("registry", "name", "expression")
-    inlines = [PreconditionAdmin]
-
-
-class SurveyAdmin(admin.ModelAdmin):
-    model = Survey
-    list_display = ("registry", "name")
-    inlines = [SurveyQuestionAdmin]
-
-
-class SurveyRequestAdmin(admin.ModelAdmin):
-    model = SurveyRequest
-    list_display = ("patient_name", "survey_name", "patient_token", "created", "updated", "state", "error_detail", "user")
-    search_fields = ("survey_name", "patient__family_name", "patient__given_names")
-    list_display_links = None
-
-
-class SurveyAssignmentAdmin(admin.ModelAdmin):
-    model = SurveyAssignment
-    list_display = ("registry", "survey_name", "patient_token", "state", "created", "updated", "response")
 
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
@@ -536,15 +498,9 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEFile, CDEFileAdmin),
 ]
 
-PROMS_ADMIN_COMPONENTS = [(Survey, SurveyAdmin),
-                          (SurveyAssignment, SurveyAssignmentAdmin),
-                          (SurveyRequest, SurveyRequestAdmin),
-                          ]
-
 NORMAL_MODE_ADMIN_COMPONENTS = [
     (Registry, RegistryAdmin),
     (QuestionnaireResponse, QuestionnaireResponseAdmin),
-    (Precondition, PreconditionAdmin),
     (EmailNotification, EmailNotificationAdmin),
     (EmailTemplate, EmailTemplateAdmin),
     (EmailNotificationHistory, EmailNotificationHistoryAdmin),
@@ -555,22 +511,10 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
 ]
 
-ADMIN_COMPONENTS = []
-
-if settings.SYSTEM_ROLE is SystemRoles.CIC_PROMS:
-    ADMIN_COMPONENTS = PROMS_ADMIN_COMPONENTS
+ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS
 
 if settings.DESIGN_MODE:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + DESIGN_MODE_ADMIN_COMPONENTS
-
-if settings.SYSTEM_ROLE in (SystemRoles.NORMAL, SystemRoles.NORMAL_NO_PROMS):
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS
-
-if settings.SYSTEM_ROLE is SystemRoles.CIC_DEV:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
-
-if settings.SYSTEM_ROLE is SystemRoles.CIC_CLINICAL:
-    ADMIN_COMPONENTS = ADMIN_COMPONENTS + NORMAL_MODE_ADMIN_COMPONENTS + PROMS_ADMIN_COMPONENTS
+    ADMIN_COMPONENTS += DESIGN_MODE_ADMIN_COMPONENTS
 
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):

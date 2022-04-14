@@ -29,17 +29,6 @@
 
     {% include "localisation/in_context.html" %}
 
-    {% if cic_system_role %}
-        <!-- test typescript / webpack -->
-        {% if production %}
-        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-        {% else %}
-        <script src="{% static 'proms/js/runtime-bundle.min.js' %}"></script>
-        <script src="{% static 'proms/js/main-bundle.min.js' %}"></script>
-        {% endif %}
-    {% endif %}
-
     {% project_stylesheet as PSS %}
     {% if PSS %}
     {% static "" as baseUrl %}

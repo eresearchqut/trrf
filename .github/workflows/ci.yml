@@ -22,10 +22,6 @@ jobs:
         run: docker build -t $OWNER/runserver:$GITHUB_SHA . -f docker/dev/Dockerfile
       - name: Save django image to file
         run: docker save $OWNER/runserver:$GITHUB_SHA -o /tmp/build_images/django_image.tar.gz
-      - name: Build node image
-        run: docker build -t $OWNER/nodeserver:$GITHUB_SHA . -f docker/dev/Dockerfile-node
-      - name: Save node image to file
-        run: docker save $OWNER/nodeserver:$GITHUB_SHA -o /tmp/build_images/node_image.tar.gz
       - name: Upload images
         uses: actions/upload-artifact@v2
         with:
@@ -41,14 +37,11 @@ jobs:
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
-          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
           name: build_images
           path: /tmp/build_images
-      - name: Load node image
-        run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Flake8 linting
         run: ./scripts/lint.sh
 
@@ -61,7 +54,6 @@ jobs:
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
-          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -69,8 +61,6 @@ jobs:
           path: /tmp/build_images
       - name: Load django image
         run: docker load -i /tmp/build_images/django_image.tar.gz
-      - name: Load node image
-        run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Django migrations check
         run: ./scripts/check-migrations.sh
 
@@ -83,7 +73,6 @@ jobs:
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
-          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -91,8 +80,6 @@ jobs:
           path: /tmp/build_images
       - name: Load django image
         run: docker load -i /tmp/build_images/django_image.tar.gz
-      - name: Load node image
-        run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Unit tests
         run: ./scripts/unit-tests-coverage.sh
       - name: Upload test coverage
@@ -110,7 +97,6 @@ jobs:
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
-          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -118,8 +104,6 @@ jobs:
           path: /tmp/build_images
       - name: Load django image
         run: docker load -i /tmp/build_images/django_image.tar.gz
-      - name: Load node image
-        run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Create log dir
         run: mkdir -p data/aloe/dev
       - name: Integration tests
@@ -143,7 +127,6 @@ jobs:
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
-          echo "NODE_IMAGE_NAME=$OWNER/nodeserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
         uses: actions/download-artifact@v2
         with:
@@ -151,7 +134,5 @@ jobs:
           path: /tmp/build_images
       - name: Load django image
         run: docker load -i /tmp/build_images/django_image.tar.gz
-      - name: Load node image
-        run: docker load -i /tmp/build_images/node_image.tar.gz
       - name: Django checks
         run: ./scripts/django-checks.sh

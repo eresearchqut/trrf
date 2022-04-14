@@ -28,8 +28,6 @@ class Action:
     def run(self):
         if self.command == "form":
             return self._process_form()
-        elif self.command == "survey":
-            return self._process_survey()
         else:
             raise Http404
 
@@ -74,36 +72,6 @@ class Action:
             pass
 
         raise Http404(_("No patients found. Please create a patient"))
-
-    def _process_survey(self):
-        from rdrf.models.definition.models import Registry
-        from rdrf.models.proms.models import SurveyRequest
-        from rdrf.models.proms.models import SurveyRequestStates
-
-        registry_code = self._get_field("registry")
-        registry_model = get_object_or_404(Registry,
-                                           code=registry_code)
-
-        if not self.user.in_registry(registry_model):
-            raise PermissionDenied
-
-        patient_model = self._get_patient()
-
-        if patient_model is None:
-            raise PermissionDenied
-
-        survey_name = self._get_field("name")
-
-        try:
-            qry = SurveyRequest.objects.filter(patient=patient_model,
-                                               state=SurveyRequestStates.REQUESTED,
-                                               registry=registry_model,
-                                               survey_name=survey_name)
-            last_request = qry.order_by("-created").first()
-        except SurveyRequest.DoesNotExist:
-            raise Http404
-
-        return HttpResponseRedirect(last_request.email_link)
 
     def _process_form(self):
         from rdrf.models.definition.models import Registry

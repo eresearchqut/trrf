@@ -17,11 +17,6 @@
             {% trans "Copyright</a>" %} &copy; 2013-<script>document.write(new Date().getFullYear())</script>
             <a href="http://www.murdoch.edu.au" target="_blank">{% trans "Murdoch University" %}</a><br>
         </div>
-        {% if request.user.is_authenticated and cic_system_role %}
-          <div>
-              <a href="{% url 'copyright' %}">Data set Copyright</a>
-          </div>
-        {% endif %}
       </div>
 
       <div class="col-md-4" id="footer-authorised">

@@ -251,7 +251,6 @@ class Exporter:
         data["context_form_groups"] = self._get_context_form_groups()
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
-        data["surveys"] = self._get_surveys()
         data["form_titles"] = self._get_form_titles()
 
         if self.registry.patient_data_section:
@@ -401,23 +400,7 @@ class Exporter:
         generic_cdes = self._get_generic_cdes()
         cdes = cdes.union(generic_cdes)
 
-        survey_cdes = self._get_survey_cdes()
-        cdes = cdes.union(survey_cdes)
-
         return self._sort_codes(cdes)
-
-    def _get_survey_cdes(self):
-        # ensure if a registry has (proms) surveys we're exporting relevant cdes
-        from rdrf.models.proms.models import Survey
-        cdes = set()
-        for survey_model in Survey.objects.filter(registry=self.registry):
-            for survey_question in survey_model.survey_questions.all():
-                cde_model = CommonDataElement.objects.get(code=survey_question.cde.code)
-                cdes.add(cde_model)
-                if survey_question.precondition:
-                    precondition_cde_model = CommonDataElement.objects.get(code=survey_question.precondition.cde.code)
-                    cdes.add(precondition_cde_model)
-        return cdes
 
     def _get_consent_configuration(self):
         consent_config = getattr(self.registry, "consent_configuration", None)
@@ -614,42 +597,6 @@ class Exporter:
             consent_rule_dict["consent_question_code"] = consent_rule.consent_question.code
             consent_rule_dict["enabled"] = consent_rule.enabled
             data.append(consent_rule_dict)
-        return data
-
-    def _get_surveys(self):
-        from rdrf.models.proms.models import Survey
-        data = []
-        for survey_model in Survey.objects.filter(registry=self.registry):
-            survey_dict = {}
-            survey_dict["name"] = survey_model.name
-            survey_dict["display_name"] = survey_model.display_name
-            survey_dict["questions"] = []
-            survey_dict["is_followup"] = survey_model.is_followup
-            if survey_model.context_form_group:
-                cfg = survey_model.context_form_group.code
-            else:
-                cfg = ""
-            survey_dict["context_form_group"] = cfg
-
-            if survey_model.form:
-                survey_dict["form"] = survey_model.form.name
-            else:
-                survey_dict["form"] = ""
-
-            for sq in survey_model.survey_questions.all():
-                sq_dict = {}
-                sq_dict["cde"] = sq.cde.code
-                sq_dict["cde_path"] = sq.cde_path
-                sq_dict["position"] = sq.position
-                sq_dict["precondition"] = None
-                sq_dict["instruction"] = sq.instruction
-                sq_dict["copyright_text"] = sq.copyright_text
-                sq_dict["source"] = sq.source
-                if sq.precondition:
-                    sq_dict["precondition"] = {"cde": sq.precondition.cde.code,
-                                               "value": sq.precondition.value}
-                survey_dict["questions"].append(sq_dict)
-            data.append(survey_dict)
         return data
 
     def _get_form_titles(self):
