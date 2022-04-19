@@ -8,7 +8,7 @@ aloe==0.1.19
 aloe_webdriver==0.5.11
 aloe_django==0.1.6
 pyvirtualdisplay==0.2.5
-selenium==3.141.0
+selenium==4.1.3
 unittest-xml-reporting==2.5.2
 requests==2.25.1
 sqlalchemy-utils==0.36.1
