@@ -20,6 +20,7 @@ SECURITY_WHITELISTED_URLS = (
     "admin:authtoken_tokenproxy_changelist",
     "admin:authtoken_tokenproxy_delete",
     "admin:authtoken_tokenproxy_history",
+    "admin:autocomplete",
     "admin:explorer_query_add",
     "admin:explorer_query_autocomplete",
     "admin:explorer_query_change",
