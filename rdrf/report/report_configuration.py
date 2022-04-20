@@ -12,6 +12,7 @@ REPORT_CONFIGURATION = {
                 'givenNames': 'Given Names',
                 'maidenName': 'Maiden Name',
                 'umrn': 'Umrn',
+                'createdAt': "Date And Time Of Creation",
                 'dateOfBirth': 'Date Of Birth',
                 'dateOfDeath': 'Date Of Death',
                 'placeOfBirth': 'Place Of Birth',
