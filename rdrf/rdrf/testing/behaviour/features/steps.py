@@ -85,7 +85,7 @@ def should_see(step, text):
 
 @step('click "(.*)"')
 def click_link(step, link_text):
-    link = world.browser.find_element_by_partial_link_text(link_text)
+    link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=link_text)
     utils.click(link)
 
 
@@ -108,7 +108,7 @@ def press_button(step, button_text):
 
 @step('I click "(.*)" on patientlisting')
 def click_patient_listing(step, patient_name):
-    link = world.browser.find_element_by_partial_link_text(patient_name)
+    link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=patient_name)
     utils.click(link)
 
 
@@ -120,7 +120,7 @@ def click_sidebar_group_item(step, item_name, group_name):
         by=By.XPATH,
         value='//div[@class="card-header"][contains(., "%s")]' % group_name
     ).find_element(by=By.XPATH, value="..")
-    form_link = form_group_panel.find_element_by_partial_link_text(item_name)
+    form_link = form_group_panel.find_element(by=By.PARTIAL_LINK_TEXT, value=item_name)
     utils.click(form_link)
 
 
@@ -264,7 +264,7 @@ def click_module_dropdown_in_patient_listing(step, module_name, patient_name):
     form_link = form_group_button.find_element(
         by=By.XPATH,
         value=".."
-    ).find_element_by_partial_link_text(form_name)
+    ).find_element(by=By.PARTIAL_LINK_TEXT, value=form_name)
     utils.click(form_link)
 
 
@@ -442,7 +442,7 @@ def login_as_user(step, username, password):
 
 @step('should be logged in')
 def should_be_logged_in(step):
-    user_link = world.browser.find_element_by_partial_link_text(world.user)
+    user_link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=world.user)
     utils.click(user_link)
     world.browser.find_element_by_link_text('Logout')
 
@@ -481,7 +481,7 @@ def go_home(step):
 def go_to_registry(step, name):
     world.browser.get(world.site_url)
     utils.click(world.browser.find_element_by_link_text('Registries on this site'))
-    utils.click(world.browser.find_element_by_partial_link_text(name))
+    utils.click(world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=name))
 
 
 @step('go to page "(.*)"')
