@@ -188,7 +188,6 @@ INSTALLED_APPS = [x for x in (
     'ajax_select',
     'explorer',
     'useraudit',
-    'templatetag_handlebars',
     'rest_framework',
     'rest_framework.authtoken',
     'anymail',
