@@ -210,7 +210,6 @@ patterns += [
             name='questionnaire_response'),
     re_path(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
             form_view.FileUploadView.as_view(), name='file_upload'),
-    re_path(r'^admin/lookups/', include(('ajax_select.urls', 'ajax_select_urls'), namespace=None)),
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 

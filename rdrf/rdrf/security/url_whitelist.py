@@ -310,7 +310,6 @@ SECURITY_WHITELISTED_URLS = (
     "admin:useraudit_loginlog_delete",
     "admin:useraudit_loginlog_history",
     "admin:view_on_site",
-    "ajax_select_urls:ajax_lookup",
     "cde_available_widgets",
     "cde_widget_settings",
     "clinician_activate",
