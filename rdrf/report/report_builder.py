@@ -14,13 +14,13 @@ from gql_query_builder import GqlQuery
 from rdrf.helpers.utils import models_from_mongo_key, BadKeyError
 from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
-from report.reports.clinical_data_report_util import ClinicalDataReportUtil
+from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.schema import create_dynamic_schema, get_schema_field_name
 
 logger = logging.getLogger(__name__)
 
 
-class Report:
+class ReportBuilder:
 
     def __init__(self, report_design):
         self.report_design = report_design
@@ -242,7 +242,7 @@ class Report:
         # Build Headers
         headers = OrderedDict()
         headers.update(get_demographic_headers())
-        headers.update(ClinicalDataReportUtil().csv_headers(request.user, self.report_design))
+        headers.update(ClinicalDataCsvUtil().csv_headers(request.user, self.report_design))
 
         output = io.StringIO()
         header_writer = csv.DictWriter(output, fieldnames=headers.values())

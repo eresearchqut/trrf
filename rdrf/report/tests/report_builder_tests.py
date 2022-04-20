@@ -6,7 +6,7 @@ from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuest
     CommonDataElement, ContextFormGroup
 from registry.groups.models import WorkingGroup
 from report.models import ReportDesign, ReportCdeHeadingFormat
-from report.reports.generator import Report
+from report.report_builder import ReportBuilder
 
 
 class ReportGeneratorTestCase(TestCase):
@@ -19,9 +19,9 @@ class ReportGeneratorTestCase(TestCase):
     def test_graphql_query_minimal_data(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query()
+        actual = report._ReportBuilder__get_graphql_query()
         expected = \
             """
             query {
@@ -35,9 +35,9 @@ class ReportGeneratorTestCase(TestCase):
     def test_graphql_query_pagination(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query(limit=15, offset=30)
+        actual = report._ReportBuilder__get_graphql_query(limit=15, offset=30)
         expected = \
             """
             query {
@@ -98,9 +98,9 @@ class ReportGeneratorTestCase(TestCase):
 
         report_design.filter_working_groups.set([wg1, wg2])
 
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query()
+        actual = report._ReportBuilder__get_graphql_query()
 
         expected = """{
   patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
@@ -162,7 +162,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses CODE for heading format (guaranteed to be unique)
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertTrue(is_valid)
@@ -170,7 +170,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses LABEL for heading format
         report_design.cde_heading_format = ReportCdeHeadingFormat.LABEL.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertFalse(is_valid)
@@ -178,7 +178,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses ABBR_NAME for heading format
         report_design.cde_heading_format = ReportCdeHeadingFormat.ABBR_NAME.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertFalse(is_valid)
