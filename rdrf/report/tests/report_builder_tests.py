@@ -48,6 +48,49 @@ class ReportGeneratorTestCase(TestCase):
 
         self.assertEqual(self._remove_duplicate_spaces(expected), actual)
 
+
+    def test_graphql_query_pivot_fields(self):
+        reg_ang = Registry.objects.create(code='ang')
+        cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
+        ConsentQuestion.objects.create(section=cs1, code='angConsent1', position=1)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent2', position=2)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent3', position=3)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent4', position=4)
+
+        report_design = ReportDesign.objects.create(registry=reg_ang)
+        report_design.reportdemographicfield_set.create(model='patient', field='id', sort_order=0)
+        report_design.reportdemographicfield_set.create(model='consents', field='answer', sort_order=0)
+        report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
+        report = ReportBuilder(report_design)
+
+        actual = report._ReportBuilder__get_graphql_query()
+        expected = """{
+  patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+    id
+    consents {
+      angConsent1 {
+        firstSave
+        answer
+      }
+      angConsent2 {
+        firstSave
+        answer
+      }
+      angConsent3 {
+        firstSave
+        answer
+      }
+      angConsent4 {
+        firstSave
+        answer
+      }
+    }
+  }
+}
+"""
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(actual)))
+
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
         CommonDataElement.objects.create(code='6StartsWithNumber', name='Field starts with number', abbreviated_name='Number field')

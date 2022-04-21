@@ -45,6 +45,12 @@ class ReportBuilder:
             'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
         }
 
+    def __get_variants(self, lookup_key, request=None):
+        query = GqlQuery().fields([lookup_key]).query('dataSummary',
+                                                      input=self.patient_filters).operation().generate()
+        summary_result = self.schema.execute(query, context_value=request)
+        return summary_result.data['dataSummary'][lookup_key]
+
     def __get_graphql_query(self, offset=None, limit=None):
 
         # Build Patient filters
@@ -67,8 +73,18 @@ class ReportBuilder:
 
         fields_nested_demographics = []
         for model_name, fields in other_demographic_fields.items():
-            fields_demographic = GqlQuery().fields(fields).query(model_name).generate()
-            fields_nested_demographics.append(fields_demographic)
+            model_config = self.report_config[model_name]
+            if model_config.get('pivot', False):
+                # Lookup the variants of this item which will form the column header groupings
+                # e.g. for consents, returns a list of the unique consent codes
+                column_headers = self.__get_variants(model_config.get('variant_lookup'))
+
+                # For each grouping, generate the query containing each of the fields selected
+                col_queries = [GqlQuery().fields(fields).query(header).generate() for header in column_headers]
+                fields_nested_demographics.append(GqlQuery().fields(col_queries).query(model_name).generate())
+            else:
+                fields_demographic = GqlQuery().fields(fields).query(model_name).generate()
+                fields_nested_demographics.append(fields_demographic)
 
         # Build Clinical data
         # Order by ID for the benefit of the unit tests to ensure the graphql query is generated in a predictable order
@@ -199,15 +215,9 @@ class ReportBuilder:
                 else:
                     return f"{prefix}{json_field_path}"
 
-            def get_variants(lookup_key):
-                query = GqlQuery().fields([lookup_key]).query('dataSummary',
-                                                              input=self.patient_filters).operation().generate()
-                summary_result = self.schema.execute(query, context_value=request)
-                return summary_result.data['dataSummary'][lookup_key]
-
             fieldnames_dict = OrderedDict()
 
-            # e.g. {'patientAddress': 2}
+            # e.g. {'patientAddress': True}
             processed_multifield_models = {}
 
             for rdf in self.report_design.reportdemographicfield_set.all():
@@ -219,20 +229,30 @@ class ReportBuilder:
                 else:
                     if model_config.get('multi_field', False):
                         if not processed_multifield_models.get(rdf.model):
-                            # Lookup how many variants of this model is relevant to our patient dataset
-                            num_variants = get_variants(model_config['variant_lookup'])
-
                             # Process all the fields for this model now
                             model_fields = self.report_design.reportdemographicfield_set.filter(
                                 model=rdf.model).values_list("field", flat=True)
 
-                            for i in range(num_variants or 0):
-                                for mf in model_fields:
-                                    fieldnames_dict[get_flat_json_path(rdf.model, mf,
-                                                                       i)] = f"{model_config['label']}_{i + 1}_{model_config['fields'][mf]}"
+                            if model_config.get('pivot', False):
+                                # Lookup the variants of this item, expected to be a list of unique codes/values
+                                column_headers = self.__get_variants(model_config.get('variant_lookup'))
+
+                                # Generate a fieldname item for each (column x model fields)
+                                for column in column_headers:
+                                    for mf in model_fields:
+                                        fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
+                                            f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
+                            else:
+                                # Lookup how many variants of this model is relevant to our patient dataset
+                                num_variants = self.__get_variants(model_config['variant_lookup'], request)
+
+                                for i in range(num_variants or 0):
+                                    for mf in model_fields:
+                                        fieldnames_dict[get_flat_json_path(rdf.model, mf, i)] = \
+                                            f"{model_config['label']}_{i + 1}_{model_config['fields'][mf]}"
 
                             # Mark as processed
-                            processed_multifield_models[rdf.model] = num_variants
+                            processed_multifield_models[rdf.model] = True
                     else:
                         fieldnames_dict[get_flat_json_path(rdf.model,
                                                            rdf.field)] = f"{model_config['label']}_{model_config['fields'][rdf.field]}"
