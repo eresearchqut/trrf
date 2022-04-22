@@ -12,11 +12,18 @@ from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
 from registry.groups.models import WorkingGroup, CustomUser
-from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue
+from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
+    PatientGUID
 
 logger = logging.getLogger(__name__)
 
 _graphql_field_pattern = re.compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
+
+
+class PatientGUIDType(DjangoObjectType):
+    class Meta:
+        model = PatientGUID
+        fields = ('guid',)
 
 
 class ConsentQuestionType(DjangoObjectType):
@@ -248,7 +255,8 @@ def get_patient_fields():
                        'next_of_kin_work_phone', 'next_of_kin_email', 'next_of_kin_parent_place_of_birth',
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
-                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents']
+                       'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
+                       'patientguid']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
