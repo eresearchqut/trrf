@@ -237,8 +237,7 @@ def get_patient_fields():
     return {
         "Meta": type("Meta", (), {
             "model": Patient,
-            "fields": ['id', 'consent', 'consent_clinical_trials', 'consent_sent_information',
-                       'consent_provided_by_parent_guardian', 'family_name', 'given_names', 'maiden_name', 'umrn',
+            "fields": ['id', 'family_name', 'given_names', 'maiden_name', 'umrn',
                        'date_of_birth', 'date_of_death', 'place_of_birth', 'date_of_migration', 'country_of_birth',
                        'ethnic_origin', 'sex', 'home_phone', 'mobile_phone', 'work_phone', 'email',
                        'next_of_kin_family_name',
