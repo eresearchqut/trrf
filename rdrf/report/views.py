@@ -9,7 +9,7 @@ from django.views import View
 from rdrf.security.mixins import SuperuserRequiredMixin
 from report.forms import ReportDesignerForm
 from report.models import ReportDesign
-from report.reports.generator import Report
+from report.report_builder import ReportBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ReportsView(ReportsAccessCheckMixin, View):
 class ReportDownloadView(ReportDownloadAccessCheckMixin, View):
     def get(self, request, report_id, format):
         report_design = get_object_or_404(ReportDesign, pk=report_id)
-        report = Report(report_design=report_design)
+        report = ReportBuilder(report_design=report_design)
 
         is_valid, errors = report.validate_query(request)
         if not is_valid:

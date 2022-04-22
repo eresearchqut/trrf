@@ -66,6 +66,17 @@ REPORT_CONFIGURATION = {
                 'ethicallyCleared': 'Ethically Cleared',
                 'workingGroups': 'Working Groups'
             }
+        },
+        'consents': {
+            'label': 'Consents',
+            'multi_field': True,
+            'pivot': True,
+            'variant_lookup': 'listConsentQuestionCodes',
+            'fields': {
+                'answer': 'Answer',
+                'firstSave': 'Date of First Save',
+                'lastUpdate': 'Date of Last Update'
+            }
         }
     }
 }

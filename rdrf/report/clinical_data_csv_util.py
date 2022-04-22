@@ -15,7 +15,7 @@ from report.schema import list_patients_query, get_schema_field_name
 logger = logging.getLogger(__name__)
 
 
-class ClinicalDataReportUtil:
+class ClinicalDataCsvUtil:
 
     def __cde_heading(self, cde, heading_format):
         if heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:

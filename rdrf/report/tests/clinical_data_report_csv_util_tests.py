@@ -9,7 +9,7 @@ from rdrf.models.definition.models import Registry, ClinicalData, CommonDataElem
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
 from report.models import ReportDesign, ReportCdeHeadingFormat
-from report.reports.clinical_data_report_util import ClinicalDataReportUtil
+from report.clinical_data_csv_util import ClinicalDataCsvUtil
 
 
 class ClinicalDataGeneratorTestCase(TestCase):
@@ -209,7 +209,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
                                     context_id=ctx4.id, data=multisection_data)
 
     def test_form_section_cde_sort_order(self):
-        generator = ClinicalDataReportUtil()
+        generator = ClinicalDataCsvUtil()
 
         cde_keys = ['sleep____sleepDiary____timeToBed', 'sleep____sleepDiary____timesAwoke',
                     'recentSymptoms____symptoms____completedDate', 'recentSymptoms____symptoms____fatigue',
@@ -227,7 +227,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
                                                                                'fatigue': 1,
                                                                                'pain': 2}}}}}
 
-        sort_order = generator._ClinicalDataReportUtil__form_section_cde_sort_order(cde_keys)
+        sort_order = generator._ClinicalDataCsvUtil__form_section_cde_sort_order(cde_keys)
 
         self.assertEqual(sort_order, expected_sort_order)
 
@@ -245,7 +245,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
 
-        generator = ClinicalDataReportUtil()
+        generator = ClinicalDataCsvUtil()
 
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
         expected = OrderedDict({
@@ -281,7 +281,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
 
-        generator = ClinicalDataReportUtil()
+        generator = ClinicalDataCsvUtil()
 
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
         expected = OrderedDict({
