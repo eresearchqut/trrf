@@ -35,7 +35,7 @@ class ConsentQuestionType(DjangoObjectType):
 class ConsentValueType(DjangoObjectType):
     class Meta:
         model = ConsentValue
-        fields = ('consent_question', 'answer')
+        fields = ('consent_question', 'answer', 'first_save', 'last_update')
 
 
 class NextOfKinRelationshipType(DjangoObjectType):
@@ -263,7 +263,24 @@ def get_patient_fields():
     }
 
 
+def get_consent_fields():
+    def consent_resolver(parent, _info, consent_question):
+        patient, consents = parent
+        return consents.filter(consent_question=consent_question).first()
+
+    consent_fields = {}
+    for consent_question in ConsentQuestion.objects.all():
+        consent_fields[consent_question.code] = graphene.Field(ConsentValueType)
+        consent_fields[f'resolve_{consent_question.code}'] = partial(consent_resolver, consent_question=consent_question)
+    return consent_fields
+
+
 def create_dynamic_patient_type():
+    def consent_values_resolver(patient, _info):
+        return patient, ConsentValue.objects.filter(
+            patient=patient
+        )
+
     def clinical_data_resolver(patient, _info):
         return patient, ClinicalData.objects.filter(
             django_id=patient.id,
@@ -271,11 +288,23 @@ def create_dynamic_patient_type():
             collection="cdes"
         ).order_by('created_at').all()
 
-    clinical_data_fields = get_clinical_data_fields()
-
     schema_module = import_module(settings.SCHEMA_MODULE)
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
     patient_fields = patient_fields_func()
+
+    consent_fields = get_consent_fields()
+
+    if consent_fields:
+        patient_fields.update({
+            "consents": graphene.Field(type(
+                "DynamicConsent",
+                (graphene.ObjectType,),
+                consent_fields),
+            ),
+            "resolve_consents": consent_values_resolver,
+        })
+
+    clinical_data_fields = get_clinical_data_fields()
 
     if clinical_data_fields:
         patient_fields.update({
@@ -297,7 +326,9 @@ def create_dynamic_data_summary_type():
         'max_working_group_count': graphene.Int(),
         'resolve_max_working_group_count': resolve_max_working_group_count,
         'max_clinician_count': graphene.Int(),
-        'resolve_max_clinician_count': resolve_max_clinician_count
+        'resolve_max_clinician_count': resolve_max_clinician_count,
+        'list_consent_question_codes': graphene.List(graphene.String),
+        'resolve_list_consent_question_codes': resolve_list_consent_question_codes
     }
     return type("DynamicDataSummary", (graphene.ObjectType,), data_summary_fields)
 
@@ -348,6 +379,10 @@ def resolve_max_clinician_count(data_summary, info):
         .annotate(Count('registered_clinicians'))\
         .aggregate(Max('registered_clinicians__count'))\
         .get('registered_clinicians__count__max')
+
+
+def resolve_list_consent_question_codes(data_summary, info):
+    return ConsentQuestion.objects.filter(section__registry__code=data_summary['registry_code']).order_by('position').values_list('code', flat=True)
 
 
 # TODO: memoize + possible cache clearing when registry definition changes?

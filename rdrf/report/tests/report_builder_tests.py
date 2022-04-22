@@ -6,7 +6,7 @@ from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuest
     CommonDataElement, ContextFormGroup
 from registry.groups.models import WorkingGroup
 from report.models import ReportDesign, ReportCdeHeadingFormat
-from report.reports.generator import Report
+from report.report_builder import ReportBuilder
 
 
 class ReportGeneratorTestCase(TestCase):
@@ -19,9 +19,9 @@ class ReportGeneratorTestCase(TestCase):
     def test_graphql_query_minimal_data(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query()
+        actual = report._ReportBuilder__get_graphql_query()
         expected = \
             """
             query {
@@ -35,9 +35,9 @@ class ReportGeneratorTestCase(TestCase):
     def test_graphql_query_pagination(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query(limit=15, offset=30)
+        actual = report._ReportBuilder__get_graphql_query(limit=15, offset=30)
         expected = \
             """
             query {
@@ -47,6 +47,49 @@ class ReportGeneratorTestCase(TestCase):
             """
 
         self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+
+
+    def test_graphql_query_pivot_fields(self):
+        reg_ang = Registry.objects.create(code='ang')
+        cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
+        ConsentQuestion.objects.create(section=cs1, code='angConsent1', position=1)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent2', position=2)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent3', position=3)
+        ConsentQuestion.objects.create(section=cs1, code='angConsent4', position=4)
+
+        report_design = ReportDesign.objects.create(registry=reg_ang)
+        report_design.reportdemographicfield_set.create(model='patient', field='id', sort_order=0)
+        report_design.reportdemographicfield_set.create(model='consents', field='answer', sort_order=0)
+        report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
+        report = ReportBuilder(report_design)
+
+        actual = report._ReportBuilder__get_graphql_query()
+        expected = """{
+  patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+    id
+    consents {
+      angConsent1 {
+        firstSave
+        answer
+      }
+      angConsent2 {
+        firstSave
+        answer
+      }
+      angConsent3 {
+        firstSave
+        answer
+      }
+      angConsent4 {
+        firstSave
+        answer
+      }
+    }
+  }
+}
+"""
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(actual)))
 
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -98,9 +141,9 @@ class ReportGeneratorTestCase(TestCase):
 
         report_design.filter_working_groups.set([wg1, wg2])
 
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
-        actual = report._Report__get_graphql_query()
+        actual = report._ReportBuilder__get_graphql_query()
 
         expected = """{
   patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
@@ -162,7 +205,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses CODE for heading format (guaranteed to be unique)
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertTrue(is_valid)
@@ -170,7 +213,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses LABEL for heading format
         report_design.cde_heading_format = ReportCdeHeadingFormat.LABEL.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertFalse(is_valid)
@@ -178,7 +221,7 @@ class ReportGeneratorTestCase(TestCase):
 
         # Uses ABBR_NAME for heading format
         report_design.cde_heading_format = ReportCdeHeadingFormat.ABBR_NAME.value
-        report = Report(report_design)
+        report = ReportBuilder(report_design)
 
         is_valid, errors = report.validate_for_csv_export()
         self.assertFalse(is_valid)
