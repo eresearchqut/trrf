@@ -81,7 +81,8 @@ class ReportBuilder:
 
                 # For each grouping, generate the query containing each of the fields selected
                 col_queries = [GqlQuery().fields(fields).query(header).generate() for header in column_headers]
-                fields_nested_demographics.append(GqlQuery().fields(col_queries).query(model_name).generate())
+                if col_queries:
+                    fields_nested_demographics.append(GqlQuery().fields(col_queries).query(model_name).generate())
             else:
                 fields_demographic = GqlQuery().fields(fields).query(model_name).generate()
                 fields_nested_demographics.append(fields_demographic)
@@ -237,11 +238,17 @@ class ReportBuilder:
                                 # Lookup the variants of this item, expected to be a list of unique codes/values
                                 column_headers = self.__get_variants(model_config.get('variant_lookup'))
 
-                                # Generate a fieldname item for each (column x model fields)
-                                for column in column_headers:
+                                if column_headers:
+                                    # Generate a fieldname item for each (column x model fields)
+                                    for column in column_headers:
+                                        for mf in model_fields:
+                                            fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
+                                                f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
+                                else:
+                                    # Generate dummy columns so the report isn't completely empty
                                     for mf in model_fields:
-                                        fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
-                                            f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
+                                        fieldnames_dict[get_flat_json_path(rdf.model, mf)] = \
+                                            f"{model_config['label']}_{model_config['fields'][mf]}"
                             else:
                                 # Lookup how many variants of this model is relevant to our patient dataset
                                 num_variants = self.__get_variants(model_config['variant_lookup'], request)
