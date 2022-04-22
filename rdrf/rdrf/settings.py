@@ -709,7 +709,8 @@ QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
 # Reports settings
 SCHEMA_MODULE = 'report.schema'
 SCHEMA_METHOD_PATIENT_FIELDS = 'get_patient_fields'
-REPORT_CONFIGURATION = 'report.report_configuration.REPORT_CONFIGURATION'
+REPORT_CONFIG_MODULE = 'report.report_configuration'
+REPORT_CONFIG_METHOD_GET = 'get_configuration'
 
 # Use the setting below in registries derived from trrf to setup extra UI widgets
 # it shoud be a string indicating the module where registry specific widgets are defined
