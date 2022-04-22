@@ -4,10 +4,6 @@ REPORT_CONFIGURATION = {
             'label': "Patient",
             'fields': {
                 'id': 'ID',
-                'consent': 'Consent',
-                'consentClinicalTrials': 'Consent Clinical Trials',
-                'consentSentInformation': 'Consent Sent Information',
-                'consentProvidedByParentGuardian': 'Consent Provided By Parent Guardian',
                 'familyName': 'Family Name',
                 'givenNames': 'Given Names',
                 'maidenName': 'Maiden Name',
