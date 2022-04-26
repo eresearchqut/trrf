@@ -366,6 +366,7 @@ CSP_STYLE_SRC = get_csp(["'self'", "'unsafe-inline'"], [_CSP_STATIC_URL])
 CSP_FONT_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
 CSP_FRAME_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
 CSP_IMG_SRC = get_csp(["'self'", "data:"], [_CSP_STATIC_URL])
+CSP_MEDIA_SRC = get_csp(["'self'"], [_CSP_STATIC_URL])
 CSP_CONNECT_SRC = ["'self'", "https://bam.nr-data.net"]
 
 # The maximum size in bytes that a request body may be before a
@@ -732,6 +733,15 @@ if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION:
     CSP_IMG_SRC += ["https://cdn.crowdin.com", "https://*.downloads.crowdin.com", "data:"]
     CSP_CONNECT_SRC += ["https://eresearchqut.crowdin.com"]
     CSP_FRAME_SRC += ["https://cdn.crowdin.com", "https://eresearchqut.crowdin.com"]
+
+ENABLE_VIDEO_HOSTING = env.get('enable_video_hosting', False)
+VIDEO_HOSTING_BASE_URL = env.get('video_hosting_base_url', '')
+if ENABLE_VIDEO_HOSTING:
+    CSP_SCRIPT_SRC += ["blob:"]
+    CSP_FONT_SRC += ["data:"]
+    CSP_IMG_SRC += [VIDEO_HOSTING_BASE_URL]
+    CSP_MEDIA_SRC += ["blob:", VIDEO_HOSTING_BASE_URL]
+    CSP_CONNECT_SRC += [VIDEO_HOSTING_BASE_URL]
 
 SILKY_META = True
 SILKY_PYTHON_PROFILER = True
