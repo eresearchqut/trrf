@@ -104,6 +104,12 @@ def get_section_fields(_section_key, section_cdes):
                     value = cde_value["value"]
                     if datatype == 'lookup':
                         return get_widget_class(cde_model.widget_name).denormalized_value(value)
+                    elif cde_model.pv_group:
+                        cde_values_dict = cde_model.pv_group.cde_values_dict
+                        if isinstance(value, list):
+                            return [cde_values_dict.get(value_item, value_item) for value_item in value]
+                        else:
+                            return cde_values_dict.get(value, value)
                     else:
                         return value
 
