@@ -20,8 +20,7 @@ from django.utils import timezone
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import Registry, Section, ConsentQuestion
-from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import ClinicalData, ConsentQuestion, DataDefinitions, Registry, Section
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.services.io.notifications.file_notifications import handle_file_notifications
@@ -684,18 +683,15 @@ class Patient(models.Model):
         form_model = RegistryForm(name=form_name, registry=registry_model)
         wrapper.current_form_model = form_model
 
-        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes")
+        mongo_data = wrapper.load_dynamic_data(registry_code, "cdes") or {}
         key = mongo_key(form_name, section_code, data_element_code)
         timestamp = "%s_timestamp" % form_name
         t = datetime.datetime.now()
 
-        if mongo_data is None:
-            # No dynamic data has been persisted yet
-            wrapper.save_dynamic_data(registry_model, "cdes", {key: value, timestamp: t})
-        else:
-            mongo_data[key] = value
-            mongo_data[timestamp] = t
-            wrapper.save_dynamic_data(registry_model, "cdes", mongo_data)
+        frm = RegistryForm.objects.get(registry__code=registry_code, name=form_name)
+        mongo_data[key] = value
+        mongo_data[timestamp] = t
+        wrapper.save_dynamic_data(registry_model, "cdes", DataDefinitions(frm), mongo_data)
 
         handle_file_notifications(registry_model, self, wrapper.filestorage)
 

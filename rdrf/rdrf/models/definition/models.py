@@ -1,7 +1,10 @@
+from functools import reduce
+from collections import defaultdict
 import datetime
 import json
 import jsonschema
 import logging
+import operator
 import os.path
 import yaml
 
@@ -1991,3 +1994,55 @@ class BlacklistedMimeType(models.Model):
 
     class Meta:
         verbose_name = "Disallowed mime type"
+
+
+class DataDefinitions:
+    def __init__(self, registry_form):
+        self.registry_form = registry_form
+
+    @cached_property
+    def section_models(self):
+        return self.registry_form.section_models
+
+    @cached_property
+    def sections_by_code(self):
+        return {s.code: s for s in self.section_models}
+
+    @cached_property
+    def sections(self):
+        return [s.code for s in self.section_models]
+
+    @cached_property
+    def ids(self):
+        return {s.code: s.id for s in self.section_models}
+
+    @cached_property
+    def display_names(self):
+        return {s.code: s.display_name for s in self.section_models}
+
+    @cached_property
+    def form_cde_codes(self):
+        return set(reduce(operator.add, [section.get_elements() for section in self.section_models]))
+
+    @cached_property
+    def form_cdes(self):
+        qs = CommonDataElement.objects.filter(code__in=self.form_cde_codes).select_related('pv_group').prefetch_related('pv_group__permitted_value_set')
+        return {cde.code: cde for cde in qs}
+
+    @cached_property
+    def file_cde_codes(self):
+        return set(cde_code for cde_code, cde in self.form_cdes.items() if cde.datatype == CDEDataTypes.FILE)
+
+    @cached_property
+    def cde_policies(self):
+        cde_codes = self.form_cde_codes
+        policies = CdePolicy.objects.filter(registry=self.registry_form.registry, cde__code__in=cde_codes)
+        return {policy.cde.code: policy for policy in policies}
+
+    @cached_property
+    def permitted_values_by_group(self):
+        all_pv_groups = set(cde.pv_group for cde in self.form_cdes.values() if cde.pv_group)
+        values = defaultdict(list)
+        for v in CDEPermittedValue.objects.filter(pv_group__in=all_pv_groups).select_related('pv_group'):
+            values[v.pv_group.code].append(v)
+        return values
