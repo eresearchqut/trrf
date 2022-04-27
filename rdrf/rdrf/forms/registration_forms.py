@@ -63,7 +63,7 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
         for field in self.fields:
             if field not in self.no_placeholder_fields:
                 self.fields[field].widget.attrs['class'] = 'form-control'
-                self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field, _(''))
+                self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field, '')
             if field in self.password_fields:
                 self.fields[field].widget.render_value = True
 
