@@ -348,10 +348,8 @@ def list_patients_query(user,
         patient_query = patient_query.filter(working_groups__id__in=working_group_ids)
 
     if consent_question_codes:
-        patient_query = patient_query.filter(
-            consents__answer=True,
-            consents__consent_question__code__in=consent_question_codes
-        )
+        for code in consent_question_codes:
+            patient_query = patient_query.filter(consents__answer=True, consents__consent_question__code=code)
 
     return patient_query.distinct()
 

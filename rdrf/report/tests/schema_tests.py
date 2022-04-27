@@ -6,10 +6,10 @@ from django.test import TestCase
 from graphene.test import Client
 
 from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
-    CommonDataElement
+    CommonDataElement, ConsentQuestion, ConsentSection
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.models import Patient, AddressType
+from registry.patients.models import Patient, AddressType, ConsentValue
 from report.schema import create_dynamic_schema
 
 
@@ -187,6 +187,82 @@ class SchemaTest(TestCase):
                 ]
             }
         }, result)
+
+    def test_query_filter_consents(self):
+        p1 = Patient.objects.create(id=1, consent=True, date_of_birth=datetime(1970, 1, 1))
+        p2 = Patient.objects.create(id=2, consent=True, date_of_birth=datetime(1970, 1, 1))
+        p3 = Patient.objects.create(id=3, consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        for patient in [p1, p2, p3]:
+            patient.rdrf_registry.set([self.registry])
+
+        cs1 = ConsentSection.objects.create(code='consent_section_1', section_label='CS1', registry=self.registry)
+        cq1 = ConsentQuestion.objects.create(code='consent1', section=cs1)
+        cq2 = ConsentQuestion.objects.create(code='consent2', section=cs1)
+
+        ConsentValue.objects.create(consent_question=cq1, answer=True, patient=p1)
+        ConsentValue.objects.create(consent_question=cq2, answer=False, patient=p1)
+        ConsentValue.objects.create(consent_question=cq1, answer=True, patient=p2)
+        ConsentValue.objects.create(consent_question=cq2, answer=True, patient=p2)
+        ConsentValue.objects.create(consent_question=cq1, answer=False, patient=p3)
+        ConsentValue.objects.create(consent_question=cq2, answer=False, patient=p3)
+
+        client = Client(create_dynamic_schema())
+
+        # No consent filters
+        result = client.execute("""
+        {
+            patients(registryCode: "test") {
+                id
+            }
+        }
+        """, context_value=self.query_context)
+
+        self.assertEqual({
+            "data": {
+                "patients": [
+                    {'id': '1'},
+                    {'id': '2'},
+                    {'id': '3'}
+                ]
+            }
+        }, result)
+
+        # 1 consent filter
+        result = client.execute("""
+        {
+            patients(registryCode: "test", consentQuestionCodes: ["consent1"]) {
+                id
+            }
+        }
+        """, context_value=self.query_context)
+
+        self.assertEqual({
+            "data": {
+                "patients": [
+                    {'id': '1'},
+                    {'id': '2'}
+                ]
+            }
+        }, result)
+
+        # Multiple consent filters
+        result = client.execute("""
+        {
+            patients(registryCode: "test", consentQuestionCodes: ["consent1", "consent2"]) {
+                id
+            }
+        }
+        """, context_value=self.query_context)
+
+        self.assertEqual({
+            "data": {
+                "patients": [
+                    {'id': '2'}
+                ]
+            }
+        }, result)
+
 
     def test_query_clinical_data(self):
         def setup_test_registry_and_clinical_data(patient):
