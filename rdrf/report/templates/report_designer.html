@@ -83,6 +83,11 @@
         ui.txtSelectCdeFieldsCount.text(num_selected_values);
     }
 
+    function toggle_report_filter($filterToggle) {
+        const $filter = $filterToggle.siblings('.report-filter');
+        $filter.toggleClass('d-none', $filterToggle.is(':not(:checked)'));
+    }
+
     $(document).ready(function() {
         ui = {
             selectRegistry: $('#id_registry'),
@@ -92,7 +97,8 @@
             selectConsentFilters: $('#id_filter_consents_list'),
             txtSelectCdeFieldsCount: $('#selected_cde_field_cnt'),
             btnClearCdeFilter: $('#id_clear_cde_filter'),
-            btnFilterCdeBySelected: $('#id_cde_filter_by_selected')
+            btnFilterCdeBySelected: $('#id_cde_filter_by_selected'),
+            chkFilterToggle: $(".report-filter-toggle")
         }
 
         ui.selectRegistry.change(function() {
@@ -116,10 +122,18 @@
             filter_cde_by_selected();
         })
 
+        ui.chkFilterToggle.on('click', function() {
+            toggle_report_filter($(this));
+        })
+
         // setup initial state
         init_selected_registry();
         update_selected_cde_count(ui.selectCdeFields);
         update_components_by_registry(ui.selectRegistry.val(), false);
+
+        ui.chkFilterToggle.each(function() {
+           toggle_report_filter($(this));
+        });
     });
 </script>
 <h1>
@@ -162,7 +176,9 @@
             <div class="col-sm-10">
                 {{ form.access_groups|add_attr:"class,form-select" }}
             </div>
-            <div class="offset-sm-2 col-sm-10 form-text">{% trans "The user groups that will have access to this report data." %}</div>
+            <div class="offset-sm-2 col-sm-10 form-text">
+                {% trans "The user groups that will have read-only access to this report data. Super users automatically have access to all reports." %}
+            </div>
         </div>
     </fieldset>
     <fieldset>
@@ -209,37 +225,50 @@
         </div>
     </fieldset>
     <fieldset>
-        <legend>Patient Filters</legend>
-        <div class="row">
-            <label for="filter_working_groups" class="col-sm-2 col-form-label">{{ form.filter_working_groups.label }}</label>
-            <div class="col-sm-10 mt-2">
-                {{ form.filter_working_groups }}
-            </div>
-        </div>
-        <div class="row">
-            <label for="filter_consents" class="col-sm-2 col-form-label">{{ form.filter_consents.label }}</label>
-            <div class="col-sm-10 mt-2">
-                <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
-                {% for value, label in form.filter_consents.field.choices %}
-                    {% if value %}
-                    <li>
-                        <label class="form-check-label">
-                            <input type="checkbox" name="filter_consents" value="{{ value }}"
-                                {% if value in form.filter_consents.initial %}
-                                    checked="checked"
-                                {% endif %}
-                            >
-                            {{ label }}
-                        </label>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                </ul>
-            </div>
-            <div class="offset-sm-2 col-sm-10 form-text">
-                {% trans "Filter the report to only include patients that have consented to the selected consent items." %}
-            </div>
-        </div>
+        <legend>Report Filters</legend>
+        <ul class="list-group offset-sm-2 col-sm-10">
+            <li class="list-group-item">
+                {{ form.filter_by_working_groups|add_attr:"class,form-check-input report-filter-toggle" }}
+                <label for="id_filter_by_working_groups">{{ form.filter_by_working_groups.label }}</label>
+                <div class="row d-none report-filter">
+                    <label for="id_filter_working_groups" class="visually-hidden">{{ form.filter_working_groups.label }}</label>
+                    <div class="mt-2">
+                        {{ form.filter_working_groups }}
+                    </div>
+                    <div class="form-text">
+                        {% trans "Filter the report to only include patients within the selected working groups." %}
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                {{ form.filter_by_consents|add_attr:"class,form-check-input report-filter-toggle" }}
+                <label for="id_filter_by_consents">{{ form.filter_by_consents.label }}</label>
+                <div class="row d-none report-filter">
+                    <label for="filter_consents" class="visually-hidden">{{ form.filter_consents.label }}</label>
+                    <div class="mt-2">
+                        <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
+                    {% for value, label in form.filter_consents.field.choices %}
+                        {% if value %}
+                        <li>
+                            <label class="form-check-label">
+                                <input type="checkbox" name="filter_consents" value="{{ value }}"
+                                    {% if value in form.filter_consents.initial %}
+                                        checked="checked"
+                                    {% endif %}
+                                >
+                                {{ label }}
+                            </label>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                    </div>
+                    <div class="form-text">
+                        {% trans "Filter the report to only include patients that have consented to the selected consent items." %}
+                    </div>
+                </div>
+            </li>
+        </ul>
     </fieldset>
 
     <div class="col-10 offset-sm-2 mb-4">

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
-    Select, ModelForm
+    Select, ModelForm, BooleanField
 from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry
@@ -82,10 +82,12 @@ class ReportDesignerForm(ModelForm):
     demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), required=False)
     search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), required=False)
     cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), required=False)
+    filter_by_consents = BooleanField(label=_('Filter patients by consents'), required=False)
     filter_consents = MultipleChoiceField(
         label=_('Consent Items'),
         widget=CheckboxSelectMultiple,
         required=False)
+    filter_by_working_groups = BooleanField(label=_('Filter patients by working group'), required=False)
     filter_working_groups = MultipleChoiceField(
         label=_('Working groups'),
         widget=SelectMultiple(attrs={'class': 'form-select'}),
@@ -132,7 +134,9 @@ class ReportDesignerForm(ModelForm):
             self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
             self.fields['demographic_fields'].initial = [get_demographic_field_value(rdf.model, rdf.field) for rdf in self.instance.reportdemographicfield_set.all()]
             self.fields['cde_fields'].initial = [get_clinical_data_field_value(self.instance.registry, rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
+            self.fields['filter_by_consents'].initial = self.instance.filter_consents.count() > 0
             self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
+            self.fields['filter_by_working_groups'].initial = self.instance.filter_working_groups.count() > 0
             self.fields['filter_working_groups'].initial = [get_working_group_field_value(wg) for wg in self.instance.filter_working_groups.all()]
 
     def clean(self):
@@ -170,8 +174,16 @@ class ReportDesignerForm(ModelForm):
         )
 
         report_design.access_groups.set(clean_data['access_groups'])
-        report_design.filter_working_groups.set(clean_data['filter_working_groups'])
-        report_design.filter_consents.set(clean_data['filter_consents'])
+
+        if clean_data['filter_by_working_groups']:
+            report_design.filter_working_groups.set(clean_data['filter_working_groups'])
+        else:
+            report_design.filter_working_groups.set([])
+
+        if clean_data['filter_by_consents']:
+            report_design.filter_consents.set(clean_data['filter_consents'])
+        else:
+            report_design.filter_consents.set([])
 
         ReportDemographicField.objects.filter(report_design=report_design).delete()
         for idx, field in enumerate(clean_data['demographic_fields']):
