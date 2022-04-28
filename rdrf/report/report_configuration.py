@@ -15,6 +15,7 @@ def get_configuration():
             'maidenName': 'Maiden Name',
             'umrn': 'Umrn',
             'createdAt': "Date And Time Of Creation",
+            'lastUpdatedOverallAt': 'Date and Time Last Updated',
             'dateOfBirth': 'Date Of Birth',
             'dateOfDeath': 'Date Of Death',
             'placeOfBirth': 'Place Of Birth',
