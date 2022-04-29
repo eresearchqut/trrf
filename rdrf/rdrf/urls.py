@@ -83,6 +83,8 @@ patterns += [
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
+    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
+    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     path('admin/', admin.site.urls),
 
 
@@ -245,8 +247,6 @@ patterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
     re_path(r'^health-check/?$', health_check, name='health_check'),
-    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
-    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     re_path(r'^session-refresh/?$', session_refresh, name='session_refresh'),
 
 ]
