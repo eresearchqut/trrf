@@ -90,7 +90,11 @@ class RdrfRegistrationView(RegistrationView):
 
     def registration_allowed(self):
         registry = get_object_or_404(Registry, code=self.registry_code)
-        return registry.registration_allowed()
+        if registry.registration_allowed():
+            if self.registration_class:
+                return self.registration_class.registration_allowed()
+            return True
+        return False
 
 
 class PatientActivationView(ActivationView):

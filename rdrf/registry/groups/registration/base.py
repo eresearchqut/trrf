@@ -72,3 +72,6 @@ class BaseRegistration(abc.ABC):
             "registration_activate",
             kwargs={"activation_key": registration_profile.activation_key})
         return make_full_url(activation_url)
+
+    def registration_allowed(self):
+        return True
