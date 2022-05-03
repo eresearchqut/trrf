@@ -13,7 +13,6 @@ jsonschema==4.4.0
 openpyxl==3.0.9
 psycopg2-binary==2.9.3
 pycountry==22.1.10
-pyodbc==4.0.28 # TODO remove
 pyparsing==2.4.6 # TODO remove
 python-dateutil==2.8.2
 python-magic==0.4.24
