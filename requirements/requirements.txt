@@ -9,7 +9,6 @@ djangorestframework==3.13.1
 django-storages==1.12.3
 django-stronghold==0.4.0
 django-useraudit==1.7.1
-geoip2==3.0.0 # TODO remove
 jsonschema==4.4.0
 openpyxl==3.0.9
 polib==1.1.0 # TODO remove
