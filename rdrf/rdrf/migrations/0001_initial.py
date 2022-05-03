@@ -2,7 +2,6 @@
 
 
 from django.db import models, migrations
-import positions.fields
 
 
 class Migration(migrations.Migration):
@@ -203,7 +202,7 @@ class Migration(migrations.Migration):
                                                          help_text="Check if this form is questionnaire form for it's registry")),
                 ('is_questionnaire_login', models.BooleanField(default=False,
                                                                help_text='If the form is a questionnaire, is it accessible only by logged in users?', verbose_name='Questionnaire Login Required')),
-                ('position', positions.fields.PositionField(default=-1)),
+                ('position', models.IntegerField(default=-1)),
                 ('questionnaire_questions', models.TextField(
                     help_text='Comma-separated list of sectioncode.cdecodes for questionnnaire', blank=True)),
                 ('complete_form_cdes', models.ManyToManyField(to='rdrf.CommonDataElement', blank=True)),
