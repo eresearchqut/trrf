@@ -3,6 +3,7 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "css/admin.css" %}" />
   <link rel="stylesheet" type="text/css" href="{% static "admin/css/changelists.css" %}" />
   {% if cl.formset %}
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />
@@ -39,6 +40,36 @@
     }
     #changelist-filter a:hover {
         text-decoration: underline;
+    }
+    #changelist-filter h3 {
+        font-size: 14px;
+    }
+    #changelist-filter li.selected {
+        border-left: 5px solid #eaeaea;
+        padding-left: 10px;
+        margin-left: -15px;
+    }
+    #changelist #toolbar {
+        padding: 8px 10px;
+        margin-bottom: 15px;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        background: #f8f8f8;
+        color: #666;
+    }
+    #changelist .paginator {
+        color: #666;
+        border-bottom: 1px solid #eee;
+        background: #fff;
+        overflow: hidden;
+    }
+    .paginator {
+        font-size: 13px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        line-height: 22px;
+        margin: 0;
+        border-top: 1px solid #ddd;
     }
     .admin-table td, .admin-table th {
       max-width: 150px;
