@@ -453,6 +453,11 @@ class FormTestCase(RDRFTestCase):
             self.patient.pk,
             self.default_context.pk)
 
+        # Changing the CDEWeight we just submitted using the set_form_value method on Patient
+        # set_form_value should change the CDEWeight to 80.08 now
+        self.patient.set_form_value(
+            self.registry.code, self.simple_form.name, self.sectionB.code, "CDEWeight", 80.08)
+
         collection = ClinicalData.objects.collection(self.registry.code, "cdes")
         context_id = self.patient.default_context(self.registry).id
         mongo_record = collection.find(self.patient, context_id).data().first()
@@ -499,7 +504,7 @@ class FormTestCase(RDRFTestCase):
             self.simple_form.name,
             self.sectionB.code,
             "CDEWeight",
-            mongo_record) == 88.23
+            mongo_record) == 80.08
 
 
 class LongitudinalTestCase(FormTestCase):
