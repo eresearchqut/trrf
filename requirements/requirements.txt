@@ -15,7 +15,6 @@ psycopg2-binary==2.9.3
 pycountry==22.1.10
 python-dateutil==2.8.2
 python-magic==0.4.24
-python-memcached==1.59 # TODO remove
 pyyaml==6.0
 setuptools==59.6.0
 setuptools_scm==3.3.3 # TODO remove
