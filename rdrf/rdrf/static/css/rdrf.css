@@ -1,144 +1,144 @@
 html {
-    position: relative;
-    min-height: 100%;
+  position: relative;
+  min-height: 100%;
 }
 
 body {
-    background-color: #F8F8F8;
+  background-color: #f8f8f8;
 }
 
-html, body {
-    height: 100%;
+html,
+body {
+  height: 100%;
 }
 
 #wrap {
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 #wrap > #content {
-    width: 100%;
+  width: 100%;
 }
 
 .next-form {
-    position: fixed;
-    width: 2%;
-    top: 50%;
-    right: 0;
-    font-size: 2em;
-    margin-right: 10px;
-    z-index: 99;
+  position: fixed;
+  width: 2%;
+  top: 50%;
+  right: 0;
+  font-size: 2em;
+  margin-right: 10px;
+  z-index: 99;
 }
 
 .previous-form {
-    position: fixed;
-    width: 2%;
-    top: 50%;
-    left: 0;
-    margin-left: 10px;
-    font-size: 2em;
-    z-index: 99;
+  position: fixed;
+  width: 2%;
+  top: 50%;
+  left: 0;
+  margin-left: 10px;
+  font-size: 2em;
+  z-index: 99;
 }
 
 .banner {
-    position: fixed;
-    width: 100%;
-    z-index: 99;
-    background-color: #eeeeee;
-    padding-bottom: 20px;
-    top: 51px;
-    box-shadow: 0px 2px 30px #888888;
-    -moz-box-shadow: 0px 2px 30px #888888;
-    -webkit-box-shadow: 0px 2px 30px #888888;
+  position: fixed;
+  width: 100%;
+  z-index: 99;
+  background-color: #eeeeee;
+  padding-bottom: 20px;
+  top: 51px;
+  box-shadow: 0px 2px 30px #888888;
+  -moz-box-shadow: 0px 2px 30px #888888;
+  -webkit-box-shadow: 0px 2px 30px #888888;
 }
 
 .footer-wrap {
-    margin-top: auto;
-    border-top: 5px solid #e1e3e5;;
-    background-color: #eeeeee;
-    padding: 20px 20px;
-    bottom: 0;
-    box-shadow: 0 -2px 30px #888888;
-    text-align: center;
-    font-size: 0.8em;
-    z-index: 1000;
+  margin-top: auto;
+  border-top: 5px solid #e1e3e5;
+  background-color: #eeeeee;
+  padding: 20px 20px;
+  bottom: 0;
+  box-shadow: 0 -2px 30px #888888;
+  text-align: center;
+  font-size: 0.8em;
+  z-index: 1000;
 }
 
 #sidebar-button:not(.sidebar-active) > .fa-chevron-right {
-    transition: .3s transform;
-    transform: rotate(0deg);
+  transition: 0.3s transform;
+  transform: rotate(0deg);
 }
 
 #sidebar-button.sidebar-active > .fa-chevron-right {
-    transition: .3s transform;
-    transform: rotate(90deg);
+  transition: 0.3s transform;
+  transform: rotate(90deg);
 }
 
 .dropdown-menu {
-    z-index: 2000;
+  z-index: 2000;
 }
 
 @media only screen and (min-width: 990px) {
-    #footer-version {
-        text-align: left;
-    }
-    #footer-authorised {
-        text-align: right;
-    }
+  #footer-version {
+    text-align: left;
+  }
+  #footer-authorised {
+    text-align: right;
+  }
 }
 
 @media only screen and (max-width: 992px) {
-    .sidebar {
-        position: fixed;
+  .sidebar {
+    position: fixed;
 
-        height: 100%;
-        width: 300px;
-        padding: 0;
-        top: 54px;
-        z-index: 100000;
+    height: 100%;
+    width: 300px;
+    padding: 0;
+    top: 54px;
+    z-index: 100000;
 
-        box-shadow: 5px 0 5px -5px #888888;
+    box-shadow: 5px 0 5px -5px #888888;
 
-        left: 0;
-        transition: 0.3s;
-    }
+    left: 0;
+    transition: 0.3s;
+  }
 
-    .sidebar .well {
-        height: 95%;
-        overflow-y: auto;
-    }
+  .sidebar .well {
+    height: 95%;
+    overflow-y: auto;
+  }
 
-    .sidebar-hide {
-        left: -305px;
-    }
+  .sidebar-hide {
+    left: -305px;
+  }
 }
 
 #sidebar-button {
-    color: #9d9d9d;
+  color: #9d9d9d;
 }
 #sidebar-button.sidebar-active {
-    color: #fff;
+  color: #fff;
 }
 
 .blur {
-    display: none;
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
 
-    /* Supported by modern browsers but users may need to enable a config flag. */
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+  /* Supported by modern browsers but users may need to enable a config flag. */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 @media only screen and (min-width: 992px) {
-    .blur {
-        display: none !important;
-    }
+  .blur {
+    display: none !important;
+  }
 }
-
 
 /**************************************************************************
  * CSS utils                                                              */
@@ -152,7 +152,7 @@ html, body {
 }
 
 .no-border-radius {
-    border-radius: 0;
+  border-radius: 0;
 }
 
 /**************************************************************************
@@ -169,7 +169,8 @@ input.cde-value-updated {
 /**************************************************************************
  * Admin site validation                                                  */
 
-.errornote, .errorlist {
+.errornote,
+.errorlist {
   display: block;
   padding: 15px;
   margin-bottom: 20px;
@@ -191,17 +192,18 @@ form .aligned ul.errorlist {
 
 /* Specific rules to draw attention to Warnings in Admin -> Notifications */
 #emailnotification_form .field-warnings label {
-    color: red;
+  color: red;
 }
 
 #emailnotification_form .field-warnings {
-    color: red;
+  color: red;
 }
 
 /**************************************************************************
  * Multifile CDEs                                                         */
 
-.multi-file-deleted, .multi-file-deleted:hover {
+.multi-file-deleted,
+.multi-file-deleted:hover {
   text-decoration: line-through;
   color: #333;
 }
@@ -224,101 +226,66 @@ form .aligned ul.errorlist {
  * RadioSelect CDEs                                                       */
 
 .radio-select label {
-    display: block;
-    padding-top: 0;
+  display: block;
+  padding-top: 0;
 }
 
 .radio-select label > input {
-    margin-right: 8px;
-    flex-shrink: 0;
-    margin-bottom: auto;
-    margin-top: 0;
+  margin-right: 8px;
+  flex-shrink: 0;
+  margin-bottom: auto;
+  margin-top: 0;
 }
 
 .radio-select {
-    padding-top: 7px;
-    overflow: auto;
+  padding-top: 7px;
+  overflow: auto;
 }
 
-.radio-select input[type=radio] {
-    width: 15px;
-    height: 15px;
-    display: table-cell;
-    vertical-align: middle
+.radio-select input[type="radio"] {
+  width: 15px;
+  height: 15px;
+  display: table-cell;
+  vertical-align: middle;
 }
 
 /**************************************************************************
  * Project Title and Logo                                                 */
 
 .project_title {
-    height: 40px;
+  height: 40px;
 }
 
 .project_logo {
-    max-height: 100%;
-    vertical-align: top;
+  max-height: 100%;
+  vertical-align: top;
 }
 
 .section_blacklist_hidden {
-    display: none;
+  display: none;
 }
 
 .section_hidden {
-    display: none;
-}
-
-/***************************************************************************
-* proms logo, survey name & preamble text                              */
-
-.promsheader {
-    position: relative;
-    width: auto;
-    max-width: 1150px;
-    height: 60px;
-    margin: 0 auto 20px auto;
-    overflow: hidden;
-}
-.promslogo {
-    position: absolute;
-    left: 0;
-    width: Auto;
-    height: 60px;
-}
-
-.promstitle {
-    right:0;
-    font-family: 'Century Gothic', Helvetica, sans-serif;
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0;
-    color: green;
-    line-height: 60px;
-}
-
-.preambletext {
-    text-align: justify;
-    text-justify: inter-word;
-    font-size: 15px;
+  display: none;
 }
 
 .submit {
-    text-align:center;
-    margin-top:20px;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .copyright {
-    border-radius: 10px;
-    width: 80%;
-    border: 2px solid grey;
-    padding: 25px;
-    margin: 25px;
+  border-radius: 10px;
+  width: 80%;
+  border: 2px solid grey;
+  padding: 25px;
+  margin: 25px;
 }
 
 .registry_copyright {
-    border-radius: 10px;
-    width: 80%;
-    border: 2px solid burlywood;
-    padding: 25px;
-    margin: 25px;
+  border-radius: 10px;
+  width: 80%;
+  border: 2px solid burlywood;
+  padding: 25px;
+  margin: 25px;
 }
-

@@ -36,18 +36,6 @@ COPY requirements/* ./
 
 RUN pip install -r requirements.txt
 
-
-# Container used to build rdrf frontend
-FROM node:9.11.1 as nodebuilder
-
-# TODO separate dev/prod entrypoints?
-COPY docker/dev/docker-entrypoint-node.sh /docker-entrypoint-node.sh
-COPY . /app
-
-WORKDIR /app/rdrf/rdrf/frontend
-
-RUN /docker-entrypoint-node.sh build
-
 # Actual image we are building
 FROM python:3.8-slim
 

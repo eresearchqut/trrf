@@ -7,7 +7,6 @@ from ccg_django_utils.conf import EnvConfig
 from django.contrib.messages import constants as message_constants
 import rdrf
 from rdrf.helpers.settings_helpers import get_static_url_domain, get_csp
-from rdrf.system_role import SystemRoles
 from rdrf.security import url_whitelist
 env = EnvConfig()
 
@@ -127,7 +126,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "rdrf.context_processors.context_processors.production",
                 "rdrf.context_processors.context_processors.common_settings",
-                "rdrf.context_processors.context_processors.cic_system_role",
 
             ],
             "debug": DEBUG,
@@ -561,11 +559,8 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': 'v1',
 }
 
-# setup for SYSTEM_ROLE
-SYSTEM_ROLE = SystemRoles[env.get("SYSTEM_ROLE", "NORMAL_NO_PROMS")]
-
 PROJECT_TITLE = env.get("project_title", "Trial Ready Registry Framework")
-PROJECT_TITLE_LINK = "admin:index" if SYSTEM_ROLE is SystemRoles.CIC_PROMS else "patientslisting"
+PROJECT_TITLE_LINK = "patientslisting"
 
 PROJECT_LOGO = env.get("project_logo", "")
 PROJECT_LOGO_LINK = env.get("project_logo_link", "")
@@ -619,11 +614,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'rdrf.auth.password_validation.DifferentToPrevious'
     }
 ]
-
-# setup for PROMS
-PROMS_SECRET_TOKEN = env.get("proms_secret_token", "foobar")  # todo set this us in env etc
-PROMS_USERNAME = env.get("proms_username", "promsuser")
-PROMS_LOGO = env.get("proms_logo", "")
 
 VERSION = env.get('app_version', rdrf.VERSION)
 

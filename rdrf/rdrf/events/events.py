@@ -17,7 +17,6 @@ class EventType:
     CARER_ASSIGNED = "carer-assigned"
     CARER_ACTIVATED = "carer-activated"
     CARER_DEACTIVATED = "carer-deactivated"
-    SURVEY_REQUEST = "survey-request"
     DUPLICATE_PATIENT_SET = "duplicate-patient-set"
     CLINICIAN_ASSIGNED = "clinician-assigned"
     CLINICIAN_UNASSIGNED = "clinician-unassigned"

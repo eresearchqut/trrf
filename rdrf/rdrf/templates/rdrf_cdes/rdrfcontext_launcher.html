@@ -64,16 +64,6 @@
 </div>
 {% endif %}
 
-{% if proms_link %}
-<div width="100%" class="card collapsible">
-  <div class="card-body">
-     <a href="{{proms_link}}" class="{% if current_form_name == "Proms" %}selected-link{% endif %}">
-       {{ form_titles.Proms }}
-     </a>
-  </div>
-</div>
-{% endif %}
-
 
 {% if family_linkage_link %}
 <div width="100%" class="card collapsible">
@@ -104,11 +94,9 @@
         <div width="100%" class="card collapsible">
             <div class="card-header" data-bs-toggle="collapse" data-bs-target="#existing_{{multiple_context.id}}">
               {{context.heading}}
-              {% if can_add_proms %}
               <a class="btn btn-info btn-xs float-end"
                  onclick="location.href='{{context.add_link_url}}';">
                  <span class="fa fa-plus" aria-hidden="true"></span> {% trans "Add" %}</a>
-               {% endif %}
             </div>
             <div id="existing_{{context.id}}" class="card-body">
 

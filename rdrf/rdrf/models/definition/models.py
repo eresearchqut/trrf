@@ -483,13 +483,6 @@ class Registry(models.Model):
         except ValueError:
             raise ValidationError("metadata json field should be a valid json dictionary")
 
-    @property
-    def proms_system_url(self):
-        try:
-            return self.metadata["proms_system_url"]
-        except KeyError:
-            return None
-
     def _registration_check(self, event_types, check_all=False):
         registration_enabled = self.has_feature(RegistryFeatures.REGISTRATION)
         registration_notifications_qs = (
@@ -563,8 +556,6 @@ class CDEPermittedValueGroup(models.Model):
                 v,
                 att) for v in CDEPermittedValue.objects.filter(
                 pv_group=self).order_by('position')]
-
-    # interface used by proms
 
     @property
     def options(self):
@@ -1394,7 +1385,6 @@ class EmailNotification(models.Model):
         (EventType.CARER_ASSIGNED, "Primary Caregiver Assigned"),
         (EventType.CARER_ACTIVATED, "Primary Caregiver Activated"),
         (EventType.CARER_DEACTIVATED, "Primary Caregiver Deactivated"),
-        (EventType.SURVEY_REQUEST, "Survey Request"),
         (EventType.DUPLICATE_PATIENT_SET, "Duplicate Patient Set"),
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
@@ -1965,7 +1955,6 @@ class FormTitle(models.Model):
         ("Demographics", _("Demographics")),
         ("Consents", _("Consents")),
         ("Clinician", _("Clinician")),
-        ("Proms", _("Proms")),
         ("Family linkage", _("Family Linkage"))
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
