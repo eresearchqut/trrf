@@ -1,0 +1,34 @@
+.list-group-cfgs .list-group-item {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.list-group-cfgs .badge {
+    margin-right: 10px;
+}
+
+.list-group-cfgs > .list-group-item button {
+    margin-left: 10px;
+}
+
+.list-group-forms > .list-group-item button {
+    margin-left: 25px;
+}
+
+.list-group-sections > .list-group-item button {
+    margin-left: 40px;
+}
+
+.list-group-cdes > .list-group-item input {
+    margin-left: 75px;
+}
+
+.list-group-cfgs button[data-bs-toggle] i:before {
+    /* FA Icon equivalent: fa-chevron-down */
+    content: "\f078";
+}
+
+.list-group-cfgs  button[data-bs-toggle].collapsed i:before {
+    /* FA Icon equivalent: fa-chevron-right */
+    content: "\f054";
+}

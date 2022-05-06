@@ -6,6 +6,7 @@ from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 
+from rdrf.models.definition.models import ContextFormGroup, Registry
 from rdrf.security.mixins import SuperuserRequiredMixin
 from report.forms import ReportDesignerForm
 from report.models import ReportDesign
@@ -74,6 +75,9 @@ class ReportDesignView(SuperuserRequiredMixin, View):
             report_design_form = ReportDesignerForm()
 
         params = _get_default_params(request, report_design_form)
+        params.update({'registry__cfgs': {registry: ContextFormGroup.objects.filter(registry=registry).order_by('sort_order', 'code')
+                                          for registry in Registry.objects.all()}
+                       })
         return render(request, 'report_designer.html', params)
 
     def post(self, request, report_id=None):

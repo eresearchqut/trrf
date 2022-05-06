@@ -8,7 +8,7 @@ from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, 
     Select, ModelForm, BooleanField
 from django.utils.translation import ugettext_lazy as _
 from rdrf.helpers.utils import mongo_key
-from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry
+from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry, ContextFormGroup
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
 
@@ -27,21 +27,16 @@ def get_demographic_field_choices(cfg_demographic_model):
     return demographic_fields
 
 
-def get_clinical_data_field_value(registry, cde_key):
-    return json.dumps({'registry': registry.code, 'cde_key': cde_key})
+def get_cde_field_value(context_form_group, cde_key):
+    return json.dumps({'cfg': 'TODO', 'cde_key': cde_key})
 
 
 def get_cde_choices():
-    cde_fields = []
-    for form in RegistryForm.objects.all():
-        for section in form.section_models:
-            form_section_cdes = [
-                (get_clinical_data_field_value(form.registry, mongo_key(form.name, section.code, cde.code)), cde.name)
-                for cde in section.cde_models
-            ]
-            cde_fields.append((f"{form.name} - {section.display_name}", form_section_cdes))
-
-    return cde_fields
+    return [(get_cde_field_value(cfg, mongo_key(form.name, section.code, cde.code)), cde.name)
+            for cfg in ContextFormGroup.objects.all()
+            for form in cfg.forms
+            for section in form.section_models
+            for cde in section.cde_models]
 
 
 def get_section_choices():
@@ -133,7 +128,7 @@ class ReportDesignerForm(ModelForm):
         if self.instance.id:
             self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
             self.fields['demographic_fields'].initial = [get_demographic_field_value(rdf.model, rdf.field) for rdf in self.instance.reportdemographicfield_set.all()]
-            self.fields['cde_fields'].initial = [get_clinical_data_field_value(self.instance.registry, rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
+            self.fields['cde_fields'].initial = [get_cde_field_value('', rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
             self.fields['filter_by_consents'].initial = self.instance.filter_consents.count() > 0
             self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
             self.fields['filter_by_working_groups'].initial = self.instance.filter_working_groups.count() > 0
