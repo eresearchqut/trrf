@@ -13,6 +13,7 @@ class RegistryFeatures:
     PATIENT_TYPES = "patient_types"
     PATIENT_FORM_DOCTORS = "patient_form_doctors"
     PATIENT_GUID = "patient_guid"
+    PATIENT_ADDRESS_IS_MANDATORY = "patient_address_is_mandatory"
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
     PATIENTS_CREATE_USERS = "patients_create_users"
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"

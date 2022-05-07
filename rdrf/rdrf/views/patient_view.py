@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.db import transaction
+from django.forms.models import ALL_FIELDS
 from django.shortcuts import render, redirect
 from django.utils.module_loading import import_string
 from django.views.generic.base import View
@@ -251,7 +252,7 @@ class PatientFormMixin:
                                                                form=PatientDoctorForm,
                                                                extra=0,
                                                                can_delete=True,
-                                                               fields="__all__")
+                                                               fields=ALL_FIELDS)
 
                 patient_doctor_form = patient_doctor_formset(
                     instance=patient, prefix="patient_doctor")
@@ -274,7 +275,7 @@ class PatientFormMixin:
                                                                  form=PatientRelativeForm,
                                                                  extra=0,
                                                                  can_delete=True,
-                                                                 fields="__all__")
+                                                                 fields=ALL_FIELDS)
 
                 patient_relative_form = patient_relative_formset(
                     instance=patient, prefix="patient_relative")
@@ -320,13 +321,7 @@ class PatientFormMixin:
         patient_form.user = user
 
         if not patient_address_form:
-            patient_address_formset = inlineformset_factory(Patient,
-                                                            PatientAddress,
-                                                            form=PatientAddressForm,
-                                                            extra=0,
-                                                            can_delete=True,
-                                                            fields="__all__")
-
+            patient_address_formset = _patient_address_formset_factory(registry, extra=0, can_delete=True)
             patient_address_form = patient_address_formset(
                 instance=patient, prefix="patient_address")
 
@@ -436,14 +431,13 @@ class PatientFormMixin:
             )
         )
 
-    def _get_address_formset(self, request, instance=None):
-        patient_address_form_set = inlineformset_factory(
-            Patient, PatientAddress, form=PatientAddressForm, fields="__all__")
+    def _get_address_formset(self, request, registry, instance=None):
+        patient_address_form_set = _patient_address_formset_factory(registry)
         return patient_address_form_set(request.POST, instance=instance, prefix="patient_address")
 
     def _get_doctor_formset(self, request, instance=None):
         patient_doctor_form_set = inlineformset_factory(
-            Patient, PatientDoctor, form=PatientDoctorForm, fields="__all__")
+            Patient, PatientDoctor, form=PatientDoctorForm, fields=ALL_FIELDS)
         return patient_doctor_form_set(request.POST, instance=instance, prefix="patient_doctor")
 
     def _get_patient_relatives_formset(self, request, instance=None):
@@ -453,7 +447,7 @@ class PatientFormMixin:
                                                           form=PatientRelativeForm,
                                                           extra=0,
                                                           can_delete=True,
-                                                          fields="__all__")
+                                                          fields=ALL_FIELDS)
 
         return patient_relatives_formset(request.POST, instance=instance, prefix="patient_relative")
 
@@ -492,7 +486,7 @@ class PatientFormMixin:
 
         forms['patient_form'] = patient_form
 
-        address_formset = self._get_address_formset(request, instance)
+        address_formset = self._get_address_formset(request, registry_model, instance)
         index = 0
         for f in address_formset.forms:
             country_field_name = 'patient_address-' + str(index) + '-country'
@@ -824,3 +818,13 @@ class PatientEditView(PatientFormMixin, View):
                             patient_relative_model.create_patient_from_myself(
                                 registry_model,
                                 patient_model.working_groups.all())
+
+
+def _patient_address_formset_factory(registry, **kwargs):
+    if 'fields' not in kwargs:
+        kwargs['fields'] = ALL_FIELDS
+    if registry.has_feature(RegistryFeatures.PATIENT_ADDRESS_IS_MANDATORY):
+        if (kwargs.get('min_num') or 0) < 1:
+            kwargs['min_num'] = 1
+        kwargs['validate_min'] = True
+    return inlineformset_factory(Patient, PatientAddress, form=PatientAddressForm, **kwargs)
