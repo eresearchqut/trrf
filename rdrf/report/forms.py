@@ -28,7 +28,7 @@ def get_demographic_field_choices(cfg_demographic_model):
 
 
 def get_cde_field_value(context_form_group, cde_key):
-    return json.dumps({'cfg': 'TODO', 'cde_key': cde_key})
+    return json.dumps({'cfg': context_form_group.id, 'cde_key': cde_key})
 
 
 def get_cde_choices():
@@ -128,7 +128,7 @@ class ReportDesignerForm(ModelForm):
         if self.instance.id:
             self.fields['registry'].initial = self.instance.registry.code if self.instance.registry else None
             self.fields['demographic_fields'].initial = [get_demographic_field_value(rdf.model, rdf.field) for rdf in self.instance.reportdemographicfield_set.all()]
-            self.fields['cde_fields'].initial = [get_cde_field_value('', rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
+            self.fields['cde_fields'].initial = [get_cde_field_value(rcf.context_form_group, rcf.cde_key) for rcf in self.instance.reportclinicaldatafield_set.all()]
             self.fields['filter_by_consents'].initial = self.instance.filter_consents.count() > 0
             self.fields['filter_consents'].initial = [get_filter_consent_field_value(consent) for consent in self.instance.filter_consents.all()]
             self.fields['filter_by_working_groups'].initial = self.instance.filter_working_groups.count() > 0
@@ -195,6 +195,7 @@ class ReportDesignerForm(ModelForm):
             field_dict = json.loads(field)
             ReportClinicalDataField.objects.create(
                 cde_key=field_dict['cde_key'],
+                context_form_group=ContextFormGroup.objects.get(id=field_dict['cfg']),
                 report_design=report_design
             )
 

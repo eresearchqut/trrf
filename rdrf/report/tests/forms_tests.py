@@ -44,15 +44,15 @@ class FormHelpersTestCase(TestCase):
 
     def test_get_cde_field_value(self):
         reg1 = Registry.objects.create(code='reg1')
-        cfg1 = ContextFormGroup.objects.create(registry=reg1, code='CFG1')
-        cfg2 = ContextFormGroup.objects.create(registry=reg1, code='CFG2')
+        cfg1 = ContextFormGroup.objects.create(registry=reg1, id=1, code='CFG1')
+        cfg2 = ContextFormGroup.objects.create(registry=reg1, id=2, code='CFG2')
 
-        self.assertEqual('{"cfg": "TODO", "cde_key": "Form1__Section1__CDE1"}', get_cde_field_value(cfg1, "Form1__Section1__CDE1"))
-        self.assertEqual('{"cfg": "TODO", "cde_key": "Sleep__SleepDiary__Time_To_Sleep"}', get_cde_field_value(cfg2, "Sleep__SleepDiary__Time_To_Sleep"))
+        self.assertEqual('{"cfg": 1, "cde_key": "Form1__Section1__CDE1"}', get_cde_field_value(cfg1, "Form1__Section1__CDE1"))
+        self.assertEqual('{"cfg": 2, "cde_key": "Sleep__SleepDiary__Time_To_Sleep"}', get_cde_field_value(cfg2, "Sleep__SleepDiary__Time_To_Sleep"))
 
     def test_get_cde_choices(self):
         reg1 = Registry.objects.create(code='reg1')
-        cfg1 = ContextFormGroup.objects.create(registry=reg1)
+        cfg1 = ContextFormGroup.objects.create(registry=reg1, id=1)
 
         CommonDataElement.objects.create(code='TimeToBed', name='Time to bed')
         CommonDataElement.objects.create(code='TimeToWake', name='Time Awoke')
@@ -63,8 +63,8 @@ class FormHelpersTestCase(TestCase):
 
         cfg1.items.create(registry_form=form1)
 
-        self.assertEqual([('{"cfg": "TODO", "cde_key": "SleepBehaviour____SleepDiary____TimeToBed"}', 'Time to bed'),
-                          ('{"cfg": "TODO", "cde_key": "SleepBehaviour____SleepDiary____TimeToWake"}', 'Time Awoke')],
+        self.assertEqual([('{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____TimeToBed"}', 'Time to bed'),
+                          ('{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____TimeToWake"}', 'Time Awoke')],
                          get_cde_choices())
 
     def test_get_section_choices(self):
@@ -225,7 +225,7 @@ class ReportDesignFormTestCase(TestCase):
         CommonDataElement.objects.create(code='LongestTimeAwake')
         Section.objects.create(code='SleepDiary', elements='DayOfWeek,TimeToBed,TimeToSleep,NumTimesWoke,LongestTimeAwake')
         form1 = RegistryForm.objects.create(name='SleepBehaviour', sections='SleepDiary', registry=reg_ang, abbreviated_name='SleepBehaviour')
-        cfg1 = ContextFormGroup.objects.create(registry=reg_ang)
+        cfg1 = ContextFormGroup.objects.create(registry=reg_ang, id=1)
         cfg1.items.create(registry_form=form1)
 
         # When
@@ -239,9 +239,9 @@ class ReportDesignFormTestCase(TestCase):
                                         "filter_consents": ['{"registry": "ang", "consent_question": "cq2"}', '{"registry": "ang", "consent_question": "cq3"}'],
                                         "demographic_fields": ['{"model": "patient", "field": "givenNames"}', '{"model": "patient", "field": "familyName"}'],
                                         "cde_heading_format": ReportCdeHeadingFormat.ABBR_NAME.value,
-                                        "cde_fields": ['{"cfg": "TODO", "cde_key": "SleepBehaviour____SleepDiary____DayOfWeek"}',
-                                                       '{"cfg": "TODO", "cde_key": "SleepBehaviour____SleepDiary____TimeToBed"}',
-                                                       '{"cfg": "TODO", "cde_key": "SleepBehaviour____SleepDiary____TimeToSleep"}']
+                                        "cde_fields": ['{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____DayOfWeek"}',
+                                                       '{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____TimeToBed"}',
+                                                       '{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____TimeToSleep"}']
                                         })
 
         self.assertIsNone(form.instance.id)

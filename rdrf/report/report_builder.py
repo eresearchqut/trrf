@@ -12,7 +12,6 @@ from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
 from rdrf.helpers.utils import models_from_mongo_key, BadKeyError
-from rdrf.models.definition.models import ContextFormGroup
 from report.models import ReportCdeHeadingFormat
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.schema import create_dynamic_schema, get_schema_field_name
@@ -98,18 +97,16 @@ class ReportBuilder:
         # However, the order of the clinical data in a CSV export is currently determined by the order it appears in a
         # patient's clinical record. Revisit this in the future if there's a need to allow the user to set the order on
         # the fields in a report design.
-        cde_keys = [rcdf.cde_key for rcdf in self.report_design.reportclinicaldatafield_set.all().order_by('id')]
 
         # - create a dictionary to respectively group together cfg, form, sections by keys
         cfg_dicts = {}
-        for key in cde_keys:
-            form, section, cde = models_from_mongo_key(self.report_design.registry, key)
-            cfgs = ContextFormGroup.objects.filter(items__registry_form=form)
-            for cfg in cfgs:
-                cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
-                form_dict = cfg_dict['forms'].setdefault(form.name, {'sections': {}})
-                section_dict = form_dict['sections'].setdefault(section.code, {'cdes': []})
-                section_dict['cdes'].append(cde.code)
+        for cde_field in self.report_design.reportclinicaldatafield_set.all().order_by('id'):
+            cfg = cde_field.context_form_group
+            form, section, cde = models_from_mongo_key(self.report_design.registry, cde_field.cde_key)
+            cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
+            form_dict = cfg_dict['forms'].setdefault(form.name, {'sections': {}})
+            section_dict = form_dict['sections'].setdefault(section.code, {'cdes': []})
+            section_dict['cdes'].append(cde.code)
 
         # - build the clinical data query
         fields_clinical_data = []
@@ -158,18 +155,18 @@ class ReportBuilder:
 
         headings_dict = dict()
 
-        for cde_key in list(self.report_design.reportclinicaldatafield_set.all().values_list('cde_key', flat=True)):
-            form, section, cde = models_from_mongo_key(self.report_design.registry, cde_key)
-            for cfg in ContextFormGroup.objects.filter(items__registry_form=form.id):
-                col_header = ''
+        for cde_field in self.report_design.reportclinicaldatafield_set.all():
+            cfg = cde_field.context_form_group
+            form, section, cde = models_from_mongo_key(self.report_design.registry, cde_field.cde_key)
+            col_header = ''
 
-                if self.report_design.cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
-                    col_header = f'{cfg.name}_{form.nice_name}_{section.display_name}_{cde.name}'
-                elif self.report_design.cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:
-                    col_header = f'{cfg.abbreviated_name}_{form.abbreviated_name}_{section.abbreviated_name}_{cde.abbreviated_name}'
+            if self.report_design.cde_heading_format == ReportCdeHeadingFormat.LABEL.value:
+                col_header = f'{cfg.name}_{form.nice_name}_{section.display_name}_{cde.name}'
+            elif self.report_design.cde_heading_format == ReportCdeHeadingFormat.ABBR_NAME.value:
+                col_header = f'{cfg.abbreviated_name}_{form.abbreviated_name}_{section.abbreviated_name}_{cde.abbreviated_name}'
 
-                headings_dict.setdefault(col_header, []).append(
-                    {'cfg': cfg.code, 'form': form.nice_name, 'section': section.__str__(), 'cde': cde.__str__()})
+            headings_dict.setdefault(col_header, []).append(
+                {'cfg': cfg.code, 'form': form.nice_name, 'section': section.__str__(), 'cde': cde.__str__()})
 
         duplicate_headings = dict(filter(lambda item: len(item[1]) > 1, headings_dict.items()))
 

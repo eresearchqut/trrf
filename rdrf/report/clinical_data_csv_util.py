@@ -200,6 +200,10 @@ class ClinicalDataCsvUtil:
 
         return cfg_lookup["header"], cfg_lookup['count']
 
+    def __get_report_cfgs(self, report_design):
+        report_cfg_ids = report_design.reportclinicaldatafield_set.distinct('context_form_group').values('context_form_group')
+        return ContextFormGroup.objects.filter(id__in=report_cfg_ids)
+
     def csv_headers(self, user, report_design):
         cde_keys = list(report_design.reportclinicaldatafield_set.order_by('id').values_list('cde_key', flat=True))
 
@@ -213,16 +217,14 @@ class ClinicalDataCsvUtil:
         # Step 2 - Generate headers from summary
         cfgs_lookup = {}  # e.g. {'cfgcode': {'count': 1, 'heading': 'formatted heading'}}
         sort_order_lookup = self.__form_section_cde_sort_order(cde_keys)
+        report_cfgs = self.__get_report_cfgs(report_design)
 
         headers = OrderedDict()
 
         for form_name, form_data in self.__sorted_forms(cd_summary, sort_order_lookup):
             form = RegistryForm.objects.get(name=form_name)
             form_heading = self.__form_heading(form, report_design.cde_heading_format)
-
-            # TODO fix this so we only get the cfgs relevant to the contexts of the clinical data (separate sql TODO)
-            for cfg in ContextFormGroup.objects.filter(items__registry_form=form):
-
+            for cfg in report_cfgs.filter(items__registry_form=form):
                 cfg_heading, longitudinal_entries_cnt = self.__get_cfg_data(cfg, cfgs_lookup, report_design.cde_heading_format)
 
                 for cfg_i in range(longitudinal_entries_cnt):
