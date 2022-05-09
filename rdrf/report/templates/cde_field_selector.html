@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load get_cde_value %}
 
 <div class="registry-cde-fields d-none" data-registry="{{ registry.code }}">
@@ -60,6 +61,6 @@
     {% endfor %}
     </ul>
 {% else %}
-    <p>Context Form Groups have not been configured for the {{ registry.name }} registry.</p>
+    <p>{% trans "Context Form Groups have not been configured for the" %} {{ registry.name }} {% trans "registry." %}</p>
 {% endif %}
 </div>

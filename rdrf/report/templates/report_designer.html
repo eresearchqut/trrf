@@ -159,7 +159,7 @@
         <div class="row">
             <label for="cde_fields" class="col-sm-2 col-form-label">{{ form.cde_fields.label }}</label>
             <div class="col-sm-10 mt-2">
-                <div class="registry-cde-fields" data-registry=""><p>Select a Registry</p></div>
+                <div class="registry-cde-fields" data-registry=""><p>{% trans "Select a registry" %}</p></div>
                 {% for registry, context_form_groups in registry__cfgs.items %}
                     {% include "cde_field_selector.html" with registry=registry context_form_groups=context_form_groups initial=form.cde_fields.initial only %}
                 {% endfor %}
