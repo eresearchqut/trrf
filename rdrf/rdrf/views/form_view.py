@@ -298,7 +298,7 @@ class FormView(View):
 
     @staticmethod
     def get_form_group_name(patient_model, context):
-        return context.context_form_group.get_default_name(patient_model, context)
+        return context.context_form_group.get_name_from_cde(patient_model, context)
 
     def init_previous_data_members(self):
         self.previous_data = None
