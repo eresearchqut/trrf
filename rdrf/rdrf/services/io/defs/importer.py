@@ -10,7 +10,7 @@ from explorer.models import Query
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
-from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentConfiguration
@@ -1040,7 +1040,8 @@ class Importer(object):
                 report.reportdemographicfield_set.create(model=df['model'], field=df['field'], sort_order=df['sort_order'])
 
             for cdf in d['clinical_data_fields']:
-                report.reportclinicaldatafield_set.create(cde_key=cdf)
+                report.reportclinicaldatafield_set.create(cde_key=cdf['cde_key'],
+                                                          context_form_group=ContextFormGroup.objects.get(code=cdf['context_form_group']))
 
             report.save()
 

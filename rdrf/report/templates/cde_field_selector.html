@@ -1,0 +1,66 @@
+{% load i18n %}
+{% load get_cde_value %}
+
+<div class="registry-cde-fields d-none" data-registry="{{ registry.code }}">
+{% if context_form_groups %}
+    <ul class="list-group list-group-cfgs">
+    {% for cfg in context_form_groups %}
+        <li class="list-group-item">
+            <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_cfg_{{ cfg.pk }}">
+                <i class="fa"></i>
+            </button>
+            <input type="checkbox" class="form-check-input me-1" id="cfg-{{ cfg.pk }}">
+            <label for="cfg-{{ cfg.pk }}">{{ cfg.name }}</label>
+            <span class="badge border border-primary text-dark float-end">{{ cfg.code }}</span>
+            {# Forms #}
+            <ul class="list-group list-group-flush list-group-forms border-top mb-0 collapse" id="collapse_cfg_{{ cfg.pk }}">
+            {% for form in cfg.forms %}
+                <li class="list-group-item">
+                    <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_form_{{ cfg.pk }}_{{ form.id }}">
+                        <i class="fa"></i>
+                    </button>
+                    <input type="checkbox" class="form-check-input me-1" id="form_{{ cfg.pk }}_{{ form.id }}">
+                    <label for="form_{{ cfg.pk }}_{{ form.id }}">
+                        {{ form.nice_name }}
+                    </label>
+                    <span class="badge border border-secondary text-dark float-end">{{ form.name }}</span>
+                    {# Sections #}
+                    <ul class="list-group list-group-flush list-group-sections border-top mb-0 collapse" id="collapse_form_{{ cfg.pk }}_{{ form.id }}">
+                        {% for section in form.section_models %}
+                        <li class="list-group-item">
+                            <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_section_{{ cfg.pk }}_{{ form.id }}_{{ section.pk }}">
+                                <i class="fa"></i>
+                            </button>
+                            <input type="checkbox" class="form-check-input me-1" id="section-{{ cfg.pk }}_{{ form.pk }}_{{ section.pk }}">
+                            <label for="section-{{ cfg.pk }}_{{ form.pk }}_{{ section.pk }}">{{  section.display_name }}</label>
+                            <span class="badge border border-info text-dark float-end">{{ section.code }}</span>
+                            {# CDEs #}
+                            <ul class="list-group list-group-flush list-group-cdes border-top mb-0 collapse" id="collapse_section_{{ cfg.pk }}_{{ form.id }}_{{ section.pk }}">
+                                {% for cde in section.cde_models %}
+                                    {% get_cde_value cfg form section cde as cde_value %}
+                                 <li class="list-group-item">
+                                    <input type="checkbox" name="cde_fields" class="form-check-input me-1"
+                                           id="cde_{{ cfg.pk }}_{{ form.pk }}_{{ section.pk }}_{{ cde.pk }}"
+                                           value="{{ cde_value }}"
+                                           {% if cde_value in initial %}
+                                               checked="checked"
+                                           {% endif  %}
+                                    >
+                                    <label for="cde_{{ cfg.pk }}_{{ form.pk }}_{{ section.pk }}_{{ cde.pk }}">{{ cde.name }}</label>
+                                    <span class="badge bg-light text-dark float-end">{{ cde.code }}</span>
+                                 </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>{% trans "Context Form Groups have not been configured for the" %} {{ registry.name }} {% trans "registry." %}</p>
+{% endif %}
+</div>
