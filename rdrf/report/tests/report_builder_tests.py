@@ -1,10 +1,13 @@
-from django.test import TestCase
+from collections import OrderedDict
+from datetime import datetime
 
+from django.test import TestCase
 from graphql import parse, print_ast
 
 from rdrf.models.definition.models import Registry, ConsentSection, ConsentQuestion, RegistryForm, Section, \
     CommonDataElement, ContextFormGroup
-from registry.groups.models import WorkingGroup
+from registry.groups.models import WorkingGroup, CustomUser
+from registry.patients.models import Patient, AddressType
 from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.report_builder import ReportBuilder
 
@@ -226,3 +229,80 @@ class ReportGeneratorTestCase(TestCase):
         is_valid, errors = report.validate_for_csv_export()
         self.assertFalse(is_valid)
         self.assertEqual(['SleepCFG_SleepFRM_SleepSEC_Time'], [*errors['duplicate_headers'].keys()])
+
+    def test_get_demographic_headers(self):
+        def setup_test_data():
+            class TestContext:
+                user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+
+            self.request = TestContext()
+
+            self.registry = Registry.objects.create(code='REG')
+            self.registry_with_no_consent_questions = Registry.objects.create(code='REG2')
+
+            cs1 = ConsentSection.objects.create(registry=self.registry, code='CS1', section_label='Consent Section 1')
+            ConsentQuestion.objects.create(code='CQ1', section=cs1, position=1)
+            ConsentQuestion.objects.create(code='CQ2', section=cs1, position=2)
+
+            p1 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+            p1.rdrf_registry.set([self.registry, self.registry_with_no_consent_questions])
+            address_type_home = AddressType.objects.create(type='Home')
+            address_type_postal = AddressType.objects.create(type='Postal')
+            p1.patientaddress_set.create(address_type=address_type_home)
+            p1.patientaddress_set.create(address_type=address_type_postal)
+
+        setup_test_data()
+
+        report_design = ReportDesign.objects.create(registry=self.registry)
+        report_design.reportdemographicfield_set.create(sort_order=1, model='patient', field='id')
+        report_design.reportdemographicfield_set.create(sort_order=2, model='patient', field='familyName')
+        report_design.reportdemographicfield_set.create(sort_order=3, model='patient', field='nextOfKinRelationship { relationship }')
+
+        report_design.reportdemographicfield_set.create(sort_order=4, model='patientaddressSet', field='addressType { type }')
+        report_design.reportdemographicfield_set.create(sort_order=5, model='patientaddressSet', field='address')
+        report_design.reportdemographicfield_set.create(sort_order=6, model='patientaddressSet', field='suburb')
+
+        report_design.reportdemographicfield_set.create(sort_order=7, model='consents', field='answer')
+        report_design.reportdemographicfield_set.create(sort_order=8, model='consents', field='firstSave')
+        report_design.reportdemographicfield_set.create(sort_order=9, model='consents', field='lastUpdate')
+
+        actual = ReportBuilder(report_design)._ReportBuilder__get_demographic_headers(self.request)
+        expected = OrderedDict({'id': 'ID',
+                                'familyName': 'Family Name',
+                                'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
+                                'patientaddressSet_0_addressType_type': 'Patient Address_1_Address Type',
+                                'patientaddressSet_0_address': 'Patient Address_1_Street Address',
+                                'patientaddressSet_0_suburb': 'Patient Address_1_Suburb',
+                                'patientaddressSet_1_addressType_type': 'Patient Address_2_Address Type',
+                                'patientaddressSet_1_address': 'Patient Address_2_Street Address',
+                                'patientaddressSet_1_suburb': 'Patient Address_2_Suburb',
+                                'consents_CQ1_answer': 'Consents_CQ1_Answer',
+                                'consents_CQ1_firstSave': 'Consents_CQ1_Date of First Save',
+                                'consents_CQ1_lastUpdate': 'Consents_CQ1_Date of Last Update',
+                                'consents_CQ2_answer': 'Consents_CQ2_Answer',
+                                'consents_CQ2_firstSave': 'Consents_CQ2_Date of First Save',
+                                'consents_CQ2_lastUpdate': 'Consents_CQ2_Date of Last Update',
+                                })
+
+        self.assertDictEqual(expected, actual)
+
+        # Test 2 - pivoted model has no variants
+        report_design.registry = self.registry_with_no_consent_questions
+        report_design.save()
+        actual = ReportBuilder(report_design)._ReportBuilder__get_demographic_headers(self.request)
+        expected = OrderedDict({'id': 'ID',
+                                'familyName': 'Family Name',
+                                'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
+                                'patientaddressSet_0_addressType_type': 'Patient Address_1_Address Type',
+                                'patientaddressSet_0_address': 'Patient Address_1_Street Address',
+                                'patientaddressSet_0_suburb': 'Patient Address_1_Suburb',
+                                'patientaddressSet_1_addressType_type': 'Patient Address_2_Address Type',
+                                'patientaddressSet_1_address': 'Patient Address_2_Street Address',
+                                'patientaddressSet_1_suburb': 'Patient Address_2_Suburb',
+                                'consents_answer': 'Consents_Answer',
+                                'consents_firstSave': 'Consents_Date of First Save',
+                                'consents_lastUpdate': 'Consents_Date of Last Update',
+                                })
+
+        self.assertDictEqual(expected, actual)
+

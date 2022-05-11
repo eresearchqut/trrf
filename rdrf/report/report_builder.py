@@ -141,6 +141,84 @@ class ReportBuilder:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
         return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
 
+    def __get_demographic_headers(self, request):
+        def get_flat_json_path(report_model, report_field, variant_index=None):
+            if not report_field:
+                return None
+            if report_model == 'patient':
+                prefix = ''
+            else:
+                prefix = f'{report_model}_'
+
+            # When report_field contains nested fields (indicated by the presence of curly braces),
+            # Then apply further transformation to the report field to flatten it
+            if re.search('[{}]', report_field):
+                # e.g. addressType { type }
+                # 1. Remove spaces = addressType{type}
+                json_field_path = re.sub(r"\s", "", report_field)
+                # 2. Replace curly brace with a single underscore to separate the parts = addressType_type
+                # --> regex group 1 = addressType
+                # --> regex group 2 = {type}
+                # --> regex group 3 = type
+                json_field_path = re.sub(r"(.+)({(.*)})", r"\1_\3", json_field_path)
+            else:
+                json_field_path = report_field
+
+            if variant_index is not None:
+                return f"{prefix}{variant_index}_{json_field_path}"
+            else:
+                return f"{prefix}{json_field_path}"
+
+        fieldnames_dict = OrderedDict()
+
+        # e.g. {'patientAddress': True}
+        processed_multifield_models = {}
+
+        for rdf in self.report_design.reportdemographicfield_set.all().order_by('sort_order'):
+            model_config = self.report_config[rdf.model]
+
+            if rdf.model == 'patient':
+                # Get label for simple fields
+                fieldnames_dict[get_flat_json_path(rdf.model, rdf.field)] = model_config['fields'][rdf.field]
+            else:
+                if model_config.get('multi_field', False):
+                    if not processed_multifield_models.get(rdf.model):
+                        # Process all the fields for this model now
+                        model_fields = self.report_design.reportdemographicfield_set.filter(
+                            model=rdf.model).values_list("field", flat=True)
+
+                        if model_config.get('pivot', False):
+                            # Lookup the variants of this item, expected to be a list of unique codes/values
+                            column_headers = self.__get_variants(model_config.get('variant_lookup'))
+
+                            if column_headers:
+                                # Generate a fieldname item for each (column x model fields)
+                                for column in column_headers:
+                                    for mf in model_fields:
+                                        fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
+                                            f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
+                            else:
+                                # Generate dummy columns so the report isn't completely empty
+                                for mf in model_fields:
+                                    fieldnames_dict[get_flat_json_path(rdf.model, mf)] = \
+                                        f"{model_config['label']}_{model_config['fields'][mf]}"
+                        else:
+                            # Lookup how many variants of this model is relevant to our patient dataset
+                            num_variants = self.__get_variants(model_config['variant_lookup'], request)
+
+                            for i in range(num_variants or 0):
+                                for mf in model_fields:
+                                    fieldnames_dict[get_flat_json_path(rdf.model, mf, i)] = \
+                                        f"{model_config['label']}_{i + 1}_{model_config['fields'][mf]}"
+
+                        # Mark as processed
+                        processed_multifield_models[rdf.model] = True
+                else:
+                    fieldnames_dict[get_flat_json_path(rdf.model,
+                                                       rdf.field)] = f"{model_config['label']}_{model_config['fields'][rdf.field]}"
+
+        return fieldnames_dict
+
     def validate_query(self, request):
         try:
             result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
@@ -194,87 +272,9 @@ class ReportBuilder:
                 break
 
     def export_to_csv(self, request):
-        def get_demographic_headers():
-            def get_flat_json_path(report_model, report_field, variant_index=None):
-                if not report_field:
-                    return None
-                if report_model == 'patient':
-                    prefix = ''
-                else:
-                    prefix = f'{report_model}_'
-
-                # When report_field contains nested fields (indicated by the presence of curly braces),
-                # Then apply further transformation to the report field to flatten it
-                if re.search('[{}]', report_field):
-                    # e.g. addressType { type }
-                    # 1. Remove spaces = addressType{type}
-                    json_field_path = re.sub(r"\s", "", report_field)
-                    # 2. Replace curly brace with a single underscore to separate the parts = addressType_type
-                    # --> regex group 1 = addressType
-                    # --> regex group 2 = {type}
-                    # --> regex group 3 = type
-                    json_field_path = re.sub(r"(.+)({(.*)})", r"\1_\3", json_field_path)
-                else:
-                    json_field_path = report_field
-
-                if variant_index is not None:
-                    return f"{prefix}{variant_index}_{json_field_path}"
-                else:
-                    return f"{prefix}{json_field_path}"
-
-            fieldnames_dict = OrderedDict()
-
-            # e.g. {'patientAddress': True}
-            processed_multifield_models = {}
-
-            for rdf in self.report_design.reportdemographicfield_set.all():
-                model_config = self.report_config[rdf.model]
-
-                if rdf.model == 'patient':
-                    # Get label for simple fields
-                    fieldnames_dict[get_flat_json_path(rdf.model, rdf.field)] = model_config['fields'][rdf.field]
-                else:
-                    if model_config.get('multi_field', False):
-                        if not processed_multifield_models.get(rdf.model):
-                            # Process all the fields for this model now
-                            model_fields = self.report_design.reportdemographicfield_set.filter(
-                                model=rdf.model).values_list("field", flat=True)
-
-                            if model_config.get('pivot', False):
-                                # Lookup the variants of this item, expected to be a list of unique codes/values
-                                column_headers = self.__get_variants(model_config.get('variant_lookup'))
-
-                                if column_headers:
-                                    # Generate a fieldname item for each (column x model fields)
-                                    for column in column_headers:
-                                        for mf in model_fields:
-                                            fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
-                                                f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
-                                else:
-                                    # Generate dummy columns so the report isn't completely empty
-                                    for mf in model_fields:
-                                        fieldnames_dict[get_flat_json_path(rdf.model, mf)] = \
-                                            f"{model_config['label']}_{model_config['fields'][mf]}"
-                            else:
-                                # Lookup how many variants of this model is relevant to our patient dataset
-                                num_variants = self.__get_variants(model_config['variant_lookup'], request)
-
-                                for i in range(num_variants or 0):
-                                    for mf in model_fields:
-                                        fieldnames_dict[get_flat_json_path(rdf.model, mf, i)] = \
-                                            f"{model_config['label']}_{i + 1}_{model_config['fields'][mf]}"
-
-                            # Mark as processed
-                            processed_multifield_models[rdf.model] = True
-                    else:
-                        fieldnames_dict[get_flat_json_path(rdf.model,
-                                                           rdf.field)] = f"{model_config['label']}_{model_config['fields'][rdf.field]}"
-
-            return fieldnames_dict
-
         # Build Headers
         headers = OrderedDict()
-        headers.update(get_demographic_headers())
+        headers.update(self.__get_demographic_headers(request))
         headers.update(ClinicalDataCsvUtil().csv_headers(request.user, self.report_design))
 
         output = io.StringIO()
