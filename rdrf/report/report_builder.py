@@ -56,7 +56,7 @@ class ReportBuilder:
         summary_result = self.schema.execute(query, context_value=request)
         return summary_result.data['dataSummary'][lookup_key]
 
-    def __get_graphql_query(self, offset=None, limit=None):
+    def _get_graphql_query(self, offset=None, limit=None):
 
         # Build Patient filters
         patient_filters = self.patient_filters.copy()
@@ -138,7 +138,7 @@ class ReportBuilder:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
         return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
 
-    def __get_demographic_headers(self, request):
+    def _get_demographic_headers(self, request):
         def get_flat_json_path(report_model, report_field, variant_index=None):
             if not report_field:
                 return None
@@ -218,7 +218,7 @@ class ReportBuilder:
 
     def validate_query(self, request):
         try:
-            result = self.schema.execute(self.__get_graphql_query(offset=1, limit=1), context_value=request)
+            result = self.schema.execute(self._get_graphql_query(offset=1, limit=1), context_value=request)
         except BadKeyError as ex:
             return False, {'query_bad_key_error': str(ex)}
 
@@ -256,7 +256,7 @@ class ReportBuilder:
         offset = 0
 
         while True:
-            result = self.schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
+            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
             all_patients = result.data['patients']
             num_patients = len(all_patients)
             offset += num_patients
@@ -271,7 +271,7 @@ class ReportBuilder:
     def export_to_csv(self, request):
         # Build Headers
         headers = OrderedDict()
-        headers.update(self.__get_demographic_headers(request))
+        headers.update(self._get_demographic_headers(request))
         headers.update(ClinicalDataCsvUtil().csv_headers(request.user, self.report_design))
 
         output = io.StringIO()
@@ -286,7 +286,7 @@ class ReportBuilder:
         offset = 0
 
         while num_patients >= limit:
-            result = self.schema.execute(self.__get_graphql_query(offset=offset, limit=limit), context_value=request)
+            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
             flat_patient_data = [flatten(p) for p in result.data['patients']]
 
             num_patients = len(flat_patient_data)

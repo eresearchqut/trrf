@@ -24,7 +24,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._ReportBuilder__get_graphql_query()
+        actual = report._get_graphql_query()
         expected = \
             """
             query {
@@ -40,7 +40,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._ReportBuilder__get_graphql_query(limit=15, offset=30)
+        actual = report._get_graphql_query(limit=15, offset=30)
         expected = \
             """
             query {
@@ -66,7 +66,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
         report = ReportBuilder(report_design)
 
-        actual = report._ReportBuilder__get_graphql_query()
+        actual = report._get_graphql_query()
         expected = """{
   patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
     id
@@ -146,7 +146,7 @@ class ReportGeneratorTestCase(TestCase):
 
         report = ReportBuilder(report_design)
 
-        actual = report._ReportBuilder__get_graphql_query()
+        actual = report._get_graphql_query()
 
         expected = """{
   patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
@@ -266,7 +266,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(sort_order=8, model='consents', field='firstSave')
         report_design.reportdemographicfield_set.create(sort_order=9, model='consents', field='lastUpdate')
 
-        actual = ReportBuilder(report_design)._ReportBuilder__get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
@@ -289,7 +289,7 @@ class ReportGeneratorTestCase(TestCase):
         # Test 2 - pivoted model has no variants
         report_design.registry = self.registry_with_no_consent_questions
         report_design.save()
-        actual = ReportBuilder(report_design)._ReportBuilder__get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',

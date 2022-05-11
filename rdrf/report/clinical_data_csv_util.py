@@ -157,7 +157,7 @@ class ClinicalDataCsvUtil:
 
         return summary
 
-    def __form_section_cde_sort_order(self, cde_keys):
+    def _form_section_cde_sort_order(self, cde_keys):
         sort_order_lookup = {}  # {formkey: {order: 1, sections: {sectionkey: {order: 1, cdes: {cdekey: 1}}}}
 
         for cde_i, cde_key in enumerate(cde_keys):
@@ -216,7 +216,7 @@ class ClinicalDataCsvUtil:
 
         # Step 2 - Generate headers from summary
         cfgs_lookup = {}  # e.g. {'cfgcode': {'count': 1, 'heading': 'formatted heading'}}
-        sort_order_lookup = self.__form_section_cde_sort_order(cde_keys)
+        sort_order_lookup = self._form_section_cde_sort_order(cde_keys)
         report_cfgs = self.__get_report_cfgs(report_design)
 
         headers = OrderedDict()
