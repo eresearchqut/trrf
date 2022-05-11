@@ -249,9 +249,10 @@ class ClinicalDataCsvUtil:
                                                                              section_heading, section_i, cde,
                                                                              cde_heading)
 
-                                if cde_data['count'] <= 1:
-                                    headers[cde_key] = cde_label
-                                else:
+
+                                if cde_data['count'] > 1 or cde.allow_multiple:
                                     for cde_i in range(cde_data['count']):
                                         headers.update({f"{cde_key}_{cde_i}": f"{cde_label}_{cde_i + 1}"})
+                                else:
+                                    headers[cde_key] = cde_label
         return headers
