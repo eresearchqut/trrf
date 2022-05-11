@@ -298,7 +298,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
                                                                                'fatigue': 1,
                                                                                'pain': 2}}}}}
 
-        sort_order = generator._ClinicalDataCsvUtil__form_section_cde_sort_order(cde_keys)
+        sort_order = generator._form_section_cde_sort_order(cde_keys)
 
         self.assertEqual(sort_order, expected_sort_order)
 
