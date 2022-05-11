@@ -6,7 +6,7 @@ from django.db.models import UniqueConstraint
 from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import ConsentQuestion, Registry
+from rdrf.models.definition.models import ConsentQuestion, Registry, ContextFormGroup
 from registry.groups.models import WorkingGroup
 
 
@@ -61,6 +61,7 @@ class ReportDesign(models.Model):
 
 class ReportClinicalDataField(models.Model):
     report_design = models.ForeignKey(ReportDesign, on_delete=models.CASCADE)
+    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
 
     cde_key = models.CharField(max_length=255)
 

@@ -104,18 +104,18 @@ class ReportGeneratorTestCase(TestCase):
                                display_name='Sleep', abbreviated_name='SleepSEC')
         form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM',
                                            registry=reg_ang)
-        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='Sleep', name='Sleep Group',
+        cfg_sleep = ContextFormGroup.objects.create(registry=reg_ang, code='Sleep', name='Sleep Group',
                                               abbreviated_name='SLE', context_type='M')
-        cfg.items.create(registry_form=form)
+        cfg_sleep.items.create(registry_form=form)
         CommonDataElement.objects.create(code='ResideNewborn', name='x', abbreviated_name='Newborn')
         CommonDataElement.objects.create(code='ResideInfancy', name='x', abbreviated_name='Infancy')
         Section.objects.create(code='ANGNewbornInfancyReside', elements='ResideNewborn,ResideInfancy',
                                display_name='Reside Newborn/Infancy', abbreviated_name='NewInfReside')
         form = RegistryForm.objects.create(name='NewbornAndInfancyHistory', sections='ANGNewbornInfancyReside', abbreviated_name='NewInfForm',
                                            registry=reg_ang)
-        cfg = ContextFormGroup.objects.create(registry=reg_ang, code='History', name='History of Newborn/Infancy',
+        cfg_history = ContextFormGroup.objects.create(registry=reg_ang, code='History', name='History of Newborn/Infancy',
                                               abbreviated_name='Hist')
-        cfg.items.create(registry_form=form)
+        cfg_history.items.create(registry_form=form)
 
         cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
 
@@ -132,12 +132,12 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='patientaddressSet', field='country', sort_order=3)
         report_design.reportdemographicfield_set.create(model='workingGroups', field='name', sort_order=4)
 
-        report_design.reportclinicaldatafield_set.create(cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn')
-        report_design.reportclinicaldatafield_set.create(cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideInfancy')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeToBed')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeAwake')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____6StartsWithNumber')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history, cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history, cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideInfancy')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep, cde_key='SleepForm____SleepSection____DayOfWeek')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep, cde_key='SleepForm____SleepSection____TimeToBed')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep, cde_key='SleepForm____SleepSection____TimeAwake')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep, cde_key='SleepForm____SleepSection____6StartsWithNumber')
 
         report_design.filter_consents.add(cq1)
         report_design.filter_consents.add(cq2)
@@ -201,10 +201,10 @@ class ReportGeneratorTestCase(TestCase):
         cfg.items.create(registry_form=form)
 
         report_design = ReportDesign.objects.create(registry=reg_ang)
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeToBed')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____TimeAwake')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____DayOfWeek')
-        report_design.reportclinicaldatafield_set.create(cde_key='SleepForm____SleepSection____BestDay')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg, cde_key='SleepForm____SleepSection____TimeToBed')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg, cde_key='SleepForm____SleepSection____TimeAwake')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg, cde_key='SleepForm____SleepSection____DayOfWeek')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg, cde_key='SleepForm____SleepSection____BestDay')
 
         # Uses CODE for heading format (guaranteed to be unique)
         report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value

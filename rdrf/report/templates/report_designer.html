@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 {% load add_attr %}
 {% block content %}
+
+<link rel="stylesheet" href="{% static 'css/cde_field_selector.css' %}">
+<script type="text/javascript" src="{% static 'js/cde_field_selector.js' %}"></script>
 
 <script type="text/javascript">
 
@@ -24,50 +28,25 @@
         $uiListGroup.find(':checkbox' + selector).closest('li').show();
     }
 
+    function filter_by_data_attribute($group, registry) {
+        $group.addClass('d-none');
+        $group.filter(function() {
+            return $(this).data('registry') == registry
+        }).removeClass('d-none');
+    }
+
     function update_components_by_registry(selected_registry, deselect_values) {
         const selector_registry_by_value = get_selector_registry_by_value(selected_registry);
 
-        filter_select(ui.selectFilterCdesBySection, selector_registry_by_value);
-        filter_select(ui.selectCdeFields, selector_registry_by_value);
+        filter_by_data_attribute(ui.registryCdeFieldSelectors, selected_registry)
         filter_select(ui.selectWorkingGroups, selector_registry_by_value);
         filter_checkboxes(ui.selectConsentFilters, selector_registry_by_value);
 
         if (deselect_values) {
-            ui.selectFilterCdesBySection.val("").trigger("change");
-            ui.selectCdeFields.val("").trigger("change");
+            ui.registryCdeFieldSelectors.find(":checkbox:checked").prop("checked", false);
             ui.selectWorkingGroups.val("").trigger("change")
             ui.selectConsentFilters.find(":checkbox:checked").removeAttr("checked");
         }
-    }
-
-    function filter_cde_by_section(selected_section) {
-        if (selected_section.trim() == "") {
-            ui.selectCdeFields.find('optgroup, optgroup > option').show();
-            filter_select(ui.selectCdeFields, get_selector_registry_by_value(ui.selectRegistry.val()));
-            return;
-        }
-
-        const selected_section_json = JSON.parse(selected_section);
-        const form = selected_section_json.form;
-        const section = selected_section_json.section;
-
-        const matching_optgroups_selectors =
-            ['optgroup[label="' + form + ' - ' + section + '"]', "optgroup:has(option:selected)"];
-
-        const show_optgroups_selector = matching_optgroups_selectors.join(',');
-        const show_options_selector = matching_optgroups_selectors.map(x => x + ' > option').join(',');
-
-        ui.selectCdeFields.find(':not(' + show_optgroups_selector + ')').hide();
-        ui.selectCdeFields.find(show_optgroups_selector).show();
-        ui.selectCdeFields.find(show_options_selector).show();
-    }
-
-    function filter_cde_by_selected() {
-        const optgroup_with_selected_options = "optgroup:has(option:selected)";
-
-        ui.selectCdeFields.find(":not(" + optgroup_with_selected_options + ")").hide();
-        ui.selectCdeFields.find(optgroup_with_selected_options).show();
-        ui.selectCdeFields.find(optgroup_with_selected_options + " > option").show();
     }
 
     function init_selected_registry() {
@@ -78,11 +57,6 @@
         }
     }
 
-    function update_selected_cde_count($cdeSelect) {
-        const num_selected_values = $cdeSelect.find('option:selected').length;
-        ui.txtSelectCdeFieldsCount.text(num_selected_values);
-    }
-
     function toggle_report_filter($filterToggle) {
         const $filter = $filterToggle.siblings('.report-filter');
         $filter.toggleClass('d-none', $filterToggle.is(':not(:checked)'));
@@ -91,45 +65,26 @@
     $(document).ready(function() {
         ui = {
             selectRegistry: $('#id_registry'),
-            selectFilterCdesBySection: $('#id_search_cdes_by_section'),
-            selectCdeFields: $('#id_cde_fields'),
             selectWorkingGroups: $('#id_filter_working_groups'),
             selectConsentFilters: $('#id_filter_consents_list'),
-            txtSelectCdeFieldsCount: $('#selected_cde_field_cnt'),
-            btnClearCdeFilter: $('#id_clear_cde_filter'),
-            btnFilterCdeBySelected: $('#id_cde_filter_by_selected'),
-            chkFilterToggle: $(".report-filter-toggle")
+            chkFilterToggle: $(".report-filter-toggle"),
+            registryCdeFieldSelectors: $(".registry-cde-fields")
         }
 
         ui.selectRegistry.change(function() {
             update_components_by_registry($(this).val(), true);
         });
 
-        ui.selectFilterCdesBySection.on('change', function() {
-            filter_cde_by_section($(this).val());
-        });
-
-        ui.selectCdeFields.on('change', function() {
-            update_selected_cde_count($(this));
-        });
-
-        ui.btnClearCdeFilter.on('click', function() {
-            ui.selectFilterCdesBySection.val('');
-            ui.selectFilterCdesBySection.trigger('change');
-        });
-
-        ui.btnFilterCdeBySelected.on('click', function() {
-            filter_cde_by_selected();
-        })
-
         ui.chkFilterToggle.on('click', function() {
             toggle_report_filter($(this));
-        })
+        });
 
         // setup initial state
+        const cdeFieldSelector = cde_field_selector(ui.registryCdeFieldSelectors.children('.list-group-cfgs'));
+
         init_selected_registry();
-        update_selected_cde_count(ui.selectCdeFields);
         update_components_by_registry(ui.selectRegistry.val(), false);
+        cdeFieldSelector.init();
 
         ui.chkFilterToggle.each(function() {
            toggle_report_filter($(this));
@@ -204,23 +159,10 @@
         <div class="row">
             <label for="cde_fields" class="col-sm-2 col-form-label">{{ form.cde_fields.label }}</label>
             <div class="col-sm-10 mt-2">
-                <div class="col-12">
-                    <div class="input-group">
-                        <label class="input-group-text" for="search_cdes_by_section">{% trans "Filter by section:" %}</label>
-                        {{ form.search_cdes_by_section }}
-                        <button id="id_cde_filter_by_selected" class="btn btn-outline-secondary" type="button">
-                            <i class="fa fa-filter"></i> {% trans "Filter by selected" %}
-                        </button>
-                        <button id="id_clear_cde_filter" class="btn btn-outline-primary" type="button">
-                            <i class="fa fa-times"></i> {% trans "Clear filter" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="col-12">
-                    {{ form.cde_fields }}
-                    <span class="badge bg-primary"><span id="selected_cde_field_cnt">0</span> {% trans "fields selected." %}</span>
-                    <span class="form-text">{% trans "Hold Ctrl to add fields to existing selection." %}</span>
-                </div>
+                <div class="registry-cde-fields" data-registry=""><p>{% trans "Select a registry" %}</p></div>
+                {% for registry, context_form_groups in registry__cfgs.items %}
+                    {% include "cde_field_selector.html" with registry=registry context_form_groups=context_form_groups initial=form.cde_fields.initial only %}
+                {% endfor %}
             </div>
         </div>
     </fieldset>

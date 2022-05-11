@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 from datetime import datetime
 
@@ -8,8 +9,8 @@ from rdrf.models.definition.models import Registry, ClinicalData, CommonDataElem
     ContextFormGroup, RDRFContext
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient
-from report.models import ReportDesign, ReportCdeHeadingFormat
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
+from report.models import ReportDesign, ReportCdeHeadingFormat
 
 
 class ClinicalDataGeneratorTestCase(TestCase):
@@ -19,11 +20,13 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+
         # Setup for standard forms/sections & cdes
         cls.registry = Registry.objects.create(code="ang")
 
         registry_definition = [
-            {'name': 'firstVisit', 'abbreviated_name': 'first visit', 'sections': [{
+            {'name': 'myHealth', 'abbreviated_name': 'first visit', 'sections': [{
                 'code': 'inBed', 'abbreviated_name': 'Need Help', 'display_name': 'I need help to',
                 'cdes': [{'code': 'lieFlat', 'abbreviated_name': 'Lie Flat', 'name': "I can lie flat"},
                          {'code': 'needHelp', 'abbreviated_name': 'Need Help', 'name': "I need help to"},
@@ -71,43 +74,49 @@ class ClinicalDataGeneratorTestCase(TestCase):
                                         sections=','.join([section['code'] for section in form['sections']]))
 
         # Context Form Groups
-        cfg_clinical_visit = ContextFormGroup.objects.create(code='clinicalVisit', registry=cls.registry,
+        cls.cfg_clinical_visit = ContextFormGroup.objects.create(code='clinicalVisit', registry=cls.registry,
                                                              name='Clinical Visit', context_type="F",
                                                              abbreviated_name="Clinical", sort_order=1)
-        cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='firstVisit'))
-        cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='myBreathing'))
-        cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='myAppointments'))
-        cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='infancy'))
+        cls.cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='myHealth'))
+        cls.cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='myBreathing'))
+        cls.cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='myAppointments'))
+        cls.cfg_clinical_visit.items.create(registry_form=RegistryForm.objects.get(name='infancy'))
 
-        cfg_symptoms = ContextFormGroup.objects.create(code='symptoms', registry=cls.registry, name='Symptoms',
+        cls.cfg_symptoms = ContextFormGroup.objects.create(code='symptoms', registry=cls.registry, name='Symptoms',
                                                        context_type="M", abbreviated_name="Symptoms", sort_order=2)
-        cfg_symptoms.items.create(registry_form=RegistryForm.objects.get(name='recentSymptoms'))
+        cls.cfg_symptoms.items.create(registry_form=RegistryForm.objects.get(name='recentSymptoms'))
 
-        cfg_sleep = ContextFormGroup.objects.create(code='sleepTracking', registry=cls.registry, name='Sleep Tracking',
+        cls.cfg_sleep = ContextFormGroup.objects.create(code='sleepTracking', registry=cls.registry, name='Sleep Tracking',
                                                context_type="F", abbreviated_name="Sleep Tracking", sort_order=3)
-        cfg_sleep.items.create(registry_form=RegistryForm.objects.get(name='sleep'))
+        cls.cfg_sleep.items.create(registry_form=RegistryForm.objects.get(name='sleep'))
+        
+        cls.cfg_tracking = ContextFormGroup.objects.create(code='ongoing', registry=cls.registry,
+                                                           name='Clinical Visit', context_type='M', abbreviated_name='initial', sort_order=4)
+        cls.cfg_tracking.items.create(registry_form=RegistryForm.objects.get(name='myHealth'))
 
 
         # Create clinical data
         p1 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
-        p1.rdrf_registry.set([cls.registry])
         p2 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
-        p2.rdrf_registry.set([cls.registry])
+        p3 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        for p in (p1, p2, p3):
+            p.rdrf_registry.set([cls.registry])
         
         c_type = ContentType.objects.get_for_model(p1)
-        ctx1 = RDRFContext.objects.create(context_form_group=cfg_clinical_visit, registry=cls.registry, content_type=c_type,
-                                          object_id=p1.id)
-        ctx2 = RDRFContext.objects.create(context_form_group=cfg_symptoms, registry=cls.registry, content_type=c_type,
-                                          object_id=p1.id)
-        ctx3 = RDRFContext.objects.create(context_form_group=cfg_symptoms, registry=cls.registry, content_type=c_type,
-                                          object_id=p1.id)
-        ctx4 = RDRFContext.objects.create(context_form_group=cfg_sleep, registry=cls.registry, content_type=c_type,
-                                          object_id=p1.id)
+        p1_ctx1 = RDRFContext.objects.create(context_form_group=cls.cfg_clinical_visit, registry=cls.registry,
+                                             content_type=c_type, object_id=p1.id)
+        p1_ctx2 = RDRFContext.objects.create(context_form_group=cls.cfg_symptoms, registry=cls.registry,
+                                             content_type=c_type, object_id=p1.id)
+        p1_ctx3 = RDRFContext.objects.create(context_form_group=cls.cfg_symptoms, registry=cls.registry,
+                                             content_type=c_type, object_id=p1.id)
+        p1_ctx4 = RDRFContext.objects.create(context_form_group=cls.cfg_sleep, registry=cls.registry,
+                                             content_type=c_type, object_id=p1.id)
 
         data = {
             "forms": [
                 {
-                    "name": "firstVisit",
+                    "name": "myHealth",
                     "sections": [
                         {
                             "code": "inBed",
@@ -134,7 +143,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
             ]
         }
         ClinicalData.objects.create(registry_code='ang', django_id=p1.id, django_model='Patient',
-                                    collection="cdes", context_id=ctx1.id, data=data)
+                                    collection="cdes", context_id=p1_ctx1.id, data=data)
 
         longitudinal_1 = {
             "forms": [
@@ -156,7 +165,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         ClinicalData.objects.create(registry_code='ang', django_id=p1.id, django_model='Patient',
                                     collection="cdes",
-                                    context_id=ctx2.id, data=longitudinal_1)
+                                    context_id=p1_ctx2.id, data=longitudinal_1)
 
         longitudinal_2 = {
             "forms": [
@@ -178,7 +187,7 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         ClinicalData.objects.create(registry_code='ang', django_id=p1.id, django_model='Patient',
                                     collection="cdes",
-                                    context_id=ctx3.id, data=longitudinal_2)
+                                    context_id=p1_ctx3.id, data=longitudinal_2)
 
         multisection_data = {
             "forms": [
@@ -206,7 +215,69 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         ClinicalData.objects.create(registry_code='ang', django_id=p1.id, django_model='Patient',
                                     collection="cdes",
-                                    context_id=ctx4.id, data=multisection_data)
+                                    context_id=p1_ctx4.id, data=multisection_data)
+
+        p3_data_tracking_1 = {
+            "forms": [
+                {
+                    "name": "myHealth",
+                    "sections": [
+                        {
+                            "code": "inBed",
+                            "cdes": [
+                                {"code": "lieFlat", "value": "5"},
+                                {"code": "needHelp", "value": ""},
+                                {"code": "mndNeedUse", "value": ""}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        p3_data_tracking_2 = {
+            "forms": [
+                {
+                    "name": "myHealth",
+                    "sections": [
+                        {
+                            "code": "inBed",
+                            "cdes": [
+                                {"code": "lieFlat", "value": "5"},
+                                {"code": "needHelp", "value": ""},
+                                {"code": "mndNeedUse", "value": ""}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        p3_data_tracking_3 = {
+            "forms": [
+                {
+                    "name": "myHealth",
+                    "sections": [
+                        {
+                            "code": "inBed",
+                            "cdes": [
+                                {"code": "lieFlat", "value": "5"},
+                                {"code": "needHelp", "value": ""},
+                                {"code": "mndNeedUse", "value": ""}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        for data in (p3_data_tracking_1, p3_data_tracking_2, p3_data_tracking_3):
+            context = RDRFContext.objects.create(context_form_group=cls.cfg_tracking, registry=cls.registry,
+                                                 content_type=ContentType.objects.get_for_model(p3), object_id=p3.id)
+            ClinicalData.objects.create(registry_code='ang', django_id=p3.id, django_model='Patient', collection="cdes",
+                                        context_id=context.id, data=data)
+
+
 
     def test_form_section_cde_sort_order(self):
         generator = ClinicalDataCsvUtil()
@@ -234,16 +305,14 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
     def test_generate_csv_headers(self):
         report_design = ReportDesign.objects.create(registry=self.registry)
-        report_design.reportclinicaldatafield_set.create(id=1, cde_key='sleep____sleepDiary____timeToBed')
-        report_design.reportclinicaldatafield_set.create(id=2, cde_key='sleep____sleepDiary____timesAwoke')
-        report_design.reportclinicaldatafield_set.create(id=3, cde_key='sleep____sleepDiary____difficulty')
-        report_design.reportclinicaldatafield_set.create(id=4, cde_key='recentSymptoms____symptoms____completedDate')
-        report_design.reportclinicaldatafield_set.create(id=5, cde_key='recentSymptoms____symptoms____fatigue')
-        report_design.reportclinicaldatafield_set.create(id=6, cde_key='recentSymptoms____otherSymptoms____energy')
-        report_design.reportclinicaldatafield_set.create(id=7, cde_key='recentSymptoms____symptoms____pain')
-        report_design.reportclinicaldatafield_set.create(id=8, cde_key='infancy____growth____weight6mo')
-
-        user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+        report_design.reportclinicaldatafield_set.create(id=1, cde_key='sleep____sleepDiary____timeToBed', context_form_group=self.cfg_sleep)
+        report_design.reportclinicaldatafield_set.create(id=2, cde_key='sleep____sleepDiary____timesAwoke', context_form_group=self.cfg_sleep)
+        report_design.reportclinicaldatafield_set.create(id=3, cde_key='sleep____sleepDiary____difficulty', context_form_group=self.cfg_sleep)
+        report_design.reportclinicaldatafield_set.create(id=4, cde_key='recentSymptoms____symptoms____completedDate', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=5, cde_key='recentSymptoms____symptoms____fatigue', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=6, cde_key='recentSymptoms____otherSymptoms____energy', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=7, cde_key='recentSymptoms____symptoms____pain', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=8, cde_key='infancy____growth____weight6mo', context_form_group=self.cfg_clinical_visit)
 
         generator = ClinicalDataCsvUtil()
 
@@ -270,16 +339,14 @@ class ClinicalDataGeneratorTestCase(TestCase):
             'clinicalData_clinicalVisit_infancy_growth_weight6mo': 'clinicalVisit_infancy_growth_weight6mo',
         })
 
-        actual = generator.csv_headers(user, report_design)
+        actual = generator.csv_headers(self.user, report_design)
         self.assertEqual(actual, expected)
 
     def test_generate_csv_headers_no_clinical_data(self):
         report_design = ReportDesign.objects.create(registry=self.registry)
-        report_design.reportclinicaldatafield_set.create(id=1, cde_key='sleep____sleepDiary____difficulty')
-        report_design.reportclinicaldatafield_set.create(id=2, cde_key='recentSymptoms____otherSymptoms____energy')
-        report_design.reportclinicaldatafield_set.create(id=3, cde_key='infancy____growth____weight6mo')
-
-        user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+        report_design.reportclinicaldatafield_set.create(id=1, cde_key='sleep____sleepDiary____difficulty', context_form_group=self.cfg_sleep)
+        report_design.reportclinicaldatafield_set.create(id=2, cde_key='recentSymptoms____otherSymptoms____energy', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=3, cde_key='infancy____growth____weight6mo', context_form_group=self.cfg_clinical_visit)
 
         generator = ClinicalDataCsvUtil()
 
@@ -293,5 +360,44 @@ class ClinicalDataGeneratorTestCase(TestCase):
             'clinicalData_clinicalVisit_infancy_growth_weight6mo': 'clinicalVisit_infancy_growth_weight6mo',
         })
 
-        actual = generator.csv_headers(user, report_design)
+        actual = generator.csv_headers(self.user, report_design)
         self.assertEqual(actual, expected)
+
+    def test_generate_csv_headers_for_cde_in_multiple_cfgs(self):
+        # Test 1 - Configured for items within a longitudinal CFG
+        util = ClinicalDataCsvUtil()
+        report_design = ReportDesign.objects.create(registry=self.registry, cde_heading_format=ReportCdeHeadingFormat.CODE.value)
+        report_design.reportclinicaldatafield_set.create(id=1, cde_key='myHealth____inBed____lieFlat', context_form_group=self.cfg_tracking)
+        report_design.reportclinicaldatafield_set.create(id=2, cde_key='myHealth____inBed____needHelp', context_form_group=self.cfg_tracking)
+        report_design.reportclinicaldatafield_set.create(id=3, cde_key='myHealth____inBed____mndNeedUse', context_form_group=self.cfg_tracking)
+
+        expected = OrderedDict({
+            'clinicalData_ongoing_myHealth_0_key': 'ongoing_myHealth_1_Name',
+            'clinicalData_ongoing_myHealth_0_data_inBed_lieFlat': 'ongoing_myHealth_1_inBed_lieFlat',
+            'clinicalData_ongoing_myHealth_0_data_inBed_needHelp': 'ongoing_myHealth_1_inBed_needHelp',
+            'clinicalData_ongoing_myHealth_0_data_inBed_mndNeedUse': 'ongoing_myHealth_1_inBed_mndNeedUse',
+            'clinicalData_ongoing_myHealth_1_key': 'ongoing_myHealth_2_Name',
+            'clinicalData_ongoing_myHealth_1_data_inBed_lieFlat': 'ongoing_myHealth_2_inBed_lieFlat',
+            'clinicalData_ongoing_myHealth_1_data_inBed_needHelp': 'ongoing_myHealth_2_inBed_needHelp',
+            'clinicalData_ongoing_myHealth_1_data_inBed_mndNeedUse': 'ongoing_myHealth_2_inBed_mndNeedUse',
+            'clinicalData_ongoing_myHealth_2_key': 'ongoing_myHealth_3_Name',
+            'clinicalData_ongoing_myHealth_2_data_inBed_lieFlat': 'ongoing_myHealth_3_inBed_lieFlat',
+            'clinicalData_ongoing_myHealth_2_data_inBed_needHelp': 'ongoing_myHealth_3_inBed_needHelp',
+            'clinicalData_ongoing_myHealth_2_data_inBed_mndNeedUse': 'ongoing_myHealth_3_inBed_mndNeedUse',
+        })
+
+        self.assertEqual(util.csv_headers(self.user, report_design), expected)
+
+        # Test 2 - Configured for same items but within a fixed CFG
+        for cde_field in report_design.reportclinicaldatafield_set.all():
+            cde_field.context_form_group = self.cfg_clinical_visit
+            cde_field.save()
+
+        expected = OrderedDict({
+            'clinicalData_clinicalVisit_myHealth_inBed_lieFlat': 'clinicalVisit_myHealth_inBed_lieFlat',
+            'clinicalData_clinicalVisit_myHealth_inBed_needHelp': 'clinicalVisit_myHealth_inBed_needHelp',
+            'clinicalData_clinicalVisit_myHealth_inBed_mndNeedUse': 'clinicalVisit_myHealth_inBed_mndNeedUse'
+        })
+
+        self.assertEqual(util.csv_headers(self.user, report_design), expected)
+
