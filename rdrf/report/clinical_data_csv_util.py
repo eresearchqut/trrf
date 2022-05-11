@@ -249,7 +249,7 @@ class ClinicalDataCsvUtil:
                                                                              section_heading, section_i, cde,
                                                                              cde_heading)
 
-                                if cde_data['count'] == 1:
+                                if cde_data['count'] <= 1:
                                     headers[cde_key] = cde_label
                                 else:
                                     for cde_i in range(cde_data['count']):
