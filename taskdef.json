@@ -114,8 +114,8 @@
                     "value": "$VIRUS_CHECKING_ENABLED"
                 },
                 {
-                    "name": "VIDEO_HOSTING_ENABLED",
-                    "value": "$VIDEO_HOSTING_ENABLED"
+                    "name": "ENABLE_VIDEO_HOSTING",
+                    "value": "$ENABLE_VIDEO_HOSTING"
                 }
                 ,
                 {
