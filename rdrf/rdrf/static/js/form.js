@@ -238,13 +238,19 @@ function rdrf_form_field_history_init(modal, restoreCallback) {
   }
 }
 
-function rdrfSetupFileUploads() {
-  $(".multi-file-widget").each(function() {
+function rdrfSetupFileUploads(parent) {
+  if (typeof(parent) === 'undefined') {
+    parent = document;
+  }
+  $(parent).find(".multi-file-widget").each(function() {
     var widget = $(this);
-    var template = widget.children().first().remove();
+    var template = widget.children().first();
+    widget.children('.add-button').remove()
+    template.hide();
 
     function makeCopy(n) {
-      var copy = template.clone().children().each(function() {
+      var copy = template.clone();
+      copy.children().each(function() {
         var elem = $(this).children().first();
         _.each(["name", "id", "for"], function(attr) {
           var val = elem.attr(attr);
@@ -260,15 +266,18 @@ function rdrfSetupFileUploads() {
       var index = copy.find("input[type='hidden']").attr("value", n);
       var remove = $('<button class="btn btn-link btn-sm btn-danger multi-file-remove"><i class="fa fa-times"></i> Remove</button>');
 
-      return copy.empty()
+      copy.empty()
         .append($('<div class="col-9"></div>').append(input).append(index))
         .append($('<div class="col-3"></div>').append(remove).append(clear.hide()));
+      copy.show();
+      return copy
     }
 
     var nextIndex = function() {
       var indices = widget.find("input[type='hidden']")
           .map(function(i, elem) {
-            return parseInt($(elem).attr("value"), 10);
+            value = $(elem).attr("value");
+            return value === "???" ? -1 : parseInt(value, 10);
           });
       return indices.length ? _.max(indices) + 1 : 0;
     };
@@ -277,7 +286,7 @@ function rdrfSetupFileUploads() {
       widget.children().last().before(makeCopy(nextIndex()));
     };
 
-    $('<button class="btn btn-sm btn-secondary multi-file-add"><i class="fa fa-plus"></i> Add</button>')
+    $('<button class="btn btn-sm btn-secondary multi-file-add form-control"><i class="fa fa-plus"></i> Add</button>')
       .attr("id", widget.attr("id").replace(/_id$/, "_add_id"))
       .attr("name", widget.attr("id").replace(/_id$/, "_add"))
       .appendTo(widget)
