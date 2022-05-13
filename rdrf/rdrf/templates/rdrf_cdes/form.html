@@ -168,10 +168,23 @@
         var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]")
 
         var new_form = empty_form.clone(true, true);
+        new_form.removeAttr("id")
 
         var durationWidgets = [];
         var timePickers = [];
         var form_count = total_forms.val();
+        new_form.find("label").each(function() {
+            var forAttribute = $(this).attr('for');
+            if (typeof forAttribute !== typeof undefined && forAttribute !== false) {
+                attribute_replace($(this), "for", form_count);
+            }
+        });
+        new_form.find("div").each(function() {
+            var idAttribute = $(this).attr("id");
+            if (typeof idAttribute !== typeof undefined && idAttribute !== false) {
+                attribute_replace($(this), "id", form_count);
+            }
+        });
         new_form.find(":input").each(function() {
             var idAttribute = $(this).attr("id");
             if (typeof idAttribute !== typeof undefined && idAttribute !== false) {
@@ -208,6 +221,8 @@
         CollapsingPanels.expandParentPanel(el);
         var total_forms_inc = parseInt(total_forms.val()) + 1;
         total_forms.attr("value", total_forms_inc);
+
+        rdrfSetupFileUploads(new_form);
 
         $("<hr>").attr("style", "border: solid 1px gray").appendTo(new_form);
         new_form.appendTo(forms).show("fast");
