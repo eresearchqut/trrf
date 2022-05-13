@@ -6,7 +6,7 @@ from django.test import TestCase
 from graphene.test import Client
 
 from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
-    CommonDataElement, ConsentQuestion, ConsentSection
+    CommonDataElement, ConsentQuestion, ConsentSection, CDEPermittedValueGroup, CDEPermittedValue
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, AddressType, ConsentValue
@@ -641,3 +641,118 @@ class SchemaTest(TestCase):
                 ]
             }
         }, result)
+
+    def test_query_cde_pvg(self):
+        def create_clinical_data(single_value, multi_value, single_pvg_value, multi_pvg_value):
+            return {
+                "forms": [
+                    {
+                        "name": "F1",
+                        "sections": [
+                            {
+                                "code": "S1",
+                                "cdes": [
+                                    {"code": "single_pvg", "value": single_pvg_value},
+                                    {"code": "multi_pvg", "value": multi_pvg_value},
+                                    {"code": "multi", "value": multi_value},
+                                    {"code": "single", "value": single_value}
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+
+
+        pvg_level_care = CDEPermittedValueGroup.objects.create(code='LEVEL_CARE')
+        pv_low = CDEPermittedValue.objects.create(pv_group= pvg_level_care, code='L', value='Low')
+        pv_medium = CDEPermittedValue.objects.create(pv_group= pvg_level_care, code='M', value='Medium')
+        pv_high = CDEPermittedValue.objects.create(pv_group= pvg_level_care, code='H', value='High')
+
+        CommonDataElement.objects.create(code='single', allow_multiple=False)
+        CommonDataElement.objects.create(code='multi', allow_multiple=True)
+        CommonDataElement.objects.create(code='single_pvg', pv_group=pvg_level_care, allow_multiple=False)
+        CommonDataElement.objects.create(code='multi_pvg', pv_group=pvg_level_care, allow_multiple=True)
+
+        Section.objects.create(code='S1', elements='single,multi,single_pvg,multi_pvg')
+        form = RegistryForm.objects.create(registry=self.registry, name='F1', sections='S1', abbreviated_name='F1')
+        cfg = ContextFormGroup.objects.create(code='CFG1', registry=self.registry)
+        cfg.items.create(registry_form=form)
+
+        p1 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+        p1.rdrf_registry.set([self.registry])
+        c_type = ContentType.objects.get_for_model(p1)
+        context = RDRFContext.objects.create(object_id=p1.id, context_form_group=cfg, registry=self.registry, content_type=c_type)
+
+        clinical_data = ClinicalData.objects.create(django_id=p1.id, django_model='Patient', collection='cdes', data={"forms": []}, context_id=context.id, registry_code=self.registry.code)
+
+        client = Client(create_dynamic_schema())
+        query = """
+               {
+                 patients(registryCode: "test") {
+                   clinicalData {
+                     CFG1 { F1 { S1 { single multi singlePvg multiPvg } } }
+                   }
+                 }
+               }
+               """
+
+        # Test 1 - Clinical Data values are as what's expected for CDE configuration
+        clinical_data.data = create_clinical_data(single_value="Abc",
+                                                  multi_value=["Abc"],
+                                                  single_pvg_value="L",
+                                                  multi_pvg_value=["L", "M"])
+        clinical_data.save()
+        result = client.execute(query, context_value=self.query_context)
+        expected = {
+            "data": {
+                "patients": [
+                    {
+                        "clinicalData": {
+                            "CFG1": {
+                                "F1": {
+                                    "S1": {
+                                        'single': 'Abc',
+                                        'multi': ['Abc'],
+                                        'singlePvg': 'Low',
+                                        'multiPvg': ['Low', 'Medium']
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+        self.assertEqual(expected, result)
+
+        # Test 2 - Clinical Data values for multi fields are set to string values
+        clinical_data.data = create_clinical_data(single_value="Abc",
+                                                  multi_value="Abc",
+                                                  single_pvg_value="L",
+                                                  multi_pvg_value="M")
+        clinical_data.save()
+        result = client.execute(query, context_value=self.query_context)
+        expected = {
+            "data": {
+                "patients": [
+                    {
+                        "clinicalData": {
+                            "CFG1": {
+                                "F1": {
+                                    "S1": {
+                                        'single': 'Abc',
+                                        'multi': ['Abc'],
+                                        'singlePvg': 'Low',
+                                        'multiPvg': ['Medium']
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+        self.assertEqual(expected, result)
