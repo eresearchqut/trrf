@@ -292,7 +292,7 @@ function rdrfSetupFileUploads(parent) {
       .appendTo(widget)
       .wrap('<div class="add-button col-3 offset-9"></div>');
 
-    if (widget.children().length === 0) {
+    if (nextIndex() === 0) {
       addOne();
     }
 
