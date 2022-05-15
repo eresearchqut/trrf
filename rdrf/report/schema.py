@@ -103,13 +103,17 @@ def get_section_fields(_section_key, section_cdes):
                     datatype = cde_model.datatype.strip().lower()
                     value = cde_value["value"]
                     if datatype == 'lookup':
-                        return get_widget_class(cde_model.widget_name).denormalized_value(value)
+                        value = get_widget_class(cde_model.widget_name).denormalized_value(value)
                     elif cde_model.pv_group:
                         cde_values_dict = cde_model.pv_group.cde_values_dict
                         if isinstance(value, list):
-                            return [cde_values_dict.get(value_item, value_item) for value_item in value]
+                            value = [cde_values_dict.get(value_item, value_item) for value_item in value]
                         else:
-                            return cde_values_dict.get(value, value)
+                            value = cde_values_dict.get(value, value)
+
+                    # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
+                    if cde_model.allow_multiple:
+                        return value if isinstance(value, list) else [value]
                     else:
                         return value
 
