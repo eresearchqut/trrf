@@ -41,6 +41,29 @@ function setupDurationWidget(inputName, attributesStr) {
     $(textInput).addClass("form-select");
 }
 
+function setupRadioWidget(widgetId, inputName) {
+    var $inputRadio = $("[name='" + inputName + "']");
+
+    var $clearButton = $('<button type="button">')
+        .addClass(["btn", "btn-outline-secondary", "btn-sm"])
+        .html("Clear selection")
+        .on("click", function() {
+            $inputRadio.prop("checked", false);
+            $clearButton.hide();
+            $('#main-form').trigger("change");
+        });
+
+    $inputRadio.on("change", function() {
+        $clearButton.show();
+    });
+
+    if (!$("[name='" + inputName + "']:checked").val()) {
+        $clearButton.hide();
+    }
+
+    $("#" + widgetId).after($clearButton);
+}
+
 $.timeDurationPicker.langs.en_US = {
   years: gettext("years"),
   months: gettext("months"),
@@ -76,4 +99,6 @@ $.timeDurationPicker.langs.en_US = {
       other: gettext("seconds")
     }
   }
-}
+};
+
+
