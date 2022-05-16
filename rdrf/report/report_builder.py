@@ -269,6 +269,11 @@ class ReportBuilder:
                 break
 
     def export_to_csv(self, request):
+        # Purpose of BOM:
+        # - Required by MS Excel to correctly load content in UTF-8, otherwise encoding is ignored.
+        # - Quick response back to browser to prevent cloudfront from timing out.
+        yield codecs.BOM_UTF8
+
         # Build Headers
         headers = OrderedDict()
         headers.update(self._get_demographic_headers(request))
@@ -277,7 +282,7 @@ class ReportBuilder:
         output = io.StringIO()
         header_writer = csv.DictWriter(output, fieldnames=headers.values())
         header_writer.writeheader()
-        yield codecs.BOM_UTF8  # Required by MS Excel to correctly load content in UTF-8, otherwise encoding is ignored.
+
         yield output.getvalue()
 
         # Build/Chunk Patient Data
