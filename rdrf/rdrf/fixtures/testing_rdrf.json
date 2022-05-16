@@ -1,6 +1,22 @@
 [
   {
     "pk": 1,
+    "model": "patients.addresstype",
+    "fields": {
+      "type": "Home",
+      "description": "Home Address"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "patients.addresstype",
+    "fields": {
+      "type": "Postal",
+      "description": "Postal"
+    }
+  },
+  {
+    "pk": 1,
     "model": "rdrf.registry",
     "fields": {
       "splash_screen": "<h1 style=\"color: #000066\"><p class=\"text-center\">National Registry for \r\nFamilial Hypercholesterolemia</p><h1 style=\"color: #000066\">\r\n\r\n<h1 style=\"color: #000066\">Background</h1>\r\n<p class=\"text-justify\">\r\nFamilial hypercholesterolemia (FH) is an autosomal dominant disorder of absent or grossly malfunctioning low-density lipoprotein (LDL) receptors that causes severe elevations in total cholesterol and low-density lipoprotein cholesterol (LDLc). Heterozygous FH occurs in approximately 1 per 500 persons.\r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nFor the purposes of this Registry, Familial Hypercholesterolemia will be inclusive of other forms of autosomal dominant hypercholesterolemia (FDB, PCSK9 gain-of-function mutations). \r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nFH is associated with a high risk for premature coronary artery disease. Early detection and aggressive management to lower the LDLc level helps prevent or slows the progression of coronary atherosclerosis. Moreover, if the first-degree relatives of a patient with FH are screened, other gene carriers can be identified and treated.\r\n</p>\r\n\r\n<h1 style=\"color: #000066\">Purpose</h1>\r\n<p class=\"text-justify\">\r\nThe purpose of the National Registry for Familial Hypercholesterolemia is to collate data to facilitate clinical service planning and to inform clinical best practice. The Registry will also enable research on aggregated data and the identification of eligible volunteers for clinical trials.\r\n</p>\r\n\r\n<h1 style=\"color: #000066\">Objectives</h1>\r\n<p class=\"text-justify\">\r\nTo facilitate service planning by analyses and reporting of data collected by the Registry on prevalence, geographical distribution, genetic variants associated with disease, clinical features, clinical management and patient outcomes.\r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nTo enable research by providing aggregate, de-identified data to research entities.\r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nTo facilitate identification and recruitment of eligible volunteers for clinical trials.\r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nTo promulgate new knowledge to inform best practice and care services. \r\n</p>\r\n\r\n<h1 style=\"color: #000066\">Administration/Oversight</h1>\r\n<p class=\"text-justify\">\r\nThe National Registry for Familial Hypercholesterolemia is governed by a National Advisory Board. The Board includes representatives from each jurisdiction from within the Familial Hypercholesterolemia Australasia Network and will oversee all registry activities including all enquiries for access. \r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nThe Terms of Reference for The Board and the Charter for the National Registry for Familial Hypercholesterolemia are available here (hyperlink) for your information.\r\n</p>\r\n\r\n<h1 style=\"color: #000066\">Contact</h1>\r\n<p class=\"text-justify\">\r\nFor more information on the National Registry for Familial Hypercholesterolemia, please contact the appropriate person from the hospital you attend in the Contact list (hyperlink) attached. \r\n</p>\r\n\r\n<p class=\"text-justify\">\r\nThe consent form for patients wishing to participate in the registry can be downloaded here. (hyperlink)\r\n</p>\r\n\r\n<br/>\r\n<br/>\r\n<br/>\r\n<br/>",
@@ -85,7 +101,7 @@
       "name": "Registry4",
       "version": "1",
       "desc": "testing",
-      "metadata_json":"{\"features\":[\"stages\", \"registration\"]}"
+      "metadata_json": "{\"features\":[\"stages\", \"registration\"]}"
     }
   },
   {
