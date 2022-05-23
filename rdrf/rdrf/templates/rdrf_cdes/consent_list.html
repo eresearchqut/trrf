@@ -19,7 +19,7 @@
                 var section_id = -1;
                 var questions = $("<table>");
                 questions.addClass("table table-hover");
-                $.each(data, function(key, value) {
+                $.each(data['data'], function(key, value) {
                     var row = $("<tr>");
                     var question_cell = $("<td>").attr("class", "col-md-7").text(value.question);
                     var first_save = $("<td>").attr("class", "col-md-2").attr("style", "text-align:center;").text(value.first_save);
