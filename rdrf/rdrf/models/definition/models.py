@@ -1471,6 +1471,14 @@ class RDRFContext(models.Model):
     active = models.BooleanField(default=True, blank=False)
     objects = RDRFCtxManager()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["registry", "content_type", "object_id", "context_form_group"],
+                name="unique_patient_context"
+            ),
+        ]
+
     def __str__(self):
         return "%s %s" % (self.display_name, self.created_at)
 
