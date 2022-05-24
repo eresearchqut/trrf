@@ -1,10 +1,7 @@
-from django.core.serializers.json import DjangoJSONEncoder
-import json
-
 from django.db.models import Min, Max, Count, Case, When, F
 from django.views.generic.base import View
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.utils.translation import ugettext as _
 
@@ -68,12 +65,9 @@ class ConsentDetails(StaffMemberRequiredMixin, View):
         patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
         security_check_user_patient(request.user, patient_model)
 
-        if request.is_ajax:
-            values = self._get_consent_details_for_patient(
-                registry_code, section_id, patient_id)
-            return HttpResponse(json.dumps(values, cls=DjangoJSONEncoder))
-
-        return render(request, 'rdrf_cdes/consent_details.html', {})
+        return JsonResponse({
+            "data": self._get_consent_details_for_patient(registry_code, section_id, patient_id)
+        })
 
     def _get_consent_details_for_patient(self, registry_code, section_id, patient_id):
         consent_questions = ConsentQuestion.objects.filter(
