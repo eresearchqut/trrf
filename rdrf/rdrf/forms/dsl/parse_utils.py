@@ -49,8 +49,16 @@ class SectionHelper:
 CDEInfo = namedtuple('CDEInfo', 'name type allow_multiple is_multi_section formset_prefix')
 
 
-@lru_cache
 def prefetch_form_data(form):
+    prefetch_func = _prefetch_existing_form_data
+    if form.pk is None:
+        # Bypass cache for unsaved forms
+        prefetch_func = _prefetch_existing_form_data.__wrapped__
+    return prefetch_func(form)
+
+
+@lru_cache
+def _prefetch_existing_form_data(form):
     from rdrf.models.definition.models import CommonDataElement
     section_models = form.section_models
     cde_codes = set(reduce(add, [s.get_elements() for s in section_models], []))
@@ -58,6 +66,10 @@ def prefetch_form_data(form):
     section_cdes = {s.code: [cdes[code] for code in s.get_elements()] for s in section_models}
 
     return section_models, section_cdes
+
+
+def clear_prefetched_form_data_cache():
+    _prefetch_existing_form_data.cache_clear()
 
 
 class CDEHelper:
