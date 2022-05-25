@@ -64,10 +64,22 @@ class RDRFContextManager:
             for context_form_group in ContextFormGroup.objects.filter(
                     registry=self.registry_model, context_type='F'):
                 # fixed type so create one for the supplied patient
-                fixed_context, created = RDRFContext.objects.get_or_create(registry=self.registry_model,
-                                                                           content_type=content_type,
-                                                                           object_id=patient_model.pk,
-                                                                           context_form_group=context_form_group)
+                create_args = dict(
+                    registry=self.registry_model,
+                    content_type=content_type,
+                    object_id=patient_model.pk,
+                    context_form_group=context_form_group,
+                )
+                try:
+                    fixed_context, created = RDRFContext.objects.get_or_create(**create_args)
+                except RDRFContext.MultipleObjectsReturned:
+                    # create_args above don't have a DB level unique constraint, so multiple objects
+                    # might get created by parallel execution. See: https://bit.ly/3MSchTq
+                    # Handling this corner case by always keeping the first context
+                    contexts = list(RDRFContext.objects.filter(**create_args))
+                    fixed_context, created = contexts[0], True
+                    for redundant_context in contexts[1:]:
+                        redundant_context.delete()
                 if created:
                     fixed_context.display_name = context_form_group.get_default_name(
                         patient_model)
