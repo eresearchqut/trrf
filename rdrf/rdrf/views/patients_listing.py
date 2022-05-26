@@ -21,6 +21,7 @@ from rdrf.helpers.utils import MinType, consent_check
 from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,9 +42,9 @@ class PatientsListingView(View):
         self.sort_field = None
         self.sort_direction = None
         self.columns = None
-        self.queryset = None
-        self.records_total = None
-        self.filtered_total = None
+        self.patients_base = None  # Queryset of patients in registry, visible for user
+        self.patients = None       # Queryset of patients_base with user-supplied filters applied
+        self.searchPanesOptions = None
         self.context = {}
         self.bottom = MinType()
 
@@ -143,11 +144,7 @@ class PatientsListingView(View):
         self.set_parameters(request)
         self.set_csrf(request)
         rows = self.get_results(request)
-        results_dict = self.get_results_dict(self.draw,
-                                             self.page_number,
-                                             self.record_total,
-                                             self.filtered_total,
-                                             rows)
+        results_dict = self.get_results_dict(self.draw, rows)
         return self.json(results_dict)
 
     def set_parameters(self, request):
@@ -213,11 +210,9 @@ class PatientsListingView(View):
         return sort_field, sort_direction
 
     def run_query(self):
-        self.patients = self.filter_by_user_and_registry()
+        self.patients_base = self.filter_by_user_and_registry()
         self.apply_ordering()
-        self.record_total = self.patients.count()
-        self.apply_search_filter()
-        self.filtered_total = self.patients.count()
+        self.apply_filters()
         return self.get_rows_in_page()
 
     def _get_main_or_default_context(self, patient_model):
@@ -288,7 +283,8 @@ class PatientsListingView(View):
                     self.form_progress,
                     self.rdrf_context_manager)) for col in self.columns}
 
-    def apply_search_filter(self):
+    def apply_filters(self):
+        self.patients = self.patients_base.all()
         if self.search_term:
             name_filter = Q(given_names__icontains=self.search_term) | Q(family_name__icontains=self.search_term)
             stage_filter = Q(stage__name__istartswith=self.search_term)
@@ -306,21 +302,27 @@ class PatientsListingView(View):
                                   for col in self.columns
                                   if col.field == self.sort_field])
 
-            self.patients = self.patients.order_by(*sort_fields)
+            self.patients_base = self.patients_base.order_by(*sort_fields)
 
-    def get_results_dict(self, draw, page, total_records, total_filtered_records, rows):
-        return {
+    def get_results_dict(self, draw, rows):
+        results = {
             "draw": draw,
-            "recordsTotal": total_records,
-            "recordsFiltered": total_filtered_records,
-            "rows": rows
+            "recordsTotal": self.patients_base.count(),
+            "recordsFiltered": self.patients.count(),
+            "rows": rows,
         }
+        if self.searchPanesOptions:
+            results["searchPanes"] = {
+                "options": self.searchPanesOptions
+            }
+        return results
 
 
 class Column(object):
     field = "id"
     sort_fields = ["id"]
     bottom = MinType()
+    visible = True
 
     def __init__(self, label, perm):
         self.label = label
@@ -364,6 +366,7 @@ class Column(object):
         return {
             "data": self.field,
             "label": self.label,
+            "visible": self.visible,
             "order": i,
         }
 
