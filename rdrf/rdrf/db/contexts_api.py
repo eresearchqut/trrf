@@ -76,7 +76,7 @@ class RDRFContextManager:
                     # create_args above don't have a DB level unique constraint, so multiple objects
                     # might get created by parallel execution. See: https://bit.ly/3MSchTq
                     # Handling this corner case by always keeping the first context
-                    contexts = list(RDRFContext.objects.filter(**create_args))
+                    contexts = list(RDRFContext.objects.filter(**create_args).order_by('pk'))
                     fixed_context, created = contexts[0], True
                     for redundant_context in contexts[1:]:
                         redundant_context.delete()
