@@ -95,10 +95,10 @@ class ParentGuardianType(DjangoObjectType):
                   'suburb', 'state', 'postcode', 'country', 'phone')
 
     def resolve_email(parent_guardian, info):
-        return parent_guardian.user.email
+        return parent_guardian.user.email if parent_guardian.user else None
 
     def resolve_self_patient_id(parent_guardian, info):
-        return parent_guardian.self_patient.id
+        return parent_guardian.self_patient.id if parent_guardian.self_patient_id else None
 
     def resolve_gender(parent_guardian, info):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
