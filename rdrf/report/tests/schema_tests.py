@@ -9,7 +9,7 @@ from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGro
     CommonDataElement, ConsentQuestion, ConsentSection, CDEPermittedValueGroup, CDEPermittedValue
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.models import Patient, AddressType, ConsentValue
+from registry.patients.models import Patient, AddressType, ConsentValue, ParentGuardian
 from report.schema import create_dynamic_schema
 
 
@@ -151,6 +151,52 @@ class SchemaTest(TestCase):
 
         result = client.execute(query, context_value=self.query_context)
         self.assertEqual({"data": {"dataSummary": {"maxClinicianCount": 4}}}, result)
+
+    def test_query_data_summary_max_parent_guardian_count(self):
+        create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
+
+        p1 = create_patient()
+        p2 = create_patient()
+        p3 = create_patient()
+
+        p1.rdrf_registry.set([self.registry])
+        p2.rdrf_registry.set([self.registry])
+        p3.rdrf_registry.set([Registry.objects.create(code='another')])
+
+        client = Client(create_dynamic_schema())
+        query = """
+        {
+            dataSummary(registryCode: "test") {
+                maxParentGuardianCount
+            }
+        }
+        """
+
+        # No parent guardians
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 0}}}, result)
+
+        # Patients with varying number of guardians across registries
+        p1.parentguardian_set.create()
+        p1.parentguardian_set.create()
+        p2.parentguardian_set.create()
+        p3.parentguardian_set.create()
+        p3.parentguardian_set.create()
+        p3.parentguardian_set.create()
+
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 2}}}, result)
+
+        query = """
+        {
+            dataSummary(registryCode: "another") {
+                maxParentGuardianCount
+            }
+        }
+        """
+
+        result = client.execute(query, context_value=self.query_context)
+        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 3}}}, result)
 
     def test_query_sex(self):
         patients = [

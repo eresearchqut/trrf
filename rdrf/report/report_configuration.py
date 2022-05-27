@@ -94,6 +94,27 @@ def get_configuration():
                     'firstSave': 'Date of First Save',
                     'lastUpdate': 'Date of Last Update'
                 }
+            },
+            'parentguardianSet': {
+                'label': 'Parent / Guardian',
+                'multi_field': True,
+                'variant_lookup': 'maxParentGuardianCount',
+                'fields': {
+                    'firstName': 'First Name',
+                    'lastName': 'Last Name',
+                    'dateOfBirth': 'Date of Birth',
+                    'placeOfBirth': 'Place of Birth',
+                    'dateOfMigration': 'Date of Migration',
+                    'gender': 'Gender',
+                    'address': 'Address',
+                    'suburb': 'Suburb',
+                    'state': 'State',
+                    'postcode': 'Postcode',
+                    'country': 'Country',
+                    'phone': 'Phone',
+                    'email': 'Email',
+                    'selfPatientId': 'Self Patient ID'
+                }
             }
         }
     }

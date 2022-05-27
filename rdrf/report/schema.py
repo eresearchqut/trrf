@@ -13,7 +13,7 @@ from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
-    PatientGUID
+    PatientGUID, ParentGuardian
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,26 @@ class RegistryType(DjangoObjectType):
     class Meta:
         model = Registry
         fields = ('name', 'code')
+
+
+class ParentGuardianType(DjangoObjectType):
+    email = graphene.String()
+    self_patient_id = graphene.Int()
+    gender = graphene.String()
+
+    class Meta:
+        model = ParentGuardian
+        fields = ('first_name', 'last_name', 'date_of_birth', 'place_of_birth', 'date_of_migration', 'address',
+                  'suburb', 'state', 'postcode', 'country', 'phone')
+
+    def resolve_email(parent_guardian, info):
+        return parent_guardian.user.email if parent_guardian.user else None
+
+    def resolve_self_patient_id(parent_guardian, info):
+        return parent_guardian.self_patient.id if parent_guardian.self_patient_id else None
+
+    def resolve_gender(parent_guardian, info):
+        return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
 
 
 def get_schema_field_name(s):
@@ -266,7 +286,7 @@ def get_patient_fields():
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
                        'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
-                       'patientguid']
+                       'patientguid', 'parentguardian_set']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
@@ -338,7 +358,9 @@ def create_dynamic_data_summary_type():
         'max_clinician_count': graphene.Int(),
         'resolve_max_clinician_count': resolve_max_clinician_count,
         'list_consent_question_codes': graphene.List(graphene.String),
-        'resolve_list_consent_question_codes': resolve_list_consent_question_codes
+        'resolve_list_consent_question_codes': resolve_list_consent_question_codes,
+        'max_parent_guardian_count': graphene.Int(),
+        'resolve_max_parent_guardian_count': resolve_max_parent_guardian_count
     }
     return type("DynamicDataSummary", (graphene.ObjectType,), data_summary_fields)
 
@@ -391,6 +413,13 @@ def resolve_max_clinician_count(data_summary, info):
 
 def resolve_list_consent_question_codes(data_summary, info):
     return ConsentQuestion.objects.filter(section__registry__code=data_summary['registry_code']).order_by('position').values_list('code', flat=True)
+
+
+def resolve_max_parent_guardian_count(data_summary, info):
+    return list_patients_for_data_summary(info.context.user, data_summary)\
+        .annotate(Count('parentguardian'))\
+        .aggregate(Max('parentguardian__count'))\
+        .get('parentguardian__count__max') or 0
 
 
 # TODO: memoize + possible cache clearing when registry definition changes?
