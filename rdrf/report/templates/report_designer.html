@@ -142,9 +142,9 @@
     <fieldset>
         <legend>Content</legend>
         <div class="row">
-            <label for="demographic_fields" class="col-sm-2 col-form-label" id="label_demographic_fields">
+            <p class="col-sm-2 col-form-label" id="label_demographic_fields">
                 {{ form.demographic_fields.label }}
-            </label>
+            </p>
             <div class="col-sm-10 mt-2" id="demographic_field_selector" aria-labelledby="label_demographic_fields">
                 {% include "demographic_field_selector.html" with demographic_fields=form.demographic_fields only %}
             </div>
@@ -160,7 +160,7 @@
             </div>
         </div>
         <div class="row">
-            <label for="cde_fields" class="col-sm-2 col-form-label" id="label_cde_fields">{{ form.cde_fields.label }}</label>
+            <p class="col-sm-2 col-form-label" id="label_cde_fields">{{ form.cde_fields.label }}</p>
             <div class="col-sm-10 mt-2" aria-labelledby="label_cde_fields">
                 <div class="registry-cde-fields" data-registry=""><p>{% trans "Select a registry" %}</p></div>
                 {% for registry, context_form_groups in registry__cfgs.items %}
@@ -168,52 +168,54 @@
                 {% endfor %}
             </div>
         </div>
-    </fieldset>
-    <fieldset>
-        <legend>Report Filters</legend>
-        <ul class="list-group offset-sm-2 col-sm-10">
-            <li class="list-group-item">
-                {{ form.filter_by_working_groups|add_attr:"class,form-check-input report-filter-toggle" }}
-                <label for="id_filter_by_working_groups">{{ form.filter_by_working_groups.label }}</label>
-                <div class="row d-none report-filter">
-                    <label for="id_filter_working_groups" class="visually-hidden">{{ form.filter_working_groups.label }}</label>
-                    <div class="mt-2">
-                        {{ form.filter_working_groups }}
-                    </div>
-                    <div class="form-text">
-                        {% trans "Filter the report to only include patients within any of the selected working groups." %}
-                    </div>
-                </div>
-            </li>
-            <li class="list-group-item">
-                {{ form.filter_by_consents|add_attr:"class,form-check-input report-filter-toggle" }}
-                <label for="id_filter_by_consents">{{ form.filter_by_consents.label }}</label>
-                <div class="row d-none report-filter">
-                    <label for="filter_consents" class="visually-hidden">{{ form.filter_consents.label }}</label>
-                    <div class="mt-2">
-                        <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
-                    {% for value, label in form.filter_consents.field.choices %}
-                        {% if value %}
-                        <li>
-                            <label class="form-check-label">
-                                <input type="checkbox" name="filter_consents" value="{{ value }}"
-                                    {% if value in form.filter_consents.initial %}
-                                        checked="checked"
-                                    {% endif %}
-                                >
-                                {{ label }}
-                            </label>
-                        </li>
-                        {% endif %}
-                    {% endfor %}
-                    </ul>
-                    </div>
-                    <div class="form-text">
-                        {% trans "Filter the report to only include patients that have consented to all of the selected consent items." %}
-                    </div>
-                </div>
-            </li>
-        </ul>
+        <div class="row">
+            <p class="col-sm-2 col-form-label" id="label_report_filters">Report Filters</p>
+            <div class="col-sm-10 mt-2" aria-labelledby="label_report_filters">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        {{ form.filter_by_working_groups|add_attr:"class,form-check-input report-filter-toggle" }}
+                        <label for="id_filter_by_working_groups">{{ form.filter_by_working_groups.label }}</label>
+                        <div class="row d-none report-filter">
+                            <label for="id_filter_working_groups" class="visually-hidden">{{ form.filter_working_groups.label }}</label>
+                            <div class="mt-2">
+                                {{ form.filter_working_groups }}
+                            </div>
+                            <div class="form-text">
+                                {% trans "Filter the report to only include patients within any of the selected working groups." %}
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        {{ form.filter_by_consents|add_attr:"class,form-check-input report-filter-toggle" }}
+                        <label for="id_filter_by_consents">{{ form.filter_by_consents.label }}</label>
+                        <div class="row d-none report-filter">
+                            <label for="filter_consents" class="visually-hidden">{{ form.filter_consents.label }}</label>
+                            <div class="mt-2">
+                                <ul id="id_filter_consents_list" class="list-unstyled border p-2" style="max-height: 200px; overflow: auto">
+                            {% for value, label in form.filter_consents.field.choices %}
+                                {% if value %}
+                                <li>
+                                    <label class="form-check-label">
+                                        <input type="checkbox" name="filter_consents" value="{{ value }}"
+                                            {% if value in form.filter_consents.initial %}
+                                                checked="checked"
+                                            {% endif %}
+                                        >
+                                        {{ label }}
+                                    </label>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            </ul>
+                            </div>
+                            <div class="form-text">
+                                {% trans "Filter the report to only include patients that have consented to all of the selected consent items." %}
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </fieldset>
 
     <div class="col-10 offset-sm-2 mb-4">
