@@ -1,4 +1,6 @@
 {% extends "rdrf_cdes/base_simple.html" %}
+{% load i18n %}
+{% load translate %}
 
 {% block extrahead %}
     {{ block.super }}
@@ -25,22 +27,20 @@
             </tr>
         </thead>
         <tbody>
-        {% for patient, sections in consents.items %}
-            {% for section, signed in sections.items %}
-                <tr class="warning">
-                    <td class="col-md-5"><strong>{{patient}}</strong> - {{section.section_label}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.first_save|date:"Y-m-d"}}</td>
-                    <td class="col-md-3" style="text-align: center;">{{signed.last_update|date:"Y-m-d"}}</td>
-                    <td class="col-md-1" style="text-align: center;">
-                        {% if signed.signed %}
-                            <span class="fa fa-check" style='color: green;' aria-hidden="true"></span>
-                        {% else %}
-                            <span class="fa fa-times" style='color: red;' aria-hidden="true"></span>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        {% endfor%}
+        {% for patient in consents %}
+            <tr>
+                <td class="col-md-5"><strong>{{patient}}</strong> - {{patient.consent_section_label|translate}}</td>
+                <td class="col-md-3" style="text-align: center;">{{patient.first_save|date:"d F Y"}}</td>
+                <td class="col-md-3" style="text-align: center;">{{patient.last_update|date:"d F Y"}}</td>
+                <td class="col-md-1" style="text-align: center;">
+                    {% if patient.cnt_total_questions == patient.cnt_completed_answers %}
+                        <span class="fa fa-check" style='color: green;' aria-hidden="true"></span>
+                    {% else %}
+                        <span class="fa fa-times" style='color: red;' aria-hidden="true"></span>
+                    {% endif %}
+                </td>
+            </tr>
+        {%  endfor %}
         </tbody>
     </table>
 
