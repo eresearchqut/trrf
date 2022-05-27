@@ -1,0 +1,38 @@
+.tree-selector-root .list-group-item {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.tree-selector-root .badge {
+    margin-right: 10px;
+}
+
+.tree-selector-root > .list-group-item button {
+    margin-left: 10px;
+}
+
+ul.tree-selector-root ul.list-group.tree-selector-tip > .list-group-item input {
+    margin-left: 40px;
+}
+
+ul.tree-selector-root ul.list-group > .list-group-item button {
+    margin-left: 25px;
+}
+
+ul.tree-selector-root ul.list-group ul.list-group > .list-group-item button {
+    margin-left: 40px;
+}
+
+ul.tree-selector-root ul.list-group ul.list-group ul.list-group.tree-selector-tip > .list-group-item input:first-child {
+    margin-left: 75px;
+}
+
+.tree-selector-root button[data-bs-toggle] i:before {
+    /* FA Icon equivalent: fa-chevron-down */
+    content: "\f078";
+}
+
+.tree-selector-root  button[data-bs-toggle].collapsed i:before {
+    /* FA Icon equivalent: fa-chevron-right */
+    content: "\f054";
+}
