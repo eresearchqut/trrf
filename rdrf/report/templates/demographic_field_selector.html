@@ -1,0 +1,30 @@
+{% load i18n %}
+{% load id_from_text %}
+
+<ul class="list-group tree-selector-root">
+    {% for group, group_choices in demographic_fields.field.choices %}
+        {% id_from_text group as group_id %}
+        <li class="list-group-item">
+            <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_model_{{ group_id }}">
+                <i class="fa"></i>
+            </button>
+            <input type="checkbox" class="form-check-input me-1" id="model-{{ group_id }}">
+            <label for="model-{{ group_id }}">{{ group }}</label>
+            <ul class="list-group list-group-flush border-top mb-0 collapse tree-selector-tip" id="collapse_model_{{ group_id }}">
+                {% for value, label in group_choices %}
+                    {% id_from_text label as choice_id %}
+                    <li class="list-group-item">
+                        <input type="checkbox" class="form-check-input me-1" name="demographic_fields" id="demographic_{{ group_id }}_{{ choice_id }}" value="{{ value }}"
+                            {% if value in demographic_fields.initial %}
+                                checked="checked"
+                            {% endif %}
+                        >
+                        <label for="demographic_{{ group_id }}_{{ choice_id }}">
+                            {{ label }}
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>

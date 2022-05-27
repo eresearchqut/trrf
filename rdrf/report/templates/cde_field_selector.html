@@ -3,7 +3,7 @@
 
 <div class="registry-cde-fields d-none" data-registry="{{ registry.code }}">
 {% if context_form_groups %}
-    <ul class="list-group list-group-cfgs">
+    <ul class="list-group tree-selector-root">
     {% for cfg in context_form_groups %}
         <li class="list-group-item">
             <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_cfg_{{ cfg.pk }}">
@@ -13,7 +13,7 @@
             <label for="cfg-{{ cfg.pk }}">{{ cfg.name }}</label>
             <span class="badge border border-primary text-dark float-end">{{ cfg.code }}</span>
             {# Forms #}
-            <ul class="list-group list-group-flush list-group-forms border-top mb-0 collapse" id="collapse_cfg_{{ cfg.pk }}">
+            <ul class="list-group list-group-flush border-top mb-0 collapse" id="collapse_cfg_{{ cfg.pk }}">
             {% for form in cfg.forms %}
                 <li class="list-group-item">
                     <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_form_{{ cfg.pk }}_{{ form.id }}">
@@ -25,7 +25,7 @@
                     </label>
                     <span class="badge border border-secondary text-dark float-end">{{ form.name }}</span>
                     {# Sections #}
-                    <ul class="list-group list-group-flush list-group-sections border-top mb-0 collapse" id="collapse_form_{{ cfg.pk }}_{{ form.id }}">
+                    <ul class="list-group list-group-flush border-top mb-0 collapse" id="collapse_form_{{ cfg.pk }}_{{ form.id }}">
                         {% for section in form.section_models %}
                         <li class="list-group-item">
                             <button type="button" class="btn btn-link p-0 collapsed" data-bs-toggle="collapse" data-bs-target="#collapse_section_{{ cfg.pk }}_{{ form.id }}_{{ section.pk }}">
@@ -35,7 +35,7 @@
                             <label for="section-{{ cfg.pk }}_{{ form.pk }}_{{ section.pk }}">{{  section.display_name }}</label>
                             <span class="badge border border-info text-dark float-end">{{ section.code }}</span>
                             {# CDEs #}
-                            <ul class="list-group list-group-flush list-group-cdes border-top mb-0 collapse" id="collapse_section_{{ cfg.pk }}_{{ form.id }}_{{ section.pk }}">
+                            <ul class="list-group list-group-flush border-top mb-0 collapse tree-selector-tip" id="collapse_section_{{ cfg.pk }}_{{ form.id }}_{{ section.pk }}">
                                 {% for cde in section.cde_models %}
                                     {% get_cde_value cfg form section cde as cde_value %}
                                  <li class="list-group-item">

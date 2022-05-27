@@ -1,4 +1,36 @@
-function cde_field_selector($cfg_selector) {
+/**
+ * Hierarchical checkbox tree selector widget
+ * Usage:
+ * * Checkboxes should be structured within nested ul.list-groups
+ * * The root of the hierarchy needs to have the class .tree-selector-root
+ * * The tip of the hierarchy (the most deeply nested) needs to have the class .tree-selector-root
+ * * e.g.
+ * ```
+ * <ul class="list-group tree-selector-root>
+ *     <li class="list-group-item">
+ *         ...
+ *         <ul class="list-group">
+ *             <li class="list-group-item">
+ *                 ...
+ *                 <ul class="list-group tree-selector-tip>
+ *                     <li class="list-group-item">
+ *                         ...
+ *                     </li>
+ *                 </ul>
+ *             </li>
+ *         </ul>
+ *     </li>
+ * </ul>
+ * ```
+ *
+ * Initialise the selector for you element with tree_selector($(".your-jq-selector")).init({expandSelected: true})
+ * Options:
+ * * expandSelected: boolean to indicate whether to expand the hierarchy for selected tip items.
+ *
+ * @param $root
+ * @returns {{init: init}}
+ */
+function tree_selector($root) {
 
     function getParentGroup($childGroup) {
         return $childGroup.closest('.list-group').closest('.list-group-item');
@@ -51,12 +83,12 @@ function cde_field_selector($cfg_selector) {
     }
 
     function initCheckboxStates() {
-        const $cde_groups = $cfg_selector.find('.list-group-cdes');
+        const $cde_groups = $root.find('.tree-selector-tip');
         doForAncestors($cde_groups, setCheckboxState);
     }
 
     function initExpandSelected() {
-        const $selected_cdes = $cfg_selector.find(".list-group-cdes :checkbox:checked");
+        const $selected_cdes = $root.find(".tree-selector-tip :checkbox:checked");
         const expandGroup = function($group) {
             $group.find(">button[data-bs-toggle]").removeClass('collapsed');
             $group.find(">.list-group").addClass('show');
@@ -65,7 +97,7 @@ function cde_field_selector($cfg_selector) {
     }
 
     function initEventHandlers() {
-        $cfg_selector.find('ul.list-group').addBack().find('>.list-group-item>:checkbox').on('click', function() {
+        $root.find('ul.list-group').addBack().find('>.list-group-item>:checkbox').on('click', function() {
             const $group = $(this).closest('.list-group-item');
             toggleSelectAllItemsIn($group);
             doForAncestors($group, setCheckboxState);
@@ -73,9 +105,13 @@ function cde_field_selector($cfg_selector) {
     }
 
     return {
-        init: function() {
+        init: function(opts={expandSelected: true}) {
             initCheckboxStates();
-            initExpandSelected();
+
+            if (opts.expandSelected) {
+                initExpandSelected();
+            }
+
             initEventHandlers();
         }
     }
