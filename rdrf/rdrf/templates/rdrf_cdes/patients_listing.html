@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base_contexts.html" %}
+{% extends "rdrf_cdes/base-1-col.html" %}
 {% load static %}
 {% load has_feature %}
 {% load i18n %}
@@ -200,22 +200,24 @@
 {% endblock %}
 
 {% block content %}
-  <p>
-      <select id="registry_options">
-          {% for reg in registries %}
-              <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
-          {% endfor %}
-      </select>
-      <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
-  </p>
-
-  <table id="patients_table" class="table table-striped table-hover">
-      <thead>
-          <tr>
-              {% for column in columns %}
-                  <th>{{ column.label|translate|safe}}</th>
+    <div class="container">
+      <p>
+          <select id="registry_options">
+              {% for reg in registries %}
+                  <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
               {% endfor %}
-          </tr>
-      </thead>
-  </table>
+          </select>
+          <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
+      </p>
+
+      <table id="patients_table" class="table table-striped table-hover">
+          <thead>
+              <tr>
+                  {% for column in columns %}
+                      <th>{{ column.label|translate|safe}}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+      </table>
+    </div>
 {% endblock %}
