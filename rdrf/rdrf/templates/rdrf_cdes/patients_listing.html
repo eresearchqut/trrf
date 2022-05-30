@@ -1,4 +1,4 @@
-{% extends "rdrf_cdes/base_contexts.html" %}
+{% extends "rdrf_cdes/base-1-col.html" %}
 {% load static %}
 {% load has_feature %}
 {% load i18n %}
@@ -8,7 +8,6 @@
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'vendor/datatables-1.12.0/css/datatables.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/patients_listing.css' %}">
     <script type="text/javascript" src="{% static 'vendor/datatables-1.12.0/js/datatables.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/jsignature-2.1.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
@@ -119,6 +118,7 @@
             var dataTablesConfig = {
                 "processing": true,
                 "serverSide": true,
+                "bAutoWidth": false,
                 "fnDrawCallback": function (oSettings) {
                     wireUpFormsButtons();
                 },
@@ -200,22 +200,24 @@
 {% endblock %}
 
 {% block content %}
-  <p>
-      <select id="registry_options">
-          {% for reg in registries %}
-              <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
-          {% endfor %}
-      </select>
-      <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
-  </p>
-
-  <table id="patients_table" class="table table-striped table-hover">
-      <thead>
-          <tr>
-              {% for column in columns %}
-                  <th>{{ column.label|translate|safe}}</th>
+    <div class="container">
+      <p>
+          <select id="registry_options">
+              {% for reg in registries %}
+                  <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
               {% endfor %}
-          </tr>
-      </thead>
-  </table>
+          </select>
+          <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
+      </p>
+
+      <table id="patients_table" class="table table-striped table-hover">
+          <thead>
+              <tr>
+                  {% for column in columns %}
+                      <th>{{ column.label|translate|safe}}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+      </table>
+    </div>
 {% endblock %}
