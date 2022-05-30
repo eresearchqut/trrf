@@ -118,6 +118,7 @@
             var dataTablesConfig = {
                 "processing": true,
                 "serverSide": true,
+                "deferLoading": 0,
                 "bAutoWidth": false,
                 "fnDrawCallback": function (oSettings) {
                     wireUpFormsButtons();
@@ -183,7 +184,6 @@
             });
 
             $("#registry_options").trigger("change");
-
         });
     </script>
 {% endblock %}
