@@ -8,8 +8,6 @@ from django.utils.translation import ugettext as _
 
 from django_js_reverse.views import urls_js
 
-from graphene_django.views import GraphQLView
-
 from two_factor import views as twv
 
 from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
@@ -41,6 +39,7 @@ from rdrf.views.session_refresh_view import session_refresh
 from rdrf.views.actions import ActionExecutorView
 import logging
 
+from report.TrrfGraphQLView import TrrfGraphQLView
 from report.schema import create_dynamic_schema
 
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
-        path('graphql', lambda request: GraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
+        path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
 
