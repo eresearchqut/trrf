@@ -19,7 +19,7 @@ class XrayMetadataMiddleware(MiddlewareMixin):
 
         if global_sdk_config.sdk_enabled():
             document = xray_recorder.current_segment()
-            if user := request.getattr('user'):
+            if user := getattr(request, 'user'):
                 document.set_user(user)
 
         return response
