@@ -85,7 +85,7 @@ class RdrfRegistrationView(RegistrationView):
             logger.debug("RdrfRegistrationView post - redirecting to success url %s" % success_url)
             return redirect(success_url)
         else:
-            logger.debug("RdrfRegistrationView post - redirecting to sucess url %s" % str(success_url))
+            logger.debug("RdrfRegistrationView post - redirecting to success url %s" % str(success_url))
             return redirect(to, *args, **kwargs)
 
     def registration_allowed(self):

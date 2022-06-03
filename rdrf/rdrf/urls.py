@@ -107,7 +107,7 @@ patterns += [
             name='login_assistance'),
     re_path(r'^login_assistance/sent/?$', auth_views.PasswordResetDoneView.as_view(),
             kwargs={'template_name': 'registration/login_assistance_sent.html',
-                    'extra_context': {'title': _('Login Assitance Email Sent')}},
+                    'extra_context': {'title': _('Login Assistance Email Sent')}},
             name='login_assistance_email_sent'),
     re_path(r'^login_assistance_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
             login_assistance_confirm,

@@ -12,7 +12,7 @@
 <form class="row row-cols-lg-auto g-3" action="" method="post">{% csrf_token %}
     {{ form.email.errors }}
     <div class="col-12">
-        <input id="id_email" maxlength="254" name="email" type="email" class="form-control" placeholder="Email address">a
+        <input id="id_email" maxlength="254" name="email" type="email" class="form-control" placeholder="Email address">
     </div>
     <div class="col-12">
         <input type="submit" class="btn btn-warning" value="{% trans "Send" %}" />
