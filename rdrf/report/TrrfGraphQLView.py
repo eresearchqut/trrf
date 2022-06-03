@@ -17,7 +17,7 @@ class TrrfGraphQLView(GraphQLView):
     def format_error(error):
         super_class = super(TrrfGraphQLView, TrrfGraphQLView)
 
-        if isinstance(error.original_error, PublicGraphQLError):
+        if hasattr(error, 'original_error') and isinstance(error.original_error, PublicGraphQLError):
             return super_class.format_error(error)
         else:
             # Generify the error

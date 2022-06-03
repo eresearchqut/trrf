@@ -5,7 +5,7 @@ from importlib import import_module
 
 import graphene
 from django.conf import settings
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
@@ -377,7 +377,9 @@ def list_patients_query(user,
         .prefetch_related('registered_clinicians')
 
     if working_group_ids:
-        patient_query = patient_query.filter(working_groups__id__in=working_group_ids)
+        # Double negative intended here to ensure the working_groups that don't match the filter aren't excluded from the result set
+        # We only want to exclude the *patients* that aren't in the working groups, not the working groups themselves
+        patient_query = patient_query.exclude(~Q(working_groups__id__in=working_group_ids))
 
     if consent_question_codes:
         for code in consent_question_codes:
