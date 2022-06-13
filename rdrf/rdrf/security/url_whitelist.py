@@ -329,6 +329,7 @@ SECURITY_WHITELISTED_URLS = (
     "patient_lookup",
     "patient_verification",
     "patientslisting",
+    "patient_list",
     "permission_matrix",
     "print_consent_list",
     "questionnaire",
