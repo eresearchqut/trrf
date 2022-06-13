@@ -42,7 +42,6 @@ class PatientsListingView(View):
         super().__init__(*args, **kwargs)
         self.registry_model = None
         self.user = None
-        self.patient_id = None
 
         # grid params
         self.custom_ordering = None
@@ -68,7 +67,6 @@ class PatientsListingView(View):
         self.do_security_checks()
         self.set_csrf(request)
         self.set_registry(registry_code)
-        self.patient_id = request.GET.get("patient_id", None)
         self.columns = [col.to_dict(i) for i, col in enumerate(self.get_configure_columns())]
         if not self.columns:
             raise PermissionDenied()
@@ -84,7 +82,6 @@ class PatientsListingView(View):
     def build_context(self):
         return {
             "location": _("Patient Listing"),
-            "patient_id": self.patient_id,
             "registry": self.registry_model,
             "columns": self.columns,
         }

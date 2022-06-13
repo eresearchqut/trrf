@@ -19,8 +19,6 @@
 
             $.fn.dataTable.ext.errMode = 'throw';
 
-            var initialPatientId = "{{patient_id}}";
-            var contextFormGroupId = "{{context_form_group_id}}";
             const registryCode = '{{ registry.code }}';
 
             var api_url = "{% url 'patient_list' registry.code  %}";
@@ -78,17 +76,7 @@
             }
 
             function getApiUrl(drawLength) {
-                const params = {'length': drawLength};
-
-                if (initialPatientId) {
-                    params['patient_id'] = initialPatientId;
-                }
-
-                if (contextFormGroupId) {
-                    params['context_form_group_id'] = contextFormGroupId
-                }
-
-                return `${api_url}?${$.param(params)}`;
+                return `${api_url}?${$.param({'length': drawLength})}`;
             }
 
             var load_contexts_list;
