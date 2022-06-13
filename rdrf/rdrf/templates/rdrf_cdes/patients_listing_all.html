@@ -1,0 +1,30 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+    <h1>Patient Lists</h1>
+    {% if registries %}
+        <p>{% trans "Please select which Patient List you would like to view." %}</p>
+        <table class="table table-striped" id="reports_table">
+            <thead>
+                <tr>
+                    <th>Registry</th>
+                    <th>Patient List</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registry in registries %}
+                <tr>
+                    <td>{{ registry.name }}</td>
+                    <td><a href="{%  url 'patient_list' registry.code %}">Patient List ({{ registry.name }})</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-danger">
+          {% trans "You don't have access to any Registries." %}
+        </div>
+    {% endif %}
+{% endblock %}

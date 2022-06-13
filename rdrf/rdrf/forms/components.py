@@ -239,12 +239,12 @@ class RDRFContextLauncherComponent(RDRFComponent):
 
         # provide links to filtered view of the existing data
         # reuses the patient/context listing
-        patients_listing_url = reverse("patientslisting")
+        patients_listing_url = reverse("patient_list", kwargs={"registry_code": self.registry_model.code})
 
         def _form(context_form_group):
             name = _("All " + context_form_group.direct_name)
-            filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (
-                self.registry_model.code, self.patient_model.pk, context_form_group.pk)
+            filter_url = patients_listing_url + "?patient_id=%s&context_form_group_id=%s" % (
+                self.patient_model.pk, context_form_group.pk)
 
             link_pair = context_form_group.get_add_action(self.patient_model)
             can_view = self.user.can_view(context_form_group.forms[0])
