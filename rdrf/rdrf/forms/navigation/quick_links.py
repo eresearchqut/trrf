@@ -178,6 +178,7 @@ class MenuConfig:
         self.super_user = {}
         self.settings = {}
         self.all = {}
+        self.build_menu()
 
     def group_links(self, group_name):
         group = groups.reverse_lookup(group_name)
@@ -354,7 +355,6 @@ class QuickLinks:
 
     def __init__(self, registries):
         self.menu_config = self.REGULAR_MENU_CONFIG(registries)
-        self.menu_config.build_menu()
 
     def menu_links(self, groups, reports_disabled=False):
         return ordered_links(self.menu_config.menu_links(groups, reports_disabled))
