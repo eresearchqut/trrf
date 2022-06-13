@@ -10,8 +10,8 @@ Feature: Add a patient
   Scenario: Curator user adds a new patient
     When I am logged in as curator
     And I click "Menu"
-    And I click "Patient List (dd)"
-    And I press the "Add Patient" button
+    And I click "Patient List (Demyelinating Diseases Registry)"
+    And I click "Add Patient"
     And I select "dd WA" from "Working Group"
     And I fill in "Family Name" with "Taylor"
     And I fill in "Given Names" with "Tom"

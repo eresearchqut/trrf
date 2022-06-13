@@ -38,7 +38,7 @@ Feature: Admin Page and Settings
     Given I am logged in as admin
     When I click the User Dropdown Menu
     And I click "Admin Page"
-    Then I should see a link to "Patient List (sample)"
+    Then I should see a link to "Patient List (Sample Registry)"
     And I should see a link to "Reports"
     And I should see a link to "Users"
     # these only in design mode (  which is not default anymore)

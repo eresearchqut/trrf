@@ -451,7 +451,6 @@ def set_patient(step, name):
 
 @step("navigate to the patient's page")
 def goto_patient(step):
-    select_from_list(step, world.registry, "#registry_options")
     click_link(step, world.patient)
 
 
