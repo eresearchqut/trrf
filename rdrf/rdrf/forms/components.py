@@ -40,7 +40,7 @@ class _Form:
 class _MultiContextForm(_Form):
 
     def __init__(self, text, add_link_url, add_link_text):
-        super(_MultiContextForm, self).__init__(url=None, text=text, current=False)
+        super().__init__(url=None, text=text, current=False)
 
         self.add_link_url = add_link_url
         self.add_link_text = add_link_text
