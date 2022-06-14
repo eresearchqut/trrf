@@ -19,14 +19,9 @@
 
             $.fn.dataTable.ext.errMode = 'throw';
 
-            var initialPatientId = "{{patient_id}}";
-            var contextFormGroupId = "{{context_form_group_id}}";
-            var CONTEXT_LINK_COLUMN_INDEX = 2;
-            var CONTEXT_CREATED_DATE_COLUMN_INDEX = 3;
-            var CONTEXT_COLUMNS = [CONTEXT_LINK_COLUMN_INDEX, CONTEXT_CREATED_DATE_COLUMN_INDEX];
+            const registryCode = '{{ registry.code }}';
 
-
-            var api_url = "{% url 'patientslisting'  %}";
+            var api_url = "{% url 'patient_list' registry.code  %}";
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
 
             $("contextmenu").popover({ html: true });
@@ -42,7 +37,6 @@
 
                 $(".patient-forms-button").click(function () {
                     var button = $(this);
-                    var registryCode = getSelectedRegistry();
 
                     function showFormsList(html) {
                         var ul = button.parent().find("ul.dropdown-menu");
@@ -81,35 +75,9 @@
                 }
             }
 
-            function getSelectedRegistry() {
-                var code = $("#registry_options > option:selected").attr('id');
-                return code;
+            function getApiUrl(drawLength) {
+                return `${api_url}?${$.param({'length': drawLength})}`;
             }
-
-            function getApiUrl(registryCode, drawLength) {
-                var url;
-
-                if (initialPatientId == 'None') {
-                    url = api_url + "?registry_code=" + registryCode +
-                        "&length=" + drawLength;
-                }
-                else {
-                    url = api_url + "?registry_code=" + registryCode +
-                        "&length=" + drawLength + "&patient_id=" + initialPatientId;
-                }
-
-                if (contextFormGroupId != 'None') {
-                    url += "&context_form_group_id=" + contextFormGroupId;
-                }
-
-                return url;
-            }
-
-            if ({{ registries.0| has_feature:"no_add_patient_button" | yesno:"false,true" }} == false) {
-                $("#add_patient").hide();
-            }
-
-            var registryCode = getSelectedRegistry();
 
             var load_contexts_list;
             var context_list;
@@ -124,7 +92,7 @@
                     wireUpFormsButtons();
                 },
                 "ajax": {
-                    url: getApiUrl(registryCode, getDrawLength()),
+                    url: getApiUrl(getDrawLength()),
                     dataSrc: "rows",
                     type: "POST"
                 },
@@ -154,47 +122,20 @@
                 load_contexts_list = function () { $("#loading_text").hide(); }
             {% endif %}
 
-            $("#registry_options").change(function () {
-                $("#loading_text").show();
-                var registryCode = $("#registry_options > option:selected").attr("id");
-                var apiUrl = getApiUrl(registryCode, getDrawLength());
-                load_contexts_list(apiUrl);
-                wireUpFormsButtons();
-            });
-
-            $("#add_patient").click(function () {
-                var registryCode = null;
-                var addPatientUrl = '{% url "patient_add" "xxx" %}';
-                try {
-                    registryCode = $("#registry_options option:selected").attr('id');
-                    if (registryCode == "---") {
-                        alert("Please select registry first");
-                        return;
-                    }
-
-                    if (registryCode == undefined) {
-                        registryCode = "{{registries.0.code}}";
-                    }
-                } catch (err) {
-                    // one registry ?
-                    registryCode = "{{registries.0.code}}";
-                }
-                var location = addPatientUrl.replace("xxx", registryCode);
-                window.location.replace(location);
-            });
-
-            $("#registry_options").trigger("change");
+            // init
+            load_contexts_list(getApiUrl(getDrawLength()));
+            wireUpFormsButtons();
         });
     </script>
 {% endblock %}
 
 {% block formbtns %}
-    {% if not user.is_carer %}
+    {% if not user.is_carer and not registry|has_feature:"no_add_patient_button" %}
         <br>
         <div class="btn-group" role="group" aria-label="...">
-            <button id="add_patient" class="btn btn-success">
+            <a href="{% url 'patient_add' registry.code %}" class="btn btn-success">
                 <span class="fa fa-plus" aria-hidden="true"></span> {% trans 'Add Patient' %}
-            </button>
+            </a>
         </div>
     {% endif %}
 {% endblock %}
@@ -202,11 +143,6 @@
 {% block content %}
     <div class="container">
       <p>
-          <select id="registry_options">
-              {% for reg in registries %}
-                  <option id="{{ reg.code }}">{{ reg.name|translate }}</option>
-              {% endfor %}
-          </select>
           <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
       </p>
 

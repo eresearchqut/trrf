@@ -26,24 +26,29 @@ class LauncherError(Exception):
 
 class _Form:
 
-    def __init__(self, url, text, current=False, add_link_url=None, add_link_text=None):
+    def __init__(self, url, text, current=False):
         self.id = None
         self.url = url
         self.text = text
         self.current = current
-        self.add_link_url = add_link_url
-        self.add_link_text = add_link_text
         self.heading = ""
 
-        # Multiple contexts
+    def __str__(self):
+        return "Form %s %s %s" % (self.text, self.url, self.current)
+
+
+class _MultiContextForm(_Form):
+
+    def __init__(self, text, add_link_url, add_link_text):
+        super().__init__(url=None, text=text, current=False)
+
+        self.add_link_url = add_link_url
+        self.add_link_text = add_link_text
         self.existing_links = []
         self.existing_links_index = -1
         self.existing_links_len = 0
 
         self.list_link = ""
-
-    def __str__(self):
-        return "Form %s %s %s" % (self.text, self.url, self.current)
 
     @property
     def all_existing_links_shown(self):
@@ -168,7 +173,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
             "patient_listing_link": existing_data_link,
             "actions": self._get_actions(),
             "context_form_groups": context_form_groups,
-            "current_multiple_context": self._get_current_multiple_context(),
             "demographics_link": self._get_demographics_link(),
             "consents_link": self._get_consents_link(),
             "family_linkage_link": self._get_family_linkage_link(),
@@ -237,23 +241,16 @@ class RDRFContextLauncherComponent(RDRFComponent):
         if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
             return {}
 
-        # provide links to filtered view of the existing data
-        # reuses the patient/context listing
-        patients_listing_url = reverse("patientslisting")
-
         def _form(context_form_group):
             name = _("All " + context_form_group.direct_name)
-            filter_url = patients_listing_url + "?registry_code=%s&patient_id=%s&context_form_group_id=%s" % (
-                self.registry_model.code, self.patient_model.pk, context_form_group.pk)
 
             link_pair = context_form_group.get_add_action(self.patient_model)
             can_view = self.user.can_view(context_form_group.forms[0])
             if link_pair and can_view:
                 add_link_url, add_link_text = link_pair
-                form = _Form(filter_url,
-                             name,
-                             add_link_url=add_link_url,
-                             add_link_text=add_link_text)
+                form = _MultiContextForm(name,
+                                         add_link_url=add_link_url,
+                                         add_link_text=add_link_text)
 
                 form.heading = _(context_form_group.direct_name)
 
@@ -327,28 +324,6 @@ class RDRFContextLauncherComponent(RDRFComponent):
             links.append(link_obj)
 
         return list(links), current_index, total_forms
-
-    def _get_current_multiple_context(self):
-        # def get_form_links(user, patient_id, registry_model, context_model=None, current_form_name=""):
-        # provide links to other forms in this current context
-        # used when landing on a form in multiple context
-        registry_type = self.registry_model.registry_type
-        fg = None
-        if registry_type == RegistryType.HAS_CONTEXT_GROUPS:
-            if self.current_rdrf_context_model and self.current_rdrf_context_model.context_form_group:
-                cfg = self.current_rdrf_context_model.context_form_group
-                if cfg.context_type == "M":
-                    fg = _FormGroup(self.current_rdrf_context_model.display_name)
-                    for form_link in get_form_links(self.user,
-                                                    self.patient_model.pk,
-                                                    self.registry_model,
-                                                    self.current_rdrf_context_model,
-                                                    self.current_form_name):
-                        form = _Form(form_link.url,
-                                     form_link.text,
-                                     current=form_link.selected)
-                        fg.forms.append(form)
-        return fg
 
     def _get_fixed_contexts(self):
         # We can provide direct links to forms in these contexts as they

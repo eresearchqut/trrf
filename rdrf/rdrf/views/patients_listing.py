@@ -25,14 +25,23 @@ from registry.patients.models import Patient
 logger = logging.getLogger(__name__)
 
 
+class PatientsListsView(View):
+    def get(self, request):
+        registries = Registry.objects.filter_by_user(request.user)
+
+        if len(registries) == 1:
+            return redirect(reverse('patient_list', args=[registries.first().code]))
+
+        context = {'registries': registries}
+        return render(request, 'rdrf_cdes/patients_listing_all.html', context)
+
+
 class PatientsListingView(View):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.registry_model = None
         self.user = None
-        self.registries = []
-        self.patient_id = None
 
         # grid params
         self.custom_ordering = None
@@ -48,7 +57,7 @@ class PatientsListingView(View):
         self.context = {}
         self.bottom = MinType()
 
-    def get(self, request):
+    def get(self, request, registry_code):
         # get just displays the empty table and writes the page
         # which initiates an ajax/post request on registry select
         # the protocol is the jquery DataTable
@@ -57,9 +66,7 @@ class PatientsListingView(View):
 
         self.do_security_checks()
         self.set_csrf(request)
-        self.set_registry(request)
-        self.set_registries()  # for drop down
-        self.patient_id = request.GET.get("patient_id", None)
+        self.set_registry(registry_code)
         self.columns = [col.to_dict(i) for i, col in enumerate(self.get_configure_columns())]
         if not self.columns:
             raise PermissionDenied()
@@ -70,16 +77,12 @@ class PatientsListingView(View):
         return render(request, template, template_context)
 
     def get_template(self):
-        if not self.registries:
-            return 'rdrf_cdes/patients_listing_no_registries.html'
         return 'rdrf_cdes/patients_listing.html'
 
     def build_context(self):
         return {
-            "registries": self.registries,
             "location": _("Patient Listing"),
-            "patient_id": self.patient_id,
-            "registry_code": self.registry_model.code if self.registry_model else None,
+            "registry": self.registry_model,
             "columns": self.columns,
         }
 
@@ -93,7 +96,7 @@ class PatientsListingView(View):
             ColumnDiagnosisCurrency(_("Updated < 365 days"), "patients.can_see_diagnosis_currency"),
         ]
 
-        if any(r.has_feature(RegistryFeatures.STAGES) for r in self._users_registries()):
+        if self.registry_model.has_feature(RegistryFeatures.STAGES):
             columns.append(ColumnPatientStage(_("Stage"), "patients.can_see_data_modules"))
 
         columns += [
@@ -114,43 +117,32 @@ class PatientsListingView(View):
     def set_csrf(self, request):
         self.context.update(csrf(request))
 
-    def set_registry(self, request):
-        registry_code = request.GET.get("registry_code", None)
+    def set_registry(self, registry_code):
         if registry_code is not None:
             try:
                 self.registry_model = Registry.objects.get(code=registry_code)
             except Registry.DoesNotExist:
                 return HttpResponseRedirect("/")
 
-    def _users_registries(self):
-        return Registry.objects.all() if self.user.is_superuser else self.user.registry.all()
-
-    def set_registries(self):
-        if self.registry_model is None:
-            self.registries = [r for r in self._users_registries()]
-        else:
-            self.registries = [self.registry_model]
-
     def json(self, data):
         json_data = json.dumps(data)
         return HttpResponse(json_data, content_type="application/json")
 
-    def post(self, request):
+    def post(self, request, registry_code):
         # see http://datatables.net/manual/server-side
         self.user = request.user
         if self.user and self.user.is_anonymous:
             login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
-        self.set_parameters(request)
+        self.set_parameters(request, registry_code)
         self.set_csrf(request)
         rows = self.get_results(request)
         results_dict = self.get_results_dict(self.draw, rows)
         return self.json(results_dict)
 
-    def set_parameters(self, request):
+    def set_parameters(self, request, registry_code):
         self.user = request.user
-        self.registry_code = request.GET.get("registry_code")
-        self.registry_model = get_object_or_404(Registry, code=self.registry_code)
+        self.registry_model = get_object_or_404(Registry, code=registry_code)
 
         self.clinicians_have_patients = self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
         self.form_progress = FormProgress(self.registry_model)

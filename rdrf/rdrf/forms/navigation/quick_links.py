@@ -26,7 +26,6 @@ def make_link(url, text):
 
 
 class LinkDefs:
-    PatientsListing = make_link("patientslisting", _("Patient List"))
     LegacyReports = make_link("reports", _("Reports (Legacy)"))
     QuestionnaireResponses = make_link("admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
@@ -117,6 +116,7 @@ class Links:
 
     # only appear if related registry specific feature is set
     # Populated at runtime
+    PATIENTS = {}
     CONSENT = {}
     DOCTORS = {}
     FAMILY_LINKAGE = {}
@@ -134,7 +134,6 @@ class RegularLinks(Links):
         LinkDefs.FailedLoginLog,
         LinkDefs.LoginAttempts
     )
-    DATA_ENTRY = make_entries(LinkDefs.PatientsListing)
     EMAIL = make_entries(
         LinkDefs.EmailNotification,
         LinkDefs.EmailTemplate,
@@ -178,6 +177,7 @@ class MenuConfig:
         self.super_user = {}
         self.settings = {}
         self.all = {}
+        self.build_menu()
 
     def group_links(self, group_name):
         group = groups.reverse_lookup(group_name)
@@ -231,6 +231,9 @@ class MenuConfig:
         if has_stages and settings.DESIGN_MODE:
             Links.STAGES = Links.ENABLED_STAGES
 
+    def patient_links(self):
+        return {}
+
     def consent_links(self):
         return {}
 
@@ -254,6 +257,7 @@ class MenuConfig:
 
     def build_menu(self):
         # enable dynamic links and build the menu
+        self.patient_links()
         self.consent_links()
         self.doctors_link()
         self.family_linkage_links()
@@ -269,12 +273,12 @@ class RegularMenuConfig(MenuConfig):
     def __init__(self, registries):
         super().__init__(registries)
         self.working_group_staff = {
-            **RegularLinks.DATA_ENTRY
+            **RegularLinks.PATIENTS
         }
 
         self.working_group_curator = {
             **RegularLinks.CONSENT,
-            **RegularLinks.DATA_ENTRY,
+            **RegularLinks.PATIENTS,
             **RegularLinks.DOCTORS,
             **RegularLinks.REPORTS,
             **RegularLinks.LEGACY_REPORTS,
@@ -283,7 +287,7 @@ class RegularMenuConfig(MenuConfig):
         }
 
         self.clinical = {
-            **RegularLinks.DATA_ENTRY,
+            **RegularLinks.PATIENTS,
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REPORTS,
             **RegularLinks.LEGACY_REPORTS,
@@ -309,7 +313,7 @@ class RegularMenuConfig(MenuConfig):
         normal_menus = {
             **RegularLinks.AUDITING,
             **RegularLinks.CONSENT,
-            **RegularLinks.DATA_ENTRY,
+            **RegularLinks.PATIENTS,
             **RegularLinks.DOCTORS,
             **RegularLinks.EMAIL,
             **RegularLinks.FAMILY_LINKAGE,
@@ -329,6 +333,9 @@ class RegularMenuConfig(MenuConfig):
         self.all = normal_menus
         if settings.DESIGN_MODE:
             self.all.update({**Links.REGISTRY_DESIGN})
+
+    def patient_links(self):
+        Links.PATIENTS = self.per_registry_links('Patient List', 'patient_list')
 
     def consent_links(self):
         Links.CONSENT = self.per_registry_links('Consents', 'consent_list')
@@ -354,7 +361,6 @@ class QuickLinks:
 
     def __init__(self, registries):
         self.menu_config = self.REGULAR_MENU_CONFIG(registries)
-        self.menu_config.build_menu()
 
     def menu_links(self, groups, reports_disabled=False):
         return ordered_links(self.menu_config.menu_links(groups, reports_disabled))

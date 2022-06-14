@@ -129,6 +129,9 @@ class RegistryManager(models.Manager):
     def get_by_natural_key(self, code):
         return self.get(code=code)
 
+    def filter_by_user(self, user):
+        return self.model.objects.all() if user.is_superuser else user.registry.all().order_by('name')
+
 
 class RegistryType:
     NORMAL = 1                 # no exposed contexts - all forms stored in a default context
