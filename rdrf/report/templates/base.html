@@ -3,7 +3,7 @@
 {% load project_title %}
 {% load i18n %}
     
-<html>
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
     <head>
         <title>{% project_title %}</title>
         <meta charset="utf-8">
@@ -15,7 +15,7 @@
         <script type="text/javascript" src="{% static 'js/vendor/underscore-1.13.1.min.js' %}"></script>
         
         <link rel="stylesheet" href="{% static 'css/jquery-1.13.0/themes/smoothness/jquery-ui.min.css' %}">
-        <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">
+        {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.rtl.min.css' %}">{% else %}<link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">{% endif %}
         <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
         <link rel="stylesheet" href="{% static 'css/vendor/font-awesome.min.css' %}">
 

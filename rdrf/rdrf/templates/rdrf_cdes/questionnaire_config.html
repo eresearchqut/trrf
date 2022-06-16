@@ -1,5 +1,6 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html>
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
     <title>Questionnaire configuration for {{registry_form.name}}</title>
 </head>
