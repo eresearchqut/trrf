@@ -5,7 +5,7 @@ from itertools import chain
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import InvalidPage, Paginator
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.urls import reverse
@@ -18,7 +18,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import MinType, consent_check
 from rdrf.models.definition.models import Registry
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
-from registry.patients.models import Patient
+from registry.patients.models import Patient, LivingStates
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +51,12 @@ class PatientsListingView(View):
         self.columns = None
         self.patients_base = None  # Queryset of patients in registry, visible for user
         self.patients = None       # Queryset of patients_base with user-supplied filters applied
-        self.searchPanesOptions = None
         self.context = {}
         self.bottom = MinType()
+
+        # Filters
+        self.facets = None
+        self.living_status_filter = None
 
     def get(self, request, registry_code):
         # get just displays the empty table and writes the page
@@ -64,8 +67,11 @@ class PatientsListingView(View):
 
         self.do_security_checks()
         self.set_csrf(request)
-        self.set_registry(registry_code)
-        self.columns = [col.to_dict(i) for i, col in enumerate(self.get_configure_columns())]
+        self.registry_model = get_object_or_404(Registry, code=registry_code)
+
+        registry_config = PatientListConfiguration(self.registry_model)
+        self.columns = [col.to_dict(i) for i, col in enumerate(self.get_configure_columns(registry_config.get_columns()))]
+        self.facets = registry_config.get_facets()
         if not self.columns:
             raise PermissionDenied()
 
@@ -82,10 +88,10 @@ class PatientsListingView(View):
             "location": _("Patient Listing"),
             "registry": self.registry_model,
             "columns": self.columns,
+            "facets": self.facets
         }
 
-    def get_configure_columns(self):
-        columns = PatientListConfiguration(self.registry_model).get_columns()
+    def get_configure_columns(self, columns):
         for i, col in enumerate(columns):
             col.configure(self.registry_model, self.user, i)
         return [col for col in columns if col.user_can_see]
@@ -97,13 +103,6 @@ class PatientsListingView(View):
     def set_csrf(self, request):
         self.context.update(csrf(request))
 
-    def set_registry(self, registry_code):
-        if registry_code is not None:
-            try:
-                self.registry_model = Registry.objects.get(code=registry_code)
-            except Registry.DoesNotExist:
-                return HttpResponseRedirect("/")
-
     def json(self, data):
         json_data = json.dumps(data)
         return HttpResponse(json_data, content_type="application/json")
@@ -114,15 +113,18 @@ class PatientsListingView(View):
         if self.user and self.user.is_anonymous:
             login_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
             return redirect(login_url)
-        self.set_parameters(request, registry_code)
+        self._set_data_parameters(request, registry_code)
         self.set_csrf(request)
         rows = self.get_results(request)
         results_dict = self.get_results_dict(self.draw, rows)
         return self.json(results_dict)
 
-    def set_parameters(self, request, registry_code):
+    def _set_data_parameters(self, request, registry_code):
         self.user = request.user
         self.registry_model = get_object_or_404(Registry, code=registry_code)
+
+        registry_config = PatientListConfiguration(self.registry_model)
+        self.facets = registry_config.get_facets()
 
         self.clinicians_have_patients = self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
         self.form_progress = FormProgress(self.registry_model)
@@ -143,7 +145,14 @@ class PatientsListingView(View):
 
         self.sort_field, self.sort_direction = self.get_ordering(request)
 
-        self.columns = self.get_configure_columns()
+        self.columns = self.get_configure_columns(registry_config.get_columns())
+
+        def get_valid_filter(request, param, valid_choices):
+            user_value = request.POST.get(param)
+            valid_states = {val for val, _ in valid_choices}
+            return user_value if user_value in valid_states else None
+
+        self.living_status_filter = get_valid_filter(request, 'searchPanes[living_status][0]', LivingStates.CHOICES)
 
     def get_results(self, request):
         if self.registry_model is None:
@@ -262,6 +271,9 @@ class PatientsListingView(View):
             stage_filter = Q(stage__name__istartswith=self.search_term)
             self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
+        if self.living_status_filter:
+            self.patients = self.patients.filter(living_status=self.living_status_filter)
+
     def filter_by_user_and_registry(self):
         return Patient.objects.get_by_user_and_registry(self.user, self.registry_model)
 
@@ -282,9 +294,19 @@ class PatientsListingView(View):
             "recordsTotal": self.patients_base.count(),
             "recordsFiltered": self.patients.count(),
             "rows": rows,
+            "searchPanes": {"options": self._get_facet_options()}
         }
-        if self.searchPanesOptions:
-            results["searchPanes"] = {
-                "options": self.searchPanesOptions
-            }
         return results
+
+    def _get_facet_options(self):
+        def choice_to_option(value, label):
+            return dict(
+                label=str(label),  # enforcing translation of gettext_lazy label
+                value=value,
+                total=self.patients_base.filter(living_status=value).count(),
+                count=self.patients.filter(living_status=value).count())
+
+        all_facets = {
+            "living_status": [choice_to_option(*x) for x in LivingStates.CHOICES]
+        }
+        return {key: val for key, val in all_facets.items() if key in self.facets}

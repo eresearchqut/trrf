@@ -1,8 +1,5 @@
-from unittest import TestCase
-
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
-from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
 from rdrf.testing.unit.tests import RDRFTestCase
 

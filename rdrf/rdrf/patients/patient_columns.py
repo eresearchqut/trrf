@@ -192,3 +192,16 @@ class ColumnContextMenu(Column):
 
     def sort_key(self, *args, **kwargs):
         return None
+
+
+class ColumnDateLastUpdated(Column):
+    field = "last_updated_overall_at"
+
+    def fmt(self, val):
+        return date_format(val) if val is not None else ""
+
+
+class ColumnLivingStatus(Column):
+    field = "living_status"
+    sort_fields = ["living_status"]
+    visible = False

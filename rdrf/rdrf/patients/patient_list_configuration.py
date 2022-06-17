@@ -4,13 +4,15 @@ from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
-    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu
+    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
+    ColumnDateLastUpdated
 
 logger = logging.getLogger(__name__)
 
+
 class PatientListConfiguration:
 
-    def  __init__(self, registry):
+    def __init__(self, registry):
         self.registry = registry
         self.config = self._load_config()
         logger.debug(f'Loaded config for registry {self.registry}: {self.config}')
@@ -26,15 +28,27 @@ class PatientListConfiguration:
                 'diagnosis_currency': {'label': 'Updated < 365 days', 'permission': 'patients.can_see_diagnosis_currency', 'class': ColumnDiagnosisCurrency},
                 'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
                 'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
+                'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
+                'living_status': {'label': 'Living Status', 'permission': 'patients.can_see_living_status', 'class': ColumnLivingStatus},
             }
         }
 
-    def _get_default(self):
+    def _get_available_facets(self):
+        return ['living_status']
+
+    def _default_patient_list_configuration(self):
         return {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
                             'diagnosis_currency', 'stage', 'modules']}
 
     def _load_config(self):
-        return self.registry.get_metadata_item('patient_list') or self._get_default()
+        return self.registry.get_metadata_item('patient_list') or self._default_patient_list_configuration()
+
+    def get_facets(self):
+        # Expecting facets to be defined as: {"living_status": {"default": "Alive"}}
+        facets = {key: value for key, value in self.config.get('facets', {}).items()
+                  if key in self._get_available_facets()}
+        logger.debug(f'facets={facets}')
+        return facets
 
     def get_columns(self):
         def get_column_key_and_config(column):
@@ -48,13 +62,16 @@ class PatientListConfiguration:
         def get_column_config(key):
             return self._get_available_columns().get('columns', {}).get(key)
 
-        if not self.registry: return []
-
         columns = []
         for column in self.config.get('columns', []):
             column_key, custom_config = get_column_key_and_config(column)
             column_config = get_column_config(column_key)
 
+            # Ignore unsupported columns
+            if not column_config:
+                continue
+
+            # Merge custom config with default config. Custom config takes precedence.
             if custom_config:
                 column_config = {**column_config, **custom_config}
 
