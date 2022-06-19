@@ -20,7 +20,7 @@
     <title>{% project_title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.rtl.min.css' %}">{% else %}<link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">{% endif %}
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/' %}{% if LANGUAGE_BIDI %}bootstrap.rtl.min.css{% else %}bootstrap.min.css{% endif %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-slider-11.0.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
