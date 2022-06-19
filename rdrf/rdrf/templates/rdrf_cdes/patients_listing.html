@@ -5,6 +5,8 @@
 
 {% load translate %}
 
+{% load lookup %}
+
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'vendor/datatables-1.12.0/css/datatables.min.css' %}">
@@ -81,8 +83,6 @@
 
             var load_contexts_list;
             var context_list;
-
-            {% block datatables-config %}
             var dataTablesConfig = {
                 "processing": true,
                 "serverSide": true,
@@ -98,7 +98,77 @@
                 },
                 "columns": columnDefinitions,
             };
-            {% endblock datatables-config %}
+
+            const find_column_definition = function(column_id) {
+                return columnDefinitions.find((column_def) => column_def.data == column_id)
+            };
+
+            const filter_definitions = [];
+
+            {% for key, value in facets.items %}
+                const column = find_column_definition("{{ key }}");
+                if (column) {
+                    filter_definitions.push({'column': column, 'default': '{{ value|lookup:'default'}}'});
+                }
+            {% endfor %}
+
+            if (filter_definitions.length > 0) {
+
+                const searchPane_preselects = [];
+
+                // Pre-select default filter values if applicable
+                for (filter of filter_definitions) {
+                    if (filter.default) {
+                        searchPane_preselects.push({
+                            rows: [filter.default],
+                            column: filter.column.order
+                        });
+                    }
+                }
+
+                // Build a list of searchPane targets based on the columns the user has access to.
+                const searchPane_targets = filter_definitions.map(filter => filter.column.order);
+
+                $.extend(dataTablesConfig,
+                  {
+                    "dom": "B<'row mb-2'><'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    "deferLoading": null,  // disable deferred loading otherwise preSelect filter doesn't work on initial page load
+                    "buttons": [
+                        {
+                            extend: 'searchPanes',
+                            config: {
+                                cascadePanes: false,
+                                dtOpts: {
+                                  select: {
+                                    style: "single"
+                                  }
+                                },
+                                preSelect: searchPane_preselects,
+                                controls: false,
+                                // Note: if setting viewTotal to true preSelect doesn't work on initial page load
+                                // viewTotal: true
+                            }
+                        }
+                    ],
+                    "columnDefs": [
+                        {
+                        searchPanes: {
+                            show: true
+                        },
+                        targets: searchPane_targets
+                    }],
+                    "language": {
+                        searchPanes: {
+                            collapse: {
+                                0: "{% trans 'Filters (none)' %}",
+                                1: "{% trans 'Filters'%} (%d)"
+                            }
+                        }
+                    },
+                  });
+            }
 
             {% if columns %}
                 context_list = $("#patients_table").DataTable(

@@ -222,10 +222,7 @@ class Registry(models.Model):
             return {}
 
     def get_metadata_item(self, item):
-        try:
-            return self.metadata[item]
-        except KeyError:
-            return True
+        return self.metadata.get(item, None)
 
     @property
     def questionnaire(self):
