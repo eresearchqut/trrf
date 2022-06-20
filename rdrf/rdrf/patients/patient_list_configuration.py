@@ -6,6 +6,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
     ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
     ColumnDateLastUpdated
+from registry.patients.models import LivingStates
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,15 @@ class PatientListConfiguration:
         }
 
     def _get_available_facets(self):
-        return ['living_status']
+        def choice_to_option(value, label):
+            return dict( label=str(label),  # enforcing translation of gettext_lazy label
+                         value=value)
+
+        return {
+            "living_status": {'label': _('Living Status'),
+                              'options': [choice_to_option(*x) for x in LivingStates.CHOICES],
+                              'default': None}
+        }
 
     def _default_patient_list_configuration(self):
         return {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
@@ -44,11 +53,14 @@ class PatientListConfiguration:
         return self.registry.get_metadata_item('patient_list') or self._default_patient_list_configuration()
 
     def get_facets(self):
-        # Expecting facets to be defined as: {"living_status": {"default": "Alive"}}
-        facets = {key: value for key, value in self.config.get('facets', {}).items()
-                  if key in self._get_available_facets()}
-        logger.debug(f'facets={facets}')
-        return facets
+        available_facets = self._get_available_facets()
+        configured_facets = {}
+
+        for key, configured_facet in self.config.get('facets', {}).items():
+            if key in available_facets.keys():
+                configured_facets[key] = {**available_facets[key], **configured_facet}
+
+        return configured_facets
 
     def get_columns(self):
         def get_column_key_and_config(column):
@@ -62,7 +74,7 @@ class PatientListConfiguration:
         def get_column_config(key):
             return self._get_available_columns().get('columns', {}).get(key)
 
-        columns = []
+        columns = {}
         for column in self.config.get('columns', []):
             column_key, custom_config = get_column_key_and_config(column)
             column_config = get_column_config(column_key)
@@ -84,6 +96,6 @@ class PatientListConfiguration:
             label = column_config.get('label')
             permission = column_config.get('permission')
 
-            columns.append(column_class(_(label), permission))
+            columns[column_key] = column_class(_(label), permission)
 
         return columns
