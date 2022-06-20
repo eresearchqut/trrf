@@ -1,6 +1,8 @@
+{% load i18n %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html>
 {% load static %}
-<html>
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 
 <head>
     <title>Migration</title>

@@ -11,15 +11,16 @@
 {% load project_title_link %}
 {% load translate %}
 {% block htmltype %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 {% endblock %}
 
 <head>
     <title>{% project_title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-5.1.0/css/' %}{% if LANGUAGE_BIDI %}bootstrap.rtl.min.css{% else %}bootstrap.min.css{% endif %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-overrides.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'vendor/bootstrap-slider-11.0.2/css/bootstrap-slider.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
