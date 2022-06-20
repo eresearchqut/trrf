@@ -36,8 +36,8 @@ class PatientListConfiguration:
 
     def _get_available_facets(self):
         def choice_to_option(value, label):
-            return dict( label=str(label),  # enforcing translation of gettext_lazy label
-                         value=value)
+            return dict(label=str(label),  # enforcing translation of gettext_lazy label
+                        value=value)
 
         return {
             "living_status": {'label': _('Living Status'),

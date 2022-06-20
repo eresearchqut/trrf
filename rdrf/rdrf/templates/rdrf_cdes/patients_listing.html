@@ -177,17 +177,17 @@
 
       <div class="row">
         {% if facets %}
-        <div class="col-2">
+        <div class="col-lg-3 col-xxl-2">
           <div class="card">
-            <div class="card-header text-white bg-primary">Filters</div>
+            <h5 class="card-header text-white bg-primary">Filters</h5>
             <ul class="list-group list-group-flush trrf-filters">
               {% for key,facet_config in facets.items %}
                 <li class="list-group-item">
-                  <span>{{ facet_config|lookup:'label' }}:</span>
-                  <ul class="list-group list-group-flush">
+                  <h6>{{ facet_config|lookup:'label' }}</h6>
+                  <ul class="list-group list-group-flush" id="filter-{{ key }}">
                   {% for option in facet_config|lookup:'options' %}
                     {% with label=option|lookup:'label' value=option|lookup:'value' count=option|lookup:'count' %}
-                      <li class="list-group-item" id="option-{{ key }}-{{ value }}">
+                      <li class="list-group-item pt-1 pb-0 border-0" id="option-{{ key }}-{{ value }}">
                         <input class="form-check-input" type="checkbox" name="filter_{{ key }}" value="{{ value }}" id="filter-{{ key }}-{{ value }}"
                           {% if value == facet_config|lookup:'default' %}
                                 checked="checked"
@@ -206,7 +206,7 @@
             </ul>
           </div>
         </div>
-        <div class="col-10">
+        <div class="col-lg-9 col-xxl-10">
         {% else %}
         <div class="col-12">
         {% endif %}

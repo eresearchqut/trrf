@@ -18,7 +18,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import MinType, consent_check
 from rdrf.models.definition.models import Registry
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
-from registry.patients.models import Patient, LivingStates
+from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +99,8 @@ class PatientsListingView(View):
         for i, (column_key, datatable_column) in enumerate(registry_columns.items()):
             datatable_column.configure(self.registry_model, self.user, i)
 
-        user_columns_dict = {key:val for key,val in registry_columns.items() if val.user_can_see}
-        user_facets = {key:val for key,val in registry_facets.items() if key in user_columns_dict.keys()}
+        user_columns_dict = {key: val for key, val in registry_columns.items() if val.user_can_see}
+        user_facets = {key: val for key, val in registry_facets.items() if key in user_columns_dict.keys()}
         user_columns = user_columns_dict.values()
 
         if column_to_dict:
