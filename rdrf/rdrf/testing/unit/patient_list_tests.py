@@ -1,5 +1,6 @@
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
+from rdrf.patients.patient_columns import ColumnFullName
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
 from rdrf.testing.unit.tests import RDRFTestCase
 
@@ -47,3 +48,19 @@ class PatientListTests(RDRFTestCase):
         self.assertEqual(["living_status"], [key for key in facets.keys()])
         self.assertEqual("Living Status", facets['living_status']['label'])
         self.assertEqual("Alive", facets['living_status']['default'])
+
+    def testExtensibilityOfPatientListConfiguration(self):
+        class ExtendPatientListConfiguration(PatientListConfiguration):
+            def __init__(self, registry):
+                super().__init__(registry)
+                self.available_columns.update({
+                    'full_name_2': {'label': 'Full Name', 'permission': 'patients.can_see_full_name',
+                                    'class': ColumnFullName}
+                })
+
+        self.registry.metadata_json = '{"patient_list": {"columns": [{"full_name": {"label": "Full name"}}, {"full_name_2": {"label": "Full name"}}]}}'
+        self.registry.save()
+
+        extended_patient_list = ExtendPatientListConfiguration(self.registry)
+
+        self.assertEqual(len(extended_patient_list.get_columns().keys()), 2)

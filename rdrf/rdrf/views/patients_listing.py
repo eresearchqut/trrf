@@ -69,7 +69,7 @@ class PatientsListingView(View):
         self.set_csrf(request)
         self.registry_model = get_object_or_404(Registry, code=registry_code)
 
-        self.columns, self.facets = self.get_user_table_config(column_to_dict=True)
+        self.columns, self.facets = self.get_user_table_config()
 
         if not self.columns:
             raise PermissionDenied()
@@ -86,11 +86,11 @@ class PatientsListingView(View):
         return {
             "location": _("Patient Listing"),
             "registry": self.registry_model,
-            "columns": self.columns,
+            "columns": [column.to_dict(i) for i, column in enumerate(self.columns)],
             "facets": self.facets
         }
 
-    def get_user_table_config(self, column_to_dict=False):
+    def get_user_table_config(self):
         registry_config = PatientListConfiguration(self.registry_model)
         registry_columns = registry_config.get_columns()
         registry_facets = registry_config.get_facets()
@@ -102,9 +102,6 @@ class PatientsListingView(View):
         user_columns_dict = {key: val for key, val in registry_columns.items() if val.user_can_see}
         user_facets = {key: val for key, val in registry_facets.items() if key in user_columns_dict.keys()}
         user_columns = user_columns_dict.values()
-
-        if column_to_dict:
-            user_columns = [column.to_dict(i) for i, column in enumerate(user_columns)]
 
         # initialise filters
         self._set_facet_counts(user_facets)
@@ -157,7 +154,7 @@ class PatientsListingView(View):
 
         self.sort_field, self.sort_direction = self.get_ordering(request)
 
-        self.columns, self.facets = self.get_user_table_config(column_to_dict=False)
+        self.columns, self.facets = self.get_user_table_config()
 
         def get_valid_filter(request, param, valid_choices):
             user_value = request.POST.get(param)
