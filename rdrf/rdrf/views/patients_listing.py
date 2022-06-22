@@ -155,12 +155,6 @@ class PatientsListingView(View):
         self.sort_field, self.sort_direction = self.get_ordering(request)
 
         self.columns, self.facets = self.get_user_table_config()
-
-        def get_valid_filter(request, param, valid_choices):
-            user_value = request.POST.get(param)
-            valid_states = {val for val, _ in valid_choices}
-            return user_value if user_value in valid_states else None
-
         self.selected_filters = self._get_request_filters(request, self.facets)
 
     def _get_request_filters(self, request, facets):
