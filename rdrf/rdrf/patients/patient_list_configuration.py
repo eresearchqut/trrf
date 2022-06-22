@@ -45,19 +45,15 @@ class PatientListConfiguration:
         self.registry = registry
         self.config = self._load_config()
 
-        # Set as class variables to allow for being overridden in a sub class
-        self.available_columns = PatientListConfiguration.AVAILABLE_COLUMNS
-        self.available_facets = PatientListConfiguration.AVAILABLE_FACETS
-
     def _load_config(self):
-        return self.registry.get_metadata_item('patient_list') or PatientListConfiguration.DEFAULT_CONFIGURATION
+        return self.registry.get_metadata_item('patient_list') or self.DEFAULT_CONFIGURATION
 
     def get_facets(self):
         configured_facets = {}
 
         for key, configured_facet in self.config.get('facets', {}).items():
-            if key in self.available_facets.keys():
-                configured_facets[key] = {**self.available_facets[key], **configured_facet}
+            if key in self.AVAILABLE_FACETS.keys():
+                configured_facets[key] = {**self.AVAILABLE_FACETS[key], **configured_facet}
 
         return configured_facets
 
@@ -71,7 +67,7 @@ class PatientListConfiguration:
                 raise 'Expected column config to be a string or a dict'
 
         def get_column_config(key):
-            return self.available_columns.get(key)
+            return self.AVAILABLE_COLUMNS.get(key)
 
         columns = {}
         for column in self.config.get('columns', []):

@@ -53,14 +53,16 @@ class PatientListTests(RDRFTestCase):
         class ExtendPatientListConfiguration(PatientListConfiguration):
             def __init__(self, registry):
                 super().__init__(registry)
-                self.available_columns.update({
+                self.AVAILABLE_COLUMNS = {**self.AVAILABLE_COLUMNS, **{
                     'full_name_2': {'label': 'Full Name', 'permission': 'patients.can_see_full_name',
                                     'class': ColumnFullName}
-                })
+                }}
 
         self.registry.metadata_json = '{"patient_list": {"columns": [{"full_name": {"label": "Full name"}}, {"full_name_2": {"label": "Full name"}}]}}'
         self.registry.save()
 
+        base_patient_list = PatientListConfiguration(self.registry)
         extended_patient_list = ExtendPatientListConfiguration(self.registry)
 
+        self.assertEqual(len(base_patient_list.get_columns().keys()), 1)
         self.assertEqual(len(extended_patient_list.get_columns().keys()), 2)
