@@ -6,49 +6,56 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
     ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
     ColumnDateLastUpdated
+from registry.patients.models import LivingStates
 
 logger = logging.getLogger(__name__)
 
 
+def choice_to_option(value, label):
+    return dict(label=str(label),  # enforcing translation of gettext_lazy label
+                value=value)
+
+
 class PatientListConfiguration:
+
+    AVAILABLE_COLUMNS = {
+        'full_name': {'label': 'Patient', 'permission': 'patients.can_see_full_name', 'class': ColumnFullName},
+        'date_of_birth': {'label': 'Date of Birth', 'permission': 'patients.can_see_dob', 'class': ColumnDateOfBirth},
+        'code': {'label': 'Code', 'permission': 'patients.can_see_code_field', 'class': ColumnCodeField},
+        'working_groups': {'label': 'Working Groups', 'permission': 'patients.can_see_working_groups', 'class': ColumnWorkingGroups},
+        'diagnosis_progress': {'label': 'Diagnosis Entry Progress', 'permission': 'patients.can_see_diagnosis_progress', 'class': ColumnDiagnosisProgress},
+        'diagnosis_currency': {'label': 'Updated < 365 days', 'permission': 'patients.can_see_diagnosis_currency', 'class': ColumnDiagnosisCurrency},
+        'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
+        'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
+        'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
+        'living_status': {'label': 'Living Status', 'permission': 'patients.can_see_living_status', 'class': ColumnLivingStatus},
+    }
+
+    AVAILABLE_FACETS = {
+        "living_status": {'label': _('Living Status'),
+                          'options': [choice_to_option(*x) for x in LivingStates.CHOICES],
+                          'default': None}
+    }
+
+    DEFAULT_CONFIGURATION = {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
+                                         'diagnosis_currency', 'stage', 'modules'],
+                             'facets': {}}
 
     def __init__(self, registry):
         self.registry = registry
         self.config = self._load_config()
-        logger.debug(f'Loaded config for registry {self.registry}: {self.config}')
-
-    def _get_available_columns(self):
-        return {
-            'columns': {
-                'full_name': {'label': 'Patient', 'permission': 'patients.can_see_full_name', 'class': ColumnFullName},
-                'date_of_birth': {'label': 'Date of Birth', 'permission': 'patients.can_see_dob', 'class': ColumnDateOfBirth},
-                'code': {'label': 'Code', 'permission': 'patients.can_see_code_field', 'class': ColumnCodeField},
-                'working_groups': {'label': 'Working Groups', 'permission': 'patients.can_see_working_groups', 'class': ColumnWorkingGroups},
-                'diagnosis_progress': {'label': 'Diagnosis Entry Progress', 'permission': 'patients.can_see_diagnosis_progress', 'class': ColumnDiagnosisProgress},
-                'diagnosis_currency': {'label': 'Updated < 365 days', 'permission': 'patients.can_see_diagnosis_currency', 'class': ColumnDiagnosisCurrency},
-                'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
-                'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
-                'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
-                'living_status': {'label': 'Living Status', 'permission': 'patients.can_see_living_status', 'class': ColumnLivingStatus},
-            }
-        }
-
-    def _get_available_facets(self):
-        return ['living_status']
-
-    def _default_patient_list_configuration(self):
-        return {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
-                            'diagnosis_currency', 'stage', 'modules']}
 
     def _load_config(self):
-        return self.registry.get_metadata_item('patient_list') or self._default_patient_list_configuration()
+        return self.registry.get_metadata_item('patient_list') or self.DEFAULT_CONFIGURATION
 
     def get_facets(self):
-        # Expecting facets to be defined as: {"living_status": {"default": "Alive"}}
-        facets = {key: value for key, value in self.config.get('facets', {}).items()
-                  if key in self._get_available_facets()}
-        logger.debug(f'facets={facets}')
-        return facets
+        configured_facets = {}
+
+        for key, configured_facet in self.config.get('facets', {}).items():
+            if key in self.AVAILABLE_FACETS.keys():
+                configured_facets[key] = {**self.AVAILABLE_FACETS[key], **configured_facet}
+
+        return configured_facets
 
     def get_columns(self):
         def get_column_key_and_config(column):
@@ -60,9 +67,9 @@ class PatientListConfiguration:
                 raise 'Expected column config to be a string or a dict'
 
         def get_column_config(key):
-            return self._get_available_columns().get('columns', {}).get(key)
+            return self.AVAILABLE_COLUMNS.get(key)
 
-        columns = []
+        columns = {}
         for column in self.config.get('columns', []):
             column_key, custom_config = get_column_key_and_config(column)
             column_config = get_column_config(column_key)
@@ -84,6 +91,6 @@ class PatientListConfiguration:
             label = column_config.get('label')
             permission = column_config.get('permission')
 
-            columns.append(column_class(_(label), permission))
+            columns[column_key] = column_class(_(label), permission)
 
         return columns
