@@ -3,4 +3,4 @@ sphinxcontrib-fulltoc
 Werkzeug==2.0.3
 python-Levenshtein
 ipython
-django-silk
+django-silk==4.4.0
