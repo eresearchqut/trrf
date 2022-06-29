@@ -18,7 +18,9 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import MinType, consent_check
 from rdrf.models.definition.models import Registry
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
+from rdrf.patients.query_data import PatientQueryData
 from registry.patients.models import Patient
+from report.schema import FacetType
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,20 @@ class PatientsListingView(View):
         # Filters
         self.facets = None
         self.selected_filters = None
+
+    def _user_facets(self, registry_facets):
+        patient_query = PatientQueryData(self.registry_model)
+        facet_values = patient_query.get_facet_values(self.request, registry_facets.keys())
+        facet_types_dict = {facet_type.field: facet_type for facet_type in [FacetType(**value) for value in facet_values]}
+
+        user_facets = {}
+        for key, facet_config in registry_facets.items():
+            facet_type = facet_types_dict.get(key)
+            facet_permission = facet_config.get('permission')
+            if facet_type and (not facet_permission or self.user.has_perm(facet_permission)):
+                user_facets[key] = {**facet_config, **{'categories': facet_type.categories}}
+
+        return user_facets
 
     def get(self, request, registry_code):
         # get just displays the empty table and writes the page
@@ -99,12 +115,10 @@ class PatientsListingView(View):
         for i, (column_key, datatable_column) in enumerate(registry_columns.items()):
             datatable_column.configure(self.registry_model, self.user, i)
 
-        user_columns_dict = {key: val for key, val in registry_columns.items() if val.user_can_see}
-        user_facets = {key: val for key, val in registry_facets.items() if key in user_columns_dict.keys()}
-        user_columns = user_columns_dict.values()
+        user_columns = [value for key, value in registry_columns.items() if value.user_can_see]
 
         # initialise filters
-        self._set_facet_counts(user_facets)
+        user_facets = self._user_facets(registry_facets)
 
         return user_columns, user_facets
 
@@ -160,10 +174,13 @@ class PatientsListingView(View):
     def _get_request_filters(self, request, facets):
         filters = {}  # e.g. {'living_status': 'Alive'}
         for key, val in facets.items():
-            valid_options = [option.get('value') for option in val.get('options')]
-            request_values = [value for value in request.POST.getlist(f'filter[{key}][]') if value in valid_options]
-            if request_values:
-                filters[key] = request_values
+            valid_options = [option.get('value') for option in val.get('categories')]
+            selected_filter_values = [value if value != "None" else None
+                                      for value in request.POST.getlist(f'filter[{key}][]')]
+
+            valid_filter_values = [value for value in selected_filter_values if value in valid_options]
+            if valid_filter_values:
+                filters[key] = valid_filter_values
         return filters
 
     def get_results(self, request):
@@ -284,8 +301,15 @@ class PatientsListingView(View):
             self.patients = self.patients.filter(Q(name_filter | stage_filter))
 
         if self.selected_filters:
-            model_filters = {f'{key}__in': values for key, values in self.selected_filters.items()}
-            self.patients = self.patients.filter(**model_filters)
+            patient_filters = []
+            for field, filter_values in self.selected_filters.items():
+                field_filter = {f'{field}__in': [value for value in filter_values if value is not None]}
+                if None in filter_values:
+                    patient_filters.append(Q(**field_filter) | Q(**{f'{field}__isnull': True}))
+                else:
+                    patient_filters.append(Q(**field_filter))
+
+            self.patients = self.patients.filter(*patient_filters)
 
     def filter_by_user_and_registry(self):
         return Patient.objects.get_by_user_and_registry(self.user, self.registry_model)
@@ -306,25 +330,6 @@ class PatientsListingView(View):
             "draw": draw,
             "recordsTotal": self.patients_base.count(),
             "recordsFiltered": self.patients.count(),
-            "rows": rows,
-            "facets": self._get_facet_options()
+            "rows": rows
         }
         return results
-
-    def _set_facet_counts(self, facets):
-        for key, facet_config in facets.items():
-            for option in facet_config.get('options', []):
-                count, total = 0, 0
-                filter_dict = {key: option.get('value')}
-
-                if self.patients:
-                    count = self.patients.filter(**filter_dict).count()
-                if self.patients_base:
-                    total = self.patients_base.filter(**filter_dict).count()
-
-                option['count'] = count
-                option['total'] = total
-
-    def _get_facet_options(self):
-        self._set_facet_counts(self.facets)
-        return {key: facet_config.get('options', []) for key, facet_config in self.facets.items()}

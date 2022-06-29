@@ -6,14 +6,8 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
     ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
     ColumnDateLastUpdated
-from registry.patients.models import LivingStates
 
 logger = logging.getLogger(__name__)
-
-
-def choice_to_option(value, label):
-    return dict(label=str(label),  # enforcing translation of gettext_lazy label
-                value=value)
 
 
 class PatientListConfiguration:
@@ -28,13 +22,15 @@ class PatientListConfiguration:
         'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
         'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
         'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
+
+        # ERE-1845 - For backwards-compatibility support only
+        # Delete me after patient_list metadata_json has been reconfigured to new required format
         'living_status': {'label': 'Living Status', 'permission': 'patients.can_see_living_status', 'class': ColumnLivingStatus},
     }
 
     AVAILABLE_FACETS = {
-        "living_status": {'label': _('Living Status'),
-                          'options': [choice_to_option(*x) for x in LivingStates.CHOICES],
-                          'default': None}
+        "living_status": {'label': _('Living Status'), 'permission': 'patients.can_see_living_status', 'default': None},
+        "working_groups__id": {'label': _('Working Groups'), 'permission': None, 'default': None}
     }
 
     DEFAULT_CONFIGURATION = {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
@@ -48,30 +44,39 @@ class PatientListConfiguration:
     def _load_config(self):
         return self.registry.get_metadata_item('patient_list') or self.DEFAULT_CONFIGURATION
 
+    @staticmethod
+    def _get_item_key_and_config(config_item):
+        if isinstance(config_item, str):
+            return config_item, {}
+        elif isinstance(config_item, dict):
+            return next(iter(config_item.items()))
+        else:
+            raise 'Expected config item to be a string or a dict'
+
     def get_facets(self):
         configured_facets = {}
 
-        for key, configured_facet in self.config.get('facets', {}).items():
+        registry_config_facets = self.config.get('facets', [])
+
+        # ERE-1845 - For backwards-compatibility support only
+        # Delete me after patient_list metadata_json has been reconfigured to new required format
+        if isinstance(registry_config_facets, dict):
+            registry_config_facets = [{key: value} for key, value in registry_config_facets.items()]
+
+        for facet_config_item in registry_config_facets:
+            key, configured_facet = self._get_item_key_and_config(facet_config_item)
             if key in self.AVAILABLE_FACETS.keys():
                 configured_facets[key] = {**self.AVAILABLE_FACETS[key], **configured_facet}
 
         return configured_facets
 
     def get_columns(self):
-        def get_column_key_and_config(column):
-            if isinstance(column, str):
-                return column, None
-            elif isinstance(column, dict):
-                return next(iter(column.items()))
-            else:
-                raise 'Expected column config to be a string or a dict'
-
         def get_column_config(key):
             return self.AVAILABLE_COLUMNS.get(key)
 
         columns = {}
         for column in self.config.get('columns', []):
-            column_key, custom_config = get_column_key_and_config(column)
+            column_key, custom_config = self._get_item_key_and_config(column)
             column_config = get_column_config(column_key)
 
             # Ignore unsupported columns
@@ -79,8 +84,7 @@ class PatientListConfiguration:
                 continue
 
             # Merge custom config with default config. Custom config takes precedence.
-            if custom_config:
-                column_config = {**column_config, **custom_config}
+            column_config = {**column_config, **custom_config}
 
             # Early exit if this column requires a feature which is not enabled
             feature = column_config.get('feature', None)

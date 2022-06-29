@@ -11,10 +11,12 @@ from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
-from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
+    ConsentRule
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
-    PatientGUID, ParentGuardian
+    PatientGUID, ParentGuardian, LivingStates
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,8 @@ class QueryResult:
 
 
 class FacetValueType(ObjectType):
-    category = graphene.String()
+    label = graphene.String()
+    value = graphene.String()
     total = graphene.Int()
 
 
@@ -419,19 +422,38 @@ def list_patients_query(user,
         for code in consent_question_codes:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question__code=code)
 
+    if registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
+        consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
+        for consent_question in [consent_rule.consent_question for consent_rule in consent_rules]:
+            patient_query = patient_query.filter(consents__answer=True, consents__consent_question=consent_question)
+
     return patient_query.distinct()
 
 
 def create_dynamic_all_patients_type():
     def resolve_facets(parent: QueryResult, info):
+        def get_living_status_label(status_id):
+            living_states_dict = {choice_id: choice_label for choice_id, choice_label in LivingStates.CHOICES}
+            return living_states_dict.get(status_id)
+
+        def get_working_groups_name(wg_id):
+            if wg_id:
+                return WorkingGroup.objects.get(id=wg_id).name
+
         facet_fields = []
-        available_facets = ['living_status', 'working_groups__name']
-        for facet_field in available_facets:
+        available_facets = [('living_status', get_living_status_label),
+                            ('working_groups__id', get_working_groups_name)]
+        for facet in available_facets:
+            facet_field, get_label = facet
             results = parent.all_patients.values(facet_field).annotate(total=Count('id')).order_by()
-            facet_fields.append({'field': facet_field,
-                                 'categories': [{'category': item[facet_field],
-                                                 'total': item['total']}
-                                                for item in results]})
+
+            # Add the facet if there is more than one category
+            if len(results) > 1:
+                facet_fields.append({'field': facet_field,
+                                     'categories': [{'label': get_label(item[facet_field]),
+                                                     'value': item[facet_field],
+                                                     'total': item['total']}
+                                                    for item in results]})
 
         return facet_fields
 
