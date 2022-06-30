@@ -50,21 +50,21 @@ class ReportBuilder:
             'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
         }
 
-    def __get_variants(self, lookup_key, request=None):
-        query = GqlQuery().fields([lookup_key]).query('dataSummary',
-                                                      input=self.patient_filters).operation().generate()
+    def __get_variants(self, lookup_key, request):
+        query_data_summary = GqlQuery().fields([lookup_key]).query('dataSummary').generate()
+        query = GqlQuery().fields([query_data_summary]).query('allPatients', input=self.patient_filters).operation().generate()
         summary_result = self.schema.execute(query, context_value=request)
-        return summary_result.data['dataSummary'][lookup_key]
+        return summary_result.data['allPatients']['dataSummary'][lookup_key]
 
-    def _get_graphql_query(self, offset=None, limit=None):
+    def _get_graphql_query(self, request, offset=None, limit=None):
 
-        # Build Patient filters
-        patient_filters = self.patient_filters.copy()
+        # Build Pagination filters
+        pagination_args = {}
         if offset:
-            patient_filters['offset'] = offset
+            pagination_args['offset'] = offset
 
         if limit:
-            patient_filters['limit'] = limit
+            pagination_args['limit'] = limit
 
         # Build simple patient demographic fields
         patient_fields = []
@@ -82,7 +82,7 @@ class ReportBuilder:
             if model_config.get('pivot', False):
                 # Lookup the variants of this item which will form the column header groupings
                 # e.g. for consents, returns a list of the unique consent codes
-                column_headers = self.__get_variants(model_config.get('variant_lookup'))
+                column_headers = self.__get_variants(model_config.get('variant_lookup'), request)
 
                 # For each grouping, generate the query containing each of the fields selected
                 col_queries = [GqlQuery().fields(fields).query(header).generate() for header in column_headers]
@@ -136,7 +136,9 @@ class ReportBuilder:
         fields_patient.extend(fields_nested_demographics)
         if fields_clinical_data:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
-        return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
+        query_patient = GqlQuery().fields(fields_patient).query('patients', input=pagination_args).generate()
+
+        return GqlQuery().fields([query_patient]).query('allPatients', input=self.patient_filters).operation().generate()
 
     def _get_demographic_headers(self, request):
         def get_flat_json_path(report_model, report_field, variant_index=None):
@@ -186,7 +188,7 @@ class ReportBuilder:
 
                         if model_config.get('pivot', False):
                             # Lookup the variants of this item, expected to be a list of unique codes/values
-                            column_headers = self.__get_variants(model_config.get('variant_lookup'))
+                            column_headers = self.__get_variants(model_config.get('variant_lookup'), request)
 
                             if column_headers:
                                 # Generate a fieldname item for each (column x model fields)
@@ -218,7 +220,7 @@ class ReportBuilder:
 
     def validate_query(self, request):
         try:
-            result = self.schema.execute(self._get_graphql_query(offset=1, limit=1), context_value=request)
+            result = self.schema.execute(self._get_graphql_query(request, offset=1, limit=1), context_value=request)
         except BadKeyError as ex:
             return False, {'query_bad_key_error': str(ex)}
 
@@ -256,8 +258,8 @@ class ReportBuilder:
         offset = 0
 
         while True:
-            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
-            all_patients = result.data['patients']
+            result = self.schema.execute(self._get_graphql_query(request, offset=offset, limit=limit), context_value=request)
+            all_patients = result.data['allPatients']['patients']
             num_patients = len(all_patients)
             offset += num_patients
 
@@ -291,8 +293,8 @@ class ReportBuilder:
         offset = 0
 
         while num_patients >= limit:
-            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
-            flat_patient_data = [flatten(p) for p in result.data['patients']]
+            result = self.schema.execute(self._get_graphql_query(request, offset=offset, limit=limit), context_value=request)
+            flat_patient_data = [flatten(p) for p in result.data['allPatients']['patients']]
 
             num_patients = len(flat_patient_data)
             offset += num_patients

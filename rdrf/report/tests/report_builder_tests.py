@@ -19,16 +19,23 @@ class ReportGeneratorTestCase(TestCase):
     def _remove_duplicate_spaces(self, query_str):
         return " ".join(query_str.split())
 
+    def _request(self):
+        class TestContext:
+            user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+        return TestContext()
+
     def test_graphql_query_minimal_data(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
+        actual = report._get_graphql_query(self._request())
         expected = \
             """
             query {
-                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+                allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+                    patients {
+                    }
                 }
             }
             """
@@ -40,11 +47,13 @@ class ReportGeneratorTestCase(TestCase):
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(limit=15, offset=30)
+        actual = report._get_graphql_query(self._request(), limit=15, offset=30)
         expected = \
             """
             query {
-                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: [], offset: 30, limit: 15) {
+                allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+                    patients(offset: 30, limit: 15) {
+                    }
                 }
             }
             """
@@ -66,26 +75,28 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
+        actual = report._get_graphql_query(self._request())
         expected = """{
-  patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
-    id
-    consents {
-      angConsent1 {
-        firstSave
-        answer
-      }
-      angConsent2 {
-        firstSave
-        answer
-      }
-      angConsent3 {
-        firstSave
-        answer
-      }
-      angConsent4 {
-        firstSave
-        answer
+  allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+    patients {
+      id
+      consents {
+        angConsent1 {
+          firstSave
+          answer
+        }
+        angConsent2 {
+          firstSave
+          answer
+        }
+        angConsent3 {
+          firstSave
+          answer
+        }
+        angConsent4 {
+          firstSave
+          answer
+        }
       }
     }
   }
@@ -146,37 +157,39 @@ class ReportGeneratorTestCase(TestCase):
 
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
+        actual = report._get_graphql_query(self._request())
 
         expected = """{
-  patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
-    familyName
-    givenNames
-    patientaddressSet {
-      state
-      country
-    }
-    workingGroups {
-      name
-    }
-    clinicalData {
-      History {
-        NewbornAndInfancyHistory {
-          ANGNewbornInfancyReside {
-            ResideNewborn
-            ResideInfancy
+  allPatients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
+    patients {
+      familyName
+      givenNames
+      patientaddressSet {
+        state
+        country
+      }
+      workingGroups {
+        name
+      }
+      clinicalData {
+        History {
+          NewbornAndInfancyHistory {
+            ANGNewbornInfancyReside {
+              ResideNewborn
+              ResideInfancy
+            }
           }
         }
-      }
-      Sleep {
-        SleepForm {
-          key
-          data {
-            SleepSection {
-              DayOfWeek
-              TimeToBed
-              TimeAwake
-              field6StartsWithNumber
+        Sleep {
+          SleepForm {
+            key
+            data {
+              SleepSection {
+                DayOfWeek
+                TimeToBed
+                TimeAwake
+                field6StartsWithNumber
+              }
             }
           }
         }
@@ -232,11 +245,6 @@ class ReportGeneratorTestCase(TestCase):
 
     def test_get_demographic_headers(self):
         def setup_test_data():
-            class TestContext:
-                user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
-
-            self.request = TestContext()
-
             self.registry = Registry.objects.create(code='REG')
             self.registry_with_no_consent_questions = Registry.objects.create(code='REG2')
 
@@ -252,6 +260,7 @@ class ReportGeneratorTestCase(TestCase):
             p1.patientaddress_set.create(address_type=address_type_postal)
 
         setup_test_data()
+        request = self._request()
 
         report_design = ReportDesign.objects.create(registry=self.registry)
         report_design.reportdemographicfield_set.create(sort_order=1, model='patient', field='id')
@@ -266,7 +275,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(sort_order=8, model='consents', field='firstSave')
         report_design.reportdemographicfield_set.create(sort_order=9, model='consents', field='lastUpdate')
 
-        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
@@ -289,7 +298,7 @@ class ReportGeneratorTestCase(TestCase):
         # Test 2 - pivoted model has no variants
         report_design.registry = self.registry_with_no_consent_questions
         report_design.save()
-        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',

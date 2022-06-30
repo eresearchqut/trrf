@@ -90,16 +90,6 @@
                 return filters;
             }
 
-            function updateFacets(facets) {
-                for (const key in facets) {
-                    const options = facets[key];
-                    for (const option of options) {
-                        const $option = $(`#option-${key}-${option.value}`);
-                        $option.find('[data-filter-item="count"]').text(option.total);
-                    }
-                }
-            }
-
             var load_contexts_list;
             var context_list;
             var dataTablesConfig = {
@@ -137,9 +127,7 @@
                     });
                 load_contexts_list = function () {
                     if (context_list) {
-                        context_list.ajax.reload(function(json) {
-                            updateFacets(json.facets);
-                        });
+                        context_list.ajax.reload();
                     }
                 }
             {% else %}
@@ -177,7 +165,7 @@
 
       <div class="row">
         {% if facets %}
-        <div class="col-lg-3 col-xxl-2">
+        <div class="col-lg-3 col-xxl-2 small">
           <div class="card">
             <h5 class="card-header text-white bg-primary">Filters</h5>
             <ul class="list-group list-group-flush trrf-filters">
@@ -185,18 +173,19 @@
                 <li class="list-group-item">
                   <h6>{{ facet_config|lookup:'label' }}</h6>
                   <ul class="list-group list-group-flush" id="filter-{{ key }}">
-                  {% for option in facet_config|lookup:'options' %}
-                    {% with label=option|lookup:'label' value=option|lookup:'value' count=option|lookup:'count' %}
-                      <li class="list-group-item pt-1 pb-0 border-0" id="option-{{ key }}-{{ value }}">
+                  {% for category in facet_config|lookup:'categories' %}
+                    {% with label=category|lookup:'label' value=category|lookup:'value' total=category|lookup:'total' %}
+                      <li class="list-group-item pt-1 pb-0 border-0 form-check" id="option-{{ key }}-{{ value }}">
                         <input class="form-check-input" type="checkbox" name="filter_{{ key }}" value="{{ value }}" id="filter-{{ key }}-{{ value }}"
-                          {% if value == facet_config|lookup:'default' %}
+                          {% if value and value == facet_config|lookup:'default' %}
                                 checked="checked"
                           {% endif %}
                         >
-                        <label class="form-check-label" for="filter-{{ key }}-{{ value }}">
+                        <label class="form-check-label d-inline" for="filter-{{ key }}-{{ value }}">
                           {{ label }}
                         </label>
-                        <span data-filter-item="count" class="badge bg-primary rounded-pill pull-right">{{ count }}</span>
+                        <span data-filter-item="total" class="badge bg-primary rounded-pill pull-right">{{ total }}</span>
+
                       </li>
                     {% endwith %}
                   {% endfor %}
