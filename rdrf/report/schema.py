@@ -5,8 +5,9 @@ from importlib import import_module
 
 import graphene
 from django.conf import settings
+from django.contrib.postgres.search import SearchVector
 from django.db.models import Count, Max, Q
-from graphene import ObjectType
+from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
@@ -404,8 +405,7 @@ def create_dynamic_patient_type():
 
 def list_patients_query(user,
                         registry_code,
-                        consent_question_codes=None,
-                        working_group_ids=None):
+                        filter_args=None):
     registry = Registry.objects.get(code=registry_code)
 
     patient_query = Patient.objects \
@@ -413,14 +413,17 @@ def list_patients_query(user,
         .prefetch_related('working_groups') \
         .prefetch_related('registered_clinicians')
 
-    if working_group_ids:
+    if filter_args.working_group_ids:
         # Double negative intended here to ensure the working_groups that don't match the filter aren't excluded from the result set
         # We only want to exclude the *patients* that aren't in the working groups, not the working groups themselves
-        patient_query = patient_query.exclude(~Q(working_groups__id__in=working_group_ids))
+        patient_query = patient_query.exclude(~Q(working_groups__id__in=filter_args.working_group_ids))
 
-    if consent_question_codes:
-        for code in consent_question_codes:
+    if filter_args.consent_question_codes:
+        for code in filter_args.consent_question_codes:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question__code=code)
+
+    if filter_args.living_statuses:
+        patient_query = patient_query.filter(living_status__in=filter_args.living_statuses)
 
     if registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
         consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
@@ -460,8 +463,11 @@ def create_dynamic_all_patients_type():
     def resolve_data_summary(parent: QueryResult, info):
         return parent
 
-    def resolve_patients(parent: QueryResult, info, offset=None, limit=None):
+    def resolve_patients(parent: QueryResult, info, sort=None, offset=None, limit=None):
         all_patients = parent.all_patients
+        if sort:
+            all_patients = all_patients.order_by(*sort)
+
         if limit and offset:
             limit += offset
         return all_patients[offset:limit]
@@ -472,12 +478,26 @@ def create_dynamic_all_patients_type():
         'data_summary': graphene.Field(DynamicDataSummaryType),
         'resolve_data_summary': resolve_data_summary,
         'patients': graphene.List(create_dynamic_patient_type(),
+                                  sort=graphene.List(graphene.String),
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),
         'resolve_patients': resolve_patients
     })
 
     return dynamic_query
+
+
+class PatientFilterType(InputObjectType):
+    search_term = graphene.String()
+    working_group_ids = graphene.List(graphene.String)
+    consent_question_codes = graphene.List(graphene.String)
+    living_statuses = graphene.List(graphene.String)
+
+    def __init__(self):
+        self.search_term = ""
+        self.working_group_ids = []
+        self.consent_question_codes = []
+        self.living_statuses = []
 
 
 # TODO: memoize + possible cache clearing when registry definition changes?
@@ -490,16 +510,20 @@ def create_dynamic_schema():
     def resolve_all_patients(_parent,
                              info,
                              registry_code,
-                             consent_question_codes=None,
-                             working_group_ids=None):
+                             filter_args=PatientFilterType()):
+
+        all_patients = list_patients_query(info.context.user, registry_code, filter_args)
+
+        if filter_args.search_term:
+            all_patients = all_patients.annotate(search=SearchVector('given_names', 'family_name', 'stage')).filter(Q(search__icontains=filter_args.search_term))
+
         return QueryResult(registry_code=registry_code,
-                           all_patients=list_patients_query(info.context.user, registry_code, consent_question_codes, working_group_ids))
+                           all_patients=all_patients)
 
     dynamic_query = type("DynamicQuery", (graphene.ObjectType,), {
         'all_patients': graphene.Field(create_dynamic_all_patients_type(),
                                        registry_code=graphene.String(required=True),
-                                       consent_question_codes=graphene.List(graphene.String),
-                                       working_group_ids=graphene.List(graphene.String)),
+                                       filter_args=graphene.Argument(PatientFilterType)),
         'resolve_all_patients': resolve_all_patients
     })
 

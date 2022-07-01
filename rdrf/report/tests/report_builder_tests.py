@@ -29,36 +29,38 @@ class ReportGeneratorTestCase(TestCase):
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(self._request())
+        variables, actual_query = report._get_graphql_query(self._request())
         expected = \
             """
-            query {
-                allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+            query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+                allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
                     patients {
                     }
                 }
             }
             """
 
-        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
     def test_graphql_query_pagination(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(self._request(), limit=15, offset=30)
+        variables, actual_query = report._get_graphql_query(self._request(), limit=15, offset=30)
         expected = \
             """
-            query {
-                allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+            query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+                allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
                     patients(offset: 30, limit: 15) {
                     }
                 }
             }
             """
 
-        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
 
     def test_graphql_query_pivot_fields(self):
@@ -75,9 +77,9 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(self._request())
-        expected = """{
-  allPatients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+        variables, actual_query = report._get_graphql_query(self._request())
+        expected = """query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+  allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
     patients {
       id
       consents {
@@ -103,7 +105,8 @@ class ReportGeneratorTestCase(TestCase):
 }
 """
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual(expected, print_ast(parse(actual)))
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual(expected, print_ast(parse(actual_query)))
 
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -157,10 +160,10 @@ class ReportGeneratorTestCase(TestCase):
 
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(self._request())
+        variables, query = report._get_graphql_query(self._request())
 
-        expected = """{
-  allPatients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
+        expected = """query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+  allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
     patients {
       familyName
       givenNames
@@ -200,7 +203,8 @@ class ReportGeneratorTestCase(TestCase):
 """
 
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual(expected, print_ast(parse(actual)))
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': ["cq1", "cq2"], 'workingGroupIds': ["1", "2"]}}, variables)
+        self.assertEqual(expected, print_ast(parse(query)))
 
     def test_pre_export_validation(self):
         reg_ang = Registry.objects.create(code='ang')

@@ -295,7 +295,7 @@ class SchemaTest(TestCase):
         # 1 consent filter
         result = client.execute("""
         {
-            allPatients(registryCode: "test", consentQuestionCodes: ["consent1"]) {
+            allPatients(registryCode: "test", filterArgs: {consentQuestionCodes: ["consent1"]}) {
                 patients {
                     id
                 }
@@ -317,7 +317,7 @@ class SchemaTest(TestCase):
         # Multiple consent filters
         result = client.execute("""
         {
-            allPatients(registryCode: "test", consentQuestionCodes: ["consent1", "consent2"]) {
+            allPatients(registryCode: "test", filterArgs: {consentQuestionCodes: ["consent1", "consent2"]}) {
                 patients {
                     id
                 }

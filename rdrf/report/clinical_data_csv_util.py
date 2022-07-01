@@ -10,7 +10,7 @@ from rdrf.helpers.utils import get_form_section_code
 from rdrf.models.definition.models import RDRFContext, ContextFormGroup, RegistryForm, Section, \
     CommonDataElement
 from report.models import ReportCdeHeadingFormat
-from report.schema import list_patients_query, get_schema_field_name
+from report.schema import list_patients_query, get_schema_field_name, PatientFilterType
 
 logger = logging.getLogger(__name__)
 
@@ -208,10 +208,13 @@ class ClinicalDataCsvUtil:
         cde_keys = list(report_design.reportclinicaldatafield_set.order_by('id').values_list('cde_key', flat=True))
 
         # Step 1 - Summarise all clinical data
+        patient_filters = PatientFilterType()
+        patient_filters.working_group_ids = [wg.id for wg in report_design.filter_working_groups.all()]
+        patient_filters.consent_question_codes = [cq.code for cq in report_design.filter_consents.all()]
+
         patient_ids = list(list_patients_query(user,
                                                report_design.registry.code,
-                                               [cq.code for cq in report_design.filter_consents.all()],
-                                               [wg.id for wg in report_design.filter_working_groups.all()]).values_list("id", flat=True))
+                                               patient_filters).values_list("id", flat=True))
         cd_summary = self.__clinical_data_summary(patient_ids, cde_keys)
 
         # Step 2 - Generate headers from summary

@@ -39,21 +39,27 @@ class ReportBuilder:
 
     def __init_patient_filters(self):
         def get_patient_consent_question_filters():
-            return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
+            return [cq.code for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
-            return [f'"{str(wg.id)}"' for wg in self.report_design.filter_working_groups.all().order_by('id')]
+            return [f'{str(wg.id)}' for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
-        return {
-            'registryCode': f'"{self.report_design.registry.code}"',
-            'consentQuestionCodes': f"[{','.join(get_patient_consent_question_filters())}]",
-            'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
-        }
+        variable_definition = {"registryCode": ("String!", f'{self.report_design.registry.code}'),
+                               "filterArgs": ("PatientFilterType", {'consentQuestionCodes': get_patient_consent_question_filters(),
+                                                                    'workingGroupIds': get_patient_working_group_filters()})
+                               }
+
+        operation_input = {f'${key}': data_type for key, (data_type, variable) in variable_definition.items()}
+        query_input = {key: f'${key}' for key in variable_definition.keys()}
+        variables = {key: variable for key, (data_type, variable) in variable_definition.items()}
+
+        return operation_input, query_input, variables
 
     def __get_variants(self, lookup_key, request):
         query_data_summary = GqlQuery().fields([lookup_key]).query('dataSummary').generate()
-        query = GqlQuery().fields([query_data_summary]).query('allPatients', input=self.patient_filters).operation().generate()
-        summary_result = self.schema.execute(query, context_value=request)
+        operation_input, query_input, variables = self.patient_filters
+        query = GqlQuery().fields([query_data_summary]).query('allPatients', input=query_input).operation(name='DataSummaryForVariant', input=operation_input).generate()
+        summary_result = self.schema.execute(query, variable_values=variables, context_value=request)
         return summary_result.data['allPatients']['dataSummary'][lookup_key]
 
     def _get_graphql_query(self, request, offset=None, limit=None):
@@ -138,7 +144,8 @@ class ReportBuilder:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
         query_patient = GqlQuery().fields(fields_patient).query('patients', input=pagination_args).generate()
 
-        return GqlQuery().fields([query_patient]).query('allPatients', input=self.patient_filters).operation().generate()
+        operation_input, query_input, variables = self.patient_filters
+        return variables, GqlQuery().fields([query_patient]).query('allPatients', input=query_input).operation(name='PatientsMatchingFilters', input=operation_input).generate()
 
     def _get_demographic_headers(self, request):
         def get_flat_json_path(report_model, report_field, variant_index=None):
@@ -220,7 +227,8 @@ class ReportBuilder:
 
     def validate_query(self, request):
         try:
-            result = self.schema.execute(self._get_graphql_query(request, offset=1, limit=1), context_value=request)
+            variables, query = self._get_graphql_query(request, offset=1, limit=1)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
         except BadKeyError as ex:
             return False, {'query_bad_key_error': str(ex)}
 
@@ -258,7 +266,8 @@ class ReportBuilder:
         offset = 0
 
         while True:
-            result = self.schema.execute(self._get_graphql_query(request, offset=offset, limit=limit), context_value=request)
+            variables, query = self._get_graphql_query(request, offset=offset, limit=limit)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
             all_patients = result.data['allPatients']['patients']
             num_patients = len(all_patients)
             offset += num_patients
@@ -293,7 +302,8 @@ class ReportBuilder:
         offset = 0
 
         while num_patients >= limit:
-            result = self.schema.execute(self._get_graphql_query(request, offset=offset, limit=limit), context_value=request)
+            variables, query = self._get_graphql_query(request, offset=offset, limit=limit)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
             flat_patient_data = [flatten(p) for p in result.data['allPatients']['patients']]
 
             num_patients = len(flat_patient_data)
