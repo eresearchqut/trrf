@@ -30,7 +30,7 @@ class PatientListConfiguration:
 
     AVAILABLE_FACETS = {
         "living_status": {'label': _('Living Status'), 'permission': 'patients.can_see_living_status', 'default': None},
-        "working_groups__id": {'label': _('Working Groups'), 'permission': None, 'default': None}
+        "working_groups": {'label': _('Working Groups'), 'permission': None, 'default': None}
     }
 
     DEFAULT_CONFIGURATION = {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',

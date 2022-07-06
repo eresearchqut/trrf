@@ -17,7 +17,7 @@ from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, C
     ConsentRule
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
-    PatientGUID, ParentGuardian, LivingStates
+    PatientGUID, ParentGuardian, LivingStates, PatientStage
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +156,12 @@ class ParentGuardianType(DjangoObjectType):
 
     def resolve_gender(parent_guardian, info):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
+
+
+class PatientStageType(DjangoObjectType):
+    class Meta:
+        model = PatientStage
+        fields = ('id', 'name')
 
 
 def get_schema_field_name(s):
@@ -340,7 +346,7 @@ def get_patient_fields():
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
                        'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
-                       'patientguid', 'parentguardian_set']
+                       'patientguid', 'parentguardian_set', 'stage']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
@@ -445,7 +451,7 @@ def create_dynamic_all_patients_type():
 
         facet_fields = []
         available_facets = [('living_status', get_living_status_label),
-                            ('working_groups__id', get_working_groups_name)]
+                            ('working_groups', get_working_groups_name)]
         for facet in available_facets:
             facet_field, get_label = facet
             results = parent.all_patients.values(facet_field).annotate(total=Count('id')).order_by()
@@ -460,6 +466,9 @@ def create_dynamic_all_patients_type():
 
         return facet_fields
 
+    def resolve_total(parent: QueryResult, info):
+        return parent.all_patients.count()
+
     def resolve_data_summary(parent: QueryResult, info):
         return parent
 
@@ -473,6 +482,8 @@ def create_dynamic_all_patients_type():
         return all_patients[offset:limit]
 
     dynamic_query = type("DynamicAllPatients", (graphene.ObjectType,), {
+        'total': graphene.Int(),
+        'resolve_total': resolve_total,
         'facets': graphene.List(FacetType),
         'resolve_facets': resolve_facets,
         'data_summary': graphene.Field(DynamicDataSummaryType),
@@ -515,7 +526,8 @@ def create_dynamic_schema():
         all_patients = list_patients_query(info.context.user, registry_code, filter_args)
 
         if filter_args.search_term:
-            all_patients = all_patients.annotate(search=SearchVector('given_names', 'family_name', 'stage')).filter(Q(search__icontains=filter_args.search_term))
+            all_patients = all_patients.annotate(search=SearchVector('given_names', 'family_name', 'stage', config='simple'))\
+                                       .filter(Q(search__icontains=filter_args.search_term))
 
         return QueryResult(registry_code=registry_code,
                            all_patients=all_patients)

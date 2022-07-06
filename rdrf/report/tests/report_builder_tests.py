@@ -32,9 +32,9 @@ class ReportGeneratorTestCase(TestCase):
         variables, actual_query = report._get_graphql_query(self._request())
         expected = \
             """
-            query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+            query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
                 allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-                    patients {
+                    patients(sort: ["id"]) {
                     }
                 }
             }
@@ -51,9 +51,9 @@ class ReportGeneratorTestCase(TestCase):
         variables, actual_query = report._get_graphql_query(self._request(), limit=15, offset=30)
         expected = \
             """
-            query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+            query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
                 allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-                    patients(offset: 30, limit: 15) {
+                    patients(sort: ["id"], offset: 30, limit: 15) {
                     }
                 }
             }
@@ -78,9 +78,9 @@ class ReportGeneratorTestCase(TestCase):
         report = ReportBuilder(report_design)
 
         variables, actual_query = report._get_graphql_query(self._request())
-        expected = """query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+        expected = """query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
   allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-    patients {
+    patients(sort: ["id"]) {
       id
       consents {
         angConsent1 {
@@ -162,9 +162,9 @@ class ReportGeneratorTestCase(TestCase):
 
         variables, query = report._get_graphql_query(self._request())
 
-        expected = """query PatientsMatchingFilters($registryCode: String!, $filterArgs: PatientFilterType) {
+        expected = """query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
   allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-    patients {
+    patients(sort: ["id"]) {
       familyName
       givenNames
       patientaddressSet {
