@@ -254,6 +254,9 @@ class MenuConfig:
         if any(registry.has_feature(RegistryFeatures.LEGACY_REPORTS) for registry in self.registries):
             RegularLinks.LEGACY_EXPLORER = RegularLinks.ENABLED_LEGACY_EXPLORER
             RegularLinks.LEGACY_REPORTS = RegularLinks.ENABLED_LEGACY_REPORTS
+        else:
+            RegularLinks.LEGACY_EXPLORER = {}
+            RegularLinks.LEGACY_REPORTS = {}
 
     def build_menu(self):
         # enable dynamic links and build the menu
