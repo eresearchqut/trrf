@@ -10,6 +10,8 @@ from django.db.models import Count, Max, Q
 from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
 
+from django.utils.translation import ugettext as _
+
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -18,10 +20,38 @@ from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, C
 from registry.groups.models import WorkingGroup, CustomUser
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
+from report.TrrfGraphQLView import PublicGraphQLError
 
 logger = logging.getLogger(__name__)
 
 _graphql_field_pattern = re.compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
+
+_valid_sort_fields = ['id', 'familyName', 'givenNames', 'dateOfBirth', 'sex', 'patientType', 'workingGroups.name',
+                      'lastUpdatedOverallAt', 'stage.id', 'livingStatus']
+_valid_search_fields = ['givenNames', 'familyName', 'stage']
+
+
+def to_snake_case(name):
+    from graphene.utils.str_converters import to_snake_case as to_snake_case_base
+    snake_name = to_snake_case_base(name)
+
+    return re.sub(r"\.", "__", snake_name)
+
+
+def to_camel_case(name):
+    from graphene.utils.str_converters import to_camel_case as to_camel_case_base
+    camel_case_name = to_camel_case_base(name)  # Replace single underscores with camel cased name
+    dot_case_name = re.sub(r"\_", ".", camel_case_name)  # Replace any remaining underscores with dots
+    lower_dot_case_name = re.sub(r"\.([A-Z][a-z]*)?", lambda m: m.group(0).lower(), dot_case_name)  # Lower case the first letter following the dot
+    return lower_dot_case_name
+
+
+def validate_fields(fields, valid_fields, label):
+    invalid_fields = list(set(fields).difference(valid_fields))
+    if len(invalid_fields) > 0:
+        raise PublicGraphQLError(
+            _(f"Invalid {label}(s) provided: {', '.join(invalid_fields)}.\n "
+              f"Valid values are: {', '.join(valid_fields)}."))
 
 
 class QueryResult:
@@ -36,39 +66,34 @@ class FacetValueType(ObjectType):
     total = graphene.Int()
 
 
-class FacetType(ObjectType):
-    field = graphene.String()
-    categories = graphene.List(FacetValueType)
-
-
-class DynamicDataSummaryType(ObjectType):
+class DataSummaryType(ObjectType):
     max_address_count = graphene.Int()
     max_working_group_count = graphene.Int()
     max_clinician_count = graphene.Int()
     max_parent_guardian_count = graphene.Int()
     list_consent_question_codes = graphene.List(graphene.String)
 
-    def resolve_max_address_count(parent: QueryResult, info):
+    def resolve_max_address_count(parent: QueryResult, _info):
         return parent.all_patients.annotate(Count('patientaddress')) \
                                   .aggregate(Max('patientaddress__count')) \
                                   .get('patientaddress__count__max') or 0
 
-    def resolve_max_working_group_count(parent: QueryResult, info):
+    def resolve_max_working_group_count(parent: QueryResult, _info):
         return parent.all_patients.annotate(Count('working_groups'))\
                                   .aggregate(Max('working_groups__count'))\
                                   .get('working_groups__count__max')
 
-    def resolve_max_clinician_count(parent: QueryResult, info):
+    def resolve_max_clinician_count(parent: QueryResult, _info):
         return parent.all_patients.annotate(Count('registered_clinicians'))\
                                   .aggregate(Max('registered_clinicians__count'))\
                                   .get('registered_clinicians__count__max')
 
-    def resolve_max_parent_guardian_count(parent: QueryResult, info):
+    def resolve_max_parent_guardian_count(parent: QueryResult, _info):
         return parent.all_patients.annotate(Count('parentguardian'))\
                                   .aggregate(Max('parentguardian__count'))\
                                   .get('parentguardian__count__max') or 0
 
-    def resolve_list_consent_question_codes(parent: QueryResult, info):
+    def resolve_list_consent_question_codes(parent: QueryResult, _info):
         return ConsentQuestion.objects.filter(section__registry__code=parent.registry_code) \
                                       .order_by('position') \
                                       .values_list('code', flat=True)
@@ -117,7 +142,7 @@ class WorkingGroupType(DjangoObjectType):
         model = WorkingGroup
         fields = ('name',)
 
-    def resolve_display_name(self, info):
+    def resolve_display_name(self, _info):
         return self.display_name
 
 
@@ -128,7 +153,7 @@ class RegisteredClinician(DjangoObjectType):
         model = CustomUser
         fields = ('first_name', 'last_name', 'email', 'ethically_cleared')
 
-    def resolve_working_groups(clinician, info):
+    def resolve_working_groups(clinician, _info):
         return ",".join([wg.display_name for wg in clinician.working_groups.all()])
 
 
@@ -148,13 +173,13 @@ class ParentGuardianType(DjangoObjectType):
         fields = ('first_name', 'last_name', 'date_of_birth', 'place_of_birth', 'date_of_migration', 'address',
                   'suburb', 'state', 'postcode', 'country', 'phone')
 
-    def resolve_email(parent_guardian, info):
+    def resolve_email(parent_guardian, _info):
         return parent_guardian.user.email if parent_guardian.user else None
 
-    def resolve_self_patient_id(parent_guardian, info):
+    def resolve_self_patient_id(parent_guardian, _info):
         return parent_guardian.self_patient.id if parent_guardian.self_patient_id else None
 
-    def resolve_gender(parent_guardian, info):
+    def resolve_gender(parent_guardian, _info):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
 
 
@@ -349,7 +374,7 @@ def get_patient_fields():
                        'patientguid', 'parentguardian_set', 'stage']
         }),
         "sex": graphene.String(),
-        "resolve_sex": lambda patient, info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
+        "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
     }
 
 
@@ -363,6 +388,35 @@ def get_consent_fields():
         consent_fields[consent_question.code] = graphene.Field(ConsentValueType)
         consent_fields[f'resolve_{consent_question.code}'] = partial(consent_resolver, consent_question=consent_question)
     return consent_fields
+
+
+def create_dynamic_facet_type():
+    def resolve_facet(parent, _info, facet_field, get_label_fn):
+        results = parent.all_patients.values(facet_field).annotate(total=Count('id')).order_by()
+        return [{'label': get_label_fn(item[facet_field]),
+                 'value': item[facet_field],
+                 'total': item['total']}
+                for item in results]
+
+    def get_living_status_label(status_id):
+        living_states_dict = {choice_id: choice_label for choice_id, choice_label in LivingStates.CHOICES}
+        return living_states_dict.get(status_id)
+
+    def get_working_groups_name(wg_id):
+        if wg_id:
+            return WorkingGroup.objects.get(id=wg_id).name
+
+    facet_fields = {}
+
+    available_facets = [('living_status', get_living_status_label),
+                        ('working_groups', get_working_groups_name)]
+
+    for facet in available_facets:
+        field, get_label = facet
+        facet_fields[field] = graphene.List(FacetValueType)
+        facet_fields[f'resolve_{field}'] = partial(resolve_facet, facet_field=field, get_label_fn=get_label)
+
+    return type("DynamicFacet", (ObjectType,), facet_fields)
 
 
 def create_dynamic_patient_type():
@@ -419,17 +473,27 @@ def list_patients_query(user,
         .prefetch_related('working_groups') \
         .prefetch_related('registered_clinicians')
 
-    if filter_args.working_group_ids:
+    if filter_args.working_groups:
+        null_wgs = [wg for wg in filter_args.working_groups if wg is None]
+        filterable_wgs = [wg for wg in filter_args.working_groups if wg is not None]
+
+        query_filterable_wgs = Q(working_groups__id__in=filterable_wgs)
+
+        if null_wgs:
+            query_working_groups = query_filterable_wgs | Q(working_groups__id__isnull=True)
+        else:
+            query_working_groups = query_filterable_wgs
+
         # Double negative intended here to ensure the working_groups that don't match the filter aren't excluded from the result set
         # We only want to exclude the *patients* that aren't in the working groups, not the working groups themselves
-        patient_query = patient_query.exclude(~Q(working_groups__id__in=filter_args.working_group_ids))
+        patient_query = patient_query.exclude(~Q(query_working_groups))
 
-    if filter_args.consent_question_codes:
-        for code in filter_args.consent_question_codes:
+    if filter_args.consent_questions:
+        for code in filter_args.consent_questions:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question__code=code)
 
-    if filter_args.living_statuses:
-        patient_query = patient_query.filter(living_status__in=filter_args.living_statuses)
+    if filter_args.living_status:
+        patient_query = patient_query.filter(living_status__in=filter_args.living_status)
 
     if registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
         consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
@@ -440,42 +504,25 @@ def list_patients_query(user,
 
 
 def create_dynamic_all_patients_type():
-    def resolve_facets(parent: QueryResult, info):
-        def get_living_status_label(status_id):
-            living_states_dict = {choice_id: choice_label for choice_id, choice_label in LivingStates.CHOICES}
-            return living_states_dict.get(status_id)
-
-        def get_working_groups_name(wg_id):
-            if wg_id:
-                return WorkingGroup.objects.get(id=wg_id).name
-
-        facet_fields = []
-        available_facets = [('living_status', get_living_status_label),
-                            ('working_groups', get_working_groups_name)]
-        for facet in available_facets:
-            facet_field, get_label = facet
-            results = parent.all_patients.values(facet_field).annotate(total=Count('id')).order_by()
-
-            # Add the facet if there is more than one category
-            if len(results) > 1:
-                facet_fields.append({'field': facet_field,
-                                     'categories': [{'label': get_label(item[facet_field]),
-                                                     'value': item[facet_field],
-                                                     'total': item['total']}
-                                                    for item in results]})
-
-        return facet_fields
-
-    def resolve_total(parent: QueryResult, info):
-        return parent.all_patients.count()
-
-    def resolve_data_summary(parent: QueryResult, info):
+    def resolve_facets(parent: QueryResult, _info):
         return parent
 
-    def resolve_patients(parent: QueryResult, info, sort=None, offset=None, limit=None):
+    def resolve_total(parent: QueryResult, _info):
+        return parent.all_patients.count()
+
+    def resolve_data_summary(parent: QueryResult, _info):
+        return parent
+
+    def resolve_patients(parent: QueryResult, _info, sort=None, offset=None, limit=None):
+        def validate_sort_fields(sort_fields):
+            sort_fields_without_order = [field.lstrip('-') for field in sort_fields]
+            return validate_fields(sort_fields_without_order, _valid_sort_fields, 'sort field')
+
         all_patients = parent.all_patients
         if sort:
-            all_patients = all_patients.order_by(*sort)
+            validate_sort_fields(sort)
+            sort_fields = [to_snake_case(field) for field in sort]
+            all_patients = all_patients.order_by(*sort_fields)
 
         if limit and offset:
             limit += offset
@@ -484,9 +531,9 @@ def create_dynamic_all_patients_type():
     dynamic_query = type("DynamicAllPatients", (graphene.ObjectType,), {
         'total': graphene.Int(),
         'resolve_total': resolve_total,
-        'facets': graphene.List(FacetType),
+        'facets': graphene.Field(create_dynamic_facet_type()),
         'resolve_facets': resolve_facets,
-        'data_summary': graphene.Field(DynamicDataSummaryType),
+        'data_summary': graphene.Field(DataSummaryType),
         'resolve_data_summary': resolve_data_summary,
         'patients': graphene.List(create_dynamic_patient_type(),
                                   sort=graphene.List(graphene.String),
@@ -498,17 +545,22 @@ def create_dynamic_all_patients_type():
     return dynamic_query
 
 
+class SearchType(InputObjectType):
+    fields = graphene.List(graphene.String)
+    text = graphene.String()
+
+
 class PatientFilterType(InputObjectType):
-    search_term = graphene.String()
-    working_group_ids = graphene.List(graphene.String)
-    consent_question_codes = graphene.List(graphene.String)
-    living_statuses = graphene.List(graphene.String)
+    search = graphene.List(SearchType)
+    working_groups = graphene.List(graphene.String)
+    consent_questions = graphene.List(graphene.String)
+    living_status = graphene.List(graphene.String)
 
     def __init__(self):
-        self.search_term = ""
-        self.working_group_ids = []
-        self.consent_question_codes = []
-        self.living_statuses = []
+        self.search = []
+        self.working_groups = []
+        self.consent_questions = []
+        self.living_status = []
 
 
 # TODO: memoize + possible cache clearing when registry definition changes?
@@ -519,15 +571,18 @@ def create_dynamic_schema():
         return None
 
     def resolve_all_patients(_parent,
-                             info,
+                             _info,
                              registry_code,
                              filter_args=PatientFilterType()):
 
-        all_patients = list_patients_query(info.context.user, registry_code, filter_args)
+        all_patients = list_patients_query(_info.context.user, registry_code, filter_args)
 
-        if filter_args.search_term:
-            all_patients = all_patients.annotate(search=SearchVector('given_names', 'family_name', 'stage', config='simple'))\
-                                       .filter(Q(search__icontains=filter_args.search_term))
+        if filter_args.search:
+            for i, search_def in enumerate(filter_args.search):
+                validate_fields(search_def.fields, _valid_search_fields, 'search field')
+                search_fields = [to_snake_case(field) for field in search_def.fields]
+                search_vector = SearchVector(*search_fields, config='simple')
+                all_patients = all_patients.annotate(**{f'search_{i}': search_vector}).filter(**{f'search_{i}__icontains': search_def.text})
 
         return QueryResult(registry_code=registry_code,
                            all_patients=all_patients)

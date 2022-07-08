@@ -6,6 +6,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
     ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
     ColumnDateLastUpdated
+from report.schema import to_camel_case
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,10 @@ class PatientListConfiguration:
         for facet_config_item in registry_config_facets:
             key, configured_facet = self._get_item_key_and_config(facet_config_item)
             if key in self.AVAILABLE_FACETS.keys():
-                configured_facets[key] = {**self.AVAILABLE_FACETS[key], **configured_facet}
+                gql_key = to_camel_case(key)
+                configured_facets[gql_key] = {**(self.AVAILABLE_FACETS[key]), **configured_facet}
+
+        logger.debug(f'configured_facets: {configured_facets}')
 
         return configured_facets
 

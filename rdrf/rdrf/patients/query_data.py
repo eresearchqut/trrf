@@ -8,20 +8,13 @@ from report.schema import create_dynamic_schema
 logger = logging.getLogger(__name__)
 
 
+def build_search_item(text, fields):
+    return {'text': text, 'fields': fields}
+
+
 def build_patient_filters(registry_code, filters):
-    search_term = filters.get('search_term')
-    working_groups = filters.get('working_groups')
-    consent_questions = filters.get('consent_questions')
-    living_statuses = filters.get('living_status')
-
-    filter_args = {key: val for key, val in {'searchTerm': search_term,
-                                             'workingGroupIds': working_groups,
-                                             'consentQuestionCodes': consent_questions,
-                                             'livingStatuses': living_statuses}.items() if val is not None}
-
     variable_definition = {"registryCode": ("String!", registry_code),
-                           "filterArgs": ("PatientFilterType",
-                                          filter_args)
+                           "filterArgs": ("PatientFilterType", filters)
                            }
 
     operation_input = {f'${key}': data_type for key, (data_type, variable) in variable_definition.items()}
@@ -42,9 +35,11 @@ def build_patients_query(patient_fields, sort_fields, pagination):
     return patient_query
 
 
-def build_facet_query():
-    fields_facets = ['field', GqlQuery().fields(['label', 'value', 'total']).query('categories').generate()]
-    return GqlQuery().fields(fields_facets).query('facets').generate()
+def build_facet_query(facet_keys):
+    facets_fields = [GqlQuery().fields(['label', 'value', 'total']).query(facet_key).generate()
+                     for facet_key in facet_keys]
+
+    return GqlQuery().fields(facets_fields).query('facets').generate()
 
 
 def build_data_summary_query(data_summary_fields):
@@ -61,13 +56,13 @@ def build_all_patients_query(patient_query_fields, query_input, operation_input=
 
 
 def query_patient_facets(request, registry, facet_keys):
+    if not facet_keys:
+        return []
     schema = create_dynamic_schema()
-    facet_query = build_facet_query()
+    facet_query = build_facet_query(facet_keys)
     all_patients_query = build_all_patients_query([facet_query], {'registryCode': f'"{registry.code}"'})
     result = schema.execute(all_patients_query, context_value=request)
-    facets = result.data.get('allPatients', {}).get('facets')
-
-    return [facet for facet in facets if facet.get('field') in facet_keys]
+    return get_all_patients(result).get('facets')
 
 
 def get_all_patients(results):

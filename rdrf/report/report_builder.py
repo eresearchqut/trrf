@@ -47,8 +47,8 @@ class ReportBuilder:
             return [f'{str(wg.id)}' for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
         filters = {
-            'working_groups': get_patient_working_group_filters(),
-            'consent_questions': get_patient_consent_question_filters()
+            'workingGroups': get_patient_working_group_filters(),
+            'consentQuestions': get_patient_consent_question_filters()
         }
 
         return build_patient_filters(self.report_design.registry.code, filters)

@@ -209,8 +209,8 @@ class ClinicalDataCsvUtil:
 
         # Step 1 - Summarise all clinical data
         patient_filters = PatientFilterType()
-        patient_filters.working_group_ids = [wg.id for wg in report_design.filter_working_groups.all()]
-        patient_filters.consent_question_codes = [cq.code for cq in report_design.filter_consents.all()]
+        patient_filters.working_groups = [wg.id for wg in report_design.filter_working_groups.all()]
+        patient_filters.consent_questions = [cq.code for cq in report_design.filter_consents.all()]
 
         patient_ids = list(list_patients_query(user,
                                                report_design.registry.code,

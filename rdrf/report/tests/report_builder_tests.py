@@ -40,7 +40,7 @@ class ReportGeneratorTestCase(TestCase):
             }
             """
 
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
     def test_graphql_query_pagination(self):
@@ -59,7 +59,7 @@ class ReportGeneratorTestCase(TestCase):
             }
             """
 
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
 
@@ -105,7 +105,7 @@ class ReportGeneratorTestCase(TestCase):
 }
 """
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': [], 'workingGroupIds': []}}, variables)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(expected, print_ast(parse(actual_query)))
 
     def test_graphql_query_max_data(self):
@@ -203,7 +203,7 @@ class ReportGeneratorTestCase(TestCase):
 """
 
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestionCodes': ["cq1", "cq2"], 'workingGroupIds': ["1", "2"]}}, variables)
+        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': ["cq1", "cq2"], 'workingGroups': ["1", "2"]}}, variables)
         self.assertEqual(expected, print_ast(parse(query)))
 
     def test_pre_export_validation(self):

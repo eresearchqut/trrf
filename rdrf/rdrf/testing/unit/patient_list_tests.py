@@ -45,9 +45,9 @@ class PatientListTests(RDRFTestCase):
         self.registry.metadata_json = '{"patient_list": {"facets": {"living_status": {"default": "Alive"}}}}'
         self.registry.save()
         facets = PatientListConfiguration(self.registry).get_facets()
-        self.assertEqual(["living_status"], [key for key in facets.keys()])
-        self.assertEqual("Living Status", facets['living_status']['label'])
-        self.assertEqual("Alive", facets['living_status']['default'])
+        self.assertEqual(["livingStatus"], [key for key in facets.keys()])
+        self.assertEqual("Living Status", facets['livingStatus']['label'])
+        self.assertEqual("Alive", facets['livingStatus']['default'])
 
     def testExtensibilityOfPatientListConfiguration(self):
         class ExtendPatientListConfiguration(PatientListConfiguration):

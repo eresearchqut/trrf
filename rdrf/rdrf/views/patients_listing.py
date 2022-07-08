@@ -14,10 +14,10 @@ from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
 from rdrf.patients.patient_list_configuration import PatientListConfiguration
-from rdrf.patients.query_data import query_patient_facets, build_facet_query, build_patients_query, \
-    build_patient_filters, build_all_patients_query, get_all_patients
+from rdrf.patients.query_data import query_patient_facets, build_patients_query, \
+    build_patient_filters, build_all_patients_query, get_all_patients, build_search_item
 from registry.patients.models import Patient
-from report.schema import FacetType, create_dynamic_schema
+from report.schema import create_dynamic_schema, to_camel_case
 
 logger = logging.getLogger(__name__)
 
@@ -53,15 +53,14 @@ class PatientsListingView(View):
         self.selected_filters = None
 
     def _user_facets(self, request, registry_facets):
-        facet_values = query_patient_facets(request, self.registry_model, registry_facets.keys())
-        facet_types_dict = {facet_type.field: facet_type for facet_type in [FacetType(**value) for value in facet_values]}
+        facets = query_patient_facets(request, self.registry_model, registry_facets.keys())
 
         user_facets = {}
         for key, facet_config in registry_facets.items():
-            facet_type = facet_types_dict.get(key)
+            facet = facets.get(key)
             facet_permission = facet_config.get('permission')
-            if facet_type and (not facet_permission or self.user.has_perm(facet_permission)):
-                user_facets[key] = {**facet_config, **{'categories': facet_type.categories}}
+            if facet and (not facet_permission or self.user.has_perm(facet_permission)):
+                user_facets[key] = {**facet_config, **{'categories': facet}}
 
         return user_facets
 
@@ -184,17 +183,14 @@ class PatientsListingView(View):
                     if col.field == self.sort_field]
 
     def _query_all_patients(self, request, registry, filters, patient_fields, sort_fields, pagination):
-        facet_query = build_facet_query()
         patient_query = build_patients_query(patient_fields, sort_fields, pagination)
 
         operation_input, query_input, variables = build_patient_filters(registry.code, filters)
-        all_patients_query = build_all_patients_query(['total', facet_query, patient_query], query_input,
-                                                      operation_input)
+        all_patients_query = build_all_patients_query(['total', patient_query], query_input, operation_input)
 
         schema = create_dynamic_schema()
 
-        result_all = schema.execute(build_all_patients_query(['total'], {'registryCode': f'"{registry.code}"'}),
-                                    context_value=request)
+        result_all = schema.execute(build_all_patients_query(['total'], {'registryCode': f'"{registry.code}"'}), context_value=request)
         result_filtered = schema.execute(all_patients_query, variable_values=variables, context_value=request)
 
         return get_all_patients(result_all).get('total'), get_all_patients(result_filtered)
@@ -205,16 +201,22 @@ class PatientsListingView(View):
         if not self._check_security():
             return []
 
-        filters = {'search_term': self.search_term, **self.selected_filters}
+        filters = {**self.selected_filters}
+
+        if self.search_term:
+            patient_search = build_search_item(self.search_term, ['givenNames', 'familyName', 'stage'])
+            filters.update({'search': [patient_search]})
+
         patient_fields = ['id']
         sort_fields = self._sort_fields()
+        schema_sort_fields = list(map(to_camel_case, sort_fields))
         pagination = {'offset': self.start, 'limit': self.length}
 
         base_total, results = self._query_all_patients(request,
                                                        self.registry_model,
                                                        filters,
                                                        patient_fields,
-                                                       sort_fields,
+                                                       schema_sort_fields,
                                                        pagination)
 
         patient_ids = [patient['id'] for patient in results.get('patients', [])]
