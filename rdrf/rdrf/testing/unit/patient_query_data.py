@@ -35,8 +35,9 @@ class PatientQueryDataTest(RDRFTestCase):
         return p
 
     def test_facet_query(self):
+        registry = Registry.objects.get(code='fh')
         facet_query = build_facet_query(['livingStatus', 'workingGroups'])
-        query = build_all_patients_query([facet_query], {'registryCode': '"fh"'})
+        query = build_all_patients_query(registry, [facet_query])
 
         expected_facet_query = '''
             query {

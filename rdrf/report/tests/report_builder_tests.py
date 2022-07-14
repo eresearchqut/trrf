@@ -32,15 +32,17 @@ class ReportGeneratorTestCase(TestCase):
         variables, actual_query = report._get_graphql_query(self._request())
         expected = \
             """
-            query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
-                allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-                    patients(sort: ["id"]) {
+            query AllPatientsQuery($filterArgs: PatientFilterType) {
+                ang {
+                    allPatients(filterArgs: $filterArgs) {
+                        patients(sort: ["id"]) {
+                        }
                     }
                 }
             }
             """
 
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
     def test_graphql_query_pagination(self):
@@ -51,15 +53,17 @@ class ReportGeneratorTestCase(TestCase):
         variables, actual_query = report._get_graphql_query(self._request(), limit=15, offset=30)
         expected = \
             """
-            query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
-                allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-                    patients(sort: ["id"], offset: 30, limit: 15) {
+            query AllPatientsQuery($filterArgs: PatientFilterType) {
+                ang {
+                    allPatients(filterArgs: $filterArgs) {
+                        patients(sort: ["id"], offset: 30, limit: 15) {
+                        }
                     }
                 }
             }
             """
 
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
 
@@ -78,26 +82,30 @@ class ReportGeneratorTestCase(TestCase):
         report = ReportBuilder(report_design)
 
         variables, actual_query = report._get_graphql_query(self._request())
-        expected = """query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
-  allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-    patients(sort: ["id"]) {
-      id
-      consents {
-        angConsent1 {
-          firstSave
-          answer
-        }
-        angConsent2 {
-          firstSave
-          answer
-        }
-        angConsent3 {
-          firstSave
-          answer
-        }
-        angConsent4 {
-          firstSave
-          answer
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        id
+        consents {
+          cs1 {
+            angConsent1 {
+              firstSave
+              answer
+            }
+            angConsent2 {
+              firstSave
+              answer
+            }
+            angConsent3 {
+              firstSave
+              answer
+            }
+            angConsent4 {
+              firstSave
+              answer
+            }
+          }
         }
       }
     }
@@ -105,7 +113,7 @@ class ReportGeneratorTestCase(TestCase):
 }
 """
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(expected, print_ast(parse(actual_query)))
 
     def test_graphql_query_max_data(self):
@@ -162,36 +170,38 @@ class ReportGeneratorTestCase(TestCase):
 
         variables, query = report._get_graphql_query(self._request())
 
-        expected = """query AllPatientsQuery($registryCode: String!, $filterArgs: PatientFilterType) {
-  allPatients(registryCode: $registryCode, filterArgs: $filterArgs) {
-    patients(sort: ["id"]) {
-      familyName
-      givenNames
-      patientaddressSet {
-        state
-        country
-      }
-      workingGroups {
-        name
-      }
-      clinicalData {
-        History {
-          NewbornAndInfancyHistory {
-            ANGNewbornInfancyReside {
-              ResideNewborn
-              ResideInfancy
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        familyName
+        givenNames
+        patientaddressSet {
+          state
+          country
+        }
+        workingGroups {
+          name
+        }
+        clinicalData {
+          History {
+            NewbornAndInfancyHistory {
+              ANGNewbornInfancyReside {
+                ResideNewborn
+                ResideInfancy
+              }
             }
           }
-        }
-        Sleep {
-          SleepForm {
-            key
-            data {
-              SleepSection {
-                DayOfWeek
-                TimeToBed
-                TimeAwake
-                field6StartsWithNumber
+          Sleep {
+            SleepForm {
+              key
+              data {
+                SleepSection {
+                  DayOfWeek
+                  TimeToBed
+                  TimeAwake
+                  field6StartsWithNumber
+                }
               }
             }
           }
@@ -203,7 +213,7 @@ class ReportGeneratorTestCase(TestCase):
 """
 
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual({'registryCode': 'ang', 'filterArgs': {'consentQuestions': ["cq1", "cq2"], 'workingGroups': ["1", "2"]}}, variables)
+        self.assertEqual({'filterArgs': {'consentQuestions': ["cq1", "cq2"], 'workingGroups': ["1", "2"]}}, variables)
         self.assertEqual(expected, print_ast(parse(query)))
 
     def test_pre_export_validation(self):
@@ -289,12 +299,12 @@ class ReportGeneratorTestCase(TestCase):
                                 'patientaddressSet_1_addressType_type': 'Patient Address_2_Address Type',
                                 'patientaddressSet_1_address': 'Patient Address_2_Street Address',
                                 'patientaddressSet_1_suburb': 'Patient Address_2_Suburb',
-                                'consents_CQ1_answer': 'Consents_CQ1_Answer',
-                                'consents_CQ1_firstSave': 'Consents_CQ1_Date of First Save',
-                                'consents_CQ1_lastUpdate': 'Consents_CQ1_Date of Last Update',
-                                'consents_CQ2_answer': 'Consents_CQ2_Answer',
-                                'consents_CQ2_firstSave': 'Consents_CQ2_Date of First Save',
-                                'consents_CQ2_lastUpdate': 'Consents_CQ2_Date of Last Update',
+                                'consents_CS1_CQ1_answer': 'Consents_CS1_CQ1_Answer',
+                                'consents_CS1_CQ1_firstSave': 'Consents_CS1_CQ1_Date of First Save',
+                                'consents_CS1_CQ1_lastUpdate': 'Consents_CS1_CQ1_Date of Last Update',
+                                'consents_CS1_CQ2_answer': 'Consents_CS1_CQ2_Answer',
+                                'consents_CS1_CQ2_firstSave': 'Consents_CS1_CQ2_Date of First Save',
+                                'consents_CS1_CQ2_lastUpdate': 'Consents_CS1_CQ2_Date of Last Update',
                                 })
 
         self.assertDictEqual(expected, actual)
@@ -319,3 +329,22 @@ class ReportGeneratorTestCase(TestCase):
 
         self.assertDictEqual(expected, actual)
 
+    def test_build_query_from_variants(self):
+        registry = Registry.objects.create(code='ang')
+        report_design = ReportDesign.objects.create(registry=registry)
+        report_builder = ReportBuilder(report_design)
+        fields = ['answer']
+
+        self.assertEqual(report_builder._build_query_from_variants([], fields), [])
+        self.assertEqual(report_builder._build_query_from_variants([[],[]], fields), [])
+
+        self.assertEqual(report_builder._build_query_from_variants(['item1', 'item2'], fields), ['item1 { answer }', 'item2 { answer }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupA', 'item2']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupA', 'item2'], ['groupB', 'item3']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }', 'groupB { item3 { answer } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'subA', 'item1'], ['groupA', 'subA', 'item2'], ['groupA', 'subC', 'item4'], ['groupB', 'subB', 'item3']], fields),
+                         ['groupA { subA { item1 { answer } item2 { answer } } subC { item4 { answer } } }', 'groupB { subB { item3 { answer } } }'])

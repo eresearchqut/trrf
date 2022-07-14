@@ -185,15 +185,15 @@ class PatientsListingView(View):
     def _query_all_patients(self, request, registry, filters, patient_fields, sort_fields, pagination):
         patient_query = build_patients_query(patient_fields, sort_fields, pagination)
 
-        operation_input, query_input, variables = build_patient_filters(registry.code, filters)
-        all_patients_query = build_all_patients_query(['total', patient_query], query_input, operation_input)
+        operation_input, query_input, variables = build_patient_filters(filters)
+        all_patients_query = build_all_patients_query(registry, ['total', patient_query], query_input, operation_input)
 
         schema = create_dynamic_schema()
 
-        result_all = schema.execute(build_all_patients_query(['total'], {'registryCode': f'"{registry.code}"'}), context_value=request)
+        result_all = schema.execute(build_all_patients_query(registry, ['total']), context_value=request)
         result_filtered = schema.execute(all_patients_query, variable_values=variables, context_value=request)
 
-        return get_all_patients(result_all).get('total'), get_all_patients(result_filtered)
+        return get_all_patients(result_all, registry).get('total'), get_all_patients(result_filtered, registry)
 
     def _get_results(self, request):
         if self.registry_model is None:

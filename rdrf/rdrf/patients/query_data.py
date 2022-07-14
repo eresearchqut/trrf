@@ -12,10 +12,8 @@ def build_search_item(text, fields):
     return {'text': text, 'fields': fields}
 
 
-def build_patient_filters(registry_code, filters):
-    variable_definition = {"registryCode": ("String!", registry_code),
-                           "filterArgs": ("PatientFilterType", filters)
-                           }
+def build_patient_filters(filters):
+    variable_definition = {"filterArgs": ("PatientFilterType", filters)}
 
     operation_input = {f'${key}': data_type for key, (data_type, variable) in variable_definition.items()}
     query_input = {key: f'${key}' for key in variable_definition.keys()}
@@ -46,13 +44,22 @@ def build_data_summary_query(data_summary_fields):
     return GqlQuery().fields(data_summary_fields).query('dataSummary').generate()
 
 
-def build_all_patients_query(patient_query_fields, query_input, operation_input=None):
-    query = GqlQuery().fields(patient_query_fields).query('allPatients', input=query_input)
-    if operation_input:
-        query = query.operation(name='AllPatientsQuery', input=operation_input)
+def build_all_patients_query(registry, patient_query_fields, query_input=None, operation_input=None):
+    registry_fields = GqlQuery().fields(patient_query_fields)
+
+    if query_input:
+        registry_fields = registry_fields.query('allPatients', input=query_input)
     else:
-        query = query.operation()
-    return query.generate()
+        registry_fields = registry_fields.query('allPatients')
+
+    registry_query = GqlQuery().fields([registry_fields.generate()]).query(registry.code)
+
+    if operation_input:
+        registry_query = registry_query.operation(name='AllPatientsQuery', input=operation_input)
+    else:
+        registry_query = registry_query.operation()
+
+    return registry_query.generate()
 
 
 def query_patient_facets(request, registry, facet_keys):
@@ -60,10 +67,10 @@ def query_patient_facets(request, registry, facet_keys):
         return []
     schema = create_dynamic_schema()
     facet_query = build_facet_query(facet_keys)
-    all_patients_query = build_all_patients_query([facet_query], {'registryCode': f'"{registry.code}"'})
+    all_patients_query = build_all_patients_query(registry, [facet_query])
     result = schema.execute(all_patients_query, context_value=request)
-    return get_all_patients(result).get('facets')
+    return get_all_patients(result, registry).get('facets')
 
 
-def get_all_patients(results):
-    return results.data.get('allPatients', {})
+def get_all_patients(results, registry):
+    return results.data.get(registry.code, {}).get('allPatients', {})
