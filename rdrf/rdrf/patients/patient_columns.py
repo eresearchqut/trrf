@@ -199,11 +199,3 @@ class ColumnDateLastUpdated(Column):
 
     def fmt(self, val):
         return date_format(val) if val is not None else ""
-
-
-# ERE-1845 - For backwards-compatibility support only
-# Delete me after patient_list metadata_json has been reconfigured to new required format
-class ColumnLivingStatus(Column):
-    field = "living_status"
-    sort_fields = ["living_status"]
-    visible = False

@@ -4,8 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
-    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
-    ColumnDateLastUpdated
+    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnDateLastUpdated
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +21,6 @@ class PatientListConfiguration:
         'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
         'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
         'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
-
-        # ERE-1845 - For backwards-compatibility support only
-        # Delete me after patient_list metadata_json has been reconfigured to new required format
-        'living_status': {'label': 'Living Status', 'permission': 'patients.can_see_living_status', 'class': ColumnLivingStatus},
     }
 
     AVAILABLE_FACETS = {
@@ -57,11 +52,6 @@ class PatientListConfiguration:
         configured_facets = {}
 
         registry_config_facets = self.config.get('facets', [])
-
-        # ERE-1845 - For backwards-compatibility support only
-        # Delete me after patient_list metadata_json has been reconfigured to new required format
-        if isinstance(registry_config_facets, dict):
-            registry_config_facets = [{key: value} for key, value in registry_config_facets.items()]
 
         for facet_config_item in registry_config_facets:
             key, configured_facet = self._get_item_key_and_config(facet_config_item)
