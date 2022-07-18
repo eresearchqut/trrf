@@ -71,7 +71,8 @@ class ReportBuilder:
         # e.g. variants=[["sectionA", "itemCode1"], ["sectionA", "itemCode2"], ["sectionB", "itemCode1"]]
         queries = []
         if variants and variants[0]:
-            for group_name, items in itertools.groupby(variants, lambda x: x[0]):
+            sorted_variants = sorted(variants, key=lambda x: x[0])
+            for group_name, items in itertools.groupby(sorted_variants, lambda x: x[0]):
                 group_items = list(items)
                 next_group_items = [item[1:] for item in group_items]
                 if len(next_group_items[0]) == 1:

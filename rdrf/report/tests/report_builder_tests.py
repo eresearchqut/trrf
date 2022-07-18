@@ -346,5 +346,11 @@ class ReportGeneratorTestCase(TestCase):
         self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupA', 'item2'], ['groupB', 'item3']], fields),
                          ['groupA { item1 { answer } item2 { answer } }', 'groupB { item3 { answer } }'])
 
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupB', 'item3'], ['groupA', 'item2']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }', 'groupB { item3 { answer } }'])
+
         self.assertEqual(report_builder._build_query_from_variants([['groupA', 'subA', 'item1'], ['groupA', 'subA', 'item2'], ['groupA', 'subC', 'item4'], ['groupB', 'subB', 'item3']], fields),
+                         ['groupA { subA { item1 { answer } item2 { answer } } subC { item4 { answer } } }', 'groupB { subB { item3 { answer } } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'subA', 'item1'], ['groupB', 'subB', 'item3'], ['groupA', 'subC', 'item4'], ['groupA', 'subA', 'item2']], fields),
                          ['groupA { subA { item1 { answer } item2 { answer } } subC { item4 { answer } } }', 'groupB { subB { item3 { answer } } }'])
