@@ -172,7 +172,7 @@
               {% for key,facet_config in facets.items %}
                 <li class="list-group-item">
                   <h6>{{ facet_config|lookup:'label' }}</h6>
-                  <ul class="list-group list-group-flush" id="filter-{{ key }}">
+                  <ul class="list-group list-group-flush" id="filter-{{ key }}" data-facet-key="{{ key }}">
                   {% for category in facet_config|lookup:'categories' %}
                     {% with label=category|lookup:'label' value=category|lookup:'value' total=category|lookup:'total' %}
                       <li class="list-group-item pt-1 pb-0 border-0 form-check" id="option-{{ key }}-{{ value }}">

@@ -6,6 +6,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
     ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnLivingStatus, \
     ColumnDateLastUpdated
+from report.schema import to_camel_case
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class PatientListConfiguration:
 
     AVAILABLE_FACETS = {
         "living_status": {'label': _('Living Status'), 'permission': 'patients.can_see_living_status', 'default': None},
-        "working_groups__id": {'label': _('Working Groups'), 'permission': None, 'default': None}
+        "working_groups": {'label': _('Working Groups'), 'permission': None, 'default': None}
     }
 
     DEFAULT_CONFIGURATION = {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
@@ -66,7 +67,10 @@ class PatientListConfiguration:
         for facet_config_item in registry_config_facets:
             key, configured_facet = self._get_item_key_and_config(facet_config_item)
             if key in self.AVAILABLE_FACETS.keys():
-                configured_facets[key] = {**self.AVAILABLE_FACETS[key], **configured_facet}
+                gql_key = to_camel_case(key)
+                configured_facets[gql_key] = {**(self.AVAILABLE_FACETS[key]), **configured_facet}
+
+        logger.debug(f'configured_facets: {configured_facets}')
 
         return configured_facets
 
