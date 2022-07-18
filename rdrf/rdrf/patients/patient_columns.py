@@ -3,13 +3,11 @@ from django.utils.formats import date_format
 
 from rdrf.forms.components import FormGroupButton
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import MinType
 
 
 class Column(object):
     field = "id"
     sort_fields = ["id"]
-    bottom = MinType()
     visible = True
 
     def __init__(self, label, perm):
@@ -21,15 +19,6 @@ class Column(object):
         self.user = user
         self.order = order
         self.user_can_see = user.has_perm(self.perm)
-
-    def sort_key(self, supports_contexts=False,
-                 form_progress=None, context_manager=None):
-
-        def sort_func(patient):
-            value = self.cell(patient, supports_contexts, form_progress, context_manager)
-            return self.bottom if value is None else value
-
-        return sort_func
 
     def cell(self, patient, supports_contexts=False,
              form_progress=None, context_manager=None):
@@ -55,6 +44,7 @@ class Column(object):
             "data": self.field,
             "label": self.label,
             "visible": self.visible,
+            "orderable": len(self.sort_fields) > 0,
             "order": i,
         }
 
@@ -87,7 +77,7 @@ class ColumnDateOfBirth(Column):
 
 class ColumnCodeField(Column):
     field = 'code_field'
-    sort_fields = []
+    sort_fields = ['sex', 'patient_type']
 
 
 class ColumnOptionalContext(Column):
@@ -133,6 +123,7 @@ class ColumnDiagnosisProgress(ColumnOptionalContext):
 
 class ColumnDiagnosisCurrency(ColumnOptionalContext):
     field = "diagnosis_currency"
+    sort_fields = ["last_updated_overall_at"]
 
     def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
         default_ctx = context_manager.get_or_create_default_context(patient) if context_manager else None
@@ -154,6 +145,7 @@ class ColumnPatientStage(Column):
 
 class ColumnContextMenu(Column):
     field = "context_menu"
+    sort_fields = []
 
     def configure(self, registry, user, order):
         super(ColumnContextMenu, self).configure(registry, user, order)
@@ -190,12 +182,10 @@ class ColumnContextMenu(Column):
         button = FormGroupButton(self.registry, self.user, patient_model, context_form_group)
         return button.html
 
-    def sort_key(self, *args, **kwargs):
-        return None
-
 
 class ColumnDateLastUpdated(Column):
     field = "last_updated_overall_at"
+    sort_fields = ["last_updated_overall_at"]
 
     def fmt(self, val):
         return date_format(val) if val is not None else ""

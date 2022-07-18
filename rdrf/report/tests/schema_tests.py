@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
@@ -10,7 +11,8 @@ from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGro
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, AddressType, ConsentValue
-from report.schema import create_dynamic_schema
+from report.TrrfGraphQLView import PublicGraphQLError
+from report.schema import create_dynamic_schema, to_snake_case, to_camel_case, validate_fields
 
 
 class SchemaTest(TestCase):
@@ -295,7 +297,7 @@ class SchemaTest(TestCase):
         # 1 consent filter
         result = client.execute("""
         {
-            allPatients(registryCode: "test", consentQuestionCodes: ["consent1"]) {
+            allPatients(registryCode: "test", filterArgs: {consentQuestions: ["consent1"]}) {
                 patients {
                     id
                 }
@@ -317,7 +319,7 @@ class SchemaTest(TestCase):
         # Multiple consent filters
         result = client.execute("""
         {
-            allPatients(registryCode: "test", consentQuestionCodes: ["consent1", "consent2"]) {
+            allPatients(registryCode: "test", filterArgs: {consentQuestions: ["consent1", "consent2"]}) {
                 patients {
                     id
                 }
@@ -878,3 +880,29 @@ class SchemaTest(TestCase):
         fields = (list(schema_section_type.fields.keys()))
 
         self.assertEqual(fields, ['CDE1', 'CDE2'])
+
+    def test_to_snake_case(self):
+        self.assertEqual(to_snake_case('givenNames'), "given_names")
+        self.assertEqual(to_snake_case('stage'), "stage")
+        self.assertEqual(to_snake_case('workingGroups.name'), "working_groups__name")
+
+    def test_to_camel_case(self):
+        self.assertEqual(to_camel_case('given_names'), 'givenNames')
+        self.assertEqual(to_camel_case('stage'), 'stage')
+        self.assertEqual(to_camel_case('working_groups__name'), 'workingGroups.name')
+
+    def test_validate_fields(self):
+        valid_fields = ['name', 'address', 'email']
+
+        # Valid fields
+        validate_fields([], valid_fields, 'test field')
+        validate_fields(['email', 'name'], valid_fields, 'test field')
+        validate_fields(valid_fields, valid_fields, 'test field')
+
+        self.assertTrue(True)
+
+        # Invalid fields
+        with pytest.raises(PublicGraphQLError) as e:
+            validate_fields(['phone'], valid_fields, 'test field')
+        self.assertTrue("Invalid test field(s) provided: phone." in str(e))
+        self.assertTrue("Valid values are: name, address, email." in str(e))
