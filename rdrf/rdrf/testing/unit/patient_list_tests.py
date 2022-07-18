@@ -41,14 +41,6 @@ class PatientListTests(RDRFTestCase):
         registry_config = PatientListConfiguration(self.registry)
         self.assertEqual(registry_config.get_facets(), {})
 
-    def testFacetConfigurationIsMerged(self):
-        self.registry.metadata_json = '{"patient_list": {"facets": {"living_status": {"default": "Alive"}}}}'
-        self.registry.save()
-        facets = PatientListConfiguration(self.registry).get_facets()
-        self.assertEqual(["livingStatus"], [key for key in facets.keys()])
-        self.assertEqual("Living Status", facets['livingStatus']['label'])
-        self.assertEqual("Alive", facets['livingStatus']['default'])
-
     def testExtensibilityOfPatientListConfiguration(self):
         class ExtendPatientListConfiguration(PatientListConfiguration):
             def __init__(self, registry):
