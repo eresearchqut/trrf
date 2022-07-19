@@ -7,10 +7,9 @@ import graphene
 from django.conf import settings
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Count, Max, Q
+from django.utils.translation import ugettext as _
 from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
-
-from django.utils.translation import ugettext as _
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.forms.widgets.widgets import get_widget_class
@@ -55,8 +54,8 @@ def validate_fields(fields, valid_fields, label):
 
 
 class QueryResult:
-    def __init__(self, registry_code, all_patients):
-        self.registry_code = registry_code
+    def __init__(self, registry, all_patients):
+        self.registry = registry
         self.all_patients = all_patients
 
 
@@ -71,7 +70,7 @@ class DataSummaryType(ObjectType):
     max_working_group_count = graphene.Int()
     max_clinician_count = graphene.Int()
     max_parent_guardian_count = graphene.Int()
-    list_consent_question_codes = graphene.List(graphene.String)
+    list_consent_question_codes = graphene.List(graphene.List(graphene.String))
 
     def resolve_max_address_count(parent: QueryResult, _info):
         return parent.all_patients.annotate(Count('patientaddress')) \
@@ -94,9 +93,9 @@ class DataSummaryType(ObjectType):
                                   .get('parentguardian__count__max') or 0
 
     def resolve_list_consent_question_codes(parent: QueryResult, _info):
-        return ConsentQuestion.objects.filter(section__registry__code=parent.registry_code) \
-                                      .order_by('position') \
-                                      .values_list('code', flat=True)
+        return ConsentQuestion.objects.filter(section__registry=parent.registry)\
+                                      .order_by('position')\
+                                      .values_list('section__code', 'code')
 
 
 class PatientGUIDType(DjangoObjectType):
@@ -108,7 +107,7 @@ class PatientGUIDType(DjangoObjectType):
 class ConsentQuestionType(DjangoObjectType):
     class Meta:
         model = ConsentQuestion
-        fields = ('code', 'question_label')
+        fields = ('id', 'code', 'question_label')
 
 
 class ConsentValueType(DjangoObjectType):
@@ -328,9 +327,9 @@ def get_cfg_forms(cfg_key, cfg_model):
     return fields
 
 
-def get_clinical_data_fields():
+def get_clinical_data_fields(registry):
     fields = {}
-    for cfg in ContextFormGroup.objects.all():
+    for cfg in ContextFormGroup.objects.filter(registry=registry).all():
         cfg_key = cfg.code
         field_name = get_schema_field_name(cfg.code)
 
@@ -378,19 +377,32 @@ def get_patient_fields():
     }
 
 
-def get_consent_fields():
-    def consent_resolver(parent, _info, consent_question):
+def get_consent_question_fields(consent_section):
+    def consent_question_resolver(parent, _info, consent_question):
         patient, consents = parent
         return consents.filter(consent_question=consent_question).first()
 
     consent_fields = {}
-    for consent_question in ConsentQuestion.objects.all():
+    for consent_question in consent_section.questions.all():
         consent_fields[consent_question.code] = graphene.Field(ConsentValueType)
-        consent_fields[f'resolve_{consent_question.code}'] = partial(consent_resolver, consent_question=consent_question)
+        consent_fields[f'resolve_{consent_question.code}'] = partial(consent_question_resolver, consent_question=consent_question)
     return consent_fields
 
 
-def create_dynamic_facet_type():
+def get_consent_section_fields(registry):
+    def consent_section_resolver(parent, _info):
+        return parent
+
+    consent_fields = {}
+    for consent_section in registry.consent_sections.all():
+        consent_fields[consent_section.code] = graphene.Field(type(f"DynamicConsentSection_{consent_section.registry.code}_{consent_section.code}",
+                                                              (graphene.ObjectType,),
+                                                              get_consent_question_fields(consent_section)))
+        consent_fields[f'resolve_{consent_section.code}'] = consent_section_resolver
+    return consent_fields
+
+
+def create_dynamic_facet_type(registry):
     def resolve_facet(parent, _info, facet_field, get_label_fn):
         results = parent.all_patients.values(facet_field).annotate(total=Count('id')).order_by()
         return [{'label': get_label_fn(item[facet_field]),
@@ -416,10 +428,10 @@ def create_dynamic_facet_type():
         facet_fields[field] = graphene.List(FacetValueType)
         facet_fields[f'resolve_{field}'] = partial(resolve_facet, facet_field=field, get_label_fn=get_label)
 
-    return type("DynamicFacet", (ObjectType,), facet_fields)
+    return type(f"DynamicFacet_{registry.code}", (ObjectType,), facet_fields)
 
 
-def create_dynamic_patient_type():
+def create_dynamic_patient_type(registry):
     def consent_values_resolver(patient, _info):
         return patient, ConsentValue.objects.filter(
             patient=patient
@@ -436,37 +448,36 @@ def create_dynamic_patient_type():
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
     patient_fields = patient_fields_func()
 
-    consent_fields = get_consent_fields()
+    consent_fields = get_consent_section_fields(registry)
 
     if consent_fields:
         patient_fields.update({
             "consents": graphene.Field(type(
-                "DynamicConsent",
+                f"DynamicConsent_{registry.code}",
                 (graphene.ObjectType,),
                 consent_fields),
             ),
             "resolve_consents": consent_values_resolver,
         })
 
-    clinical_data_fields = get_clinical_data_fields()
+    clinical_data_fields = get_clinical_data_fields(registry)
 
     if clinical_data_fields:
         patient_fields.update({
             "clinical_data": graphene.Field(type(
-                "DynamicClinicalData",
+                f"DynamicClinicalData_{registry.code}",
                 (graphene.ObjectType,),
-                get_clinical_data_fields()),
+                get_clinical_data_fields(registry)),
             ),
             "resolve_clinical_data": clinical_data_resolver,
         })
 
-    return type("DynamicPatient", (DjangoObjectType,), patient_fields)
+    return type(f"DynamicPatient_{registry.code}", (DjangoObjectType,), patient_fields)
 
 
 def list_patients_query(user,
-                        registry_code,
+                        registry,
                         filter_args=None):
-    registry = Registry.objects.get(code=registry_code)
 
     patient_query = Patient.objects \
         .get_by_user_and_registry(user, registry) \
@@ -503,7 +514,7 @@ def list_patients_query(user,
     return patient_query.distinct()
 
 
-def create_dynamic_all_patients_type():
+def create_dynamic_all_patients_type(registry):
     def resolve_facets(parent: QueryResult, _info):
         return parent
 
@@ -528,14 +539,14 @@ def create_dynamic_all_patients_type():
             limit += offset
         return all_patients[offset:limit]
 
-    dynamic_query = type("DynamicAllPatients", (graphene.ObjectType,), {
+    dynamic_query = type(f"DynamicAllPatients_{registry.code}", (graphene.ObjectType,), {
         'total': graphene.Int(),
         'resolve_total': resolve_total,
-        'facets': graphene.Field(create_dynamic_facet_type()),
+        'facets': graphene.Field(create_dynamic_facet_type(registry)),
         'resolve_facets': resolve_facets,
         'data_summary': graphene.Field(DataSummaryType),
         'resolve_data_summary': resolve_data_summary,
-        'patients': graphene.List(create_dynamic_patient_type(),
+        'patients': graphene.List(create_dynamic_patient_type(registry),
                                   sort=graphene.List(graphene.String),
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),
@@ -563,19 +574,12 @@ class PatientFilterType(InputObjectType):
         self.living_status = []
 
 
-# TODO: memoize + possible cache clearing when registry definition changes?
-# TODO: Replace partial resolvers with single resolve function for each level
-# TODO: Replace Metaprogramming with a low-level library like graphql-core
-def create_dynamic_schema():
-    if not Registry.objects.all().exists():
-        return None
-
-    def resolve_all_patients(_parent,
+def create_dynamic_registry_type(registry):
+    def resolve_all_patients(registry,
                              _info,
-                             registry_code,
                              filter_args=PatientFilterType()):
 
-        all_patients = list_patients_query(_info.context.user, registry_code, filter_args)
+        all_patients = list_patients_query(_info.context.user, registry, filter_args)
 
         if filter_args.search:
             for i, search_def in enumerate(filter_args.search):
@@ -584,14 +588,35 @@ def create_dynamic_schema():
                 search_vector = SearchVector(*search_fields, config='simple')
                 all_patients = all_patients.annotate(**{f'search_{i}': search_vector}).filter(**{f'search_{i}__icontains': search_def.text})
 
-        return QueryResult(registry_code=registry_code,
+        return QueryResult(registry=registry,
                            all_patients=all_patients)
 
-    dynamic_query = type("DynamicQuery", (graphene.ObjectType,), {
-        'all_patients': graphene.Field(create_dynamic_all_patients_type(),
-                                       registry_code=graphene.String(required=True),
+    dynamic_registry_fields = {
+        'all_patients': graphene.Field(create_dynamic_all_patients_type(registry),
                                        filter_args=graphene.Argument(PatientFilterType)),
-        'resolve_all_patients': resolve_all_patients
-    })
+        'resolve_all_patients': resolve_all_patients,
+    }
+    return type(f'DynamicRegistryType_{registry.code}', (graphene.ObjectType,), dynamic_registry_fields)
+
+
+# TODO: memoize + possible cache clearing when registry definition changes?
+# TODO: Replace partial resolvers with single resolve function for each level
+# TODO: Replace Metaprogramming with a low-level library like graphql-core
+def create_dynamic_schema():
+    if not Registry.objects.all().exists():
+        return None
+
+    def resolve_registry(_parent, _info, registry):
+        return registry
+
+    dynamic_query_fields = {}
+
+    for registry in Registry.objects.all():
+        dynamic_query_fields.update({
+            registry.code: graphene.Field(create_dynamic_registry_type(registry)),
+            f"resolve_{registry.code}": partial(resolve_registry, registry=registry)
+        })
+
+    dynamic_query = type("DynamicQuery", (graphene.ObjectType,), dynamic_query_fields)
 
     return graphene.Schema(query=dynamic_query)

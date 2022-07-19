@@ -213,7 +213,7 @@ class ClinicalDataCsvUtil:
         patient_filters.consent_questions = [cq.code for cq in report_design.filter_consents.all()]
 
         patient_ids = list(list_patients_query(user,
-                                               report_design.registry.code,
+                                               report_design.registry,
                                                patient_filters).values_list("id", flat=True))
         cd_summary = self.__clinical_data_summary(patient_ids, cde_keys)
 
