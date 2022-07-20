@@ -502,8 +502,8 @@ def list_patients_query(user,
         patient_query = patient_query.exclude(~Q(query_working_groups))
 
     if filter_args.consent_questions:
-        for code in filter_args.consent_questions:
-            patient_query = patient_query.filter(consents__answer=True, consents__consent_question__code=code)
+        for id in filter_args.consent_questions:
+            patient_query = patient_query.filter(consents__answer=True, consents__consent_question__id=id)
 
     if filter_args.living_status:
         patient_query = patient_query.filter(living_status__in=filter_args.living_status)
