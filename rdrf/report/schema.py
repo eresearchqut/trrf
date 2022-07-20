@@ -384,8 +384,9 @@ def get_consent_question_fields(consent_section):
 
     consent_fields = {}
     for consent_question in consent_section.questions.all():
-        consent_fields[consent_question.code] = graphene.Field(ConsentValueType)
-        consent_fields[f'resolve_{consent_question.code}'] = partial(consent_question_resolver, consent_question=consent_question)
+        field_name = get_schema_field_name(consent_question.code)
+        consent_fields[field_name] = graphene.Field(ConsentValueType)
+        consent_fields[f'resolve_{field_name}'] = partial(consent_question_resolver, consent_question=consent_question)
     return consent_fields
 
 
@@ -395,10 +396,11 @@ def get_consent_section_fields(registry):
 
     consent_fields = {}
     for consent_section in registry.consent_sections.all():
-        consent_fields[consent_section.code] = graphene.Field(type(f"DynamicConsentSection_{consent_section.registry.code}_{consent_section.code}",
-                                                              (graphene.ObjectType,),
-                                                              get_consent_question_fields(consent_section)))
-        consent_fields[f'resolve_{consent_section.code}'] = consent_section_resolver
+        field_name = get_schema_field_name(consent_section.code)
+        consent_fields[field_name] = graphene.Field(type(f"DynamicConsentSection_{consent_section.registry.code}_{consent_section.code}",
+                                                    (graphene.ObjectType,),
+                                                    get_consent_question_fields(consent_section)))
+        consent_fields[f'resolve_{field_name}'] = consent_section_resolver
     return consent_fields
 
 
