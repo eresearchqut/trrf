@@ -141,11 +141,11 @@ class ReportGeneratorTestCase(TestCase):
 
         cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
 
-        cq1 = ConsentQuestion.objects.create(section=cs1, code='cq1')
-        cq2 = ConsentQuestion.objects.create(section=cs1, code='cq2')
+        cq1 = ConsentQuestion.objects.create(id=1, section=cs1, code='cq1')
+        cq2 = ConsentQuestion.objects.create(id=2, section=cs1, code='cq2')
 
-        wg1 = WorkingGroup.objects.create(id=1, registry=reg_ang, name='Working Group 1')
-        wg2 = WorkingGroup.objects.create(id=2, registry=reg_ang, name='Working Group 2')
+        wg1 = WorkingGroup.objects.create(id=8, registry=reg_ang, name='Working Group 1')
+        wg2 = WorkingGroup.objects.create(id=9, registry=reg_ang, name='Working Group 2')
 
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report_design.reportdemographicfield_set.create(model='patient', field='familyName', sort_order=0)
@@ -213,7 +213,7 @@ class ReportGeneratorTestCase(TestCase):
 """
 
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual({'filterArgs': {'consentQuestions': ["cq1", "cq2"], 'workingGroups': ["1", "2"]}}, variables)
+        self.assertEqual({'filterArgs': {'consentQuestions': ["1", "2"], 'workingGroups': ["8", "9"]}}, variables)
         self.assertEqual(expected, print_ast(parse(query)))
 
     def test_pre_export_validation(self):

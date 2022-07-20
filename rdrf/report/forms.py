@@ -63,7 +63,7 @@ def get_working_group_choices():
 
 
 def get_filter_consent_field_value(consent_question):
-    return json.dumps({'registry': consent_question.section.registry.code, 'consent_question': consent_question.code})
+    return json.dumps({'registry': consent_question.section.registry.code, 'consent_question': consent_question.id})
 
 
 def get_filter_consent_choices():
@@ -152,7 +152,7 @@ class ReportDesignerForm(ModelForm):
     def clean_filter_consents(self):
         def get_consent_from_field(field):
             field_dict = json.loads(field)
-            return ConsentQuestion.objects.get(code=field_dict['consent_question'])
+            return ConsentQuestion.objects.get(id=field_dict['consent_question'])
 
         return [get_consent_from_field(field) for field in self.cleaned_data['filter_consents']]
 

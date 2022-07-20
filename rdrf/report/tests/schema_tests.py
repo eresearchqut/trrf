@@ -273,8 +273,8 @@ class SchemaTest(TestCase):
             patient.rdrf_registry.set([self.registry])
 
         cs1 = ConsentSection.objects.create(code='consent_section_1', section_label='CS1', registry=self.registry)
-        cq1 = ConsentQuestion.objects.create(code='consent1', section=cs1)
-        cq2 = ConsentQuestion.objects.create(code='consent2', section=cs1)
+        cq1 = ConsentQuestion.objects.create(id=1, code='consent1', section=cs1)
+        cq2 = ConsentQuestion.objects.create(id=2, code='consent2', section=cs1)
 
         ConsentValue.objects.create(consent_question=cq1, answer=True, patient=p1)
         ConsentValue.objects.create(consent_question=cq2, answer=False, patient=p1)
@@ -316,7 +316,7 @@ class SchemaTest(TestCase):
         result = client.execute("""
         {
             test {
-                allPatients(filterArgs: {consentQuestions: ["consent1"]}) {
+                allPatients(filterArgs: {consentQuestions: ["1"]}) {
                     patients {
                         id
                     }
@@ -342,7 +342,7 @@ class SchemaTest(TestCase):
         result = client.execute("""
         {
             test {
-                allPatients(filterArgs: {consentQuestions: ["consent1", "consent2"]}) {
+                allPatients(filterArgs: {consentQuestions: ["1", "2"]}) {
                     patients {
                         id
                     }

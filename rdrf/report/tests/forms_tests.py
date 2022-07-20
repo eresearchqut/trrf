@@ -106,16 +106,16 @@ class FilterConsentTestCase(TestCase):
         self.reg2 = Registry.objects.create(code='def')
         self.section1 = ConsentSection.objects.create(registry=self.reg1, code="s1", section_label="Section 1")
         self.section2 = ConsentSection.objects.create(registry=self.reg2, code="s2", section_label="Section 2")
-        self.cq1 = ConsentQuestion.objects.create(code="q1", section=self.section1, question_label='Question 1')
-        self.cq2 = ConsentQuestion.objects.create(code="q2", section=self.section2, question_label='Question 2')
+        self.cq1 = ConsentQuestion.objects.create(id=1, code="q1", section=self.section1, question_label='Question 1')
+        self.cq2 = ConsentQuestion.objects.create(id=2, code="q2", section=self.section2, question_label='Question 2')
 
     def test_get_filter_consent_field_value(self):
-        self.assertEqual('{"registry": "abc", "consent_question": "q1"}', get_filter_consent_field_value(self.cq1))
-        self.assertEqual('{"registry": "def", "consent_question": "q2"}', get_filter_consent_field_value(self.cq2))
+        self.assertEqual('{"registry": "abc", "consent_question": 1}', get_filter_consent_field_value(self.cq1))
+        self.assertEqual('{"registry": "def", "consent_question": 2}', get_filter_consent_field_value(self.cq2))
 
     def test_get_filter_consent_choices(self):
-        self.assertEqual([('{"registry": "abc", "consent_question": "q1"}', 'Question 1'),
-                          ('{"registry": "def", "consent_question": "q2"}', 'Question 2')],
+        self.assertEqual([('{"registry": "abc", "consent_question": 1}', 'Question 1'),
+                          ('{"registry": "def", "consent_question": 2}', 'Question 2')],
                          get_filter_consent_choices())
 
 class ReportDesignFormTestCase(TestCase):
@@ -173,15 +173,15 @@ class ReportDesignFormTestCase(TestCase):
         s1 = ConsentSection.objects.create(registry=self.reg1, section_label="Section 1", code="S1")
         s2 = ConsentSection.objects.create(registry=self.reg2, section_label="Section 2", code="S2")
 
-        cq1 = ConsentQuestion.objects.create(section=s1, code='cq1')
-        cq2 = ConsentQuestion.objects.create(section=s1, code='cq2')
-        cq3 = ConsentQuestion.objects.create(section=s2, code='cq3')
+        cq1 = ConsentQuestion.objects.create(id=1, section=s1, code='cq1')
+        cq2 = ConsentQuestion.objects.create(id=2, section=s1, code='cq2')
+        cq3 = ConsentQuestion.objects.create(id=3, section=s2, code='cq3')
 
         form1 = ReportDesignerForm(data=(dict(self.required_attrs,
-                                              **{"filter_consents": ['{"registry": "reg1", "consent_question": "cq1"}',
-                                                                     '{"registry": "reg1", "consent_question": "cq2"}']})))
+                                              **{"filter_consents": ['{"registry": "reg1", "consent_question": 1}',
+                                                                     '{"registry": "reg1", "consent_question": 2}']})))
         form2 = ReportDesignerForm(data=(dict(self.required_attrs,
-                                              **{"filter_consents": ['{"registry": "reg2", "consent_question": "cq3"}']})))
+                                              **{"filter_consents": ['{"registry": "reg2", "consent_question": 3}']})))
 
         form1.is_valid()
         form2.is_valid()
@@ -214,9 +214,9 @@ class ReportDesignFormTestCase(TestCase):
         cs1 = ConsentSection.objects.create(registry=reg_ang, section_label="Section 1", code="S1")
         cs2 = ConsentSection.objects.create(registry=reg_ang, section_label="Section 2", code="S2")
 
-        cq1 = ConsentQuestion.objects.create(section=cs1, code='cq1')
-        cq2 = ConsentQuestion.objects.create(section=cs1, code='cq2')
-        cq3 = ConsentQuestion.objects.create(section=cs2, code='cq3')
+        cq1 = ConsentQuestion.objects.create(id=1, section=cs1, code='cq1')
+        cq2 = ConsentQuestion.objects.create(id=2, section=cs1, code='cq2')
+        cq3 = ConsentQuestion.objects.create(id=3, section=cs2, code='cq3')
 
         CommonDataElement.objects.create(code='DayOfWeek')
         CommonDataElement.objects.create(code='TimeToBed')
@@ -236,7 +236,7 @@ class ReportDesignFormTestCase(TestCase):
                                         "filter_by_working_groups": True,
                                         "filter_working_groups": [f'{{"registry": "ang", "wg": {wg2_ang.pk}}}'],
                                         "filter_by_consents": True,
-                                        "filter_consents": ['{"registry": "ang", "consent_question": "cq2"}', '{"registry": "ang", "consent_question": "cq3"}'],
+                                        "filter_consents": ['{"registry": "ang", "consent_question": 2}', '{"registry": "ang", "consent_question": 3}'],
                                         "demographic_fields": ['{"model": "patient", "field": "givenNames"}', '{"model": "patient", "field": "familyName"}'],
                                         "cde_heading_format": ReportCdeHeadingFormat.ABBR_NAME.value,
                                         "cde_fields": ['{"cfg": 1, "cde_key": "SleepBehaviour____SleepDiary____DayOfWeek"}',

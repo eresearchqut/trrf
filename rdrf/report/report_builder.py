@@ -42,7 +42,7 @@ class ReportBuilder:
 
     def __init_patient_filters(self):
         def get_patient_consent_question_filters():
-            return [cq.code for cq in self.report_design.filter_consents.all()]
+            return [f'{cq.id}' for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
             return [f'{str(wg.id)}' for wg in self.report_design.filter_working_groups.all().order_by('id')]
