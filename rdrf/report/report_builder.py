@@ -74,17 +74,18 @@ class ReportBuilder:
             sorted_variants = sorted(variants, key=lambda x: x[0])
             for group_name, items in itertools.groupby(sorted_variants, lambda x: x[0]):
                 group_items = list(items)
+                group_name_field = get_schema_field_name(group_name)
                 next_group_items = [item[1:] for item in group_items]
                 if len(next_group_items[0]) == 1:
                     # We've reached the end of the list so build the lowest level query
-                    query_fields = [GqlQuery().fields(fields).query(item).generate()
+                    query_fields = [GqlQuery().fields(fields).query(get_schema_field_name(item)).generate()
                                     for nested_item in next_group_items
                                     for item in nested_item]
-                    queries.extend([GqlQuery().fields(query_fields).query(group_name).generate()])
+                    queries.extend([GqlQuery().fields(query_fields).query(group_name_field).generate()])
                 else:
                     # Recurse over the next lot of group items to continue to build the query from the inside out
                     inner_query_fields = self._build_query_from_variants(next_group_items, fields)
-                    queries.append(GqlQuery().fields(inner_query_fields).query(group_name).generate())
+                    queries.append(GqlQuery().fields(inner_query_fields).query(group_name_field).generate())
         return queries
 
     def _get_graphql_query(self, request, offset=None, limit=None):
@@ -226,7 +227,8 @@ class ReportBuilder:
                             if variants:
                                 # Generate a fieldname item for each (column x model fields)
                                 for item in variants:
-                                    item_pointer = "_".join(item)
+                                    items = item if isinstance(item, list) else [item]
+                                    item_pointer = "_".join([get_schema_field_name(field) for field in items])
                                     for mf in model_fields:
                                         fieldnames_dict[get_flat_json_path(rdf.model, f'{item_pointer}_{mf}')] = \
                                             f"{model_config['label']}_{item_pointer}_{model_config['fields'][mf]}"
