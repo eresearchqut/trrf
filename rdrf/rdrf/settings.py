@@ -253,6 +253,8 @@ if env.get('ALL_EMAIL_JUST_PRINTED_TO_CONSOLE', False):
 else:
     EMAIL_BACKEND = 'anymail.backends.amazon_ses.EmailBackend'
 
+EMAIL_BACKEND = env.get('OVERRIDE_EMAIL_BACKEND', EMAIL_BACKEND)
+
 ANYMAIL = {
     "AMAZON_SES_CLIENT_PARAMS": {
         "aws_access_key_id": env.get("aws_ses_access_key_id", env.get("aws_access_key_id", "")),
@@ -664,7 +666,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/api/v1/registries/(?P<registry_code>\w+)/patients/$',  # Authentication implemented in class
 )
 if DEBUG:
-    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, )
+    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, r'/mail/outbox')
 
 # Public named urls can contain only urls without parameters
 # as django-stronghold cannot handle it otherwise

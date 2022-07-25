@@ -99,7 +99,7 @@ class RdrfEmail(object):
 
         # NB If a patient registers as a patient ( not a parent)
         # and a parent template is registered against the account verified
-        # event , the recipient template will evaulate to an empty string ..
+        # event , the recipient template will evaluate to an empty string ..
 
         return [r for r in recipients if self._valid_email(r)]
 

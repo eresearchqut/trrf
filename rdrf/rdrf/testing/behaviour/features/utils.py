@@ -129,6 +129,7 @@ def load_export(export_name):
         save_snapshot(export_name)
 
     reset_database_connection()
+    django_init_cache()
     show_stats(export_name)
 
 
@@ -139,6 +140,10 @@ def django_import(export_name):
 
 def django_init_dev():
     django_admin(["init", "DEV"])
+
+
+def django_init_cache():
+    django_admin(['createcachetable'])
 
 
 def django_flush(args=[]):

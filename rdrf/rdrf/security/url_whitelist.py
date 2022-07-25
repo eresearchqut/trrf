@@ -318,6 +318,8 @@ SECURITY_WHITELISTED_URLS = (
     "login_assistance_email_sent",
     "login_router",
     "logout",
+    "mailbox",
+    "mailbox_empty",
     "password_change",
     "password_change_done",
     "password_reset",

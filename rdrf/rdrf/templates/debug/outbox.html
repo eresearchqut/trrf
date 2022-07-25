@@ -1,0 +1,31 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+  <h1>Mail Outbox</h1>
+  {% if mail_messages %}
+    <table class="table table-striped" id="id_messages">
+      <thead>
+        <tr>
+          <th>To</th>
+          <th>From</th>
+          <th>Subject</th>
+          <th>Body</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for message in mail_messages %}
+        <tr>
+          <td class="messageTo">{{ message.to }}</td>
+          <td class="messageFrom">{{ message.from_email }}</td>
+          <td class="messageSubject">{{ message.subject }}</td>
+          <td class="messageBody"><pre>{{ message.body }}</pre></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">There are no messages.</div>
+  {% endif %}
+{% endblock %}
