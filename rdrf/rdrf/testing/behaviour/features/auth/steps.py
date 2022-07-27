@@ -8,7 +8,6 @@ from aloe.tools import guess_types
 from nose.tools import assert_equal, assert_true
 from selenium.webdriver.common.keys import Keys
 
-from rdrf.initial_data.base import set_up_site
 from rdrf.models.definition.models import Registry
 from rdrf.testing.behaviour.features.auth import utils
 from rdrf.testing.behaviour.features.auth.page import LoginPage, RequestPasswordResetPage, MailOutboxPage, \
@@ -23,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 @step('expecting to receive email')
 def setup_email(_step):
-    set_up_site()
     go_to_url(_step, 'mailbox_empty')
     assert_true(MailOutboxPage(world.browser).is_displayed())
 

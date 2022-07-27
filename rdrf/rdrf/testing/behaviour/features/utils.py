@@ -36,6 +36,7 @@ def reset_last_login_date():
 
 
 def subprocess_logging(command):
+    logger.info(f'command: {command}')
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if stdout:
@@ -130,6 +131,7 @@ def load_export(export_name):
 
     reset_database_connection()
     django_init_cache()
+    django_init_default_site()
     show_stats(export_name)
 
 
@@ -144,6 +146,13 @@ def django_init_dev():
 
 def django_init_cache():
     django_admin(['createcachetable'])
+
+
+def django_init_default_site():
+    domain = os.environ['TRRF_SITE_DOMAIN']
+    name = os.environ['TRRF_SITE_NAME']
+    args = ["--name", name, "--domain", domain]
+    django_admin(["set_default_site"] + args)
 
 
 def django_flush(args=[]):
