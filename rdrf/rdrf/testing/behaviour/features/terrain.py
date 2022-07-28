@@ -53,7 +53,7 @@ def do_teardown():
 
 @before.all
 def before_all():
-    logger.info('')
+    logger.info('*** before all')
     if not os.path.exists(settings.WRITABLE_DIRECTORY):
         os.makedirs(settings.WRITABLE_DIRECTORY)
     set_site_url()

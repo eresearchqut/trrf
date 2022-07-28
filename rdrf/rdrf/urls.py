@@ -25,6 +25,7 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
+from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
 from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
 from rdrf.views.lookup_views import PatientLookup
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -60,6 +61,8 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
+        re_path(r'mail/outbox/empty', MailboxEmptyView.as_view(), name='mailbox_empty'),
+        re_path(r'mail/outbox', MailboxView.as_view(), name='mailbox'),
         path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
