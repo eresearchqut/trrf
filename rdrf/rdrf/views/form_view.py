@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
+from rdrf.forms.dynamic.form_position import FormPositionForm
 from rdrf.models.definition.models import (
     CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry, QuestionnaireResponse)
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
@@ -702,6 +703,9 @@ class FormView(View):
                         all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
+        form_position_form = FormPositionForm(request.POST)
+        current_position = form_position_form.cleaned_data["position"] if form_position_form.is_valid() else None
+
         xray_recorder.end_subsegment()
 
         if all_sections_valid:
@@ -814,6 +818,7 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_link': PatientLocator(registry, patient).link,
             'sections': dd.sections,
+            'current_position': current_position,
             'patient_info': patient_info_component.html,
             'section_field_ids_map': section_field_ids_map,
             'section_ids': dd.ids,
