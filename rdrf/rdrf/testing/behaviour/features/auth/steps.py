@@ -1,12 +1,14 @@
 import logging
 import re
-import time
 from collections import OrderedDict
 
 from aloe import step, world
 from aloe.tools import guess_types
 from nose.tools import assert_equal, assert_true
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
 
 from rdrf.models.definition.models import Registry
 from rdrf.testing.behaviour.features.auth import utils
@@ -14,6 +16,7 @@ from rdrf.testing.behaviour.features.auth.page import LoginPage, RequestPassword
     ResetPasswordPage, BasePage, TwoFactorTokenGeneratorPage, TwoFactorLoginTokenPage, DisableTwoFactorAuthPage, \
     get_site_links
 from rdrf.testing.behaviour.features.steps import click_link
+from rdrf.testing.behaviour.features.terrain import TEST_WAIT
 from rdrf.testing.behaviour.features.utils import scroll_to_y
 from registry.groups.models import CustomUser
 
@@ -78,9 +81,15 @@ def patient_self_registration(_step, client_name, email_address, password):
 
     world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
 
-    time.sleep(4)
     world.browser.switch_to_default_content()
-    world.browser.find_element_by_id('registration-submit').click()
+
+    submit_button_locator = (By.ID, 'registration-submit')
+
+    WebDriverWait(world.browser, TEST_WAIT).until(
+        expected_conditions.element_to_be_clickable(submit_button_locator)
+    )
+
+    world.browser.find_element(*submit_button_locator).click()
 
 
 @step('login with username "([^"]+)" and password "([^"]+)"')
@@ -132,7 +141,7 @@ def assert_email_received(_step):
         assert_equal(actual_message['from'], expected_message['From'])
         assert_equal(actual_message['subject'], expected_message['Subject'])
 
-        world.email_link = re.search(r'https?://.*', actual_message['body'])[0]
+        world.email_link = re.search(r'https?://\S*', actual_message['body'])[0]
 
 
 @step('visit the provided link to .*')
