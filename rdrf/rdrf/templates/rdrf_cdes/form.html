@@ -115,7 +115,7 @@
         rdrfSetupFileUploads();
         rdrfSetupFormPositionSaving();
 
-        {% if current_position and not error_messages %}
+        {% if current_position %}
             rdrfScrollToFormPosition("{{ current_position }}")
         {% endif %}
  

@@ -704,7 +704,7 @@ class FormView(View):
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
         current_position = None
-        if form_obj.save_position:
+        if form_obj.save_position and error_count == 0:
             form_position_form = FormPositionForm(request.POST)
             if form_position_form.is_valid():
                 current_position = form_position_form.cleaned_data["position"]
