@@ -703,8 +703,11 @@ class FormView(View):
                         all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
-        form_position_form = FormPositionForm(request.POST)
-        current_position = form_position_form.cleaned_data["position"] if form_position_form.is_valid() else None
+        current_position = None
+        if form_obj.save_position:
+            form_position_form = FormPositionForm(request.POST)
+            if form_position_form.is_valid():
+                current_position = form_position_form.cleaned_data["position"]
 
         xray_recorder.end_subsegment()
 
