@@ -8,6 +8,7 @@ If the page has a .trrf-page-header we also add a collapse/expand all button to 
 
 var CollapsingPanels = function() {
     var collapsiblePanelsSelector = "form .card.collapsible";
+    var currentPromise = Promise.resolve();
 
     function getAllPanelBodies() {
         return $(collapsiblePanelsSelector +  ' > .card-body');
@@ -19,16 +20,32 @@ var CollapsingPanels = function() {
 
 
     function expandAll() {
-        getAllPanelBodies().collapse('show');
+        currentPromise = Promise.all(getAllPanelBodies().map(function () {
+            return new Promise((resolve) => {
+                const panel = $(this);
+                panel.one("shown.bs.collapse", resolve);
+                panel.collapse('show');
+            });
+        }));
     }
 
     function expandFirst() {
-        getFirstPanelBody().collapse('show');
+        currentPromise = new Promise((resolve) => {
+            const panel = getFirstPanelBody();
+            panel.one("shown.bs.collapse", resolve);
+            panel.collapse('show');
+        });
     }
 
 
     function collapseAll() {
-        getAllPanelBodies().collapse('hide');
+        currentPromise = Promise.all(getAllPanelBodies().map(function () {
+            return new Promise((resolve) => {
+                const panel = $(this);
+                panel.one("hidden.bs.collapse", resolve);
+                panel.collapse('hide');
+            });
+        }));
     }
 
     function expandParentPanel(el, handler) {
@@ -128,7 +145,8 @@ var CollapsingPanels = function() {
         expandParentPanel: expandParentPanel,
         expandAll: expandAll,
         collapseAll: collapseAll,
-        expandFirst: expandFirst
-    }
+        expandFirst: expandFirst,
+        currentPromise: currentPromise,
+    };
 }();
 
