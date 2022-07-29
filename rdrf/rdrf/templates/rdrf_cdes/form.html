@@ -116,11 +116,7 @@
         rdrfSetupFormPositionSaving();
 
         {% if current_position %}
-            var current_position = $("#{{ current_position }} > .card-body");
-            current_position.one("shown.bs.collapse", function () {
-                current_position.get(0).scrollIntoView({block: "center"});
-            })
-            current_position.collapse("show");
+            rdrfScrollToFormPosition("{{ current_position }}")
         {% endif %}
  
         $('#main-form').data('serialize', serialized_form());

@@ -328,3 +328,18 @@ function rdrfSetupFormPositionSaving() {
 
     document.querySelectorAll("#main-form .card-body").forEach((section) => observer.observe(section));
 }
+
+function rdrfScrollToFormPosition(positionId) {
+    const $position = $(`#${positionId} > .card-body`);
+    $position.collapse("show");
+
+    let finished;
+    let resizeObserver;
+    const setFinished = () => {
+        clearTimeout(finished);
+        finished = setTimeout(() => $position.get(0).scrollIntoView({block: "center"}), 500);
+        resizeObserver.unobserve(document.body);
+    };
+    resizeObserver = new ResizeObserver(setFinished);
+    resizeObserver.observe(document.body);
+}
