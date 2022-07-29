@@ -330,14 +330,14 @@ function rdrfSetupFormPositionSaving() {
 }
 
 function rdrfScrollToFormPosition(positionId) {
-    const $position = $(`#${positionId} > .card-body`);
-    $position.collapse("show");
+    const position = document.querySelector(`#${positionId} > .card-body`);
+    CollapsingPanels.expandAll();
 
     let finished;
     let resizeObserver;
     const setFinished = () => {
         clearTimeout(finished);
-        finished = setTimeout(() => $position.get(0).scrollIntoView({block: "center"}), 500);
+        finished = setTimeout(() => position.scrollIntoView({block: "center"}), 500);
         resizeObserver.unobserve(document.body);
     };
     resizeObserver = new ResizeObserver(setFinished);
