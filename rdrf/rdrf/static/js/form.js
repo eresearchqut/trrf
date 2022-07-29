@@ -320,7 +320,7 @@ function rdrfSetupFormPositionSaving() {
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => sections[entry.target.parentElement.id] = entry.intersectionRatio);
-        const section = Object.entries(sections).reduce((prev, curr) => curr[1] === 0 || prev[1] > curr[1] ? prev : curr);
+        const section = Object.entries(sections).reverse().reduce((prev, curr) => curr[1] === 0 || prev[1] > curr[1] ? prev : curr);
         if (section) {
             positionInput.value = section[0];
         }
