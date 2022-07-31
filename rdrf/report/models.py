@@ -49,6 +49,7 @@ class ReportDesign(models.Model):
     filter_working_groups = models.ManyToManyField(WorkingGroup, related_name='filter_working_groups', blank=True)
     filter_consents = models.ManyToManyField(ConsentQuestion, blank=True)
     cde_heading_format = models.CharField(max_length=30, choices=CDE_HEADING_FORMATS, default=ReportCdeHeadingFormat.LABEL.value)
+    cde_include_form_timestamp = models.BooleanField(default=False)
 
     objects = ReportDesignManager()
 

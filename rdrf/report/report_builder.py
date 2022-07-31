@@ -148,15 +148,20 @@ class ReportBuilder:
             for form_name, form in cfg['forms'].items():
                 fields_section = []
                 form_name_field = get_schema_field_name(form_name)
+                form_metadata = []
+
                 for section_code, section in form['sections'].items():
                     field_section = GqlQuery().fields(map(get_schema_field_name, section['cdes']), name=get_schema_field_name(section_code)).generate()
                     fields_section.append(field_section)
 
+                if self.report_design.cde_include_form_timestamp:
+                    form_metadata.append('lastUpdated')
+
                 if cfg['is_fixed']:
-                    field_form = GqlQuery().fields(fields_section, name=form_name_field).generate()
+                    field_form = GqlQuery().fields([*form_metadata, *fields_section], name=form_name_field).generate()
                 else:
                     field_data = GqlQuery().fields(fields_section, name='data').generate()
-                    field_form = GqlQuery().fields(['key', field_data], name=form_name_field).generate()
+                    field_form = GqlQuery().fields(['key', *form_metadata, field_data], name=form_name_field).generate()
 
                 fields_form.append(field_form)
 

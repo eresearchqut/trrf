@@ -1,5 +1,6 @@
 import logging
 import re
+from datetime import datetime
 from functools import partial
 from importlib import import_module
 
@@ -231,7 +232,7 @@ def get_section_fields(_section_key, section_cdes):
 
 
 def get_form_fields(form_key, section_models, section_cdes):
-    fields = {}
+    fields = {'last_updated': graphene.DateTime(description="Timestamp this form was last updated")}
     for section in section_models:
         section_key = f"{form_key}_{section.code}"
         section_type = type(
@@ -254,6 +255,14 @@ def get_form_fields(form_key, section_models, section_cdes):
     return fields
 
 
+def resolve_timestamp(clinical_datum, form_name):
+    timestamp_key = f'{form_name}_timestamp'
+    if timestamp_key in clinical_datum.data:
+        form_timestamp = clinical_datum.data[timestamp_key]
+        return datetime.fromisoformat(form_timestamp)
+    return None
+
+
 def get_cfg_forms(cfg_key, cfg_model):
     fields = {}
 
@@ -272,9 +281,12 @@ def get_cfg_forms(cfg_key, cfg_model):
                 if len(clinical_data) == 0:
                     return None
 
-                for form_data in clinical_data[0].data["forms"]:
+                clinical_datum = clinical_data[0]
+                for form_data in clinical_datum.data["forms"]:
                     if form_data["name"] == form_model.name:
-                        return form_data
+                        form_data_dict = {'last_updated': resolve_timestamp(clinical_datum, form_model.name)}
+                        form_data_dict.update(form_data)
+                        return form_data_dict
 
                 return None
 
@@ -305,6 +317,7 @@ def get_cfg_forms(cfg_key, cfg_model):
 
                         form_data_list.append({
                             "key": cfg_model.get_name_from_cde(patient, context_model),
+                            "last_updated": resolve_timestamp(clinical_datum, form_model.name),
                             "data": form_data
                         })
 
@@ -315,6 +328,7 @@ def get_cfg_forms(cfg_key, cfg_model):
             (graphene.ObjectType,),
             {
                 "key": graphene.String(description=cfg_model.naming_info),
+                "last_updated": graphene.DateTime(description="Timestamp this form was last updated"),
                 "data": graphene.Field(type(
                     f"DynamicFormData_{form_key}",
                     (graphene.ObjectType,),

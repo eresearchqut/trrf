@@ -401,3 +401,33 @@ class ClinicalDataGeneratorTestCase(TestCase):
 
         self.assertEqual(util.csv_headers(self.user, report_design), expected)
 
+    def test_generate_csv_headers_with_form_timestamp(self):
+        report_design = ReportDesign.objects.create(registry=self.registry)
+        report_design.reportclinicaldatafield_set.create(id=1, cde_key='sleep____sleepDiary____timeToBed', context_form_group=self.cfg_sleep)
+        report_design.reportclinicaldatafield_set.create(id=2, cde_key='recentSymptoms____symptoms____completedDate', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=3, cde_key='recentSymptoms____otherSymptoms____energy', context_form_group=self.cfg_symptoms)
+        report_design.reportclinicaldatafield_set.create(id=4, cde_key='infancy____growth____weight6mo', context_form_group=self.cfg_clinical_visit)
+
+        generator = ClinicalDataCsvUtil()
+
+        report_design.cde_heading_format = ReportCdeHeadingFormat.CODE.value
+        report_design.cde_include_form_timestamp = True
+        expected = OrderedDict({
+            'clinicalData_sleepTracking_sleep_lastUpdated': 'sleepTracking_sleep_Last Updated',
+            'clinicalData_sleepTracking_sleep_sleepDiary_0_timeToBed': 'sleepTracking_sleep_sleepDiary_1_timeToBed',
+            'clinicalData_sleepTracking_sleep_sleepDiary_1_timeToBed': 'sleepTracking_sleep_sleepDiary_2_timeToBed',
+            'clinicalData_symptoms_recentSymptoms_0_key': 'symptoms_recentSymptoms_1_Name',
+            'clinicalData_symptoms_recentSymptoms_0_lastUpdated': 'symptoms_recentSymptoms_1_Last Updated',
+            'clinicalData_symptoms_recentSymptoms_0_data_symptoms_completedDate': 'symptoms_recentSymptoms_1_symptoms_completedDate',
+            'clinicalData_symptoms_recentSymptoms_0_data_otherSymptoms_energy': 'symptoms_recentSymptoms_1_otherSymptoms_energy',
+            'clinicalData_symptoms_recentSymptoms_1_key': 'symptoms_recentSymptoms_2_Name',
+            'clinicalData_symptoms_recentSymptoms_1_lastUpdated': 'symptoms_recentSymptoms_2_Last Updated',
+            'clinicalData_symptoms_recentSymptoms_1_data_symptoms_completedDate': 'symptoms_recentSymptoms_2_symptoms_completedDate',
+            'clinicalData_symptoms_recentSymptoms_1_data_otherSymptoms_energy': 'symptoms_recentSymptoms_2_otherSymptoms_energy',
+            'clinicalData_clinicalVisit_infancy_lastUpdated': 'clinicalVisit_infancy_Last Updated',
+            'clinicalData_clinicalVisit_infancy_growth_weight6mo': 'clinicalVisit_infancy_growth_weight6mo',
+        })
+
+        actual = generator.csv_headers(self.user, report_design)
+        self.assertEqual(actual, expected)
+
