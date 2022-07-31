@@ -316,21 +316,13 @@ function rdrfSetupFileUploads(parent) {
 function rdrfSetupFormPositionSaving() {
     const positionInput = document.querySelector("#main-form > input[name='position']");
 
-    const sections = Object.fromEntries(Array.from(document.querySelectorAll("#main-form .card.collapsible")).map((e) => [e.id, 0]));
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => sections[entry.target.parentElement.id] = entry.intersectionRatio);
-        const section = Object.entries(sections).reverse().reduce((prev, curr) => curr[1] === 0 || prev[1] > curr[1] ? prev : curr);
-        if (section) {
-            positionInput.value = section[0];
-        }
-    }, {threshold: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]});
-
-    document.querySelectorAll("#main-form .card-body").forEach((section) => observer.observe(section));
+    $("#main-form :input").on("click change focus", function () {
+        positionInput.value = $(this).attr("id");
+    });
 }
 
 function rdrfScrollToFormPosition(positionId) {
-    const position = document.querySelector(`#${positionId} > .card-body`);
+    const position = document.getElementById(positionId);
     CollapsingPanels.expandAll();
 
     let finished;
