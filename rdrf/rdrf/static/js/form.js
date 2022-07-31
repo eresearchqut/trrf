@@ -323,6 +323,7 @@ function rdrfSetupFormPositionSaving() {
 
 function rdrfScrollToFormPosition(positionId) {
     const position = document.getElementById(positionId);
+    CollapsingPanels.expandAll();
 
     let finished;
     let resizeObserver;
