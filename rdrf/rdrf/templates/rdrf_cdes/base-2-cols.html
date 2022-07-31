@@ -65,6 +65,7 @@
     <script>
         $(document).ready(function () {
             var hasErrors = {{ error_messages|length }} > 0;
+            var currentPosition = "{{ current_position }}";
 
             adjustContentTopPadding();
 
@@ -75,7 +76,7 @@
             hide_empty_menu();
 
             CollapsingPanels.setUp();
-            if (hasErrors) {
+            if (hasErrors || currentPosition) {
                 CollapsingPanels.expandAll();
             } else {
                 CollapsingPanels.expandFirst();
