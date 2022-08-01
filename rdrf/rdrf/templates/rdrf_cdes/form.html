@@ -116,7 +116,15 @@
         rdrfSetupFormPositionSaving();
 
         {% if current_position %}
-            rdrfScrollToFormPosition("{{ current_position }}")
+            rdrfScrollToFormPosition("{{ current_position }}");
+        {% else %}
+            var searchParams = new URLSearchParams(window.location.search);
+            var currentPosition = searchParams.get("currentPosition")
+            if (currentPosition) {
+                searchParams.delete("currentPosition");
+                window.history.replaceState(null, null, "?" + searchParams);
+                rdrfScrollToFormPosition(currentPosition);
+            }
         {% endif %}
  
         $('#main-form').data('serialize', serialized_form());

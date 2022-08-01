@@ -2,6 +2,7 @@ from collections import OrderedDict
 import json
 import logging
 import os
+from urllib.parse import urlencode
 
 from csp.decorators import csp_update
 from django.shortcuts import render, get_object_or_404
@@ -756,14 +757,14 @@ class FormView(View):
 
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
-                return HttpResponseRedirect(
-                    reverse(
-                        'registry_form',
-                        args=(
-                            registry_code,
-                            form_id,
-                            patient.pk,
-                            newly_created_context.pk)))
+
+                redirect_url = reverse('registry_form',
+                                       args=(registry_code, form_id, patient.pk, newly_created_context.pk))
+
+                if current_position:
+                    return HttpResponseRedirect(redirect_url + f"?{urlencode({'currentPosition': current_position})}")
+                else:
+                    return HttpResponseRedirect(redirect_url)
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
