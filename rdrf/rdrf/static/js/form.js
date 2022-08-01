@@ -323,6 +323,10 @@ function rdrfSetupFormPositionSaving() {
 
 function rdrfScrollToFormPosition(positionId) {
     const position = document.getElementById(positionId);
+    if (!position) {
+        console.error("Could not find position element", {positionId});
+        return;
+    }
     CollapsingPanels.expandAll();
 
     let finished;
