@@ -322,7 +322,7 @@ function rdrfSetupFormPositionSaving() {
 }
 
 function rdrfScrollToFormPosition(positionId) {
-    const position = document.getElementById(positionId);
+    const position = document.getElementById(positionId).closest(".rdrf-cde-field");
     if (!position) {
         console.error("Could not find position element", {positionId});
         return;
