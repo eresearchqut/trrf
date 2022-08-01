@@ -312,3 +312,35 @@ function rdrfSetupFileUploads(parent) {
       });
   });
 }
+
+function rdrfSetupFormPositionSaving() {
+    const positionInput = document.querySelector("#main-form > input[name='position']");
+
+    $("#main-form :input").on("click change focus", function () {
+        positionInput.value = $(this).attr("id");
+    });
+}
+
+function rdrfScrollToFormPosition(positionId) {
+    const position = document.getElementById(positionId);
+    if (!position) {
+        console.error("Could not find position element", {positionId});
+        return;
+    }
+    const ancestorField = position.closest(".rdrf-cde-field");
+    if (!ancestorField) {
+        console.error("Could not find position element's ancestor", {positionId, position});
+        return;
+    }
+    CollapsingPanels.expandAll();
+
+    let finished;
+    let resizeObserver;
+    const setFinished = () => {
+        clearTimeout(finished);
+        finished = setTimeout(() => ancestorField.scrollIntoView({block: "center"}), 500);
+        resizeObserver.unobserve(document.body);
+    };
+    resizeObserver = new ResizeObserver(setFinished);
+    resizeObserver.observe(document.body);
+}

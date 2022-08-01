@@ -113,6 +113,19 @@
         }
 
         rdrfSetupFileUploads();
+        rdrfSetupFormPositionSaving();
+
+        {% if current_position %}
+            rdrfScrollToFormPosition("{{ current_position }}");
+        {% else %}
+            var searchParams = new URLSearchParams(window.location.search);
+            var currentPosition = searchParams.get("currentPosition")
+            if (currentPosition) {
+                searchParams.delete("currentPosition");
+                window.history.replaceState(null, null, "?" + searchParams);
+                rdrfScrollToFormPosition(currentPosition);
+            }
+        {% endif %}
  
         $('#main-form').data('serialize', serialized_form());
 
@@ -341,9 +354,10 @@
                     </div>
                 </div>
             {% endif %}
+            <input class="form-control" type="hidden" name="position">
 
             {% for s in sections %}
-                <div class="card collapsible">
+                <div class="card collapsible" id="section_{{ s }}">
 
                     <div class="card-header">
                         {% if request.user.is_superuser and settings.DESIGN_MODE %}
