@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='registryform',
             name='save_position',
-            field=models.BooleanField(default=False, help_text='Return to the current position on form save'),
+            field=models.BooleanField(default=False, help_text='Return the user to their current position on form save'),
         ),
     ]

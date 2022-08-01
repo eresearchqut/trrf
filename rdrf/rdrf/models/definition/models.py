@@ -831,7 +831,8 @@ class RegistryForm(models.Model):
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
     tags = ArrayField(models.CharField(max_length=20), default=list, blank=True)
-    save_position = models.BooleanField(default=False, help_text="Return to the current position on form save")
+    save_position = models.BooleanField(default=False,
+                                        help_text="Return the user to their current position on form save")
 
     class Meta:
         ordering = ('registry', 'position')
