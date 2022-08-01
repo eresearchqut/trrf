@@ -322,9 +322,14 @@ function rdrfSetupFormPositionSaving() {
 }
 
 function rdrfScrollToFormPosition(positionId) {
-    const position = document.getElementById(positionId).closest(".rdrf-cde-field");
+    const position = document.getElementById(positionId);
     if (!position) {
         console.error("Could not find position element", {positionId});
+        return;
+    }
+    const ancestorField = position.closest(".rdrf-cde-field");
+    if (!ancestorField) {
+        console.error("Could not find position element's ancestor", {positionId, position});
         return;
     }
     CollapsingPanels.expandAll();
@@ -333,7 +338,7 @@ function rdrfScrollToFormPosition(positionId) {
     let resizeObserver;
     const setFinished = () => {
         clearTimeout(finished);
-        finished = setTimeout(() => position.scrollIntoView({block: "center"}), 500);
+        finished = setTimeout(() => ancestorField.scrollIntoView({block: "center"}), 500);
         resizeObserver.unobserve(document.body);
     };
     resizeObserver = new ResizeObserver(setFinished);
