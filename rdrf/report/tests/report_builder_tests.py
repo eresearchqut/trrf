@@ -261,7 +261,9 @@ class ReportGeneratorTestCase(TestCase):
         clinicalData {
           History {
             NewbornAndInfancyHistory {
-              lastUpdated
+              meta {
+                lastUpdated
+              }
               ANGNewbornInfancyReside {
                 ResideNewborn
                 ResideInfancy
@@ -271,7 +273,9 @@ class ReportGeneratorTestCase(TestCase):
           Sleep {
             SleepForm {
               key
-              lastUpdated
+              meta {
+                lastUpdated
+              }
               data {
                 SleepSection {
                   DayOfWeek

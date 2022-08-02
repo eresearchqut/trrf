@@ -239,7 +239,7 @@ class ClinicalDataCsvUtil:
                         form_key_suffix = ''
 
                     if report_design.cde_include_form_timestamp:
-                        headers[f'{form_key_prefix}_lastUpdated'] = f'{form_label_prefix}_Last Updated'
+                        headers[f'{form_key_prefix}_meta_lastUpdated'] = f'{form_label_prefix}_Last Updated'
 
                     for section_code, section_data in self.__sorted_sections(form_data, sort_order_lookup, form_name):
                         section = Section.objects.get(code=section_code)

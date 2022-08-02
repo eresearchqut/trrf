@@ -189,6 +189,17 @@ class PatientStageType(DjangoObjectType):
         fields = ('id', 'name')
 
 
+class FormMetaType(ObjectType):
+    last_updated = graphene.DateTime(description="Timestamp this form was last updated")
+
+    def resolve_last_updated(parent, _info):
+        clinical_datum, form_name = parent
+        timestamp_key = f'{form_name}_timestamp'
+        if timestamp_key in clinical_datum.data:
+            form_timestamp = clinical_datum.data[timestamp_key]
+            return datetime.fromisoformat(form_timestamp)
+
+
 def get_schema_field_name(s):
     if not _graphql_field_pattern.match(s):
         new_str = f"field{s}"
@@ -232,7 +243,7 @@ def get_section_fields(_section_key, section_cdes):
 
 
 def get_form_fields(form_key, section_models, section_cdes):
-    fields = {'last_updated': graphene.DateTime(description="Timestamp this form was last updated")}
+    fields = {'meta': graphene.Field(FormMetaType)}
     for section in section_models:
         section_key = f"{form_key}_{section.code}"
         section_type = type(
@@ -253,14 +264,6 @@ def get_form_fields(form_key, section_models, section_cdes):
             fields[field_name] = graphene.Field(section_type, description=section.display_name)
         fields[f"resolve_{field_name}"] = partial(section_resolver, section_model=section)
     return fields
-
-
-def resolve_timestamp(clinical_datum, form_name):
-    timestamp_key = f'{form_name}_timestamp'
-    if timestamp_key in clinical_datum.data:
-        form_timestamp = clinical_datum.data[timestamp_key]
-        return datetime.fromisoformat(form_timestamp)
-    return None
 
 
 def get_cfg_forms(cfg_key, cfg_model):
@@ -284,7 +287,7 @@ def get_cfg_forms(cfg_key, cfg_model):
                 clinical_datum = clinical_data[0]
                 for form_data in clinical_datum.data["forms"]:
                     if form_data["name"] == form_model.name:
-                        form_data_dict = {'last_updated': resolve_timestamp(clinical_datum, form_model.name)}
+                        form_data_dict = {'meta': (clinical_datum, form_model.name)}
                         form_data_dict.update(form_data)
                         return form_data_dict
 
@@ -317,7 +320,7 @@ def get_cfg_forms(cfg_key, cfg_model):
 
                         form_data_list.append({
                             "key": cfg_model.get_name_from_cde(patient, context_model),
-                            "last_updated": resolve_timestamp(clinical_datum, form_model.name),
+                            "meta": (clinical_datum, form_model.name),
                             "data": form_data
                         })
 
@@ -328,7 +331,7 @@ def get_cfg_forms(cfg_key, cfg_model):
             (graphene.ObjectType,),
             {
                 "key": graphene.String(description=cfg_model.naming_info),
-                "last_updated": graphene.DateTime(description="Timestamp this form was last updated"),
+                "meta": graphene.Field(FormMetaType),
                 "data": graphene.Field(type(
                     f"DynamicFormData_{form_key}",
                     (graphene.ObjectType,),

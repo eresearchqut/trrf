@@ -155,7 +155,7 @@ class ReportBuilder:
                     fields_section.append(field_section)
 
                 if self.report_design.cde_include_form_timestamp:
-                    form_metadata.append('lastUpdated')
+                    form_metadata.append(GqlQuery().fields(['lastUpdated'], name='meta').generate())
 
                 if cfg['is_fixed']:
                     field_form = GqlQuery().fields([*form_metadata, *fields_section], name=form_name_field).generate()
