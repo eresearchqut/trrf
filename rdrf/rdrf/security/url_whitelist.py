@@ -302,6 +302,8 @@ SECURITY_WHITELISTED_URLS = (
     "context_add",
     "context_edit",
     "copyright",
+    "dashboard",
+    "dashboards",
     "django_conf_urls:set_language",
     "family_linkage",
     "favicon",
