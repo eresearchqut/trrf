@@ -515,6 +515,8 @@ class Exporter:
                  'access_groups': [ag.name for ag in r.access_groups.all()],
                  'filter_working_groups': [wg.name for wg in r.filter_working_groups.all()],
                  'filter_consents': [{'section': c.section.code, 'code': c.code} for c in r.filter_consents.all()],
+                 'cde_heading_format': r.cde_heading_format,
+                 'cde_include_form_timestamp': r.cde_include_form_timestamp,
                  'clinical_data_fields': [{'cde_key': f.cde_key, 'context_form_group': f.context_form_group.code} for f in r.reportclinicaldatafield_set.all()],
                  'demographic_fields': [{'model': f.model, 'field': f.field, 'sort_order': f.sort_order} for f in r.reportdemographicfield_set.all()]
                  }
