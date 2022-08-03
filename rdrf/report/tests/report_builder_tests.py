@@ -216,6 +216,83 @@ class ReportGeneratorTestCase(TestCase):
         self.assertEqual({'filterArgs': {'consentQuestions': ["1", "2"], 'workingGroups': ["8", "9"]}}, variables)
         self.assertEqual(expected, print_ast(parse(query)))
 
+    def test_graphql_query_include_form_timestamps(self):
+        reg_ang = Registry.objects.create(code='ang')
+        CommonDataElement.objects.create(code='DayOfWeek', name='Day of Week', abbreviated_name='Day')
+        Section.objects.create(code='SleepSection', elements='DayOfWeek',
+                               display_name='Sleep', abbreviated_name='SleepSEC')
+        form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM',
+                                           registry=reg_ang)
+        cfg_sleep = ContextFormGroup.objects.create(registry=reg_ang, code='Sleep', name='Sleep Group',
+                                                    abbreviated_name='SLE', context_type='M')
+        cfg_sleep.items.create(registry_form=form)
+        CommonDataElement.objects.create(code='ResideNewborn', name='x', abbreviated_name='Newborn')
+        CommonDataElement.objects.create(code='ResideInfancy', name='x', abbreviated_name='Infancy')
+        Section.objects.create(code='ANGNewbornInfancyReside', elements='ResideNewborn,ResideInfancy',
+                               display_name='Reside Newborn/Infancy', abbreviated_name='NewInfReside')
+        form = RegistryForm.objects.create(name='NewbornAndInfancyHistory', sections='ANGNewbornInfancyReside',
+                                           abbreviated_name='NewInfForm',
+                                           registry=reg_ang)
+        cfg_history = ContextFormGroup.objects.create(registry=reg_ang, code='History',
+                                                      name='History of Newborn/Infancy',
+                                                      abbreviated_name='Hist')
+        cfg_history.items.create(registry_form=form)
+
+        report_design = ReportDesign.objects.create(registry=reg_ang, cde_include_form_timestamp=True)
+
+        report_design.reportdemographicfield_set.create(model='patient', field='id', sort_order=0)
+
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history,
+                                                         cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history,
+                                                         cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideInfancy')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep,
+                                                         cde_key='SleepForm____SleepSection____DayOfWeek')
+
+        report = ReportBuilder(report_design)
+
+        variables, query = report._get_graphql_query(self._request())
+
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        id
+        clinicalData {
+          History {
+            NewbornAndInfancyHistory {
+              meta {
+                lastUpdated
+              }
+              ANGNewbornInfancyReside {
+                ResideNewborn
+                ResideInfancy
+              }
+            }
+          }
+          Sleep {
+            SleepForm {
+              key
+              meta {
+                lastUpdated
+              }
+              data {
+                SleepSection {
+                  DayOfWeek
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(query)))
+
     def test_pre_export_validation(self):
         reg_ang = Registry.objects.create(code='ang')
         CommonDataElement.objects.create(code='TimeToBed', name='Time to bed', abbreviated_name='Time')

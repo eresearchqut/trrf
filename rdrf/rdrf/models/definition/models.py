@@ -120,6 +120,11 @@ class Section(models.Model):
                 "Section [%s] code - only letters and numbers are allowed !" %
                 self.code)
 
+        # Validate for reserved keywords
+        # - meta: Used in graphql schema
+        if self.code.casefold() in [keyword.casefold() for keyword in ['meta']]:
+            raise ValidationError(f"Section {self.code} code - refers to a reserved keyword and is not allowed.")
+
         if errors:
             raise ValidationError(errors)
 
