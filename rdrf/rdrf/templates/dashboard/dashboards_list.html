@@ -7,7 +7,7 @@
   <ul class="list-group">
         {% for registry in registries %}
           <li class="list-group-item">
-            <a href="{% url 'dashboard' registry.code  %}">{% trans "Parent Dashboard" %} ({{ registry.name }})</a>
+            <a href="{% url 'parent_dashboard' registry.code  %}">{% trans "Parent Dashboard" %} ({{ registry.name }})</a>
           </li>
         {% endfor %}
       </ul>

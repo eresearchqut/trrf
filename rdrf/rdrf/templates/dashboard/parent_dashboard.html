@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load lookup %}
+
+{% block content %}
+  <h1>Welcome, {{ parent.first_name }}</h1>
+
+  {{ dashboard.model }}
+  {{ dashboard.widgets }}
+
+
+  {% if patients|length > 1 %}
+    <ul class="nav nav-tabs d-print-none">
+      {% for tab_patient in patients %}
+        <li class="nav-item">
+          <a href="{% url 'parent_dashboard' registry.code %}?patient_id={{ tab_patient.id }}"
+             class="nav-link {% if tab_patient == patient %}active{% endif %}"
+             aria-current="{% if tab_patient == patient %}true{% else %}false{% endif %}"
+          >{{ tab_patient }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="my-2 clearfix d-print-none">
+			<button type="button" class="btn btn-outline-secondary float-md-end" onclick="window.print();">
+				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
+			</button>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2">
+    <div class="col">
+      {% with demographics=dashboard.widgets|lookup:'demographics' %}
+      <div class="card">
+        <div class="card-header">
+          {{demographics|lookup:'title'}}
+        </div>
+        <div class="card-body">
+          <div class="card-text">
+            <ul class="list-unstyled">
+              <li>{{ patient.display_name }}</li>
+              <li>{{ patient.age }}yrs</li>
+              {% if patient.home_address %}
+              <li class="small">
+                {{ patient.home_address.address }}<br />
+                {{ patient.home_address.suburb }} {{ patient.home_address.state }} {{ patient.home_address.postcode }}<br />
+                {{ patient.home_address.country }}
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+        <div class="card-body small">
+          <a href="{% url 'patient_edit' registry.code patient.id %}" class="card-link">{% trans "Update demographics" %}</a>
+          {% for link in demographics|lookup:'form_links' %}
+            <a href="{{ link.url }}" class="card-link">{{ link.label }}</a>
+          {% endfor %}
+        </div>
+        {% with free_text=demographics|lookup:'free_text' %}
+          {% if free_text %}
+          <div class="card-footer small">
+            {{ free_text }}
+          </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+      {% endwith %}
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-header">
+          Consents
+        </div>
+        <div class="card-body">
+          <div class="card-text">
+            You have approved {{ consent_status.completed }} out of {{ consent_status.total }} consents.
+          </div>
+        </div>
+        <div class="card-footer small">
+          <a href="#" class="card-link">View/change consents (TODO)</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-header">Clinical Data</div>
+        <div class="card-body">
+          <div class="card-text">TODO</div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <div class="card-header">Module Progress</div>
+        <div class="card-body">
+          <div class="card-text">TODO</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

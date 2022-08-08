@@ -906,6 +906,8 @@ class RegistryForm(models.Model):
 
     def link(self, patient_model):
         from rdrf.helpers.utils import FormLink
+        logger.info(self)
+        logger.info(self.id)
         return FormLink(patient_model.pk, self.registry, self).url
 
     @property
@@ -2042,3 +2044,62 @@ class DataDefinitions:
         for v in CDEPermittedValue.objects.filter(pv_group__in=all_pv_groups).select_related('pv_group'):
             values[v.pv_group.code].append(v)
         return values
+
+
+class RegistryDashboard(models.Model):
+    registry = models.OneToOneField(Registry, on_delete=models.CASCADE, unique=True)
+
+
+class RegistryDashboardWidget(models.Model):
+    WIDGET_CHOICES = (
+        ('demographics', _('Demographics')),
+        ('clinical_data', _('Clinical Data')),
+        ('consents', _('Consent')),
+        ('module_progress', _('Module Progress')),
+    )
+
+    widget_type = models.CharField(choices=WIDGET_CHOICES, blank=False, null=False, max_length=50)
+    registry_dashboard = models.ForeignKey(RegistryDashboard, on_delete=models.CASCADE, related_name='widgets')
+    title = models.CharField(blank=True, max_length=100)
+    free_text = models.CharField(blank=True, max_length=255)
+
+    class Meta:
+        unique_together = (('registry_dashboard', 'widget_type'),)
+
+
+class RegistryDashboardFormLink(models.Model):
+    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='links')
+
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+    label = models.CharField(max_length=255)
+    cfg_code = models.CharField(max_length=30)
+    form_name = models.CharField(max_length=80)
+
+    # TODO validate context_form_group selected is Fixed.
+
+    @property
+    def registry_form(self):
+        logger.info(self.form_name)
+        return RegistryForm.objects.get(name=self.form_name)
+
+    class Meta:
+        ordering = ['sort_order']
+
+
+class RegistryDashboardCDEData(models.Model):
+    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='cdes')
+
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+
+    label = models.CharField(max_length=255)
+
+    cfg_code = models.CharField(max_length=30)
+    form_name = models.CharField(max_length=80)
+    section_code = models.CharField(max_length=100)
+    cde_code = models.CharField(max_length=30)
+
+    # TODO validate the codes entered are relevant
+
+
+    class Meta:
+        ordering = ['sort_order']

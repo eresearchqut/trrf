@@ -3,7 +3,8 @@ from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse
 from rdrf.events.events import EventType
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, RegistryDashboardFormLink, \
+    RegistryDashboardCDEData
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
 from rdrf.models.definition.models import CDEPermittedValue
@@ -39,7 +40,7 @@ from django.conf import settings
 
 from django.contrib.auth import get_user_model
 
-from rdrf.admin_forms import ConsentConfigurationAdminForm
+from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.admin_forms import EmailTemplateAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
@@ -455,6 +456,36 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
     list_display = ('mime_type', 'description')
 
 
+class DashboardLinksInline(admin.StackedInline):
+    model = RegistryDashboardFormLink
+    extra = 0
+
+
+class DashboardCdeDataInline(admin.StackedInline):
+    model = RegistryDashboardCDEData
+    extra = 0
+
+
+class DashboardWidgetInline(admin.StackedInline):
+    model = RegistryDashboardWidget
+    extra = 0
+
+
+class RegistryDashboardAdmin(admin.ModelAdmin):
+    model = RegistryDashboard
+    form = RegistryDashboardAdminForm
+    list_display = ('registry',)
+    inlines = [DashboardWidgetInline]
+
+
+class DashboardWidgetAdmin(admin.ModelAdmin):
+    model = RegistryDashboardWidget
+    form = DashboardWidgetAdminForm
+    list_display = ('widget_type', 'title')
+    list_select_related = ('registry_dashboard',)
+    inlines = [DashboardLinksInline, DashboardCdeDataInline]
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -496,6 +527,8 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CdePolicy, CdePolicyAdmin),
     (ContextFormGroup, ContextFormGroupAdmin),
     (CDEFile, CDEFileAdmin),
+    (RegistryDashboard, RegistryDashboardAdmin),
+    (RegistryDashboardWidget, DashboardWidgetAdmin),
 ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [

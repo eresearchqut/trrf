@@ -73,6 +73,8 @@ class LinkDefs:
     ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
+    Dashboards = make_link("admin:rdrf_registrydashboard_changelist", _("Dashboards"))
+    DashboardWidgets = make_link("admin:rdrf_registrydashboardwidget_changelist", _("Dashboard Widgets"))
 
 
 class Links:
@@ -93,6 +95,8 @@ class Links:
         LinkDefs.ConsentSections,
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
+        LinkDefs.Dashboards,
+        LinkDefs.DashboardWidgets
     )
 
     # When enabled, doctors links

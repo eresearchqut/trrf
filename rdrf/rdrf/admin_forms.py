@@ -7,7 +7,8 @@ from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
     MultipleChoiceField, MultipleHiddenInput
 from django.utils.translation import gettext as _
 
-from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, DemographicFields
+from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, \
+    DemographicFields, RegistryDashboard, RegistryDashboardWidget
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.models.definition.models import BlacklistedMimeType
 from rdrf.forms.widgets import widgets as rdrf_widgets
@@ -230,3 +231,14 @@ class BlacklistedMimeTypeAdminForm(ModelForm):
     class Meta:
         fields = "__all__"
         model = BlacklistedMimeType
+
+
+class RegistryDashboardAdminForm(ModelForm):
+    class Meta:
+        fields = '__all__'
+        model = RegistryDashboard
+
+class DashboardWidgetAdminForm(ModelForm):
+    class Meta:
+        fields = '__all__'
+        model = RegistryDashboardWidget
