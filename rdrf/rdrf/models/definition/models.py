@@ -2100,6 +2100,5 @@ class RegistryDashboardCDEData(models.Model):
 
     # TODO validate the codes entered are relevant
 
-
     class Meta:
         ordering = ['sort_order']

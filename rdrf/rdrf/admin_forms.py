@@ -238,6 +238,7 @@ class RegistryDashboardAdminForm(ModelForm):
         fields = '__all__'
         model = RegistryDashboard
 
+
 class DashboardWidgetAdminForm(ModelForm):
     class Meta:
         fields = '__all__'
