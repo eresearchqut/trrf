@@ -7,8 +7,11 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django.views import View
 
-from rdrf.models.definition.models import Registry, ConsentSection, RegistryDashboard
-from registry.patients.models import Patient, ParentGuardian
+from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, Section, \
+    RDRFContext, ConsentQuestion
+from rdrf.reports.generator import get_clinical_data
+from registry.patients.models import Patient, ParentGuardian, ConsentValue
 from registry.patients.parent_view import BaseParentView
 
 logger = logging.getLogger(__name__)
@@ -52,45 +55,108 @@ class ParentDashboardView(BaseParentView):
 
         context = {'parent': self.parent,
                    'registry': registry,
-                   'dashboard': get_dashboard_dict(dashboard, registry, patient),
+                   'dashboard': dashboard_config(dashboard, registry, patient),
                    'patients': patients,
                    'patient': patient,
-                   'consent_status': get_patient_consent_status(patient, registry)}
+                   'consent_status': patient_consent_summary(patient, registry)}
 
         return render(request, 'dashboard/parent_dashboard.html', context)
-
-
-class ParentPatientDashboardView(BaseParentView):
-    def get(self, request, registry_code, patient_id):
-        return render(request, 'dashboard/parent_dashboard.html', {})
 
 
 def get_parent_patient_registries(parent):
     return Registry.objects.filter(patients__in=parent.children).distinct()
 
 
-def get_patient_consent_status(patient, registry):
-    registry_consent_questions = [question
-                                  for section in ConsentSection.objects.filter(registry=registry).all()
-                                  for question in section.questions.all()]
-    total_registry_consents = len(registry_consent_questions)
+def patient_consent_summary(patient, registry):
+
+    registry_consent_questions = ConsentQuestion.objects.filter(section__registry=registry)
+    patient_consents = ConsentValue.objects.filter(patient=patient, consent_question__section__registry=registry)
+
     return {
-        'completed': 0,
-        'total': total_registry_consents
+        'valid': consent_status_for_patient(registry.code, patient),
+        'completed': patient_consents.count(),
+        'total': registry_consent_questions.count()
     }
 
 
-def get_dashboard_dict(dashboard, registry, patient):
+def dashboard_config(dashboard, registry, patient):
+
+    contexts = contexts_by_group(patient, registry)
+
     dd_dict = {
         'model': dashboard,
         'widgets': {widget.widget_type: {
             'title': widget.title,
             'free_text': widget.free_text,
-            'form_links': [{'label': link.label, 'url': link.registry_form.get_link(patient, patient.default_context(registry))}
-                           for link in widget.links.all()]
-        } for widget in dashboard.widgets.all()},
-
+            'form_links': [{'label': link.label,
+                            'url': get_form_link(patient, contexts, registry, link.cfg_code, link.registry_form)}
+                           for link in widget.links.all()],
+            'clinical_data': [{'label': cde.label,
+                               'data': get_cde_data(patient, contexts, registry, cde.cfg_code, cde.form_name, cde.section_code, cde.cde_code)}
+                              for cde in widget.cdes.all()]
+        } for widget in dashboard.widgets.all()}
     }
 
     logger.info(dd_dict)
     return dd_dict
+
+
+def get_form_link(patient, contexts, registry, cfg_code, registry_form):
+    logger.info('get form link ~')
+    cfg = ContextFormGroup.objects.get(code=cfg_code)
+
+    context = get_context(patient, registry, cfg, contexts)
+
+    if context:
+        return registry_form.get_link(patient, context)
+
+    if cfg.is_multiple:
+        return cfg.get_add_action(patient)
+
+
+def get_cde_data(patient, contexts, registry, cfg_code, form_name, section_code, cde_code):
+    cfg = ContextFormGroup.objects.get(code=cfg_code)
+    section = Section.objects.get(code=section_code)
+
+    logger.info(cfg)
+    context = get_context(patient, registry, cfg, contexts)
+
+    if not context:
+        return None
+
+    data = get_clinical_data(registry.code,
+                             patient.pk,
+                             context.pk)
+
+    if not data:
+        return None
+
+    form_value = patient.get_form_value(registry.code,
+                                        form_name,
+                                        section_code,
+                                        cde_code,
+                                        multisection=section.allow_multiple,
+                                        clinical_data=data)
+
+    return form_value
+
+
+def get_context(patient, registry, context_form_group, contexts):
+    context = contexts.get(context_form_group.id)
+    if context:
+        return context
+
+    if context_form_group.is_fixed:
+        return patient.default_context(patient, registry)
+
+    return None
+
+
+def contexts_by_group(patient, registry):
+    cfgs = ContextFormGroup.objects.filter(registry=registry)
+    contexts = RDRFContext.objects.get_for_patient(patient, registry)
+
+    return {context_form_group.id: context
+            for context_form_group in cfgs
+            for context in contexts.filter(context_form_group=context_form_group).order_by('-last_updated')}
+

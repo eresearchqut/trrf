@@ -6,10 +6,6 @@
 {% block content %}
   <h1>Welcome, {{ parent.first_name }}</h1>
 
-  {{ dashboard.model }}
-  {{ dashboard.widgets }}
-
-
   {% if patients|length > 1 %}
     <ul class="nav nav-tabs d-print-none">
       {% for tab_patient in patients %}
@@ -30,73 +26,24 @@
   </div>
 
   <div class="row row-cols-1 row-cols-md-2">
-    <div class="col">
-      {% with demographics=dashboard.widgets|lookup:'demographics' %}
-      <div class="card">
-        <div class="card-header">
-          {{demographics|lookup:'title'}}
-        </div>
-        <div class="card-body">
-          <div class="card-text">
-            <ul class="list-unstyled">
-              <li>{{ patient.display_name }}</li>
-              <li>{{ patient.age }}yrs</li>
-              {% if patient.home_address %}
-              <li class="small">
-                {{ patient.home_address.address }}<br />
-                {{ patient.home_address.suburb }} {{ patient.home_address.state }} {{ patient.home_address.postcode }}<br />
-                {{ patient.home_address.country }}
-              </li>
-              {% endif %}
-            </ul>
-          </div>
-        </div>
-        <div class="card-body small">
-          <a href="{% url 'patient_edit' registry.code patient.id %}" class="card-link">{% trans "Update demographics" %}</a>
-          {% for link in demographics|lookup:'form_links' %}
-            <a href="{{ link.url }}" class="card-link">{{ link.label }}</a>
-          {% endfor %}
-        </div>
-        {% with free_text=demographics|lookup:'free_text' %}
-          {% if free_text %}
-          <div class="card-footer small">
-            {{ free_text }}
-          </div>
-          {% endif %}
-        {% endwith %}
-      </div>
-      {% endwith %}
-    </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-header">
-          Consents
-        </div>
-        <div class="card-body">
-          <div class="card-text">
-            You have approved {{ consent_status.completed }} out of {{ consent_status.total }} consents.
-          </div>
-        </div>
-        <div class="card-footer small">
-          <a href="#" class="card-link">View/change consents (TODO)</a>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-header">Clinical Data</div>
-        <div class="card-body">
-          <div class="card-text">TODO</div>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card">
-        <div class="card-header">Module Progress</div>
-        <div class="card-body">
-          <div class="card-text">TODO</div>
-        </div>
-      </div>
-    </div>
+
+    {% with demographics=dashboard.widgets|lookup:'demographics' %}
+      {% include "dashboard/widget/demographics.html" with widget=demographics registry=registry patient=patient only %}
+    {% endwith %}
+
+    {% with clinical_data=dashboard.widgets|lookup:'clinical_data' %}
+      {% if clinical_data %}
+        {% include "dashboard/widget/clinical_data.html" with widget=clinical_data only %}
+      {% endif %}
+    {% endwith %}
+
+    {% with consents=dashboard.widgets|lookup:'consents' %}
+      {% include "dashboard/widget/consents.html" with widget=consents consent_status=consent_status registry=registry patient=patient only %}
+    {% endwith %}
+
+    {% with module_progress=dashboard.widgets|lookup:'module_progress' %}
+      {% include "dashboard/widget/module_progress.html" with widget=module_progress only %}
+    {% endwith %}
+
   </div>
 {% endblock %}

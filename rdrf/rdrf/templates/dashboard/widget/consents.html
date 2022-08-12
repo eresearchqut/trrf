@@ -1,0 +1,29 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+{% load lookup %}
+
+{% block card_header %}
+  {% if widget %}
+    {{widget|lookup:'title'}}
+  {% else %}
+    Consents
+  {% endif %}
+  <span class="badge pull-right {% if consent_status.valid %}bg-success{% else %}bg-danger{% endif %}">
+    {% if consent_status.valid %}
+      {% trans "Complete" %}
+    {% else %}
+      {% trans "Incomplete" %}
+    {% endif %}
+  </span>
+{% endblock %}
+
+{% block card_body_text %}
+  <p>You have approved {{ consent_status.completed }} out of {{ consent_status.total }} consents.</p>
+{% endblock %}
+
+{% block card_links %}
+  <ul class="list-unstyled small mb-0">
+    <li><a href="{% url 'consent_form_view' registry.code patient.id %}" class="card-link">{% trans "View/change consents" %}</a></li>
+  </ul>
+{% endblock %}

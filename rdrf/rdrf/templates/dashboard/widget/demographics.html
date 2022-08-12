@@ -1,0 +1,29 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+
+{% if not widget %}
+  {% block card_header %}
+    Demographics
+  {% endblock %}
+{% endif %}
+
+{% block card_body_text %}
+  <ul class="list-unstyled">
+    <li>{{ patient.display_name }}</li>
+    <li>{{ patient.age }}yrs</li>
+    {% if patient.home_address %}
+    <li class="small">
+      {{ patient.home_address.address }}<br />
+      {{ patient.home_address.suburb }} {{ patient.home_address.state }} {{ patient.home_address.postcode }}<br />
+      {{ patient.home_address.country }}
+    </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block card_links %}
+  <ul class="list-unstyled small mb-0">
+    <li><a href="{% url 'patient_edit' registry.code patient.id %}" class="card-link">{% trans "Update demographics" %}</a></li>
+  </ul>
+{% endblock %}

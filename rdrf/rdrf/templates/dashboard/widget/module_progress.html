@@ -1,0 +1,13 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+
+{% if not widget %}
+  {% block card_header %}
+    Module Progress
+  {% endblock %}
+{% endif %}
+
+{% block card_body_text %}
+    TODO
+{% endblock %}
