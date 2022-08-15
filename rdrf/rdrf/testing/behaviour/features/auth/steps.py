@@ -83,7 +83,7 @@ def patient_self_registration(_step, client_name, email_address, password):
 
     world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
 
-    world.browser.switch_to_default_content()
+    world.browser.switch_to.default_content()
 
     submit_button_locator = (By.ID, 'registration-submit')
 
