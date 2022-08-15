@@ -73,8 +73,10 @@ def patient_self_registration(_step, client_name, email_address, password):
     # 1 - Male, 2 - Female, 3 - Indeterminate
     world.browser.find_element_by_css_selector("input[name='gender'][value='1']").click()
 
-    captcha_iframe_element = world.browser.find_element_by_xpath(
-        "//iframe[@role='presentation']")
+    captcha_iframe_element = world.browser.find_element(
+        by=By.XPATH,
+        value="//iframe[@role='presentation']"
+    )
 
     world.browser.switch_to.frame(captcha_iframe_element)
     scroll_to_y(500)
