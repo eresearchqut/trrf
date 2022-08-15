@@ -45,7 +45,6 @@ django-user-agents==0.4.0
 django-simple-history==3.0.0
 lark==1.0.0
 boto3==1.22.5
-django-js-reverse==0.9.1
 aws-xray-sdk==2.9.0
 graphene-django==2.15.0
 django-filter==21.1

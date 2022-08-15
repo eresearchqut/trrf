@@ -205,7 +205,6 @@ INSTALLED_APPS = [x for x in (
     'two_factor',
     'django_user_agents',
     'simple_history',
-    'django_js_reverse',
     'stronghold',
     'aws_xray_sdk.ext.django',
     'django_countries',
@@ -651,9 +650,6 @@ SEND_ACTIVATION_EMAIL = False
 RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
 RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
-# Including only the API urls for now, add more later if needed
-JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
-
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
 
@@ -685,7 +681,6 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'password_reset_complete',
     'favicon',
     'robots_txt',
-    'js_reverse',
     'javascript-catalog',
     'django_conf_urls:set_language',
 )

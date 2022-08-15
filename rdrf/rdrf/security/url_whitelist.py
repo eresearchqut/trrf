@@ -328,7 +328,6 @@ SECURITY_WHITELISTED_URLS = (
     "health_check",
     "import_registry",
     "javascript-catalog",
-    "js_reverse",
     "landing",
     "login_assistance",
     "login_assistance_complete",

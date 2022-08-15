@@ -11,7 +11,7 @@ function setSelectedValues(selectValues) {
 }
 
 function contextFormGroupRegistryChange(registryId, selectValues) {
-    var url = Urls['v1:registry-forms'](registryId);
+    var url = '/api/v1/registries/' + registryId + '/forms/';
 
     $("select[name$='-registry_form']").empty();
     $("select[name$='-registry_form']").append($("<option>").attr('value', '').text('--------'));
