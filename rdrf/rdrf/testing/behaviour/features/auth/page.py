@@ -116,10 +116,10 @@ class MailOutboxPage(BasePage):
     def get_message(self, index):
         message_row = self._get_message_rows()[index]
         return {
-            'to': message_row.find_element_by_class_name('messageTo').text,
-            'from': message_row.find_element_by_class_name('messageFrom').text,
-            'subject': message_row.find_element_by_class_name('messageSubject').text,
-            'body': message_row.find_element_by_class_name('messageBody').text
+            'to': message_row.find_element(By.CLASS_NAME, 'messageTo').text,
+            'from': message_row.find_element(By.CLASS_NAME, 'messageFrom').text,
+            'subject': message_row.find_element(By.CLASS_NAME, 'messageSubject').text,
+            'body': message_row.find_element(By.CLASS_NAME, 'messageBody').text
         }
 
     def is_displayed(self):
