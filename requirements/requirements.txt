@@ -11,7 +11,6 @@ django-stronghold==0.4.0
 django-useraudit==1.7.1
 jsonschema==4.4.0
 openpyxl==3.0.9
-polib==1.1.0 # TODO remove
 psycopg2-binary==2.9.3
 pycountry==22.1.10
 pyodbc==4.0.28 # TODO remove
