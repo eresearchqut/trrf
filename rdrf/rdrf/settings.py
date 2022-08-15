@@ -656,7 +656,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/account/login',
     r'/(?P<registry_code>\w+)/register',
     r'/activate/(?P<activation_key>\w+)/?$',
-    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]+-[0-9A-Za-z]+)/?$',
     r'^i18n/',
     r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',
     r'/api/v1/registries/(?P<registry_code>\w+)/patients/$',  # Authentication implemented in class
