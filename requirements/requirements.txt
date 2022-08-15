@@ -17,7 +17,7 @@ geoip2==3.0.0 # TODO remove
 jsonschema==4.4.0
 openpyxl==3.0.9
 polib==1.1.0 # TODO remove
-psycopg2-binary==2.8.4 # TODO remove
+psycopg2-binary==2.9.3
 pycountry==22.1.10
 pyodbc==4.0.28 # TODO remove
 pyparsing==2.4.6 # TODO remove
