@@ -4,10 +4,10 @@
 {% load lookup %}
 
 {% block card_header %}
-  {% if widget %}
-    {{widget|lookup:'title'}}
-  {% else %}
+  {% if not widget %}
     Consents
+  {% else %}
+    {{ block.super }}
   {% endif %}
   <span class="badge pull-right {% if consent_status.valid %}bg-success{% else %}bg-danger{% endif %}">
     {% if consent_status.valid %}

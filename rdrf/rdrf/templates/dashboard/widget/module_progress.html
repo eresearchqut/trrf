@@ -1,13 +1,67 @@
 {% extends 'dashboard/widget/_widget_base.html' %}
 
 {% load i18n %}
+{% load lookup %}
 
-{% if not widget %}
-  {% block card_header %}
+{% block card_header %}
+  {% if not widget %}
     Module Progress
-  {% endblock %}
-{% endif %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block card_body_text %}
-    TODO
+  <table class="w-100">
+  {% with fixed_module_progress=module_progress|lookup:'fixed' %}
+    {% for cfg, forms in fixed_module_progress.items %}
+      {% for form, form_dict in forms.items  %}
+        {% with progress=form_dict|lookup:'progress' link=form_dict|lookup:'link' %}
+        <tr>
+          <td style="width: 70%" class="pe-2">
+            <a href="{{ link }}" class="card-link">{{ form.display_name }}</a>
+          </td>
+          <td style="width: 30%"><div class="progress">
+                <div class="progress-bar {% if progress < 25 %}bg-danger
+                                            {% if progress < 10 %}text-dark{% endif %}
+                                         {% elif progress >= 25 and progress < 75 %}bg-warning
+                                         {% else %}bg-success
+                                         {% endif %}" role="progressbar" style="width: {{ progress }}%" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">{{ progress }}%</div>
+              </div>
+          </td>
+        </tr>
+        {% endwith %}
+      {% endfor %}
+    {% endfor %}
+  {% endwith %}
+  </table>
+
+  {% with multi_module_progress=module_progress|lookup:'multi' %}
+  <table class="w-100 caption-top mt-2 table table-sm table-striped">
+    <caption>Longitudinal modules</caption>
+    <tbody>
+      {% for cfg, forms in multi_module_progress.items %}
+        {% for form, progress_dict in forms.items %}
+          <tr>
+            <td>
+              {{ form.display_name }}
+            </td>
+            <td style="width: 35%" class="text-end">
+              {% with last_completed=progress_dict|lookup:'last_completed' %}
+                {% if last_completed %}
+                  Last completed {{ progress_dict|lookup:'last_completed' }}
+                {% else %}
+                  Not started
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td style="width: 12%" class="ps-2"><a href="{{ progress_dict.link }}" class="btn btn-outline-info btn-xs">
+              <i class="fa fa-plus"></i> Add</a>
+            </td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endwith %}
 {% endblock %}

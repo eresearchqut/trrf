@@ -4,9 +4,12 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
+from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
 from django.views import View
 
+from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, Section, \
     RDRFContext, ConsentQuestion
@@ -53,12 +56,16 @@ class ParentDashboardView(BaseParentView):
             if len(patients) > 0:
                 patient = patients[0]
 
+        patient_contexts = contexts_by_group(registry, patient)
+
         context = {'parent': self.parent,
                    'registry': registry,
-                   'dashboard': dashboard_config(dashboard, registry, patient),
+                   'dashboard': dashboard_config(dashboard, registry, patient, patient_contexts),
                    'patients': patients,
                    'patient': patient,
-                   'consent_status': patient_consent_summary(patient, registry)}
+                   'consent_status': patient_consent_summary(registry, patient),
+                   'module_progress': patient_module_progress(registry, patient, patient_contexts, request.user)
+                   }
 
         return render(request, 'dashboard/parent_dashboard.html', context)
 
@@ -67,7 +74,7 @@ def get_parent_patient_registries(parent):
     return Registry.objects.filter(patients__in=parent.children).distinct()
 
 
-def patient_consent_summary(patient, registry):
+def patient_consent_summary(registry, patient):
 
     registry_consent_questions = ConsentQuestion.objects.filter(section__registry=registry)
     patient_consents = ConsentValue.objects.filter(patient=patient, consent_question__section__registry=registry)
@@ -79,47 +86,79 @@ def patient_consent_summary(patient, registry):
     }
 
 
-def dashboard_config(dashboard, registry, patient):
+def patient_module_progress(registry, patient, contexts, user):
+    form_progress = FormProgress(registry)
 
-    contexts = contexts_by_group(patient, registry)
+    modules_progress = {'fixed': {}, 'multi': {}}
 
-    dd_dict = {
+    for cfg, context in contexts.items():
+        forms_progress = {}
+        for form in cfg.forms:
+
+            if not (user.can_view(form) and form.has_progress_indicator):
+                continue
+
+            progress_dict = {}
+
+            if cfg.is_fixed:
+                key = 'fixed'
+                progress_dict['link'] = get_form_link(registry, cfg.code, form, patient, contexts=contexts, context=context)
+                progress_dict['progress'] = form_progress.get_form_progress(form, patient, context)
+            elif cfg.is_multiple:
+                key = 'multi'
+                last_completed = None
+
+                if context:
+                    last_completed = date_format(parse_datetime(patient.get_form_timestamp(form, context)))
+
+                progress_dict['link'] = cfg.get_add_action(patient)[0]
+                progress_dict['last_completed'] = last_completed
+
+            forms_progress.update({form: progress_dict})
+        modules_progress[key].update({cfg: forms_progress})
+
+    return modules_progress
+
+
+def dashboard_config(dashboard, registry, patient, contexts):
+    return {
         'model': dashboard,
-        'widgets': {widget.widget_type: {
-            'title': widget.title,
-            'free_text': widget.free_text,
-            'form_links': [{'label': link.label,
-                            'url': get_form_link(patient, contexts, registry, link.cfg_code, link.registry_form)}
-                           for link in widget.links.all()],
-            'clinical_data': [{'label': cde.label,
-                               'data': get_cde_data(patient, contexts, registry, cde.cfg_code, cde.form_name, cde.section_code, cde.cde_code)}
-                              for cde in widget.cdes.all()]
-        } for widget in dashboard.widgets.all()}
+        'widgets': {
+            widget.widget_type: {
+                'title': widget.title,
+                'free_text': widget.free_text,
+                'form_links': [{'label': link.label,
+                                'url': get_form_link(registry, link.cfg_code, link.registry_form, patient, contexts=contexts)}
+                               for link in widget.links.all()],
+                'clinical_data': [{'label': cde.label,
+                                   'data': get_cde_data(registry, cde.cfg_code, cde.form_name, cde.section_code,
+                                                        cde.cde_code, patient, contexts)}
+                                  for cde in widget.cdes.all()]
+            } for widget in dashboard.widgets.all()
+        }
     }
 
-    logger.info(dd_dict)
-    return dd_dict
 
-
-def get_form_link(patient, contexts, registry, cfg_code, registry_form):
-    logger.info('get form link ~')
+def get_form_link(registry, cfg_code, registry_form, patient, contexts=None, context=None):
     cfg = ContextFormGroup.objects.get(code=cfg_code)
 
-    context = get_context(patient, registry, cfg, contexts)
+    if not context:
+        context = get_context(registry, cfg, patient, contexts)
 
     if context:
         return registry_form.get_link(patient, context)
 
     if cfg.is_multiple:
-        return cfg.get_add_action(patient)
+        link, title = cfg.get_add_action(patient)
+        return link
 
 
-def get_cde_data(patient, contexts, registry, cfg_code, form_name, section_code, cde_code):
+def get_cde_data(registry, cfg_code, form_name, section_code, cde_code, patient, contexts):
     cfg = ContextFormGroup.objects.get(code=cfg_code)
     section = Section.objects.get(code=section_code)
 
     logger.info(cfg)
-    context = get_context(patient, registry, cfg, contexts)
+    context = get_context(registry, cfg, patient, contexts)
 
     if not context:
         return None
@@ -141,8 +180,8 @@ def get_cde_data(patient, contexts, registry, cfg_code, form_name, section_code,
     return form_value
 
 
-def get_context(patient, registry, context_form_group, contexts):
-    context = contexts.get(context_form_group.id)
+def get_context(registry, context_form_group, patient, contexts):
+    context = contexts.get(context_form_group)
     if context:
         return context
 
@@ -152,11 +191,11 @@ def get_context(patient, registry, context_form_group, contexts):
     return None
 
 
-def contexts_by_group(patient, registry):
-    cfgs = ContextFormGroup.objects.filter(registry=registry)
+def contexts_by_group(registry, patient):
+    def last_context(context_form_group):
+        return contexts.filter(context_form_group=context_form_group).order_by('-last_updated').first()
+    context_form_groups = ContextFormGroup.objects.filter(registry=registry)
     contexts = RDRFContext.objects.get_for_patient(patient, registry)
 
-    return {context_form_group.id: context
-            for context_form_group in cfgs
-            for context in contexts.filter(context_form_group=context_form_group).order_by('-last_updated')}
-
+    return {context_form_group: last_context(context_form_group)
+            for context_form_group in context_form_groups}

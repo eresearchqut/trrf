@@ -25,25 +25,29 @@
 			</button>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-2">
+  <div class="row">
+    <div class="col-md">
+      {% with widget=dashboard.widgets|lookup:'demographics' %}
+        {% include "dashboard/widget/demographics.html" with widget=widget registry=registry patient=patient only %}
+      {% endwith %}
 
-    {% with demographics=dashboard.widgets|lookup:'demographics' %}
-      {% include "dashboard/widget/demographics.html" with widget=demographics registry=registry patient=patient only %}
-    {% endwith %}
+      {% with widget=dashboard.widgets|lookup:'clinical_data' %}
+        {% if widget %}
+          {% include "dashboard/widget/clinical_data.html" with widget=widget only %}
+        {% endif %}
+      {% endwith %}
+    </div>
 
-    {% with clinical_data=dashboard.widgets|lookup:'clinical_data' %}
-      {% if clinical_data %}
-        {% include "dashboard/widget/clinical_data.html" with widget=clinical_data only %}
-      {% endif %}
-    {% endwith %}
+    <div class="col-md">
+      {% with widget=dashboard.widgets|lookup:'consents' %}
+        {% include "dashboard/widget/consents.html" with widget=widget consent_status=consent_status registry=registry patient=patient only %}
+      {% endwith %}
 
-    {% with consents=dashboard.widgets|lookup:'consents' %}
-      {% include "dashboard/widget/consents.html" with widget=consents consent_status=consent_status registry=registry patient=patient only %}
-    {% endwith %}
+      {% with widget=dashboard.widgets|lookup:'module_progress' %}
+        {% include "dashboard/widget/module_progress.html" with widget=widget module_progress=module_progress only %}
+      {% endwith %}
 
-    {% with module_progress=dashboard.widgets|lookup:'module_progress' %}
-      {% include "dashboard/widget/module_progress.html" with widget=module_progress only %}
-    {% endwith %}
-
+    </div>
   </div>
+
 {% endblock %}

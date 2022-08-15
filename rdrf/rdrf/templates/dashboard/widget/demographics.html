@@ -2,11 +2,13 @@
 
 {% load i18n %}
 
-{% if not widget %}
-  {% block card_header %}
+{% block card_header %}
+  {% if not widget %}
     Demographics
-  {% endblock %}
-{% endif %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block card_body_text %}
   <ul class="list-unstyled">

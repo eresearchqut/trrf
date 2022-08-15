@@ -1,41 +1,48 @@
 {% load i18n %}
 {% load lookup %}
 
-<div class="col">
-  <div class="card">
-    <div class="card-header">
-        {% block card_header %}
-          {{widget|lookup:'title'}}
-        {% endblock %}
-    </div>
-    <div class="card-body">
-      <div class="card-text">
-        {% block card_body_text %}
-        {% endblock %}
-        {% if widget %}
-          <ul class="list-unstyled">
-            {% for cde in widget|lookup:'clinical_data' %}
-              <li>{{ cde.label }}: {{ cde.data }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      </div>
-      {% block card_links %}
+<div class="card">
+  <div class="card-header">
+      {% block card_header %}
+        {{widget|lookup:'title'}}
       {% endblock %}
-      <ul class="list-unstyled small">
-        {% if widget %}
-          {% for link in widget|lookup:'form_links' %}
-            <li><a href="{{ link.url }}" class="card-link">{{ link.label }}</a></li>
-          {% endfor %}
-        {% endif %}
-      </ul>
-    </div>
-    {% if widget %}
-      {% with free_text=widget|lookup:'free_text' %}
-        {% if free_text %}
-          <div class="card-footer small">{{ free_text }}</div>
-        {% endif %}
-      {% endwith %}
-    {% endif %}
   </div>
+  <div class="card-body">
+    <div class="card-text">
+      {% block card_body_text %}
+      {% endblock %}
+      {% if widget %}
+        {% with cde=widget|lookup:'clinical_data' %}
+          {% if cde %}
+            <table class="table table-sm table-striped">
+              <tbody>
+              {% for cde in widget|lookup:'clinical_data' %}
+                <tr>
+                  <td class="w-50">{{ cde.label }}</td>
+                  <td>{{ cde.data }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          {% endif %}
+        {% endwith %}
+      {% endif %}
+    </div>
+    {% block card_links %}
+    {% endblock %}
+    <ul class="list-unstyled small">
+      {% if widget %}
+        {% for link in widget|lookup:'form_links' %}
+          <li><a href="{{ link.url }}" class="card-link">{{ link.label }}</a></li>
+        {% endfor %}
+      {% endif %}
+    </ul>
+  </div>
+  {% if widget %}
+    {% with free_text=widget|lookup:'free_text' %}
+      {% if free_text %}
+        <div class="card-footer small">{{ free_text }}</div>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
 </div>

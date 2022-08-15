@@ -2,8 +2,10 @@
 
 {% load i18n %}
 
-{% if not widget %}
-  {% block card_header %}
+{% block card_header %}
+  {% if not widget %}
     Clinical Data
-  {% endblock %}
-{% endif %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
