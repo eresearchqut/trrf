@@ -284,3 +284,19 @@ form .aligned ul.errorlist {
   padding: 25px;
   margin: 25px;
 }
+
+@media print {
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  .progress-bar, .tooltip-inner {
+    color: #000;
+  }
+
+  .progress, .slider-track, .slider-handle {
+    border: 1px solid #000;
+  }
+
+}

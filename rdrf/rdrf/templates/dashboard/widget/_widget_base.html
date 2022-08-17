@@ -1,7 +1,8 @@
 {% load i18n %}
 {% load lookup %}
+{% load join_if_list %}
 
-<div class="card">
+<div class="card page-break-inside-avoid">
   <div class="card-header">
       {% block card_header %}
         {{widget|lookup:'title'}}
@@ -12,25 +13,35 @@
       {% block card_body_text %}
       {% endblock %}
       {% if widget %}
-        {% with cde=widget|lookup:'clinical_data' %}
-          {% if cde %}
+        {% with demographics=widget|lookup:'demographic_data' cdes=widget|lookup:'clinical_data' %}
+          {% if demographics or cdes %}
             <table class="table table-sm table-striped">
               <tbody>
-              {% for cde in widget|lookup:'clinical_data' %}
-                <tr>
-                  <td class="w-50">{{ cde.label }}</td>
-                  <td>{{ cde.data }}</td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          {% endif %}
+              {% if demographics %}
+                {% for key, demographic in demographics.items %}
+                  <tr>
+                    <td class="w-50">{{ demographic|lookup:'label' }}</td>
+                    <td>{{ demographic|lookup:'value' }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+              {% if cdes %}
+                {% for cde in cdes %}
+                  <tr>
+                    <td class="w-50">{{ cde.label }}</td>
+                    <td>{{ cde.data|join_if_list }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+            {% endif %}
         {% endwith %}
       {% endif %}
     </div>
     {% block card_links %}
     {% endblock %}
-    <ul class="list-unstyled small">
+    <ul class="list-unstyled d-print-none">
       {% if widget %}
         {% for link in widget|lookup:'form_links' %}
           <li><a href="{{ link.url }}" class="card-link">{{ link.label }}</a></li>

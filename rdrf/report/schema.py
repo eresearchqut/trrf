@@ -543,12 +543,16 @@ def create_dynamic_all_patients_type(registry):
     def resolve_data_summary(parent: QueryResult, _info):
         return parent
 
-    def resolve_patients(parent: QueryResult, _info, sort=None, offset=None, limit=None):
+    def resolve_patients(parent: QueryResult, _info, id=None, sort=None, offset=None, limit=None):
         def validate_sort_fields(sort_fields):
             sort_fields_without_order = [field.lstrip('-') for field in sort_fields]
             return validate_fields(sort_fields_without_order, _valid_sort_fields, 'sort field')
 
         all_patients = parent.all_patients
+
+        if id:
+            return [all_patients.get(id=id)]
+
         if sort:
             validate_sort_fields(sort)
             sort_fields = [to_snake_case(field) for field in sort]
@@ -566,6 +570,7 @@ def create_dynamic_all_patients_type(registry):
         'data_summary': graphene.Field(DataSummaryType),
         'resolve_data_summary': resolve_data_summary,
         'patients': graphene.List(create_dynamic_patient_type(registry),
+                                  id=graphene.String(),
                                   sort=graphene.List(graphene.String),
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),

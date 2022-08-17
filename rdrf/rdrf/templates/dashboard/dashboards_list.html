@@ -5,9 +5,9 @@
 {% block content %}
   <h1>{% trans "Your Dashboards" %}</h1>
   <ul class="list-group">
-        {% for registry in registries %}
+        {% for dashboard in dashboards %}
           <li class="list-group-item">
-            <a href="{% url 'parent_dashboard' registry.code  %}">{% trans "Parent Dashboard" %} ({{ registry.name }})</a>
+            <a href="{% url 'parent_dashboard' dashboard.registry.code  %}">{% trans "Parent Dashboard" %} ({{ dashboard.registry.name }})</a>
           </li>
         {% endfor %}
       </ul>

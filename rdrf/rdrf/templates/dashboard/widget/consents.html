@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block card_links %}
-  <ul class="list-unstyled small mb-0">
+  <ul class="list-unstyled mb-0 d-print-none">
     <li><a href="{% url 'consent_form_view' registry.code patient.id %}" class="card-link">{% trans "View/change consents" %}</a></li>
   </ul>
 {% endblock %}

@@ -3,8 +3,9 @@ from django.utils.translation import ugettext as _
 from django.contrib import admin
 from django.urls import reverse
 from rdrf.events.events import EventType
-from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, RegistryDashboardFormLink, \
-    RegistryDashboardCDEData
+from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, \
+    RegistryDashboardFormLink, \
+    RegistryDashboardCDEData, RegistryDashboardDemographicData
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import QuestionnaireResponse
 from rdrf.models.definition.models import CDEPermittedValue
@@ -84,6 +85,7 @@ class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'is_questionnaire', 'position')
     ordering = ['registry', 'name']
     form = RegistryFormAdminForm
+    search_fields = ['name']
 
     list_filter = ['registry']
 
@@ -458,16 +460,18 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
 
 class DashboardLinksInline(admin.StackedInline):
     model = RegistryDashboardFormLink
+    autocomplete_fields = ['registry_form']
     extra = 0
 
 
 class DashboardCdeDataInline(admin.StackedInline):
     model = RegistryDashboardCDEData
+    autocomplete_fields = ['registry_form', 'section', 'cde']
     extra = 0
 
 
-class DashboardWidgetInline(admin.StackedInline):
-    model = RegistryDashboardWidget
+class DashboardDemographicsInline(admin.StackedInline):
+    model = RegistryDashboardDemographicData
     extra = 0
 
 
@@ -475,7 +479,6 @@ class RegistryDashboardAdmin(admin.ModelAdmin):
     model = RegistryDashboard
     form = RegistryDashboardAdminForm
     list_display = ('registry',)
-    inlines = [DashboardWidgetInline]
 
 
 class DashboardWidgetAdmin(admin.ModelAdmin):
@@ -483,7 +486,7 @@ class DashboardWidgetAdmin(admin.ModelAdmin):
     form = DashboardWidgetAdminForm
     list_display = ('widget_type', 'title')
     list_select_related = ('registry_dashboard',)
-    inlines = [DashboardLinksInline, DashboardCdeDataInline]
+    inlines = [DashboardLinksInline, DashboardDemographicsInline, DashboardCdeDataInline]
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(

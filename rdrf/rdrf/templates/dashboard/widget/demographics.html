@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block card_links %}
-  <ul class="list-unstyled small mb-0">
+  <ul class="list-unstyled mb-0 d-print-none">
     <li><a href="{% url 'patient_edit' registry.code patient.id %}" class="card-link">{% trans "Update demographics" %}</a></li>
   </ul>
 {% endblock %}

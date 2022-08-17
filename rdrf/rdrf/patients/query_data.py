@@ -62,6 +62,11 @@ def build_all_patients_query(registry, patient_query_fields, query_input=None, o
     return registry_query.generate()
 
 
+def execute_query(request, query):
+    schema = create_dynamic_schema()
+    return schema.execute(query, context_value=request)
+
+
 def query_patient_facets(request, registry, facet_keys):
     if not facet_keys:
         return []
@@ -70,6 +75,19 @@ def query_patient_facets(request, registry, facet_keys):
     all_patients_query = build_all_patients_query(registry, [facet_query])
     result = schema.execute(all_patients_query, context_value=request)
     return get_all_patients(result, registry).get('facets')
+
+
+def query_patient(request, registry, id, fields):
+    patient_query = GqlQuery().fields(fields).query('patients', input={'id': f'"{id}"'}).generate()
+    all_patients_query = build_all_patients_query(registry, [patient_query])
+    result = execute_query(request, all_patients_query)
+    patients = get_all_patients(result, registry).get('patients', [])
+    logger.info(all_patients_query)
+    logger.info(result)
+
+    # TODO else what?.
+    if patients and len(patients) == 1:
+        return patients[0]
 
 
 def get_all_patients(results, registry):

@@ -10,9 +10,11 @@ from django.utils.translation import ugettext as _
 from django.views import View
 
 from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, Section, \
     RDRFContext, ConsentQuestion
+from rdrf.patients.query_data import query_patient
 from rdrf.reports.generator import get_clinical_data
 from registry.patients.models import Patient, ParentGuardian, ConsentValue
 from registry.patients.parent_view import BaseParentView
@@ -22,19 +24,16 @@ logger = logging.getLogger(__name__)
 
 class DashboardListView(View):
     def get(self, request):
-        try:
-            parent = ParentGuardian.objects.get(user=request.user)
-        except ParentGuardian.DoesNotExist:
+        registry_dashboards = RegistryDashboard.objects.filter_user_parent_dashboards(request.user)
+
+        if not registry_dashboards:
             raise Http404(_("No Dashboards for this user"))
 
-        registries = get_parent_patient_registries(parent).all()
-        registry_dashboards = RegistryDashboard.objects.filter(registry__in=registries)
-
         if len(registry_dashboards) == 1:
-            return redirect(reverse('parent_dashboard', args=[registries.first().code]))
+            return redirect(reverse('parent_dashboard', args=[registry_dashboards.first().registry.code]))
 
         context = {
-            'registries': registries
+            'dashboards': registry_dashboards
         }
 
         return render(request, 'dashboard/dashboards_list.html', context)
@@ -45,7 +44,7 @@ class ParentDashboardView(BaseParentView):
         registry = get_object_or_404(Registry, code=registry_code)
         dashboard = get_object_or_404(RegistryDashboard, registry=registry)
 
-        patients = [patient for patient in self.parent.children if [registry in patient.rdrf_registry.all()]]
+        patients = [patient for patient in self.parent.children if registry in patient.rdrf_registry.all()]
 
         patient_id = request.GET.get('patient_id')
         if patient_id:
@@ -60,7 +59,7 @@ class ParentDashboardView(BaseParentView):
 
         context = {'parent': self.parent,
                    'registry': registry,
-                   'dashboard': dashboard_config(dashboard, registry, patient, patient_contexts),
+                   'dashboard': dashboard_config(dashboard, registry, patient, patient_contexts, self.request),
                    'patients': patients,
                    'patient': patient,
                    'consent_status': patient_consent_summary(registry, patient),
@@ -68,10 +67,6 @@ class ParentDashboardView(BaseParentView):
                    }
 
         return render(request, 'dashboard/parent_dashboard.html', context)
-
-
-def get_parent_patient_registries(parent):
-    return Registry.objects.filter(patients__in=parent.children).distinct()
 
 
 def patient_consent_summary(registry, patient):
@@ -92,7 +87,9 @@ def patient_module_progress(registry, patient, contexts, user):
     modules_progress = {'fixed': {}, 'multi': {}}
 
     for cfg, context in contexts.items():
+        logger.info(cfg.code)
         forms_progress = {}
+        key = None
         for form in cfg.forms:
 
             if not (user.can_view(form) and form.has_progress_indicator):
@@ -115,12 +112,13 @@ def patient_module_progress(registry, patient, contexts, user):
                 progress_dict['last_completed'] = last_completed
 
             forms_progress.update({form: progress_dict})
-        modules_progress[key].update({cfg: forms_progress})
+        if key:
+            modules_progress[key].update({cfg: forms_progress})
 
     return modules_progress
 
 
-def dashboard_config(dashboard, registry, patient, contexts):
+def dashboard_config(dashboard, registry, patient, contexts, request):
     return {
         'model': dashboard,
         'widgets': {
@@ -128,12 +126,13 @@ def dashboard_config(dashboard, registry, patient, contexts):
                 'title': widget.title,
                 'free_text': widget.free_text,
                 'form_links': [{'label': link.label,
-                                'url': get_form_link(registry, link.cfg_code, link.registry_form, patient, contexts=contexts)}
+                                'url': get_form_link(registry, link.context_form_group.code, link.registry_form, patient, contexts=contexts)}
                                for link in widget.links.all()],
                 'clinical_data': [{'label': cde.label,
-                                   'data': get_cde_data(registry, cde.cfg_code, cde.form_name, cde.section_code,
-                                                        cde.cde_code, patient, contexts)}
-                                  for cde in widget.cdes.all()]
+                                   'data': get_cde_data(registry, cde.context_form_group, cde.registry_form,
+                                                        cde.section, cde.cde, patient, contexts)}
+                                  for cde in widget.cdes.all()],
+                'demographic_data': patient_demographic_data(widget, registry, patient, request)
             } for widget in dashboard.widgets.all()
         }
     }
@@ -153,31 +152,64 @@ def get_form_link(registry, cfg_code, registry_form, patient, contexts=None, con
         return link
 
 
-def get_cde_data(registry, cfg_code, form_name, section_code, cde_code, patient, contexts):
-    cfg = ContextFormGroup.objects.get(code=cfg_code)
-    section = Section.objects.get(code=section_code)
-
-    logger.info(cfg)
+def get_cde_data(registry, cfg, form, section, cde, patient, contexts):
     context = get_context(registry, cfg, patient, contexts)
 
     if not context:
         return None
 
-    data = get_clinical_data(registry.code,
-                             patient.pk,
-                             context.pk)
+    data = get_clinical_data.__wrapped__(registry.code,
+                                         patient.pk,
+                                         context.pk)
 
     if not data:
         return None
 
+    logger.info(f'get cde data for: {registry.code}, {form.name}, {section.code}, {cde.code}')
+
     form_value = patient.get_form_value(registry.code,
-                                        form_name,
-                                        section_code,
-                                        cde_code,
+                                        form.name,
+                                        section.code,
+                                        cde.code,
                                         multisection=section.allow_multiple,
                                         clinical_data=data)
 
-    return form_value
+    logger.info(f'form value: {form_value}')
+
+    return cde_display_value(cde, form_value)
+
+
+# TODO put this somewhere common
+def cde_display_value(cde_model, value):
+    datatype = cde_model.datatype.strip().lower()
+    if datatype == 'lookup':
+        value = get_widget_class(cde_model.widget_name).denormalized_value(value)
+    elif cde_model.pv_group:
+        cde_values_dict = cde_model.pv_group.cde_values_dict
+        if isinstance(value, list):
+            value = [cde_values_dict.get(value_item, value_item) for value_item in value]
+        else:
+            value = cde_values_dict.get(value, value)
+
+    # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
+    if cde_model.allow_multiple:
+        return value if isinstance(value, list) else [value]
+    else:
+        return value
+
+
+def patient_demographic_data(widget, registry, patient, request):
+    # TODO rename to patient_field? or just field
+    config = {demographic.patient_demographic_field: demographic.label for demographic in widget.demographics.all()}
+    fields = config.keys()
+    logger.info(fields)
+
+    if fields:
+        result = query_patient(request, registry, patient.id, fields)
+        if result:
+            return {k: {'label': v, 'value': result.get(k)} for k, v in config.items()}
+
+    return {}
 
 
 def get_context(registry, context_form_group, patient, contexts):
