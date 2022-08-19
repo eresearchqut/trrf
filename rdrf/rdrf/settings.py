@@ -61,6 +61,7 @@ ALL_LANGUAGES = (
     ("de", "Deutsch"),
     ("fr", "Français"),
     ("he", "עִבְרִית"),
+    ("hi", "हिन्दी"),
     ("it", "Italiano"),
     ("pl", "Język polski"),
     ("pt", "Português"),
