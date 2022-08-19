@@ -10,7 +10,7 @@ from django.forms.models import model_to_dict
 
 from rdrf import VERSION
 import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm
+from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
@@ -264,6 +264,7 @@ class Exporter:
         data["patient_stage_rules"] = self._get_patient_stage_rules()
         data["next_of_kin_relationships"] = self._get_next_of_kin_relationships()
         data["group_permissions"] = self._get_group_permissions()
+        data["registry_dashboards"] = self.get_registry_dashboards()
 
         if export_type in [
                 ExportType.REGISTRY_ONLY,
@@ -659,6 +660,30 @@ class Exporter:
             }
             data.append(group_dict)
         return data
+
+    def get_registry_dashboards(self):
+        return [{
+                'registry': dashboard.registry.code,
+                'widgets': [{'widget_type': widget.widget_type,
+                             'title': widget.title,
+                             'free_text': widget.free_text,
+                             'demographics': [{'sort_order': demographic.sort_order,
+                                               'label': demographic.label,
+                                               'patient_demographic_field': demographic.patient_demographic_field}
+                                              for demographic in widget.demographics.all()],
+                             'cdes': [{'sort_order': cde.sort_order,
+                                       'label': cde.label,
+                                       'context_form_group': cde.context_form_group.code,
+                                       'registry_form': cde.registry_form.name,
+                                       'section': cde.section.code,
+                                       'cde': cde.cde.code}
+                                      for cde in widget.cdes.all()],
+                            'links': [{'sort_order': link.sort_order,
+                                       'label': link.label,
+                                       'context_form_group': link.context_form_group.code,
+                                       'registry_form': link.registry_form.name} for link in widget.links.all()]}
+                            for widget in dashboard.widgets.all()]
+                } for dashboard in RegistryDashboard.objects.all()]
 
 
 def str_presenter(dumper, data):

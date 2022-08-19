@@ -28,7 +28,7 @@
   <div class="row d-print-block">
     <div class="col-md">
       {% with widget=dashboard.widgets|lookup:'demographics' %}
-        {% include "dashboard/widget/demographics.html" with widget=widget registry=registry patient=patient only %}
+        {% include "dashboard/widget/demographics.html" with widget=widget registry=registry patient=patient primary=True only %}
       {% endwith %}
 
       {% with widget=dashboard.widgets|lookup:'clinical_data' %}

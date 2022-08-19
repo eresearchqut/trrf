@@ -2,8 +2,8 @@
 {% load lookup %}
 {% load join_if_list %}
 
-<div class="card page-break-inside-avoid">
-  <div class="card-header">
+<div class="card page-break-inside-avoid {% if primary %}border-primary{% endif %}">
+  <div class="card-header {% if primary %}bg-primary text-white{% endif %}">
       {% block card_header %}
         {{widget|lookup:'title'}}
       {% endblock %}
