@@ -669,7 +669,8 @@ class Exporter:
                              'free_text': widget.free_text,
                              'demographics': [{'sort_order': demographic.sort_order,
                                                'label': demographic.label,
-                                               'patient_demographic_field': demographic.patient_demographic_field}
+                                               'model': demographic.model,
+                                               'field': demographic.field}
                                               for demographic in widget.demographics.all()],
                              'cdes': [{'sort_order': cde.sort_order,
                                        'label': cde.label,

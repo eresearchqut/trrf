@@ -291,6 +291,10 @@ form .aligned ul.errorlist {
     page-break-inside: avoid;
   }
 
+  nav.navbar {
+    display: none;
+  }
+
   .progress-bar, .tooltip-inner {
     color: #000;
   }

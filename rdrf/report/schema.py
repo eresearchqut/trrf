@@ -216,22 +216,7 @@ def get_section_fields(_section_key, section_cdes):
         def cde_resolver(cdes, _info, cde_model):
             for cde_value in cdes:
                 if cde_value["code"] == cde_model.code:
-                    datatype = cde_model.datatype.strip().lower()
-                    value = cde_value["value"]
-                    if datatype == 'lookup':
-                        value = get_widget_class(cde_model.widget_name).denormalized_value(value)
-                    elif cde_model.pv_group:
-                        cde_values_dict = cde_model.pv_group.cde_values_dict
-                        if isinstance(value, list):
-                            value = [cde_values_dict.get(value_item, value_item) for value_item in value]
-                        else:
-                            value = cde_values_dict.get(value, value)
-
-                    # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
-                    if cde_model.allow_multiple:
-                        return value if isinstance(value, list) else [value]
-                    else:
-                        return value
+                    return cde_model.display_value(cde_value["value"])
 
         if cde.allow_multiple:
             fields[field_name] = graphene.List(graphene.String, description=cde.name)

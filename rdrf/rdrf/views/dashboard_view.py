@@ -11,7 +11,6 @@ from django.utils.translation import ugettext as _
 from django.views import View
 
 from rdrf.forms.progress.form_progress import FormProgress
-from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
 from rdrf.patients.query_data import query_patient
@@ -113,9 +112,6 @@ def patient_module_progress(registry, patient, contexts, user):
         if key:
             modules_progress[key].update({cfg: forms_progress})
 
-        logger.info(key)
-        logger.info(modules_progress)
-
     return modules_progress
 
 
@@ -173,33 +169,13 @@ def get_cde_data(registry, cfg, form, section, cde, patient, contexts):
                                         multisection=section.allow_multiple,
                                         clinical_data=data)
 
-    return cde_display_value(cde, form_value)
-
-
-# TODO put this somewhere common
-def cde_display_value(cde_model, value):
-    datatype = cde_model.datatype.strip().lower()
-    if datatype == 'lookup':
-        value = get_widget_class(cde_model.widget_name).denormalized_value(value)
-    elif cde_model.pv_group:
-        cde_values_dict = cde_model.pv_group.cde_values_dict
-        if isinstance(value, list):
-            value = [cde_values_dict.get(value_item, value_item) for value_item in value]
-        else:
-            value = cde_values_dict.get(value, value)
-
-    # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
-    if cde_model.allow_multiple:
-        return value if isinstance(value, list) else [value]
-    else:
-        return value
+    return cde.display_value(form_value)
 
 
 def patient_demographic_data(widget, registry, patient, request):
-    # TODO rename to patient_field? or just field
-    config = {demographic.patient_demographic_field: demographic.label for demographic in widget.demographics.all()}
+    config = {demographic.field: demographic.label
+              for demographic in widget.demographics.all() if demographic.model == 'patient'}
     fields = config.keys()
-    logger.info(fields)
 
     if fields:
         result = query_patient(request, registry, patient.id, fields)

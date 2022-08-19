@@ -1119,7 +1119,8 @@ class Importer(object):
                     demographic = RegistryDashboardDemographicData.objects.create(widget=widget,
                                                                                   sort_order=demographic_dict['sort_order'],
                                                                                   label=demographic_dict['label'],
-                                                                                  patient_demographic_field=demographic_dict['patient_demographic_field'])
+                                                                                  model=demographic_dict['model'],
+                                                                                  field=demographic_dict['field'])
                     logger.info(f'Created demographic {demographic.label}')
 
                 for cde_dict in widget_dict['cdes']:
