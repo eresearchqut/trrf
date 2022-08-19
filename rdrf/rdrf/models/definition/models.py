@@ -2095,7 +2095,7 @@ class RegistryDashboardDemographicData(models.Model):
 
     class Meta:
         ordering = ['sort_order']
-        # unique_together = (('widget', 'sort_order'),)
+        unique_together = (('widget', 'sort_order'),)
 
 
 class RegistryDashboardFormLink(models.Model):
@@ -2109,7 +2109,7 @@ class RegistryDashboardFormLink(models.Model):
 
     class Meta:
         ordering = ['sort_order']
-        # unique_together = (('widget', 'sort_order'),)
+        unique_together = (('widget', 'sort_order'),)
 
     def clean(self):
         errors = []
@@ -2138,7 +2138,7 @@ class RegistryDashboardCDEData(models.Model):
 
     class Meta:
         ordering = ['sort_order']
-        # unique_together = (('widget', 'sort_order'),)
+        unique_together = (('widget', 'sort_order'),)
 
     def clean(self):
         errors = []

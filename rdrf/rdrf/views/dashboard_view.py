@@ -12,11 +12,10 @@ from django.views import View
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.utils import consent_status_for_patient
-from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, Section, \
-    RDRFContext, ConsentQuestion
+from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
 from rdrf.patients.query_data import query_patient
 from rdrf.reports.generator import get_clinical_data
-from registry.patients.models import Patient, ParentGuardian, ConsentValue
+from registry.patients.models import Patient, ConsentValue
 from registry.patients.parent_view import BaseParentView
 
 logger = logging.getLogger(__name__)
@@ -70,7 +69,6 @@ class ParentDashboardView(BaseParentView):
 
 
 def patient_consent_summary(registry, patient):
-
     registry_consent_questions = ConsentQuestion.objects.filter(section__registry=registry)
     patient_consents = ConsentValue.objects.filter(patient=patient, consent_question__section__registry=registry)
 

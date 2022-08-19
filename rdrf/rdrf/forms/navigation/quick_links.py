@@ -121,6 +121,7 @@ class Links:
     # only appear if related registry specific feature is set
     # Populated at runtime
     PATIENTS = {}
+    PARENT_PATIENTS = {}
     CONSENT = {}
     DOCTORS = {}
     FAMILY_LINKAGE = {}
@@ -238,6 +239,9 @@ class MenuConfig:
     def patient_links(self):
         return {}
 
+    def parent_patient_links(self):
+        return {}
+
     def consent_links(self):
         return {}
 
@@ -265,6 +269,7 @@ class MenuConfig:
     def build_menu(self):
         # enable dynamic links and build the menu
         self.patient_links()
+        self.parent_patient_links()
         self.consent_links()
         self.doctors_link()
         self.family_linkage_links()
@@ -298,6 +303,10 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REPORTS,
             **RegularLinks.LEGACY_REPORTS,
+        }
+
+        self.parent = {
+            **RegularLinks.PARENT_PATIENTS,
         }
 
         # Super user has combined menu of all other users
@@ -343,6 +352,9 @@ class RegularMenuConfig(MenuConfig):
 
     def patient_links(self):
         Links.PATIENTS = self.per_registry_links('Patient List', 'patient_list')
+
+    def parent_patient_links(self):
+        Links.PARENT_PATIENTS = self.per_registry_links('Patients', 'registry:parent_page')
 
     def consent_links(self):
         Links.CONSENT = self.per_registry_links('Consents', 'consent_list')
