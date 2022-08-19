@@ -755,17 +755,17 @@ class CommonDataElement(models.Model):
                     self.widget_settings = json.dumps(existing)
         super().save(*args, **kwargs)
 
-    def display_value(self, data_value):
+    def display_value(self, value):
         datatype = self.datatype.strip().lower()
         if datatype == 'lookup':
             from rdrf.forms.widgets.widgets import get_widget_class
-            value = get_widget_class(self.widget_name).denormalized_value(data_value)
+            value = get_widget_class(self.widget_name).denormalized_value(value)
         elif self.pv_group:
             cde_values_dict = self.pv_group.cde_values_dict
-            if isinstance(data_value, list):
-                value = [cde_values_dict.get(value_item, value_item) for value_item in data_value]
+            if isinstance(value, list):
+                value = [cde_values_dict.get(value_item, value_item) for value_item in value]
             else:
-                value = cde_values_dict.get(data_value, data_value)
+                value = cde_values_dict.get(value, value)
 
         # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
         if self.allow_multiple:

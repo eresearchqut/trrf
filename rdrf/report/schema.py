@@ -13,7 +13,6 @@ from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
-from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
     ConsentRule

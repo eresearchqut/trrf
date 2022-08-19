@@ -196,10 +196,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.is_parent and self.dashboards:
             return reverse('dashboards_list')
 
-        if self.registry_code and (self.is_parent or
-                                     self.is_patient or
-                                     self.is_carrier or
-                                     (self.is_carer and self.patients_in_care.count() == 1)):
+        if self.registry_code and (self.is_parent
+                                   or self.is_patient
+                                   or self.is_carrier
+                                   or (self.is_carer and self.patients_in_care.count() == 1)):
             return reverse("registry:parent_page" if self.is_parent else "registry:patient_page",
                            args=[self.registry_code])
 

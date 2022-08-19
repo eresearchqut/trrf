@@ -15,35 +15,68 @@ from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
 from rdrf.patients.query_data import query_patient
 from rdrf.reports.generator import get_clinical_data
-from registry.patients.models import Patient, ConsentValue
-from registry.patients.parent_view import BaseParentView
+from registry.patients.models import Patient, ConsentValue, ParentGuardian
 
 logger = logging.getLogger(__name__)
 
 
-class DashboardListView(View):
-    def get(self, request):
-        registry_dashboards = RegistryDashboard.objects.filter_user_parent_dashboards(request.user)
+class BaseDashboardView(View):
 
-        if not registry_dashboards:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.registry = None
+        self.parent = None
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        registry_code = kwargs.get('registry_code')
+
+        if registry_code:
+            self.registry = get_object_or_404(Registry, code=kwargs['registry_code'])
+            if not request.user.in_registry(self.registry):
+                raise PermissionDenied
+
+        user_allowed = user.is_superuser or user.is_parent
+        if not user_allowed:
+            raise PermissionDenied
+
+        if user.is_superuser:
+            parent_id = request.GET.get('parent_id')
+            if parent_id:
+                self.parent = get_object_or_404(ParentGuardian, pk=parent_id)
+        else:
+            self.parent = ParentGuardian.objects.filter(user=user).first()
+            if not self.parent and user.is_parent:
+                raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class DashboardListView(BaseDashboardView):
+    def get(self, request):
+        if request.user.is_superuser:
+            dashboards = self.parent.user.dashboards
+        else:
+            dashboards = request.user.dashboards
+
+        if not dashboards:
             raise Http404(_("No Dashboards for this user"))
 
-        if len(registry_dashboards) == 1:
-            return redirect(reverse('parent_dashboard', args=[registry_dashboards.first().registry.code]))
+        if len(dashboards) == 1:
+            return redirect(reverse('parent_dashboard', args=[dashboards.first().registry.code]))
 
         context = {
-            'dashboards': registry_dashboards
+            'dashboards': dashboards
         }
 
         return render(request, 'dashboard/dashboards_list.html', context)
 
 
-class ParentDashboardView(BaseParentView):
+class ParentDashboardView(BaseDashboardView):
     def get(self, request, registry_code):
-        registry = get_object_or_404(Registry, code=registry_code)
-        dashboard = get_object_or_404(RegistryDashboard, registry=registry)
+        dashboard = get_object_or_404(RegistryDashboard, registry=self.registry)
 
-        patients = [patient for patient in self.parent.children if registry in patient.rdrf_registry.all()]
+        patients = [patient for patient in self.parent.children if self.registry in patient.rdrf_registry.all()]
 
         patient_id = request.GET.get('patient_id')
         if patient_id:
@@ -54,15 +87,15 @@ class ParentDashboardView(BaseParentView):
             if len(patients) > 0:
                 patient = patients[0]
 
-        patient_contexts = contexts_by_group(registry, patient)
+        patient_contexts = contexts_by_group(self.registry, patient)
 
         context = {'parent': self.parent,
-                   'registry': registry,
-                   'dashboard': dashboard_config(dashboard, registry, patient, patient_contexts, self.request),
+                   'registry': self.registry,
+                   'dashboard': dashboard_config(dashboard, self.registry, patient, patient_contexts, self.request),
                    'patients': patients,
                    'patient': patient,
-                   'consent_status': patient_consent_summary(registry, patient),
-                   'module_progress': patient_module_progress(registry, patient, patient_contexts, request.user)
+                   'consent_status': patient_consent_summary(self.registry, patient),
+                   'module_progress': patient_module_progress(self.registry, patient, patient_contexts, request.user)
                    }
 
         return render(request, 'dashboard/parent_dashboard.html', context)
