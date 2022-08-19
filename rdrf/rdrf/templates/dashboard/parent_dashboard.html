@@ -44,7 +44,9 @@
       {% endwith %}
 
       {% with widget=dashboard.widgets|lookup:'module_progress' %}
-        {% include "dashboard/widget/module_progress.html" with widget=widget module_progress=module_progress only %}
+        {% if module_progress %}
+          {% include "dashboard/widget/module_progress.html" with widget=widget module_progress=module_progress only %}
+        {% endif %}
       {% endwith %}
 
     </div>

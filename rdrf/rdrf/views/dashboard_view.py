@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
@@ -82,10 +83,9 @@ def patient_consent_summary(registry, patient):
 def patient_module_progress(registry, patient, contexts, user):
     form_progress = FormProgress(registry)
 
-    modules_progress = {'fixed': {}, 'multi': {}}
+    modules_progress = defaultdict(dict)  # {'fixed': {}, 'multi': {}}
 
     for cfg, context in contexts.items():
-        logger.info(cfg.code)
         forms_progress = {}
         key = None
         for form in cfg.forms:
@@ -112,6 +112,9 @@ def patient_module_progress(registry, patient, contexts, user):
             forms_progress.update({form: progress_dict})
         if key:
             modules_progress[key].update({cfg: forms_progress})
+
+        logger.info(key)
+        logger.info(modules_progress)
 
     return modules_progress
 
@@ -163,16 +166,12 @@ def get_cde_data(registry, cfg, form, section, cde, patient, contexts):
     if not data:
         return None
 
-    logger.info(f'get cde data for: {registry.code}, {form.name}, {section.code}, {cde.code}')
-
     form_value = patient.get_form_value(registry.code,
                                         form.name,
                                         section.code,
                                         cde.code,
                                         multisection=section.allow_multiple,
                                         clinical_data=data)
-
-    logger.info(f'form value: {form_value}')
 
     return cde_display_value(cde, form_value)
 
