@@ -147,7 +147,7 @@
 {% endblock %}
 
 {% block formbtns %}
-    {% if user.is_super_user and user.is_staff and not registry|has_feature:"no_add_patient_button" %}
+    {% if not (user.is_carer or user.is_parent) and not registry|has_feature:"no_add_patient_button" %}
         <br>
         <div class="btn-group" role="group" aria-label="...">
             <a href="{% url 'patient_add' registry.code %}" class="btn btn-success">
