@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0142_save_form_position'),
+        ('rdrf', '0143_add_hindi_language'),
     ]
 
     operations = [
