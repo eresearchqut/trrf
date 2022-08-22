@@ -2067,12 +2067,14 @@ class RegistryDashboardManager(models.Manager):
     def filter_user_parent_dashboards(self, user):
         if user.is_parent:
             from registry.patients.models import ParentGuardian
-            parent = ParentGuardian.objects.get(user=user)
+            parent = ParentGuardian.objects.filter(user=user).first()
             if parent:
                 children_registries = {patient_registry
                                        for patient in parent.children
                                        for patient_registry in patient.rdrf_registry.all()}
                 return self.filter(registry__in=children_registries)
+
+        return self.none()
 
 
 class RegistryDashboard(models.Model):
