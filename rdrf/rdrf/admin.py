@@ -460,18 +460,21 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
 
 class DashboardLinksInline(admin.StackedInline):
     model = RegistryDashboardFormLink
-    autocomplete_fields = ['registry_form']
+    verbose_name_plural = 'Links'
+    autocomplete_fields = ('registry_form',)
     extra = 0
 
 
 class DashboardCdeDataInline(admin.StackedInline):
     model = RegistryDashboardCDEData
-    autocomplete_fields = ['registry_form', 'section', 'cde']
+    verbose_name_plural = 'Clinical Data'
+    autocomplete_fields = ('registry_form', 'section', 'cde')
     extra = 0
 
 
 class DashboardDemographicsInline(admin.StackedInline):
     model = RegistryDashboardDemographicData
+    verbose_name_plural = 'Patient Demographics'
     extra = 0
 
 
@@ -484,8 +487,9 @@ class RegistryDashboardAdmin(admin.ModelAdmin):
 class DashboardWidgetAdmin(admin.ModelAdmin):
     model = RegistryDashboardWidget
     form = DashboardWidgetAdminForm
-    list_display = ('widget_type', 'title')
+    list_display = ('registry_dashboard', 'widget_type', 'title')
     list_select_related = ('registry_dashboard',)
+    list_filter = ['registry_dashboard']
     inlines = [DashboardLinksInline, DashboardDemographicsInline, DashboardCdeDataInline]
 
 

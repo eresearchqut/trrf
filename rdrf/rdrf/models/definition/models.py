@@ -924,8 +924,6 @@ class RegistryForm(models.Model):
 
     def link(self, patient_model):
         from rdrf.helpers.utils import FormLink
-        logger.info(self)
-        logger.info(self.id)
         return FormLink(patient_model.pk, self.registry, self).url
 
     @property
@@ -2094,8 +2092,8 @@ class RegistryDashboardWidget(models.Model):
         ('module_progress', _('Module Progress')),
     )
 
-    widget_type = models.CharField(choices=WIDGET_CHOICES, blank=False, null=False, max_length=50)
     registry_dashboard = models.ForeignKey(RegistryDashboard, on_delete=models.CASCADE, related_name='widgets')
+    widget_type = models.CharField(choices=WIDGET_CHOICES, blank=False, null=False, max_length=50)
     title = models.CharField(blank=True, max_length=100)
     free_text = models.CharField(blank=True, max_length=255)
 
