@@ -1,7 +1,5 @@
 import json
-from importlib import import_module
 
-from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \

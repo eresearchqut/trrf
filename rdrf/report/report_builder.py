@@ -6,9 +6,7 @@ import json
 import logging
 import re
 from collections import OrderedDict
-from importlib import import_module
 
-from django.conf import settings
 from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
@@ -27,7 +25,7 @@ class ReportBuilder:
 
     def __init__(self, report_design):
         self.report_design = report_design
-        self.report_config = load_report_configuration['demographic_model']
+        self.report_config = load_report_configuration()['demographic_model']
         self.report_fields_lookup = self.__init_report_fields_lookup()
         self.patient_filters = self.__init_patient_filters()
         self.schema = create_dynamic_schema()
