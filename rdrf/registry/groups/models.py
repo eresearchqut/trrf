@@ -110,7 +110,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if self.is_parent:
             from registry.patients.models import ParentGuardian
-            parent = ParentGuardian.objects.get(user=self)
+            parent = ParentGuardian.objects.filter(user=self).first()
             if parent:
                 full_name = f'{parent.first_name} {parent.last_name}'
 

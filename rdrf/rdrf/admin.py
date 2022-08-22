@@ -487,7 +487,7 @@ class RegistryDashboardAdmin(admin.ModelAdmin):
 class DashboardWidgetAdmin(admin.ModelAdmin):
     model = RegistryDashboardWidget
     form = DashboardWidgetAdminForm
-    list_display = ('registry_dashboard', 'widget_type', 'title')
+    list_display = ('widget_type', 'registry_dashboard', 'title')
     list_select_related = ('registry_dashboard',)
     list_filter = ['registry_dashboard']
     inlines = [DashboardLinksInline, DashboardDemographicsInline, DashboardCdeDataInline]
