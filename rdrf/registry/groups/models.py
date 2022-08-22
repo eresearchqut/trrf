@@ -194,7 +194,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return None
 
         if self.is_parent and self.dashboards:
-            return reverse('dashboards_list')
+            return reverse('parent_dashboard_list')
 
         if self.registry_code and (self.is_parent
                                    or self.is_patient

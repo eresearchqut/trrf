@@ -5,7 +5,7 @@
 
 {% block card_header %}
   {% if not widget %}
-    Consents
+    {% trans "Consents" %}
   {% else %}
     {{ block.super }}
   {% endif %}
@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block card_body_text %}
-  <p>You have approved {{ consent_status.completed }} out of {{ consent_status.total }} consents.</p>
+  <p>{% trans "You have approved" %} {{ consent_status.completed }} {% trans "out of" %} {{ consent_status.total }} {% trans "consents" %}.</p>
 {% endblock %}
 
 {% block card_links %}

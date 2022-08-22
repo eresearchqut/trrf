@@ -35,7 +35,7 @@ from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.cde_data_types import CDEDataTypes
-
+from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -2102,13 +2102,26 @@ class RegistryDashboardWidget(models.Model):
 
 
 class RegistryDashboardDemographicData(models.Model):
+    MODEL_CHOICES = (
+        ('patient', _('Patient')),
+    )
+
+    def get_patient_demographic_fields(self):
+        demographic_model = load_report_configuration()['demographic_model']
+        return [(field, _(label)) for field, label in demographic_model['patient']['fields'].items()]
+
     widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='demographics')
 
     sort_order = models.PositiveIntegerField(null=False, blank=False)
     label = models.CharField(max_length=255)
 
-    model = models.CharField(max_length=255)
+    model = models.CharField(max_length=255, choices=MODEL_CHOICES)
     field = models.CharField(max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        super(RegistryDashboardDemographicData, self).__init__(*args, **kwargs)
+        # Set the choices here to avoid making migrations for possible values. These fields may vary per registry.
+        self._meta.get_field('field').choices = self.get_patient_demographic_fields()
 
     class Meta:
         ordering = ['sort_order']

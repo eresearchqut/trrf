@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('sort_order', models.PositiveIntegerField()),
                 ('label', models.CharField(max_length=255)),
                 ('model', models.CharField(max_length=255)),
-                ('field', models.CharField(max_length=255)),
+                ('field', models.CharField(choices=[('patient', 'Patient')], max_length=255)),
                 ('widget', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='demographics', to='rdrf.RegistryDashboardWidget')),
             ],
             options={

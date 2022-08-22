@@ -460,7 +460,7 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
 
 class DashboardLinksInline(admin.StackedInline):
     model = RegistryDashboardFormLink
-    verbose_name_plural = 'Links'
+    verbose_name_plural = 'Registry Form Links'
     autocomplete_fields = ('registry_form',)
     extra = 0
 

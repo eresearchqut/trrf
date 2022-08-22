@@ -38,7 +38,7 @@
 
   {% with multi_module_progress=module_progress|lookup:'multi' %}
   <table class="w-100 caption-top mt-2 table table-sm table-striped">
-    <caption>Longitudinal modules</caption>
+    <caption>{% trans "Longitudinal modules" %}</caption>
     <tbody>
       {% for cfg, forms in multi_module_progress.items %}
         {% for form, progress_dict in forms.items %}

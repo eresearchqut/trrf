@@ -82,10 +82,7 @@ def query_patient(request, registry, id, fields):
     all_patients_query = build_all_patients_query(registry, [patient_query])
     result = execute_query(request, all_patients_query)
     patients = get_all_patients(result, registry).get('patients', [])
-    logger.info(all_patients_query)
-    logger.info(result)
 
-    # TODO else what?.
     if patients and len(patients) == 1:
         return patients[0]
 

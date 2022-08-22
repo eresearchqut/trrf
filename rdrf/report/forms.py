@@ -13,6 +13,7 @@ from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
 
 from registry.groups import GROUPS as RDRF_GROUPS
+from report.utils import load_report_configuration
 
 
 def get_demographic_field_value(model_name, field):
@@ -90,9 +91,7 @@ class ReportDesignerForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         def init_report_configuration():
-            report_config_module = import_module(settings.REPORT_CONFIG_MODULE)
-            get_report_config_func = getattr(report_config_module, settings.REPORT_CONFIG_METHOD_GET)
-            return get_report_config_func()['demographic_model']
+            return load_report_configuration()['demographic_model']
 
         super(ReportDesignerForm, self).__init__(*args, **kwargs)
         report_configuration = init_report_configuration()

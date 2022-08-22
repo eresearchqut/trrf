@@ -4,7 +4,7 @@
 {% load lookup %}
 
 {% block content %}
-  <h1>Welcome, {{ parent.first_name }}</h1>
+  <h1>{% trans "Welcome" %}, {{ parent.first_name }}</h1>
 
   {% if patients|length > 1 %}
     <ul class="nav nav-tabs d-print-none">
@@ -20,9 +20,9 @@
   {% endif %}
 
   <div class="my-2 clearfix d-print-none">
-			<button type="button" class="btn btn-outline-secondary float-md-end" onclick="window.print();">
-				<span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
-			</button>
+    <button type="button" class="btn btn-outline-secondary float-md-end" onclick="window.print();">
+      <span class="fa fa-print" aria-hidden="true"></span> {% trans "Print" %}
+    </button>
   </div>
 
   <div class="row d-print-block">

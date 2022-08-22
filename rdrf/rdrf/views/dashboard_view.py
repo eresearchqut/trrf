@@ -153,12 +153,12 @@ def dashboard_config(dashboard, registry, patient, contexts, request):
         'model': dashboard,
         'widgets': {
             widget.widget_type: {
-                'title': widget.title,
-                'free_text': widget.free_text,
-                'form_links': [{'label': link.label,
+                'title': _(widget.title),
+                'free_text': _(widget.free_text),
+                'form_links': [{'label': _(link.label),
                                 'url': get_form_link(registry, link.context_form_group.code, link.registry_form, patient, contexts=contexts)}
                                for link in widget.links.all()],
-                'clinical_data': [{'label': cde.label,
+                'clinical_data': [{'label': _(cde.label),
                                    'data': get_cde_data(registry, cde.context_form_group, cde.registry_form,
                                                         cde.section, cde.cde, patient, contexts)}
                                   for cde in widget.cdes.all()],
@@ -206,7 +206,7 @@ def get_cde_data(registry, cfg, form, section, cde, patient, contexts):
 
 
 def patient_demographic_data(widget, registry, patient, request):
-    config = {demographic.field: demographic.label
+    config = {demographic.field: _(demographic.label)
               for demographic in widget.demographics.all() if demographic.model == 'patient'}
     fields = config.keys()
 
