@@ -3,7 +3,7 @@ from datetime import datetime
 
 from rdrf.models.definition.models import Registry
 from rdrf.patients.query_data import build_facet_query, build_all_patients_query, \
-    build_patients_query, query_patient_facets
+    build_patients_query, query_patient_facets, query_patient
 from rdrf.testing.unit.tests import RDRFTestCase
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient, LivingStates
@@ -41,17 +41,19 @@ class PatientQueryDataTest(RDRFTestCase):
 
         expected_facet_query = '''
             query {
-                allPatients(registryCode: "fh") {
-                    facets {
-                        livingStatus {
-                            label
-                            value
-                            total
-                        }
-                        workingGroups {
-                            label
-                            value
-                            total
+                fh {
+                    allPatients {
+                        facets {
+                            livingStatus {
+                                label
+                                value
+                                total
+                            }
+                            workingGroups {
+                                label
+                                value
+                                total
+                            }
                         }
                     }
                 }
@@ -77,3 +79,24 @@ class PatientQueryDataTest(RDRFTestCase):
             }
         """
         self.assertEqual(self._query_syntax(expected_query), query)
+
+    def test_query_patient(self):
+        registry = Registry.objects.get(code='fh')
+        p1 = self._create_patient(registry, given_names='Kyle', family_name='Botany')
+        p2 = self._create_patient(registry, given_names='Jamie', family_name='Grey')
+        p3 = self._create_patient(registry, given_names='Cindy', family_name='Faber')
+        fields = ['givenNames', 'familyName']
+
+        patient = query_patient(self._request(), registry, p2.id, fields)
+        self.assertEqual(patient.get('givenNames'), 'Jamie')
+        self.assertEqual(patient.get('familyName'), 'GREY')
+
+        patient = query_patient(self._request(), registry, p1.id, fields)
+        self.assertEqual(patient.get('givenNames'), 'Kyle')
+        self.assertEqual(patient.get('familyName'), 'BOTANY')
+
+        patient = query_patient(self._request(), registry, 'NONEXISTANT_ID', fields)
+        self.assertIsNone(patient)
+
+        patient = query_patient(self._request(), registry, None, fields)
+        self.assertIsNone(patient)
