@@ -86,4 +86,3 @@ class CustomUserTest(TestCase):
                       ]
 
         _execute_test_cases(test_cases)
-
