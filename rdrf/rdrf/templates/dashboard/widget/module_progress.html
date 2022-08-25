@@ -1,0 +1,70 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+
+{% block card_header %}
+  {% if not widget %}
+    Module Progress
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
+
+{% block card_body_text %}
+
+  {% with fixed_module_progress=dashboard.patient_status.module_progress.fixed %}
+
+    <table class="w-100">
+      {% for cfg, forms in fixed_module_progress.items %}
+        {% for form, form_dict in forms.items  %}
+          <tr>
+            <td style="width: 70%" class="pe-2">
+              <a href="{{ form_dict.link }}" class="card-link">{{ form.display_name }}</a>
+            </td>
+            <td style="width: 30%"><div class="progress">
+              {% with progress=form_dict.progress %}
+                <div class="progress-bar {% if progress < 25 %}bg-danger
+                                            {% if progress < 10 %}text-dark{% endif %}
+                                         {% elif progress >= 25 and progress < 75 %}bg-warning
+                                         {% else %}bg-success
+                                         {% endif %}" role="progressbar" style="width: {{ progress }}%" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">{{ progress }}%</div>
+                </div>
+              {% endwith %}
+            </td>
+          </tr>
+
+        {% endfor %}
+      {% endfor %}
+    </table>
+
+  {% endwith %}
+
+  {% with multi_module_progress=dashboard.patient_status.module_progress.multi %}
+
+  <table class="w-100 caption-top mt-2 table table-sm table-striped">
+    <caption>{% trans "Longitudinal modules" %}</caption>
+    <tbody>
+      {% for cfg, forms in multi_module_progress.items %}
+        {% for form, progress_dict in forms.items %}
+          <tr>
+            <td>
+              {{ form.display_name }}
+            </td>
+            <td style="width: 35%" class="text-end">
+              {% if progress_dict.last_completed %}
+                Last completed {{ progress_dict.last_completed }}
+              {% else %}
+                Not started
+              {% endif %}
+            </td>
+            <td style="width: 12%" class="ps-2 d-print-none"><a href="{{ progress_dict.link }}" class="btn btn-outline-info btn-xs">
+              <i class="fa fa-plus"></i> Add</a>
+            </td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% endwith %}
+{% endblock %}

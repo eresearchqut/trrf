@@ -35,7 +35,7 @@ from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.cde_data_types import CDEDataTypes
-
+from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -754,6 +754,24 @@ class CommonDataElement(models.Model):
                     existing.update(settings)
                     self.widget_settings = json.dumps(existing)
         super().save(*args, **kwargs)
+
+    def display_value(self, value):
+        datatype = self.datatype.strip().lower()
+        if datatype == 'lookup':
+            from rdrf.forms.widgets.widgets import get_widget_class
+            value = get_widget_class(self.widget_name).denormalized_value(value)
+        elif self.pv_group:
+            cde_values_dict = self.pv_group.cde_values_dict
+            if isinstance(value, list):
+                value = [cde_values_dict.get(value_item, value_item) for value_item in value]
+            else:
+                value = cde_values_dict.get(value, value)
+
+        # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
+        if self.allow_multiple:
+            return value if isinstance(value, list) else [value]
+        else:
+            return value
 
 
 class CdePolicy(models.Model):
@@ -2042,3 +2060,137 @@ class DataDefinitions:
         for v in CDEPermittedValue.objects.filter(pv_group__in=all_pv_groups).select_related('pv_group'):
             values[v.pv_group.code].append(v)
         return values
+
+
+class RegistryDashboardManager(models.Manager):
+
+    def filter_user_parent_dashboards(self, user):
+        if user.is_parent:
+            from registry.patients.models import ParentGuardian
+            parent = ParentGuardian.objects.filter(user=user).first()
+            if parent:
+                children_registries = {patient_registry
+                                       for patient in parent.children
+                                       for patient_registry in patient.rdrf_registry.all()}
+                return self.filter(registry__in=children_registries)
+
+        return self.none()
+
+
+class RegistryDashboard(models.Model):
+    objects = RegistryDashboardManager()
+
+    registry = models.OneToOneField(Registry, on_delete=models.CASCADE, unique=True)
+
+    def __str__(self):
+        return f'Dashboard ({self.registry.code})'
+
+
+class RegistryDashboardWidget(models.Model):
+    WIDGET_CHOICES = (
+        ('demographics', _('Demographics')),
+        ('clinical_data', _('Clinical Data')),
+        ('consents', _('Consent')),
+        ('module_progress', _('Module Progress')),
+    )
+
+    registry_dashboard = models.ForeignKey(RegistryDashboard, on_delete=models.CASCADE, related_name='widgets')
+    widget_type = models.CharField(choices=WIDGET_CHOICES, blank=False, null=False, max_length=50)
+    title = models.CharField(blank=True, max_length=100)
+    free_text = models.CharField(blank=True, max_length=255)
+
+    class Meta:
+        unique_together = (('registry_dashboard', 'widget_type'),)
+
+
+class RegistryDashboardDemographicData(models.Model):
+    MODEL_CHOICES = (
+        ('patient', _('Patient')),
+    )
+
+    def get_patient_demographic_fields(self):
+        demographic_model = load_report_configuration()['demographic_model']
+        return [(field, _(label)) for field, label in demographic_model['patient']['fields'].items()]
+
+    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='demographics')
+
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+    label = models.CharField(max_length=255)
+
+    model = models.CharField(max_length=255, choices=MODEL_CHOICES)
+    field = models.CharField(max_length=255)
+
+    def __init__(self, *args, **kwargs):
+        super(RegistryDashboardDemographicData, self).__init__(*args, **kwargs)
+        # Set the choices here to avoid making migrations for possible values. These fields may vary per registry.
+        self._meta.get_field('field').choices = self.get_patient_demographic_fields()
+
+    class Meta:
+        ordering = ['sort_order']
+        unique_together = (('widget', 'sort_order'),)
+
+
+class RegistryDashboardFormLink(models.Model):
+    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='links')
+
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+    label = models.CharField(max_length=255)
+
+    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['sort_order']
+        unique_together = (('widget', 'sort_order'),)
+
+    def clean(self):
+        errors = []
+
+        valid_registry_form = any(self.registry_form == item.registry_form
+                                  for item in self.context_form_group.items.all())
+
+        if not valid_registry_form:
+            errors = ValidationError(_('Registry Form not a valid choice for Context Form Group.'))
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class RegistryDashboardCDEData(models.Model):
+    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='cdes')
+
+    sort_order = models.PositiveIntegerField(null=False, blank=False)
+
+    label = models.CharField(max_length=255)
+
+    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['sort_order']
+        unique_together = (('widget', 'sort_order'),)
+
+    def clean(self):
+        errors = []
+
+        valid_registry_form = any(self.registry_form == item.registry_form
+                                  for item in self.context_form_group.items.all())
+
+        valid_section = any(self.section == form_section
+                            for form_section in self.registry_form.section_models)
+
+        valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
+
+        if not valid_registry_form:
+            errors = ValidationError(_(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
+
+        if not valid_section:
+            errors = ValidationError(_(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
+
+        if not valid_cde:
+            errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
+
+        if errors:
+            raise ValidationError(errors)

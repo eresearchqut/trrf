@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+  <h1>{% trans "Your Dashboards" %}</h1>
+  <ul class="list-group">
+        {% for dashboard in dashboards %}
+          <li class="list-group-item">
+            <a href="{% url 'parent_dashboard' dashboard.registry.code  %}">{% trans "Parent Dashboard" %} ({{ dashboard.registry.name }})</a>
+          </li>
+        {% endfor %}
+      </ul>
+  </div>
+
+{% endblock %}

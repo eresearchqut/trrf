@@ -31,16 +31,11 @@
             {% block parent_menu %}
             {% endblock %}
 
-            {% if request.user.registry_code %}
-                {% if request.user.is_parent %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registry:parent_page' request.user.registry_code %}"><span
-                            class="fa fa-home"></span>
-                        {% trans "Home Page" %}</a></li>
-                {% elif request.user.is_patient %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'registry:patient_page' request.user.registry_code %}"><span
-                            class="fa fa-home"></span>
-                        {% trans "Home Page" %}</a></li>
-                {% endif %}
+            {% if request.user.is_parent or request.user.is_patient %}
+              <li class="nav-item"><a class="nav-link" href="{{ request.user.default_page }}">
+                <span class="fa fa-home"></span>
+                {% trans "Home Page" %}</a>
+              </li>
             {% endif %}
 
             {% block actions %}
@@ -82,13 +77,10 @@
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" id="authMenuDropdown" data-bs-toggle="dropdown" role="button"
                    aria-expanded="false">
-                    {% if request.user.is_parent %}
-                        <span class="fa fa-user"></span> {{ parent.first_name }}
-                        {{ parent.last_name }} <span class="caret"></span></a>
-                    {% else %}
-                        <span class="fa fa-user"></span> {{ request.user.first_name }}
-                        {{ request.user.last_name }} <span class="caret"></span></a>
-                    {% endif %}
+                  <span class="fa fa-user"></span>
+                  {{ request.user.get_full_name }}
+                  <span class="caret"></span>
+                </a>
                 <ul class="dropdown-menu" aria-labelledby="authMenuDropdown" role="menu">
                     {% if request.user.is_superuser %}
                         <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
