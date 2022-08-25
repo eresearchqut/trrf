@@ -1,11 +1,10 @@
 {% load i18n %}
-{% load lookup %}
 {% load join_if_list %}
 
 <div class="card page-break-inside-avoid {% if primary %}border-primary{% endif %}">
   <div class="card-header {% if primary %}bg-primary text-white{% endif %}">
       {% block card_header %}
-        {{widget|lookup:'title'}}
+        {{widget.title}}
       {% endblock %}
   </div>
   <div class="card-body">
@@ -13,47 +12,43 @@
       {% block card_body_text %}
       {% endblock %}
       {% if widget %}
-        {% with demographics=widget|lookup:'demographic_data' cdes=widget|lookup:'clinical_data' %}
-          {% if demographics or cdes %}
+          {% if widget.demographic_data or widget.clinical_data %}
             <table class="table table-sm table-striped">
               <tbody>
-              {% if demographics %}
-                {% for key, demographic in demographics.items %}
+              {% if widget.demographic_data %}
+                {% for key, demographic in widget.demographic_data.items %}
                   <tr>
-                    <td class="w-50">{{ demographic|lookup:'label' }}</td>
-                    <td>{{ demographic|lookup:'value' }}</td>
+                    <td class="w-50">{{ demographic.label }}</td>
+                    <td>{{ demographic.value }}</td>
                   </tr>
                 {% endfor %}
               {% endif %}
-              {% if cdes %}
-                {% for cde in cdes %}
+              {% if widget.clinical_data %}
+                {% for cde in widget.clinical_data %}
                   <tr>
                     <td class="w-50">{{ cde.label }}</td>
                     <td>{{ cde.data|join_if_list }}</td>
                   </tr>
                 {% endfor %}
               {% endif %}
-            </tbody>
-          </table>
-            {% endif %}
-        {% endwith %}
+              </tbody>
+            </table>
+          {% endif %}
       {% endif %}
     </div>
     {% block card_links %}
     {% endblock %}
     <ul class="list-unstyled d-print-none">
       {% if widget %}
-        {% for link in widget|lookup:'form_links' %}
+        {% for link in widget.form_links %}
           <li><a href="{{ link.url }}" class="card-link">{{ link.label }}</a></li>
         {% endfor %}
       {% endif %}
     </ul>
   </div>
   {% if widget %}
-    {% with free_text=widget|lookup:'free_text' %}
-      {% if free_text %}
-        <div class="card-footer small">{{ free_text }}</div>
-      {% endif %}
-    {% endwith %}
+    {% if widget.free_text %}
+      <div class="card-footer small">{{ widget.free_text }}</div>
+    {% endif %}
   {% endif %}
 </div>

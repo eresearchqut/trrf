@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
 {% load i18n %}
-{% load lookup %}
 
 {% block content %}
   <h1>{% trans "Welcome" %}, {{ parent.first_name }}</h1>
@@ -10,9 +9,9 @@
     <ul class="nav nav-tabs d-print-none">
       {% for tab_patient in patients %}
         <li class="nav-item">
-          <a href="{% url 'parent_dashboard' registry.code %}?patient_id={{ tab_patient.id }}"
-             class="nav-link {% if tab_patient == patient %}active{% endif %}"
-             aria-current="{% if tab_patient == patient %}true{% else %}false{% endif %}"
+          <a href="{% url 'parent_dashboard' dashboard.registry.code %}?patient_id={{ tab_patient.id }}"
+             class="nav-link {% if tab_patient == dashboard.patient %}active{% endif %}"
+             aria-current="{% if tab_patient == dashboard.patient %}true{% else %}false{% endif %}"
           >{{ tab_patient }}</a>
         </li>
       {% endfor %}
@@ -25,31 +24,27 @@
     </button>
   </div>
 
+  {% with registry=dashboard.registry patient=dashboard.patient %}
+
   <div class="row d-print-block">
     <div class="col-md">
-      {% with widget=dashboard.widgets|lookup:'demographics' %}
-        {% include "dashboard/widget/demographics.html" with widget=widget registry=registry patient=patient primary=True only %}
-      {% endwith %}
+      {% include "dashboard/widget/demographics.html" with widget=dashboard.widgets.demographics primary=True %}
 
-      {% with widget=dashboard.widgets|lookup:'clinical_data' %}
-        {% if widget %}
-          {% include "dashboard/widget/clinical_data.html" with widget=widget only %}
-        {% endif %}
-      {% endwith %}
+      {% if dashboard.widgets.clinical_data %}
+        {% include "dashboard/widget/clinical_data.html" with widget=dashboard.widgets.clinical_data %}
+      {% endif %}
     </div>
 
     <div class="col-md">
-      {% with widget=dashboard.widgets|lookup:'consents' %}
-        {% include "dashboard/widget/consents.html" with widget=widget consent_status=consent_status registry=registry patient=patient only %}
-      {% endwith %}
+      {% include "dashboard/widget/consents.html" with widget=dashboard.widgets.consents consent_status=dashboard.patient_status.consent %}
 
-      {% with widget=dashboard.widgets|lookup:'module_progress' %}
-        {% if module_progress %}
-          {% include "dashboard/widget/module_progress.html" with widget=widget module_progress=module_progress only %}
-        {% endif %}
-      {% endwith %}
+      {% if dashboard.patient_status.module_progress %}
+        {% include "dashboard/widget/module_progress.html" with widget=dashboard.widgets.module_progress %}
+      {% endif %}
 
     </div>
   </div>
+
+  {% endwith %}
 
 {% endblock %}

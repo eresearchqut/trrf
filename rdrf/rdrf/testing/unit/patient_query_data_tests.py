@@ -84,7 +84,6 @@ class PatientQueryDataTest(RDRFTestCase):
         registry = Registry.objects.get(code='fh')
         p1 = self._create_patient(registry, given_names='Kyle', family_name='Botany')
         p2 = self._create_patient(registry, given_names='Jamie', family_name='Grey')
-        p3 = self._create_patient(registry, given_names='Cindy', family_name='Faber')
         fields = ['givenNames', 'familyName']
 
         patient = query_patient(self._request(), registry, p2.id, fields)
