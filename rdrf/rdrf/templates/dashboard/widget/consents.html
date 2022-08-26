@@ -3,7 +3,7 @@
 {% load i18n %}
 
   {% block card_header %}
-    {% if not widget %}
+    {% if not widget.title %}
       {% trans "Consents" %}
     {% else %}
       {{ block.super }}
