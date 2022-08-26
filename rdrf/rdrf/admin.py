@@ -81,6 +81,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 class RegistryFormAdmin(admin.ModelAdmin):
     list_display = ('registry', 'name', 'is_questionnaire', 'position')
+    list_display_links = ('name',)
     ordering = ['registry', 'name']
     form = RegistryFormAdminForm
 
@@ -218,6 +219,7 @@ class RegistryAdmin(admin.ModelAdmin):
 
 class QuestionnaireResponseAdmin(admin.ModelAdmin):
     list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
+    list_display_links = ('date_submitted', )
     list_filter = ('registry', 'date_submitted')
 
     def process_link(self, obj):
@@ -316,6 +318,7 @@ class ConsentQuestionAdmin(admin.StackedInline):
 class ConsentSectionAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'last_updated_at', 'latest_change']
     list_display = ('registry', 'section_label')
+    list_display_links = ('section_label',)
     inlines = [ConsentQuestionAdmin]
 
     def latest_change(self, obj):
@@ -333,11 +336,13 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
     model = DemographicFields
     form = DemographicFieldsAdminForm
     list_display = ("registry", "field", "status")
+    list_display_links = ("field",)
 
 
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
     list_display = ("registry", "cde", "groups", "condition")
+    list_display_links = ("cde", )
 
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
@@ -395,6 +400,7 @@ class EmailTemplateAdmin(admin.ModelAdmin):
     model = EmailTemplate
     form = EmailTemplateAdminForm
     list_display = ("language", "description")
+    list_display_links = ("description",)
 
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
@@ -419,6 +425,7 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
 class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
     list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
+    list_display_links = ("user_group",)
 
 
 class ContextFormGroupItemAdmin(admin.StackedInline):
@@ -447,6 +454,7 @@ class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
     form = FormTitleAdminForm
     list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
+    list_display_links = ('default_title',)
 
 
 class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
