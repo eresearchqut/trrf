@@ -31,7 +31,7 @@ class NormalQuickLinksTests(ExtraAssertionsMixin, RDRFTestCase):
         menu = ql.menu_links([RDRF_GROUPS.WORKING_GROUP_CURATOR])
 
         self.assertNotEmpty(menu)
-        self.assertContainsAll(RegularLinks.DATA_ENTRY, menu)
+        self.assertContainsAll(RegularLinks.PATIENTS, menu)
 
         self.assertNotEmpty(ql.settings_links())
         self.assertContainsAll(RegularLinks.AUDITING, ql.settings_links())

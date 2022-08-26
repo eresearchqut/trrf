@@ -2,6 +2,7 @@ from collections import OrderedDict
 import json
 import logging
 import os
+from urllib.parse import urlencode
 
 from csp.decorators import csp_update
 from django.shortcuts import render, get_object_or_404
@@ -17,6 +18,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
+from rdrf.forms.dynamic.form_position import FormPositionForm
 from rdrf.models.definition.models import (
     CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry, QuestionnaireResponse)
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
@@ -702,6 +704,12 @@ class FormView(View):
                         all_errors.append(e)
                     form_section[s] = form_set_class(request.POST, request.FILES, prefix=prefix)
 
+        current_position = None
+        if form_obj.save_position and error_count == 0:
+            form_position_form = FormPositionForm(request.POST)
+            if form_position_form.is_valid():
+                current_position = form_position_form.cleaned_data["position"]
+
         xray_recorder.end_subsegment()
 
         if all_sections_valid:
@@ -749,14 +757,14 @@ class FormView(View):
 
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
-                return HttpResponseRedirect(
-                    reverse(
-                        'registry_form',
-                        args=(
-                            registry_code,
-                            form_id,
-                            patient.pk,
-                            newly_created_context.pk)))
+
+                redirect_url = reverse('registry_form',
+                                       args=(registry_code, form_id, patient.pk, newly_created_context.pk))
+
+                if current_position:
+                    return HttpResponseRedirect(redirect_url + f"?{urlencode({'currentPosition': current_position})}")
+                else:
+                    return HttpResponseRedirect(redirect_url)
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
@@ -814,6 +822,7 @@ class FormView(View):
             'patient_id': patient_id,
             'patient_link': PatientLocator(registry, patient).link,
             'sections': dd.sections,
+            'current_position': current_position,
             'patient_info': patient_info_component.html,
             'section_field_ids_map': section_field_ids_map,
             'section_ids': dd.ids,

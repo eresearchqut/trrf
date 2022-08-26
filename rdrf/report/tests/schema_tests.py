@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
@@ -9,8 +10,9 @@ from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGro
     CommonDataElement, ConsentQuestion, ConsentSection, CDEPermittedValueGroup, CDEPermittedValue
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.models import Patient, AddressType, ConsentValue, ParentGuardian
-from report.schema import create_dynamic_schema
+from registry.patients.models import Patient, AddressType, ConsentValue
+from report.TrrfGraphQLView import PublicGraphQLError
+from report.schema import create_dynamic_schema, to_snake_case, to_camel_case, validate_fields
 
 
 class SchemaTest(TestCase):
@@ -45,15 +47,19 @@ class SchemaTest(TestCase):
         client = Client(create_dynamic_schema())
         query = """
         {
-            dataSummary(registryCode: "test") {
-                maxAddressCount
+            test {
+                allPatients {
+                    dataSummary {
+                        maxAddressCount
+                    }
+                }
             }
         }
         """
 
         # No addresses
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxAddressCount": 0}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxAddressCount": 0}}}}}, result)
 
         # Patients with varying number of addresses across different registries
         p1.patientaddress_set.create(address_type=type_home).save()
@@ -64,7 +70,7 @@ class SchemaTest(TestCase):
         p3.patientaddress_set.create(address_type=type_secondary).save()
 
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxAddressCount": 2}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxAddressCount": 2}}}}}, result)
 
     def test_query_data_summary_max_working_group_count(self):
         create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
@@ -88,15 +94,19 @@ class SchemaTest(TestCase):
         client = Client(create_dynamic_schema())
         query = """
         {
-            dataSummary(registryCode: "test") {
-                maxWorkingGroupCount
+            test {
+                allPatients {
+                    dataSummary {
+                        maxWorkingGroupCount
+                    }
+                }
             }
         }
         """
 
         # No working groups assigned to patients yet
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 0}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxWorkingGroupCount": 0}}}}}, result)
 
         # Patients with varying number of working groups across different registries
         p1.working_groups.set([wg1])
@@ -105,7 +115,7 @@ class SchemaTest(TestCase):
         p4.working_groups.set([wg1, wg2, wg3])
 
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxWorkingGroupCount": 3}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxWorkingGroupCount": 3}}}}}, result)
 
     def test_query_data_summary_max_clinician_count(self):
         create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
@@ -134,15 +144,19 @@ class SchemaTest(TestCase):
         client = Client(create_dynamic_schema())
         query = """
         {
-            dataSummary(registryCode: "test") {
-                maxClinicianCount
+            test {
+                allPatients {
+                    dataSummary {
+                        maxClinicianCount
+                    }
+                }
             }
         }
         """
 
         # No clinicians assigned to patients yet
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxClinicianCount": 0}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxClinicianCount": 0}}}}}, result)
 
         # Patients with varying number of addresses across different registries
         p1.registered_clinicians.set([c1, c3])
@@ -150,7 +164,7 @@ class SchemaTest(TestCase):
         p3.registered_clinicians.set([c1, c2, c3, c5, c6])
 
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxClinicianCount": 4}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxClinicianCount": 4}}}}}, result)
 
     def test_query_data_summary_max_parent_guardian_count(self):
         create_patient = lambda: Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1))
@@ -166,15 +180,19 @@ class SchemaTest(TestCase):
         client = Client(create_dynamic_schema())
         query = """
         {
-            dataSummary(registryCode: "test") {
-                maxParentGuardianCount
+            test {
+                allPatients {
+                    dataSummary {
+                        maxParentGuardianCount
+                    }
+                }
             }
         }
         """
 
         # No parent guardians
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 0}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxParentGuardianCount": 0}}}}}, result)
 
         # Patients with varying number of guardians across registries
         p1.parentguardian_set.create()
@@ -185,18 +203,22 @@ class SchemaTest(TestCase):
         p3.parentguardian_set.create()
 
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 2}}}, result)
+        self.assertEqual({"data": {"test": {"allPatients": {"dataSummary": {"maxParentGuardianCount": 2}}}}}, result)
 
         query = """
         {
-            dataSummary(registryCode: "another") {
-                maxParentGuardianCount
+            another {
+                allPatients {
+                    dataSummary {
+                        maxParentGuardianCount
+                    }
+                }
             }
         }
         """
 
         result = client.execute(query, context_value=self.query_context)
-        self.assertEqual({"data": {"dataSummary": {"maxParentGuardianCount": 3}}}, result)
+        self.assertEqual({"data": {"another": {"allPatients": {"dataSummary": {"maxParentGuardianCount": 3}}}}}, result)
 
     def test_query_sex(self):
         patients = [
@@ -212,25 +234,33 @@ class SchemaTest(TestCase):
 
         result = client.execute("""
         {
-          patients(registryCode: "test") {
-            sex
-          }
+            test {
+                allPatients {
+                    patients {
+                        sex
+                    }
+                }
+            }
         }
         """, context_value=self.query_context)
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {
-                        "sex": "Male"
-                    },
-                    {
-                        "sex": "Female"
-                    },
-                    {
-                        "sex": "Indeterminate"
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "sex": "Male"
+                            },
+                            {
+                                "sex": "Female"
+                            },
+                            {
+                                "sex": "Indeterminate"
+                            }
+                        ]
                     }
-                ]
+                }
             }
         }, result)
 
@@ -243,8 +273,8 @@ class SchemaTest(TestCase):
             patient.rdrf_registry.set([self.registry])
 
         cs1 = ConsentSection.objects.create(code='consent_section_1', section_label='CS1', registry=self.registry)
-        cq1 = ConsentQuestion.objects.create(code='consent1', section=cs1)
-        cq2 = ConsentQuestion.objects.create(code='consent2', section=cs1)
+        cq1 = ConsentQuestion.objects.create(id=1, code='consent1', section=cs1)
+        cq2 = ConsentQuestion.objects.create(id=2, code='consent2', section=cs1)
 
         ConsentValue.objects.create(consent_question=cq1, answer=True, patient=p1)
         ConsentValue.objects.create(consent_question=cq2, answer=False, patient=p1)
@@ -258,54 +288,78 @@ class SchemaTest(TestCase):
         # No consent filters
         result = client.execute("""
         {
-            patients(registryCode: "test") {
-                id
+            test {
+                allPatients {
+                    patients {
+                        id
+                    }
+                }
             }
         }
         """, context_value=self.query_context)
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {'id': '1'},
-                    {'id': '2'},
-                    {'id': '3'}
-                ]
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                            {'id': '2'},
+                            {'id': '3'}
+                        ]
+                    }
+                }
             }
         }, result)
 
         # 1 consent filter
         result = client.execute("""
         {
-            patients(registryCode: "test", consentQuestionCodes: ["consent1"]) {
-                id
+            test {
+                allPatients(filterArgs: {consentQuestions: ["1"]}) {
+                    patients {
+                        id
+                    }
+                }
             }
         }
         """, context_value=self.query_context)
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {'id': '1'},
-                    {'id': '2'}
-                ]
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                            {'id': '2'}
+                        ]
+                    }
+                }
             }
         }, result)
 
         # Multiple consent filters
         result = client.execute("""
         {
-            patients(registryCode: "test", consentQuestionCodes: ["consent1", "consent2"]) {
-                id
+            test {
+                allPatients(filterArgs: {consentQuestions: ["1", "2"]}) {
+                    patients {
+                        id
+                    }
+                }
             }
         }
         """, context_value=self.query_context)
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {'id': '2'}
-                ]
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '2'}
+                        ]
+                    }
+                }
             }
         }, result)
 
@@ -496,62 +550,74 @@ class SchemaTest(TestCase):
         # Fixed context
         result = client.execute("""
         {
-          patients(registryCode: "test") {
-            clinicalData {
-              clinicalVisit {
-                firstVisit {
-                  inBed {
-                    lieFlat
-                    needHelp
-                  }
-                }
-                myBreathing {
-                  breathing {
-                    breathAssist
-                  }
-                }
-              }
-            }
-          }
-        }
-        """, context_value=self.query_context)
-
-        self.assertEqual({
-            "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "clinicalVisit": {
-                                "firstVisit": {
-                                    "inBed": {
-                                        "lieFlat": "5",
-                                        "needHelp": ""
+            test {
+                allPatients {
+                    patients {
+                        clinicalData {
+                            clinicalVisit {
+                                firstVisit {
+                                    inBed {
+                                        lieFlat
+                                        needHelp
                                     }
-                                },
-                                "myBreathing": {
-                                    "breathing": {
-                                        "breathAssist": "oxygen"
+                                }
+                                myBreathing {
+                                    breathing {
+                                      breathAssist
                                     }
                                 }
                             }
                         }
                     }
-                ]
+                }
+            }
+        }
+        """, context_value=self.query_context)
+
+        self.assertEqual({
+            "data": {
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "clinicalVisit": {
+                                        "firstVisit": {
+                                            "inBed": {
+                                                "lieFlat": "5",
+                                                "needHelp": ""
+                                            }
+                                        },
+                                        "myBreathing": {
+                                            "breathing": {
+                                                "breathAssist": "oxygen"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
             }
         }, result)
 
         # Longitudinal context
         result = client.execute("""
         {
-          patients(registryCode: "test") {
-            clinicalData {
-              symptoms {
-                recentSymptoms {
-                  data {
-                    symptoms {
-                      completedDate
-                      fatigue
-                      pain
+          test {
+            allPatients {
+              patients {
+                clinicalData {
+                  symptoms {
+                    recentSymptoms {
+                      data {
+                        symptoms {
+                          completedDate
+                          fatigue
+                          pain
+                        }
+                      }
                     }
                   }
                 }
@@ -563,47 +629,55 @@ class SchemaTest(TestCase):
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "symptoms": {
-                                "recentSymptoms": [
-                                    {
-                                        "data": {
-                                            "symptoms": {"completedDate": "2022-02-07", "fatigue": "4", "pain": "1"}
-                                        }
-                                    },
-                                    {
-                                        "data": {
-                                            "symptoms": {"completedDate": "2022-02-08", "fatigue": "3", "pain": "2"}
-                                        }
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "symptoms": {
+                                        "recentSymptoms": [
+                                            {
+                                                "data": {
+                                                    "symptoms": {"completedDate": "2022-02-07", "fatigue": "4", "pain": "1"}
+                                                }
+                                            },
+                                            {
+                                                "data": {
+                                                    "symptoms": {"completedDate": "2022-02-08", "fatigue": "3", "pain": "2"}
+                                                }
+                                            }
+                                        ]
                                     }
-                                ]
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             }
         }, result)
 
         # Mixed fixed and longitudinal context
         result = client.execute("""
         {
-          patients(registryCode: "test") {
-            clinicalData {
-              clinicalVisit {
-                firstVisit {
-                  inBed {
-                    lieFlat
+          test {
+            allPatients {
+              patients {
+                clinicalData {
+                  clinicalVisit {
+                    firstVisit {
+                      inBed {
+                        lieFlat
+                      }
+                    }
                   }
-                }
-              }
-              symptoms {
-                recentSymptoms {
-                  data {
-                    symptoms {
-                      completedDate
-                      fatigue
+                  symptoms {
+                    recentSymptoms {
+                      data {
+                        symptoms {
+                          completedDate
+                          fatigue
+                        }
+                      }
                     }
                   }
                 }
@@ -615,47 +689,55 @@ class SchemaTest(TestCase):
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "clinicalVisit": {
-                                "firstVisit": {
-                                    "inBed": {
-                                        "lieFlat": "5",
-                                    }
-                                },
-                            },
-                            "symptoms": {
-                                "recentSymptoms": [
-                                    {
-                                        "data": {
-                                            "symptoms": {"completedDate": "2022-02-07", "fatigue": "4"}
-                                        }
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "clinicalVisit": {
+                                        "firstVisit": {
+                                            "inBed": {
+                                                "lieFlat": "5",
+                                            }
+                                        },
                                     },
-                                    {
-                                        "data": {
-                                            "symptoms": {"completedDate": "2022-02-08", "fatigue": "3"}
-                                        }
+                                    "symptoms": {
+                                        "recentSymptoms": [
+                                            {
+                                                "data": {
+                                                    "symptoms": {"completedDate": "2022-02-07", "fatigue": "4"}
+                                                }
+                                            },
+                                            {
+                                                "data": {
+                                                    "symptoms": {"completedDate": "2022-02-08", "fatigue": "3"}
+                                                }
+                                            }
+                                        ]
                                     }
-                                ]
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             }
         }, result)
 
         # Multisection & Multi value
         result = client.execute("""
         {
-          patients(registryCode: "test") {
-            clinicalData {
-              sleepTracking {
-                sleep {
-                  data {
-                    sleepDiary {
-                      timeToBed
-                      timesAwoke
+          test {
+            allPatients {
+              patients {
+                clinicalData {
+                  sleepTracking {
+                    sleep {
+                      data {
+                        sleepDiary {
+                          timeToBed
+                          timesAwoke
+                        }
+                      }
                     }
                   }
                 }
@@ -667,24 +749,28 @@ class SchemaTest(TestCase):
 
         self.assertEqual({
             "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "sleepTracking": {
-                                "sleep": [
-                                    {
-                                        "data": {
-                                            "sleepDiary": [
-                                                {"timeToBed": "9:55pm", "timesAwoke": ["1:00am", "3:00am"]},
-                                                {"timeToBed": "8:45pm", "timesAwoke": ["11:45pm", "5:30am"]}
-                                            ]
-                                        }
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "sleepTracking": {
+                                        "sleep": [
+                                            {
+                                                "data": {
+                                                    "sleepDiary": [
+                                                        {"timeToBed": "9:55pm", "timesAwoke": ["1:00am", "3:00am"]},
+                                                        {"timeToBed": "8:45pm", "timesAwoke": ["11:45pm", "5:30am"]}
+                                                    ]
+                                                }
+                                            }
+                                        ]
                                     }
-                                ]
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             }
         }, result)
 
@@ -735,9 +821,13 @@ class SchemaTest(TestCase):
         client = Client(create_dynamic_schema())
         query = """
                {
-                 patients(registryCode: "test") {
-                   clinicalData {
-                     CFG1 { F1 { S1 { single multi singlePvg multiPvg } } }
+                 test {
+                   allPatients {
+                     patients {
+                       clinicalData {
+                         CFG1 { F1 { S1 { single multi singlePvg multiPvg } } }
+                       }
+                     }
                    }
                  }
                }
@@ -752,22 +842,26 @@ class SchemaTest(TestCase):
         result = client.execute(query, context_value=self.query_context)
         expected = {
             "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "CFG1": {
-                                "F1": {
-                                    "S1": {
-                                        'single': 'Abc',
-                                        'multi': ['Abc'],
-                                        'singlePvg': 'Low',
-                                        'multiPvg': ['Low', 'Medium']
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "CFG1": {
+                                        "F1": {
+                                            "S1": {
+                                                'single': 'Abc',
+                                                'multi': ['Abc'],
+                                                'singlePvg': 'Low',
+                                                'multiPvg': ['Low', 'Medium']
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             }
         }
 
@@ -782,23 +876,81 @@ class SchemaTest(TestCase):
         result = client.execute(query, context_value=self.query_context)
         expected = {
             "data": {
-                "patients": [
-                    {
-                        "clinicalData": {
-                            "CFG1": {
-                                "F1": {
-                                    "S1": {
-                                        'single': 'Abc',
-                                        'multi': ['Abc'],
-                                        'singlePvg': 'Low',
-                                        'multiPvg': ['Medium']
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {
+                                "clinicalData": {
+                                    "CFG1": {
+                                        "F1": {
+                                            "S1": {
+                                                'single': 'Abc',
+                                                'multi': ['Abc'],
+                                                'singlePvg': 'Low',
+                                                'multiPvg': ['Medium']
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             }
         }
 
         self.assertEqual(expected, result)
+
+    def test_dynamic_schema_is_dynamic(self):
+        # Registry Definition
+        CommonDataElement.objects.create(code='CDE1', abbreviated_name='CDE-1', name="CDE-1")
+        CommonDataElement.objects.create(code='CDE2', abbreviated_name='CDE-2', name="CDE-2")
+        sec1 = Section.objects.create(code='SEC1', elements='CDE1', abbreviated_name='SEC1', display_name='SEC1')
+        form1 = RegistryForm.objects.create(name='FORM1', sections='SEC1', registry=self.registry, abbreviated_name='FORM1')
+        cfg1 = ContextFormGroup.objects.create(code='CFG1', registry=self.registry, name='CFG1', context_type="F", abbreviated_name="CFG1", sort_order=1)
+        cfg1.items.create(registry_form=form1)
+
+        # Check schema fields
+        schema = create_dynamic_schema()
+        schema_section_type = schema.get_type('DynamicSection_CFG1_FORM1_SEC1')
+        fields = (list(schema_section_type.fields.keys()))
+
+        self.assertEqual(fields, ['CDE1'])
+
+        # Modify registry definition and check schema has changed
+        sec1.elements = 'CDE1,CDE2'
+        sec1.save()
+
+        from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
+        clear_prefetched_form_data_cache()
+        schema = create_dynamic_schema()
+        schema_section_type = schema.get_type('DynamicSection_CFG1_FORM1_SEC1')
+        fields = (list(schema_section_type.fields.keys()))
+
+        self.assertEqual(fields, ['CDE1', 'CDE2'])
+
+    def test_to_snake_case(self):
+        self.assertEqual(to_snake_case('givenNames'), "given_names")
+        self.assertEqual(to_snake_case('stage'), "stage")
+        self.assertEqual(to_snake_case('workingGroups.name'), "working_groups__name")
+
+    def test_to_camel_case(self):
+        self.assertEqual(to_camel_case('given_names'), 'givenNames')
+        self.assertEqual(to_camel_case('stage'), 'stage')
+        self.assertEqual(to_camel_case('working_groups__name'), 'workingGroups.name')
+
+    def test_validate_fields(self):
+        valid_fields = ['name', 'address', 'email']
+
+        # Valid fields
+        validate_fields([], valid_fields, 'test field')
+        validate_fields(['email', 'name'], valid_fields, 'test field')
+        validate_fields(valid_fields, valid_fields, 'test field')
+
+        self.assertTrue(True)
+
+        # Invalid fields
+        with pytest.raises(PublicGraphQLError) as e:
+            validate_fields(['phone'], valid_fields, 'test field')
+        self.assertTrue("Invalid test field(s) provided: phone." in str(e))
+        self.assertTrue("Valid values are: name, address, email." in str(e))

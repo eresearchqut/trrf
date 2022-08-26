@@ -1032,6 +1032,9 @@ class Importer(object):
             report.filter_working_groups.set(WorkingGroup.objects.filter(name__in=d['filter_working_groups']))
             report.filter_consents.set([ConsentQuestion.objects.get(code=c['code'], section__code=c['section']) for c in d['filter_consents']])
 
+            report.cde_heading_format = d['cde_heading_format']
+            report.cde_include_form_timestamp = d['cde_include_form_timestamp']
+
             if not created:
                 ReportDemographicField.objects.filter(report_design=report).delete()
                 ReportClinicalDataField.objects.filter(report_design=report).delete()

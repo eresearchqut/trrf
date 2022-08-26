@@ -1,6 +1,7 @@
 import codecs
 import csv
 import io
+import itertools
 import json
 import logging
 import re
@@ -12,6 +13,8 @@ from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
 from rdrf.helpers.utils import models_from_mongo_key, BadKeyError
+from rdrf.patients.query_data import build_patient_filters, build_all_patients_query, build_data_summary_query, \
+    build_patients_query, get_all_patients
 from report.models import ReportCdeHeadingFormat
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.schema import create_dynamic_schema, get_schema_field_name
@@ -39,32 +42,61 @@ class ReportBuilder:
 
     def __init_patient_filters(self):
         def get_patient_consent_question_filters():
-            return [json.dumps(cq.code) for cq in self.report_design.filter_consents.all()]
+            return [f'{cq.id}' for cq in self.report_design.filter_consents.all()]
 
         def get_patient_working_group_filters():
-            return [f'"{str(wg.id)}"' for wg in self.report_design.filter_working_groups.all().order_by('id')]
+            return [f'{str(wg.id)}' for wg in self.report_design.filter_working_groups.all().order_by('id')]
 
-        return {
-            'registryCode': f'"{self.report_design.registry.code}"',
-            'consentQuestionCodes': f"[{','.join(get_patient_consent_question_filters())}]",
-            'workingGroupIds': f"[{','.join(get_patient_working_group_filters())}]"
+        filters = {
+            'workingGroups': get_patient_working_group_filters(),
+            'consentQuestions': get_patient_consent_question_filters()
         }
 
-    def __get_variants(self, lookup_key, request=None):
-        query = GqlQuery().fields([lookup_key]).query('dataSummary',
-                                                      input=self.patient_filters).operation().generate()
-        summary_result = self.schema.execute(query, context_value=request)
-        return summary_result.data['dataSummary'][lookup_key]
+        return build_patient_filters(filters)
 
-    def _get_graphql_query(self, offset=None, limit=None):
+    def __get_variants(self, lookup_key, request):
+        query_data_summary = build_data_summary_query([lookup_key])
+        operation_input, query_input, variables = self.patient_filters
+        query = build_all_patients_query(self.report_design.registry, [query_data_summary], query_input, operation_input)
+        summary_result = self.schema.execute(query, variable_values=variables, context_value=request)
+        return get_all_patients(summary_result, self.report_design.registry).get('dataSummary', {}).get(lookup_key)
 
-        # Build Patient filters
-        patient_filters = self.patient_filters.copy()
+    def _build_query_from_variants(self, variants, fields):
+        # Non-nested lists, where the variant code is globally unique
+        # e.g. variants=["itemCode1", "itemCode2"]
+        if any(isinstance(item, str) for item in variants):
+            return [GqlQuery().fields(fields).query(header).generate() for header in variants]
+
+        # Nested lists, representing compound keys
+        # e.g. variants=[["sectionA", "itemCode1"], ["sectionA", "itemCode2"], ["sectionB", "itemCode1"]]
+        queries = []
+        if variants and variants[0]:
+            sorted_variants = sorted(variants, key=lambda x: x[0])
+            for group_name, items in itertools.groupby(sorted_variants, lambda x: x[0]):
+                group_items = list(items)
+                group_name_field = get_schema_field_name(group_name)
+                next_group_items = [item[1:] for item in group_items]
+                if len(next_group_items[0]) == 1:
+                    # We've reached the end of the list so build the lowest level query
+                    query_fields = [GqlQuery().fields(fields).query(get_schema_field_name(item)).generate()
+                                    for nested_item in next_group_items
+                                    for item in nested_item]
+                    queries.extend([GqlQuery().fields(query_fields).query(group_name_field).generate()])
+                else:
+                    # Recurse over the next lot of group items to continue to build the query from the inside out
+                    inner_query_fields = self._build_query_from_variants(next_group_items, fields)
+                    queries.append(GqlQuery().fields(inner_query_fields).query(group_name_field).generate())
+        return queries
+
+    def _get_graphql_query(self, request, offset=None, limit=None):
+
+        # Build Pagination filters
+        pagination_args = {}
         if offset:
-            patient_filters['offset'] = offset
+            pagination_args['offset'] = offset
 
         if limit:
-            patient_filters['limit'] = limit
+            pagination_args['limit'] = limit
 
         # Build simple patient demographic fields
         patient_fields = []
@@ -82,10 +114,11 @@ class ReportBuilder:
             if model_config.get('pivot', False):
                 # Lookup the variants of this item which will form the column header groupings
                 # e.g. for consents, returns a list of the unique consent codes
-                column_headers = self.__get_variants(model_config.get('variant_lookup'))
+                variants = self.__get_variants(model_config.get('variant_lookup'), request)
 
                 # For each grouping, generate the query containing each of the fields selected
-                col_queries = [GqlQuery().fields(fields).query(header).generate() for header in column_headers]
+                col_queries = self._build_query_from_variants(variants, fields)
+
                 if col_queries:
                     fields_nested_demographics.append(GqlQuery().fields(col_queries).query(model_name).generate())
             else:
@@ -115,15 +148,20 @@ class ReportBuilder:
             for form_name, form in cfg['forms'].items():
                 fields_section = []
                 form_name_field = get_schema_field_name(form_name)
+                form_metadata = []
+
                 for section_code, section in form['sections'].items():
                     field_section = GqlQuery().fields(map(get_schema_field_name, section['cdes']), name=get_schema_field_name(section_code)).generate()
                     fields_section.append(field_section)
 
+                if self.report_design.cde_include_form_timestamp:
+                    form_metadata.append(GqlQuery().fields(['lastUpdated'], name='meta').generate())
+
                 if cfg['is_fixed']:
-                    field_form = GqlQuery().fields(fields_section, name=form_name_field).generate()
+                    field_form = GqlQuery().fields([*form_metadata, *fields_section], name=form_name_field).generate()
                 else:
                     field_data = GqlQuery().fields(fields_section, name='data').generate()
-                    field_form = GqlQuery().fields(['key', field_data], name=form_name_field).generate()
+                    field_form = GqlQuery().fields(['key', *form_metadata, field_data], name=form_name_field).generate()
 
                 fields_form.append(field_form)
 
@@ -136,7 +174,10 @@ class ReportBuilder:
         fields_patient.extend(fields_nested_demographics)
         if fields_clinical_data:
             fields_patient.append(GqlQuery().fields(fields_clinical_data).query('clinicalData').generate())
-        return GqlQuery().fields(fields_patient).query('patients', input=patient_filters).operation().generate()
+        query_patient = build_patients_query(fields_patient, ['id'], pagination_args)
+
+        operation_input, query_input, variables = self.patient_filters
+        return variables, build_all_patients_query(self.report_design.registry, [query_patient], query_input, operation_input)
 
     def _get_demographic_headers(self, request):
         def get_flat_json_path(report_model, report_field, variant_index=None):
@@ -186,14 +227,16 @@ class ReportBuilder:
 
                         if model_config.get('pivot', False):
                             # Lookup the variants of this item, expected to be a list of unique codes/values
-                            column_headers = self.__get_variants(model_config.get('variant_lookup'))
+                            variants = self.__get_variants(model_config.get('variant_lookup'), request)
 
-                            if column_headers:
+                            if variants:
                                 # Generate a fieldname item for each (column x model fields)
-                                for column in column_headers:
+                                for item in variants:
+                                    items = item if isinstance(item, list) else [item]
+                                    item_pointer = "_".join([get_schema_field_name(field) for field in items])
                                     for mf in model_fields:
-                                        fieldnames_dict[get_flat_json_path(rdf.model, f'{column}_{mf}')] = \
-                                            f"{model_config['label']}_{column}_{model_config['fields'][mf]}"
+                                        fieldnames_dict[get_flat_json_path(rdf.model, f'{item_pointer}_{mf}')] = \
+                                            f"{model_config['label']}_{item_pointer}_{model_config['fields'][mf]}"
                             else:
                                 # Generate dummy columns so the report isn't completely empty
                                 for mf in model_fields:
@@ -218,7 +261,8 @@ class ReportBuilder:
 
     def validate_query(self, request):
         try:
-            result = self.schema.execute(self._get_graphql_query(offset=1, limit=1), context_value=request)
+            variables, query = self._get_graphql_query(request, offset=1, limit=1)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
         except BadKeyError as ex:
             return False, {'query_bad_key_error': str(ex)}
 
@@ -256,8 +300,9 @@ class ReportBuilder:
         offset = 0
 
         while True:
-            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
-            all_patients = result.data['patients']
+            variables, query = self._get_graphql_query(request, offset=offset, limit=limit)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
+            all_patients = get_all_patients(result, self.report_design.registry).get('patients')
             num_patients = len(all_patients)
             offset += num_patients
 
@@ -291,8 +336,9 @@ class ReportBuilder:
         offset = 0
 
         while num_patients >= limit:
-            result = self.schema.execute(self._get_graphql_query(offset=offset, limit=limit), context_value=request)
-            flat_patient_data = [flatten(p) for p in result.data['patients']]
+            variables, query = self._get_graphql_query(request, offset=offset, limit=limit)
+            result = self.schema.execute(query, variable_values=variables, context_value=request)
+            flat_patient_data = [flatten(p) for p in get_all_patients(result, self.report_design.registry).get('patients')]
 
             num_patients = len(flat_patient_data)
             offset += num_patients

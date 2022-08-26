@@ -1,19 +1,15 @@
 import logging
+import time
 
 from aloe import step, world
 from aloe.registry import STEP_REGISTRY
 from aloe_webdriver.webdriver import contains_content
-
 from nose.tools import assert_true, assert_equal
-
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.common.keys import Keys
 
 from . import utils
 from .terrain import TEST_WAIT
-
-from collections import OrderedDict
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -57,82 +53,6 @@ def check_user_activated(step):
 
     # Log out as the admin user
     world.browser.get(world.site_url + "logout?next=/router/")
-
-
-@step(
-    'I try to register as an "([^"]+)" user called "([^"]+)" using the email address "([^"]+)" and the password "([^"]+)"')
-def try_to_register(step, registry, client_name, email_address, password):
-    registry_code = ''
-
-    if registry == 'Angelman':
-        registry_code = 'ang'
-
-    world.browser.get(world.site_url + registry_code + "/register")
-
-    client_first_name = client_name.split()[0]
-    client_last_name = client_name.split()[1]
-
-    # Plain text field parameters
-    params = OrderedDict([
-        ('id_username', email_address),
-        ('id_password1', password),
-        ('id_password2', password),
-        ('id_parent_guardian_first_name', client_first_name),
-        ('id_parent_guardian_last_name', client_last_name),
-        ('id_parent_guardian_date_of_birth', '1980-09-01'),
-    ])
-
-    # Populate plain text fields
-    for key, value in params.items():
-        world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
-
-    # Select the gender radio button
-    # 1 - Male, 2 - Female, 3 - Indeterminate
-    world.browser.find_element_by_css_selector("input[type='radio'][value='1']").click()
-
-    # Select the country and state dropdowns
-    world.browser.find_element_by_xpath(
-        "//select[@name='parent_guardian_country']/option[text()='Australia']").click()
-    world.browser.find_element_by_xpath(
-        "//select[@name='parent_guardian_state']/option[text()='Western Australia']").click()
-
-    # Fill out the patient details
-    world.browser.find_element_by_id('ui-id-2').click()
-
-    patient_params = OrderedDict([
-        ('id_first_name', 'Patient_First'),
-        ('id_surname', 'Patient_Surname'),
-        ('id_date_of_birth', '1985-01-01'),
-        # Gender radio button
-        # "Same details" checkbox
-    ])
-
-    for key, value in patient_params.items():
-        world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
-
-    radio = world.browser.find_element_by_id('id_gender')
-    world.browser.execute_script("arguments[0].click();", radio)
-
-    world.browser.find_element_by_id('same_address').send_keys(Keys.SPACE)
-
-    captcha_iframe_element = world.browser.find_element_by_xpath(
-        "//iframe[@role='presentation']")
-
-    world.browser.switch_to.frame(captcha_iframe_element)
-    utils.scroll_to_y(500)
-
-    world.browser.find_element_by_id('recaptcha-anchor').send_keys(Keys.SPACE)
-
-    time.sleep(4)
-    world.browser.switch_to_default_content()
-    world.browser.find_element_by_id('registration-submit').click()
-
-
-@step('I should have successfully registered and would see a "([^"]+)" message')
-def registration_successful(step, expected_success_message):
-    # Ensure that the registration has successfully completed
-    actual_message = world.browser.find_element_by_tag_name('h3').text
-    assert expected_success_message in actual_message
 
 
 @step('I try to surf the site...')
@@ -434,6 +354,12 @@ def checkbox_should_be_checked(step, checkbox_label):
     assert_true(checkbox.is_selected())
 
 
+@step('a registry named "(.*)" with code "(.*)"')
+def create_registry_with_code(step, name, registry_code):
+    world.registry = name
+    world.registry_code = registry_code
+
+
 @step('a registry named "(.*)"')
 def create_registry(step, name):
     world.registry = name
@@ -451,7 +377,6 @@ def set_patient(step, name):
 
 @step("navigate to the patient's page")
 def goto_patient(step):
-    select_from_list(step, world.registry, "#registry_options")
     click_link(step, world.patient)
 
 

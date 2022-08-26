@@ -2,7 +2,7 @@
 {% load static  %}
 {%  block htmltype %}
     <!doctype html>
-    <html lang="en">
+    <html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} lang="en">
 {%  endblock %}
 {% block extrastyle %}
     {{ block.super }}

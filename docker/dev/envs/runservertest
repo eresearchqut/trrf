@@ -7,3 +7,6 @@ DJANGO_FIXTURES=DEV
 DESIGN_MODE=1
 ALLOWED_HOSTS=*
 
+OVERRIDE_EMAIL_BACKEND=django.core.mail.backends.locmem.EmailBackend
+TRRF_SITE_DOMAIN=serverundertest:8000
+TRRF_SITE_NAME=TRRF-Aloe

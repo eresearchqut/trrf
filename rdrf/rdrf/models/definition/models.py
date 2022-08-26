@@ -120,6 +120,11 @@ class Section(models.Model):
                 "Section [%s] code - only letters and numbers are allowed !" %
                 self.code)
 
+        # Validate for reserved keywords
+        # - meta: Used in graphql schema
+        if self.code.casefold() in [keyword.casefold() for keyword in ['meta']]:
+            raise ValidationError(f"Section {self.code} code - refers to a reserved keyword and is not allowed.")
+
         if errors:
             raise ValidationError(errors)
 
@@ -128,6 +133,9 @@ class RegistryManager(models.Manager):
 
     def get_by_natural_key(self, code):
         return self.get(code=code)
+
+    def filter_by_user(self, user):
+        return self.model.objects.all() if user.is_superuser else user.registry.all().order_by('name')
 
 
 class RegistryType:
@@ -219,10 +227,7 @@ class Registry(models.Model):
             return {}
 
     def get_metadata_item(self, item):
-        try:
-            return self.metadata[item]
-        except KeyError:
-            return True
+        return self.metadata.get(item, None)
 
     @property
     def questionnaire(self):
@@ -831,6 +836,8 @@ class RegistryForm(models.Model):
                      Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
     )
     tags = ArrayField(models.CharField(max_length=20), default=list, blank=True)
+    save_position = models.BooleanField(default=False,
+                                        help_text="Return the user to their current position on form save")
 
     class Meta:
         ordering = ('registry', 'position')

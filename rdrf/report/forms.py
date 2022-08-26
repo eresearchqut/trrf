@@ -63,7 +63,7 @@ def get_working_group_choices():
 
 
 def get_filter_consent_field_value(consent_question):
-    return json.dumps({'registry': consent_question.section.registry.code, 'consent_question': consent_question.code})
+    return json.dumps({'registry': consent_question.section.registry.code, 'consent_question': consent_question.id})
 
 
 def get_filter_consent_choices():
@@ -74,9 +74,9 @@ def get_filter_consent_choices():
 class ReportDesignerForm(ModelForm):
 
     registry = ModelChoiceField(label=_('Registry'), widget=Select(attrs={'class': 'form-select'}), queryset=Registry.objects.all(), to_field_name='code')
-    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '10'}), required=False)
+    demographic_fields = MultipleChoiceField(label=_('Demographic Fields'), required=False)
     search_cdes_by_section = ChoiceField(label=_('Filter fields by section'), widget=Select(attrs={'class': 'form-select'}), required=False)
-    cde_fields = MultipleChoiceField(label=_('Clinical Data Fields'), widget=SelectMultiple(attrs={'class': 'form-select', 'size': '20'}), required=False)
+    cde_fields = MultipleChoiceField(label=_('Fields'), required=False)
     filter_by_consents = BooleanField(label=_('Filter patients by consents'), required=False)
     filter_consents = MultipleChoiceField(
         label=_('Consent Items'),
@@ -115,13 +115,15 @@ class ReportDesignerForm(ModelForm):
             'title',
             'description',
             'access_groups',
-            'cde_heading_format'
+            'cde_heading_format',
+            'cde_include_form_timestamp'
         ]
         labels = {
             'title': _('Title'),
             'description': _('Description'),
             'access_groups': _('Access Groups'),
-            'cde_heading_format': _('Clinical Data Heading Format')
+            'cde_heading_format': _('Heading Format'),
+            'cde_include_form_timestamp': _('Include Form Last Updated Timestamp in extract')
         }
 
     def setup_initials(self):
@@ -152,7 +154,7 @@ class ReportDesignerForm(ModelForm):
     def clean_filter_consents(self):
         def get_consent_from_field(field):
             field_dict = json.loads(field)
-            return ConsentQuestion.objects.get(code=field_dict['consent_question'])
+            return ConsentQuestion.objects.get(id=field_dict['consent_question'])
 
         return [get_consent_from_field(field) for field in self.cleaned_data['filter_consents']]
 
@@ -165,7 +167,8 @@ class ReportDesignerForm(ModelForm):
             defaults={'title': clean_data['title'],
                       'description': clean_data['description'],
                       'registry': clean_data['registry'],
-                      'cde_heading_format': clean_data['cde_heading_format']}
+                      'cde_heading_format': clean_data['cde_heading_format'],
+                      'cde_include_form_timestamp': clean_data['cde_include_form_timestamp']}
         )
 
         report_design.access_groups.set(clean_data['access_groups'])

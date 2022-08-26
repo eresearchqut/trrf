@@ -140,7 +140,7 @@
         </div>
     </fieldset>
     <fieldset>
-        <legend>Content</legend>
+        <legend>{% trans "Content" %}</legend>
         <div class="row">
             <p class="col-sm-2 col-form-label" id="label_demographic_fields">
                 {{ form.demographic_fields.label }}
@@ -149,7 +149,9 @@
                 {% include "demographic_field_selector.html" with demographic_fields=form.demographic_fields only %}
             </div>
         </div>
-        <div class="row">
+        <fieldset class="border p-2 mb-3">
+          <legend>{% trans "Clinical Data" %}</legend>
+          <div class="row">
             <label for="id_cde_heading_format" class="col-sm-2 col-form-label">
                 {{ form.cde_heading_format.label }}
             </label>
@@ -158,16 +160,36 @@
                 <p>{% trans "CDE Headings are made up of the following parts: Context Form Group, Registry Form, Section, Common Data Element." %}</p>
                 <p>{% trans "This setting determines whether to use the full name label for each of these parts or their respective configured Abbreviated Name." %}</p>
             </div>
-        </div>
-        <div class="row">
-            <p class="col-sm-2 col-form-label" id="label_cde_fields">{{ form.cde_fields.label }}</p>
-            <div class="col-sm-10 mt-2" aria-labelledby="label_cde_fields">
-                <div class="registry-cde-fields" data-registry=""><p>{% trans "Select a registry" %}</p></div>
-                {% for registry, context_form_groups in registry__cfgs.items %}
-                    {% include "cde_field_selector.html" with registry=registry context_form_groups=context_form_groups initial=form.cde_fields.initial only %}
-                {% endfor %}
+          </div>
+          <div class="row">
+            <label for="id_cde_metadata" class="col-sm-2 col-form-label">
+              {% trans "Export Options" %}
+            </label>
+            <div class="col-sm-10 mt-2">
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <label class="form-check-label">
+                    {{ form.cde_include_form_timestamp|add_attr:"class,form-check-input" }}
+                    {{ form.cde_include_form_timestamp.label }}
+                  </label>
+                    <div class="form-text">
+                      {% trans "Include the timestamp the form was last updated." %}<br />
+                      {% trans "Please note this is a UTC+10 timestamp and may require post-processing to be converted to local time." %}
+                    </div>
+                </li>
+              </ul>
             </div>
-        </div>
+          </div>
+          <div class="row">
+              <p class="col-sm-2 col-form-label" id="label_cde_fields">{{ form.cde_fields.label }}</p>
+              <div class="col-sm-10 mt-2" aria-labelledby="label_cde_fields">
+                  <div class="registry-cde-fields" data-registry=""><p>{% trans "Select a registry" %}</p></div>
+                  {% for registry, context_form_groups in registry__cfgs.items %}
+                      {% include "cde_field_selector.html" with registry=registry context_form_groups=context_form_groups initial=form.cde_fields.initial only %}
+                  {% endfor %}
+              </div>
+          </div>
+        </fieldset>
         <div class="row">
             <p class="col-sm-2 col-form-label" id="label_report_filters">Report Filters</p>
             <div class="col-sm-10 mt-2" aria-labelledby="label_report_filters">

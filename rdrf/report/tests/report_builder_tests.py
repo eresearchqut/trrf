@@ -19,37 +19,52 @@ class ReportGeneratorTestCase(TestCase):
     def _remove_duplicate_spaces(self, query_str):
         return " ".join(query_str.split())
 
+    def _request(self):
+        class TestContext:
+            user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
+        return TestContext()
+
     def test_graphql_query_minimal_data(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
+        variables, actual_query = report._get_graphql_query(self._request())
         expected = \
             """
-            query {
-                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
+            query AllPatientsQuery($filterArgs: PatientFilterType) {
+                ang {
+                    allPatients(filterArgs: $filterArgs) {
+                        patients(sort: ["id"]) {
+                        }
+                    }
                 }
             }
             """
 
-        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
     def test_graphql_query_pagination(self):
         reg_ang = Registry.objects.create(code='ang')
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query(limit=15, offset=30)
+        variables, actual_query = report._get_graphql_query(self._request(), limit=15, offset=30)
         expected = \
             """
-            query {
-                patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: [], offset: 30, limit: 15) {
+            query AllPatientsQuery($filterArgs: PatientFilterType) {
+                ang {
+                    allPatients(filterArgs: $filterArgs) {
+                        patients(sort: ["id"], offset: 30, limit: 15) {
+                        }
+                    }
                 }
             }
             """
 
-        self.assertEqual(self._remove_duplicate_spaces(expected), actual)
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual(self._remove_duplicate_spaces(expected), actual_query)
 
 
     def test_graphql_query_pivot_fields(self):
@@ -66,33 +81,40 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(model='consents', field='firstSave', sort_order=0)
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
-        expected = """{
-  patients(registryCode: "ang", consentQuestionCodes: [], workingGroupIds: []) {
-    id
-    consents {
-      angConsent1 {
-        firstSave
-        answer
-      }
-      angConsent2 {
-        firstSave
-        answer
-      }
-      angConsent3 {
-        firstSave
-        answer
-      }
-      angConsent4 {
-        firstSave
-        answer
+        variables, actual_query = report._get_graphql_query(self._request())
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        id
+        consents {
+          cs1 {
+            angConsent1 {
+              firstSave
+              answer
+            }
+            angConsent2 {
+              firstSave
+              answer
+            }
+            angConsent3 {
+              firstSave
+              answer
+            }
+            angConsent4 {
+              firstSave
+              answer
+            }
+          }
+        }
       }
     }
   }
 }
 """
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual(expected, print_ast(parse(actual)))
+        self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
+        self.assertEqual(expected, print_ast(parse(actual_query)))
 
     def test_graphql_query_max_data(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -119,11 +141,11 @@ class ReportGeneratorTestCase(TestCase):
 
         cs1 = ConsentSection.objects.create(registry=reg_ang, code='cs1', section_label='cs1')
 
-        cq1 = ConsentQuestion.objects.create(section=cs1, code='cq1')
-        cq2 = ConsentQuestion.objects.create(section=cs1, code='cq2')
+        cq1 = ConsentQuestion.objects.create(id=1, section=cs1, code='cq1')
+        cq2 = ConsentQuestion.objects.create(id=2, section=cs1, code='cq2')
 
-        wg1 = WorkingGroup.objects.create(id=1, registry=reg_ang, name='Working Group 1')
-        wg2 = WorkingGroup.objects.create(id=2, registry=reg_ang, name='Working Group 2')
+        wg1 = WorkingGroup.objects.create(id=8, registry=reg_ang, name='Working Group 1')
+        wg2 = WorkingGroup.objects.create(id=9, registry=reg_ang, name='Working Group 2')
 
         report_design = ReportDesign.objects.create(registry=reg_ang)
         report_design.reportdemographicfield_set.create(model='patient', field='familyName', sort_order=0)
@@ -146,37 +168,41 @@ class ReportGeneratorTestCase(TestCase):
 
         report = ReportBuilder(report_design)
 
-        actual = report._get_graphql_query()
+        variables, query = report._get_graphql_query(self._request())
 
-        expected = """{
-  patients(registryCode: "ang", consentQuestionCodes: ["cq1", "cq2"], workingGroupIds: ["1", "2"]) {
-    familyName
-    givenNames
-    patientaddressSet {
-      state
-      country
-    }
-    workingGroups {
-      name
-    }
-    clinicalData {
-      History {
-        NewbornAndInfancyHistory {
-          ANGNewbornInfancyReside {
-            ResideNewborn
-            ResideInfancy
-          }
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        familyName
+        givenNames
+        patientaddressSet {
+          state
+          country
         }
-      }
-      Sleep {
-        SleepForm {
-          key
-          data {
-            SleepSection {
-              DayOfWeek
-              TimeToBed
-              TimeAwake
-              field6StartsWithNumber
+        workingGroups {
+          name
+        }
+        clinicalData {
+          History {
+            NewbornAndInfancyHistory {
+              ANGNewbornInfancyReside {
+                ResideNewborn
+                ResideInfancy
+              }
+            }
+          }
+          Sleep {
+            SleepForm {
+              key
+              data {
+                SleepSection {
+                  DayOfWeek
+                  TimeToBed
+                  TimeAwake
+                  field6StartsWithNumber
+                }
+              }
             }
           }
         }
@@ -187,7 +213,85 @@ class ReportGeneratorTestCase(TestCase):
 """
 
         # Use formatted query for comparison to help with debugging if assertion fails.
-        self.assertEqual(expected, print_ast(parse(actual)))
+        self.assertEqual({'filterArgs': {'consentQuestions': ["1", "2"], 'workingGroups': ["8", "9"]}}, variables)
+        self.assertEqual(expected, print_ast(parse(query)))
+
+    def test_graphql_query_include_form_timestamps(self):
+        reg_ang = Registry.objects.create(code='ang')
+        CommonDataElement.objects.create(code='DayOfWeek', name='Day of Week', abbreviated_name='Day')
+        Section.objects.create(code='SleepSection', elements='DayOfWeek',
+                               display_name='Sleep', abbreviated_name='SleepSEC')
+        form = RegistryForm.objects.create(name='SleepForm', sections='SleepSection', abbreviated_name='SleepFRM',
+                                           registry=reg_ang)
+        cfg_sleep = ContextFormGroup.objects.create(registry=reg_ang, code='Sleep', name='Sleep Group',
+                                                    abbreviated_name='SLE', context_type='M')
+        cfg_sleep.items.create(registry_form=form)
+        CommonDataElement.objects.create(code='ResideNewborn', name='x', abbreviated_name='Newborn')
+        CommonDataElement.objects.create(code='ResideInfancy', name='x', abbreviated_name='Infancy')
+        Section.objects.create(code='ANGNewbornInfancyReside', elements='ResideNewborn,ResideInfancy',
+                               display_name='Reside Newborn/Infancy', abbreviated_name='NewInfReside')
+        form = RegistryForm.objects.create(name='NewbornAndInfancyHistory', sections='ANGNewbornInfancyReside',
+                                           abbreviated_name='NewInfForm',
+                                           registry=reg_ang)
+        cfg_history = ContextFormGroup.objects.create(registry=reg_ang, code='History',
+                                                      name='History of Newborn/Infancy',
+                                                      abbreviated_name='Hist')
+        cfg_history.items.create(registry_form=form)
+
+        report_design = ReportDesign.objects.create(registry=reg_ang, cde_include_form_timestamp=True)
+
+        report_design.reportdemographicfield_set.create(model='patient', field='id', sort_order=0)
+
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history,
+                                                         cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideNewborn')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_history,
+                                                         cde_key='NewbornAndInfancyHistory____ANGNewbornInfancyReside____ResideInfancy')
+        report_design.reportclinicaldatafield_set.create(context_form_group=cfg_sleep,
+                                                         cde_key='SleepForm____SleepSection____DayOfWeek')
+
+        report = ReportBuilder(report_design)
+
+        variables, query = report._get_graphql_query(self._request())
+
+        expected = """query AllPatientsQuery($filterArgs: PatientFilterType) {
+  ang {
+    allPatients(filterArgs: $filterArgs) {
+      patients(sort: ["id"]) {
+        id
+        clinicalData {
+          History {
+            NewbornAndInfancyHistory {
+              meta {
+                lastUpdated
+              }
+              ANGNewbornInfancyReside {
+                ResideNewborn
+                ResideInfancy
+              }
+            }
+          }
+          Sleep {
+            SleepForm {
+              key
+              meta {
+                lastUpdated
+              }
+              data {
+                SleepSection {
+                  DayOfWeek
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+        # Use formatted query for comparison to help with debugging if assertion fails.
+        self.assertEqual(expected, print_ast(parse(query)))
 
     def test_pre_export_validation(self):
         reg_ang = Registry.objects.create(code='ang')
@@ -232,11 +336,6 @@ class ReportGeneratorTestCase(TestCase):
 
     def test_get_demographic_headers(self):
         def setup_test_data():
-            class TestContext:
-                user = CustomUser.objects.create(username="admin", is_staff=True, is_superuser=True)
-
-            self.request = TestContext()
-
             self.registry = Registry.objects.create(code='REG')
             self.registry_with_no_consent_questions = Registry.objects.create(code='REG2')
 
@@ -252,6 +351,7 @@ class ReportGeneratorTestCase(TestCase):
             p1.patientaddress_set.create(address_type=address_type_postal)
 
         setup_test_data()
+        request = self._request()
 
         report_design = ReportDesign.objects.create(registry=self.registry)
         report_design.reportdemographicfield_set.create(sort_order=1, model='patient', field='id')
@@ -266,7 +366,7 @@ class ReportGeneratorTestCase(TestCase):
         report_design.reportdemographicfield_set.create(sort_order=8, model='consents', field='firstSave')
         report_design.reportdemographicfield_set.create(sort_order=9, model='consents', field='lastUpdate')
 
-        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
@@ -276,12 +376,12 @@ class ReportGeneratorTestCase(TestCase):
                                 'patientaddressSet_1_addressType_type': 'Patient Address_2_Address Type',
                                 'patientaddressSet_1_address': 'Patient Address_2_Street Address',
                                 'patientaddressSet_1_suburb': 'Patient Address_2_Suburb',
-                                'consents_CQ1_answer': 'Consents_CQ1_Answer',
-                                'consents_CQ1_firstSave': 'Consents_CQ1_Date of First Save',
-                                'consents_CQ1_lastUpdate': 'Consents_CQ1_Date of Last Update',
-                                'consents_CQ2_answer': 'Consents_CQ2_Answer',
-                                'consents_CQ2_firstSave': 'Consents_CQ2_Date of First Save',
-                                'consents_CQ2_lastUpdate': 'Consents_CQ2_Date of Last Update',
+                                'consents_CS1_CQ1_answer': 'Consents_CS1_CQ1_Answer',
+                                'consents_CS1_CQ1_firstSave': 'Consents_CS1_CQ1_Date of First Save',
+                                'consents_CS1_CQ1_lastUpdate': 'Consents_CS1_CQ1_Date of Last Update',
+                                'consents_CS1_CQ2_answer': 'Consents_CS1_CQ2_Answer',
+                                'consents_CS1_CQ2_firstSave': 'Consents_CS1_CQ2_Date of First Save',
+                                'consents_CS1_CQ2_lastUpdate': 'Consents_CS1_CQ2_Date of Last Update',
                                 })
 
         self.assertDictEqual(expected, actual)
@@ -289,7 +389,7 @@ class ReportGeneratorTestCase(TestCase):
         # Test 2 - pivoted model has no variants
         report_design.registry = self.registry_with_no_consent_questions
         report_design.save()
-        actual = ReportBuilder(report_design)._get_demographic_headers(self.request)
+        actual = ReportBuilder(report_design)._get_demographic_headers(request)
         expected = OrderedDict({'id': 'ID',
                                 'familyName': 'Family Name',
                                 'nextOfKinRelationship_relationship': 'Next Of Kin Relationship',
@@ -306,3 +406,28 @@ class ReportGeneratorTestCase(TestCase):
 
         self.assertDictEqual(expected, actual)
 
+    def test_build_query_from_variants(self):
+        registry = Registry.objects.create(code='ang')
+        report_design = ReportDesign.objects.create(registry=registry)
+        report_builder = ReportBuilder(report_design)
+        fields = ['answer']
+
+        self.assertEqual(report_builder._build_query_from_variants([], fields), [])
+        self.assertEqual(report_builder._build_query_from_variants([[],[]], fields), [])
+
+        self.assertEqual(report_builder._build_query_from_variants(['item1', 'item2'], fields), ['item1 { answer }', 'item2 { answer }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupA', 'item2']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupA', 'item2'], ['groupB', 'item3']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }', 'groupB { item3 { answer } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'item1'], ['groupB', 'item3'], ['groupA', 'item2']], fields),
+                         ['groupA { item1 { answer } item2 { answer } }', 'groupB { item3 { answer } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'subA', 'item1'], ['groupA', 'subA', 'item2'], ['groupA', 'subC', 'item4'], ['groupB', 'subB', 'item3']], fields),
+                         ['groupA { subA { item1 { answer } item2 { answer } } subC { item4 { answer } } }', 'groupB { subB { item3 { answer } } }'])
+
+        self.assertEqual(report_builder._build_query_from_variants([['groupA', 'subA', 'item1'], ['groupB', 'subB', 'item3'], ['groupA', 'subC', 'item4'], ['groupA', 'subA', 'item2']], fields),
+                         ['groupA { subA { item1 { answer } item2 { answer } } subC { item4 { answer } } }', 'groupB { subB { item3 { answer } } }'])

@@ -28,6 +28,8 @@ services:
       <<: *common-env-variables
       WAIT_FOR_RUNSERVER: 1
       RUNSERVER: serverundertest
+      TRRF_SITE_DOMAIN: 'serverundertest:8000'
+      TRRF_SITE_NAME: 'TRRF-Aloe'
     volumes:
       - .:/app
       - ./data/aloe/dev:/data

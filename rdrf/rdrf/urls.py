@@ -25,6 +25,7 @@ import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
+from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
 from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
 from rdrf.views.lookup_views import PatientLookup
 from rdrf.views.family_linkage import FamilyLinkageView
@@ -60,6 +61,8 @@ if settings.DEBUG is True:
         re_path(r'^test500', handler500, name='test 500'),
         re_path(r'^testAppError', handler_application_error, name='test application error'),
         re_path(r'^raise', handler_exceptions, name='test exception'),
+        re_path(r'mail/outbox/empty', MailboxEmptyView.as_view(), name='mailbox_empty'),
+        re_path(r'mail/outbox', MailboxView.as_view(), name='mailbox'),
         path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
@@ -87,7 +90,7 @@ patterns += [
 
     re_path(r'', include((two_factor_auth_urls, 'two_factor'), namespace=None)),
 
-    # django.contrib.auth URLs listed expicitly so we can override some of them for custom behaviour
+    # django.contrib.auth URLs listed explicitly so we can override some of them for custom behaviour
     # Kept the original urls commented out to have an easy view on which URLs are customised.
     # Login is done by two_factor:login included above
 
@@ -129,8 +132,7 @@ patterns += [
             name="report_datatable"),
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
-    re_path(r'^patientslisting/?$', patients_listing.PatientsListingView.as_view(),
-            name="patientslisting"),
+    re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
             RDRFContextCreateView.as_view(),
             name="context_add"),
@@ -154,12 +156,14 @@ patterns += [
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<section_code>\w+)/(?P<context_id>\d+)?/(?P<cde_code>\w+)/(?P<formset_index>\d+)?/history/?$",
             form_view.FormFieldHistoryView.as_view(), name='registry_form_field_history'),
 
-
     re_path(r"^forms/dsl-help$",
             form_view.FormDSLHelpView.as_view(), name='registry_form_dsl_help'),
 
     re_path(r"^(?P<registry_code>\w+)/?$",
             registry_view.RegistryView.as_view(), name='registry'),
+
+    re_path(r'^(?P<registry_code>\w+)/patientslisting/?$',
+            patients_listing.PatientsListingView.as_view(), name="patient_list"),
 
     re_path(r"^(?P<registry_code>\w+)/patient/add/?$",
             patient_view.AddPatientView.as_view(), name='patient_add'),
