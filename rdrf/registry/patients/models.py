@@ -467,6 +467,10 @@ class Patient(models.Model):
         except BaseException:
             return None
 
+    @property
+    def display_age(self):
+        return f'{self.age} {_("years")}'
+
     def has_feature(self, feature):
         return any([r.has_feature(feature) for r in self.rdrf_registry.all()])
 

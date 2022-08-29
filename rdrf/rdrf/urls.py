@@ -133,7 +133,7 @@ patterns += [
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
-    re_path(r'^dashboards$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),
+    re_path(r'^dashboards/?$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
             RDRFContextCreateView.as_view(),
             name="context_add"),
@@ -163,7 +163,7 @@ patterns += [
     re_path(r"^(?P<registry_code>\w+)/?$",
             registry_view.RegistryView.as_view(), name='registry'),
 
-    re_path(r'^(?P<registry_code>\w+)/dashboard$', dashboard_view.ParentDashboardView.as_view(), name='parent_dashboard'),
+    re_path(r'^(?P<registry_code>\w+)/dashboard/?$', dashboard_view.ParentDashboardView.as_view(), name='parent_dashboard'),
 
     re_path(r'^(?P<registry_code>\w+)/patientslisting/?$',
             patients_listing.PatientsListingView.as_view(), name="patient_list"),

@@ -10,11 +10,11 @@ from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
 from django.views import View
 
+from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
 from rdrf.patients.query_data import query_patient
-from rdrf.reports.generator import get_clinical_data
 from registry.patients.models import Patient, ConsentValue, ParentGuardian
 
 logger = logging.getLogger(__name__)
@@ -119,9 +119,8 @@ class ParentDashboard(object):
         if not context:
             return None
 
-        data = get_clinical_data.__wrapped__(self.registry.code,
-                                             self.patient.pk,
-                                             context.pk)
+        wrapper = DynamicDataWrapper(self.patient, rdrf_context_id=context.pk)
+        data = wrapper.load_dynamic_data(self.registry.code, "cdes")
 
         if not data:
             return None
@@ -187,24 +186,26 @@ class BaseDashboardView(View):
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         registry_code = kwargs.get('registry_code')
+        parent_id = request.GET.get('parent_id')
+
+        user_allowed = user.is_superuser or user.is_parent
+        if not user_allowed:
+            raise PermissionDenied
 
         if registry_code:
             self.registry = get_object_or_404(Registry, code=kwargs['registry_code'])
             if not request.user.in_registry(self.registry):
                 raise PermissionDenied
 
-        user_allowed = user.is_superuser or user.is_parent
-        if not user_allowed:
-            raise PermissionDenied
-
-        if user.is_superuser:
-            parent_id = request.GET.get('parent_id')
-            if parent_id:
-                self.parent = get_object_or_404(ParentGuardian, pk=parent_id)
+        if user.is_superuser and parent_id:
+            self.parent = get_object_or_404(ParentGuardian, pk=parent_id)
         else:
             self.parent = ParentGuardian.objects.filter(user=user).first()
-            if not self.parent and user.is_parent:
-                raise PermissionDenied
+
+        if not self.parent:
+            if user.is_superuser:
+                raise Http404(_("parent_id is a required parameter"))
+            raise PermissionDenied
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -230,19 +231,25 @@ class DashboardListView(BaseDashboardView):
 
 
 class ParentDashboardView(BaseDashboardView):
+    @staticmethod
+    def _get_patient(user, patients, requested_patient_id):
+        if requested_patient_id:
+            patient = get_object_or_404(Patient, pk=requested_patient_id)
+            if user.is_parent and patient not in patients:
+                raise PermissionDenied
+            else:
+                return patient
+
+        if len(patients) > 0:
+            return patients[0]
+
     def get(self, request, registry_code):
         dashboard = get_object_or_404(RegistryDashboard, registry=self.registry)
 
         patients = [patient for patient in self.parent.children if self.registry in patient.rdrf_registry.all()]
 
         patient_id = request.GET.get('patient_id')
-        if patient_id:
-            patient = get_object_or_404(Patient, pk=patient_id)
-            if request.user.is_parent and patient not in patients:
-                raise PermissionDenied
-        else:
-            if len(patients) > 0:
-                patient = patients[0]
+        patient = self._get_patient(request.user, patients, patient_id)
 
         context = {
             'parent': self.parent,

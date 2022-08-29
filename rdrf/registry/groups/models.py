@@ -190,9 +190,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def default_page(self):
         from django.urls import reverse
 
-        if not self.is_authenticated:
-            return None
-
         if self.is_parent and self.dashboards:
             return reverse('parent_dashboard_list')
 

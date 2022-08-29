@@ -19,7 +19,11 @@
   {% endblock %}
 
   {% block card_body_text %}
-    <p>{% trans "You have approved" %} {{ consent_status.completed }} {% trans "out of" %} {{ consent_status.total }} {% trans "consents" %}.</p>
+    <p>
+      {% blocktrans trimmed with completed=consent_status.completed total=consent_status.total %}
+        You have approved {{ completed }} out of {{ total }} consents.</p>
+      {% endblocktrans %}
+    </p>
   {% endblock %}
 
   {% block card_links %}

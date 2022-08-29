@@ -1,12 +1,13 @@
 import uuid
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 
 from rdrf.models.definition.models import RegistryDashboard, Registry, ContextFormGroup, RDRFContext, RegistryForm, \
     Section, CommonDataElement, ConsentQuestion, ConsentSection, ClinicalData
 from rdrf.testing.unit.tests import RDRFTestCase
-from rdrf.views.dashboard_view import ParentDashboard
+from rdrf.views.dashboard_view import ParentDashboard, ParentDashboardView
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser
 from registry.patients.models import Patient, ParentGuardian, ConsentValue
@@ -23,14 +24,16 @@ def list_dashboards(user):
     return list(RegistryDashboard.objects.filter_user_parent_dashboards(user).all())
 
 
+def create_user_with_group(group):
+    user = CustomUser.objects.create(username=uuid.uuid1())
+    user.add_group(group)
+    if group == RDRF_GROUPS.SUPER_USER:
+        user.is_superuser = True
+    return user
+
+
 class RegistryDashboardManagerTest(TestCase):
     def setUp(self):
-
-        def create_user_with_group(group):
-            user = CustomUser.objects.create(username=uuid.uuid1())
-            user.add_group(group)
-            return user
-
         # Registries
         self.registry_A = Registry.objects.create(code='A')
         self.registry_B = Registry.objects.create(code='B')
@@ -58,6 +61,9 @@ class RegistryDashboardManagerTest(TestCase):
 
     def test_get_dashboards_for_parent_user(self):
         parent = ParentGuardian.objects.create(user=self.parent_user)
+
+        # Parent has no children
+        self.assertEqual(list_dashboards(parent.user), [])
 
         # Parent has one child, in a registry, with a dashboard.
         parent.patient.set([self.patient1])
@@ -309,3 +315,30 @@ class ParentDashboardTest(RDRFTestCase):
                               'homePhone': {'label': 'Home Phone No', 'value': None},
                               'mobilePhone': {'label': 'Mobile Phone No', 'value': '+61412123456'},
                               })
+
+
+class ParentDashboardViewTest(RDRFTestCase):
+    def test_get_patient(self):
+
+        parent_user = create_user_with_group(RDRF_GROUPS.PARENT)
+        superuser = create_user_with_group(RDRF_GROUPS.SUPER_USER)
+
+        # Parent has no children
+        view = ParentDashboardView
+        self.assertEqual(view._get_patient(parent_user, [], None), None)
+
+        # Parent has one child
+        child1 = create_valid_patient()
+        self.assertEqual(view._get_patient(parent_user, [child1], None), child1)
+
+        # Parent has multiple children
+        child2 = create_valid_patient()
+        self.assertEqual(view._get_patient(parent_user, [child1, child2], None), child1)
+
+        # Parent requests access to unrelated child
+        child3 = create_valid_patient()
+        with self.assertRaises(PermissionDenied):
+            view._get_patient(parent_user, [child1, child2], child3.id)
+
+        # Superuser requests access to child
+        self.assertEqual(view._get_patient(superuser, [], child3.id), child3)
