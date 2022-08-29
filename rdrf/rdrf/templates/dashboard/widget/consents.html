@@ -19,6 +19,11 @@
   {% endblock %}
 
   {% block card_body_text %}
+    {% if not consent_status.valid %}
+      <p class="alert alert-danger">
+        Patient consent must be completed to enable access to the registry.
+      </p>
+    {% endif %}
     <p>{% trans "You have approved" %} {{ consent_status.completed }} {% trans "out of" %} {{ consent_status.total }} {% trans "consents" %}.</p>
   {% endblock %}
 

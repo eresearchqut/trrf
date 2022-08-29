@@ -7,8 +7,8 @@ from rdrf.models.definition.models import RegistryDashboard, Registry, ContextFo
     Section, CommonDataElement, ConsentQuestion, ConsentSection, ClinicalData
 from rdrf.testing.unit.tests import RDRFTestCase
 from rdrf.views.dashboard_view import ParentDashboard
-from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser
+from registry.groups import GROUPS as RDRF_GROUPS
 from registry.patients.models import Patient, ParentGuardian, ConsentValue
 
 
