@@ -27,6 +27,7 @@
   {% with registry=dashboard.registry patient=dashboard.patient %}
 
   <div class="row d-print-block">
+    {% if dashboard.patient_status.consent.valid %}
     <div class="col-md">
       {% include "dashboard/widget/demographics.html" with widget=dashboard.widgets.demographics primary=True %}
 
@@ -34,11 +35,12 @@
         {% include "dashboard/widget/clinical_data.html" with widget=dashboard.widgets.clinical_data %}
       {% endif %}
     </div>
+    {% endif %}
 
     <div class="col-md">
       {% include "dashboard/widget/consents.html" with widget=dashboard.widgets.consents consent_status=dashboard.patient_status.consent %}
 
-      {% if dashboard.patient_status.module_progress %}
+      {% if dashboard.patient_status.consent.valid and dashboard.patient_status.module_progress %}
         {% include "dashboard/widget/module_progress.html" with widget=dashboard.widgets.module_progress %}
       {% endif %}
 
