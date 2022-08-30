@@ -11,7 +11,7 @@ from django.dispatch import receiver
 
 from registration.signals import user_activated
 
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, RegistryDashboard
 from registry.groups import GROUPS as RDRF_GROUPS
 
 import logging
@@ -106,7 +106,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return self.registry.first()
 
     def get_full_name(self):
-        full_name = "%s %s" % (self.first_name, self.last_name)
+        full_name = f'{self.first_name} {self.last_name}'
+
+        if self.is_parent:
+            from registry.patients.models import ParentGuardian
+            parent = ParentGuardian.objects.filter(user=self).first()
+            if parent:
+                full_name = f'{parent.first_name} {parent.last_name}'
+
         return full_name.strip()
 
     def get_short_name(self):
@@ -174,6 +181,26 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def is_curator(self):
         return self.in_group(RDRF_GROUPS.WORKING_GROUP_CURATOR)
+
+    @property
+    def dashboards(self):
+        return RegistryDashboard.objects.filter_user_parent_dashboards(self)
+
+    @property
+    def default_page(self):
+        from django.urls import reverse
+
+        if self.is_parent and self.dashboards:
+            return reverse('parent_dashboard_list')
+
+        if self.registry_code and (self.is_parent
+                                   or self.is_patient
+                                   or self.is_carrier
+                                   or (self.is_carer and self.patients_in_care.count() == 1)):
+            return reverse("registry:parent_page" if self.is_parent else "registry:patient_page",
+                           args=[self.registry_code])
+
+        return reverse('patientslisting')
 
     def get_groups(self):
         return self.groups.all()

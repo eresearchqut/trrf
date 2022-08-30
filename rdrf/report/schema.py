@@ -13,7 +13,6 @@ from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
 
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
-from rdrf.forms.widgets.widgets import get_widget_class
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
     ConsentRule
@@ -216,22 +215,7 @@ def get_section_fields(_section_key, section_cdes):
         def cde_resolver(cdes, _info, cde_model):
             for cde_value in cdes:
                 if cde_value["code"] == cde_model.code:
-                    datatype = cde_model.datatype.strip().lower()
-                    value = cde_value["value"]
-                    if datatype == 'lookup':
-                        value = get_widget_class(cde_model.widget_name).denormalized_value(value)
-                    elif cde_model.pv_group:
-                        cde_values_dict = cde_model.pv_group.cde_values_dict
-                        if isinstance(value, list):
-                            value = [cde_values_dict.get(value_item, value_item) for value_item in value]
-                        else:
-                            value = cde_values_dict.get(value, value)
-
-                    # Ensure we are returning value as the correct type based on the expected output from the CDE configuration
-                    if cde_model.allow_multiple:
-                        return value if isinstance(value, list) else [value]
-                    else:
-                        return value
+                    return cde_model.display_value(cde_value["value"])
 
         if cde.allow_multiple:
             fields[field_name] = graphene.List(graphene.String, description=cde.name)
@@ -543,12 +527,16 @@ def create_dynamic_all_patients_type(registry):
     def resolve_data_summary(parent: QueryResult, _info):
         return parent
 
-    def resolve_patients(parent: QueryResult, _info, sort=None, offset=None, limit=None):
+    def resolve_patients(parent: QueryResult, _info, id=None, sort=None, offset=None, limit=None):
         def validate_sort_fields(sort_fields):
             sort_fields_without_order = [field.lstrip('-') for field in sort_fields]
             return validate_fields(sort_fields_without_order, _valid_sort_fields, 'sort field')
 
         all_patients = parent.all_patients
+
+        if id:
+            return [all_patients.get(id=id)]
+
         if sort:
             validate_sort_fields(sort)
             sort_fields = [to_snake_case(field) for field in sort]
@@ -566,6 +554,7 @@ def create_dynamic_all_patients_type(registry):
         'data_summary': graphene.Field(DataSummaryType),
         'resolve_data_summary': resolve_data_summary,
         'patients': graphene.List(create_dynamic_patient_type(registry),
+                                  id=graphene.String(),
                                   sort=graphene.List(graphene.String),
                                   offset=graphene.Int(),
                                   limit=graphene.Int()),

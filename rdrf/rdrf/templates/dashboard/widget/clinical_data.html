@@ -1,0 +1,11 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+
+{% block card_header %}
+  {% if not widget.title %}
+    {% trans "Clinical Data" %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}

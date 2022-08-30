@@ -37,8 +37,6 @@ table {
     }
 
     .banner, .footer-wrap {
-        box-shadow: none;
-        -webkit-box-shadow: none;
         position: static;
     }
 
@@ -52,14 +50,6 @@ table {
 
     .rdrf-cde-slider {
         margin-top: 25px;
-    }
-
-    .progress-bar, .tooltip-inner {
-        color: #000;
-    }
-
-    .progress, .slider-track, .slider-handle {
-        border: 1px solid #000;
     }
 
 }

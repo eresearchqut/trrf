@@ -10,7 +10,8 @@ from explorer.models import Query
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
-from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup
+from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup, RegistryDashboardWidget, \
+    RegistryDashboard, RegistryDashboardDemographicData, RegistryDashboardCDEData, RegistryDashboardFormLink
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentConfiguration
@@ -752,6 +753,10 @@ class Importer(object):
             self._create_next_of_kin_relationships(self.data["next_of_kin_relationships"])
             logger.info("imported group permissions OK")
 
+        if "registry_dashboards" in self.data:
+            self._create_registry_dashboards(self.data["registry_dashboards"])
+            logger.info("imported registry dashboards OK")
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -1095,3 +1100,55 @@ class Importer(object):
     def _create_next_of_kin_relationships(self, data):
         for relationship in data:
             NextOfKinRelationship.objects.get_or_create(relationship=relationship)
+
+    def _create_registry_dashboards(self, data):
+        for dashboard_dict in data:
+            registry = Registry.objects.get(code=dashboard_dict['registry'])
+            dashboard, created = RegistryDashboard.objects.get_or_create(registry=registry)
+            logger.info(f'Add dashboard for registry {dashboard.registry.code}')
+
+            if not created:
+                dashboard.widgets.all().delete()
+
+            for widget_dict in dashboard_dict['widgets']:
+                widget = RegistryDashboardWidget.objects.create(registry_dashboard=dashboard,
+                                                                widget_type=widget_dict['widget_type'],
+                                                                title=widget_dict['title'],
+                                                                free_text=widget_dict['free_text'])
+
+                logger.info(f'Created widget {widget.widget_type}')
+
+                for demographic_dict in widget_dict['demographics']:
+                    demographic = RegistryDashboardDemographicData.objects.create(widget=widget,
+                                                                                  sort_order=demographic_dict['sort_order'],
+                                                                                  label=demographic_dict['label'],
+                                                                                  model=demographic_dict['model'],
+                                                                                  field=demographic_dict['field'])
+                    logger.info(f'Created demographic {demographic.label}')
+
+                for cde_dict in widget_dict['cdes']:
+                    context_form_group = ContextFormGroup.objects.get(code=cde_dict['context_form_group'])
+                    registry_form = RegistryForm.objects.get(name=cde_dict['registry_form'])
+                    section = Section.objects.get(code=cde_dict['section'])
+                    cde = CommonDataElement.objects.get(code=cde_dict['cde'])
+
+                    cde_data = RegistryDashboardCDEData.objects.create(widget=widget,
+                                                                       sort_order=cde_dict['sort_order'],
+                                                                       label=cde_dict['label'],
+                                                                       context_form_group=context_form_group,
+                                                                       registry_form=registry_form,
+                                                                       section=section,
+                                                                       cde=cde)
+                    logger.info(f'Created cde data {cde_data.label}')
+
+                for link_dict in widget_dict['links']:
+                    context_form_group = ContextFormGroup.objects.get(code=link_dict['context_form_group'])
+                    registry_form = RegistryForm.objects.get(name=link_dict['registry_form'])
+
+                    link = RegistryDashboardFormLink.objects.create(widget=widget,
+                                                                    sort_order=link_dict['sort_order'],
+                                                                    label=link_dict['label'],
+                                                                    context_form_group=context_form_group,
+                                                                    registry_form=registry_form
+                                                                    )
+                    logger.info(f'Created link {link.label}')

@@ -1,0 +1,38 @@
+{% extends 'dashboard/widget/_widget_base.html' %}
+
+{% load i18n %}
+
+  {% block card_header %}
+    {% if not widget.title %}
+      {% trans "Consents" %}
+    {% else %}
+      {{ block.super }}
+    {% endif %}
+
+    <span class="badge pull-right {% if consent_status.valid %}bg-success{% else %}bg-danger{% endif %}">
+      {% if consent_status.valid %}
+        {% trans "Complete" %}
+      {% else %}
+        {% trans "Incomplete" %}
+      {% endif %}
+    </span>
+  {% endblock %}
+
+  {% block card_body_text %}
+    {% if not consent_status.valid %}
+      <p class="alert alert-danger">
+        Patient consent must be completed to enable access to the registry.
+      </p>
+    {% endif %}
+    <p>
+      {% blocktrans trimmed with completed=consent_status.completed total=consent_status.total %}
+        You have approved {{ completed }} out of {{ total }} consents.</p>
+      {% endblocktrans %}
+    </p>
+  {% endblock %}
+
+  {% block card_links %}
+    <ul class="list-unstyled mb-0 d-print-none">
+      <li><a href="{% url 'consent_form_view' registry.code patient.id %}" class="card-link">{% trans "View/change consents" %}</a></li>
+    </ul>
+  {% endblock %}

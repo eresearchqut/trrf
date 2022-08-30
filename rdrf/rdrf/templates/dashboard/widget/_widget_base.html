@@ -1,0 +1,54 @@
+{% load i18n %}
+{% load join_if_list %}
+
+<div class="card page-break-inside-avoid {% if primary %}border-primary{% endif %}">
+  <div class="card-header {% if primary %}bg-primary text-white{% endif %}">
+      {% block card_header %}
+        {{widget.title}}
+      {% endblock %}
+  </div>
+  <div class="card-body">
+    <div class="card-text">
+      {% block card_body_text %}
+      {% endblock %}
+      {% if widget %}
+          {% if widget.demographic_data or widget.clinical_data %}
+            <table class="table table-sm table-striped">
+              <tbody>
+              {% if widget.demographic_data %}
+                {% for key, demographic in widget.demographic_data.items %}
+                  <tr>
+                    <td class="w-50">{{ demographic.label }}</td>
+                    <td>{{ demographic.value }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+              {% if widget.clinical_data %}
+                {% for cde in widget.clinical_data %}
+                  <tr>
+                    <td class="w-50">{{ cde.label }}</td>
+                    <td>{{ cde.data|join_if_list }}</td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+              </tbody>
+            </table>
+          {% endif %}
+      {% endif %}
+    </div>
+    {% block card_links %}
+    {% endblock %}
+    <ul class="list-unstyled d-print-none">
+      {% if widget %}
+        {% for link in widget.form_links %}
+          <li><a href="{{ link.url }}" class="card-link">{{ link.label }}</a></li>
+        {% endfor %}
+      {% endif %}
+    </ul>
+  </div>
+  {% if widget %}
+    {% if widget.free_text %}
+      <div class="card-footer small">{{ widget.free_text }}</div>
+    {% endif %}
+  {% endif %}
+</div>

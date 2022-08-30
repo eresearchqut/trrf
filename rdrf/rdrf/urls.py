@@ -14,7 +14,7 @@ from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
 
-from rdrf.views import favicon_view
+from rdrf.views import favicon_view, dashboard_view
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
@@ -133,6 +133,7 @@ patterns += [
     re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
+    re_path(r'^dashboards/?$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',
             RDRFContextCreateView.as_view(),
             name="context_add"),
@@ -161,6 +162,8 @@ patterns += [
 
     re_path(r"^(?P<registry_code>\w+)/?$",
             registry_view.RegistryView.as_view(), name='registry'),
+
+    re_path(r'^(?P<registry_code>\w+)/dashboard/?$', dashboard_view.ParentDashboardView.as_view(), name='parent_dashboard'),
 
     re_path(r'^(?P<registry_code>\w+)/patientslisting/?$',
             patients_listing.PatientsListingView.as_view(), name="patient_list"),
