@@ -325,15 +325,15 @@ class Command(BaseCommand):
 
     def _yield_dashboard_strings(self):
         for dashboard_dict in self.data.get("registry_dashboards", []):
-            for widget_dict in dashboard_dict.get("widgets"):
+            for widget_dict in dashboard_dict.get("widgets", []):
                 yield None, widget_dict["title"]
                 yield None, widget_dict["free_text"]
 
-                for demo_dict in widget_dict.get("demographics"):
+                for demo_dict in widget_dict.get("demographics", []):
                     yield None, demo_dict["label"]
 
-                for link_dict in widget_dict.get("links"):
+                for link_dict in widget_dict.get("links", []):
                     yield None, link_dict["label"]
 
-                for cde_dict in widget_dict.get("cdes"):
+                for cde_dict in widget_dict.get("cdes", []):
                     yield None, cde_dict["label"]
