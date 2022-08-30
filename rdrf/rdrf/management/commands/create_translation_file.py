@@ -324,7 +324,7 @@ class Command(BaseCommand):
             yield None, relationship
 
     def _yield_dashboard_strings(self):
-        for dashboard_dict in self.data.get("registry_dashboards"):
+        for dashboard_dict in self.data.get("registry_dashboards", []):
             for widget_dict in dashboard_dict.get("widgets"):
                 yield None, widget_dict["title"]
                 yield None, widget_dict["free_text"]
