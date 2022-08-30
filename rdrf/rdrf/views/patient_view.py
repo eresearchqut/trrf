@@ -626,8 +626,6 @@ class PatientEditView(PatientFormMixin, View):
             "patient_id": patient.id,
             "registry_code": registry_code,
             "form_links": [],
-            "show_archive_button": request.user.can_archive,
-            "archive_patient_url": patient.get_archive_url(registry_model) if request.user.can_archive else "",
             "consent": consent_status_for_patient(
                 registry_code,
                 patient),
@@ -762,9 +760,6 @@ class PatientEditView(PatientFormMixin, View):
         context["form_links"] = []
         context["not_linked"] = not patient.is_linked
         context["family_linkage_panel"] = family_linkage_panel.html
-        context["show_archive_button"] = request.user.can_archive
-        context["archive_patient_url"] = patient.get_archive_url(
-            registry_model) if request.user.can_archive else ""
         context["consent"] = consent_status_for_patient(registry_code, patient)
 
         context["section_blacklist"] = self._blacklisted_sections(registry_model)

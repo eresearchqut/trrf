@@ -110,43 +110,20 @@
         {% if location %}
         <div class="banner">
             <!-- base 2 cols banner -->
-            <div class="container">
-                    <!-- name row -->
-                        <div class="row">
-                            <div class="col-sm-12">
-                            <h3 class="mt-3">
-                                {% if patient_link %}
-                                    {{ patient_link | safe}}
-                                {% elif patient %}
-                                    <i class="text-muted">
-                                        <span class="fa fa-user" aria-hidden="true"></span>
-                                        {{patient}}
-                                    </i>
-                                {% endif %}
-                            </h3>
-                        </div>
-                        </div>
-                        {{ patient_info }}
-
-                <div class="row d-print-none">
-                    <!-- command button row -->
-                    <div class="col-3" style="text-align: left">
-                        {% if show_archive_button %}
-                        <div class="btn-group" role="group" aria-label="...">
-                            <a class="btn btn-danger" href="" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">
-                                <span class="fa fa-times" aria-hidden="true"></span>
-                                {% trans "Delete " %}
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if not changes_since_version %}
-                        <div class="col-9" style="text-align: right">
-                            {% block formbtns %}
-                            {% endblock %}
-                        </div>
-                    {% endif %}
+            <div class="container-fluid mt-3 mb-2">
+              <div class="row">
+                <div class="offset-xxl-1 col-xxl-5 col-md-6">
+                  {% include "rdrf_cdes/banner/_patient.html" %}
                 </div>
+                <div class="col-xxl-5 col-md-6 d-print-none mt-md-0 mt-3 d-flex justify-content-md-end">
+                  {%if not changes_since_version %}
+                  <div class="btn-group align-self-md-center" role="group">
+                      {% block formbtns %}
+                      {% endblock %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
             </div>
         </div>
         {% endif %}

@@ -1,0 +1,11 @@
+{% if patient_link or patient %}
+  <h1 class="text-muted fs-4 fst-italic">
+    {% if patient_link %}
+      {{ patient_link | safe}}
+    {% elif patient %}
+      <span class="fa fa-user" aria-hidden="true"></span>
+      {{patient}}
+    {% endif %}
+  </h1>
+  {{ patient_info }}
+{% endif %}

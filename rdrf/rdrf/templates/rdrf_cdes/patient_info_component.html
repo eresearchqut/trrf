@@ -12,7 +12,7 @@
 {% if patient_information %}
     <div class="row">
         <div class="col-sm-12 text-muted">
-            <p style="overflow-x: auto; white-space: nowrap">
+            <p style="overflow-x: auto; white-space: nowrap" class="mb-0">
                 {% with pi=patient_information %}
                     <strong>{% trans "DOB" %}:</strong>&nbsp;{{ pi.dob }}&nbsp;(<strong>{% trans "Age" %}:</strong>&nbsp;{{ pi.age }})
                     &nbsp;|&nbsp;{{ pi.gender }}
@@ -21,6 +21,9 @@
                     {% endif %}
                     {% if pi.guid %}
                         &nbsp;|&nbsp;<strong>GUID:</strong>&nbsp;{{ pi.guid}}
+                    {% endif %}
+                    {% if show_archive_button %}
+                    | <a class="link-danger" href="{{ archive_patient_url }}" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">Delete</a>
                     {% endif %}
                 {% endwith %}
             </p>

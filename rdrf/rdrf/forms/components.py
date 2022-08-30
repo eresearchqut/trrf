@@ -101,7 +101,9 @@ class RDRFPatientInfoComponent(RDRFComponent):
         patient_type = self._get_patient_type()
         return {
             "patient_type": patient_type,
-            "patient_information": self.patient_model.patient_info
+            "patient_information": self.patient_model.patient_info,
+            "show_archive_button": self.viewing_user.can_archive,
+            "archive_patient_url": self.patient_model.get_archive_url(self.registry_model) if self.viewing_user.can_archive else ""
         }
 
     def _get_patient_type(self):

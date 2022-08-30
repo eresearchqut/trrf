@@ -1,7 +1,6 @@
 {% load i18n %}
 {% load translate %}
 {% csrf_token %}
-{% if show_archive_button %}
 	<!-- Modal for deleting patient -->
 	<div class="modal fade" id="archive_modal" tabindex="-1" role="dialog" aria-labelledby="archive_button_modal_label">
 	  <div class="modal-dialog modal-lg" role="document">
@@ -20,7 +19,7 @@
 	      <div class="modal-footer">
 		{% if not_linked %}
 		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'No' %}</button>
-		<button type="button" data-bs-dismiss="modal" onclick="deletePatient();" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
+		<button id="btnDeletePatient" type="button" data-bs-dismiss="modal" onclick="deletePatient(this);" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
 		{% else %}
 		<button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
 		{% endif %}
@@ -30,8 +29,16 @@
 	</div>
 	{% if not_linked %}
 	<script>
-	  function deletePatient() {
-	      var url = "{{ archive_patient_url }}";
+
+    $('#archive_modal').on('show.bs.modal', function(e) {
+        const archive_url = $(e.relatedTarget).attr('href');
+
+       $("#btnDeletePatient").data('archive_url', archive_url);
+    });
+
+	  function deletePatient(btnDelete) {
+	      var url = $(btnDelete).data('archive_url');
+
 	      if (url != "") {
 
 	          $.ajaxSetup({beforeSend: function (xhr) {
@@ -50,4 +57,3 @@
           }});}}
 	</script>
 	{% endif %}
-{% endif %}
