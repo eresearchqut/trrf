@@ -125,12 +125,23 @@ class ParentDashboard(object):
         if not data:
             return None
 
-        form_value = self.patient.get_form_value(self.registry.code,
-                                                 form.name,
-                                                 section.code,
-                                                 cde.code,
-                                                 multisection=section.allow_multiple,
-                                                 clinical_data=data)
+        try:
+            form_value = self.patient.get_form_value(self.registry.code,
+                                                     form.name,
+                                                     section.code,
+                                                     cde.code,
+                                                     multisection=section.allow_multiple,
+                                                     clinical_data=data)
+        except KeyError:
+            # Value not filled out yet
+            form_value = None
+
+        if section.allow_multiple and cde.allow_multiple:
+            # Then the value will be like [[1,2],[2, 3,4]], and will require some flattening
+            flattened_value = {value
+                               for multisection_entry in form_value
+                               for value in multisection_entry}
+            form_value = sorted(flattened_value)
 
         return cde.display_value(form_value)
 
