@@ -10,7 +10,6 @@ from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
 from django.views import View
 
-from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
@@ -119,19 +118,13 @@ class ParentDashboard(object):
         if not context:
             return None
 
-        wrapper = DynamicDataWrapper(self.patient, rdrf_context_id=context.pk)
-        data = wrapper.load_dynamic_data(self.registry.code, "cdes")
-
-        if not data:
-            return None
-
         try:
             form_value = self.patient.get_form_value(self.registry.code,
                                                      form.name,
                                                      section.code,
                                                      cde.code,
                                                      multisection=section.allow_multiple,
-                                                     clinical_data=data)
+                                                     context_id=context.id)
         except KeyError:
             # Value not filled out yet
             form_value = None
