@@ -2165,22 +2165,25 @@ class RegistryDashboardCDEData(models.Model):
     def clean(self):
         errors = []
 
-        valid_registry_form = any(self.registry_form == item.registry_form
-                                  for item in self.context_form_group.items.all())
+        if all(hasattr(self, attr) for attr in ['context_form_group', 'registry_form', 'section', 'cde']):
+            valid_registry_form = any(self.registry_form == item.registry_form
+                                      for item in self.context_form_group.items.all())
 
-        valid_section = any(self.section == form_section
-                            for form_section in self.registry_form.section_models)
+            valid_section = any(self.section == form_section
+                                for form_section in self.registry_form.section_models)
 
-        valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
+            valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
 
-        if not valid_registry_form:
-            errors = ValidationError(_(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
+            if not valid_registry_form:
+                errors = ValidationError(
+                    _(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
 
-        if not valid_section:
-            errors = ValidationError(_(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
+            if not valid_section:
+                errors = ValidationError(
+                    _(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
 
-        if not valid_cde:
-            errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
+            if not valid_cde:
+                errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
 
         if errors:
             raise ValidationError(errors)
