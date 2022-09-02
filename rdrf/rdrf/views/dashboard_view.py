@@ -10,7 +10,6 @@ from django.utils.formats import date_format
 from django.utils.translation import ugettext as _
 from django.views import View
 
-from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
@@ -119,18 +118,23 @@ class ParentDashboard(object):
         if not context:
             return None
 
-        wrapper = DynamicDataWrapper(self.patient, rdrf_context_id=context.pk)
-        data = wrapper.load_dynamic_data(self.registry.code, "cdes")
+        try:
+            form_value = self.patient.get_form_value(self.registry.code,
+                                                     form.name,
+                                                     section.code,
+                                                     cde.code,
+                                                     multisection=section.allow_multiple,
+                                                     context_id=context.id)
+        except KeyError:
+            # Value not filled out yet
+            form_value = None
 
-        if not data:
-            return None
-
-        form_value = self.patient.get_form_value(self.registry.code,
-                                                 form.name,
-                                                 section.code,
-                                                 cde.code,
-                                                 multisection=section.allow_multiple,
-                                                 clinical_data=data)
+        if section.allow_multiple and cde.allow_multiple:
+            # Then the value will be like [[1,2],[2, 3,4]], and will require some flattening
+            flattened_value = {value
+                               for multisection_entry in form_value
+                               for value in multisection_entry}
+            form_value = sorted(flattened_value)
 
         return cde.display_value(form_value)
 

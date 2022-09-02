@@ -274,9 +274,12 @@ class ParentDashboardTest(RDRFTestCase):
 
     def test_get_cde_data(self):
         cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F')
-        cde1 = CommonDataElement.objects.create(code='C1', abbreviated_name='C1')
-        sec1 = Section.objects.create(code='S1', abbreviated_name='S1', elements='C1')
-        form1 = RegistryForm.objects.create(id=61, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1')
+        cde1 = CommonDataElement.objects.create(code='C1', abbreviated_name='C1', allow_multiple=False)
+        cde2 = CommonDataElement.objects.create(code='C2', abbreviated_name='C2', allow_multiple=True)
+        cde3 = CommonDataElement.objects.create(code='C3', abbreviated_name='C3', allow_multiple=False)
+        sec1 = Section.objects.create(code='S1', abbreviated_name='S1', allow_multiple=False, elements='C1,C2,C3')
+        sec2 = Section.objects.create(code='S2', abbreviated_name='S2', allow_multiple=True, elements='C1,C2')
+        form1 = RegistryForm.objects.create(id=61, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1,S2')
 
         p1 = create_valid_patient(id=9, registry=self.registry)
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
@@ -290,10 +293,30 @@ class ParentDashboardTest(RDRFTestCase):
         parent_dashboard._contexts = parent_dashboard._load_contexts()
         self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), None)
 
-        data = {"forms": [{"name": "form1", "sections": [{"code": "S1", "allow_multiple": False, "cdes": [{"code": "C1", "value": "Patient Response ABC"}]}]}]}
+        data = {"forms": [{"name": "form1",
+                           "sections": [{"code": "S1", "allow_multiple": False, "cdes": [{"code": "C1", "value": "Patient Response ABC"},
+                                                                                         {"code": "C2", "value": ["A", "B"]}]},
+                                        {"code": "S2",
+                                         "allow_multiple": True,
+                                         "cdes": [
+                                             [{"code": "C1", "value": "First answer"}, {"code": "C2", "value": ["C", "D"]}],
+                                             [{"code": "C1", "value": "Second answer"}, {"code": "C2", "value": ["D", "E", "F"]}],
+                                         ]}]
+                           }]
+                }
         ClinicalData.objects.create(registry_code='TEST', django_id=p1.id, django_model='Patient',
                                     collection="cdes", context_id=ctx1.id, data=data)
+
+        # Patient has no known data for the CDE
+        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde3), None)
+
+        # Section does not allow multiples
         self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), "Patient Response ABC")
+        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde2), ["A", "B"])
+
+        # Section allows multiples
+        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec2, cde1), ["First answer", "Second answer"])
+        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec2, cde2), ["C", "D", "E", "F"])
 
     def test_get_demographic_data(self):
         demographics_widget = self.dashboard.widgets.create(widget_type='Demographics')

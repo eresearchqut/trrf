@@ -1,6 +1,7 @@
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.contrib import admin
+from django.forms import ChoiceField, ModelForm
 from django.urls import reverse
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, \
@@ -51,6 +52,8 @@ from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
 
 from functools import reduce
+
+from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -480,7 +483,27 @@ class DashboardCdeDataInline(admin.StackedInline):
     extra = 0
 
 
+class DashboardDemographicDataAdminForm(ModelForm):
+    @staticmethod
+    def get_patient_demographic_fields():
+        demographic_model = load_report_configuration()['demographic_model']
+        field_choices = [('', '---------')]
+        field_choices.extend([(field, _(label)) for field, label in demographic_model['patient']['fields'].items()])
+        return field_choices
+
+    field = ChoiceField()
+
+    class Meta:
+        model = RegistryDashboardDemographicData
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+        super(DashboardDemographicDataAdminForm, self).__init__(*args, **kwargs)
+        self.fields['field'].choices = self.get_patient_demographic_fields()
+
+
 class DashboardDemographicsInline(admin.StackedInline):
+    form = DashboardDemographicDataAdminForm
     model = RegistryDashboardDemographicData
     verbose_name_plural = 'Patient Demographics'
     extra = 0

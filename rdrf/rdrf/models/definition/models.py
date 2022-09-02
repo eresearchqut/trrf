@@ -35,7 +35,6 @@ from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.cde_data_types import CDEDataTypes
-from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -2108,10 +2107,6 @@ class RegistryDashboardDemographicData(models.Model):
         ('patient', _('Patient')),
     )
 
-    def get_patient_demographic_fields(self):
-        demographic_model = load_report_configuration()['demographic_model']
-        return [(field, _(label)) for field, label in demographic_model['patient']['fields'].items()]
-
     widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='demographics')
 
     sort_order = models.PositiveIntegerField(null=False, blank=False)
@@ -2119,11 +2114,6 @@ class RegistryDashboardDemographicData(models.Model):
 
     model = models.CharField(max_length=255, choices=MODEL_CHOICES)
     field = models.CharField(max_length=255)
-
-    def __init__(self, *args, **kwargs):
-        super(RegistryDashboardDemographicData, self).__init__(*args, **kwargs)
-        # Set the choices here to avoid making migrations for possible values. These fields may vary per registry.
-        self._meta.get_field('field').choices = self.get_patient_demographic_fields()
 
     class Meta:
         ordering = ['sort_order']
@@ -2175,22 +2165,25 @@ class RegistryDashboardCDEData(models.Model):
     def clean(self):
         errors = []
 
-        valid_registry_form = any(self.registry_form == item.registry_form
-                                  for item in self.context_form_group.items.all())
+        if all(hasattr(self, attr) for attr in ['context_form_group', 'registry_form', 'section', 'cde']):
+            valid_registry_form = any(self.registry_form == item.registry_form
+                                      for item in self.context_form_group.items.all())
 
-        valid_section = any(self.section == form_section
-                            for form_section in self.registry_form.section_models)
+            valid_section = any(self.section == form_section
+                                for form_section in self.registry_form.section_models)
 
-        valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
+            valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
 
-        if not valid_registry_form:
-            errors = ValidationError(_(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
+            if not valid_registry_form:
+                errors = ValidationError(
+                    _(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
 
-        if not valid_section:
-            errors = ValidationError(_(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
+            if not valid_section:
+                errors = ValidationError(
+                    _(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
 
-        if not valid_cde:
-            errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
+            if not valid_cde:
+                errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
 
         if errors:
             raise ValidationError(errors)
