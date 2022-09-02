@@ -187,6 +187,14 @@ function test_cde_value(name, base_name, op, value) {
     if (!entry.allow_multiple) {
         var actual_value = get_cde_value(fullName, entry.type, entry.allow_multiple);
         if (op == "is") {
+            // For the purposes of the set/unset test,
+            // a duration value without a [1-9] number is considered to be empty
+            if (entry.type == "DurationWidget") {
+                if (!/[1-9]/.exec(actual_value)) {
+                    actual_value = '';
+                }
+            }
+
             return set_unset_test(actual_value, value);
         }
         if (entry.type == "DateWidget") {
