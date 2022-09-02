@@ -7,5 +7,8 @@ register = template.Library()
 
 @register.simple_tag
 def project_title_link():
-    url_name = settings.PROJECT_TITLE_LINK
-    return reverse(url_name)
+    args = settings.PROJECT_TITLE_LINK
+    if isinstance(args, dict):
+        return reverse(**args)
+    else:
+        return reverse(args)
