@@ -277,8 +277,10 @@ class ParentDashboardTest(RDRFTestCase):
         cde1 = CommonDataElement.objects.create(code='C1', abbreviated_name='C1', allow_multiple=False)
         cde2 = CommonDataElement.objects.create(code='C2', abbreviated_name='C2', allow_multiple=True)
         cde3 = CommonDataElement.objects.create(code='C3', abbreviated_name='C3', allow_multiple=False)
+        cde4 = CommonDataElement.objects.create(code='C4', abbreviated_name='C4', allow_multiple=True)
         sec1 = Section.objects.create(code='S1', abbreviated_name='S1', allow_multiple=False, elements='C1,C2,C3')
         sec2 = Section.objects.create(code='S2', abbreviated_name='S2', allow_multiple=True, elements='C1,C2')
+        sec3 = Section.objects.create(code='S3', abbreviated_name='S3', allow_multiple=True, elements='C4')
         form1 = RegistryForm.objects.create(id=61, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1,S2')
 
         p1 = create_valid_patient(id=9, registry=self.registry)
@@ -309,6 +311,9 @@ class ParentDashboardTest(RDRFTestCase):
 
         # Patient has no known data for the CDE
         self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde3), None)
+
+        # Patient does not have data for a multi section with multi cde
+        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec3, cde4), None)
 
         # Section does not allow multiples
         self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), "Patient Response ABC")

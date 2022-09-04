@@ -127,7 +127,7 @@ class ParentDashboard(object):
                                                      context_id=context.id)
         except KeyError:
             # Value not filled out yet
-            form_value = None
+            return None
 
         if section.allow_multiple and cde.allow_multiple:
             # Then the value will be like [[1,2],[2, 3,4]], and will require some flattening
