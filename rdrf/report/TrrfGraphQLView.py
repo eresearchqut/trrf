@@ -2,7 +2,7 @@ import logging
 
 from graphene_django.views import GraphQLView
 from graphql import GraphQLError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 

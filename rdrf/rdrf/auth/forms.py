@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.forms import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 

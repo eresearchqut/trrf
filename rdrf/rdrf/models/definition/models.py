@@ -24,7 +24,7 @@ from django.utils.formats import date_format, time_format
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 from rdrf.helpers.utils import check_calculation, get_display_value, validate_abbreviated_name

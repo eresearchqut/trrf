@@ -4,7 +4,7 @@ from django.http import Http404
 from django.template.context_processors import csrf
 from django.shortcuts import render
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.forms import ChoiceField
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group

@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic.base import View
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.core.exceptions import PermissionDenied
 from rdrf.helpers.utils import is_authorised, consent_check
 

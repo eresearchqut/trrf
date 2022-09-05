@@ -3,7 +3,7 @@ from django import forms
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import ConsentSection
 from rdrf.models.definition.models import ConsentQuestion
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 import logging
 

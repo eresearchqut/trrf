@@ -3,10 +3,10 @@ from collections import namedtuple
 from functools import reduce
 from operator import attrgetter
 
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.urls.exceptions import NoReverseMatch
-from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry import groups

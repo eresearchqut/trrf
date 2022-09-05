@@ -16,7 +16,7 @@ from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.utils.html import strip_tags
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from .cde_data_types import CDEDataTypes
 from .registry_features import RegistryFeatures

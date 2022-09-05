@@ -28,7 +28,7 @@ from rdrf.services.io.notifications.file_notifications import handle_file_notifi
 import registry.groups.models
 from registry.utils import get_working_groups, get_registries, stripspaces
 from registry.groups.models import CustomUser
-from django.utils.translation import ugettext_lazy as _, ugettext
+from django.utils.translation import gettext_lazy as _, gettext
 
 from simple_history.models import HistoricalRecords
 
@@ -119,7 +119,7 @@ class NextOfKinRelationship(models.Model):
         verbose_name = _('Next of Kin Relationship')
 
     def __str__(self):
-        return ugettext(self.relationship)
+        return gettext(self.relationship)
 
 
 class PatientManager(models.Manager):

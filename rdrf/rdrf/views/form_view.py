@@ -50,7 +50,7 @@ from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
 from registry.patients.models import PatientConsent
 from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from django.conf import settings
 from rdrf.services.rpc.actions import ActionExecutor

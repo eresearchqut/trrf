@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 from django.utils.formats import date_format
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views import View
 
 from rdrf.forms.progress.form_progress import FormProgress

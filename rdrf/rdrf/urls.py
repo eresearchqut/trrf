@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth import views as auth_views
 from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from django_js_reverse.views import urls_js
 
