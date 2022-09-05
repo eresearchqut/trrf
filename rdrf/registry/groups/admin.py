@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.translation import gettext as _
 
 from useraudit.admin import LogAdmin
@@ -127,8 +127,8 @@ class CustomLoginLogFilter(admin.SimpleListFilter):
 
     def choices(self, changelist):
         for lookup, title in self.lookup_choices:
-            value_text = force_text(self.value())
-            lookup_text = force_text(lookup)
+            value_text = force_str(self.value())
+            lookup_text = force_str(lookup)
             yield {
                 'selected': value_text == lookup_text if self.value() else 'regular' == lookup_text,
                 'query_string': changelist.get_query_string({self.parameter_name: lookup}, []),
