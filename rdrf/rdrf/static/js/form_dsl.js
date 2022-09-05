@@ -80,7 +80,13 @@ function render_changes(visibility_map) {
             if ($target_section.length) {
                 update_section($target_section, visibility);
             } else {
-                update_cde($target_cde, visibility);
+                const $override_target_cde = $("[input-name=" + prop + "]");
+                if ($override_target_cde.length) {
+                    update_cde($override_target_cde, visibility);
+                } else {
+                    update_cde($target_cde, visibility);
+                }
+
             }
         }
     }
