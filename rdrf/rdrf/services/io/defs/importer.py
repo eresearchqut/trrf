@@ -719,12 +719,6 @@ class Importer(object):
         else:
             logger.info("no reports to import")
 
-        if "reports_v2" in self.data:
-            self._create_reports_v2(self.data["reports_v2"])
-            logger.info("complete reports_v2 OK")
-        else:
-            logger.info("no reports_v2 to import")
-
         if "cde_policies" in self.data:
             self._create_cde_policies(r)
             logger.info("imported cde policies OK")
@@ -736,6 +730,12 @@ class Importer(object):
             logger.info("imported context form groups OK")
         else:
             logger.info("no context form groups to import")
+
+        if "reports_v2" in self.data:
+            self._create_reports_v2(self.data["reports_v2"])
+            logger.info("complete reports_v2 OK")
+        else:
+            logger.info("no reports_v2 to import")
 
         if "email_notifications" in self.data:
             self._create_email_notifications(r)
