@@ -109,7 +109,7 @@ class CodeEvaluator:
         target, action, *conditions = inst.children
         cde_validation = target.invalid_cdes()
         if cde_validation:
-            logger.error(f'Invalid CDEs specified: {" ".join(cde_validation)}')
+            logger.error(f'Invalid CDEs specified: {" ".join([str(cde) for cde in cde_validation])}')
             return []
 
         return self.hidden_cdes_for_conditions(target, action, conditions)
