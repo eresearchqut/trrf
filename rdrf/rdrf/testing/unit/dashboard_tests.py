@@ -201,13 +201,14 @@ class ParentDashboardTest(RDRFTestCase):
         ConsentValue.objects.create(patient=p1, consent_question=cq3, answer=True)
 
         ConsentValue.objects.create(patient=p2, consent_question=cq1, answer=True)
-        ConsentValue.objects.create(patient=p2, consent_question=cq4, answer=False)  # TRRF considers this as valid
+        ConsentValue.objects.create(patient=p2, consent_question=cq3, answer=False)
+        ConsentValue.objects.create(patient=p2, consent_question=cq4, answer=False)
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
         self.assertEqual(parent_dashboard._patient_consent_summary(), {'valid': True, 'completed': 3, 'total': 4})
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p2)
-        self.assertEqual(parent_dashboard._patient_consent_summary(), {'valid': False, 'completed': 2, 'total': 4})
+        self.assertEqual(parent_dashboard._patient_consent_summary(), {'valid': False, 'completed': 1, 'total': 4})
 
     def test_get_module_progress(self):
         cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F', sort_order=1)
