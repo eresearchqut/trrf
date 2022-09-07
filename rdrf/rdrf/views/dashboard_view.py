@@ -62,6 +62,7 @@ class ParentDashboard(object):
     def _patient_consent_summary(self):
         registry_consent_questions = ConsentQuestion.objects.filter(section__registry=self.registry)
         patient_consents = ConsentValue.objects.filter(patient=self.patient,
+                                                       answer=True,
                                                        consent_question__section__registry=self.registry)
 
         return {
