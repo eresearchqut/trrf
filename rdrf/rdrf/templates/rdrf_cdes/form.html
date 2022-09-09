@@ -259,11 +259,10 @@
             targets[prefix].forEach( function (el) {
                 var el_name = prefix + "-" +  (total_forms_inc - 1) + "-" + cdeNamePrefix + el;
                 add_change_handler(el_name);
-                $("[name='" + el_name+"']").change();
             });
-        } else {
-            render_changes(visibility_handler());
         }
+        // Apply conditional rendering across the whole form
+        render_changes(visibility_handler());
     }
 
     function delete_form(form_div, prefix) {
@@ -389,9 +388,9 @@
                                     </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
-                                            <div class="row has-error">
+                                            <div class="row rdrf-cde-field has-error">
                                         {% else %}
-                                            <div class="row">
+                                            <div class="row rdrf-cde-field">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
