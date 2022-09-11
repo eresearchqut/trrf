@@ -346,12 +346,16 @@ def get_clinical_data_fields(registry):
 
             return patient, contexts, cfg_clinical_data
 
-        fields[field_name] = graphene.Field(type(
-            f"DynamicCFG_{cfg_key}",
-            (graphene.ObjectType,),
-            get_cfg_forms(cfg_key, cfg)
-        ), description=cfg.name)
-        fields[f"resolve_{field_name}"] = partial(cfg_resolver, cfg_model=cfg)
+        forms = get_cfg_forms(cfg_key, cfg)
+
+        # Drop any CFGs without forms.
+        if forms:
+            fields[field_name] = graphene.Field(type(
+                f"DynamicCFG_{cfg_key}",
+                (graphene.ObjectType,),
+                forms
+            ), description=cfg.name)
+            fields[f"resolve_{field_name}"] = partial(cfg_resolver, cfg_model=cfg)
     return fields
 
 

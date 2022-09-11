@@ -340,74 +340,73 @@ class PatientFormMixin:
         return kwargs
 
     def all_forms_valid(self, forms):
-        with transaction.atomic():
-            # save patient
-            patient_form = forms['patient_form']
-            self.object = patient_form.save()
-            if self.object.created_by is None:
-                self.object.created_by = self.user
-                self.object.save()
-            # if this patient was created from a patient relative, sync with it
-            self.object.sync_patient_relative()
+        # save patient
+        patient_form = forms['patient_form']
+        self.object = patient_form.save()
+        if self.object.created_by is None:
+            self.object.created_by = self.user
+            self.object.save()
+        # if this patient was created from a patient relative, sync with it
+        self.object.sync_patient_relative()
 
-            # save registry specific fields
-            registry_specific_fields_handler = RegistrySpecificFieldsHandler(
-                self.registry_model, self.object)
+        # save registry specific fields
+        registry_specific_fields_handler = RegistrySpecificFieldsHandler(
+            self.registry_model, self.object)
 
-            registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
+        registry_specific_fields_handler.save_registry_specific_data_in_mongo(self.request)
 
-            # save addresses
-            address_formset = forms.get('address_form')
-            if address_formset:
-                address_formset.instance = self.object
-                address_formset.save()
+        # save addresses
+        address_formset = forms.get('address_form')
+        if address_formset:
+            address_formset.instance = self.object
+            address_formset.save()
 
-            # save doctors
-            if self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
-                doctor_formset = forms.get('doctors_form')
-                if doctor_formset:
-                    doctor_formset.instance = self.object
-                    doctor_formset.save()
+        # save doctors
+        if self.registry_model.has_feature(RegistryFeatures.PATIENT_FORM_DOCTORS):
+            doctor_formset = forms.get('doctors_form')
+            if doctor_formset:
+                doctor_formset.instance = self.object
+                doctor_formset.save()
 
-            # create user
-            if isinstance(self, AddPatientView) and \
-                    self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
-                user = CustomUser.objects.create(
-                    email=self.object.email,
-                    username=self.object.email,
-                    force_password_change=True,
-                )
-                user.set_unusable_password()
-                user.working_groups.set([WorkingGroup.objects.get_unallocated(self.registry_model)])
-                user.save()
+        # create user
+        if isinstance(self, AddPatientView) and \
+                self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+            user = CustomUser.objects.create(
+                email=self.object.email,
+                username=self.object.email,
+                force_password_change=True,
+            )
+            user.set_unusable_password()
+            user.working_groups.set([WorkingGroup.objects.get_unallocated(self.registry_model)])
+            user.save()
 
-                self.object.user = user
-                self.object.save(update_fields=["user"])
+            self.object.user = user
+            self.object.save(update_fields=["user"])
 
-                RegistrationProfile.objects.create_profile(user)
-                registration = import_string(settings.REGISTRATION_CLASS)(self.request)
-                registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
-                                               self.object.given_names, self.object.family_name)
-                registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+            RegistrationProfile.objects.create_profile(user)
+            registration = import_string(settings.REGISTRATION_CLASS)(self.request)
+            registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
+                                           self.object.given_names, self.object.family_name)
+            registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
 
-            # patient relatives
-            patient_relative_formset = forms.get('patient_relatives_form')
-            if patient_relative_formset:
-                patient_relative_formset.instance = self.object
-                patient_relative_models = patient_relative_formset.save()
-                for patient_relative_model in patient_relative_models:
-                    patient_relative_model.patient = self.object
-                    patient_relative_model.save()
-                    patient_relative_model.sync_relative_patient()
-                    tag = patient_relative_model.given_names + patient_relative_model.family_name
-                    # The patient relative form has a checkbox to "create a patient from the
-                    # relative"
-                    for form in patient_relative_formset:
-                        if form.tag == tag:  # must be a better way to do this ...
-                            if form.create_patient_flag:
-                                patient_relative_model.create_patient_from_myself(
-                                    self.registry_model,
-                                    self.object.working_groups.all())
+        # patient relatives
+        patient_relative_formset = forms.get('patient_relatives_form')
+        if patient_relative_formset:
+            patient_relative_formset.instance = self.object
+            patient_relative_models = patient_relative_formset.save()
+            for patient_relative_model in patient_relative_models:
+                patient_relative_model.patient = self.object
+                patient_relative_model.save()
+                patient_relative_model.sync_relative_patient()
+                tag = patient_relative_model.given_names + patient_relative_model.family_name
+                # The patient relative form has a checkbox to "create a patient from the
+                # relative"
+                for form in patient_relative_formset:
+                    if form.tag == tag:  # must be a better way to do this ...
+                        if form.create_patient_flag:
+                            patient_relative_model.create_patient_from_myself(
+                                self.registry_model,
+                                self.object.working_groups.all())
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -659,6 +658,7 @@ class PatientEditView(PatientFormMixin, View):
 
         return response
 
+    @transaction.atomic
     def post(self, request, registry_code, patient_id):
         xray_recorder.begin_subsegment("auth")
         user = request.user
