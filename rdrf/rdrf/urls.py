@@ -27,7 +27,7 @@ from rdrf.views.handler_views import handler404, handler500, handler_application
 from rdrf.views.health_check import health_check
 from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
 from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
-from rdrf.views.lookup_views import PatientLookup
+from rdrf.views.lookup_views import PatientLookup, FamilyLookup
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
@@ -217,7 +217,7 @@ patterns += [
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
     # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
-    # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
+    re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
 
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
