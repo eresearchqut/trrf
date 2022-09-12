@@ -1,38 +1,38 @@
 {% load i18n %}
 {% load translate %}
 {% csrf_token %}
-	<!-- Modal for deleting patient -->
-	<div class="modal fade" id="archive_modal" tabindex="-1" role="dialog" aria-labelledby="archive_button_modal_label">
-	  <div class="modal-dialog modal-lg" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-              <h4 class="modal-title" id="archive_button_modal_label">{% trans "Delete Patient" %}</h4>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button>
-	      </div>
-	      <div class="modal-body">
-          <div class="patient_not_linked">
-            <p>{% trans 'Are you sure you want to delete this patient?' %}</p>
-            <p id="archive_modal_patient_name"></p>
-          </div>
-          <span class="patient_is_linked hidden">
+<!-- Modal for deleting patient -->
+<div class="modal fade" id="archive_modal" tabindex="-1" role="dialog" aria-labelledby="archive_button_modal_label">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="archive_button_modal_label">{% trans "Delete Patient" %}</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button>
+      </div>
+      <div class="modal-body">
+        <div class="patient_not_linked">
+          <p>{% trans 'Are you sure you want to delete this patient?' %}</p>
+          <p id="archive_modal_patient_name"></p>
+        </div>
+        <span class="patient_is_linked hidden">
             {% trans 'This patient is linked to patient relatives and cannot be deleted - first make a relative of this patient the index of the family and try again.' %}
           </span>
-	      </div>
-	      <div class="modal-footer">
-            <div class="patient_not_linked">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'No' %}</button>
-              <button id="btnDeletePatient" type="button" data-bs-dismiss="modal" onclick="deletePatient(this);" class="btn btn-danger">{% trans "Yes! Do it" %}</button>
-            </div>
-            <div class="patient_is_linked hidden">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
-            </div>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-	<script>
-
-    $('#archive_modal').on('show.bs.modal', function(e) {
+      </div>
+      <div class="modal-footer">
+        <div class="patient_not_linked">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'No' %}</button>
+          <button id="btnDeletePatient" type="button" data-bs-dismiss="modal" onclick="deletePatient(this);"
+                  class="btn btn-danger">{% trans "Yes! Do it" %}</button>
+        </div>
+        <div class="patient_is_linked hidden">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $('#archive_modal').on('show.bs.modal', function (e) {
       const $trigger_link = $(e.relatedTarget);
       const archive_url = $trigger_link.attr('href');
       const not_linked = $trigger_link.data('not_linked');
@@ -49,31 +49,30 @@
       $btn_delete_patient.data('archive_url', archive_url);
       $btn_delete_patient.data('not_linked', not_linked);
 
-    });
+  });
 
-    function deletePatient(btnDelete) {
+  function deletePatient(btnDelete) {
       const url = $(btnDelete).data('archive_url');
       const not_linked = $(btnDelete).data('not_linked');
 
       if (url != "" && not_linked) {
-        $.ajaxSetup({
-            beforeSend: function (xhr) {
-                var csrfToken = '{{ csrf_token }}';
-                xhr.setRequestHeader('X-CSRFToken', csrfToken);
-            }
-        });
+          $.ajaxSetup({
+              beforeSend: function (xhr) {
+                  var csrfToken = '{{ csrf_token }}';
+                  xhr.setRequestHeader('X-CSRFToken', csrfToken);
+              }
+          });
 
-        $.ajax({
-            type: "DELETE",
-            url: url,
-            success: function (data) {
-                window.location.reload();
-            },
-            error: function () {
-                alert("{% trans "An error occurred deleting patient" %}");
-            }
-        });
+          $.ajax({
+              type: "DELETE",
+              url: url,
+              success: function (data) {
+                  window.location.reload();
+              },
+              error: function () {
+                  alert("{% trans "An error occurred deleting patient" %}");
+              }
+          });
       }
-    }
-
-	</script>
+  }
+</script>
