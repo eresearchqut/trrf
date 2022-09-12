@@ -4,7 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.patients.patient_columns import ColumnFullName, ColumnDateOfBirth, ColumnCodeField, ColumnWorkingGroups, \
-    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnDateLastUpdated
+    ColumnDiagnosisProgress, ColumnDiagnosisCurrency, ColumnPatientStage, ColumnContextMenu, ColumnDateLastUpdated, \
+    ColumnActionsMenu
 from report.schema import to_camel_case
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ class PatientListConfiguration:
         'stage': {'label': 'Stage', 'permission': 'patients.can_see_data_modules', 'class': ColumnPatientStage, 'feature': RegistryFeatures.STAGES},
         'modules': {'label': 'Modules', 'permission': 'patients.can_see_data_modules', 'class': ColumnContextMenu},
         'last_updated_overall_at': {'label': 'Date Last Updated', 'permission': 'patients.can_see_last_updated_at', 'class': ColumnDateLastUpdated},
+        'actions': {'label': 'Actions', 'permission': 'patients.delete_patient', 'class': ColumnActionsMenu},
     }
 
     AVAILABLE_FACETS = {
@@ -30,7 +32,7 @@ class PatientListConfiguration:
     }
 
     DEFAULT_CONFIGURATION = {'columns': ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
-                                         'diagnosis_currency', 'stage', 'modules'],
+                                         'diagnosis_currency', 'stage', 'modules', 'actions'],
                              'facets': {}}
 
     def __init__(self, registry):

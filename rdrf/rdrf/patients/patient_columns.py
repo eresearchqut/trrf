@@ -1,8 +1,14 @@
+import logging
+
+from django.template import loader, Context
 from django.urls import reverse
 from django.utils.formats import date_format
 
 from rdrf.forms.components import FormGroupButton
 from rdrf.helpers.registry_features import RegistryFeatures
+
+
+logger = logging.getLogger(__name__)
 
 
 class Column(object):
@@ -189,3 +195,22 @@ class ColumnDateLastUpdated(Column):
 
     def fmt(self, val):
         return date_format(val) if val is not None else ""
+
+
+class ColumnActionsMenu(Column):
+    TEMPLATE = 'rdrf_cdes/patient_listing_actions.html'
+
+    def _template_data(self, patient):
+        return {'patient': patient,
+                'archive_patient_url': patient.get_archive_url(self.registry) if self.user.can_archive else '',
+                'not_linked': not patient.is_linked}
+
+    def fmt(self, val):
+        template = loader.get_template(self.TEMPLATE)
+        data = self._template_data(val)
+        context = Context(data)
+        return template.render(context.flatten())
+
+    def cell(self, patient, supports_contexts=False,
+             form_progress=None, context_manager=None):
+        return patient

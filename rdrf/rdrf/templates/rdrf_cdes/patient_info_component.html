@@ -22,9 +22,6 @@
                     {% if pi.guid %}
                         &nbsp;|&nbsp;<strong>GUID:</strong>&nbsp;{{ pi.guid}}
                     {% endif %}
-                    {% if show_archive_button %}
-                    | <a class="link-danger" href="{{ archive_patient_url }}" data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank">Delete</a>
-                    {% endif %}
                 {% endwith %}
             </p>
         </div>

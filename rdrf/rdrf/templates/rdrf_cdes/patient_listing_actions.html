@@ -1,0 +1,6 @@
+<a href="{{ archive_patient_url }}"
+   class="btn btn-danger btn-sm"
+   data-not_linked="{% if not_linked %}true{% else %}false{% endif %}"
+   data-patient_name="{{ patient.display_name }}"
+   data-bs-toggle="modal" data-bs-target="#archive_modal" target="_blank"
+>Delete</a>
