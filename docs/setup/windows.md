@@ -3,7 +3,6 @@
 A guide to setting up your environment for developing on Windows.
 
 ## Requirements
-* Git for Windows: https://gitforwindows.org/
 * Docker Desktop for Windows: https://www.docker.com/products/docker-desktop
 * Windows Subsystem for Linux 2 (WSL)
 
@@ -13,15 +12,8 @@ A guide to setting up your environment for developing on Windows.
 
 ## Installation
 
-### Git for Windows
-1. Download the latest version of [Git for Windows](https://gitforwindows.org/)
-2. Run the installer with the following non-default configuration:
-    * Configuration the line ending conversions: Checkout as-is, commit Unix-style endings.
-    * Configuration extra options: Enable symbolic links
-3. Use git to clone the code repository.
-
 ### Docker Desktop for Windows
-Download latest version from [Docker](https://www.docker.com/products/docker-desktop)
+Download the latest version from [Docker](https://www.docker.com/products/docker-desktop)
 * Accept option to install required Windows components for WSL 2
 * Perform a system restart when prompted
 * Start Docker, you will be prompted to install an update package for WSL
@@ -31,9 +23,9 @@ Full instructions here: https://docs.microsoft.com/en-us/windows/wsl/install-win
 Docker Desktop would have installed WSL for you. Run `wsl` from command prompt to confirm
 
 1. Set WSL version to 2.
-```shell
-wsl --set-default-version 2
-```
+   ```shell
+   wsl --set-default-version 2
+   ```
 
 2. Select a Linux distribution e.g. Ubuntu 20.04 and Get it from the Microsoft Store.
 Running Launch from the Microsoft Store once it has downloaded will install it.
@@ -59,17 +51,21 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     pyenv global 3.8.9
     ```
    Confirm it's working: `python --version`
-8. Configure TRRF virtual python environment
+8. Configure Git
+   * Configure your Git client, as desired, on your WSL distribution
+   * Clone the trrf repo into your WSL to an unmounted directory. N.B Cloning to a mounted windows directory will cause significant performance issues!
+
+9. Configure TRRF virtual python environment
     ```shell
     pyenv virtualenv 3.8.9 trrf 
     pyenv shell trrf
     ```
-9. Install pre-requisite packages  
-    Note: these packages are specific to Ubuntu and may differ if you've installed a different distribution.
-    ```shell
-   sudo apt install postgresql-client libpq-dev unixodbc-dev
-    ```
-10. Install project dependencies
+10. Install pre-requisite packages  
+     Note: these packages are specific to Ubuntu and may differ if you've installed a different distribution.
+     ```shell
+    sudo apt install postgresql-client libpq-dev unixodbc-dev
+     ```
+11. Install project dependencies
     ```shell
     cd /mnt/c/path/to/trrf
     pip install -r requirements/requirements.txt
@@ -81,7 +77,7 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
 
 1. Change into your cloned trrf directory
     ```shell
-    cd /mnt/c/path/to/trrf
+    cd ~/repo/trrf
     ```
 2. Create empty local settings file
     ```shell
@@ -93,33 +89,20 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     ```
 
 ### Running aloe (end to end) tests
-Note: The *.feature files need to be non-executable to be run by the end2end-tests.sh script.  
-Windows will have set these files to be executable, and requires the [following workaround](https://forums.docker.com/t/all-files-appear-as-executable-in-file-paths-using-bind-mount/99921/3) needs to be applied
-to allow the file permissions to be updated:
-1. Modify (or create if doesn't already exist) /etc/wsl.conf
-   ```
-   [automount]
-   options = "metadata"
-   ```
-2. Exit out of wsl, then stop wsl in Powershell with `wsl --shutdown`
-3. Open wsl and update the permissions of the `*.feature` files:
-   ```
-   chmod 600 ~/path/to/trrf/rdrf/rdrf/testing/behaviour/features/*.feature
-   ```
-4. Optionally, connect with a VNC Viewer (e.g. RealVNC Vnc Viewer) to see the tests running:
+1. Optionally connect with a VNC Viewer (e.g. RealVNC Vnc Viewer) to see the tests running:
    * VNC Server address: `localhost:5901`
    * Password: `secret`
 
 ## IDE Setup (Pycharm)
 
 ### General development setup
-1. Open the `trrf` project
+1. Open the `trrf` project, selecting the cloned repo within the wsl directory structure
 2. Setup WSL as the Python interpreter: https://www.jetbrains.com/help/pycharm/using-wsl-as-a-remote-interpreter.html#configure-wsl
    * Python executable path - select the python executable in the virtual environment you created for trrf. e.g. `/home/totagian/.pyenv/versions/trrf/bin/python`.
 3. Enable Django support:
    1. File > Settings > Languages and Frameworks > Enable Django Support
-      * Django project root: `c:/path/to/trrf/rdrf`
-      * Settings: `rdrf/settings.py`
+      * Django project root: `\\wsl$\Ubuntu-20.04\path\to\trrf\rdrf`
+      * Settings: `rdrf\settings.py`
 
 ### Configure the debugger
 1. Configure remote python interpreter
@@ -129,8 +112,8 @@ to allow the file permissions to be updated:
       * Configuration files: `./docker-compose.yml`
       * Service: `runserver` (see next step if this is not available)
    2. If `runserver` is not available as a Service option: 
-      2. In Docker for Desktop: Settings > Experimental Features > Disable 'use docker compose v2 release candidate' > Apply & Restart
-      3. In PyCharm: File > Invalidate Caches (and restart), then try again.
+      1. In Docker for Desktop: Settings > Experimental Features > Disable 'use docker compose v2 release candidate' > Apply & Restart
+      2. In PyCharm: File > Invalidate Caches (and restart), then try again.
 2. Add run configuration for Django Server  
    1. Run/Debug Configurations > Add > Django Server
       * Host: 0.0.0.0
@@ -139,50 +122,31 @@ to allow the file permissions to be updated:
    2. Set a breakpoint in the code, and run Debug Django Server from the Run Configurations menu.
 
 ## Getting started with customer sites (e.g. mnd)
-1. Check to ensure symlinks are enabled in Git.
-```
-git config --global core.symlinks
-
-```
-2. Run Git Bash as an administrator, and then clone the customer site repository. The elevated permissions are required
-for the symlinks in the repository to be created.
-3. Initialise the Git submodules
-```
-cd path/to/mnd
-git submodule init
-git submodule update
-```
-4. Create a virtual environment using WLS and pyenv
-```
-pyenv virtualenv mnd
-pyenv shell mnd
-```
-5. Install the python lib dependencies. 
-```
-cd path/to/mnd/rdrf/requirements
-
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
-pip install -r test-requirements.txt
-
-cd path/to/mnd/requirements
-
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
-pip install -r test-requirements.txt
-```
-6. Configure the python interpreter in IntelliJ using wsl as the interpreter
+1. Initialise the Git submodules
+   ```
+   cd path/to/mnd
+   git submodule init
+   git submodule update
+   ```
+2. Create a virtual environment using WLS and pyenv
+   ```
+   pyenv virtualenv mnd
+   pyenv shell mnd
+   ```
+3. Install the python lib dependencies. 
+   ```
+   cd path/to/mnd/rdrf/requirements
+   
+   pip install -r requirements.txt
+   pip install -r dev-requirements.txt
+   pip install -r test-requirements.txt
+   
+   cd path/to/mnd/requirements
+   
+   pip install -r requirements.txt
+   pip install -r dev-requirements.txt
+   pip install -r test-requirements.txt
+   ```
+4. Configure the python interpreter in IntelliJ using wsl as the interpreter
    * Python Interpreter path needs to point to the python exe in the virtual environment you created for this site.
    e.g. `/home/totagian/.pyenv/versions/mnd/bin/python`
-7. Run docker compose: `docker-compose up`  
-Note: There is a [bug in Docker Compose that causes it to fail with a symlinked Dockerfile](https://github.com/docker/compose/issues/7397).  
-Here are some workarounds to try:
-   1. Disable the Docker Buildkit and build the node service
-   ```
-   DOCKER_BUILDKIT=0 docker-compose build --no-cache node
-   ```
-   2. If that didn't work, try this: 
-      1. Modify the path to the node service's dockerfile in `docker-compose.yml` to point to the non symlinked file e.g. `rdrf/docker/dev/Dockerfile-node`. 
-      2. Build the node service: `docker-compose build --no-cache node`
-      3. Revert your changes to `docker-compose.yml`
-      4. Run `docker-compose up`
