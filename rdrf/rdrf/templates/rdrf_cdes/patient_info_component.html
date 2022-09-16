@@ -12,7 +12,7 @@
 {% if patient_information %}
     <div class="row">
         <div class="col-sm-12 text-muted">
-            <p style="overflow-x: auto; white-space: nowrap">
+            <p style="overflow-x: auto; white-space: nowrap" class="mb-0">
                 {% with pi=patient_information %}
                     <strong>{% trans "DOB" %}:</strong>&nbsp;{{ pi.dob }}&nbsp;(<strong>{% trans "Age" %}:</strong>&nbsp;{{ pi.age }})
                     &nbsp;|&nbsp;{{ pi.gender }}

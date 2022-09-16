@@ -13,7 +13,7 @@ class PatientListTests(RDRFTestCase):
         config_columns = PatientListConfiguration(self.registry).config.get('columns')
         self.assertEqual(config_columns,
                          ['full_name', 'date_of_birth', 'code', 'working_groups', 'diagnosis_progress',
-                          'diagnosis_currency', 'stage', 'modules'])
+                          'diagnosis_currency', 'stage', 'modules', 'actions'])
 
     def testCustomConfiguration(self):
         self.registry.metadata_json = '{"patient_list": {"columns": ["full_name", "stage", "date_of_birth"]}}'

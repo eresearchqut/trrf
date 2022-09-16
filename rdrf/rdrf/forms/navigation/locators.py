@@ -19,7 +19,7 @@ class Locator(object):
         descriptor = self.get_description()
         link = self.get_link()
         location_link = "<a href='%s'>%s</a>" % (link, descriptor)
-        return """<i class="text-muted"><span class="fa {0}" aria-hidden="true"></span> {1}</i>""".format(
+        return """<span class="fa {0}" aria-hidden="true"></span> {1}""".format(
             self.ICON, location_link)
 
     def get_description(self):
