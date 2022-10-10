@@ -1,5 +1,5 @@
 from rdrf.models.definition.models import FormTitle
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 class FormTitleHelper:

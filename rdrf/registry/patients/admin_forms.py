@@ -27,7 +27,7 @@ from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileIn
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 logger = logging.getLogger(__name__)
 

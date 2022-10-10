@@ -3,6 +3,7 @@ import os
 import subprocess
 
 from aloe import world
+from selenium.webdriver.common.by import By
 
 TEST_WAIT = int(os.environ.get('TEST_WAIT') or '10')
 
@@ -165,11 +166,11 @@ def django_migrate(args=[]):
 
 def django_admin(args, fail_on_error=False):
     logger.info(args)
-    return_code, _, _ = subprocess_logging(["django-admin.py"] + args)
+    return_code, _, _ = subprocess_logging(["django-admin"] + args)
 
     if fail_on_error and return_code != 0:
         raise Exception("'%s' command failed with error code %d" %
-                        (' '.join(["django-admin.py"] + args), return_code))
+                        (' '.join(["django-admin"] + args), return_code))
 
 
 def show_stats(export_name):
@@ -209,7 +210,7 @@ def pause(seconds):
 
 
 def debug_links():
-    for link in world.browser.find_elements_by_xpath('//a'):
+    for link in world.browser.find_elements(by=By.XPATH, value='//a'):
         logger.debug('link {0} {1}'.format(link.text, link.get_attribute("href")))
 
 
@@ -233,20 +234,21 @@ def scroll_to_multisection_cde(section, cde, item=1):
     formset_string = "-%s-" % (int(item) - 1)
     print("formset_string = %s" % formset_string)
     xpath = "//div[@class='card-header' and contains(., '%s')]" % section
-    panel_heading = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
-    if is_section_collapsed(world.browser.find_element_by_xpath(xpath)):
+    panel_heading = world.browser.find_element(by=By.XPATH, value=xpath).find_element(by=By.XPATH, value="..")
+    if is_section_collapsed(world.browser.find_element(by=By.XPATH, value=xpath)):
         click(panel_heading)
-    default_panel = world.browser.find_element_by_xpath(xpath).find_element_by_xpath("..")
+    default_panel = world.browser.find_element(by=By.XPATH, value=xpath).find_element(by=By.XPATH, value="..")
     label_expression = ".//label[contains(., '%s')]" % cde
 
-    for label_element in default_panel.find_elements_by_xpath(label_expression):
+    for label_element in default_panel.find_elements(by=By.XPATH, value=label_expression):
         print("found a label element for cde %s" % cde)
-        input_div = label_element.find_element_by_xpath(".//following-sibling::div")
+        input_div = label_element.find_element(by=By.XPATH, value=".//following-sibling::div")
         # NB. We avoid matching against the clear checkbox for an uploaded file cde
         try:
-            input_element = input_div.find_element_by_xpath(
-                ".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" %
-                formset_string)
+            input_element = input_div.find_element(
+                by=By.XPATH,
+                value=".//input[contains(@id, '%s') and not(contains(@id, '-clear_id'))]" % formset_string
+            )
             scroll_to(input_element)
             print("found input element: id = %s" % input_element.get_attribute("id"))
             return input_element
@@ -264,17 +266,19 @@ def scroll_to_cde(section, cde, item=None):
     return the input element
     """
     input_element = None
-    section_div_heading = world.browser.find_element_by_xpath(
-        ".//div[@class='card-header'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section)
+    section_div_heading = world.browser.find_element(
+        by=By.XPATH,
+        value=".//div[@class='card-header'][contains(., '%s') and not(contains(.,'__prefix__'))]" % section
+    )
     if is_section_collapsed(section_div_heading):
         click(section_div_heading)
 
-    section_div = section_div_heading.find_element_by_xpath("..")
+    section_div = section_div_heading.find_element(by=By.XPATH, value="..")
 
     label_expression = ".//label[contains(., '%s')]" % cde
-    label_element = section_div.find_element_by_xpath(label_expression)
-    input_div = label_element.find_element_by_xpath(".//following-sibling::div")
-    input_elements = input_div.find_elements_by_xpath(".//input")
+    label_element = section_div.find_element(by=By.XPATH, value=label_expression)
+    input_div = label_element.find_element(by=By.XPATH, value=".//following-sibling::div")
+    input_elements = input_div.find_elements(by=By.XPATH, value=".//input")
 
     if len(input_elements) >= 0:
         if not item:
@@ -305,7 +309,7 @@ def scroll_to_cde(section, cde, item=None):
 
 
 def is_section_collapsed(section):
-    section_body = section.find_element_by_xpath(".//following-sibling::div[contains(@class, 'card-body')]")
+    section_body = section.find_element(by=By.XPATH, value=".//following-sibling::div[contains(@class, 'card-body')]")
     css_class = section_body.get_attribute('class')
     if css_class is None:
         return False

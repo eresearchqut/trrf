@@ -200,7 +200,7 @@ class PatientAddressMandatoryFeatureTest(EditPatientViewTest):
 
     def test_validation_error_on_add_with_no_patient_address(self):
         response = self.add_patient()
-        self.assertContains(response, 'Patient Address: Please submit 1 or more forms.')
+        self.assertContains(response, 'Patient Address: Please submit at least 1 form.')
         self.assertIsNone(self.get_patient(), 'Patient was added without address!')
 
     def test_success_on_add_with_patient_address(self):
@@ -217,4 +217,4 @@ class PatientAddressMandatoryFeatureTest(EditPatientViewTest):
         address = self.address(pk=address_pk)
         address['patient_address-0-DELETE'] = 'on'
         response = self.edit_patient(self.existing_patient.pk, address=address)
-        self.assertContains(response, 'Patient Address: Please submit 1 or more forms.')
+        self.assertContains(response, 'Patient Address: Please submit at least 1 form.')

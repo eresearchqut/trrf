@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path
 from django.contrib import admin
 from django.db.models import Q
 from django.http import HttpResponse
@@ -348,7 +348,7 @@ class PatientAdmin(admin.ModelAdmin):
         return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
 
     def get_urls(self):
-        search_url = url(
+        search_url = re_path(
             r"search/(.*)$",
             self.admin_site.admin_view(
                 self.search),

@@ -18,11 +18,11 @@
                 </a>
                 <ul class="dropdown-menu" role="menu" style="cursor: pointer" aria-labelledby="languageDropdown">
                     {% for language_code, language_name in LANGUAGES %}
-                        {% ifequal language_code CURRENT_LANGUAGE %}
+                        {% if language_code == CURRENT_LANGUAGE %}
                             <li><a class="dropdown-item" onclick="setLanguage('{{ language_code }}')" style="font-weight: bold">{{ language_name }} ({% trans 'Selected' %})</a></li>
                         {% else %}
                             <li><a class="dropdown-item" onclick="setLanguage('{{ language_code }}')">{{ language_name }}</a></li>
-                        {% endifequal %}
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </li>

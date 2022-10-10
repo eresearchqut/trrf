@@ -4,7 +4,7 @@ from collections import defaultdict, deque, namedtuple
 from django.contrib.contenttypes.models import ContentType
 from django.template import Context, loader
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress.form_progress import FormProgress

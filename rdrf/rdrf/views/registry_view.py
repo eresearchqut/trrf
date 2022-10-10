@@ -4,7 +4,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import Registry
 

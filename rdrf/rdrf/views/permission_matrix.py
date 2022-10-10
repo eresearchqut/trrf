@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from rdrf.models.definition.models import Registry
 from rdrf.security.mixins import SuperuserRequiredMixin

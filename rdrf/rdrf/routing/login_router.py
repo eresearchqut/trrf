@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.views.generic.base import View
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _, ungettext
+from django.utils.translation import gettext as _, ngettext
 
 from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
 
@@ -49,7 +49,7 @@ class RouterView(View):
         self._send_email_notification(user, days_left)
 
     def _display_message(self, request, days_left):
-        sentence1 = ungettext(
+        sentence1 = ngettext(
             'Your password will expire in %(days)d day.',
             'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
         link = f'<a href="{reverse("password_change")}" class="alert-link">{_("Change Password")}</a>'

@@ -1,8 +1,8 @@
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import ungettext
-from django.utils.translation import ugettext as _
+from django.utils.translation import ngettext
+from django.utils.translation import gettext as _
 
 
 class BaseHasCharacterValidator:
@@ -31,13 +31,13 @@ class BaseHasCharacterValidator:
     def validate(self, password, user=None):
         if len(self.pattern.findall(password)) < self.min_occurences:
             raise ValidationError(
-                ungettext(self.msg, self.msg_plural, self.min_occurences),
+                ngettext(self.msg, self.msg_plural, self.min_occurences),
                 code='password_does_not_have_enough_%ss' % self.name,
                 params={'min_occurences': self.min_occurences},
             )
 
     def get_help_text(self):
-        return ungettext(self.help_text, self.help_text_plural, self.min_occurences) % {
+        return ngettext(self.help_text, self.help_text_plural, self.min_occurences) % {
             'min_occurences': self.min_occurences}
 
 

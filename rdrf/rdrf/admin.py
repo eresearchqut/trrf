@@ -1,5 +1,5 @@
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.contrib import admin
 from django.forms import ChoiceField, ModelForm
 from django.urls import reverse

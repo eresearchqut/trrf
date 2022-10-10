@@ -5,7 +5,7 @@ teststack() {
 }
 
 teststack-exec-django() {
-  teststack exec serverundertest /docker-entrypoint.sh django-admin.py "$@"
+  teststack exec serverundertest /docker-entrypoint.sh django-admin "$@"
 }
 
 

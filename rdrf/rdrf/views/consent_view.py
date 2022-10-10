@@ -3,7 +3,7 @@ from django.views.generic.base import View
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from registry.patients.models import ConsentValue
 from registry.patients.models import Patient

@@ -68,7 +68,7 @@ def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id
     from registry.patients.models import Patient
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
-    from django.utils.translation import ugettext as _
+    from django.utils.translation import gettext as _
 
     patient_model = Patient.objects.get(pk=patient_id)
     try:
@@ -97,7 +97,7 @@ def rpc_update_selected_cdes_from_questionnaire(
     from rdrf.models.definition.models import QuestionnaireResponse
     from rdrf.workflows.questionnaires.questionnaires import Questionnaire
     from django.db import transaction
-    from django.utils.translation import ugettext as _
+    from django.utils.translation import gettext as _
 
     patient_model = Patient.objects.get(pk=patient_id)
     try:
@@ -133,7 +133,7 @@ def rpc_create_patient_from_questionnaire(request, questionnaire_response_id):
     from rdrf.db.dynamic_data import DynamicDataWrapper
     from django.db import transaction
     from django.urls import reverse
-    from django.utils.translation import ugettext as _
+    from django.utils.translation import gettext as _
 
     if not (request.user.is_superuser or request.user.is_staff):
         return {"status": "fail", "message": _("Permission error. Patient cannot be created!")}
@@ -179,7 +179,7 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
     from django.core.exceptions import PermissionDenied
     from rdrf.forms.components import FormsButton
-    from django.utils.translation import ugettext as _
+    from django.utils.translation import gettext as _
 
     user = request.user
     fail_response = {"status": "fail", "message": _("Data could not be retrieved")}

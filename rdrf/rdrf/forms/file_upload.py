@@ -50,7 +50,7 @@ class FileUpload:
     def __str__(self):
         """
         This is to satisfy Django's ClearableFileInputWidget which
-        uses django's force_text function
+        uses django's force_str function
         """
         return self.fs_dict['file_name']
 

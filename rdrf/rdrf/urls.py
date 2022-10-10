@@ -4,9 +4,7 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth import views as auth_views
 from django.views.i18n import JavaScriptCatalog
 from django.conf import settings
-from django.utils.translation import ugettext as _
-
-from django_js_reverse.views import urls_js
+from django.utils.translation import gettext as _
 
 from two_factor import views as twv
 
@@ -85,6 +83,8 @@ patterns += [
     re_path(r'^api/v1/', include(('rdrf.services.rest.urls.api_urls', 'api_urls'), namespace='v1')),
     re_path(r'^rpc', form_view.RPCHandler.as_view(), name='rpc'),
 
+    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
+    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
     path('admin/', admin.site.urls),
 
 
@@ -100,7 +100,7 @@ patterns += [
     re_path(r'^password_reset/?$', auth_views.PasswordResetView.as_view(),
             kwargs={'password_reset_form': RDRFPasswordResetForm}, name='password_reset'),
     re_path(r'^password_reset/done/?$', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    re_path(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]+-[0-9A-Za-z]+)/?$',
             auth_views.PasswordResetConfirmView.as_view(form_class=RDRFSetPasswordForm),
             name='password_reset_confirm'),
     re_path(r'^reset/done/?$', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
@@ -112,7 +112,7 @@ patterns += [
             kwargs={'template_name': 'registration/login_assistance_sent.html',
                     'extra_context': {'title': _('Login Assistance Email Sent')}},
             name='login_assistance_email_sent'),
-    re_path(r'^login_assistance_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    re_path(r'^login_assistance_confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]+-[0-9A-Za-z]+)/?$',
             login_assistance_confirm,
             name='login_assistance_confirm'),
     re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(),
@@ -212,7 +212,6 @@ patterns += [
             name='questionnaire_response'),
     re_path(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
             form_view.FileUploadView.as_view(), name='file_upload'),
-    re_path(r'^admin/lookups/', include(('ajax_select.urls', 'ajax_select_urls'), namespace=None)),
     re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
             form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
@@ -248,9 +247,6 @@ patterns += [
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
     re_path(r'^health-check/?$', health_check, name='health_check'),
-    re_path(r'^admin/cde/(?P<code>\w+)/(?P<new_name>[\s\S]+)/settings/?$', form_view.CdeWidgetSettingsView.as_view(), name='cde_widget_settings'),
-    re_path(r'^admin/cde/widgets/(?P<data_type>\w+)/?$', form_view.CdeAvailableWidgetsView.as_view(), name='cde_available_widgets'),
-    re_path(r'^jsreverse.json/?$', urls_js, name='js_reverse'),
     re_path(r'^session-refresh/?$', session_refresh, name='session_refresh'),
 
 ]

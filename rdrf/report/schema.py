@@ -8,7 +8,7 @@ import graphene
 from django.conf import settings
 from django.contrib.postgres.search import SearchVector
 from django.db.models import Count, Max, Q
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
 

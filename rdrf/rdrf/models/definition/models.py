@@ -24,7 +24,7 @@ from django.utils.formats import date_format, time_format
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 
 from rdrf.helpers.utils import check_calculation, get_display_value, validate_abbreviated_name
@@ -1363,13 +1363,12 @@ class ConsentRule(models.Model):
 
 
 class DemographicFields(models.Model):
-    FIELD_CHOICES = []
     READONLY = 1
     HIDDEN = 2
     STATUS_CHOICES = [(READONLY, "Read only"), (HIDDEN, "Hidden")]
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups = models.ManyToManyField(Group, related_name='demographic_fields')
-    field = models.CharField(max_length=50, choices=FIELD_CHOICES)
+    field = models.CharField(max_length=50)
     status = models.IntegerField(choices=STATUS_CHOICES, default=2)
     is_section = models.BooleanField(null=False, default=False)
 

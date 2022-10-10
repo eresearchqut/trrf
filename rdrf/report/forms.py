@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
     Select, ModelForm, BooleanField
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry, ContextFormGroup
 from registry.groups.models import WorkingGroup

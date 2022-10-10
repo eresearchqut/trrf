@@ -32,7 +32,7 @@ from registry.patients.admin_forms import PatientAddressForm
 from registry.patients.admin_forms import PatientDoctorForm
 from registry.patients.admin_forms import PatientForm
 from registry.patients.admin_forms import PatientRelativeForm
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from rdrf.forms.dynamic.registry_specific_fields import RegistrySpecificFieldsHandler
 from rdrf.helpers.utils import get_error_messages

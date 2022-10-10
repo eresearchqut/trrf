@@ -11,10 +11,10 @@ from django.dispatch import receiver
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
 from django.utils.http import urlsafe_base64_decode
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 
@@ -100,7 +100,7 @@ def login_assistance_confirm(request, uidb64=None, token=None):
     assert uidb64 is not None and token is not None  # checked by URLconf
     try:
         # urlsafe_base64_decode() decodes to bytestring on Python 3
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = user_model._default_manager.get(pk=uid)
     except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
         user = None

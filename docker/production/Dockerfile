@@ -1,5 +1,5 @@
 # Container to build our prod image
-FROM python:3.8 as builder
+FROM python:3.9 as builder
 
 ENV PYTHONUNBUFFERED 1
 
@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libyaml-dev \
   unixodbc-dev \
   zlib1g-dev \
+  unixodbc-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir -p /requirements
@@ -37,7 +38,7 @@ COPY requirements/* ./
 RUN pip install -r requirements.txt
 
 # Actual image we are building
-FROM python:3.8-slim
+FROM python:3.9-slim
 
 ENV PYTHONUNBUFFERED 1
 

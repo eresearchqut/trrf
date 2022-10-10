@@ -55,7 +55,7 @@ class UserSentryMiddleware(MiddlewareMixin):
 
         'logout',
         'javascript-catalog',
-        'js_reverse']
+    ]
 
     def process_request(self, request):
         match = resolve(request.path)

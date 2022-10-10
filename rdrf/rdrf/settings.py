@@ -109,6 +109,8 @@ DATABASES["reporting"] = {
 
 DATABASE_ROUTERS = ["rdrf.db.db.RegistryRouter"]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 TEMPLATES = [
     {
@@ -184,11 +186,8 @@ INSTALLED_APPS = [x for x in (
     'django.contrib.messages',
     'django_extensions',
     'django.contrib.admin',
-    'messages_ui',
-    'ajax_select',
     'explorer',
     'useraudit',
-    'templatetag_handlebars',
     'rest_framework',
     'rest_framework.authtoken',
     'anymail',
@@ -204,7 +203,6 @@ INSTALLED_APPS = [x for x in (
     'two_factor',
     'django_user_agents',
     'simple_history',
-    'django_js_reverse',
     'stronghold',
     'aws_xray_sdk.ext.django',
     'django_countries',
@@ -352,7 +350,7 @@ CSRF_COOKIE_HTTPONLY = env.get("csrf_cookie_httponly", True)
 CSRF_COOKIE_AGE = env.get('csrf_cookie_age', 31449600)
 CSRF_FAILURE_VIEW = env.get("csrf_failure_view", "rdrf.views.handler_views.handler_csrf")
 CSRF_HEADER_NAME = env.get("csrf_header_name", 'HTTP_X_CSRFTOKEN')
-CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['localhost'])
+CSRF_TRUSTED_ORIGINS = env.getlist("csrf_trusted_origins", ['http://localhost'])
 
 # Content Security Policy
 _CSP_STATIC_URL = get_static_url_domain(env.get("STATIC_URL", ""))
@@ -650,9 +648,6 @@ SEND_ACTIVATION_EMAIL = False
 RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
 RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
-# Including only the API urls for now, add more later if needed
-JS_REVERSE_INCLUDE_ONLY_NAMESPACES = ('v1', )
-
 EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
 
@@ -661,7 +656,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/account/login',
     r'/(?P<registry_code>\w+)/register',
     r'/activate/(?P<activation_key>\w+)/?$',
-    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/?$',
+    r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]+-[0-9A-Za-z]+)/?$',
     r'^i18n/',
     r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',
     r'/api/v1/registries/(?P<registry_code>\w+)/patients/$',  # Authentication implemented in class
@@ -684,7 +679,6 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
     'password_reset_complete',
     'favicon',
     'robots_txt',
-    'js_reverse',
     'javascript-catalog',
     'django_conf_urls:set_language',
 )

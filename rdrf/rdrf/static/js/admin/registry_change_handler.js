@@ -5,7 +5,7 @@ function registry_change_handler(first_stage_id, second_stage_id, registry_id, a
         $(first_stage_id).append($("<option>").attr('value','').text('------'));
         $(second_stage_id).append($("<option>").attr('value','').text('------'));
     }
-    var url = Urls['v1:patient-stages'](registry_id);
+    var url = '/api/v1/registries/' + registry_id + '/stages/';
     if (registry_id !== "" && url != "") {
         $.getJSON(url, function(data) {
             $.each(data, function(key, value) {
