@@ -611,7 +611,6 @@ def create_dynamic_registry_type(registry):
     return type(f'DynamicRegistryType_{registry.code}', (graphene.ObjectType,), dynamic_registry_fields)
 
 
-# TODO: memoize + possible cache clearing when registry definition changes?
 # TODO: Replace partial resolvers with single resolve function for each level
 # TODO: Replace Metaprogramming with a low-level library like graphql-core
 def create_dynamic_schema():

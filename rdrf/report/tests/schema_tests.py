@@ -921,8 +921,6 @@ class SchemaTest(TestCase):
         sec1.elements = 'CDE1,CDE2'
         sec1.save()
 
-        from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
-        clear_prefetched_form_data_cache()
         schema = create_dynamic_schema()
         schema_section_type = schema.get_type('DynamicSection_CFG1_FORM1_SEC1')
         fields = (list(schema_section_type.fields.keys()))

@@ -5,7 +5,7 @@ from enum import Enum
 from django.core.exceptions import ValidationError
 
 from .constants import INCLUDE_OPERATORS
-from .parse_utils import CDEHelper, SectionHelper, clear_prefetched_form_data_cache, is_iterable
+from .parse_utils import CDEHelper, SectionHelper, is_iterable
 from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
 
 
@@ -236,7 +236,6 @@ class DSLValidator:
     def __init__(self, dsl, form):
         self.dsl = dsl
         self.form = form
-        clear_prefetched_form_data_cache()
         self.cde_helper = CDEHelper(form)
         self.section_helper = SectionHelper(form)
 

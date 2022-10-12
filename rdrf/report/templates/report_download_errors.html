@@ -36,6 +36,11 @@
         {% endfor %}
     {%  elif 'query_bad_key_error' in errors %}
         <p>{% trans "This report references a clinical data field that no longer exists. To resolve this error, re-save the report (no changes required)." %}</p>
+        {% for error_key, error_val in errors.items %}
+            {% if error_key == 'query_bad_key_error' and error_val %}
+                <p>Invalid clinical data field(s): {{ error_val }}</p>
+            {% endif %}
+        {% endfor %}
     {% else %}
         <p>{% trans "Please contact your system administrator for investigation." %}</p>
     {% endif %}
