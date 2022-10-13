@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete, post_save, post_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.template.defaultfilters import date as _date
@@ -1025,6 +1025,14 @@ class RegistryForm(models.Model):
             return False
 
         return is_applicable
+
+
+@receiver([post_save, post_delete], sender=RegistryForm)
+@receiver([post_save, post_delete], sender=Section)
+@receiver([post_save, post_delete], sender=CommonDataElement)
+def registry_form_definition_changed(sender, instance, **kwargs):
+    from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
+    clear_prefetched_form_data_cache()
 
 
 class Wizard(models.Model):

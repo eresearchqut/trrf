@@ -125,14 +125,23 @@ class ReportBuilder:
         # the fields in a report design.
 
         # - create a dictionary to respectively group together cfg, form, sections by keys
+        invalid_cdes = []
         cfg_dicts = {}
         for cde_field in self.report_design.reportclinicaldatafield_set.all().order_by('id'):
             cfg = cde_field.context_form_group
             form, section, cde = models_from_mongo_key(self.report_design.registry, cde_field.cde_key)
+
+            # validate cde reference
+            if cde not in section.cde_models or section not in form.section_models:
+                invalid_cdes.append(cde.code)
+
             cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
             form_dict = cfg_dict['forms'].setdefault(form.name, {'sections': {}})
             section_dict = form_dict['sections'].setdefault(section.code, {'cdes': []})
             section_dict['cdes'].append(cde.code)
+
+        if invalid_cdes:
+            raise BadKeyError(invalid_cdes)
 
         # - build the clinical data query
         fields_clinical_data = []

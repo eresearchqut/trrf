@@ -27,7 +27,6 @@ from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
 from django.http import Http404
 from rdrf.forms.dsl.code_generator import CodeGenerator
-from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
 from rdrf.forms.file_upload import wrap_fs_data_for_form
 from rdrf.forms.file_upload import wrap_file_cdes
 from rdrf.db import filestorage
@@ -721,8 +720,6 @@ class FormView(View):
                 form_section[section_info.section_code] = form_instance
 
             xray_recorder.end_subsegment()
-
-            clear_prefetched_form_data_cache()
 
             xray_recorder.begin_subsegment("file_notifications")
             handle_file_notifications(registry, patient, dyn_patient.filestorage)
