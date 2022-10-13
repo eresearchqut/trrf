@@ -11,6 +11,7 @@ from django.dispatch import receiver
 
 from registration.signals import user_activated
 
+from rdrf.helpers.utils import consent_check
 from rdrf.models.definition.models import Registry, RegistryDashboard
 from registry.groups import GROUPS as RDRF_GROUPS
 
@@ -190,15 +191,24 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def default_page(self):
         from django.urls import reverse
 
-        if self.is_parent and self.dashboards:
-            return reverse('parent_dashboard_list')
+        if self.is_parent:
+            if self.dashboards:
+                return reverse('parent_dashboard_list')
+            elif self.registry_code:
+                return reverse("registry:parent_page", args=[self.registry_code])
+            else:
+                return reverse("landing")
 
-        if self.registry_code and (self.is_parent
-                                   or self.is_patient
-                                   or self.is_carrier
-                                   or (self.is_carer and self.patients_in_care.count() == 1)):
-            return reverse("registry:parent_page" if self.is_parent else "registry:patient_page",
-                           args=[self.registry_code])
+        if self.is_patient or self.is_carrier:
+            patient = self.user_object.first()
+            registry = self.registry.first()
+            if patient and registry:
+                if consent_check(registry, self, patient, "see_patient"):
+                    return reverse("registry:patient_page", args=[registry.code])
+                else:
+                    return reverse("consent_form_view", args=[registry.code, patient.id])
+            else:
+                return reverse("landing")
 
         return reverse('patientslisting')
 
