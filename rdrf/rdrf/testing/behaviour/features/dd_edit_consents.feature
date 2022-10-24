@@ -10,6 +10,8 @@ Feature: Edit consents for a patient
 
   Scenario: Curator navigates to patient consents and edits them
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
 

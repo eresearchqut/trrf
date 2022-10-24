@@ -9,6 +9,8 @@ Feature: User operates on multisection items.
 
   Scenario: Add multiple items to a multisection.
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click Module "Main/Imaging" for patient "SMITH John" on patientlisting
     Then location is "Main/Imaging"
 

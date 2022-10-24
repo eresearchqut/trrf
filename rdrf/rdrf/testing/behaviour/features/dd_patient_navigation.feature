@@ -10,18 +10,24 @@ Feature: Navigate through forms for a patient
 
   Scenario: Curator navigates to patient consents using the menu
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     And I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
     Then location is "Consents"
 
   Scenario: Curator navigates to patient diagnosis using the menu
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     And I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then location is "Diagnosis"
 
   Scenario: Curator navigates to patient demographics using the menu
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     And I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
     When I click "Demographics" in sidebar
@@ -30,6 +36,8 @@ Feature: Navigate through forms for a patient
 
   Scenario: Curator navigates through patient forms using forward and back buttons
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     And I navigate to the patient's page
 
     And I press the navigate forward button

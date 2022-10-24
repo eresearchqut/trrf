@@ -8,11 +8,15 @@ Feature: Follow Up forms.
     
   Scenario: Navigate to Follow Up Form
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click "SMITH John" on patientlisting
     And I press "Add" button in "Follow Up" group in sidebar 
 
   Scenario: Save Follow Up
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click "SMITH John" on  patientlisting
     And I press "Add" button in "Follow Up" group in sidebar 
     And I enter value "02-08-2016" for form "Follow Up" section " " cde "Date of assessment"
@@ -21,6 +25,8 @@ Feature: Follow Up forms.
 
   Scenario: Cancel Follow Up
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click "SMITH John" on  patientlisting
     And I press "Add" button in "Follow Up" group in sidebar 
     And I enter value "02-8-2016" for form "Follow Up" section " " cde "Date of assessment"
@@ -29,6 +35,8 @@ Feature: Follow Up forms.
     
   Scenario: Add Two Follow Ups
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click "SMITH John" on  patientlisting
     And I press "Add" button in "Follow Up" group in sidebar 
     And I enter value "01-08-2016" for form "Follow Up" section " " cde "Date of assessment"
