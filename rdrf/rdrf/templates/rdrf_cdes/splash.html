@@ -1,12 +1,6 @@
 {% extends "rdrf_cdes/base.html" %}
 {% block content %}
 {% autoescape off %}
-{% if state == 'admin' %}
-    {{ body }}
-{% elif state == "missing" %}
-    {{ body }}
-{% else %}
-    {% include splash_screen_template %}
-{% endif %}
+{{ splash_screen }}
 {% endautoescape %}
 {% endblock %}

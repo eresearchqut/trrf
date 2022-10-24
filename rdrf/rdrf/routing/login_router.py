@@ -27,7 +27,11 @@ class RouterView(View):
         user = request.user
 
         if user.is_authenticated:
-            redirect_url = user.default_page
+            registry = user.registry.first()
+            if registry and registry.splash_screen:
+                redirect_url = reverse("registry", args=(registry.code,))
+            else:
+                redirect_url = user.default_page
         else:
             redirect_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
 

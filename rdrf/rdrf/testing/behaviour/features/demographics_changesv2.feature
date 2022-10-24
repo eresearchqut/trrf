@@ -9,6 +9,8 @@ Feature: Date of migration field
 
   Scenario: Curator navigates to patient demographics, fills in date of migration
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     And I click "ABBOTT Abigail" on patientlisting
     When I click "Consents" in sidebar
     When I click "Demographics" in sidebar

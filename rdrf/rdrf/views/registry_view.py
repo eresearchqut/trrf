@@ -1,10 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View
 from django.template.context_processors import csrf
-from django.core.exceptions import ObjectDoesNotExist
 import logging
-
-from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import Registry
 
@@ -14,18 +11,10 @@ logger = logging.getLogger(__name__)
 class RegistryView(View):
 
     def get(self, request, registry_code):
-        try:
-            if registry_code != "admin":
-                registry_model = Registry.objects.get(code=registry_code)
-            else:
-                return render(request, 'rdrf_cdes/splash.html',
-                              {'body_expression': ' ', "state": "admin"})
-        except ObjectDoesNotExist:
-            return render(request, 'rdrf_cdes/splash.html',
-                          {'body': _('Oops, wrong registry code...'), "state": "missing"})
+        registry_model = get_object_or_404(Registry, code=registry_code)
 
         context = {
-            'splash_screen_template': "rdrf://model/Registry/%s/splash_screen" % registry_model.pk,
+            'splash_screen': registry_model.splash_screen,
             'registry_code': registry_code,
             'state': "ok",
         }
