@@ -1,0 +1,18 @@
+{% extends "rdrf_cdes/base_simple.html" %}
+
+{% block extrahead %}
+  <script>
+    $(document).ready(function() {
+       // Use this to scroll to the top of the iframe page when it loads
+       // This behaviour is not automatic when the page is redirected to within the iframe
+       $('#registration-info')[0].scrollIntoView({behavior: 'smooth'});
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+  <div id="registration-info">
+    {% include "registration/registration_complete_info.html" %}
+    <p><a href="{% url 'embedded_registration_register' registry_code %}">Start a new registration</a></p>
+  </div>
+{% endblock %}

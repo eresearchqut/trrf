@@ -50,7 +50,6 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var registry_code = "{{registry_code}}";
-            var is_mobile = {{ is_mobile|yesno:"true,false" }};
 
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -83,19 +82,6 @@
                 });
 
             $('[data-bs-toggle="tooltip"]').tooltip();
-
-            if (!is_mobile) {
-                $("#patient-form").accordion({
-                    heightStyle: "content",
-                    collapsible: true
-                });
-                if ($("#guardian-form").length > 0) {
-                    $("#guardian-form").accordion({
-                        heightStyle: "content",
-                        collapsible: true
-                    });
-                }
-            }
 
             // Wrap all required inputs in a div.required to apply styling
             // (except for radio inputs which will be styled manually)
@@ -132,8 +118,6 @@
 
         function onBeforeSubmit() {
             $("#id_email").val($("#id_username").val());
-            expandAccordion("#patient-form");
-            expandAccordion("#guardian-form");
         }
     </script>
 
@@ -142,16 +126,24 @@
 </head>
 
 <body>
-    {% include "rdrf_cdes/navbar.html" %}
-    <div class="container" style="padding-top: 50px;">
-        <br>
+    {% if not embedded_view %}
+        {% include "rdrf_cdes/navbar.html" %}
+    {% endif %}
+
+    <div
+        id="registration_base_container"
+        {% if not embedded_view %}
+         class="container"
+         style="padding-top: 75px"
+        {% endif %}
+    >
 
         {%  include "rdrf_cdes/form_list_errors.html" %}
 
         {% block content %}
         {% endblock %}
 
-   </div>
+    </div>
 
 </body>
 

@@ -4,27 +4,47 @@
 <script>
     $(document).ready(function() {
         initToggleShowPassword($("input[id^='id_password']"), $("#id_toggle-password"));
+
+        const passwordHint = document.getElementById("passwordHint");
+        const passwordHintToggle = document.getElementById("passwordHintToggle");
+        passwordHint.addEventListener('show.bs.collapse', function() {
+            $(passwordHintToggle).text('{% trans "Hide password requirements" %}');
+        });
+        passwordHint.addEventListener('hidden.bs.collapse', function() {
+            $(passwordHintToggle).text('{% trans "Show password requirements" %}');
+        });
     });
 </script>
 
-<div id="login_details">
-    <div class="row">
+<fieldset id="login_details" class="border bg-light p-3">
+    <legend>Login details</legend>
+    <div class="row px-2 mb-0">
         <div class="alert alert-info">
             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
         </div>
     </div>
     <div class="row g-3">
         <div class="col-12">
-            <h5 class="ps-0"><div class="badge bg-warning">{% trans "Please provide valid email address as your username" %}</div></h5>
+            <label for="id_username">{{form.username.label}}</label>
             {{form.username}}
+            <div class="form-text">{% trans "Please provide a valid email address as your username." %}</div>
         </div>
-        <div class="col-12">
-            <i id="validation-info" class="fa fa-info-circle"></i>
+        <div class="col-6">
+            <label for="id_password1">{{form.password1.label}}</label>
             <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
             {{form.password1}}
         </div>
-        <div class="col-12">
+        <div class="col-6">
+            <label for="id_password2">{{form.password2.label}}</label>
             {{form.password2}}
+        </div>
+        <div class="mt-0">
+            <a id="passwordHintToggle" class="small" role="button" data-bs-toggle="collapse" href="#passwordHint" aria-expanded="false" aria-controls="passwordHint">
+                {% trans "Show password requirements" %}
+            </a>
+            <div id="passwordHint" class="collapse">
+                {{form.password1.help_text}}
+            </div>
         </div>
 
         <div class="col-12">
@@ -36,10 +56,9 @@
 
         {% if preferred_languages %}
             <div class="col-12">
-                {{form.preferred_languages}}
+              <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
+              {{form.preferred_languages}}
             </div>
         {% endif %}
     </div>
-
-</div>
-{% include 'registration/pwd_validation_info.html' %}
+</fieldset>
