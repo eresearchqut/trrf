@@ -9,6 +9,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
+from django.utils.decorators import method_decorator
+from django.views.generic.base import TemplateView
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.csrf import csrf_exempt
 
 from registration.backends.default.views import RegistrationView, ActivationView
 
@@ -95,6 +99,29 @@ class RdrfRegistrationView(RegistrationView):
                 return self.registration_class.registration_allowed()
             return True
         return False
+
+
+@method_decorator(xframe_options_exempt, name='dispatch')
+class EmbeddedRegistrationCompletedView(TemplateView):
+    pass
+
+
+@method_decorator([xframe_options_exempt, csrf_exempt], name='dispatch')
+class EmbeddedRegistrationView(RdrfRegistrationView):
+
+    def load_registration_class(self, request, form):
+        if hasattr(settings, "REGISTRATION_CLASS_EMBEDDED"):
+            registration_class = import_string(settings.REGISTRATION_CLASS_EMBEDDED)
+            return registration_class(request, form)
+        return super().load_registration_class(request, form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['embedded_view'] = True
+        return context
+
+    def get_success_url(self, user=None):
+        return 'embedded_registration_complete', {}, {'registry_code': self.registry_code}
 
 
 class PatientActivationView(ActivationView):

@@ -24,7 +24,7 @@ import rdrf.views.consent_view as consent_view
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
 from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
-from rdrf.views.registration_rdrf import RdrfRegistrationView, PatientActivationView
+from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
 from rdrf.views.lookup_views import PatientLookup
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
@@ -219,6 +219,16 @@ patterns += [
     # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
 
     re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
+
+    # --- Embeddable registration views
+    re_path(r'^(?P<registry_code>\w+)/embed/register/complete/?$',
+            EmbeddedRegistrationCompletedView.as_view(
+                template_name='registration/registration_complete_simple.html'),
+            name='embedded_registration_complete'),
+    re_path(r'^(?P<registry_code>\w+)/embed/register/?$',
+            EmbeddedRegistrationView.as_view(),
+            name='embedded_registration_register'),
+    # ---
 
     re_path(r'^(?P<registry_code>\w+)/register/?$',
             RdrfRegistrationView.as_view(),

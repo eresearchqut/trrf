@@ -20,7 +20,7 @@ Feature: Patient Registration
 
     # Patient self registers
     When I try to register as a user called "Bob Smith" using the email address "bob.smith@example.com" and the password "End2EndTest!s"
-    Then I should see "Thank you for registration."
+    Then I should see "Thank you for registering"
     And I have received an email:
       | To | From | Subject |
       | ['bob.smith@example.com'] | no-reply@registryframework.net | Welcome to the registry |
