@@ -223,8 +223,8 @@ patterns += [
     # --- Embeddable registration views
     re_path(r'^(?P<registry_code>\w+)/embed/register/complete/?$',
             EmbeddedRegistrationCompletedView.as_view(
-                template_name='registration/embedded_registration_complete.html'),
-            name='embedded_registration_complete'),
+                template_name='registration/registration_complete_simple.html'),
+                name='embedded_registration_complete'),
     re_path(r'^(?P<registry_code>\w+)/embed/register/?$',
             EmbeddedRegistrationView.as_view(),
             name='embedded_registration_register'),

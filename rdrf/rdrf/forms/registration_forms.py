@@ -37,7 +37,7 @@ class RegistrationFormCaseInsensitiveCheck(RegistrationForm):
 
 class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
 
-    placeholders = {
+    labels = {
         'username': _("Username"),
         'password1': _("Password"),
         'password2': _("Repeat Password"),
@@ -46,7 +46,9 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
         'date_of_birth': _("Date of Birth"),
     }
 
-    no_placeholder_fields = ['gender']
+    placeholders = {
+        'date_of_birth': 'YYYY-MM-DD'
+    }
 
     language_choices = _preferred_languages()
 
@@ -61,9 +63,11 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
     def setup_fields(self):
         self.fields['username'].widget = EmailInput(attrs={})
         for field in self.fields:
-            if field not in self.no_placeholder_fields:
+            if field in self.labels:
                 self.fields[field].widget.attrs['class'] = 'form-control'
-                self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field, '')
+                self.fields[field].widget.attrs['label'] = self.labels.get(field, '')
+            if field in self.placeholders:
+                self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field)
             if field in self.password_fields:
                 self.fields[field].widget.render_value = True
 
@@ -77,14 +81,12 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
 
 class ParentWithPatientRegistrationForm(PatientRegistrationForm):
 
-    PatientRegistrationForm.placeholders.update({
+    PatientRegistrationForm.labels.update({
         'parent_guardian_first_name': _("Parent/Guardian Given Names"),
         'parent_guardian_last_name': _("Parent/Guardian Surname"),
         'parent_guardian_date_of_birth': _("Parent/Guardian Date of Birth"),
         'parent_guardian_gender': _("Parent/Guardian gender"),
     })
-
-    PatientRegistrationForm.no_placeholder_fields.extend(['parent_guardian_gender'])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
