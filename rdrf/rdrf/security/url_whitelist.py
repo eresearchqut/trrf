@@ -321,6 +321,8 @@ SECURITY_WHITELISTED_URLS = (
     "context_edit",
     "copyright",
     "django_conf_urls:set_language",
+    "embedded_registration_complete",
+    "embedded_registration_register",
     "family_linkage",
     "favicon",
     "file_upload",
