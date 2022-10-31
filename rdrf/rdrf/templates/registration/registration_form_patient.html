@@ -13,6 +13,8 @@
 
     <h3 class="pb-2">{% project_title %} - {% trans "Patient Registration" %}</h3>
 
+    <p><em>Required fields are marked with an asterisk (*).</em></p>
+
     <form id="registration-form" method="POST">
         {% csrf_token %}
         <input type="hidden" name="registry_code" value="{{registry_code}}">

@@ -36,14 +36,10 @@
             border-top: dotted 1px #bbb;
             padding-top: 20px;
         }
-        .required::before {
-            content: "\f069";
-            font-family: 'FontAwesome';
-            color: red;
-            float: right;
-            height: 0;
-            font-size: 0.6em;
-            margin-right: 5px;
+        fieldset.radio-group legend {
+            display: inline;
+            float: none;
+            width: auto;
         }
     </style>
 
@@ -83,9 +79,19 @@
 
             $('[data-bs-toggle="tooltip"]').tooltip();
 
-            // Wrap all required inputs in a div.required to apply styling
-            // (except for radio inputs which will be styled manually)
-            $(":input[required]:not(:radio)").wrap('<div class="required"></div>');
+            // Mark up all required inputs automatically
+            $(":input[required]").each(function(i, input) {
+                let $target;
+                if ($(input).is(':radio')) {
+                  $target = $(input).closest('fieldset.radio-group').find('> legend');
+                } else {
+                  $target = $('label[for="' + $(input).attr('id') + '"]');
+                }
+
+                if ($target && !($target.has('.required').length)) {
+                    $target.append('<span class=" required text-secondary ps-1">*</span>');
+                }
+            });
 
             {% block extra_js_init %}
             {% endblock %}
