@@ -93,6 +93,12 @@
                 }
             });
 
+            {% if embedded_view %}
+              // Scroll to top on page load
+              // This behaviour isn't automatic with iframes and is especially useful when there are server-side errors after form submission
+              $("#registration_base_container")[0].scrollIntoView({behavior: 'smooth'});
+            {% endif %}
+
             {% block extra_js_init %}
             {% endblock %}
 
