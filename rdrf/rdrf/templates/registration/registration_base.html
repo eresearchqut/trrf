@@ -117,17 +117,6 @@
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
 
-        function expandAccordion(formSelector) {
-            if ($(formSelector).length === 0) {
-                return;
-            }
-            var accordion = $(formSelector).accordion("instance");
-            if (typeof(accordion) === "undefined") {
-                return;
-            }
-            accordion.option("active", 0);
-        }
-
         function onBeforeSubmit() {
             $("#id_email").val($("#id_username").val());
         }

@@ -109,6 +109,15 @@ class EmbeddedRegistrationCompletedView(TemplateView):
 @method_decorator([xframe_options_exempt, csrf_exempt], name='dispatch')
 class EmbeddedRegistrationView(RdrfRegistrationView):
 
+    def dispatch(self, request, *args, **kwargs):
+        language = request.GET.get('language', None)
+
+        if language:
+            from django.utils import translation
+            translation.activate(language)
+
+        return super().dispatch(request, *args, **kwargs)
+
     def load_registration_class(self, request, form):
         if hasattr(settings, "REGISTRATION_CLASS_EMBEDDED"):
             registration_class = import_string(settings.REGISTRATION_CLASS_EMBEDDED)
