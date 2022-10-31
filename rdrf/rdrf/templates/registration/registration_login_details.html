@@ -29,12 +29,12 @@
             {{form.username}}
             <div class="form-text">{% trans "Please provide a valid email address as your username." %}</div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
             <label for="id_password1">{{form.password1.label}}</label>
             <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
             {{form.password1}}
         </div>
-        <div class="col-6">
+        <div class="col-12">
             <label for="id_password2">{{form.password2.label}}</label>
             {{form.password2}}
         </div>
