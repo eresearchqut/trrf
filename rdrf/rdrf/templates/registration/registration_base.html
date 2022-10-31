@@ -144,10 +144,16 @@
         {% endif %}
     >
 
+        {% block form_instructions %}
+        {% endblock %}
+
         {%  include "rdrf_cdes/form_list_errors.html" %}
 
-        {% block content %}
-        {% endblock %}
+        <form id="registration-form" method="POST">
+            {% block content %}
+                <p><em>Required fields are marked with an asterisk (*).</em></p>
+            {% endblock %}
+        </form>
 
     </div>
 
