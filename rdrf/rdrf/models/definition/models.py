@@ -666,6 +666,10 @@ class CommonDataElement(models.Model):
     widget_settings = models.TextField(
         blank=True,
         help_text="If the widget needs additional settings add them here")
+    calculation_query = models.TextField(
+        blank=True,
+        help_text="GraphQL Query to obtain patient information for use in CDE calculation"
+    )
     calculation = models.TextField(
         blank=True,
         help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")

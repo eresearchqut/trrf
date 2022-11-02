@@ -93,9 +93,3 @@ class PatientQueryDataTest(RDRFTestCase):
         patient = query_patient(self._request(), registry, p1.id, fields)
         self.assertEqual(patient.get('givenNames'), 'Kyle')
         self.assertEqual(patient.get('familyName'), 'BOTANY')
-
-        patient = query_patient(self._request(), registry, 'NONEXISTANT_ID', fields)
-        self.assertIsNone(patient)
-
-        patient = query_patient(self._request(), registry, None, fields)
-        self.assertIsNone(patient)

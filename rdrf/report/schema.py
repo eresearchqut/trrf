@@ -378,7 +378,9 @@ def get_patient_fields():
                        'patientguid', 'parentguardian_set', 'stage']
         }),
         "sex": graphene.String(),
-        "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex)
+        "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex),
+        "age": graphene.Int(),
+        "resolve_age": lambda patient, _info: patient.age,
     }
 
 

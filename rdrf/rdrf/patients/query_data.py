@@ -1,9 +1,9 @@
 import logging
 
 from gql_query_builder import GqlQuery
+from graphql import GraphQLError
 
 from report.schema import create_dynamic_schema
-
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,12 @@ def build_all_patients_query(registry, patient_query_fields, query_input=None, o
 
 def execute_query(request, query):
     schema = create_dynamic_schema()
-    return schema.execute(query, context_value=request)
+    result = schema.execute(query, context_value=request)
+
+    if hasattr(result, 'errors') and result.errors:
+        raise GraphQLError(result.errors)
+
+    return result
 
 
 def query_patient_facets(request, registry, facet_keys):
@@ -76,9 +81,13 @@ def query_patient_facets(request, registry, facet_keys):
     return get_all_patients(result, registry).get('facets')
 
 
-def query_patient(request, registry, id, fields):
+def query_patient(request, registry, id, fields, fragment=None):
     patient_query = GqlQuery().fields(fields).query('patients', input={'id': f'"{id}"'}).generate()
     all_patients_query = build_all_patients_query(registry, [patient_query])
+
+    if fragment:
+        all_patients_query = fragment + '\n' + all_patients_query
+
     result = execute_query(request, all_patients_query)
     patients = get_all_patients(result, registry).get('patients', [])
 

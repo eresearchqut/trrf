@@ -40,10 +40,8 @@ from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient
 
-
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.contexts_api import RDRFContextError
-
 
 from django.shortcuts import redirect
 from django.forms.models import inlineformset_factory
@@ -75,7 +73,6 @@ from rdrf.helpers.view_helper import FileErrorHandlingMixin
 from rdrf.security.mixins import StaffMemberRequiredMixin
 
 from aws_xray_sdk.core import xray_recorder
-
 
 logger = logging.getLogger(__name__)
 
@@ -436,7 +433,9 @@ class FormView(View):
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
+            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version,
+                                                                                    patient_model,
+                                                                                    registry_code)
         xray_recorder.end_subsegment()
 
         if not self.registry_form.applicable_to(patient_model):
@@ -2023,3 +2022,41 @@ class CdeAvailableWidgetsView(View):
     def get(self, request, data_type):
         widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
         return JsonResponse({'widgets': widgets})
+
+
+class CdeCalculatedQueryLookup(View):
+    def get(self, request, registry_code, patient_id, cde_code):
+        # Retrieve object models from request parameters
+        registry = get_object_or_404(Registry, code=registry_code)
+        cde_model = get_object_or_404(CommonDataElement, code=cde_code)
+
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
+        security_check_user_patient(request.user, patient_model)
+
+        # Construct and execute the CDE query
+        if not cde_model.calculation_query:
+            return JsonResponse({
+                'error': 'Calculation query expected but not defined.'
+            })
+
+        from rdrf.patients.query_data import query_patient
+        from graphql import GraphQLError
+
+        cde_query_fragment = f'''fragment patient_fragment on DynamicPatient_{registry_code} {{
+            {cde_model.calculation_query}
+        }}'''
+
+        try:
+            patient_json = query_patient(request, registry, patient_id, ['...patient_fragment'], cde_query_fragment)
+        except GraphQLError as ex:
+            logger.error(str(ex))
+            # Friendly error response
+            return JsonResponse({
+                'error': 'GraphQL query failed with errors.'
+            })
+
+        # Return the successful response
+        return JsonResponse({
+            'success': True,
+            'patient': patient_json,
+        })

@@ -311,6 +311,7 @@ SECURITY_WHITELISTED_URLS = (
     "admin:useraudit_loginlog_history",
     "admin:view_on_site",
     "cde_available_widgets",
+    "cde_query",
     "cde_widget_settings",
     "clinician_activate",
     "clinician_form_view",

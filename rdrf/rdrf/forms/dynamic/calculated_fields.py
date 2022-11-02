@@ -62,8 +62,6 @@ class CalculatedFieldParser(object):
         if calculation_result not in self.calculation:
             raise CalculatedFieldParseError(
                 "Calculation does not contain %s" % calculation_result)
-        if not self.subjects:
-            raise CalculatedFieldParseError("Calculation does not depend on any fields")
 
     def _parse_subjects(self, calculation):
         return [code for code in re.findall(self.pattern, calculation)
@@ -110,10 +108,12 @@ class CalculatedFieldParser(object):
             injected_model = "patient"
             injected_model_id = self.injected_model_id
             api_url = reverse(
-                'v1:patient-detail',
+                'cde_query',
                 kwargs={
                     "registry_code": self.registry.code,
-                    "pk": self.injected_model_id}
+                    "patient_id": self.injected_model_id,
+                    "cde_code": self.cde.code
+                }
             ) if self.injected_model_id else ""
         else:
             function_parameter_list = "context"
