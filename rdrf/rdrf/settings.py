@@ -736,6 +736,11 @@ SILKY_PYTHON_PROFILER = True
 SILKY_PYTHON_PROFILER_BINARY = True
 SILKY_PYTHON_PROFILER_RESULT_PATH = '/data/python_profiling'
 
+# Embeddable content
+# Add an entry for each domain that will host embedded content (the iframe)
+# For testing, add `EMBED_FRAME_ANCESTORS=file://*,*` to .env_local
+EMBED_FRAME_ANCESTORS = env.getlist('embed_frame_ancestors', [])
+
 # Graphene_django for GraphQL
 if DEBUG:
     CSP_EXCLUDE_URL_PREFIXES = '{0}/graphql'.format(SCRIPT_NAME)

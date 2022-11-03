@@ -38,7 +38,7 @@ class RegistrationFormCaseInsensitiveCheck(RegistrationForm):
 class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
 
     labels = {
-        'username': _("Username"),
+        'username': _("Email Address"),
         'password1': _("Password"),
         'password2': _("Repeat Password"),
         'first_name': _("Given Names"),
