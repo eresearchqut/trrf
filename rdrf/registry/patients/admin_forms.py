@@ -540,10 +540,10 @@ class PatientForm(forms.ModelForm):
         registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
         email = self.cleaned_data.get("email")
 
-        # When patient is created or email is updated
+        # When patient is created
         if "email" in self.changed_data:
             for registry in registries:
-                if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+                if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS) and self.instance.id is None:
                     if CustomUser.objects.filter(email=email).first():
                         raise ValidationError(
                             _("User with this email already exists")
