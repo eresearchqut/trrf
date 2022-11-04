@@ -14,6 +14,8 @@ Feature: User uploads files.
 
   Scenario: Upload a file.
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click Module "Main/Genetic Data" for patient "SMITH John" on patientlisting
     Then location is "Main/Genetic Data"
 
@@ -31,6 +33,8 @@ Feature: User uploads files.
 
   Scenario: Update (replace) an existing file cde.
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click Module "Main/Genetic Data" for patient "SMITH John" on patientlisting
     Then location is "Main/Genetic Data"
 
@@ -54,6 +58,8 @@ Feature: User uploads files.
 
 #  Scenario: Delete (check the 'clear' box and save) an existing file cde.
 #    When I am logged in as curator
+#    And I click "Menu"
+#    And I click "Patient List (FH Registry)"
 #    When I click Module "Main/Genetic Data" for patient "SMITH John" on patientlisting
 #    Then location is "Main/Genetic Data"
 #

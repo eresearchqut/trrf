@@ -158,11 +158,12 @@
 {% endblock %}
 
 {% block content %}
-    {% include 'rdrf_cdes/archive_modal.html' %}
-    <p>
-        <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
-    </p>
+  {% include 'rdrf_cdes/archive_modal.html' %}
+  <p>
+      <span id="loading_text"><i>{% trans 'Loading...' %}</i></span>
+  </p>
 
+  <form autocomplete="off">
     <div class="row">
       {% if facets %}
       <div class="col-lg-3 col-xxl-2 small">
@@ -210,4 +211,5 @@
         </table>
       </div>
     </div>
+  </form>
 {% endblock %}

@@ -152,8 +152,7 @@ class Registry(models.Model):
     name = models.CharField(max_length=80)
     code = models.CharField(max_length=10, unique=True)
     desc = models.TextField()
-    splash_screen = models.TextField()
-    patient_splash_screen = models.TextField(blank=True, null=True)
+    splash_screen = models.TextField(blank=True)
     version = models.CharField(max_length=20, blank=True)
     # a section which holds registry specific patient information
     patient_data_section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank=True)

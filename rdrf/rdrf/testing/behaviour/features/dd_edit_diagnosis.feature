@@ -9,12 +9,16 @@ Feature: Edit diagnosis for a patient
 
   Scenario: Curator navigates to diagnosis
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
 
   Scenario: Curator edits diagnosis
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
@@ -29,6 +33,8 @@ Feature: Edit diagnosis for a patient
 
   Scenario: Curator edits diagnosis, leave and returns
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"
@@ -52,6 +58,8 @@ Feature: Edit diagnosis for a patient
 
   Scenario: Curator edits multisection
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (Demyelinating Diseases Registry)"
     When I click "ABBOTT Abigail" on patientlisting
     When I click "Diagnosis" in sidebar
     Then the progress indicator should be "0%"

@@ -8,6 +8,8 @@ Feature: Sanity test history widget.
 
   Scenario: Enter successive values for a field
     When I am logged in as curator
+    And I click "Menu"
+    And I click "Patient List (FH Registry)"
     When I click Module "Main/Medications" for patient "SMITH John" on patientlisting
     Then location is "Main/Medications"
 
