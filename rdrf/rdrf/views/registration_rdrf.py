@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
+from django.views.generic.base import TemplateView
+from django.views.decorators.csrf import csrf_exempt
 
 from registration.backends.default.views import RegistrationView, ActivationView
 
@@ -16,6 +18,9 @@ from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_preferred_languages
 
 logger = logging.getLogger(__name__)
+
+registration_csp_script_src = ["https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/"]
+registration_csp_frame_src = ["https://www.google.com/recaptcha/"]
 
 
 class RdrfRegistrationView(RegistrationView):
@@ -28,8 +33,8 @@ class RdrfRegistrationView(RegistrationView):
             registration_class = import_string(settings.REGISTRATION_CLASS)
             return registration_class(request, form)
 
-    @csp_update(SCRIPT_SRC=["https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/"],
-                FRAME_SRC=["https://www.google.com/recaptcha/"])
+    @csp_update(SCRIPT_SRC=registration_csp_script_src,
+                FRAME_SRC=registration_csp_frame_src)
     def dispatch(self, request, *args, **kwargs):
         self.registry_code = kwargs['registry_code']
         form_class = self.get_form_class()
@@ -95,6 +100,43 @@ class RdrfRegistrationView(RegistrationView):
                 return self.registration_class.registration_allowed()
             return True
         return False
+
+
+class EmbeddedRegistrationCompletedView(TemplateView):
+
+    @csp_update(FRAME_ANCESTORS=settings.EMBED_FRAME_ANCESTORS)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+
+class EmbeddedRegistrationView(RdrfRegistrationView):
+
+    @csp_update(SCRIPT_SRC=registration_csp_script_src,
+                FRAME_SRC=registration_csp_frame_src,
+                FRAME_ANCESTORS=settings.EMBED_FRAME_ANCESTORS)
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        language = request.GET.get('language', None)
+
+        if language:
+            from django.utils import translation
+            translation.activate(language)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def load_registration_class(self, request, form):
+        if hasattr(settings, "REGISTRATION_CLASS_EMBEDDED"):
+            registration_class = import_string(settings.REGISTRATION_CLASS_EMBEDDED)
+            return registration_class(request, form)
+        return super().load_registration_class(request, form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['embedded_view'] = True
+        return context
+
+    def get_success_url(self, user=None):
+        return 'embedded_registration_complete', {}, {'registry_code': self.registry_code}
 
 
 class PatientActivationView(ActivationView):

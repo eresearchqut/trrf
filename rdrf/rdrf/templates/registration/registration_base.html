@@ -36,21 +36,16 @@
             border-top: dotted 1px #bbb;
             padding-top: 20px;
         }
-        .required::before {
-            content: "\f069";
-            font-family: 'FontAwesome';
-            color: red;
-            float: right;
-            height: 0;
-            font-size: 0.6em;
-            margin-right: 5px;
+        fieldset.radio-group legend {
+            display: inline;
+            float: none;
+            width: auto;
         }
     </style>
 
     <script type="text/javascript">
         $(document).ready(function() {
             var registry_code = "{{registry_code}}";
-            var is_mobile = {{ is_mobile|yesno:"true,false" }};
 
             var dateOptions = {
                 'dateFormat': 'yy-mm-dd',
@@ -84,22 +79,25 @@
 
             $('[data-bs-toggle="tooltip"]').tooltip();
 
-            if (!is_mobile) {
-                $("#patient-form").accordion({
-                    heightStyle: "content",
-                    collapsible: true
-                });
-                if ($("#guardian-form").length > 0) {
-                    $("#guardian-form").accordion({
-                        heightStyle: "content",
-                        collapsible: true
-                    });
+            // Mark up all required inputs automatically
+            $(":input[required]").each(function(i, input) {
+                let $target;
+                if ($(input).is(':radio')) {
+                  $target = $(input).closest('fieldset.radio-group').find('> legend');
+                } else {
+                  $target = $('label[for="' + $(input).attr('id') + '"]');
                 }
-            }
 
-            // Wrap all required inputs in a div.required to apply styling
-            // (except for radio inputs which will be styled manually)
-            $(":input[required]:not(:radio)").wrap('<div class="required"></div>');
+                if ($target && !($target.has('.required').length)) {
+                    $target.append('<span class="required text-secondary ps-1">*</span>');
+                }
+            });
+
+            {% if embedded_view %}
+              // Scroll to top on page load
+              // This behaviour isn't automatic with iframes and is especially useful when there are server-side errors after form submission
+              $("#registration_base_container")[0].scrollIntoView({behavior: 'smooth'});
+            {% endif %}
 
             {% block extra_js_init %}
             {% endblock %}
@@ -119,21 +117,8 @@
         // Custom code to be called if the validation fails (on the client-side)
         function onValidationError() {}
 
-        function expandAccordion(formSelector) {
-            if ($(formSelector).length === 0) {
-                return;
-            }
-            var accordion = $(formSelector).accordion("instance");
-            if (typeof(accordion) === "undefined") {
-                return;
-            }
-            accordion.option("active", 0);
-        }
-
         function onBeforeSubmit() {
             $("#id_email").val($("#id_username").val());
-            expandAccordion("#patient-form");
-            expandAccordion("#guardian-form");
         }
     </script>
 
@@ -142,16 +127,30 @@
 </head>
 
 <body>
-    {% include "rdrf_cdes/navbar.html" %}
-    <div class="container" style="padding-top: 50px;">
-        <br>
+    {% if not embedded_view %}
+        {% include "rdrf_cdes/navbar.html" %}
+    {% endif %}
+
+    <div
+        id="registration_base_container"
+        {% if not embedded_view %}
+         class="container"
+         style="padding-top: 75px"
+        {% endif %}
+    >
+
+        {% block form_instructions %}
+        {% endblock %}
 
         {%  include "rdrf_cdes/form_list_errors.html" %}
 
-        {% block content %}
-        {% endblock %}
+        <form id="registration-form" method="POST">
+            {% block content %}
+                <p><em>Required fields are marked with an asterisk (*).</em></p>
+            {% endblock %}
+        </form>
 
-   </div>
+    </div>
 
 </body>
 
