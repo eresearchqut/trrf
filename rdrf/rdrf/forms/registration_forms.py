@@ -38,7 +38,7 @@ class RegistrationFormCaseInsensitiveCheck(RegistrationForm):
 class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
 
     labels = {
-        'username': _("Username"),
+        'username': _("Email Address"),
         'password1': _("Password"),
         'password2': _("Repeat Password"),
         'first_name': _("Given Names"),
@@ -47,7 +47,7 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
     }
 
     placeholders = {
-        'date_of_birth': 'YYYY-MM-DD'
+        'date_of_birth': _('YYYY-MM-DD')
     }
 
     language_choices = _preferred_languages()

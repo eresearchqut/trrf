@@ -17,9 +17,10 @@
 </script>
 
 <fieldset id="login_details" class="border bg-light p-3">
-    <legend>Login Details</legend>
+    <legend>{% trans "Login Details" %}</legend>
     <div class="row px-2 mb-0">
-        <div class="alert alert-info">
+        <div class="alert alert-secondary">
+            <strong>{% trans "Note:" %}</strong>
             {% trans "With your e-mail address and the password you choose here, you can login at any time to view or edit your data. In order to protect your personal data against unauthorised access, please choose a password which is hard to guess and write it down in a safe place. Note that the password is case-sensitive." %}
         </div>
     </div>
@@ -27,14 +28,13 @@
         <div class="col-12">
             <label for="id_username">{{form.username.label}}</label>
             {{form.username}}
-            <div class="form-text">{% trans "Please provide a valid email address as your username." %}</div>
         </div>
-        <div class="col-6">
+        <div class="col-12">
             <label for="id_password1">{{form.password1.label}}</label>
             <div id="pwd-help" style="display:none;">{{form.password1.help_text|safe }}</div>
             {{form.password1}}
         </div>
-        <div class="col-6">
+        <div class="col-12">
             <label for="id_password2">{{form.password2.label}}</label>
             {{form.password2}}
         </div>
