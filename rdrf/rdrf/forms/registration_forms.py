@@ -65,7 +65,7 @@ class PatientRegistrationForm(RegistrationFormCaseInsensitiveCheck):
         for field in self.fields:
             if field in self.labels:
                 self.fields[field].widget.attrs['class'] = 'form-control'
-                self.fields[field].widget.attrs['label'] = self.labels.get(field, '')
+                self.fields[field].label = self.labels.get(field, '')
             if field in self.placeholders:
                 self.fields[field].widget.attrs['placeholder'] = self.placeholders.get(field)
             if field in self.password_fields:
