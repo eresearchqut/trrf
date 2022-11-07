@@ -111,18 +111,35 @@ class EmbeddedRegistrationCompletedView(TemplateView):
 
 class EmbeddedRegistrationView(RdrfRegistrationView):
 
+    def __init__(self):
+        self.activate_language = None
+        self.language_code = None
+
     @csp_update(SCRIPT_SRC=registration_csp_script_src,
                 FRAME_SRC=registration_csp_frame_src,
                 FRAME_ANCESTORS=settings.EMBED_FRAME_ANCESTORS)
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
-        language = request.GET.get('language', None)
 
-        if language:
+        # Activate a different language if the language URL parameter has been passed in
+        self.activate_language = 'language' in request.GET
+
+        if self.activate_language:
+            self.language_code = request.GET.get('language')
+
             from django.utils import translation
-            translation.activate(language)
+            translation.activate(self.language_code or settings.LANGUAGE_CODE)
 
         return super().dispatch(request, *args, **kwargs)
+
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+
+        # Persist language preference
+        if self.activate_language:
+            response.set_cookie(settings.LANGUAGE_COOKIE_NAME, self.language_code)
+
+        return response
 
     def load_registration_class(self, request, form):
         if hasattr(settings, "REGISTRATION_CLASS_EMBEDDED"):
