@@ -116,13 +116,17 @@ class EmbeddedRegistrationView(RdrfRegistrationView):
                 FRAME_ANCESTORS=settings.EMBED_FRAME_ANCESTORS)
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
-        language = request.GET.get('language', None)
+        response = super().dispatch(request, *args, **kwargs)
 
-        if language:
+        # Activate a different language if the language URL parameter has been passed in
+        if 'language' in request.GET:
+            language_code = request.GET.get('language')
+
             from django.utils import translation
-            translation.activate(language)
+            translation.activate(language_code or settings.LANGUAGE_CODE)
+            response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language_code)
 
-        return super().dispatch(request, *args, **kwargs)
+        return response
 
     def load_registration_class(self, request, form):
         if hasattr(settings, "REGISTRATION_CLASS_EMBEDDED"):
