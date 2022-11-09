@@ -66,13 +66,7 @@
                     if (registration_form.valid()) {
                         registration_form.submit();
                     } else {
-                        var msg = $("#form-invalid");
-                        msg.slideDown("slow", function() {
-                            setTimeout(function() {
-                                msg.slideUp("slow")
-                                }, 2000);
-                        });
-
+                        $(':input.error:first').focus();
                         onValidationError();
                     }
                 });
@@ -93,8 +87,8 @@
                 }
             });
 
-            {% if embedded_view %}
-              // Scroll to top on page load
+            {% if embedded_view and form.non_field_errors or embedded_view and form.errors %}
+              // Scroll to top on page load if there are errors
               // This behaviour isn't automatic with iframes and is especially useful when there are server-side errors after form submission
               $("#registration_base_container")[0].scrollIntoView({behavior: 'smooth'});
             {% endif %}
