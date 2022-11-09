@@ -28,7 +28,7 @@ class RouterView(View):
 
         if user.is_authenticated:
             registry = user.registry.first()
-            if registry and registry.splash_screen:
+            if registry and registry.splash_screen and user.is_patient_or_delegate:
                 redirect_url = reverse("registry", args=(registry.code,))
             else:
                 redirect_url = user.default_page
