@@ -8,6 +8,10 @@ from report.schema import create_dynamic_schema
 logger = logging.getLogger(__name__)
 
 
+class GraphQLResultError(GraphQLError):
+    pass
+
+
 def build_search_item(text, fields):
     return {'text': text, 'fields': fields}
 
@@ -67,7 +71,7 @@ def execute_query(request, query):
     result = schema.execute(query, context_value=request)
 
     if hasattr(result, 'errors') and result.errors:
-        raise GraphQLError(result.errors)
+        raise GraphQLResultError(result.errors)
 
     return result
 
