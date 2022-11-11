@@ -30,7 +30,7 @@ from .models import (
     PatientDoctor,
     PatientRelative,
     PatientConsent,
-    NextOfKinRelationship)
+    NextOfKinRelationship, LongitudinalFollowupEntry)
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from django.contrib.auth import get_user_model
 import logging
@@ -545,6 +545,29 @@ class ArchivedPatientAdmin(admin.ModelAdmin):
             s = s + ") "
         return s
 
+
+class LongitudinalFollowupEntryAdmin(admin.ModelAdmin):
+    model = LongitudinalFollowupEntry
+    list_display = (
+                 "created_at",
+                 "created_by",
+                 "longitudinal_followup",
+                 "patient",
+                 "send_at",
+                 "sent_at",
+                 "state",
+             )
+    list_filter = ("state", "longitudinal_followup")
+    readonly_fields = ("created_at", "created_by", "sent_at")
+    actions = ("send_email",)
+
+    @admin.action(description="Send Email")
+    def send_email(self, request, queryset):
+        for entry in queryset:
+            entry.sent_at.append(datetime.datetime.now())
+            entry.save()
+
+
 # Use Proxy Model for Archived Patient as we can only register one model class once and the name
 # comes from the model
 
@@ -571,5 +594,6 @@ admin.site.register(PatientStageRule, PatientStageRuleAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
 admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
+admin.site.register(LongitudinalFollowupEntry, LongitudinalFollowupEntryAdmin)
 
 admin.site.disable_action('delete_selected')

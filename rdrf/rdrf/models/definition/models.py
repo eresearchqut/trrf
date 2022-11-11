@@ -1180,6 +1180,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
         (EventType.FILE_UPLOADED, "File Uploaded"),
+        (EventType.LONGITUDINAL_FOLLOWUP, "Longitudinal Followup"),
     )
 
     NOTIFICATION_REQUIRES_REGISTRY_FEATURE = {
@@ -1998,3 +1999,18 @@ class RegistryDashboardCDEData(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class LongitudinalFollowup(models.Model):
+    name = models.CharField(unique=True, max_length=255, help_text="The name of the followup as displayed to the user")
+    description = models.TextField(blank=True)
+    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    frequency = models.DurationField(help_text="The frequency at which followups are sent (days HH:MM:SS)")
+    debounce = models.DurationField(
+        null=True,
+        help_text="The range in which subsequent followups are de-duplicated (days HH:MM:SS)"
+    )
+    condition = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name

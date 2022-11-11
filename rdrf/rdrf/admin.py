@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.contrib import admin
@@ -6,7 +8,7 @@ from django.urls import reverse
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, \
     RegistryDashboardFormLink, \
-    RegistryDashboardCDEData, RegistryDashboardDemographicData
+    RegistryDashboardCDEData, RegistryDashboardDemographicData, LongitudinalFollowup
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import Notification
@@ -486,6 +488,23 @@ class DashboardWidgetAdmin(admin.ModelAdmin):
     inlines = [DashboardLinksInline, DashboardDemographicsInline, DashboardCdeDataInline]
 
 
+class LongitudinalFollowupAdmin(admin.ModelAdmin):
+    model = LongitudinalFollowup
+
+    list_display = (
+        "name",
+        "context_form_group",
+        "frequency",
+        "debounce",
+    )
+
+    def get_changeform_initial_data(self, request):
+        return {
+            "frequency": datetime.timedelta(weeks=26),
+            "debounce": datetime.timedelta(weeks=1),
+        }
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -528,6 +547,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEFile, CDEFileAdmin),
     (RegistryDashboard, RegistryDashboardAdmin),
     (RegistryDashboardWidget, DashboardWidgetAdmin),
+    (LongitudinalFollowup, LongitudinalFollowupAdmin),
 ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
