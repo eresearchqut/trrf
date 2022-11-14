@@ -1813,22 +1813,36 @@ PatientDTO = namedtuple('PatientDTO', (
 ))
 
 
+class LongitudinalFollowupQueueState(models.TextChoices):
+    PENDING = "P"
+    SENT = "S"
+
+
 class LongitudinalFollowupEntry(models.Model):
+
     class Meta:
         ordering = ("send_at",)
         verbose_name_plural = "Longitudinal Followup Entries"
-
-    class QueueState(models.TextChoices):
-        PENDING = "P"
-        SENT = "S"
+        indexes = (
+            models.Index(
+                name="idx_sa_patient",
+                fields=["send_at", "patient"],
+                condition=Q(state=LongitudinalFollowupQueueState.PENDING)
+            ),
+            models.Index(
+                name="idx_patient_lf_sa",
+                fields=["patient", "longitudinal_followup", "send_at"],
+                condition=Q(state=LongitudinalFollowupQueueState.PENDING)
+            ),
+        )
 
     longitudinal_followup = models.ForeignKey(LongitudinalFollowup, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(CustomUser, max_length=1, null=True, on_delete=models.SET_NULL)
-    send_at = models.DateTimeField(db_index=True)
+    send_at = models.DateTimeField()
     sent_at = ArrayField(models.DateTimeField(), default=list)
-    state = models.CharField(choices=QueueState.choices, max_length=1, db_index=True)
-
-    def __str__(self):
-        pass
+    state = models.CharField(choices=LongitudinalFollowupQueueState.choices, max_length=1)
+    #
+    # def __str__(self):
+    #     pass
