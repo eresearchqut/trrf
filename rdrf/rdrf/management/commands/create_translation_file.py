@@ -92,6 +92,11 @@ class Command(BaseCommand):
             form_header_html = form_dict["header"]
             htmls.append(form_header_html)
 
+            # section headers
+            for section_dict in form_dict["sections"]:
+                section_header_html = section_dict["header"]
+                htmls.append(section_header_html)
+
         # consent sections
         for consent_section_dict in self.data["consent_sections"]:
             information_text_html = consent_section_dict["information_text"]
