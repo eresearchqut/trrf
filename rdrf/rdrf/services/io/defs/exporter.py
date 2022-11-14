@@ -352,6 +352,7 @@ class Exporter:
             cde_map["important"] = cde_model.important
             cde_map["pattern"] = cde_model.pattern
             cde_map["widget_name"] = cde_model.widget_name
+            cde_map["calculation_query"] = cde_model.calculation_query
             cde_map["calculation"] = cde_model.calculation
             cde_map["questionnaire_text"] = cde_model.questionnaire_text
 
