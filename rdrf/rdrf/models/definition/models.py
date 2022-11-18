@@ -74,6 +74,7 @@ class Section(models.Model):
                                         help_text='Abbreviated name for identification of this Section in other contexts (e.g. reports)',
                                         validators=[validate_abbreviated_name])
     questionnaire_display_name = models.CharField(max_length=200, blank=True)
+    header = models.TextField(blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(
         default=False, help_text="Allow extra items to be added")
@@ -2038,6 +2039,10 @@ class DataDefinitions:
     @cached_property
     def display_names(self):
         return {s.code: s.display_name for s in self.section_models}
+
+    @cached_property
+    def section_headers(self):
+        return {s.code: s.header for s in self.section_models}
 
     @cached_property
     def form_cde_codes(self):
