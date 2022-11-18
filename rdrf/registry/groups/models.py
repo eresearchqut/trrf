@@ -156,7 +156,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.registry.filter(pk=registry_model.pk).exists()
 
     def in_group(self, *names):
-        return self.groups.filter(reduce(operator.or_, ((Q(name__icontains=name) for name in names)))).exists()
+        return self.groups.filter(reduce(operator.or_, ((Q(name__iexact=name) for name in names)))).exists()
 
     @property
     def is_patient(self):
