@@ -1,8 +1,11 @@
+import operator
 import re
+from functools import reduce
 
 from django.conf import settings
 from django.core import validators
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
@@ -152,8 +155,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def in_registry(self, registry_model):
         return self.registry.filter(pk=registry_model.pk).exists()
 
-    def in_group(self, name):
-        return self.groups.filter(name__icontains=name).exists()
+    def in_group(self, *names):
+        return self.groups.filter(reduce(operator.or_, ((Q(name__iexact=name) for name in names)))).exists()
 
     @property
     def is_patient(self):
@@ -170,6 +173,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def is_carer(self):
         return self.in_group(RDRF_GROUPS.CARER)
+
+    @property
+    def is_patient_or_delegate(self):
+        return self.in_group(RDRF_GROUPS.PATIENT, RDRF_GROUPS.PARENT, RDRF_GROUPS.CARRIER, RDRF_GROUPS.CARER)
 
     @property
     def is_clinician(self):
