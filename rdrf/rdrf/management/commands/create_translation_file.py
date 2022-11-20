@@ -165,7 +165,7 @@ class Command(BaseCommand):
         for section_dict in form_dict["sections"]:
             comment = None
             display_name = section_dict["display_name"]
-            header = section_dict["header"]
+            header = section_dict.get("header")
             yield comment, display_name
             yield comment, header
             yield from self._yield_cde_strings(section_dict)
