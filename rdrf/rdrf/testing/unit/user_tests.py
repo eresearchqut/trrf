@@ -87,3 +87,59 @@ class CustomUserTest(TestCase):
                       ]
 
         _execute_test_cases(test_cases)
+
+
+class GroupTest(TestCase):
+    GROUP_ATTRS = [
+        "is_patient",
+        "is_parent",
+        "is_carrier",
+        "is_carer",
+        "is_patient_or_delegate",
+        "is_clinician",
+        "is_working_group_staff",
+        "is_curator",
+    ]
+
+    def _test_group_attrs(self, groups, attrs):
+        user = CustomUser.objects.create(username="_".join(groups))
+        for group in groups:
+            user.add_group(group)
+        user.save()
+
+        for attr in attrs:
+            self.assertEqual(getattr(user, attr), True, attr)
+
+        for attr in self.GROUP_ATTRS:
+            if attr not in attrs:
+                self.assertEqual(getattr(user, attr), False, attr)
+
+    def test_patient(self):
+        self._test_group_attrs([GROUPS.PATIENT], ["is_patient", "is_patient_or_delegate"])
+
+    def test_parent(self):
+        self._test_group_attrs([GROUPS.PARENT], ["is_parent", "is_patient_or_delegate"])
+
+    def test_carrier(self):
+        self._test_group_attrs([GROUPS.CARRIER], ["is_carrier", "is_patient_or_delegate"])
+
+    def test_carer(self):
+        self._test_group_attrs([GROUPS.CARER], ["is_carer", "is_patient_or_delegate"])
+
+    def test_clinician(self):
+        self._test_group_attrs([GROUPS.CLINICAL], ["is_clinician"])
+
+    def test_working_group_staff(self):
+        self._test_group_attrs([GROUPS.WORKING_GROUP_STAFF], ["is_working_group_staff"])
+
+    def test_curator(self):
+        self._test_group_attrs([GROUPS.WORKING_GROUP_CURATOR], ["is_curator"])
+
+    def test_custom_group(self):
+        self._test_group_attrs(["custom_group"], [])
+
+    def test_patient_with_custom_group(self):
+        self._test_group_attrs([GROUPS.PATIENT, "custom_group"], ["is_patient", "is_patient_or_delegate"])
+
+    def test_group_like(self):
+        self._test_group_attrs(["patients1"], [])

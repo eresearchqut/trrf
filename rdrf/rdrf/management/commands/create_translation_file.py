@@ -1,35 +1,23 @@
-import yaml
 import json
-import sys
-import os.path
 import re
-from tempfile import TemporaryDirectory
+import sys
+
+import yaml
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
-from django.core.management import call_command
 
 sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
 explanation = """
 Usage:
 
-This command extracts English strings used in RDRF pages, forms and CDEs and
-creates a "Django message 'po' file.
-The command has two modes:
+This command extracts English strings used in RDRF pages, forms and CDEs and creates a "Django message 'po' file.
 
-A) CDE labels and values translation: Extract strings from a yaml file and pump out to standard output:
+CDE labels and values translation: Extract strings from a yaml file and pump out to standard output:
 
 > django-admin create_translation_file --yaml_file=<yaml file path> [--system_po_file <app level po file> ]  > <output po file>
 
 NB. --system_po_file is the path the "standard po file" created by running django makemessages. By passing it
 in the script avoids creating duplicate message ids  which prevent compilation.
-
-B) Embedded HTML for headers, information text and splash screen in the yaml file - IMPORTANT: This
-does NOT pump to standard output but delegates to django's "makemessages" command which unfortunately
-writes out the po file only to the locale directory - so the existing po file there will be overwritten.
-Therefore when building a complete po file ready for translation ensure that any intermediate output is copied to
-separate files and them merged.
-
-> django-admin create_translation_file --yaml_file=<yaml file path> --extract_html_strings
 
 """
 
@@ -49,14 +37,11 @@ class Command(BaseCommand):
                             dest='system_po_file',
                             default=None,
                             help='System po file')
-        parser.add_argument('--extract_html_strings', action='store_true',
-                            help='extract message strings from embedded html in yaml file')
 
     def _usage(self):
         print(explanation)
 
     def handle(self, *args, **options):
-        extract_html_strings = options.get("extract_html_strings", False)
         file_name = options.get("yaml_file", None)
         system_po_file = options.get("system_po_file", None)
         self.msgids = set([])
@@ -71,39 +56,7 @@ class Command(BaseCommand):
             # when we cat this file to it
             self._load_system_messages(system_po_file)
 
-        if extract_html_strings:
-            self._extract_html_strings(file_name)
-        else:
-            self._emit_strings_from_yaml(file_name)
-
-    def _extract_html_strings(self, yaml_file):
-        # This dumps the embedded html templates from the yaml into a temporary folder and
-        # and then runs makemessages over it to extract the strings into the
-        # into the "system" po file
-        self._load_yaml_file(yaml_file)
-        htmls = []
-
-        # splash screen
-        splash_screen_html = self.data["splash_screen"]
-        htmls.append(splash_screen_html)
-
-        # form headers
-        for form_dict in self.data["forms"]:
-            form_header_html = form_dict["header"]
-            htmls.append(form_header_html)
-
-        # consent sections
-        for consent_section_dict in self.data["consent_sections"]:
-            information_text_html = consent_section_dict["information_text"]
-            htmls.append(information_text_html)
-
-        with TemporaryDirectory() as tmp_dir:
-            os.chdir(tmp_dir)
-            with open("tmp.rdrfdummyext", "w", encoding="utf-8") as f:
-                f.write("\n".join(htmls))
-            # This extracts strings from matching files in the current directory and merges them with
-            # the existing _system_ po files ( under locals .. LC_MESSAGES )
-            call_command('makemessages', verbosity=99, extensions=['rdrfdummyext'])
+        self._emit_strings_from_yaml(file_name)
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
@@ -187,11 +140,8 @@ class Command(BaseCommand):
         yield from self._yield_dashboard_strings()
 
     def _yield_registry_level_strings(self):
-        # registry name
         yield None, self.data["name"]
-        # todo process splashscreen
-        # splash_screen_html = self.data["splash_screen"]
-        yield None, None
+        yield None, self.data["splash_screen"]
 
     def _yield_form_strings(self):
         if self.data is None:
@@ -215,7 +165,9 @@ class Command(BaseCommand):
         for section_dict in form_dict["sections"]:
             comment = None
             display_name = section_dict["display_name"]
+            header = section_dict.get("header")
             yield comment, display_name
+            yield comment, header
             yield from self._yield_cde_strings(section_dict)
 
     def _yield_cde_strings(self, section_dict):

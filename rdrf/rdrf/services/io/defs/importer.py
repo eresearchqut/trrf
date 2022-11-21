@@ -411,6 +411,7 @@ class Importer(object):
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
+            s.header = section_map["header"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
             if "questionnaire_help" in section_map:
@@ -424,6 +425,7 @@ class Importer(object):
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
+            s.header = section_map["header"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
             if "questionnaire_help" in section_map:
@@ -434,18 +436,6 @@ class Importer(object):
             return s
         else:
             return None
-
-    def _create_section_model(self, section_map):
-        s, created = Section.objects.get_or_create(code=section_map["code"])
-        s.code = section_map["code"]
-        s.display_name = section_map["display_name"]
-        s.elements = ",".join(section_map["elements"])
-        s.allow_multiple = section_map["allow_multiple"]
-        s.extra = section_map["extra"]
-        if "questionnaire_help" in section_map:
-            s.questionnaire_help = section_map["questionnaire_help"]
-        s.save()
-        logger.info("imported section %s OK" % s.code)
 
     def _check_metadata_json(self, metadata_json):
         if not metadata_json:
@@ -828,6 +818,7 @@ class Importer(object):
                                                        defaults={'abbreviated_name': section_map['abbreviated_name']})
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
+            s.header = section_map["header"]
             if "questionnaire_display_name" in section_map:
                 s.questionnaire_display_name = section_map["questionnaire_display_name"]
             s.elements = ",".join(section_map["elements"])

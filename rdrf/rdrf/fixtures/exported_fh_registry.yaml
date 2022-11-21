@@ -276,6 +276,7 @@ forms:
     code: !!python/unicode 'fhDateSection'
     abbreviated_name: !!python/unicode 'fhDateSection'
     display_name: !!python/unicode ' '
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDETodaysDate', !!python/unicode 'CDEHospitalRecordNumber',
       !!python/unicode 'CDEAgeDiagnosisFH', !!python/unicode 'CDEIndexOrRelative']
     extra: null
@@ -283,30 +284,35 @@ forms:
     code: !!python/unicode 'fhBMI'
     abbreviated_name: !!python/unicode 'fhBMI'
     display_name: !!python/unicode 'BMI'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDEHeight', !!python/unicode 'CDEWeight', !!python/unicode 'CDEBMI']
     extra: null
   - allow_multiple: false
     code: !!python/unicode 'SEC0002'
     abbreviated_name: !!python/unicode 'SEC0002'
     display_name: !!python/unicode 'Family History'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00003', !!python/unicode 'CDE00004']
     extra: null
   - allow_multiple: false
     code: !!python/unicode 'SEC0004'
     abbreviated_name: !!python/unicode 'SEC0004'
     display_name: !!python/unicode 'Clinical History'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00011']
     extra: null
   - allow_multiple: false
     code: !!python/unicode 'SEC0001'
     abbreviated_name: !!python/unicode 'SEC0001'
     display_name: !!python/unicode 'Physical Examination'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00001', !!python/unicode 'CDE00002']
     extra: null
   - allow_multiple: false
     code: !!python/unicode 'SEC0005'
     abbreviated_name: !!python/unicode 'SEC0005'
     display_name: !!python/unicode 'Plasma Lipids - Highest pre-treatment'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00012', !!python/unicode 'CDE00013', !!python/unicode 'CDE00014',
       !!python/unicode 'CDE00015', !!python/unicode 'CDE00016', !!python/unicode 'CDE00017',
       !!python/unicode 'CDEfhDrugs', !!python/unicode 'CDEfhDrugsOtherDrug']
@@ -315,6 +321,7 @@ forms:
     code: !!python/unicode 'SEC0006'
     abbreviated_name: !!python/unicode 'SEC0006'
     display_name: !!python/unicode 'Plasma Lipids - On treatment'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00018', !!python/unicode 'CDE00019', !!python/unicode 'CDE00020',
       !!python/unicode 'CDE00021', !!python/unicode 'CDE00022']
     extra: null
@@ -322,6 +329,7 @@ forms:
     code: !!python/unicode 'SEC0003'
     abbreviated_name: !!python/unicode 'SEC0003'
     display_name: !!python/unicode 'Other CVD Risk Factors'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00005', !!python/unicode 'CDE00006', !!python/unicode 'CDE00008',
       !!python/unicode 'CDE00009', !!python/unicode 'CDE00007', !!python/unicode 'CDE00010',
       !!python/unicode 'CDEfhHistoryDrugIntolerance', !!python/unicode 'CDEfhIntolerantDrugs',
@@ -332,12 +340,14 @@ forms:
     code: !!python/unicode 'SEC0008'
     abbreviated_name: !!python/unicode 'SEC0008'
     display_name: !!python/unicode 'DNA Analysis'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00025']
     extra: null
   - allow_multiple: false
     code: !!python/unicode 'SEC0007'
     abbreviated_name: !!python/unicode 'SEC0007'
     display_name: !!python/unicode 'Summary'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00024']
     extra: null
 - is_questionnaire: false
@@ -348,6 +358,7 @@ forms:
     code: !!python/unicode 'SEC0009'
     abbreviated_name: !!python/unicode 'SEC0009'
     display_name: !!python/unicode 'Cascade Screening'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'CDE00026', !!python/unicode 'CDE00027', !!python/unicode 'CDE00028',
       !!python/unicode 'CDE00029', !!python/unicode 'CDE00030']
     extra: null
@@ -359,12 +370,14 @@ forms:
     code: !!python/unicode 'FHMutationOverview'
     abbreviated_name: !!python/unicode 'FHMutationOverview'
     display_name: !!python/unicode 'Mutation Overview'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'FHGeneticTestDate', !!python/unicode 'CDEMutationType']
     extra: null
   - allow_multiple: true
     code: !!python/unicode 'FHMutationDetails'
     abbreviated_name: !!python/unicode 'FHMutationDetails'
     display_name: !!python/unicode 'Mutations'
+    header: !!python/unicode ''
     elements: [!!python/unicode 'FHMutation', !!python/unicode 'FHMutationDescription',
       !!python/unicode 'CDEPathogenicity']
     extra: 1

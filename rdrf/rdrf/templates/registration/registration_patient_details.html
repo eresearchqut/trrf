@@ -1,24 +1,32 @@
 {% load i18n %}
 
-<h2>{% trans "Patient Details" %}</h2>
-<div id="patient_form" class="row g-3">
-    <div class="col-12">
+<fieldset class="border bg-light p-3">
+  <legend>{% trans "Patient Details" %}</legend>
+  <div id="patient_form" class="row g-3">
+      <div class="col-12">
+        <label for="id_first_name">{{form.first_name.label}}</label>
         {{form.first_name}}
-    </div>
-    <div class="col-12">
+      </div>
+      <div class="col-12">
+        <label for="id_surname">{{form.surname.label}}</label>
         {{form.surname}}
-    </div>
-    <div class="col-12">
+      </div>
+      <div class="col-12">
+        <label for="id_date_of_birth">{{form.date_of_birth.label}}</label>
         {{form.date_of_birth}}
-        <div class="text-muted">YYYY-MM-DD</div>
-    </div>
-    <div class="col-12">
-        <fieldset class="required" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-placement="left" title="{% trans 'Indeterminate also refers to Intersex/Unspecified' %}">
-            {% for choice in form.gender %}
-                <label>{{ choice.choice_label }}</label>
-                {{ choice.tag }}
-                <br/>
-            {% endfor %}
-        </fieldset>
-    </div>
-</div>
+      </div>
+      <div class="col-12">
+           <fieldset class="radio-group">
+               <legend class="h6">{{form.gender.label}}</legend>
+               {% for choice in form.gender %}
+                  <div class="form-check form-check-inline p-0">
+                      <label>
+                          {{ choice.tag }} {{ choice.choice_label }}
+                      </label>
+                  </div>
+              {% endfor %}
+               <div class="form-text">{% trans 'Indeterminate also refers to Intersex/Unspecified' %}</div>
+           </fieldset>
+      </div>
+  </div>
+</fieldset>

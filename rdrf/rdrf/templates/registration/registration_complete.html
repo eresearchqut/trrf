@@ -6,12 +6,7 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-8 offset-md-2">
-        <div class="alert alert-success" role="alert">
-          <h3>{% trans "Thank you for registration." %}</h3>
-          <p>
-            {% trans "We have sent you an email with the confirmation of your registration. Please check your email for activation instructions. If you can't see the message in your inbox, please check your spam inbox too." %}
-          </p>
-        </div>
+        {% include "registration/registration_complete_info.html" %}
       </div>
     </div>
   </div>
