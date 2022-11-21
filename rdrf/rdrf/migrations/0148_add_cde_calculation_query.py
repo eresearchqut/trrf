@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0146_remove_patient_splash_screen'),
+        ('rdrf', '0147_section_header'),
     ]
 
     operations = [
