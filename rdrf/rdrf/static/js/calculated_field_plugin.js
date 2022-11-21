@@ -11,20 +11,24 @@
             // injected_model will always be Patient for now
             injected_model: "",  // e.g. Patient  ( model class name)
             injected_model_id: null,  // the id of the injected model instance to retrieve
-            api_url: ""  //the url to request model data on eg /api/v1/patient/1
+            api_url: ""  //the url to request model data on eg cde_query
 
         }, options);
 
 
 
-        // locate the codes anywhere on the page ( we assume only one occurance of given cde for now
+        // locate the codes anywhere on the page ( we assume only one occurrence of given cde for now
         function locate_code(code) {
             var id = $('[id*=' + code + ']').attr("id");
             return "#" + id;
         }
 
-        var subject_codes_string = _.map(settings.subjects.split(","), function(code)
-            { return locate_code(code);}).join();
+        var subject_codes_string;
+        if (settings.subjects) {
+            subject_codes_string = _.map(settings.subjects.split(","), function (code) {
+                return locate_code(code);
+            }).join();
+        }
 
         function get_object(model, model_id) {
             var d = $.Deferred();
@@ -35,7 +39,15 @@
 
             $.get(settings.api_url)
                 .done(function(object) {
-                    d.resolve(object);
+                    if (object.success && object.patient) {
+                        d.resolve(object.patient);
+                    } else {
+                        if (object.error) {
+                            d.reject(object.error);
+                        }
+                        d.reject('Unexpected response from api');
+                    }
+
                 })
                 .fail(d.reject);
 
@@ -44,13 +56,16 @@
 
         var update_function = function() {
             var context = {};
-            var subject_codes = settings.subjects.split(",");
 
-            for (var i = 0; i < subject_codes.length; i++) {
-                // Note how we use the prefix to map from the page to the context variable names
-                // and reverse map to update the output
-                var subject_code_id_on_page = locate_code(subject_codes[i]);
-                context[subject_codes[i]] = $(subject_code_id_on_page).val();
+            if (settings.subjects) {
+                var subject_codes = settings.subjects.split(",");
+
+                for (var i = 0; i < subject_codes.length; i++) {
+                    // Note how we use the prefix to map from the page to the context variable names
+                    // and reverse map to update the output
+                    var subject_code_id_on_page = locate_code(subject_codes[i]);
+                    context[subject_codes[i]] = $(subject_code_id_on_page).val();
+                }
             }
 
             var model_promise = get_object(settings.injected_model.toLowerCase(),
@@ -67,6 +82,9 @@
                         }
                         $("#id_" + settings.prefix + settings.observer).val(context.result);
                         $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
+             })
+             .fail(function(e) {
+                 console.error('CDE calculation error', e);
              });
         };
 

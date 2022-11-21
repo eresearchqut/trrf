@@ -1,81 +1,72 @@
-from collections import OrderedDict
 import json
 import logging
 import os
+from collections import OrderedDict
 from urllib.parse import urlencode
 
+from aws_xray_sdk.core import xray_recorder
 from csp.decorators import csp_update
-from django.shortcuts import render, get_object_or_404
-from django.template.loader import render_to_string
-from django.views.generic.base import View, TemplateView
-from django.template.context_processors import csrf
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.forms.formsets import formset_factory
+from django.forms.models import inlineformset_factory
+from django.http import Http404
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.forms.formsets import formset_factory
+from django.shortcuts import redirect
+from django.shortcuts import render, get_object_or_404
+from django.template.context_processors import csrf
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
+from django.views.generic.base import View, TemplateView
+from graphql import GraphQLError
 
-from rdrf.forms.dynamic.form_position import FormPositionForm
-from rdrf.models.definition.models import (
-    CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry, QuestionnaireResponse)
-from registry.patients.models import Patient, ParentGuardian, PatientSignature
-from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
+from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.db import filestorage
+from rdrf.db.contexts_api import RDRFContextError
+from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
-from django.http import Http404
-from rdrf.forms.dsl.code_generator import CodeGenerator
-from rdrf.forms.file_upload import wrap_fs_data_for_form
-from rdrf.forms.file_upload import wrap_file_cdes
-from rdrf.db import filestorage
-from rdrf.helpers.utils import de_camelcase, location_name, make_index_map, parse_iso_date, silk_profile
-from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
-from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
-from rdrf.models.definition.models import RDRFContext
-from rdrf.services.io.notifications.file_notifications import handle_file_notifications
-
-from rdrf.forms.consent_forms import CustomConsentFormGenerator
-from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import consent_status_for_patient
-
-
-from rdrf.db.contexts_api import RDRFContextManager
-from rdrf.db.contexts_api import RDRFContextError
-
-
-from django.shortcuts import redirect
-from django.forms.models import inlineformset_factory
-from registry.patients.models import PatientConsent
-from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
-from django.utils.translation import gettext as _
-
-from django.conf import settings
-from rdrf.services.rpc.actions import ActionExecutor
-from rdrf.helpers.utils import FormLink, consent_check
-from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
-from rdrf.forms.dynamic.form_changes import FormChangesExtractor
-from rdrf.forms.progress.form_progress import FormProgress
-
-from rdrf.forms.navigation.locators import PatientLocator
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
+from rdrf.forms.consent_forms import CustomConsentFormGenerator
+from rdrf.forms.dsl.code_generator import CodeGenerator
+from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
+from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
+from rdrf.forms.dynamic.form_changes import FormChangesExtractor
+from rdrf.forms.dynamic.form_position import FormPositionForm
+from rdrf.forms.file_upload import wrap_file_cdes
+from rdrf.forms.file_upload import wrap_fs_data_for_form
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
+from rdrf.forms.progress.form_progress import FormProgress
+from rdrf.forms.widgets.widgets import get_widgets_for_data_type
+from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import FormLink, consent_check
+from rdrf.helpers.utils import consent_status_for_patient
+from rdrf.helpers.utils import de_camelcase, location_name, make_index_map, parse_iso_date, silk_profile
+from rdrf.helpers.view_helper import FileErrorHandlingMixin
+from rdrf.models.definition.models import (
+    CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry, QuestionnaireResponse)
+from rdrf.models.definition.models import RDRFContext
+from rdrf.patients.query_data import query_patient
+from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import (
     security_check_user_patient, can_sign_consent,
     get_object_or_permission_denied
 )
-
+from rdrf.services.io.notifications.file_notifications import handle_file_notifications
+from rdrf.services.rpc.actions import ActionExecutor
+from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
+from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
+from registry.patients.models import Patient, ParentGuardian, PatientSignature
+from registry.patients.models import PatientConsent
 from registry.patients.patient_stage_flows import get_registry_stage_flow
-
-from rdrf.admin_forms import CommonDataElementAdminForm
-from rdrf.forms.widgets.widgets import get_widgets_for_data_type
-from rdrf.helpers.cde_data_types import CDEDataTypes
-from rdrf.helpers.view_helper import FileErrorHandlingMixin
-from rdrf.security.mixins import StaffMemberRequiredMixin
-
-from aws_xray_sdk.core import xray_recorder
-
 
 logger = logging.getLogger(__name__)
 
@@ -436,7 +427,9 @@ class FormView(View):
             self.dynamic_data = self._get_dynamic_data(id=patient_id,
                                                        registry_code=registry_code,
                                                        rdrf_context_id=rdrf_context_id)
-            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version, patient_model, registry_code)
+            changes_since_version, selected_version_name = self.fetch_previous_data(changes_since_version,
+                                                                                    patient_model,
+                                                                                    registry_code)
         xray_recorder.end_subsegment()
 
         if not self.registry_form.applicable_to(patient_model):
@@ -2026,3 +2019,38 @@ class CdeAvailableWidgetsView(View):
     def get(self, request, data_type):
         widgets = [{'name': name, 'value': name} for name in sorted(get_widgets_for_data_type(data_type))]
         return JsonResponse({'widgets': widgets})
+
+
+class CdeCalculatedQueryLookup(View):
+    def get(self, request, registry_code, patient_id, cde_code):
+        # Retrieve object models from request parameters
+        registry = get_object_or_404(Registry, code=registry_code)
+        cde_model = get_object_or_404(CommonDataElement, code=cde_code)
+
+        patient_model = get_object_or_permission_denied(Patient, pk=patient_id)
+        security_check_user_patient(request.user, patient_model)
+
+        # Construct and execute the CDE query
+        if not cde_model.calculation_query:
+            return JsonResponse({
+                'error': 'Calculation query expected but not defined.'
+            })
+
+        cde_query_fragment = f'''fragment patient_fragment on DynamicPatient_{registry_code} {{
+            {cde_model.calculation_query}
+        }}'''
+
+        try:
+            patient_json = query_patient(request, registry, patient_id, ['...patient_fragment'], cde_query_fragment)
+        except GraphQLError as ex:
+            logger.error('Exception when querying patient with GraphQL', exc_info=ex)
+            # Friendly error response
+            return JsonResponse({
+                'error': 'GraphQL query failed with errors.'
+            })
+
+        # Return the successful response
+        return JsonResponse({
+            'success': True,
+            'patient': patient_json,
+        })

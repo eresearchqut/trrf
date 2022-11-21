@@ -142,6 +142,9 @@ patterns += [
             name="context_edit"),
     re_path(r'^router/', login_router.RouterView.as_view(), name="login_router"),
 
+    re_path(r"^cde_query/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<cde_code>\w+)?$",
+            form_view.CdeCalculatedQueryLookup.as_view(), name='cde_query'),
+
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
             form_view.FormView.as_view(), name='form_add'),
 
