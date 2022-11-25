@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+  <div class="alert alert-success">
+
+    <p>{% trans "You have successfully unsubscribed from all email subscriptions." %}</p>
+
+    {% include "email_preference/_resubscribe_instructions.html" %}
+  </div>
+{% endblock %}
+

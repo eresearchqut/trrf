@@ -21,6 +21,7 @@ import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
 import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
+from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
 from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
@@ -118,6 +119,13 @@ patterns += [
     re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(),
             kwargs={'template_name': 'registration/login_assistance_complete.html'},
             name='login_assistance_complete'),
+
+    # --- Unsubscribe public views
+    re_path(r'^unsubscribe_all/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', UnsubscribeAllView.as_view(),
+            name='unsubscribe_all'),
+    re_path(r'^unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', EmailPreferencesView.as_view(), name='email_preferences'),
+    re_path(r'^email_preferences/?$', EmailPreferencesView.as_view(), name='email_preferences'),
+    # ---
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
