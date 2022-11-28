@@ -14,6 +14,7 @@ Middleware
 Custom middleware
 -----------------
 - **LaxSameSiteCookieMiddleware**: Use 'Lax' SameSite cookies rather than 'Strict' for some urls.
+- **NoneSameSiteCookieMiddleware**: Use 'None' SameSite cookies rather than 'Strict' for some urls.
 - **NoCacheMiddleware**: Disable browser-side view caching.
 - **UserSentryMiddleware**: Enforce password-change and two-factor authentication settings.
 
