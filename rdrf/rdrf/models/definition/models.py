@@ -849,7 +849,8 @@ class RegistryForm(models.Model):
     groups_readonly = models.ManyToManyField(Group, blank=True, related_name='groups_readonly')
     applicability_condition = models.TextField(blank=True,
                                                null=True,
-                                               help_text="E.g. patient.deceased == True")
+                                               help_text='e.g. patient.country_of_birth == \'AU\'<br />'
+                                                         '<em>Note, this only applies to forms within Fixed Context Form Groups</em>')
     conditional_rendering_rules = models.TextField(
         blank=True,
         null=True,
