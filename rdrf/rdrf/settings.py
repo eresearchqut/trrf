@@ -160,6 +160,7 @@ MIDDLEWARE = [x for x in (
     'registry.common.middleware.NoCacheMiddleware',
     'csp.middleware.CSPMiddleware',
     'registry.common.middleware.LaxSameSiteCookieMiddleware',
+    'registry.common.middleware.NoneSameSiteCookieMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
