@@ -16,7 +16,7 @@ class EmailPreferenceTest(TestCase):
                 for i in range(size)]
 
     def _make_email_notifications(self, size):
-        return [EmailNotification.objects.create(registry=self.registry, is_subscribable=True)
+        return [EmailNotification.objects.create(registry=self.registry, subscribable=True)
                 for i in range(size)]
 
     def test_is_email_allowed(self):

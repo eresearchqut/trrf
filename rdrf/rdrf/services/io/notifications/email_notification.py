@@ -109,22 +109,20 @@ class RdrfEmail(object):
             return pref_lang()
 
     def _is_allowed_to_email(self, recipient):
-        if not self.email_notification.subscribable:
-            return True  # This is not a subscription based email, so we do not need to check the user's subscription
+        if self.email_notification.subscribable:
+            try:
+                user = self._get_user_from_email(recipient)
+            except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+                return True  # recipient is not a standard user, therefore we don't know their email preferences
 
-        try:
-            user = self._get_user_from_email(recipient)
             email_preference = EmailPreference.objects.get_by_user(user)
 
-            if email_preference:
-                if not email_preference.is_email_allowed(self.email_notification):
-                    logger.debug(f"User {user.id} does not allows emails for notification {self.email_notification.id}")
-                    return False
+            if email_preference and not email_preference.is_email_allowed(self.email_notification):
+                logger.debug(f"User {user.id} does not allow emails for notification {self.email_notification.id}")
+                return False
 
-            return True
-
-        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
-            return True  # subscription could not be determined, so allow it by default
+        # By default, allow the email unless we have previously determined otherwise
+        return True
 
     def _get_recipients(self):
         recipients = []
@@ -187,7 +185,10 @@ class RdrfEmail(object):
                 headers = {'List-Unsubscribe': full_unsubscribe_url}
                 return template_footer, headers
         except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
-            return None, None  # skip the unsubscribe footer
+            pass
+
+        # This email does not require an unsubscribe footer
+        return None, None
 
     def _get_email_notification(self):
         try:
