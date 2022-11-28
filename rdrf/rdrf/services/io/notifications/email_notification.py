@@ -1,15 +1,16 @@
+import json
+import logging
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.template import Context, Engine, Template
 from django.template.loader import get_template
 
 from rdrf.auth.signed_url.util import make_token, make_token_authenticated_link
 from rdrf.helpers.utils import make_full_url
-from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
+from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory, \
+    EmailPreference
 from registry.groups.models import CustomUser
-from django.template import Context, Engine, Template
-
-import json
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,9 @@ class RdrfEmail(object):
                 (self.reg_code, self.description))
         return success
 
+    def _get_user_from_email(self, email_address):
+        return CustomUser.objects.get(email=email_address)
+
     def _get_preferred_language(self, email_address):
         def pref_lang():
             return self.template_data.get("preferred_language", "en")
@@ -104,8 +108,23 @@ class RdrfEmail(object):
         except CustomUser.MultipleObjectsReturned:
             return pref_lang()
 
-    def _get_user_from_email(self, email_address):
-        return CustomUser.objects.get(email=email_address)
+    def _is_allowed_to_email(self, recipient):
+        if not self.email_notification.subscribable:
+            return True  # This is not a subscription based email, so we do not need to check the user's subscription
+
+        try:
+            user = self._get_user_from_email(recipient)
+            email_preference = EmailPreference.objects.get_by_user(user)
+
+            if email_preference:
+                if not email_preference.is_email_allowed(self.email_notification):
+                    logger.debug(f"User {user.id} does not allows emails for notification {self.email_notification.id}")
+                    return False
+
+            return True
+
+        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+            return True  # subscription could not be determined, so allow it by default
 
     def _get_recipients(self):
         recipients = []
@@ -120,7 +139,7 @@ class RdrfEmail(object):
         # and a parent template is registered against the account verified
         # event , the recipient template will evaluate to an empty string ..
 
-        return [r for r in recipients if self._valid_email(r)]
+        return [r for r in recipients if self._valid_email(r) and self._is_allowed_to_email(r)]
 
     def _valid_email(self, s):
         return "@" in s
