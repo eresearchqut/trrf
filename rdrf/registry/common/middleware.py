@@ -106,6 +106,24 @@ class LaxSameSiteCookieMiddleware(MiddlewareMixin):
         return response
 
 
+class NoneSameSiteCookieMiddleware(MiddlewareMixin):
+    """
+    Sets 'SameSite: None' on cookies for embeddable views to allow cross-site usage
+    """
+    applied_views = [
+        'embedded_registration_register',
+        'embedded_registration_complete',
+    ]
+
+    def process_response(self, request, response):
+        match = resolve(request.path)
+        if match.url_name in self.applied_views:
+            for cookie in response.cookies:
+                response.cookies[cookie]['samesite'] = 'None'
+                response.cookies[cookie]['secure'] = True
+        return response
+
+
 class NoCacheMiddleware:
     """
     Disable browser-side caching of all views. Override with
