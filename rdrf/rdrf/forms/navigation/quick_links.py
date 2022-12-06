@@ -26,13 +26,11 @@ def make_link(url, text):
 
 
 class LinkDefs:
-    LegacyReports = make_link("reports", _("Reports (Legacy)"))
     QuestionnaireResponses = make_link("admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
-    LegacyExplorer = make_link("rdrf:explorer_main", _("Explorer"))
     Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
@@ -157,12 +155,6 @@ class RegularLinks(Links):
         LinkDefs.BlacklistedMimeTypesConfig
     )
 
-    LEGACY_EXPLORER = {}
-    LEGACY_REPORTS = {}
-
-    ENABLED_LEGACY_EXPLORER = make_entries(LinkDefs.LegacyExplorer)
-    ENABLED_LEGACY_REPORTS = make_entries(LinkDefs.LegacyReports)
-
     REPORTS = make_entries(LinkDefs.Reports)
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
@@ -258,14 +250,6 @@ class MenuConfig:
         # get links for the admin page
         return self.all
 
-    def reports_links(self):
-        if any(registry.has_feature(RegistryFeatures.LEGACY_REPORTS) for registry in self.registries):
-            RegularLinks.LEGACY_EXPLORER = RegularLinks.ENABLED_LEGACY_EXPLORER
-            RegularLinks.LEGACY_REPORTS = RegularLinks.ENABLED_LEGACY_REPORTS
-        else:
-            RegularLinks.LEGACY_EXPLORER = {}
-            RegularLinks.LEGACY_REPORTS = {}
-
     def build_menu(self):
         # enable dynamic links and build the menu
         self.patient_links()
@@ -277,7 +261,6 @@ class MenuConfig:
         self.permission_matrix_links()
         self.registration_links()
         self.patient_stages_links()
-        self.reports_links()
 
 
 class RegularMenuConfig(MenuConfig):
@@ -293,7 +276,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.PATIENTS,
             **RegularLinks.DOCTORS,
             **RegularLinks.REPORTS,
-            **RegularLinks.LEGACY_REPORTS,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.QUESTIONNAIRE,
         }
@@ -302,7 +284,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.PATIENTS,
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REPORTS,
-            **RegularLinks.LEGACY_REPORTS,
         }
 
         self.parent = {
@@ -320,7 +301,6 @@ class RegularMenuConfig(MenuConfig):
         self.settings = {
             **RegularLinks.AUDITING,
             **RegularLinks.DOCTORS,
-            **RegularLinks.LEGACY_EXPLORER,
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
@@ -337,7 +317,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.PERMISSIONS,
             **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REGISTRATION,
-            **RegularLinks.LEGACY_REPORTS,
             **RegularLinks.REPORTS,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,

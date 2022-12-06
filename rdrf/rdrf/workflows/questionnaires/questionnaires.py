@@ -1,5 +1,4 @@
 from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
-from explorer.views import Humaniser
 from django.urls import reverse
 from collections import OrderedDict
 from rdrf.db.generalised_field_expressions import GeneralisedFieldExpressionParser
@@ -442,7 +441,6 @@ class _ExistingDataWrapper(object):
 
     def __init__(self, registry_model, patient_model, questionnaire):
         self.registry_model = registry_model
-        self.humaniser = Humaniser(self.registry_model)
         self.patient_model = patient_model
         self.patient_data = self.patient_model.get_dynamic_data(
             self.registry_model)
@@ -463,8 +461,7 @@ class _ExistingDataWrapper(object):
             value = retrieval_function(self.patient_model, self.patient_data)
             if field_expression == "working_groups":
                 return self._get_working_groups_display_value(value)
-            value = self.humaniser.display_value2(
-                form_model, section_model, cde_model, value)
+            value = cde_model.display_value(value)
 
             if isinstance(value, datetime) or isinstance(value, date):
                 value = str(value)
@@ -597,10 +594,7 @@ class _ExistingDataWrapper(object):
                 cde_model = CommonDataElement.objects.get(code=cde_code)
                 display_name = cde_model.name
                 raw_value = item[cde_code]
-                display_value = self.humaniser.display_value2(form_model,
-                                                              section_model,
-                                                              cde_model,
-                                                              raw_value)
+                display_value = cde_model.display_value(raw_value)
                 display_field = "%s=%s" % (display_name, display_value)
                 display_fields.append(display_field)
 
@@ -705,7 +699,6 @@ class _Question(object):
     def __init__(self, registry_model, questionnaire, form_name, section_code, cde_code, value):
         self.registry_model = registry_model
         self.questionnaire = questionnaire
-        self.humaniser = Humaniser(self.registry_model)
         self.form_name = form_name
         self.pos = 0
         self.question_type = None
@@ -763,18 +756,10 @@ class _Question(object):
                                  self.cde_model.name)
 
     def _get_display_value(self, value):
-        if not self.is_multi:
-            return self.humaniser.display_value2(
-                self.form_model, self.section_model, self.cde_model, value)
+        if not self.is_address:
+            return self.cde_model.display_value(value)
         else:
-            if not self.is_address:
-                display = self.humaniser.display_value2
-                return ",".join([display(self.form_model,
-                                         self.section_model,
-                                         self.cde_model,
-                                         single_value) for single_value in value])
-            else:
-                return ",".join([x for x in value])
+            return ",".join([x for x in value])
 
     def _get_target(self):
         """
@@ -842,7 +827,6 @@ class _Multisection(object):
         self.pos = None
         self.is_address = section_code == "PatientDataAddressSection"
         self.registry_model = registry_model
-        self.humaniser = Humaniser(registry_model)
         self.questionnaire = questionnaire
         self.form_name = form_name
         self.section_code = section_code
@@ -912,7 +896,6 @@ class _MultiSectionItem(object):
         self.registry_model = registry_model
         self.form_model = target_form_model
         self.section_model = target_section_model
-        self.humaniser = Humaniser(registry_model)
         self.value_map = value_map
         self.is_address = is_address
 
@@ -924,10 +907,7 @@ class _MultiSectionItem(object):
             display_name = cde_model.name
             raw_value = self.value_map[cde_code]
             if not self.is_address:
-                display_value = self.humaniser.display_value2(self.form_model,
-                                                              self.section_model,
-                                                              cde_model,
-                                                              raw_value)
+                display_value = cde_model.display_value(raw_value)
             else:
                 if cde_code == "AddressType":
                     display_value = raw_value.replace("AddressType", "")

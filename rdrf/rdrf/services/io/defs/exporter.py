@@ -14,7 +14,6 @@ from rdrf.models.definition.models import DemographicFields, RegistryForm, Regis
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
-from explorer.models import Query
 from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
@@ -247,7 +246,6 @@ class Exporter:
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
-        data["reports_v2"] = self._get_reports_v2()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
         data["email_notifications"] = self._get_email_notifications()
@@ -490,28 +488,6 @@ class Exporter:
         return complete_fields
 
     def _get_reports(self):
-        registry_queries = Query.objects.filter(registry=self.registry)
-
-        queries = []
-        for query in registry_queries:
-            q = {}
-            q["registry"] = query.registry.code
-            q["access_group"] = [ag.name for ag in query.access_group.order_by("name")]
-            q["title"] = query.title
-            q["description"] = query.description
-            q["mongo_search_type"] = query.mongo_search_type
-            q["sql_query"] = query.sql_query
-            q["collection"] = query.collection
-            q["criteria"] = query.criteria
-            q["projection"] = query.projection
-            q["aggregation"] = query.aggregation
-            q["created_by"] = query.created_by
-            q["created_at"] = query.created_at
-            queries.append(q)
-
-        return queries
-
-    def _get_reports_v2(self):
         return [{'title': r.title,
                  'description': r.description,
                  'registry': r.registry.code,
