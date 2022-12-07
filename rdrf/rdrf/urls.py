@@ -19,7 +19,6 @@ import rdrf.views.landing_view as landing_view
 import rdrf.views.import_registry_view as import_registry_view
 import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
-import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
@@ -127,10 +126,6 @@ patterns += [
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
     re_path(r'^import/?$', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
-    re_path(r'^reports/?$', report_view.ReportView.as_view(), name="reports"),
-    re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
-            name="report_datatable"),
-    re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
     re_path(r'^dashboards/?$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),

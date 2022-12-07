@@ -6,7 +6,6 @@ from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ValidationError
 
-from explorer.models import Query
 from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
@@ -410,6 +409,7 @@ class Importer(object):
             logger.info("importing generic section map %s" % section_map)
             s, created = Section.objects.get_or_create(code=section_map["code"])
             s.code = section_map["code"]
+            s.abbreviated_name = section_map["abbreviated_name"]
             s.display_name = section_map["display_name"]
             s.header = section_map["header"]
             s.elements = ",".join(section_map["elements"])
@@ -703,12 +703,6 @@ class Importer(object):
         else:
             logger.info("no complete field definitions to import")
 
-        if "reports" in self.data:
-            self._create_reports(self.data["reports"])
-            logger.info("complete reports OK ")
-        else:
-            logger.info("no reports to import")
-
         if "cde_policies" in self.data:
             self._create_cde_policies(r)
             logger.info("imported cde policies OK")
@@ -721,11 +715,11 @@ class Importer(object):
         else:
             logger.info("no context form groups to import")
 
-        if "reports_v2" in self.data:
-            self._create_reports_v2(self.data["reports_v2"])
-            logger.info("complete reports_v2 OK")
+        if "reports" in self.data:
+            self._create_reports(self.data["reports"])
+            logger.info("complete reports OK")
         else:
-            logger.info("no reports_v2 to import")
+            logger.info("no reports to import")
 
         if "email_notifications" in self.data:
             self._create_email_notifications(r)
@@ -998,27 +992,6 @@ class Importer(object):
 
     def _create_reports(self, data):
         for d in data:
-            registry_obj = Registry.objects.get(code=d["registry"])
-            query, created = Query.objects.get_or_create(
-                registry=registry_obj, title=d["title"])
-            for ag in d["access_group"]:
-                group, created = Group.objects.get_or_create(name=ag)
-                if created:
-                    group.save()
-                query.access_group.add(group)
-            query.description = d["description"]
-            query.mongo_search_type = d["mongo_search_type"]
-            query.sql_query = d["sql_query"]
-            query.collection = d["collection"]
-            query.criteria = d["criteria"]
-            query.projection = d["projection"]
-            query.aggregation = d["aggregation"]
-            query.created_by = d["created_by"]
-            query.created_at = d["created_at"]
-            query.save()
-
-    def _create_reports_v2(self, data):
-        for d in data:
             registry = Registry.objects.get(code=d['registry'])
             report, created = ReportDesign.objects.get_or_create(registry=registry, title=d['title'])
 
@@ -1079,11 +1052,16 @@ class Importer(object):
             group, _ = Group.objects.get_or_create(name=group_dict["name"])
             group_permissions = []
             for permission_dict in group_dict["permissions"]:
-                permission = Permission.objects.get(
-                    content_type=ContentType.objects.get_by_natural_key(*permission_dict["content_type"]),
-                    codename=permission_dict["codename"])
-                group_permissions.append(permission)
-                logger.info(f"Add {permission.codename} to group {group.name}")
+                lookup_content_type = permission_dict["content_type"]
+                try:
+                    permission = Permission.objects.get(
+                        content_type=(ContentType.objects.get_by_natural_key(*lookup_content_type)),
+                        codename=permission_dict["codename"])
+                    group_permissions.append(permission)
+                    logger.info(f"Add {permission.codename} to group {group.name}")
+                except ContentType.DoesNotExist:
+                    logger.info(f"Could not add permission {permission.codename} to group {group.name}. "
+                                f"Content Type \"{lookup_content_type}\" does not exist.")
 
             group.permissions.set(group_permissions)
             group.save()

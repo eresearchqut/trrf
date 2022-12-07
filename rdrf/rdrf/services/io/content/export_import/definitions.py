@@ -67,7 +67,6 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
         'rdrf.DemographicFields',
         'rdrf.EmailTemplate',
         'rdrf.Wizard',
-        'explorer.Query',
         'rdrf.ContextFormGroup',
         'rdrf.ContextFormGroupItem',
     ))

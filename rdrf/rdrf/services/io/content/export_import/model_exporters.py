@@ -1,6 +1,5 @@
 from rdrf.models.definition import models
 from registry.patients import models as patientmodels
-from explorer import models as explorermodels
 from registry.groups import models as groupmodels
 from .catalogue import ModelExporterCatalogue
 from .exporters import ModelExporter
@@ -158,5 +157,3 @@ registry_catalogue.register(patientmodels.ClinicianSignupRequest, ModelExporterF
 
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)
 registry_catalogue.register(models.ClinicalData, ModelExporterFilteredByRegistryCode)
-
-registry_catalogue.register(explorermodels.Query, ModelExporterFilteredByRegistry)

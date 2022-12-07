@@ -46,10 +46,6 @@ Django
 ----------
 - **PermissionsMixin**
 
-Explorer
---------
-- **AccessCheckMixin**: Verify that user has access to a given query.
-
 Decorators
 ==========
 - **csrf_exempt**: Mark a view as being exempt from the CSRF view protection.

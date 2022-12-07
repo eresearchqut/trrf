@@ -1,12 +1,10 @@
-from rdrf.services.io.reporting import report_field_functions
-from registry.patients.models import Patient, PatientAddress
-from rdrf.models.definition.models import ConsentSection, ConsentQuestion
-from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
-from rdrf.helpers.utils import get_cde_value
+import logging
 from collections import OrderedDict
 
-import logging
-import collections
+from rdrf.helpers.utils import get_cde_value
+from rdrf.models.definition.models import ConsentSection, ConsentQuestion
+from rdrf.models.definition.models import RegistryForm, Section, CommonDataElement
+from registry.patients.models import Patient, PatientAddress
 
 logger = logging.getLogger(__name__)
 
@@ -578,8 +576,6 @@ class GeneralisedFieldExpressionParser(object):
                 return self._parse_consent_expression(field_expression)
             elif field_expression.startswith("poke/"):
                 return self._parse_poke_expression(field_expression)
-            elif field_expression.startswith("@"):
-                return self._parse_report_function_expression(field_expression)
             elif field_expression.startswith("$ms"):
                 return self._parse_ms_expression(field_expression)
             elif field_expression.startswith("Demographics/Address/"):
@@ -668,22 +664,6 @@ class GeneralisedFieldExpressionParser(object):
         return ConsentExpression(self.registry_model,
                                  consent_question_model,
                                  consent_field)
-
-    def _parse_report_function_expression(self, field_expression):
-        """
-        @some_function_name
-        """
-        try:
-            func = getattr(report_field_functions, field_expression[1:])
-            if isinstance(func, collections.Callable) and hasattr(
-                    func, "report_function") and func.report_function:
-                return ReportExpression(self.registry_model, func)
-            else:
-                raise FieldExpressionError(
-                    "Unknown field expression: %s" % field_expression)
-        except Exception as ex:
-            raise FieldExpressionError(
-                "report field expression error: %s" % ex)
 
     def _parse_address_expression(self, address_expression):
         """

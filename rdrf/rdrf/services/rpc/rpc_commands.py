@@ -7,50 +7,6 @@ from rdrf.security.security_checks import security_check_user_patient
 logger = logging.getLogger(__name__)
 
 
-def rpc_reporting_command(request, query_id, registry_id, command, arg):
-    from rdrf.helpers.registry_features import RegistryFeatures
-    from rdrf.models.definition.models import Registry
-    if not any(r.has_feature(RegistryFeatures.LEGACY_REPORTS) for r in Registry.objects.all()):
-        raise Exception('Explorer reports not enabled')
-
-    # 2 possible commands/invocations client side from report definition screen:
-    # get_field_data: used to build all the checkboxes for client
-    # get_projection: process the checked checkboxes and get json representation
-    # of the selected mongo fields ( used to build temp table)
-    from rdrf.services.io.reporting.reporting_table import MongoFieldSelector
-    from rdrf.models.definition.models import Registry
-    from explorer.models import Query
-    user = request.user
-
-    if query_id == "new":
-        query_model = None
-    else:
-        query_model = Query.objects.get(pk=int(query_id))
-        if not Query.objects.reports_for_user(user).filter(pk=query_id).exists():
-            raise PermissionDenied("Report not available for user")
-
-    registry_model = Registry.objects.get(pk=int(registry_id))
-    if not user.in_registry(registry_model):
-        raise PermissionDenied("User not a member of this registry")
-
-    if command == "get_projection":
-        checkbox_ids = arg["checkbox_ids"]
-        longitudinal_ids = arg['longitudinal_ids']
-        field_selector = MongoFieldSelector(
-            user,
-            registry_model,
-            query_model,
-            checkbox_ids,
-            longitudinal_ids)
-        result = field_selector.projections_json
-        return result
-    elif command == "get_field_data":
-        field_selector = MongoFieldSelector(user, registry_model, query_model)
-        return field_selector.field_data
-    else:
-        raise Exception("unknown command: %s" % command)
-
-
 # questionnaire handling
 
 def rpc_load_matched_patient_data(request, patient_id, questionnaire_response_id):
