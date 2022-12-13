@@ -187,7 +187,6 @@ INSTALLED_APPS = [x for x in (
     'django.contrib.messages',
     'django_extensions',
     'django.contrib.admin',
-    'explorer',
     'useraudit',
     'rest_framework',
     'rest_framework.authtoken',
