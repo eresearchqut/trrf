@@ -152,7 +152,6 @@ registry_catalogue.register(patientmodels.PatientConsent, ModelExporterFilteredB
 registry_catalogue.register(patientmodels.PatientRelative, ModelExporterFilteredByPatient)
 registry_catalogue.register(patientmodels.ConsentValue, ModelExporterFilteredByPatient)
 registry_catalogue.register(models.RDRFContext, ModelExporterFilteredByRegistry)
-registry_catalogue.register(models.QuestionnaireResponse, ModelExporterFilteredByRegistry)
 registry_catalogue.register(patientmodels.ClinicianSignupRequest, ModelExporterFilteredByRegistry)
 
 registry_catalogue.register(models.CDEFile, ModelExporterFilteredByRegistryCode)

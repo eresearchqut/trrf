@@ -144,7 +144,6 @@ def parse_form_data(registry,
                     data,
                     existing_record=None,
                     is_multisection=False,
-                    parse_all_forms=False,
                     django_instance=None):
     """
     This class takes a bag of values with keys like:
@@ -155,8 +154,7 @@ def parse_form_data(registry,
 
     This is more or less the opposite of `build_form_data`.
     """
-    return FormDataParser(registry, data_defs, form, data, existing_record, is_multisection, parse_all_forms,
-                          django_instance).nested_data
+    return FormDataParser(registry, data_defs, form, data, existing_record, is_multisection, django_instance).nested_data
 
 
 class FormDataParser:
@@ -175,7 +173,6 @@ class FormDataParser:
                  form_data,
                  existing_record=None,
                  is_multisection=False,
-                 parse_all_forms=False,
                  django_instance=None):
         self.registry_model = registry_model
         self.form_data = form_data
@@ -190,7 +187,6 @@ class FormDataParser:
         self.form_model = form_model
         self.custom_consents = None
         self.address_data = None
-        self.parse_all_forms = parse_all_forms
 
         if django_instance:
             self.django_id = django_instance.pk
@@ -207,10 +203,7 @@ class FormDataParser:
 
     @property
     def nested_data(self):
-        if not self.parse_all_forms:
-            self._parse()
-        else:
-            self._parse_all_forms()
+        self._parse()
 
         d = self.existing_record or {"forms": []}
 
@@ -264,25 +257,6 @@ class FormDataParser:
                 self.global_timestamp = self.form_data[key]
             elif key.endswith("_timestamp"):
                 self.form_timestamps[key] = self.form_data[key]
-
-    def _parse_all_forms(self):
-        # used in questionnaire approval handling where all form data was being saved in one go
-        # generated questionnaire gets fanned out to all forms
-        for key in self.form_data:
-            if key == "timestamp":
-                self.global_timestamp = self.form_data[key]
-            elif key.endswith("_timestamp"):
-                self.form_timestamps[key] = self.form_data[key]
-            elif key == "custom_consent_data":
-                pass
-            elif key == "PatientDataAddressSection":
-                pass
-            elif is_multisection(key):
-                self._parse_multisection(key)
-            elif is_delimited_key(key):
-                form_model, section_model, cde_model = dd_models_from_mongo_key(self.data_defs, key)
-                value = self.form_data[key]
-                self.parsed_data[(form_model, section_model, cde_model)] = self._parse_value(value)
 
     def _parse_multisection(self, multisection_code):
         self._parse_timestamps()
@@ -701,7 +675,6 @@ class DynamicDataWrapper(object):
                           data_definitions,
                           form_data,
                           multisection=False,
-                          parse_all_forms=False,
                           index_map=None,
                           additional_data=None):
         self._convert_date_to_datetime(form_data)
@@ -730,7 +703,6 @@ class DynamicDataWrapper(object):
             form_data,
             existing_record=record.data,
             is_multisection=multisection,
-            parse_all_forms=parse_all_forms,
             django_instance=self.obj)
 
         if additional_data is not None:

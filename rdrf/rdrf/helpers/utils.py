@@ -262,7 +262,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
             selected=(
                 form.name == current_form_name),
             context_model=context_model) for form in container_model.forms
-        if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model, patient_in_registry_checked=True)]
+        if user.can_view(form) and form.applicable_to(patient_model, patient_in_registry_checked=True)]
 
 
 def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
@@ -723,10 +723,6 @@ def applicable_forms_for_patient_type(registry_model, patient_type):
     if not applicable_form_names:
         return all_forms
     return [form for form in all_forms if form.name in applicable_form_names]
-
-
-def is_generated_form(form_model):
-    return form_model.name.startswith(form_model.registry.generated_questionnaire_name)
 
 
 def patients_family_in_users_groups(patient, user):

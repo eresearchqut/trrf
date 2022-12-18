@@ -554,8 +554,6 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                 return patient_model, mongo_record
 
         else:
-            # todo - NB multisection items are being replaced as a whole
-            # in the questionnaire
             return patient_model, mongo_record
 
 

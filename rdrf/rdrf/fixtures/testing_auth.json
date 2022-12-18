@@ -405,33 +405,6 @@
     }
 },
 {
-    "pk": 46, 
-    "model": "auth.permission", 
-    "fields": {
-        "codename": "add_questionnaireresponse", 
-        "name": "Can add questionnaire response", 
-        "content_type": 16
-    }
-},
-{
-    "pk": 47, 
-    "model": "auth.permission", 
-    "fields": {
-        "codename": "change_questionnaireresponse", 
-        "name": "Can change questionnaire response", 
-        "content_type": 16
-    }
-},
-{
-    "pk": 48, 
-    "model": "auth.permission", 
-    "fields": {
-        "codename": "delete_questionnaireresponse", 
-        "name": "Can delete questionnaire response", 
-        "content_type": 16
-    }
-},
-{
     "pk": 49, 
     "model": "auth.permission", 
     "fields": {

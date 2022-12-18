@@ -8,7 +8,6 @@ from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryD
     RegistryDashboardFormLink, \
     RegistryDashboardCDEData, RegistryDashboardDemographicData
 from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import QuestionnaireResponse
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import Notification
 from rdrf.models.definition.models import CDEPermittedValueGroup
@@ -85,7 +84,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 
 class RegistryFormAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'name', 'is_questionnaire', 'position')
+    list_display = ('registry', 'name', 'position')
     list_display_links = ('name',)
     ordering = ['registry', 'name']
     form = RegistryFormAdminForm
@@ -180,16 +179,8 @@ def export_registry_action(modeladmin, request, registry_models_selected):
 export_registry_action.short_description = "Export"
 
 
-def generate_questionnaire_action(modeladmin, request, registry_models_selected):
-    for registry in registry_models_selected:
-        registry.generate_questionnaire()
-
-
-generate_questionnaire_action.short_description = _("Generate Questionnaire")
-
-
 class RegistryAdmin(admin.ModelAdmin):
-    actions = [export_registry_action, generate_questionnaire_action]
+    actions = [export_registry_action]
 
     def get_queryset(self, request):
         if not request.user.is_superuser:
@@ -221,36 +212,6 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
         return () if obj is None else ("code",)
-
-
-class QuestionnaireResponseAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'date_submitted', 'process_link', 'name', 'date_of_birth')
-    list_display_links = ('date_submitted', )
-    list_filter = ('registry', 'date_submitted')
-
-    def process_link(self, obj):
-        if not obj.has_mongo_data:
-            return "NO DATA"
-
-        link = "-"
-        if not obj.processed:
-            url = reverse('questionnaire_response', args=(obj.registry.code, obj.id))
-            link = "<a href='%s'>Review</a>" % url
-        return link
-
-    def get_queryset(self, request):
-        user = request.user
-        query_set = QuestionnaireResponse.objects.filter(processed=False)
-        if user.is_superuser:
-            return query_set
-        else:
-            return query_set.filter(
-                registry__in=[
-                    reg for reg in user.registry.all()],
-            )
-
-    process_link.allow_tags = True
-    process_link.short_description = _('Process questionnaire')
 
 
 def create_restricted_model_admin_class(
@@ -299,7 +260,7 @@ class CDEPermittedValueAdmin(admin.StackedInline):
     extra = 0
 
     fieldsets = (
-        (None, {'fields': ('code', 'value', 'questionnaire_value', 'desc', 'position')}),
+        (None, {'fields': ('code', 'value', 'desc', 'position')}),
     )
 
 
@@ -318,7 +279,7 @@ class ConsentQuestionAdmin(admin.StackedInline):
     fieldsets = (
         (None, {
             'fields': (
-                'position', 'code', 'question_label', 'questionnaire_label', 'instructions', 'created_at', 'last_updated_at')}), )
+                'position', 'code', 'question_label', 'instructions', 'created_at', 'last_updated_at')}), )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
@@ -535,7 +496,6 @@ CDEPermittedValueAdmin = create_restricted_model_admin_class(
     list_display=[
         'code',
         'value',
-        'questionnaire_value_formatted',
         'pvg_link',
         'position_formatted'])
 
@@ -572,7 +532,6 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
 
 NORMAL_MODE_ADMIN_COMPONENTS = [
     (Registry, RegistryAdmin),
-    (QuestionnaireResponse, QuestionnaireResponseAdmin),
     (EmailNotification, EmailNotificationAdmin),
     (EmailTemplate, EmailTemplateAdmin),
     (EmailNotificationHistory, EmailNotificationHistoryAdmin),

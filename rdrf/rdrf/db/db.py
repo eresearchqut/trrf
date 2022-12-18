@@ -9,7 +9,6 @@ class RegistryRouter:
 
     clinical_models = (
         ("rdrf", "clinical"),
-        ("rdrf", "questionnaireresponsedata"),
         # fixme: move CDEFile to clinical database. This is just
         # tricky with migrations.
         # ("rdrf", "cdefile"),
