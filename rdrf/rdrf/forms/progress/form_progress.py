@@ -277,6 +277,11 @@ class FormProgress:
                 self.current_patient = patient_model
                 self.reset()
 
+    def _set_context(self, context_model=None):
+        if not self.context_model == context_model:
+            self.context_model = context_model
+            self.reset()
+
     def _get_progress_collection(self):
         return ClinicalData.objects.collection(self.registry_model.code, ProgressMetric.PROGRESS)
 
@@ -439,7 +444,8 @@ class FormProgress:
     def _get_metric_helper(self, patient_model, context_model=None):
         # if new model passed in this causes progress data reload
         self._set_current(patient_model)
-        self.context_model = context_model
+        self._set_context(context_model)
+
         if self.loaded_data is None:
             self._load(patient_model, context_model)
 
