@@ -29,11 +29,9 @@ logger = logging.getLogger(__name__)
 class FieldContext:
 
     """
-    Where a field can appear - on a form or in a questionnaire
-    On the questionnaire we use a different label text
+    Where a field can appear
     """
     CLINICAL_FORM = "Form"
-    QUESTIONNAIRE = "Questionnaire"
 
 
 class FieldFactory:
@@ -63,7 +61,7 @@ class FieldFactory:
 
     UNSET_CHOICE = ""
 
-    def __init__(self, registry, data_defs, registry_form, section, cde, questionnaire_context=None,
+    def __init__(self, registry, data_defs, registry_form, section, cde,
                  injected_model=None, injected_model_id=None, is_superuser=False):
         """
         :param cde: Common Data Element model instance
@@ -73,11 +71,7 @@ class FieldFactory:
         self.registry_form = registry_form
         self.section = section
         self.cde = cde
-        self.questionnaire_context = questionnaire_context
-        if questionnaire_context:
-            self.context = FieldContext.QUESTIONNAIRE
-        else:
-            self.context = FieldContext.CLINICAL_FORM
+        self.context = FieldContext.CLINICAL_FORM
 
         self.validator_factory = ValidatorFactory(self.cde)
         self.complex_field_factory = ComplexFieldFactory(self.cde)
@@ -117,10 +111,7 @@ class FieldFactory:
             return self._get_cde_link(
                 _(self._get_label())) if self.is_superuser else _(self._get_label())
         else:
-            q_field_text = self.cde.questionnaire_text
-            if not q_field_text:
-                q_field_text = self._get_cde_link(
-                    _(self.cde.name)) if self.is_superuser else _(self.cde.name)
+            q_field_text = self._get_cde_link(_(self.cde.name)) if self.is_superuser else _(self.cde.name)
             return self._get_cde_link(q_field_text) if self.is_superuser else q_field_text
 
     def _get_label(self):
@@ -227,10 +218,6 @@ class FieldFactory:
                 values = self.cde.pv_group.permitted_value_set.all().order_by('position')
             for permitted_value in values:
                 value = _(permitted_value.value)
-                if self.context == FieldContext.QUESTIONNAIRE:
-                    q_value = getattr(permitted_value, 'questionnaire_value')
-                    if q_value:
-                        value = q_value
                 choice_tuple = (permitted_value.code, value)
                 choices.append(choice_tuple)
         return choices
@@ -256,8 +243,6 @@ class FieldFactory:
             widget_context = {"registry_model": self.registry,
                               "registry_form": self.registry_form,
                               "cde": self.cde,
-                              "on_questionnaire": self.context == FieldContext.QUESTIONNAIRE,
-                              "questionnaire_context": self.questionnaire_context,
                               "primary_model": self.primary_model,
                               "primary_id": self.primary_id
                               }

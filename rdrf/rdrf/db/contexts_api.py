@@ -142,8 +142,6 @@ class RDRFContextManager:
                 ),
                 Prefetch(
                     lookup="items",
-                    queryset=ContextFormGroupItem.objects.filter(
-                        registry_form__is_questionnaire=False
-                    )
+                    queryset=ContextFormGroupItem.objects.all()
                 )
             )

@@ -43,7 +43,6 @@ def create_form_class_for_section(
         data_defs,
         registry_form,
         section,
-        questionnaire_context=None,
         injected_model=None,
         injected_model_id=None,
         is_superuser=None,
@@ -83,7 +82,6 @@ def create_form_class_for_section(
             registry_form,
             section,
             cde,
-            questionnaire_context,
             injected_model=injected_model,
             injected_model_id=injected_model_id,
             is_superuser=is_superuser).create_field()
@@ -116,61 +114,3 @@ def create_form_class_for_section(
     form_class_dict = {"base_fields": base_fields, "auto_id": True}
 
     return type("SectionForm", (BaseForm,), form_class_dict) if base_fields else None
-
-
-def create_form_class_for_consent_section(
-        registry_model,
-        consent_section_model,
-        questionnaire_context=None,
-        is_superuser=None):
-    # This function is used by the _questionnaire_, to provide a form for filling in custom consent info
-    # It differs from the "normal" form class creation function above which takes a RDRF Section model, in that it takes
-    # a ConsentSection model ( which is NOT CDE based )
-    from django.forms import BooleanField
-    form_class_name = "CustomConsentSectionForm"
-    base_fields = OrderedDict()
-
-    def get_answer_dict_from_form_data(consent_section_model, form_cleaned_data):
-        # This allows the custom validation rule to be applied
-        from rdrf.models.definition.models import ConsentQuestion
-        answer_dict = {}
-        # NB customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
-        for field_key in form_cleaned_data:
-            key_parts = field_key.split("_")
-            question_pk = int(key_parts[3])
-            consent_question_model = ConsentQuestion.objects.get(id=question_pk)
-            question_code = consent_question_model.code
-            answer_dict[question_code] = form_cleaned_data[field_key]
-        return answer_dict
-
-    for question_model in consent_section_model.questions.order_by("position"):
-        field = BooleanField(
-            label=question_model.questionnaire_label,
-            required=False,
-            help_text=question_model.instructions)
-        field_key = question_model.field_key
-        base_fields[field_key] = field
-
-    def clean_method(self):
-        """
-        We override form.clean with this method
-        From the Django BaseForm code:
-        Hook for doing any extra form-wide cleaning after Field.clean() been
-        called on every field. Any ValidationError raised by this method will
-        not be associated with a particular field; it will have a special-case
-        association with the field named '__all__'.
-        """
-        from django.core.exceptions import ValidationError
-        # NB super class has : return self.cleaned_data
-        answer_dict = get_answer_dict_from_form_data(consent_section_model, self.cleaned_data)
-
-        if not consent_section_model.is_valid(answer_dict):
-            raise ValidationError("%s is invalid" % consent_section_model.section_label)
-
-        return self.cleaned_data
-
-    form_class_dict = {"base_fields": base_fields, "auto_id": True}
-
-    form_class_dict["clean"] = clean_method
-
-    return type(form_class_name, (BaseForm,), form_class_dict)

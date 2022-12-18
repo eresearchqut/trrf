@@ -9,8 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.utils import (consent_status_for_patient, get_form_links,
-                                is_generated_form)
+from rdrf.helpers.utils import (consent_status_for_patient, get_form_links)
 from rdrf.models.definition.models import (ContextFormGroup, RDRFContext,
                                            RegistryType)
 from rdrf.security.security_checks import user_is_patient_type
@@ -454,8 +453,7 @@ class FormsButton(RDRFComponent):
         self.user = user
         self.patient_model = patient_model
         self.context_form_group = context_form_group
-        self.forms = [f for f in form_models if self.user.can_view(
-            f) and not is_generated_form(f)]
+        self.forms = [f for f in form_models if self.user.can_view(f)]
 
     def _get_template_data(self):
         # subclass should build dictionary for template

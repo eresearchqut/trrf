@@ -48,8 +48,6 @@ PERMISSIONS_BY_ROLES = {
         'add_state',
         'change_state',
         'delete_state',
-        'change_questionnaireresponse',
-        'delete_questionnaireresponse',
     ],
 
     'Parents': [],
@@ -98,8 +96,6 @@ PERMISSIONS_BY_ROLES = {
         'add_state',
         'change_state',
         'delete_state',
-        'change_questionnaireresponse',
-        'delete_questionnaireresponse',
     ],
 
     'Working Group Staff': [

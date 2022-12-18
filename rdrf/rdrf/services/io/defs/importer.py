@@ -66,10 +66,6 @@ class ConsistencyError(RegistryImportError):
     pass
 
 
-class QuestionnaireGenerationError(RegistryImportError):
-    pass
-
-
 class ImportState:
     INITIAL = "INITIAL"
     MALFORMED = "MALFORMED"
@@ -192,8 +188,7 @@ class Importer(object):
     def _check_forms(self, imported_registry):
         # double check the import_registry model instance we've created against
         # the original yaml data
-        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(
-            registry=imported_registry) if frm.name != imported_registry.generated_questionnaire_name])
+        form_codes_in_db = set([frm.name for frm in RegistryForm.objects.filter(registry=imported_registry)])
         form_codes_in_yaml = set([frm_map["name"] for frm_map in self.data["forms"]])
         if form_codes_in_db != form_codes_in_yaml:
             msg = "in db: %s in yaml: %s" % (form_codes_in_db, form_codes_in_yaml)
@@ -202,8 +197,6 @@ class Importer(object):
 
     def _check_sections(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
-            if form.name == imported_registry.generated_questionnaire_name:
-                continue
             sections_in_db = set(form.get_sections())
             for section_code in sections_in_db:
                 try:
@@ -228,8 +221,6 @@ class Importer(object):
 
     def _check_cdes(self, imported_registry):
         for form in RegistryForm.objects.filter(registry=imported_registry):
-            if form.name == imported_registry.generated_questionnaire_name:
-                continue
             for section_code in form.get_sections():
                 try:
                     section = Section.objects.get(code=section_code)
@@ -331,9 +322,6 @@ class Importer(object):
                 value.value = value_map["value"]
                 value.desc = value_map["desc"]
 
-                if 'questionnaire_value' in value_map:
-                    value.questionnaire_value = value_map['questionnaire_value']
-
                 if 'position' in value_map:
                     value.position = value_map['position']
 
@@ -414,8 +402,6 @@ class Importer(object):
             s.header = section_map["header"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
             s.extra = section_map["extra"]
             s.save()
             logger.info("saved generic section %s" % s.code)
@@ -428,8 +414,6 @@ class Importer(object):
             s.header = section_map["header"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
             s.extra = section_map["extra"]
             s.save()
             logger.info("saved patient data section  %s" % s.code)
@@ -647,11 +631,6 @@ class Importer(object):
                 f.header = frm_map["header"]
             else:
                 f.header = ""
-            if "questionnaire_display_name" in frm_map:
-                f.questionnaire_display_name = frm_map["questionnaire_display_name"]
-            f.is_questionnaire = frm_map["is_questionnaire"]
-            if "questionnaire_questions" in frm_map:
-                f.questionnaire_questions = frm_map["questionnaire_questions"]
 
             if "applicability_condition" in frm_map:
                 f.applicability_condition = frm_map["applicability_condition"]
@@ -684,11 +663,6 @@ class Importer(object):
         self._create_working_groups(r)
         # create consent sections if they exist
         self._create_consent_sections(r)
-        # generate the questionnaire for this reqistry
-        try:
-            r.generate_questionnaire()
-        except Exception as ex:
-            raise QuestionnaireGenerationError(str(ex))
 
         self._create_form_permissions(r)
         if "demographic_fields" in self.data:
@@ -813,13 +787,9 @@ class Importer(object):
             s.code = section_map["code"]
             s.display_name = section_map["display_name"]
             s.header = section_map["header"]
-            if "questionnaire_display_name" in section_map:
-                s.questionnaire_display_name = section_map["questionnaire_display_name"]
             s.elements = ",".join(section_map["elements"])
             s.allow_multiple = section_map["allow_multiple"]
             s.extra = section_map["extra"]
-            if "questionnaire_help" in section_map:
-                s.questionnaire_help = section_map["questionnaire_help"]
             s.save()
             logger.info("imported section %s OK" % s.code)
 
@@ -935,10 +905,6 @@ class Importer(object):
                     question_code = question_dict["code"]
                     question_position = question_dict["position"]
                     question_label = question_dict["question_label"]
-                    if "questionnaire_label" in question_dict:
-                        questionnaire_label = question_dict["questionnaire_label"]
-                    else:
-                        questionnaire_label = ""
 
                     if "instructions" in question_dict:
                         instructions = question_dict["instructions"]
@@ -950,7 +916,6 @@ class Importer(object):
                     question_model.position = question_position
                     question_model.question_label = question_label
                     question_model.instructions = instructions
-                    question_model.questionnaire_label = questionnaire_label
                     question_model.save()
 
     def _create_demographic_fields(self, data):

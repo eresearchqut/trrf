@@ -24,7 +24,6 @@ from rdrf.views.handler_views import handler404, handler500, handler_application
 from rdrf.views.health_check import health_check
 from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
 from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
-from rdrf.views.lookup_views import PatientLookup
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
@@ -204,19 +203,11 @@ patterns += [
     re_path(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
             FamilyLinkageView.as_view(), name='family_linkage'),
 
-    re_path(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
-            form_view.QuestionnaireView.as_view(), name='questionnaire'),
-    re_path(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
-            name='questionnaire_response'),
     re_path(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
             form_view.FileUploadView.as_view(), name='file_upload'),
-    re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
-            form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
     # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
     # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
-
-    re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
     # --- Embeddable registration views
     re_path(r'^(?P<registry_code>\w+)/embed/register/complete/?$',

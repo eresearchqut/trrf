@@ -26,7 +26,6 @@ def make_link(url, text):
 
 
 class LinkDefs:
-    QuestionnaireResponses = make_link("admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
@@ -100,9 +99,6 @@ class Links:
     # When enabled, doctors links
     ENABLED_DOCTORS = make_entries(LinkDefs.Doctors)
 
-    # When enabled, questionnaire links
-    ENABLED_QUESTIONNAIRE = make_entries(LinkDefs.QuestionnaireResponses)
-
     # When enabled, registration links
     ENABLED_REGISTRATION = make_entries(
         LinkDefs.ParentGuardian,
@@ -124,7 +120,6 @@ class Links:
     DOCTORS = {}
     FAMILY_LINKAGE = {}
     PERMISSIONS = {}
-    QUESTIONNAIRE = {}
     REGISTRATION = {}
     STAGES = {}
 
@@ -209,12 +204,6 @@ class MenuConfig:
         if any(registry.has_feature(RegistryFeatures.DOCTORS_LIST) for registry in self.registries):
             Links.DOCTORS = Links.ENABLED_DOCTORS
 
-    def questionnaire_links(self):
-        links = self.per_registry_links('Questionnaires', 'questionnaire', RegistryFeatures.QUESTIONNAIRES)
-        if len(links) > 0:
-            links.update(Links.ENABLED_QUESTIONNAIRE)
-        Links.QUESTIONNAIRE = links
-
     def family_linkage_links(self):
         Links.FAMILY_LINKAGE = self.per_registry_links(
             'Family Linkage', 'family_linkage', RegistryFeatures.FAMILY_LINKAGE)
@@ -257,7 +246,6 @@ class MenuConfig:
         self.consent_links()
         self.doctors_link()
         self.family_linkage_links()
-        self.questionnaire_links()
         self.permission_matrix_links()
         self.registration_links()
         self.patient_stages_links()
@@ -277,12 +265,10 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.DOCTORS,
             **RegularLinks.REPORTS,
             **RegularLinks.USER_MANAGEMENT,
-            **RegularLinks.QUESTIONNAIRE,
         }
 
         self.clinical = {
             **RegularLinks.PATIENTS,
-            **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REPORTS,
         }
 
@@ -315,7 +301,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
-            **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REGISTRATION,
             **RegularLinks.REPORTS,
             **RegularLinks.STATE_MANAGEMENT,

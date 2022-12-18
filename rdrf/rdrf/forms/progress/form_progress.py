@@ -111,7 +111,7 @@ class FormProgressCalculator:
         model_name = self.form_model.name
         forms_by_name = [
             form_model for form_model in self.registry_model.forms
-            if not form_model.is_questionnaire and form_model.name == model_name
+            if form_model.name == model_name
         ]
         return forms_by_name[0] if forms_by_name else None
 
@@ -306,7 +306,7 @@ class FormProgress:
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
-        forms = self.registry_model.registryform_set.filter(is_questionnaire=False).prefetch_related('complete_form_cdes')
+        forms = self.registry_model.registryform_set.all().prefetch_related('complete_form_cdes')
         return {form.name: set(cde.code for cde in form.complete_form_cdes.all()) for form in forms}
 
     def _get_applicable_form_progress_dict(self, unfiltered_dict):
@@ -367,7 +367,7 @@ class FormProgress:
         has_cfg_forms = context_model and context_model.context_form_group
         form_models = context_model.context_form_group.forms if has_cfg_forms else self.registry_model.forms
         for form_model in form_models:
-            if form_model.is_questionnaire or not self._applicable(form_model):
+            if not self._applicable(form_model):
                 continue
             form_name = form_model.name
             if form_name != current_form_name and form_name in existing_form_dyn_data:
@@ -455,10 +455,7 @@ class FormProgress:
     def _get_viewable_forms(self, user):
         form_container_model = self._get_form_container_model()
 
-        return [f for f in form_container_model.forms if not f.is_questionnaire and user.can_view(f)]
-
-        # return [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
-        #    'position') if not f.is_questionnaire and user.can_view(f)]
+        return [f for f in form_container_model.forms if user.can_view(f)]
 
     def _get_form_container_model(self):
         if self.context_model is not None:

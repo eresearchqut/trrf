@@ -490,7 +490,6 @@
     "fields": {
       "pv_group": "State",
       "code": "ACT",
-      "questionnaire_value": null,
       "value": "Australian Capital Territory",
       "position": null,
       "desc": "Australian Capital Territory"
@@ -502,7 +501,6 @@
     "fields": {
       "pv_group": "AddressType",
       "code": "AddressTypeHome",
-      "questionnaire_value": "Home",
       "value": "Home",
       "position": 1,
       "desc": "Home"
@@ -514,7 +512,6 @@
     "fields": {
       "pv_group": "AddressType",
       "code": "AddressTypePostal",
-      "questionnaire_value": "Postal",
       "value": "Postal",
       "position": 2,
       "desc": "Postal"
@@ -526,7 +523,6 @@
     "fields": {
       "pv_group": "ApheresisFrequency",
       "code": "ApheresisEvery3weeks",
-      "questionnaire_value": null,
       "value": "Once every 3 weeks",
       "position": null,
       "desc": "Once every 3 weeks"
@@ -538,7 +534,6 @@
     "fields": {
       "pv_group": "ApheresisFrequency",
       "code": "ApheresisEvery4weeks",
-      "questionnaire_value": null,
       "value": "Once every 4 weeks",
       "position": null,
       "desc": "Once every 4 weeks"
@@ -550,7 +545,6 @@
     "fields": {
       "pv_group": "ApheresisFrequency",
       "code": "ApheresisFortnightly",
-      "questionnaire_value": null,
       "value": "Once every 2 weeks",
       "position": null,
       "desc": "Once every 2 weeks"
@@ -562,7 +556,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "ApheresisTypePlasmaExchange",
-      "questionnaire_value": null,
       "value": "Plasma Exchange",
       "position": 2,
       "desc": "Plasma Exchange"
@@ -574,7 +567,6 @@
     "fields": {
       "pv_group": "ApheresisFrequency",
       "code": "ApheresisWeekly",
-      "questionnaire_value": null,
       "value": "Once every week",
       "position": null,
       "desc": "Once every week"
@@ -586,7 +578,6 @@
     "fields": {
       "pv_group": "Country",
       "code": "AU",
-      "questionnaire_value": "Australia",
       "value": "Australia",
       "position": 1,
       "desc": "Australia"
@@ -598,7 +589,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantsicd",
-      "questionnaire_value": null,
       "value": "Implantable cardioverter defibrillator",
       "position": null,
       "desc": "Implantable cardioverter defibrillator"
@@ -610,7 +600,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantsno",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -622,7 +611,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantspacemaker",
-      "questionnaire_value": null,
       "value": "Pacemaker",
       "position": null,
       "desc": "Pacemaker"
@@ -634,7 +622,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantsyes",
-      "questionnaire_value": null,
       "value": "Yes, not specified further",
       "position": null,
       "desc": "Yes, not specified further"
@@ -646,7 +633,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "DextranSulphateLDLAdsorption",
-      "questionnaire_value": null,
       "value": "Dextran sulphate LDL adsorption",
       "position": null,
       "desc": "Dextran sulphate LDL adsorption"
@@ -658,7 +644,6 @@
     "fields": {
       "pv_group": "DM1AS",
       "code": "DM1ASAdult",
-      "questionnaire_value": null,
       "value": "Adult Myotonic Dystrophy",
       "position": null,
       "desc": "Adult Myotonic Dystrophy"
@@ -670,7 +655,6 @@
     "fields": {
       "pv_group": "DM1AS",
       "code": "DM1ASAsymptomaticCarrier",
-      "questionnaire_value": null,
       "value": "Asymptomatic Carrier",
       "position": null,
       "desc": "Asymptomatic Carrier"
@@ -682,7 +666,6 @@
     "fields": {
       "pv_group": "DM1AS",
       "code": "DM1ASCongenital",
-      "questionnaire_value": null,
       "value": "Congenital Myotonic Dystrophy",
       "position": null,
       "desc": "Congenital Myotonic Dystrophy"
@@ -694,7 +677,6 @@
     "fields": {
       "pv_group": "DM1AS",
       "code": "DM1ASFamilyHistory",
-      "questionnaire_value": null,
       "value": "Not yet diagnosed/Family history only",
       "position": null,
       "desc": "Not yet diagnosed/Family history only"
@@ -706,7 +688,6 @@
     "fields": {
       "pv_group": "DM1AS",
       "code": "DM1ASJuvenile",
-      "questionnaire_value": null,
       "value": "Juvenile Myotonic Dystrophy",
       "position": null,
       "desc": "Juvenile Myotonic Dystrophy"
@@ -718,7 +699,6 @@
     "fields": {
       "pv_group": "DM1CognitiveImpairment",
       "code": "DM1CognitiveImpairmentMarked",
-      "questionnaire_value": "",
       "value": "Marked",
       "position": 3,
       "desc": "Marked"
@@ -730,7 +710,6 @@
     "fields": {
       "pv_group": "DM1CognitiveImpairment",
       "code": "DM1CognitiveImpairmentMinor",
-      "questionnaire_value": "",
       "value": "Minor",
       "position": 2,
       "desc": "Minor"
@@ -742,7 +721,6 @@
     "fields": {
       "pv_group": "DM1CognitiveImpairment",
       "code": "DM1CognitiveImpairmentNo",
-      "questionnaire_value": "",
       "value": "No",
       "position": 1,
       "desc": "No"
@@ -754,7 +732,6 @@
     "fields": {
       "pv_group": "DM1Condition",
       "code": "DM1ConditionD",
-      "questionnaire_value": null,
       "value": "Dont know",
       "position": null,
       "desc": "Dont know"
@@ -766,7 +743,6 @@
     "fields": {
       "pv_group": "DM1Condition",
       "code": "DM1ConditionDM1",
-      "questionnaire_value": null,
       "value": "DM1",
       "position": null,
       "desc": "DM1"
@@ -778,7 +754,6 @@
     "fields": {
       "pv_group": "DM1Condition",
       "code": "DM1ConditionDM2",
-      "questionnaire_value": null,
       "value": "DM2",
       "position": null,
       "desc": "DM2"
@@ -790,7 +765,6 @@
     "fields": {
       "pv_group": "DM1Condition",
       "code": "DM1ConditionN",
-      "questionnaire_value": null,
       "value": "Not yet diagnosed",
       "position": null,
       "desc": "Not yet diagnosed"
@@ -802,7 +776,6 @@
     "fields": {
       "pv_group": "DM1Diabetes",
       "code": "DM1DiabetesNot",
-      "questionnaire_value": "",
       "value": "Not diagnosed",
       "position": 1,
       "desc": "Not diagnosed"
@@ -814,7 +787,6 @@
     "fields": {
       "pv_group": "DM1Diabetes",
       "code": "DM1DiabetesSugarIntolerance",
-      "questionnaire_value": "",
       "value": "Has sugar intolerance but not diabetes",
       "position": 2,
       "desc": "Has sugar intolerance but not diabetes"
@@ -826,7 +798,6 @@
     "fields": {
       "pv_group": "DM1Diabetes",
       "code": "DM1DiabetesType1",
-      "questionnaire_value": "",
       "value": "Yes, Type 1 Diabetes",
       "position": 3,
       "desc": "Yes, Type 1 Diabetes"
@@ -838,7 +809,6 @@
     "fields": {
       "pv_group": "DM1Diabetes",
       "code": "DM1DiabetesType2",
-      "questionnaire_value": "",
       "value": "Yes, Type 2 Diabetes",
       "position": 4,
       "desc": "Yes, Type 2 Diabetes"
@@ -850,7 +820,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationCollage",
-      "questionnaire_value": "",
       "value": "Trade or collage of advanced vocational education (including TAFE)",
       "position": 5,
       "desc": "Trade or collage of advanced vocational education (including TAFE)"
@@ -862,7 +831,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationHighSchool",
-      "questionnaire_value": "",
       "value": "High School Certificate or equivalent",
       "position": 4,
       "desc": "High School Certificate or equivalent"
@@ -874,7 +842,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationNoSecondary",
-      "questionnaire_value": "",
       "value": "Not completed secondary school",
       "position": 2,
       "desc": "Not completed secondary school"
@@ -886,7 +853,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationPostgraduate",
-      "questionnaire_value": "",
       "value": "Post-graduate qualifications",
       "position": 7,
       "desc": "Post-graduate qualifications"
@@ -898,7 +864,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationSecondary",
-      "questionnaire_value": "",
       "value": "Completed Secondary Education",
       "position": 3,
       "desc": "Completed Secondary Education"
@@ -910,7 +875,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationSpecial",
-      "questionnaire_value": "",
       "value": "Special Education",
       "position": 1,
       "desc": "Special Education"
@@ -922,7 +886,6 @@
     "fields": {
       "pv_group": "DM1Education",
       "code": "DM1EducationTertiary",
-      "questionnaire_value": "",
       "value": "Tertiary Education (including university)",
       "position": 6,
       "desc": "Tertiary Education (including university)"
@@ -934,7 +897,6 @@
     "fields": {
       "pv_group": "DM1AffectedEmployment",
       "code": "DM1EmpAffectedNo",
-      "questionnaire_value": "",
       "value": "No",
       "position": 3,
       "desc": "No"
@@ -946,7 +908,6 @@
     "fields": {
       "pv_group": "DM1AffectedEmployment",
       "code": "DM1EmpAffectedUncertain",
-      "questionnaire_value": "",
       "value": "Uncertain",
       "position": 4,
       "desc": "Uncertain"
@@ -958,7 +919,6 @@
     "fields": {
       "pv_group": "DM1AffectedEmployment",
       "code": "DM1EmpAffectedYes",
-      "questionnaire_value": "",
       "value": "Yes, has resulted in unemployment",
       "position": 1,
       "desc": "Yes, has resulted in unemployment"
@@ -970,7 +930,6 @@
     "fields": {
       "pv_group": "DM1AffectedEmployment",
       "code": "DM1EmpAffectedYesLimited",
-      "questionnaire_value": "",
       "value": "Yes, has limited employment choices",
       "position": 2,
       "desc": "Yes, has limited employment choices"
@@ -982,7 +941,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicAboriginal",
-      "questionnaire_value": "",
       "value": "Aboriginal or Torres Strait Islander",
       "position": 1,
       "desc": "Aboriginal or Torres Strait Islander"
@@ -994,7 +952,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicBlack",
-      "questionnaire_value": "",
       "value": "Black African/African American",
       "position": 2,
       "desc": "Black African/African American"
@@ -1006,7 +963,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicCaucasian",
-      "questionnaire_value": "",
       "value": "Caucasian/European",
       "position": 3,
       "desc": "Caucasian/European"
@@ -1018,7 +974,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicChinese",
-      "questionnaire_value": "",
       "value": "Chinese",
       "position": 4,
       "desc": "Chinese"
@@ -1030,7 +985,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicDeclineToAnswer",
-      "questionnaire_value": "",
       "value": "Decline to answer",
       "position": 11,
       "desc": "Decline to answer"
@@ -1042,7 +996,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicIndian",
-      "questionnaire_value": "",
       "value": "Indian",
       "position": 5,
       "desc": "Indian"
@@ -1054,7 +1007,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicMaori",
-      "questionnaire_value": "",
       "value": "Maori",
       "position": 6,
       "desc": "Maori"
@@ -1066,7 +1018,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicMiddleEast",
-      "questionnaire_value": "",
       "value": "Middle Eastern",
       "position": 7,
       "desc": "Middle Eastern"
@@ -1078,7 +1029,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicOther",
-      "questionnaire_value": "",
       "value": "Other",
       "position": 10,
       "desc": "Other"
@@ -1090,7 +1040,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicOtherAsian",
-      "questionnaire_value": "",
       "value": "Other Asian",
       "position": 9,
       "desc": "Other Asian"
@@ -1102,7 +1051,6 @@
     "fields": {
       "pv_group": "DM1EthnicOrigins",
       "code": "DM1EthnicPacific",
-      "questionnaire_value": "",
       "value": "Person from the Pacific Islands",
       "position": 8,
       "desc": "Person from the Pacific Islands"
@@ -1114,7 +1062,6 @@
     "fields": {
       "pv_group": "DM1FatigueDozing",
       "code": "DM1FatigueDozingHighChance",
-      "questionnaire_value": "",
       "value": "High chance of dozing",
       "position": 4,
       "desc": "High chance of dozing"
@@ -1126,7 +1073,6 @@
     "fields": {
       "pv_group": "DM1FatigueDozing",
       "code": "DM1FatigueDozingNever",
-      "questionnaire_value": "",
       "value": "Would never doze",
       "position": 1,
       "desc": "Would never doze"
@@ -1138,7 +1084,6 @@
     "fields": {
       "pv_group": "DM1FatigueDozing",
       "code": "DM1FatigueDozingSlightChance",
-      "questionnaire_value": "",
       "value": "Slight chance of dozing",
       "position": 2,
       "desc": "Slight chance of dozing"
@@ -1150,7 +1095,6 @@
     "fields": {
       "pv_group": "DM1FatigueDozing",
       "code": "DM1FatigueModerateChance",
-      "questionnaire_value": "",
       "value": "Moderate chance of dozing",
       "position": 3,
       "desc": "Moderate chance of dozing"
@@ -1162,7 +1106,6 @@
     "fields": {
       "pv_group": "DM1FatigueYesNo",
       "code": "DM1FatigueNo",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -1174,7 +1117,6 @@
     "fields": {
       "pv_group": "DM1FatigueYesNo",
       "code": "DM1FatigueYesMildly",
-      "questionnaire_value": null,
       "value": "Yes, mildly",
       "position": null,
       "desc": "Yes, mildly"
@@ -1186,7 +1128,6 @@
     "fields": {
       "pv_group": "DM1FatigueYesNo",
       "code": "DM1FatigueYesSeverely",
-      "questionnaire_value": null,
       "value": "Yes, severely",
       "position": null,
       "desc": "Yes, severely"
@@ -1198,7 +1139,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS1",
-      "questionnaire_value": null,
       "value": "Prenatal - polyhydramnios and reduced fetal movements",
       "position": null,
       "desc": "Prenatal - polyhydramnios and reduced fetal movements"
@@ -1210,7 +1150,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS10",
-      "questionnaire_value": null,
       "value": "Anaesthetic problems",
       "position": null,
       "desc": "Anaesthetic problems"
@@ -1222,7 +1161,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS11",
-      "questionnaire_value": null,
       "value": "Patient is the mother of a child with congenital myotonic dystrophy",
       "position": null,
       "desc": "Patient is the mother of a child with congenital myotonic dystrophy"
@@ -1234,7 +1172,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS12",
-      "questionnaire_value": null,
       "value": "Patient asymptomatic",
       "position": null,
       "desc": "Patient asymptomatic"
@@ -1246,7 +1183,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS13",
-      "questionnaire_value": null,
       "value": "Diagnosis of a family member with Myotonic dystrophy",
       "position": null,
       "desc": "Diagnosis of a family member with Myotonic dystrophy"
@@ -1258,7 +1194,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS14",
-      "questionnaire_value": null,
       "value": "Other",
       "position": null,
       "desc": "Other"
@@ -1270,7 +1205,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS2",
-      "questionnaire_value": null,
       "value": "Feeding difficulties requiring tube at or near term",
       "position": null,
       "desc": "Feeding difficulties requiring tube at or near term"
@@ -1282,7 +1216,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS3",
-      "questionnaire_value": null,
       "value": "Hypotonia",
       "position": null,
       "desc": "Hypotonia"
@@ -1294,7 +1227,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS4",
-      "questionnaire_value": null,
       "value": "Learning difficulties",
       "position": null,
       "desc": "Learning difficulties"
@@ -1306,7 +1238,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS5",
-      "questionnaire_value": null,
       "value": "Delayed development",
       "position": null,
       "desc": "Delayed development"
@@ -1318,7 +1249,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS6",
-      "questionnaire_value": null,
       "value": "Myotonia",
       "position": null,
       "desc": "Myotonia"
@@ -1330,7 +1260,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS7",
-      "questionnaire_value": null,
       "value": "Muscle weakness",
       "position": null,
       "desc": "Muscle weakness"
@@ -1342,7 +1271,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS8",
-      "questionnaire_value": null,
       "value": "Bilateral cataracts",
       "position": null,
       "desc": "Bilateral cataracts"
@@ -1354,7 +1282,6 @@
     "fields": {
       "pv_group": "DM1FS",
       "code": "DM1FS9",
-      "questionnaire_value": null,
       "value": "Cardiac symptoms",
       "position": null,
       "desc": "Cardiac symptoms"
@@ -1366,7 +1293,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBCardiologist",
-      "questionnaire_value": null,
       "value": "Cardiologist",
       "position": null,
       "desc": "Cardiologist"
@@ -1378,7 +1304,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBFamily",
-      "questionnaire_value": null,
       "value": "Family",
       "position": null,
       "desc": "Family"
@@ -1390,7 +1315,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBGeneticist",
-      "questionnaire_value": null,
       "value": "Geneticist",
       "position": null,
       "desc": "Geneticist"
@@ -1402,7 +1326,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBGP",
-      "questionnaire_value": null,
       "value": "GP",
       "position": null,
       "desc": "GP"
@@ -1414,7 +1337,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBNA",
-      "questionnaire_value": null,
       "value": "Not Applicable",
       "position": null,
       "desc": "Not Applicable"
@@ -1426,7 +1348,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBNeurologist",
-      "questionnaire_value": null,
       "value": "Neurologist",
       "position": null,
       "desc": "Neurologist"
@@ -1438,7 +1359,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBOphthalmologist",
-      "questionnaire_value": null,
       "value": "Ophthalmologist",
       "position": null,
       "desc": "Ophthalmologist"
@@ -1450,7 +1370,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBOther",
-      "questionnaire_value": null,
       "value": "Other",
       "position": null,
       "desc": "Other"
@@ -1462,7 +1381,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBPaediatrician",
-      "questionnaire_value": null,
       "value": "Paediatrician",
       "position": null,
       "desc": "Paediatrician"
@@ -1474,7 +1392,6 @@
     "fields": {
       "pv_group": "DM1FSB",
       "code": "DM1FSBSelf",
-      "questionnaire_value": null,
       "value": "Self",
       "position": null,
       "desc": "Self"
@@ -1486,7 +1403,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab1",
-      "questionnaire_value": "",
       "value": "Genetics and Molecular Pathology, SA Pathology, SA",
       "position": 1,
       "desc": "Genetics and Molecular Pathology, SA Pathology, SA"
@@ -1498,7 +1414,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab2",
-      "questionnaire_value": "",
       "value": "Molecular Genetics Laboratory, Pathology Queensland, QLD",
       "position": 2,
       "desc": "Molecular Genetics Laboratory, Pathology Queensland, QLD"
@@ -1510,7 +1425,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab3",
-      "questionnaire_value": "",
       "value": "Molecular Medicine Laboratory, Concord, NSW",
       "position": 3,
       "desc": "Molecular Medicine Laboratory, Concord, NSW"
@@ -1522,7 +1436,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab4",
-      "questionnaire_value": "",
       "value": "Molecular Genetics Laboratory, Victorian Clinical Genetics, VIC",
       "position": 4,
       "desc": "Molecular Genetics Laboratory, Victorian Clinical Genetics, VIC"
@@ -1534,7 +1447,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab5",
-      "questionnaire_value": "",
       "value": "Neurogenetics Laboratory, RPH, WA",
       "position": 5,
       "desc": "Neurogenetics Laboratory, RPH, WA"
@@ -1546,7 +1458,6 @@
     "fields": {
       "pv_group": "DM1TestingLaboratory",
       "code": "DM1Lab6",
-      "questionnaire_value": "",
       "value": "Diagnostic Genetics, LabPlus, Auckland, NZ",
       "position": 6,
       "desc": "Diagnostic Genetics, LabPlus, Auckland, NZ"
@@ -1558,7 +1469,6 @@
     "fields": {
       "pv_group": "DM1MotorFunction",
       "code": "DM1MotorFunctionassisted",
-      "questionnaire_value": null,
       "value": "Walking assisted",
       "position": null,
       "desc": "Walking assisted"
@@ -1570,7 +1480,6 @@
     "fields": {
       "pv_group": "DM1MotorFunction",
       "code": "DM1MotorFunctionnonamb",
-      "questionnaire_value": null,
       "value": "Non-ambulatory",
       "position": null,
       "desc": "Non-ambulatory"
@@ -1582,7 +1491,6 @@
     "fields": {
       "pv_group": "DM1MotorFunction",
       "code": "DM1MotorFunctionwalking",
-      "questionnaire_value": null,
       "value": "Walking independently",
       "position": null,
       "desc": "Walking independently"
@@ -1594,7 +1502,6 @@
     "fields": {
       "pv_group": "Dm1NonInvVen",
       "code": "Dm1NonInvVenN",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -1606,7 +1513,6 @@
     "fields": {
       "pv_group": "Dm1NonInvVen",
       "code": "Dm1NonInvVenPT",
-      "questionnaire_value": null,
       "value": "Yes (night only)",
       "position": null,
       "desc": "Yes (night only)"
@@ -1618,7 +1524,6 @@
     "fields": {
       "pv_group": "Dm1NonInvVen",
       "code": "Dm1NonInvVenY",
-      "questionnaire_value": null,
       "value": "Yes (day and night)",
       "position": null,
       "desc": "Yes (day and night)"
@@ -1630,7 +1535,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationDisabled",
-      "questionnaire_value": "",
       "value": "Disabled",
       "position": 5,
       "desc": "Disabled"
@@ -1642,7 +1546,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationEmployed",
-      "questionnaire_value": "",
       "value": "Employed",
       "position": 1,
       "desc": "Employed"
@@ -1654,7 +1557,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationHomemaker",
-      "questionnaire_value": "",
       "value": "Homemaker",
       "position": 2,
       "desc": "Homemaker"
@@ -1666,7 +1568,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationRetired",
-      "questionnaire_value": "",
       "value": "Retired",
       "position": 4,
       "desc": "Retired"
@@ -1678,7 +1579,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationStudent",
-      "questionnaire_value": "",
       "value": "Student",
       "position": 3,
       "desc": "Student"
@@ -1690,7 +1590,6 @@
     "fields": {
       "pv_group": "DM1Occupation",
       "code": "DM1OccupationUnemployedNotDis",
-      "questionnaire_value": "",
       "value": "Unemployed - not due to disablement",
       "position": 6,
       "desc": "Unemployed - not due to disablement"
@@ -1702,7 +1601,6 @@
     "fields": {
       "pv_group": "Dysarthria",
       "code": "Dysarthria0",
-      "questionnaire_value": null,
       "value": "No dysarthria",
       "position": null,
       "desc": "No dysarthria"
@@ -1714,7 +1612,6 @@
     "fields": {
       "pv_group": "Dysarthria",
       "code": "Dysarthria1",
-      "questionnaire_value": null,
       "value": "Slightly slurred speech",
       "position": null,
       "desc": "Slightly slurred speech"
@@ -1726,7 +1623,6 @@
     "fields": {
       "pv_group": "Dysarthria",
       "code": "Dysarthria2",
-      "questionnaire_value": null,
       "value": "Some problems being understood",
       "position": null,
       "desc": "Some problems being understood"
@@ -1738,7 +1634,6 @@
     "fields": {
       "pv_group": "Dysarthria",
       "code": "Dysarthria3",
-      "questionnaire_value": null,
       "value": "Significant speech problems",
       "position": null,
       "desc": "Significant speech problems"
@@ -1750,7 +1645,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "EmotionalCounseling",
-      "questionnaire_value": null,
       "value": "Emotional or psychological counseling",
       "position": 3,
       "desc": "Emotional or psychological counseling"
@@ -1762,7 +1656,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOAboriginal",
-      "questionnaire_value": null,
       "value": "Aboriginal",
       "position": 1,
       "desc": "Aboriginal\r\n"
@@ -1774,7 +1667,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOBlackAfricanAfricanAmerican",
-      "questionnaire_value": "",
       "value": "Black African/African American",
       "position": 2,
       "desc": "Black African/African American\r\n"
@@ -1786,7 +1678,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOCaucasianEuropean",
-      "questionnaire_value": "",
       "value": "Caucasian/European",
       "position": 3,
       "desc": "Caucasian/European\r\n"
@@ -1798,7 +1689,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOChinese",
-      "questionnaire_value": "",
       "value": "Chinese",
       "position": 4,
       "desc": "Chinese\r\n"
@@ -1810,7 +1700,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EODeclineToAnswer",
-      "questionnaire_value": null,
       "value": "Decline to Answer",
       "position": 12,
       "desc": "Decline to Answer"
@@ -1822,7 +1711,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOIndian",
-      "questionnaire_value": "",
       "value": "Indian",
       "position": 5,
       "desc": "Indian\r\n"
@@ -1834,7 +1722,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOMaori",
-      "questionnaire_value": "",
       "value": "Maori",
       "position": 6,
       "desc": "Maori\r\n"
@@ -1846,7 +1733,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOMiddleEastern",
-      "questionnaire_value": "",
       "value": "Middle eastern",
       "position": 7,
       "desc": "Middle eastern\r\n"
@@ -1858,7 +1744,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOOther",
-      "questionnaire_value": null,
       "value": "Other",
       "position": 11,
       "desc": "Other\r\n"
@@ -1870,7 +1755,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOOtherAsian",
-      "questionnaire_value": null,
       "value": "Other Asian",
       "position": 10,
       "desc": "Other Asian\r\n"
@@ -1882,7 +1766,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOPacificIslander",
-      "questionnaire_value": "",
       "value": "Person from the Pacific Islands",
       "position": 8,
       "desc": "Person from the Pacific Islands\r\n"
@@ -1894,7 +1777,6 @@
     "fields": {
       "pv_group": "EthnicOrigin",
       "code": "EOTorresStraitIslands",
-      "questionnaire_value": "",
       "value": "Person from the Torres Strait Islands",
       "position": 9,
       "desc": "Person from the Torres Strait Islands\r\n"
@@ -1906,7 +1788,6 @@
     "fields": {
       "pv_group": "Sex",
       "code": "F",
-      "questionnaire_value": null,
       "value": "Female",
       "position": null,
       "desc": "Female"
@@ -1918,7 +1799,6 @@
     "fields": {
       "pv_group": "FSHDFacialWeakness",
       "code": "FacialWeaknessNoWeakness",
-      "questionnaire_value": "I have no signs or symptoms of facial muscle weakness",
       "value": "No Weakness",
       "position": 1,
       "desc": "No weakness"
@@ -1930,7 +1810,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryChildren",
-      "questionnaire_value": "Yes, one or several of my children",
       "value": "Affected child(children)",
       "position": 4,
       "desc": "Affected child(children)"
@@ -1942,7 +1821,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryFather",
-      "questionnaire_value": "Yes, father",
       "value": "Affected father",
       "position": 2,
       "desc": "Affected father"
@@ -1954,7 +1832,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryMother",
-      "questionnaire_value": "Yes, mother",
       "value": "Affected mother",
       "position": 1,
       "desc": "Affected mother"
@@ -1966,7 +1843,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryNo",
-      "questionnaire_value": "No",
       "value": "No",
       "position": 6,
       "desc": "No\r\n"
@@ -1978,7 +1854,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryOther",
-      "questionnaire_value": "Yes, other relatives (other than parents/ siblings/ children)",
       "value": "Other affected relative",
       "position": 5,
       "desc": "Other affected relative\r\n"
@@ -1990,7 +1865,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistorySiblings",
-      "questionnaire_value": "Yes, one or several of my siblings (brothers and sisters)",
       "value": "Affected sibling(s)",
       "position": 3,
       "desc": "Affected sibling(s)"
@@ -2002,7 +1876,6 @@
     "fields": {
       "pv_group": "FamilyHistory",
       "code": "FamilyHistoryUnknown",
-      "questionnaire_value": "I don't know",
       "value": "Unknown",
       "position": 7,
       "desc": "Unknown"
@@ -2014,7 +1887,6 @@
     "fields": {
       "pv_group": "FHFamHist2",
       "code": "fh2_n",
-      "questionnaire_value": null,
       "value": "No",
       "position": 1,
       "desc": "No"
@@ -2026,7 +1898,6 @@
     "fields": {
       "pv_group": "FHFamHist2",
       "code": "fh2_u",
-      "questionnaire_value": null,
       "value": "Unknown",
       "position": 3,
       "desc": "Unknown"
@@ -2038,7 +1909,6 @@
     "fields": {
       "pv_group": "FHFamHist2",
       "code": "fh2_y",
-      "questionnaire_value": null,
       "value": "Yes, first-degree relative",
       "position": 2,
       "desc": "Yes, first-degree relative"
@@ -2050,7 +1920,6 @@
     "fields": {
       "pv_group": "fh_degree_of_relation",
       "code": "fh_deg_rel_fifth_or_greater",
-      "questionnaire_value": null,
       "value": "Fifth or greater",
       "position": null,
       "desc": "Fifth or greater"
@@ -2062,7 +1931,6 @@
     "fields": {
       "pv_group": "fh_degree_of_relation",
       "code": "fh_deg_rel_first",
-      "questionnaire_value": null,
       "value": "First",
       "position": null,
       "desc": "First"
@@ -2074,7 +1942,6 @@
     "fields": {
       "pv_group": "fh_degree_of_relation",
       "code": "fh_deg_rel_fourth",
-      "questionnaire_value": null,
       "value": "Fourth",
       "position": null,
       "desc": "Fourth"
@@ -2086,7 +1953,6 @@
     "fields": {
       "pv_group": "fh_degree_of_relation",
       "code": "fh_deg_rel_second",
-      "questionnaire_value": null,
       "value": "Second",
       "position": null,
       "desc": "Second"
@@ -2098,7 +1964,6 @@
     "fields": {
       "pv_group": "fh_degree_of_relation",
       "code": "fh_deg_rel_third",
-      "questionnaire_value": null,
       "value": "Third",
       "position": null,
       "desc": "Third"
@@ -2110,7 +1975,6 @@
     "fields": {
       "pv_group": "fh_genetic_typing_types",
       "code": "fh_gen_typing_value1",
-      "questionnaire_value": null,
       "value": "Value1",
       "position": null,
       "desc": "value1"
@@ -2122,7 +1986,6 @@
     "fields": {
       "pv_group": "fh_genetic_typing_types",
       "code": "fh_gen_typing_value2",
-      "questionnaire_value": null,
       "value": "Value2",
       "position": null,
       "desc": "Value2"
@@ -2134,7 +1997,6 @@
     "fields": {
       "pv_group": "PVG-FH-IndexOrRelative",
       "code": "fh_is_index",
-      "questionnaire_value": null,
       "value": "index",
       "position": null,
       "desc": "index"
@@ -2146,7 +2008,6 @@
     "fields": {
       "pv_group": "PVG-FH-IndexOrRelative",
       "code": "fh_is_relative",
-      "questionnaire_value": null,
       "value": "relative",
       "position": null,
       "desc": "relative"
@@ -2158,7 +2019,6 @@
     "fields": {
       "pv_group": "FHMutation",
       "code": "FHMutationAPOB",
-      "questionnaire_value": null,
       "value": "APOB",
       "position": null,
       "desc": "APOB"
@@ -2170,7 +2030,6 @@
     "fields": {
       "pv_group": "FHMutation",
       "code": "FHMutationLDLR",
-      "questionnaire_value": null,
       "value": "LDLR",
       "position": null,
       "desc": "LDLR"
@@ -2182,7 +2041,6 @@
     "fields": {
       "pv_group": "FHMutation",
       "code": "FHMutationPCSK9",
-      "questionnaire_value": null,
       "value": "PCSK9",
       "position": null,
       "desc": "PCSK9"
@@ -2194,7 +2052,6 @@
     "fields": {
       "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN",
       "code": "fh_n",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -2206,7 +2063,6 @@
     "fields": {
       "pv_group": "FHNonInvasiveVentilationAmount",
       "code": "FHNIVFull-time",
-      "questionnaire_value": "Yes, all day",
       "value": "Full-time",
       "position": 1,
       "desc": "Full-time"
@@ -2218,7 +2074,6 @@
     "fields": {
       "pv_group": "FHNonInvasiveVentilationAmount",
       "code": "FHNIVNone",
-      "questionnaire_value": "No, never",
       "value": "None",
       "position": 3,
       "desc": "None"
@@ -2230,7 +2085,6 @@
     "fields": {
       "pv_group": "FHNonInvasiveVentilationAmount",
       "code": "FHNIVPart-time",
-      "questionnaire_value": "Yes, but only part-time, e.g. at night",
       "value": "Part-time",
       "position": 2,
       "desc": "Part-time"
@@ -2242,7 +2096,6 @@
     "fields": {
       "pv_group": "FHPremCVD2",
       "code": "fhpremcvd_no",
-      "questionnaire_value": null,
       "value": "No",
       "position": 1,
       "desc": "No"
@@ -2254,7 +2107,6 @@
     "fields": {
       "pv_group": "FHPremCVD2",
       "code": "fhpremcvd_unknown",
-      "questionnaire_value": null,
       "value": "Unknown",
       "position": 4,
       "desc": "Unknown"
@@ -2266,7 +2118,6 @@
     "fields": {
       "pv_group": "FHPremCVD2",
       "code": "fhpremcvd_yes_cerebralorpvd",
-      "questionnaire_value": null,
       "value": "Yes, cerebral or peripheral vascular disease",
       "position": 3,
       "desc": "Yes, cerebral or peripheral vascular disease"
@@ -2278,7 +2129,6 @@
     "fields": {
       "pv_group": "FHPremCVD2",
       "code": "fhpremcvd_yes_corheartdisease",
-      "questionnaire_value": null,
       "value": "Yes, coronary heart disease",
       "position": 2,
       "desc": "Yes, coronary heart disease"
@@ -2290,7 +2140,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_1st_cousin",
-      "questionnaire_value": null,
       "value": "1st Cousin",
       "position": null,
       "desc": "1st Cousin"
@@ -2302,7 +2151,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_1st_cousin_oncerem",
-      "questionnaire_value": null,
       "value": "1st Cousin Once Removed",
       "position": null,
       "desc": "1st Cousin Once Removed"
@@ -2314,7 +2162,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_child",
-      "questionnaire_value": null,
       "value": "Child",
       "position": null,
       "desc": "Child"
@@ -2326,7 +2173,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_grandchild",
-      "questionnaire_value": null,
       "value": "Grandchild",
       "position": null,
       "desc": "Grandchild"
@@ -2338,7 +2184,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_grandparent",
-      "questionnaire_value": null,
       "value": "Grandparent",
       "position": null,
       "desc": "Grandparent"
@@ -2350,7 +2195,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_great_grandchild",
-      "questionnaire_value": null,
       "value": "Great Grandchild",
       "position": null,
       "desc": "Great Grandchild"
@@ -2362,7 +2206,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_great_grandparent",
-      "questionnaire_value": null,
       "value": "Great Grandparent",
       "position": null,
       "desc": "Great Grandparent"
@@ -2374,7 +2217,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_great_niece_nephew",
-      "questionnaire_value": null,
       "value": "Great Niece/Nephew",
       "position": null,
       "desc": "Great Niece/Nephew"
@@ -2386,7 +2228,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_great_uncle_aunt",
-      "questionnaire_value": null,
       "value": "Great Uncle/Aunt",
       "position": null,
       "desc": "Great Uncle/Aunt"
@@ -2398,7 +2239,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_half_sibling",
-      "questionnaire_value": null,
       "value": "Half Sibling",
       "position": null,
       "desc": "Half Sibling"
@@ -2410,7 +2250,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_identical_twin",
-      "questionnaire_value": null,
       "value": "Identical Twin",
       "position": null,
       "desc": "Identical Twin"
@@ -2422,7 +2261,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_niece_nephew",
-      "questionnaire_value": null,
       "value": "Niece/Nephew",
       "position": null,
       "desc": "Niece/Nephew"
@@ -2434,7 +2272,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_nonidentical_twin",
-      "questionnaire_value": null,
       "value": "Non-identical Twin",
       "position": null,
       "desc": "Non-identical Twin"
@@ -2446,7 +2283,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_not_blood_relative",
-      "questionnaire_value": null,
       "value": "Not blood relative",
       "position": null,
       "desc": "Not blood relative"
@@ -2458,7 +2294,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_other",
-      "questionnaire_value": null,
       "value": "Other",
       "position": null,
       "desc": "Other"
@@ -2470,7 +2305,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_parent",
-      "questionnaire_value": null,
       "value": "Parent",
       "position": null,
       "desc": "Parent"
@@ -2482,7 +2316,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_sibling",
-      "questionnaire_value": null,
       "value": "Sibling",
       "position": null,
       "desc": "Sibling"
@@ -2494,7 +2327,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_spouse",
-      "questionnaire_value": null,
       "value": "Spouse",
       "position": null,
       "desc": "Spouse"
@@ -2506,7 +2338,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_uncle_aunty",
-      "questionnaire_value": null,
       "value": "Uncle/Aunty",
       "position": null,
       "desc": "Uncle/Aunty"
@@ -2518,7 +2349,6 @@
     "fields": {
       "pv_group": "fh_relatives",
       "code": "fh_relative_unknown",
-      "questionnaire_value": null,
       "value": "Unknown",
       "position": null,
       "desc": "Unknown"
@@ -2530,7 +2360,6 @@
     "fields": {
       "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN",
       "code": "fh_u",
-      "questionnaire_value": null,
       "value": "Unknown",
       "position": null,
       "desc": "Unknown"
@@ -2542,7 +2371,6 @@
     "fields": {
       "pv_group": "FHWCSUse",
       "code": "FHWCSUseFulltime",
-      "questionnaire_value": "I use a wheelchair or mobility scooter all the time",
       "value": "Full-time",
       "position": 3,
       "desc": "Full-time"
@@ -2554,7 +2382,6 @@
     "fields": {
       "pv_group": "FHWCSUse",
       "code": "FHWCSUseNone",
-      "questionnaire_value": "No, not at all",
       "value": "None",
       "position": 1,
       "desc": "None"
@@ -2566,7 +2393,6 @@
     "fields": {
       "pv_group": "FHWCSUse",
       "code": "FHWCSUseParttime",
-      "questionnaire_value": "I use a wheelchair or mobility scooter part-time ",
       "value": "Part-time",
       "position": 2,
       "desc": "Part-time"
@@ -2578,7 +2404,6 @@
     "fields": {
       "pv_group": "fh_yes_no",
       "code": "fh_yes_no_no",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -2590,7 +2415,6 @@
     "fields": {
       "pv_group": "fh_yes_no",
       "code": "fh_yes_no_yes",
-      "questionnaire_value": null,
       "value": "Yes",
       "position": null,
       "desc": "Yes"
@@ -2602,7 +2426,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDCollege",
-      "questionnaire_value": null,
       "value": "College",
       "position": 5,
       "desc": "College"
@@ -2614,7 +2437,6 @@
     "fields": {
       "pv_group": "FSHDMethodOfTestingD4Z4",
       "code": "FSHDD4Z4EcoR1AvrIIDigest ",
-      "questionnaire_value": null,
       "value": " (EcoR1/AvrII) digest and Southern blot. Comment: This method is unable to distinquish 4q allele A(pathogenic)  from 4q B (non-pathogeneic). In 5% of cases method is confounded by  inter-chromosomal exchanges with homologous 10q26D4Z4.",
       "position": null,
       "desc": " (EcoR1/AvrII) digest and Southern blot. Comment: This method is unable to distinquish 4q allele A(pathogenic)  from 4q B (non-pathogeneic). In 5% of cases method is confounded by  inter-chromosomal exchanges with homologous 10q26D4Z4.\r\n"
@@ -2626,7 +2448,6 @@
     "fields": {
       "pv_group": "FSHDMethodOfTestingD4Z4",
       "code": "FSHDD4Z4EcoR1Blnl",
-      "questionnaire_value": null,
       "value": "(EcoR1/Blnl) digest and Southern blot. Comment: This method is unable to distinquish 4q allele A(pathogenic)  from 4q B (non-pathogeneic). In 5% of cases method is confounded by  inter-chromosomal exchanges with homologous 10q26D4Z4",
       "position": null,
       "desc": " (EcoR1/Blnl) digest and Southern blot. Comment: This method is unable to distinquish 4q allele A(pathogenic)  from 4q B (non-pathogeneic). In 5% of cases method is confounded by  inter-chromosomal exchanges with homologous 10q26D4Z4\r\n"
@@ -2638,7 +2459,6 @@
     "fields": {
       "pv_group": "FSHDMethodOfTestingD4Z4",
       "code": "FSHDD4Z4Other",
-      "questionnaire_value": null,
       "value": "Other ( Add comment )",
       "position": null,
       "desc": "Other ( add comment )"
@@ -2650,7 +2470,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDDisabledFSHD",
-      "questionnaire_value": null,
       "value": "Disabled because of FSHD",
       "position": 5,
       "desc": "Disabled because of FSHD"
@@ -2662,7 +2481,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDDisabledNotFSHD",
-      "questionnaire_value": null,
       "value": "Disabled not due to FSHD",
       "position": 6,
       "desc": "Disabled not due to FSHD"
@@ -2674,7 +2492,6 @@
     "fields": {
       "pv_group": "FSHDAffectedEmplQ",
       "code": "FSHDEarlyRetirement",
-      "questionnaire_value": "",
       "value": "Early retirement",
       "position": 4,
       "desc": "Early retirement"
@@ -2686,7 +2503,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDEduDontKnow",
-      "questionnaire_value": null,
       "value": "Don't know",
       "position": 8,
       "desc": "Don't know"
@@ -2698,7 +2514,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDEduOther",
-      "questionnaire_value": null,
       "value": "Other",
       "position": 7,
       "desc": "Other"
@@ -2710,7 +2525,6 @@
     "fields": {
       "pv_group": "FSHDFacialWeakness",
       "code": "FSHDFacialWeaknessTroubleWhist",
-      "questionnaire_value": "I have trouble whistling/drinking through a straw",
       "value": "Trouble whistling/drinking through a straw",
       "position": 5,
       "desc": "Trouble whistling/drinking through a straw\r\n"
@@ -2722,7 +2536,6 @@
     "fields": {
       "pv_group": "FSHDAffectedEmplQ",
       "code": "FSHDForcedDisability",
-      "questionnaire_value": "",
       "value": "Forced to go on disability",
       "position": 3,
       "desc": "Forced to go on disability"
@@ -2734,7 +2547,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestNegFSHD1BKDFSDH",
-      "questionnaire_value": null,
       "value": "Genetic test is negative for FSHD1. However clinician identifies FSDH as best known diagnosis",
       "position": null,
       "desc": "Genetic test is negative for FSHD1. However clinician identifies FSDH as best known diagnosis\r\n"
@@ -2746,7 +2558,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestNotTestBKDFSDH",
-      "questionnaire_value": null,
       "value": "I have not been tested.  However clinician identifies FSDH as best known diagnosis",
       "position": null,
       "desc": "I have not been tested.  However clinician identifies FSDH as best known diagnosis\r\n"
@@ -2758,7 +2569,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": " FSHDGeneticTestResNotTested",
-      "questionnaire_value": null,
       "value": "Not tested",
       "position": null,
       "desc": "Not tested\r\n"
@@ -2770,7 +2580,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultBorderLin",
-      "questionnaire_value": null,
       "value": "FSHD1 borderline: 10-11 D4Z4 repeats ",
       "position": null,
       "desc": "FSHD1 borderline: 10-11 D4Z4 repeats \r\n"
@@ -2782,7 +2591,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultExcluded",
-      "questionnaire_value": null,
       "value": "FSHD1 excluded : 12-100 D4Z4 repeats",
       "position": null,
       "desc": "FSHD1 excluded : 12-100 D4Z4 repeats\r\n"
@@ -2794,7 +2602,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultFSHD1D4Z4",
-      "questionnaire_value": null,
       "value": "FSHD1 confirmed : 1-9 D4Z4 repeats",
       "position": null,
       "desc": "FSHD1 confirmed : 1-9 D4Z4 repeats\r\n"
@@ -2806,7 +2613,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultFSHD2",
-      "questionnaire_value": null,
       "value": "Confirmed FSHD 2 (contraction independent D4Z4 hypomethylation on the 4qA161 subtelomere).",
       "position": null,
       "desc": "Confirmed FSHD 2 (contraction independent D4Z4 hypomethylation on the 4qA161 subtelomere).\r\n"
@@ -2818,7 +2624,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultOtherPos",
-      "questionnaire_value": null,
       "value": "Other result positive for FSHD",
       "position": null,
       "desc": "Other result positive for FSHD\r\n"
@@ -2830,7 +2635,6 @@
     "fields": {
       "pv_group": "FSHDGeneticTestResult",
       "code": "FSHDGeneticTestResultPending",
-      "questionnaire_value": null,
       "value": "Result pending",
       "position": null,
       "desc": "Result pending\r\n"
@@ -2842,7 +2646,6 @@
     "fields": {
       "pv_group": "FSHDSiteOfGeneticTesting",
       "code": "FSHDGenTestingSiteOther",
-      "questionnaire_value": null,
       "value": "Other ( Add comment )",
       "position": null,
       "desc": "Other"
@@ -2854,7 +2657,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDGradeSchool",
-      "questionnaire_value": null,
       "value": "Grade school",
       "position": 2,
       "desc": "Grade school"
@@ -2866,7 +2668,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDGraduateSchool",
-      "questionnaire_value": null,
       "value": "Graduate school",
       "position": 6,
       "desc": "Graduate school"
@@ -2878,7 +2679,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDHighSchool",
-      "questionnaire_value": null,
       "value": "High school",
       "position": 3,
       "desc": "High school"
@@ -2890,7 +2690,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleArmsPushChair",
-      "questionnaire_value": "I use my arms to push up from chair",
       "value": "Use arms to push up from chair",
       "position": 2,
       "desc": "Use arms to push up from chair\r\n"
@@ -2902,7 +2701,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleAssPersonDevice",
-      "questionnaire_value": "I can only rise from a chair with assistance from person or device",
       "value": "Only with assistance from person or device",
       "position": 4,
       "desc": "Only with assistance from person or device\r\n"
@@ -2914,7 +2712,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleRiseChairWOArms",
-      "questionnaire_value": "No weakness - I can rise from a chair without using my arms",
       "value": "No weakness - can rise from a chair without using arms",
       "position": 1,
       "desc": "No weakness - can rise from a chair without using arms\r\n"
@@ -2926,7 +2723,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleSpecificMVRS",
-      "questionnaire_value": "I use specific manoeuvres",
       "value": "Use specific manoeuvres",
       "position": 3,
       "desc": "Use specific manoeuvres\r\n"
@@ -2938,7 +2734,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleSUArms",
-      "questionnaire_value": "I can sit up only by using my arms to support myself",
       "value": "Sit up only by using arms",
       "position": 6,
       "desc": "Sit up only by using arms\r\n"
@@ -2950,7 +2745,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleSUSidewaysArms",
-      "questionnaire_value": "I can sit up only by turning sideways and using my arms",
       "value": "Sit up only by turning sideways and using arms",
       "position": 7,
       "desc": "Sit up only by turning sideways and using arms\r\n"
@@ -2962,7 +2756,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleSUWithAssistance",
-      "questionnaire_value": "I can sit up only with someone's assistance",
       "value": "Sit up only with someone's assistance",
       "position": 8,
       "desc": "Sit up only with someone's assistance\r\n"
@@ -2974,7 +2767,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleSUWOArms",
-      "questionnaire_value": "I can sit up without using my arms to support myself",
       "value": "Sit up without using arms",
       "position": 5,
       "desc": "Sit up without using arms\r\n"
@@ -2986,7 +2778,6 @@
     "fields": {
       "pv_group": "FSHDHipGirdleWeakness",
       "code": "FSHDHipGirdleTransBedChairDev",
-      "questionnaire_value": "I transfer from bed to chair with assistive device",
       "value": "Transfer from bed to chair with assistive device",
       "position": 9,
       "desc": "Transfer from bed to chair with assistive device"
@@ -2998,7 +2789,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDHomemaker",
-      "questionnaire_value": null,
       "value": "Homemaker",
       "position": 2,
       "desc": "Homemaker"
@@ -3010,7 +2800,6 @@
     "fields": {
       "pv_group": "FSHDAffectedEmplQ",
       "code": "FSHDJobModified",
-      "questionnaire_value": "",
       "value": "Job modified to accommodate your physical limitations",
       "position": 2,
       "desc": "Job modified to accommodate your physical limitations"
@@ -3022,7 +2811,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFcane",
-      "questionnaire_value": null,
       "value": "I walk with cane/walker and unable to use stairs",
       "position": null,
       "desc": "I walk with cane/walker and unable to use stairs"
@@ -3034,7 +2822,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFUnableToWalk",
-      "questionnaire_value": "",
       "value": "I am unable to walk",
       "position": 1,
       "desc": "Ii am unable to walk"
@@ -3046,7 +2833,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFWalkAndNotRun",
-      "questionnaire_value": "I walk but cannot run",
       "value": "I walk and not run",
       "position": 3,
       "desc": "I walk and not run\r\n"
@@ -3058,7 +2844,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFWalkAndRun",
-      "questionnaire_value": "",
       "value": "I walk and run",
       "position": 2,
       "desc": "I walk and run\r\n"
@@ -3070,7 +2855,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFWalkClimbStairsRail",
-      "questionnaire_value": "I walk and climb stairs using the railing",
       "value": "I walk and climb stairs with railing",
       "position": 5,
       "desc": "I walk and climb stairs with railing\r\n"
@@ -3082,7 +2866,6 @@
     "fields": {
       "pv_group": "FSHDLegFunction",
       "code": "FSHDLFWalkStairsWithoutRailing",
-      "questionnaire_value": "I walk and climb stairs without needing to use the railing",
       "value": "I walk and climb stairs without needing to use the railing",
       "position": 4,
       "desc": "I walk and climb stairs without needing to use the railing"
@@ -3094,7 +2877,6 @@
     "fields": {
       "pv_group": "FSHDAffectedEmplQ",
       "code": "FSHDLostJob",
-      "questionnaire_value": "",
       "value": "Lost job",
       "position": 1,
       "desc": "Lost job"
@@ -3106,7 +2888,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDNoEducation",
-      "questionnaire_value": null,
       "value": "No formal education",
       "position": 1,
       "desc": "No formal education"
@@ -3118,7 +2899,6 @@
     "fields": {
       "pv_group": "FSHDPain",
       "code": "FSHDPainAnklesAndLowerLeg",
-      "questionnaire_value": "Ankles and lower leg",
       "value": "Ankles and lower leg",
       "position": 5,
       "desc": "Ankles and lower leg"
@@ -3130,7 +2910,6 @@
     "fields": {
       "pv_group": "FSHDPain",
       "code": "FSHDPainKneesAndThighs",
-      "questionnaire_value": "",
       "value": "Knees and thighs",
       "position": 4,
       "desc": "Knees and thighs\r\n"
@@ -3142,7 +2921,6 @@
     "fields": {
       "pv_group": "FSHDPain",
       "code": "FSHDPainLowerBack",
-      "questionnaire_value": "Lower back",
       "value": "Lower back",
       "position": 3,
       "desc": "Lower back"
@@ -3154,7 +2932,6 @@
     "fields": {
       "pv_group": "FSHDPain",
       "code": "FSHDPainNeck",
-      "questionnaire_value": "",
       "value": "Neck",
       "position": 1,
       "desc": "Neck"
@@ -3166,7 +2943,6 @@
     "fields": {
       "pv_group": "FSHDPain",
       "code": "FSHDPainShoulders",
-      "questionnaire_value": "Shoulders",
       "value": "Shoulders",
       "position": 2,
       "desc": "Shoulders"
@@ -3178,7 +2954,6 @@
     "fields": {
       "pv_group": "FSHDEverPregnant",
       "code": "FSHDPregnantNo",
-      "questionnaire_value": null,
       "value": "No",
       "position": 2,
       "desc": "No"
@@ -3190,7 +2965,6 @@
     "fields": {
       "pv_group": "FSHDEverPregnant",
       "code": "FSHDPregnantNotApplicable",
-      "questionnaire_value": null,
       "value": "Not applicable",
       "position": 3,
       "desc": "Not applicable"
@@ -3202,7 +2976,6 @@
     "fields": {
       "pv_group": "FSHDEverPregnant",
       "code": "FSHDPregnantYes",
-      "questionnaire_value": null,
       "value": "Yes",
       "position": 1,
       "desc": "Yes"
@@ -3214,7 +2987,6 @@
     "fields": {
       "pv_group": "FSHDPeriscapularShoulderWeakness",
       "code": "FSHDPSSWArmsSidewaysOH",
-      "questionnaire_value": "",
       "value": "I am able to raise arms sideways over head",
       "position": 2,
       "desc": "Able to raise arms sideways over head\r\n"
@@ -3226,7 +2998,6 @@
     "fields": {
       "pv_group": "FSHDPeriscapularShoulderWeakness",
       "code": "FSHDPSSWArmsSidewaysSH",
-      "questionnaire_value": "",
       "value": "I am able to raise arms sideways to shoulder height",
       "position": 3,
       "desc": "Able to raise arms sideways to shoulder height"
@@ -3238,7 +3009,6 @@
     "fields": {
       "pv_group": "FSHDPeriscapularShoulderWeakness",
       "code": "FSHDPSSWNoWeakness",
-      "questionnaire_value": "I have no shoulder weakness",
       "value": "I have no weakness",
       "position": 1,
       "desc": "No weakness\r\n"
@@ -3250,7 +3020,6 @@
     "fields": {
       "pv_group": "FSHDPeriscapularShoulderWeakness",
       "code": "FSHDPSSWUnableRaiseArms",
-      "questionnaire_value": "I am unable to raise arms sideways to shoulder height",
       "value": "I am unable to raise arms sideways",
       "position": 4,
       "desc": "Unable to raise arms sideways"
@@ -3262,7 +3031,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult1",
-      "questionnaire_value": "",
       "value": "I have been told I have genetically confirmed FSHD and I can provide a copy of my genetic test result.",
       "position": 1,
       "desc": "I have been told I have genetically confirmed FSHD and I can provide a copy of my genetic test result."
@@ -3274,7 +3042,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult2",
-      "questionnaire_value": "",
       "value": "I have been told I have genetically confimed FSHD and I give the registry permission to ask my doctor for my genetic test result.",
       "position": 2,
       "desc": "I have been told I have genetically confimed FSHD and I give the registry permission to ask my doctor for my genetic test result."
@@ -3286,7 +3053,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult3",
-      "questionnaire_value": "",
       "value": "I have been tested but I haven't received the result yet.",
       "position": 3,
       "desc": "I have been tested but I haven't received the result yet."
@@ -3298,7 +3064,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult4",
-      "questionnaire_value": "",
       "value": "I have been tested and the genetic test was negative but the doctor considers FSHD the best known diagnosis",
       "position": 4,
       "desc": "I have been tested and the genetic test was negative but the doctor considers FSHD the best known diagnosis"
@@ -3310,7 +3075,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult5",
-      "questionnaire_value": "",
       "value": "I have not been tested.",
       "position": 5,
       "desc": "I have not been tested."
@@ -3322,7 +3086,6 @@
     "fields": {
       "pv_group": "fshdqgentestresult",
       "code": "fshdqgentestresult6",
-      "questionnaire_value": "",
       "value": "I have not been tested.  However clinician identifies FSHD as best known diagnosis",
       "position": 6,
       "desc": "I have not been tested.  However my clinician identifies FSHD as best known diagnosis"
@@ -3334,7 +3097,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDRetired",
-      "questionnaire_value": null,
       "value": "Retired",
       "position": 4,
       "desc": "Retired"
@@ -3346,7 +3108,6 @@
     "fields": {
       "pv_group": "FSHDScapularFixation",
       "code": "FSHDScapularFixationBilateral",
-      "questionnaire_value": "Yes, both shoulders",
       "value": "Yes, bilateral",
       "position": 1,
       "desc": "Yes, bilateral"
@@ -3358,7 +3119,6 @@
     "fields": {
       "pv_group": "FSHDScapularFixation",
       "code": "FSHDScapularFixationNo",
-      "questionnaire_value": "",
       "value": "No",
       "position": 3,
       "desc": "No"
@@ -3370,7 +3130,6 @@
     "fields": {
       "pv_group": "FSHDScapularFixation",
       "code": "FSHDScapularFixationUnilateral",
-      "questionnaire_value": "Yes, one shoulder",
       "value": "Yes, unilateral",
       "position": 2,
       "desc": "Yes, unilateral"
@@ -3382,7 +3141,6 @@
     "fields": {
       "pv_group": "FSHDSiteOfGeneticTesting",
       "code": "FSHDSiteOfGeneticTestingMML",
-      "questionnaire_value": null,
       "value": "test",
       "position": null,
       "desc": "test\r\n"
@@ -3394,7 +3152,6 @@
     "fields": {
       "pv_group": "FSHDSiteOfGeneticTesting",
       "code": "FSHDSiteOfGeneticTestingRPH",
-      "questionnaire_value": null,
       "value": "Test Contact: Fred Bloggs ",
       "position": null,
       "desc": "test data\r\n"
@@ -3406,7 +3163,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDStudent",
-      "questionnaire_value": null,
       "value": "Student",
       "position": 3,
       "desc": "Student"
@@ -3418,7 +3174,6 @@
     "fields": {
       "pv_group": "FSHDEducationLevelQ",
       "code": "FSHDTechnicalSchool",
-      "questionnaire_value": null,
       "value": "Technical school",
       "position": 4,
       "desc": "Technical school"
@@ -3430,7 +3185,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHDUnemployed",
-      "questionnaire_value": null,
       "value": "Unemployed (not due to disability)",
       "position": 7,
       "desc": "Unemployed (not due to disability)"
@@ -3442,7 +3196,6 @@
     "fields": {
       "pv_group": "FSHDOccupationQ",
       "code": "FSHEmployed",
-      "questionnaire_value": null,
       "value": "Employed",
       "position": 1,
       "desc": "Employed"
@@ -3454,7 +3207,6 @@
     "fields": {
       "pv_group": "FSHDFacialWeakness",
       "code": "FWDifficultySpeaking",
-      "questionnaire_value": "I have difficulty speaking",
       "value": "difficulty speaking",
       "position": 3,
       "desc": "difficulty speaking\r\n"
@@ -3466,7 +3218,6 @@
     "fields": {
       "pv_group": "FSHDFacialWeakness",
       "code": "FWDifficultySwallowing",
-      "questionnaire_value": "I have difficulty swallowing",
       "value": "difficulty swallowing",
       "position": 4,
       "desc": "difficulty swallowing\r\n"
@@ -3478,7 +3229,6 @@
     "fields": {
       "pv_group": "FSHDFacialWeakness",
       "code": "FWEyesDryAndIrritated",
-      "questionnaire_value": "My eyes are dry and irritated occasionally/always",
       "value": "eyes dry and irritated occasionally/always",
       "position": 2,
       "desc": "eyes dry and irritated occasionally/always\r\n"
@@ -3490,7 +3240,6 @@
     "fields": {
       "pv_group": "Gender",
       "code": "GenderFemale",
-      "questionnaire_value": null,
       "value": "Female",
       "position": null,
       "desc": "Female"
@@ -3502,7 +3251,6 @@
     "fields": {
       "pv_group": "Gender",
       "code": "GenderMale",
-      "questionnaire_value": null,
       "value": "Male",
       "position": null,
       "desc": "Male"
@@ -3514,7 +3262,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "GeneticCounselling",
-      "questionnaire_value": null,
       "value": "Genetic counselling",
       "position": 2,
       "desc": "Genetic counselling"
@@ -3526,7 +3273,6 @@
     "fields": {
       "pv_group": "PVG-FH_GENETIC_VARIANT",
       "code": "gen_no_notoffered",
-      "questionnaire_value": null,
       "value": "No - not offered",
       "position": 4,
       "desc": "No - not offered"
@@ -3538,7 +3284,6 @@
     "fields": {
       "pv_group": "PVG-FH_GENETIC_VARIANT",
       "code": "gen_no_service_not_available",
-      "questionnaire_value": null,
       "value": "No – service not available",
       "position": 2,
       "desc": "No – service not available"
@@ -3550,7 +3295,6 @@
     "fields": {
       "pv_group": "PVG-FH_GENETIC_VARIANT",
       "code": "gen_not_consented",
-      "questionnaire_value": null,
       "value": "No – not consented",
       "position": 3,
       "desc": "No – not consented"
@@ -3562,7 +3306,6 @@
     "fields": {
       "pv_group": "FHModeOfAssessment",
       "code": "Genotypic",
-      "questionnaire_value": null,
       "value": "Genotypic",
       "position": null,
       "desc": "Genotypic"
@@ -3574,7 +3317,6 @@
     "fields": {
       "pv_group": "PVG-FH_GENETIC_VARIANT",
       "code": "gen_yes",
-      "questionnaire_value": null,
       "value": "Yes",
       "position": 1,
       "desc": "Yes"
@@ -3586,7 +3328,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "HaemoperfusionLDLDirectAdsorp",
-      "questionnaire_value": null,
       "value": "Haemoperfusion with direct LDL adsorption",
       "position": null,
       "desc": "Haemoperfusion with direct LDL adsorption"
@@ -3598,7 +3339,6 @@
     "fields": {
       "pv_group": "HeartCondition",
       "code": "HeartConditionArrhythmiaConBlk",
-      "questionnaire_value": "",
       "value": "Yes, with arhythmia or conduction block",
       "position": 2,
       "desc": "Yes, with arhythmia or conduction block\r\n"
@@ -3610,7 +3350,6 @@
     "fields": {
       "pv_group": "HeartCondition",
       "code": "HeartConditionCardiomyopathy",
-      "questionnaire_value": "",
       "value": "Yes, with cardiomyopathy",
       "position": 3,
       "desc": "Yes, with cardiomyopathy\r\n"
@@ -3622,7 +3361,6 @@
     "fields": {
       "pv_group": "HeartCondition",
       "code": "HeartConditionNo",
-      "questionnaire_value": "",
       "value": "No",
       "position": 4,
       "desc": "No"
@@ -3634,7 +3372,6 @@
     "fields": {
       "pv_group": "HeartCondition",
       "code": "HeartConditionUnknown",
-      "questionnaire_value": "",
       "value": "Unknown",
       "position": 5,
       "desc": "Unknown"
@@ -3646,7 +3383,6 @@
     "fields": {
       "pv_group": "HeartCondition",
       "code": "HeartConditionYes",
-      "questionnaire_value": "",
       "value": "Yes, not specified further",
       "position": 1,
       "desc": "Yes, not specified further\r\n"
@@ -3658,7 +3394,6 @@
     "fields": {
       "pv_group": "HeartMedStatus",
       "code": "HeartMedStatusCurrent",
-      "questionnaire_value": null,
       "value": "Current prescription",
       "position": null,
       "desc": "Current prescription"
@@ -3670,7 +3405,6 @@
     "fields": {
       "pv_group": "HeartMedStatus",
       "code": "HeartMedStatusPrevious",
-      "questionnaire_value": null,
       "value": "Previous prescription",
       "position": null,
       "desc": "Previous prescription"
@@ -3682,7 +3416,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "HeparinInducedLDLprecipitation",
-      "questionnaire_value": null,
       "value": "Heparin-induced LDL precipitation",
       "position": null,
       "desc": "Heparin-induced LDL precipitation"
@@ -3694,7 +3427,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "Immunoadsorption",
-      "questionnaire_value": null,
       "value": "Immunoadsorption",
       "position": null,
       "desc": "Immunoadsorption"
@@ -3706,7 +3438,6 @@
     "fields": {
       "pv_group": "LeftRight",
       "code": "Left",
-      "questionnaire_value": null,
       "value": "Left",
       "position": null,
       "desc": "Left"
@@ -3718,7 +3449,6 @@
     "fields": {
       "pv_group": "Sex",
       "code": "M",
-      "questionnaire_value": null,
       "value": "Male",
       "position": null,
       "desc": "Male"
@@ -3730,7 +3460,6 @@
     "fields": {
       "pv_group": "PVG-FH_ON_MEDICATION",
       "code": "med_no",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -3742,7 +3471,6 @@
     "fields": {
       "pv_group": "PVG-FH_ON_MEDICATION",
       "code": "med_other",
-      "questionnaire_value": null,
       "value": "Other",
       "position": null,
       "desc": "Other"
@@ -3754,7 +3482,6 @@
     "fields": {
       "pv_group": "MedicalProfessionalType",
       "code": "MedProfTypeGP",
-      "questionnaire_value": "GP (Primary Care)",
       "value": "GP (Primary Care)",
       "position": 1,
       "desc": "GP (Primary Care)"
@@ -3766,7 +3493,6 @@
     "fields": {
       "pv_group": "MedicalProfessionalType",
       "code": "MedProfTypeSLIP",
-      "questionnaire_value": "Specialist (Lipid)",
       "value": "Specialist (Lipid)",
       "position": 2,
       "desc": "Specialist (Lipid)"
@@ -3778,7 +3504,6 @@
     "fields": {
       "pv_group": "PVG-FH_ON_MEDICATION",
       "code": "med_yes_ezetimibe",
-      "questionnaire_value": null,
       "value": "Yes - Ezetimibe",
       "position": null,
       "desc": "Yes - Ezetimibe"
@@ -3790,7 +3515,6 @@
     "fields": {
       "pv_group": "PVG-FH_ON_MEDICATION",
       "code": "med_yes_other",
-      "questionnaire_value": null,
       "value": "Yes - Other",
       "position": null,
       "desc": "Yes - Other"
@@ -3802,7 +3526,6 @@
     "fields": {
       "pv_group": "PVG-FH_ON_MEDICATION",
       "code": "med_yes_statin",
-      "questionnaire_value": null,
       "value": "Yes - Statin",
       "position": null,
       "desc": "Yes - Statin"
@@ -3814,7 +3537,6 @@
     "fields": {
       "pv_group": "ApheresisType",
       "code": "MembraneDifferentialFiltration",
-      "questionnaire_value": null,
       "value": "Membrane Differential Filtration",
       "position": null,
       "desc": "Membrane differential filtration"
@@ -3826,7 +3548,6 @@
     "fields": {
       "pv_group": "MotorFunction",
       "code": "MotorFunctionAmbulatory",
-      "questionnaire_value": "I can walk unaided (without an assistive device)",
       "value": "Ambulatory (unassisted)",
       "position": 1,
       "desc": "Ambulatory (unassisted)"
@@ -3838,7 +3559,6 @@
     "fields": {
       "pv_group": "MotorFunction",
       "code": "MotorFunctionAmbulatoryWStick",
-      "questionnaire_value": "I can walk with the assistive of a walking stick",
       "value": "Ambulatory assisted -  walking stick",
       "position": 4,
       "desc": "Ambulatory assisted -  walking stick"
@@ -3850,7 +3570,6 @@
     "fields": {
       "pv_group": "MotorFunction",
       "code": "MotorFunctionAssistedWalker",
-      "questionnaire_value": "I can walk with the assistive of a walker",
       "value": "Ambulatory assisted -  walker ",
       "position": 2,
       "desc": "Ambulatory assisted -  walker "
@@ -3862,7 +3581,6 @@
     "fields": {
       "pv_group": "MotorFunction",
       "code": "MotorFunctionBraceSplintOrth",
-      "questionnaire_value": "I can walk with the assistive of a brace or splint or orthoses",
       "value": "Ambulatory assisted -  brace/splint/orthoses",
       "position": 3,
       "desc": "Ambulatory assisted -  brace/splint/orthoses"
@@ -3874,7 +3592,6 @@
     "fields": {
       "pv_group": "MotorFunction",
       "code": "MotorFunctionNonAmbulatory",
-      "questionnaire_value": "I cannot walk",
       "value": "Non-Ambulatory",
       "position": 5,
       "desc": "Non-Ambulatory"
@@ -3886,7 +3603,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices1",
-      "questionnaire_value": null,
       "value": "1",
       "position": null,
       "desc": "1"
@@ -3898,7 +3614,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices2",
-      "questionnaire_value": null,
       "value": "2",
       "position": null,
       "desc": "2"
@@ -3910,7 +3625,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices3",
-      "questionnaire_value": null,
       "value": "3",
       "position": null,
       "desc": "3"
@@ -3922,7 +3636,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices4",
-      "questionnaire_value": null,
       "value": "4",
       "position": null,
       "desc": "4"
@@ -3934,7 +3647,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices4.5",
-      "questionnaire_value": null,
       "value": "4+",
       "position": null,
       "desc": "4+"
@@ -3946,7 +3658,6 @@
     "fields": {
       "pv_group": "MRCChoices",
       "code": "MRCChoices5",
-      "questionnaire_value": null,
       "value": "5",
       "position": null,
       "desc": "5"
@@ -3958,7 +3669,6 @@
     "fields": {
       "pv_group": "MutationType",
       "code": "MTCompoundHeterozygous",
-      "questionnaire_value": null,
       "value": "Compound Heterozygous",
       "position": null,
       "desc": "Compound Heterozygous"
@@ -3970,7 +3680,6 @@
     "fields": {
       "pv_group": "MutationType",
       "code": "MTHeterozygous",
-      "questionnaire_value": null,
       "value": "Heterozygous",
       "position": null,
       "desc": "Heterozygous"
@@ -3982,7 +3691,6 @@
     "fields": {
       "pv_group": "MutationType",
       "code": "MTHomozygous",
-      "questionnaire_value": null,
       "value": "Homozygous",
       "position": null,
       "desc": "Homozygous"
@@ -3994,7 +3702,6 @@
     "fields": {
       "pv_group": "MuscleMedicationStatus",
       "code": "MuscleMedicationStatusCurrent",
-      "questionnaire_value": null,
       "value": "Current prescription",
       "position": null,
       "desc": "Current prescription"
@@ -4006,7 +3713,6 @@
     "fields": {
       "pv_group": "MuscleMedicationStatus",
       "code": "MuscleMedicationStatusPrevious",
-      "questionnaire_value": null,
       "value": "Previous prescription",
       "position": null,
       "desc": "Previous prescription"
@@ -4018,7 +3724,6 @@
     "fields": {
       "pv_group": "Myotonia",
       "code": "MyotoniaM",
-      "questionnaire_value": null,
       "value": "Yes, mildly",
       "position": null,
       "desc": "Yes, mildly"
@@ -4030,7 +3735,6 @@
     "fields": {
       "pv_group": "Myotonia",
       "code": "MyotoniaN",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -4042,7 +3746,6 @@
     "fields": {
       "pv_group": "Myotonia",
       "code": "MyotoniaS",
-      "questionnaire_value": null,
       "value": "Yes, severely",
       "position": null,
       "desc": "Yes, severely"
@@ -4054,7 +3757,6 @@
     "fields": {
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "code": "n_",
-      "questionnaire_value": null,
       "value": "n",
       "position": null,
       "desc": "n"
@@ -4066,7 +3768,6 @@
     "fields": {
       "pv_group": "YesNo",
       "code": "No",
-      "questionnaire_value": null,
       "value": "No",
       "position": 1,
       "desc": "No"
@@ -4078,7 +3779,6 @@
     "fields": {
       "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN",
       "code": "n_p",
-      "questionnaire_value": null,
       "value": "No",
       "position": null,
       "desc": "No"
@@ -4090,7 +3790,6 @@
     "fields": {
       "pv_group": "State",
       "code": "NSW",
-      "questionnaire_value": null,
       "value": "New South Wales",
       "position": null,
       "desc": "New South Wales"
@@ -4102,7 +3801,6 @@
     "fields": {
       "pv_group": "State",
       "code": "NT",
-      "questionnaire_value": null,
       "value": "Northern Territory",
       "position": null,
       "desc": "Northern Territory"
@@ -4114,7 +3812,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "OccupationalTherapy",
-      "questionnaire_value": null,
       "value": "Occupational therapy",
       "position": 5,
       "desc": "Occupational therapy"
@@ -4126,7 +3823,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "OtherTherapy",
-      "questionnaire_value": null,
       "value": "Other",
       "position": 7,
       "desc": "Other"
@@ -4138,7 +3834,6 @@
     "fields": {
       "pv_group": "FHModeOfAssessment",
       "code": "Phenotypic",
-      "questionnaire_value": null,
       "value": "Phenotypic",
       "position": null,
       "desc": "Phenotypic"
@@ -4150,7 +3845,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "PhysicalTherapy",
-      "questionnaire_value": null,
       "value": "Physical therapy",
       "position": 1,
       "desc": "Physical therapy"
@@ -4162,7 +3856,6 @@
     "fields": {
       "pv_group": "PVGfhStatinDrugs",
       "code": "PVfhAtorvastatin",
-      "questionnaire_value": null,
       "value": "Atorvastatin",
       "position": 1,
       "desc": "Atorvastatin"
@@ -4174,7 +3867,6 @@
     "fields": {
       "pv_group": "PVGfhDrugs",
       "code": "PVfhDrugsEzetimibe",
-      "questionnaire_value": null,
       "value": "Ezetimibe",
       "position": 2,
       "desc": "Ezetimibe"
@@ -4186,7 +3878,6 @@
     "fields": {
       "pv_group": "PVGfhDrugs",
       "code": "PVfhDrugsOther",
-      "questionnaire_value": null,
       "value": "Other",
       "position": 3,
       "desc": "Other"
@@ -4198,7 +3889,6 @@
     "fields": {
       "pv_group": "PVGfhDrugs",
       "code": "PVfhDrugsStatin",
-      "questionnaire_value": null,
       "value": "Statin",
       "position": 1,
       "desc": "Statin"
@@ -4210,7 +3900,6 @@
     "fields": {
       "pv_group": "PVGfhStatinDrugs",
       "code": "PVfhFluvastatin",
-      "questionnaire_value": null,
       "value": "Fluvastatin",
       "position": 5,
       "desc": "Fluvastatin"
@@ -4222,7 +3911,6 @@
     "fields": {
       "pv_group": "PVGfhStatinDrugs",
       "code": "PVfhPravastatin",
-      "questionnaire_value": null,
       "value": "Pravastatin",
       "position": 4,
       "desc": "Pravastatin"
@@ -4234,7 +3922,6 @@
     "fields": {
       "pv_group": "PVGfhStatinDrugs",
       "code": "PVfhRosuvastatin",
-      "questionnaire_value": null,
       "value": "Rosuvastatin",
       "position": 2,
       "desc": "Rosuvastatin\r\n"
@@ -4246,7 +3933,6 @@
     "fields": {
       "pv_group": "PVGfhStatinDrugs",
       "code": "PVfhSimvastatin",
-      "questionnaire_value": null,
       "value": "Simvastatin",
       "position": 3,
       "desc": "Simvastatin"
@@ -4258,7 +3944,6 @@
     "fields": {
       "pv_group": "State",
       "code": "QLD",
-      "questionnaire_value": null,
       "value": "Queensland",
       "position": null,
       "desc": "Queensland"
@@ -4270,7 +3955,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipChild",
-      "questionnaire_value": null,
       "value": "Child",
       "position": null,
       "desc": "Child"
@@ -4282,7 +3966,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipCousin",
-      "questionnaire_value": null,
       "value": "Cousin",
       "position": null,
       "desc": "Cousin"
@@ -4294,7 +3977,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipGrandparent",
-      "questionnaire_value": null,
       "value": "Grandparent",
       "position": null,
       "desc": "Grandparent"
@@ -4306,7 +3988,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipParent",
-      "questionnaire_value": null,
       "value": "Parent",
       "position": null,
       "desc": "Parent"
@@ -4318,7 +3999,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipSibling",
-      "questionnaire_value": null,
       "value": "Sibling",
       "position": null,
       "desc": "Sibling"
@@ -4330,7 +4010,6 @@
     "fields": {
       "pv_group": "Relationship",
       "code": "RelationshipUncleAunt",
-      "questionnaire_value": null,
       "value": "Uncle / Aunt",
       "position": null,
       "desc": "Uncle / Aunt"
@@ -4342,7 +4021,6 @@
     "fields": {
       "pv_group": "LeftRight",
       "code": "Right",
-      "questionnaire_value": null,
       "value": "Right",
       "position": null,
       "desc": "Right"
@@ -4354,7 +4032,6 @@
     "fields": {
       "pv_group": "State",
       "code": "SA",
-      "questionnaire_value": null,
       "value": "South Australia",
       "position": null,
       "desc": "South Australia"
@@ -4366,7 +4043,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "SpeechTherapy",
-      "questionnaire_value": null,
       "value": "Speech therapy",
       "position": 4,
       "desc": "Speech therapy"
@@ -4378,7 +4054,6 @@
     "fields": {
       "pv_group": "State",
       "code": "TAS",
-      "questionnaire_value": null,
       "value": "Tasmania",
       "position": null,
       "desc": "Tasmania"
@@ -4390,7 +4065,6 @@
     "fields": {
       "pv_group": "Times",
       "code": "TimesFullTime",
-      "questionnaire_value": null,
       "value": "Full-time",
       "position": 1,
       "desc": "Full-time"
@@ -4402,7 +4076,6 @@
     "fields": {
       "pv_group": "Times",
       "code": "TimesNo",
-      "questionnaire_value": null,
       "value": "None",
       "position": 3,
       "desc": "None"
@@ -4414,7 +4087,6 @@
     "fields": {
       "pv_group": "Times",
       "code": "TimesPartTime",
-      "questionnaire_value": null,
       "value": "Part-time",
       "position": 2,
       "desc": "Part-time"
@@ -4426,7 +4098,6 @@
     "fields": {
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "code": "u_",
-      "questionnaire_value": null,
       "value": "unknown",
       "position": null,
       "desc": "unknown"
@@ -4438,7 +4109,6 @@
     "fields": {
       "pv_group": "VentilationType",
       "code": "VentilationTypeBIPAP",
-      "questionnaire_value": null,
       "value": "Bi-level Positive Airway Pressure (BIPAP)",
       "position": null,
       "desc": "Bi-level Positive Airway Pressure (BIPAP)"
@@ -4450,7 +4120,6 @@
     "fields": {
       "pv_group": "VentilationType",
       "code": "VentilationTypeCPAP",
-      "questionnaire_value": null,
       "value": "Continuous Positive Airway Pressure (CPAP)",
       "position": null,
       "desc": "Continuous Positive Airway Pressure (CPAP)"
@@ -4462,7 +4131,6 @@
     "fields": {
       "pv_group": "State",
       "code": "VIC",
-      "questionnaire_value": null,
       "value": "Victoria",
       "position": null,
       "desc": "Victoria"
@@ -4474,7 +4142,6 @@
     "fields": {
       "pv_group": "TheraphyOptionsQ",
       "code": "VocationalRehabilitation",
-      "questionnaire_value": null,
       "value": "Vocational rehabilitation",
       "position": 6,
       "desc": "Vocational rehabilitation"
@@ -4486,7 +4153,6 @@
     "fields": {
       "pv_group": "State",
       "code": "WA",
-      "questionnaire_value": null,
       "value": "Western Australia",
       "position": null,
       "desc": "Western Australia"
@@ -4498,7 +4164,6 @@
     "fields": {
       "pv_group": "WalkAssisted",
       "code": "WalkAssistedAnkle support",
-      "questionnaire_value": null,
       "value": "Ankle support",
       "position": null,
       "desc": "Ankle support"
@@ -4510,7 +4175,6 @@
     "fields": {
       "pv_group": "WalkAssisted",
       "code": "WalkAssistedNo device",
-      "questionnaire_value": null,
       "value": "No device required",
       "position": null,
       "desc": "No device required"
@@ -4522,7 +4186,6 @@
     "fields": {
       "pv_group": "WalkAssisted",
       "code": "WalkAssistedStick",
-      "questionnaire_value": null,
       "value": "Stick",
       "position": null,
       "desc": "Stick"
@@ -4534,7 +4197,6 @@
     "fields": {
       "pv_group": "WalkAssisted",
       "code": "WalkAssistedWalker",
-      "questionnaire_value": null,
       "value": "Walker",
       "position": null,
       "desc": "Walker"
@@ -4546,7 +4208,6 @@
     "fields": {
       "pv_group": "WheelChairUse",
       "code": "WheelChairUseintermittent",
-      "questionnaire_value": null,
       "value": "Yes (Intermittent)",
       "position": null,
       "desc": "Yes (Intermittent)"
@@ -4558,7 +4219,6 @@
     "fields": {
       "pv_group": "WheelChairUse",
       "code": "WheelChairUsenever",
-      "questionnaire_value": null,
       "value": "Never",
       "position": null,
       "desc": "Never"
@@ -4570,7 +4230,6 @@
     "fields": {
       "pv_group": "WheelChairUse",
       "code": "WheelChairUsepermanent",
-      "questionnaire_value": null,
       "value": "Yes (Permanent)",
       "position": null,
       "desc": "Yes (Permanent)"
@@ -4582,7 +4241,6 @@
     "fields": {
       "pv_group": "WheelChairUse",
       "code": "WheelChairUseunknown",
-      "questionnaire_value": null,
       "value": "Unknown",
       "position": null,
       "desc": "Unknown"
@@ -4594,7 +4252,6 @@
     "fields": {
       "pv_group": "Sex",
       "code": "X",
-      "questionnaire_value": null,
       "value": "Other/Intersex",
       "position": null,
       "desc": "Other/Intersex"
@@ -4606,7 +4263,6 @@
     "fields": {
       "pv_group": "PVG-YES_NO_UNKNOWN",
       "code": "y",
-      "questionnaire_value": null,
       "value": "Yes",
       "position": null,
       "desc": "Yes"
@@ -4618,7 +4274,6 @@
     "fields": {
       "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN",
       "code": "y_childunder18",
-      "questionnaire_value": null,
       "value": "Yes, child aged < 18",
       "position": null,
       "desc": "Yes, child aged < 18"
@@ -4630,7 +4285,6 @@
     "fields": {
       "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN",
       "code": "y_clinical",
-      "questionnaire_value": null,
       "value": "Yes - Clinical Event",
       "position": null,
       "desc": "Yes - Clinical Event"
@@ -4642,7 +4296,6 @@
     "fields": {
       "pv_group": "YesNo",
       "code": "Yes",
-      "questionnaire_value": null,
       "value": "Yes",
       "position": 0,
       "desc": "Yes"
@@ -4654,7 +4307,6 @@
     "fields": {
       "pv_group": "YesNoUnknown",
       "code": "YesNoUnknownNo",
-      "questionnaire_value": "",
       "value": "No",
       "position": 2,
       "desc": "No"
@@ -4666,7 +4318,6 @@
     "fields": {
       "pv_group": "YesNoUnknown",
       "code": "YesNoUnknownUnknown",
-      "questionnaire_value": "I don't know",
       "value": "Unknown",
       "position": 3,
       "desc": "Unknown"
@@ -4678,7 +4329,6 @@
     "fields": {
       "pv_group": "YesNoUnknown",
       "code": "YesNoUnknownYes",
-      "questionnaire_value": "",
       "value": "Yes",
       "position": 1,
       "desc": "Yes"
@@ -4690,7 +4340,6 @@
     "fields": {
       "pv_group": "PVG-FH_FAMILY_YES_NO_UNKNOWN",
       "code": "y_firstdegrel",
-      "questionnaire_value": null,
       "value": "Yes, first-degree relative",
       "position": null,
       "desc": "Yes, first-degree relative"
@@ -4702,7 +4351,6 @@
     "fields": {
       "pv_group": "PVG PVG-FH_PERSONAL_YES_NO_UNKNOWN",
       "code": "y_subclinical",
-      "questionnaire_value": null,
       "value": "Yes - Subclinical Event",
       "position": null,
       "desc": "Yes - Subclinical Event"
@@ -4714,7 +4362,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantstest",
-      "questionnaire_value": null,
       "value": "Test with ; on: 'and (this)' with quotes",
       "position": null,
       "desc": "Test with ; on: 'and (this)' with quotes"
@@ -4726,7 +4373,6 @@
     "fields": {
       "pv_group": "CardiacImplants",
       "code": "CardiacImplantsOther",
-      "questionnaire_value": null,
       "value": "If other please specify",
       "position": null,
       "desc": "If other please specify"
@@ -4744,7 +4390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4765,7 +4410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4786,7 +4430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4807,7 +4450,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4828,7 +4470,6 @@
       "max_value": 130,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4849,7 +4490,6 @@
       "max_value": 150,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4870,7 +4510,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4891,7 +4530,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4912,7 +4550,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4933,7 +4570,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4954,7 +4590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4975,7 +4610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -4996,7 +4630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5017,7 +4650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "\\d\\d/\\d\\d\\d\\d",
@@ -5038,7 +4670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5059,7 +4690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5080,7 +4710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5101,7 +4730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5122,7 +4750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "RadioSelect",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5143,7 +4770,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5164,7 +4790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5185,7 +4810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5206,7 +4830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5227,7 +4850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5248,7 +4870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5269,7 +4890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5290,7 +4910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5311,7 +4930,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5332,7 +4950,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5353,7 +4970,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5374,7 +4990,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5395,7 +5010,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5416,7 +5030,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5437,7 +5050,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5458,7 +5070,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5479,7 +5090,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5500,7 +5110,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5521,7 +5130,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5542,7 +5150,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5563,7 +5170,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5584,7 +5190,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5605,7 +5210,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5626,7 +5230,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5647,7 +5250,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "function categorise(context,patient){ return \"Possible\";\n}\n\ncontext.result = categorise(context, patient);\n",
       "max_length": null,
       "pattern": "",
@@ -5668,7 +5270,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5689,7 +5290,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5710,7 +5310,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5731,7 +5330,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5752,7 +5350,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5773,7 +5370,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5794,7 +5390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5815,7 +5410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5836,7 +5430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5857,7 +5450,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5878,7 +5470,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5899,7 +5490,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5920,7 +5510,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5941,7 +5530,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5962,7 +5550,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -5983,7 +5570,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "var height = context.CDEHeight;\r\nvar weight = context.CDEWeight;\r\n\r\ncontext.result = weight / (height * height);",
       "max_length": null,
       "pattern": "",
@@ -6004,7 +5590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6025,7 +5610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6046,7 +5630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6067,7 +5650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "function getscore(context,patient) {return 0; }\r\ncontext.result = getscore(context,patient);",
       "max_length": null,
       "pattern": "",
@@ -6088,7 +5670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6109,7 +5690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6130,7 +5710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6151,7 +5730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6172,7 +5750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6193,7 +5770,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "Please enter height in meters",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6214,7 +5790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6235,7 +5810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6256,7 +5830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6277,7 +5850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6298,7 +5870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6319,7 +5890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6340,7 +5910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6361,7 +5930,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6382,7 +5950,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6403,7 +5970,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6424,7 +5990,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6445,7 +6010,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "What is your gender?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6466,7 +6030,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "^\\d\\d\\/\\d\\d\\/\\d\\d\\d\\d$",
@@ -6487,7 +6050,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6508,7 +6070,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6529,7 +6090,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6550,7 +6110,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6571,7 +6130,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6592,7 +6150,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6613,7 +6170,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6634,7 +6190,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6655,7 +6210,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6676,7 +6230,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6697,7 +6250,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6718,7 +6270,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6739,7 +6290,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6760,7 +6310,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6781,7 +6330,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6802,7 +6350,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6823,7 +6370,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6844,7 +6390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6865,7 +6410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6886,7 +6430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6907,7 +6450,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6928,7 +6470,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6949,7 +6490,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6970,7 +6510,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -6991,7 +6530,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7012,7 +6550,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7033,7 +6570,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7054,7 +6590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7075,7 +6610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7096,7 +6630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7117,7 +6650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7138,7 +6670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7159,7 +6690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7180,7 +6710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7201,7 +6730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7222,7 +6750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7243,7 +6770,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7264,7 +6790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7285,7 +6810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7306,7 +6830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7327,7 +6850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7348,7 +6870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7369,7 +6890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7390,7 +6910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7411,7 +6930,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7432,7 +6950,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7453,7 +6970,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7474,7 +6990,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7495,7 +7010,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7516,7 +7030,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7537,7 +7050,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7558,7 +7070,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7579,7 +7090,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7600,7 +7110,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7621,7 +7130,6 @@
       "max_value": 100,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7642,7 +7150,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7663,7 +7170,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7684,7 +7190,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "var flexor = parseInt(context.FlexorDigitorumProfundis);\r\nvar tibialis = parseInt(context.TibialisAnterior);\r\nvar neck = parseInt(context.NeckFlexion);\r\nvar iliopsoas = parseInt(context.Iliopsoas);\r\n\r\ncontext.result = 0;\r\n\r\nif(flexor) { context.result  += flexor; }\r\nif(tibialis) { context.result  += tibialis; }\r\nif(neck) { context.result  += neck; }\r\nif(iliopsoas) { context.result  += iliopsoas; }",
       "max_length": null,
       "pattern": "",
@@ -7705,7 +7210,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7726,7 +7230,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7747,7 +7250,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7768,7 +7270,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7789,7 +7290,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7810,7 +7310,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7831,7 +7330,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7852,7 +7350,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7873,7 +7370,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7894,7 +7390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7915,7 +7410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7936,7 +7430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7957,7 +7450,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7978,7 +7470,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -7999,7 +7490,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8020,7 +7510,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8041,7 +7530,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8062,7 +7550,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8083,7 +7570,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8104,7 +7590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8125,7 +7610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8146,7 +7630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8167,7 +7650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8188,7 +7670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8209,7 +7690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8230,7 +7710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8251,7 +7730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8272,7 +7750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8293,7 +7770,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8314,7 +7790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8335,7 +7810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8356,7 +7830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8377,7 +7850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8398,7 +7870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "How would you describe your ethnic origin?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8419,7 +7890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8440,7 +7910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8461,7 +7930,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8482,7 +7950,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8503,7 +7970,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8524,7 +7990,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "\\d\\d\\/\\d\\d\\/\\d\\d\\d\\d",
@@ -8545,7 +8010,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8566,7 +8030,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "\\d\\d-\\d\\d-\\d\\d\\d\\d",
@@ -8587,7 +8050,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8608,7 +8070,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8629,7 +8090,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8650,7 +8110,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8671,7 +8130,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "\\d\\d-\\d\\d-\\d\\d\\d\\d",
@@ -8692,7 +8150,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Were you the first person in your family to have the diagnosis of FSHD?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8713,7 +8170,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8734,7 +8190,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8755,7 +8210,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8776,7 +8230,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Abdominal muscle weakness (do you have difficulty in the abdominal muscles which help you to sit up)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8797,7 +8250,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8818,7 +8270,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "What was your age when you were clinically diagnosed?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8839,7 +8290,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8860,7 +8310,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8881,7 +8330,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8902,7 +8350,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8923,7 +8370,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8944,7 +8390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Elbow or wrist weakness (weakness of your muscles which help you to lift or hold a pen)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8965,7 +8410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -8986,7 +8430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9007,7 +8450,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9028,7 +8470,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9049,7 +8490,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Facial Weakness (weakness of muscles in the face causing e.g. inability to smile, to whistle, or to close your eyes fully at night)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9070,7 +8510,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Foot weakness (weakness of the muscles that help you lift your feet up, causing e.g. foot drop (where the foot tends to hang with the toes pointing down), steppage gait (lifting the feet high when walking) or frequent tripping).",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9091,7 +8530,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "What is your genetic test result?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9112,7 +8550,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9133,7 +8570,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Do you have hearing loss?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9154,7 +8590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "If you answered yes to hearing loss, enter start date here",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9175,7 +8610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9196,7 +8630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Hip girdle weakness (weakness of the muscles of the pelvis and top of the legs, causing e.g. difficulties in going up stairs or ladders, rising from a chair or getting up from the floor).",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9217,7 +8650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9238,7 +8670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9259,7 +8690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9280,7 +8710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "I have no clinical signs or symptoms",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9301,7 +8730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Do you have pain? (indicate where the pain occurs)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9322,7 +8750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9343,33 +8770,11 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Shoulder weakness (weakness of the muscles around the shoulder blades causing e.g. inability to raise your arms sideways above the level of your shoulder).\r\n",
       "calculation": "",
       "max_length": null,
       "pattern": "",
       "desc": "",
       "is_required": true,
-      "instructions": ""
-    }
-  },
-  {
-    "pk": "FSHDQuestionnaireHeight",
-    "model": "rdrf.commondataelement",
-    "fields": {
-      "abbreviated_name": "FSHDQuestionnaireHeight",
-      "pv_group": null,
-      "allow_multiple": false,
-      "name": "Height",
-      "datatype": "string",
-      "max_value": null,
-      "min_value": null,
-      "widget_name": "",
-      "questionnaire_text": "",
-      "calculation": "",
-      "max_length": null,
-      "pattern": "",
-      "desc": "",
-      "is_required": false,
       "instructions": ""
     }
   },
@@ -9385,7 +8790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9406,7 +8810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9427,7 +8830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Have you been diagnosed with retinal vascular disease (problems with the retina of your eye causing e.g. loss of vision) that your doctors think may be related to your FSHD?\r\n",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9448,7 +8850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "If you answered yes to retinal vascular disease enter start date here",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9469,7 +8870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Have you had scapular fixation (an operation to fix your shoulder blade to your ribcage)? \r\n",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9490,7 +8890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9511,7 +8910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9532,7 +8930,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9553,7 +8950,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9574,7 +8970,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9595,7 +8990,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9616,7 +9010,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9637,7 +9030,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9658,7 +9050,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9679,7 +9070,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Do you have a heart condition?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9700,7 +9090,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9721,7 +9110,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9742,7 +9130,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9763,7 +9150,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9784,7 +9170,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9805,7 +9190,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9826,7 +9210,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9847,7 +9230,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9868,7 +9250,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9889,7 +9270,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9910,7 +9290,6 @@
       "max_value": 100,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9931,7 +9310,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9952,7 +9330,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Which of the following options describes the best motor function you are currently able to achieve?  (please choose the most appropriate answer)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9973,7 +9350,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -9994,7 +9370,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10015,7 +9390,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10036,7 +9410,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Do you regularly use a non-invasive (mask) ventilation device?\r\n",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10057,7 +9430,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "DateWidget",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10078,7 +9450,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "If yes, how many children do you have?\r\n",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10099,7 +9470,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "If yes, how many times have you been pregnant? (count the number of pregnancies even if you did not have the baby)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10120,7 +9490,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Have you signed up for any other FSHD registry?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10141,7 +9510,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "Textarea",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10162,7 +9530,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10183,7 +9550,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "I consent to be contacted about clinical trials or other studies related to my condition.",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10204,7 +9570,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "I consent to be part of the registry and have data retained and shared in accordance with the information provided to me.",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10225,7 +9590,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "I consent to being sent information on my condition.",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10246,7 +9610,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10267,7 +9630,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10288,7 +9650,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Has anybody else in your family been diagnosed with FSHD (tick all that apply)?",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10309,7 +9670,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10330,7 +9690,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10351,7 +9710,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10372,7 +9730,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10393,7 +9750,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10414,7 +9770,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10435,7 +9790,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10456,7 +9810,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10477,7 +9830,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10498,7 +9850,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10519,7 +9870,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10540,7 +9890,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "Do you use a wheelchair or mobility scooter? (please tick the most appropriate answer)",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10561,7 +9910,6 @@
       "max_value": null,
       "min_value": null,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10582,7 +9930,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10603,7 +9950,6 @@
       "max_value": null,
       "min_value": 0,
       "widget_name": "",
-      "questionnaire_text": "",
       "calculation": "",
       "max_length": null,
       "pattern": "",
@@ -10618,10 +9964,8 @@
     "fields": {
       "name": "ClinicalData",
       "abbreviated_name": "ClinicalData",
-      "is_questionnaire": false,
       "registry": 3,
       "position": 0,
-      "questionnaire_questions": "",
       "sections": "DM1Status,DM1GeneticTestDetails,DM1MotorFunction,DM1Muscle,DM1MRCScaleMuscleGrading,DM1MuscleMedications,DM1Surgeries,DM1Heart,DM1HeartMedications,DM1Respiratory,DM1FeedingFunction,DM1Fatigue,DM1FatigueMedication,DM1SocioeconomicFactors,DM1GeneralMedicalFactors,DM1FamilyMembers,DM1EthnicOrigins,DM1ClinicalTrials,DM1OtherRegistry,DM1Notes"
     }
   },
@@ -10631,24 +9975,9 @@
     "fields": {
       "name": "GeneticData",
       "abbreviated_name": "GeneticData",
-      "is_questionnaire": false,
       "registry": 3,
       "position": 1,
-      "questionnaire_questions": "",
       "sections": "DM1Variation"
-    }
-  },
-  {
-    "pk": 7,
-    "model": "rdrf.registryform",
-    "fields": {
-      "name": "FSHDQuestionnaire",
-      "abbreviated_name": "FSHDQuestionnaire",
-      "is_questionnaire": true,
-      "registry": 4,
-      "position": 0,
-      "questionnaire_questions": "",
-      "sections": "GenericPatientConsent,PatientData,PatientDataAddressSection,MedicalProfessionals,FSHDEducationEmploymentQ,FSHDClinicalDiagnosisQ,FSHDClinicalFeatures,fshdqgentestresult,MotorFunction,FHHeartAndVentilationForQuestionnaire,EthnicityAndFamilyHistory,Pregnancy,OtherRegistry,FSHDSocioeconomicFactors,FSHDTreatmentsQ,CurrentMedications"
     }
   },
   {
@@ -10657,10 +9986,8 @@
     "fields": {
       "name": "FSHD",
       "abbreviated_name": "FSHD",
-      "is_questionnaire": false,
       "registry": 4,
       "position": 1,
-      "questionnaire_questions": "",
       "sections": "FSHDDiagnosis,FSHDClinicalFeatures,FSHDGeneticTestSection,MotorFunction,HeartAndVentilation,EthnicityAndFamilyHistory,Pregnancy,OtherRegistry"
     }
   },
@@ -10670,10 +9997,8 @@
     "fields": {
       "name": "CascadeScreening",
       "abbreviated_name": "CascadeScreening",
-      "is_questionnaire": false,
       "registry": 1,
       "position": 0,
-      "questionnaire_questions": "",
       "sections": "SEC0009"
     }
   },
@@ -10683,10 +10008,8 @@
     "fields": {
       "name": "GeneticData",
       "abbreviated_name": "GeneticData",
-      "is_questionnaire": false,
       "registry": 1,
       "position": 1,
-      "questionnaire_questions": "FHMutationOverview.VentilationType",
       "sections": "FHMutationOverview,FHMutationDetails,LabSection"
     }
   },
@@ -10696,10 +10019,8 @@
     "fields": {
       "name": "ClinicalData",
       "abbreviated_name": "ClinicalData",
-      "is_questionnaire": false,
       "registry": 1,
       "position": 2,
-      "questionnaire_questions": "",
       "sections": "fhDateSection,SEC0001,SEC0002,SEC0008,SEC0005,SEC0006,SEC0007,SEC0004,SEC0003"
     }
   },
@@ -10709,10 +10030,8 @@
     "fields": {
       "name": "Apheresis",
       "abbreviated_name": "Apheresis",
-      "is_questionnaire": false,
       "registry": 1,
       "position": 3,
-      "questionnaire_questions": "",
       "sections": "FHApheresisSection"
     }
   },
@@ -10722,10 +10041,8 @@
     "fields": {
       "name": "CascadeScreening",
       "abbreviated_name": "CascadeScreening",
-      "is_questionnaire": false,
       "registry": 5,
       "position": 0,
-      "questionnaire_questions": "SEC0009.CDE00026,SEC0009.CDE00027,SEC0009.CDE00028,SEC0009.CDE00029,SEC0009.CDE00030",
       "sections": "SEC0009"
     }
   },
@@ -10735,10 +10052,8 @@
     "fields": {
       "name": "GeneticData",
       "abbreviated_name": "GeneticData",
-      "is_questionnaire": false,
       "registry": 5,
       "position": 1,
-      "questionnaire_questions": "FHMutationOverview.FHGeneticTestDate,FHMutationOverview.CDEMutationType,FHMutationDetails.FHMutation,FHMutationDetails.FHMutationDescription,FHMutationDetails.Pathogenicity,LabSection.LaboratoryReport",
       "sections": "FHMutationOverview,FHMutationDetails,LabSection"
     }
   },
@@ -10748,10 +10063,8 @@
     "fields": {
       "name": "ClinicalData",
       "abbreviated_name": "ClinicalData",
-      "is_questionnaire": false,
       "registry": 5,
       "position": 2,
-      "questionnaire_questions": "SEC0003.CDE00005,SEC0003.CDE00006,SEC0003.CDE00008,SEC0003.CDE00009,SEC0003.CDE00007,SEC0003.CDE00010,SEC0003.FHObesity,SEC0003.CDEHeight,SEC0003.CDEWeight,SEC0003.CDEBMI,SEC0003.CDEfhHistoryDrugIntolerance,SEC0003.CDEfhIntolerantDrugs,SEC0003.CDEfhOtherIntolerantDrug,SEC0003.CDEfhHistoryStatinMyopathy,SEC0003.CDEfhApplicableStatins,SEC0003.CDEfhOtherApplicableStatin,fhDateSection.CDETodaysDate,fhDateSection.DateOfAssessment,fhDateSection.FHModeOfAssessment,fhDateSection.CDEIndexOrRelative,SEC0002.CDE00003,SEC0002.CDE00004,SEC0002.FHFamHistTendonXanthoma,SEC0002.FHFamHistArcusCornealis,SEC0008.CDE00025,SEC0007.CDEfhDutchLipidClinicNetwork,SEC0007.CDE00024,SEC0004.CDE00011,SEC0004.FHHistoryOfRevascularisation,SEC0001.CDE00001,SEC0001.CDE00002,SEC0005.FHLipidProfileUntreatedDate,SEC0005.CDE00012,SEC0005.CDE00013,SEC0005.CDE00014,SEC0005.CDE00015,SEC0005.CDE00016,SEC0005.FHSecCausesHyperCholExcluded,SEC0006.FHPlasLipidProfileOnTreatDate,SEC0006.CDE00018,SEC0006.CDE00019,SEC0006.CDE00020,SEC0006.CDE00021,SEC0006.CDE00022,SEC0006.PlasmaLipidTreatment,SEC0006.LDLCholesterolAdjTreatment",
       "sections": "SEC0003,fhDateSection,SEC0002,SEC0008,SEC0007,SEC0004,SEC0001,SEC0005,SEC0006"
     }
   },
@@ -10761,10 +10074,8 @@
     "fields": {
       "name": "Apheresis",
       "abbreviated_name": "Apheresis",
-      "is_questionnaire": false,
       "registry": 5,
       "position": 3,
-      "questionnaire_questions": "FHApheresisSection.Apheresis,FHApheresisSection.TypeOfApheresis,FHApheresisSection.FrequencyOfApheresis,FHApheresisSection.ApheresisStartDate,FHApheresisSection.ApheresisComplications,FHApheresisSection.PreApheresisLDLCholesterol,FHApheresisSection.AphereresisIntMeanCholReduct",
       "sections": "FHApheresisSection"
     }
   },
@@ -10774,11 +10085,9 @@
     "fields": {
       "name": "GeneralForm",
       "abbreviated_name": "GeneralForm",
-      "is_questionnaire": false,
       "registry": 6,
       "position": 0,
-      "questionnaire_questions": "bfrsec01.CDEHeight,bfrsec01.CDEWeight,bfrsec01.CDEBMI,bfrsec02.AddressType",
-      "sections": "bfrsec01,bfrsec02"
+      "sections": "bfrsec01"
     }
   },
   {
@@ -10787,10 +10096,8 @@
     "fields": {
       "name": "Phenotype",
       "abbreviated_name": "Phenotype",
-      "is_questionnaire": false,
       "registry": 7,
       "position": 0,
-      "questionnaire_questions": "",
       "sections": "ebsec01"
     }
   },
@@ -10800,24 +10107,9 @@
     "fields": {
       "name": "clinicalform",
       "abbreviated_name": "clinicalform",
-      "is_questionnaire": false,
       "registry": 8,
       "position": 0,
-      "questionnaire_questions": "",
       "sections": "tqsec01,tqsec02,tqsec03"
-    }
-  },
-  {
-    "pk": 38,
-    "model": "rdrf.registryform",
-    "fields": {
-      "name": "GeneratedQuestionnaireForbfr",
-      "abbreviated_name": "GeneratedQuestionnaireForbfr",
-      "is_questionnaire": true,
-      "registry": 6,
-      "position": 1,
-      "questionnaire_questions": "",
-      "sections": "GenericPatientConsent,PatientData,PatientDataAddressSection,GenQbfrGeneralFormbfrsec01,GenQbfrGeneralFormbfrsec02"
     }
   },
   {
@@ -11267,7 +10559,7 @@
       "allow_multiple": false,
       "code": "FSHDClinicalFeatures",
       "display_name": "Clinical Features",
-      "elements": "FSHDNoClinicalFeatures,FSHDFacialWeakness,FSHDFootDorsiflexorWeakness,FSHDPSShoulderWeakness,FSHDHipGirdleWeakness,FSHDDistalUpperLimbWeakness,FSHDAbdominalMuscleWeakness,FSHDLegFunction,AffectedLeg,WeakerLeg,ArmFunction,WeakerArm,FSHDRetinalVascularDisease,FSHDRetVasDisStartDate,FSHDHearingLoss,FSHDHearingLossStartDate,FSHDScapularFixation,FSHDScapularFixationDate,FSHDPain,FSHDQuestionnaireHeight,FSHDQWeight",
+      "elements": "FSHDNoClinicalFeatures,FSHDFacialWeakness,FSHDFootDorsiflexorWeakness,FSHDPSShoulderWeakness,FSHDHipGirdleWeakness,FSHDDistalUpperLimbWeakness,FSHDAbdominalMuscleWeakness,FSHDLegFunction,AffectedLeg,WeakerLeg,ArmFunction,WeakerArm,FSHDRetinalVascularDisease,FSHDRetVasDisStartDate,FSHDHearingLoss,FSHDHearingLossStartDate,FSHDScapularFixation,FSHDScapularFixationDate,FSHDPain,FSHDQWeight",
       "extra": null
     }
   },
@@ -11290,17 +10582,6 @@
       "code": "MotorFunction",
       "display_name": "Motor Function",
       "elements": "MotorFunction,WheelchairMobilityScooterUse,AgeWheelchairOrScooterUse",
-      "extra": null
-    }
-  },
-  {
-    "pk": 44,
-    "model": "rdrf.section",
-    "fields": {
-      "allow_multiple": false,
-      "code": "FHHeartAndVentilationForQuestionnaire",
-      "display_name": "Heart and Ventilation",
-      "elements": "HeartCondition,NonInvasiveVentilation,NonInvasiveVentilationStart",
       "extra": null
     }
   },
@@ -11470,17 +10751,6 @@
     }
   },
   {
-    "pk": 60,
-    "model": "rdrf.section",
-    "fields": {
-      "allow_multiple": false,
-      "code": "bfrsec02",
-      "display_name": "tesing questionnaire chnages",
-      "elements": "AddressType",
-      "extra": null
-    }
-  },
-  {
     "pk": 99,
     "model": "rdrf.section",
     "fields": {
@@ -11489,97 +10759,6 @@
       "display_name": "General Form - Body",
       "elements": "CDEHeight,CDEWeight,CDEBMI",
       "extra": 0
-    }
-  },
-  {
-    "pk": 100,
-    "model": "rdrf.section",
-    "fields": {
-      "allow_multiple": false,
-      "code": "GenQbfrGeneralFormbfrsec02",
-      "display_name": "General Form - tesing questionnaire chnages",
-      "elements": "AddressType",
-      "extra": 0
-    }
-  },
-  {
-    "pk": 1,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": null,
-      "date_submitted": "2014-08-29T16:17:05.879",
-      "processed": false,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 2,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": null,
-      "date_submitted": "2014-09-01T12:29:37.763",
-      "processed": false,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 3,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": null,
-      "date_submitted": "2014-09-01T13:44:55.424",
-      "processed": false,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 4,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": null,
-      "date_submitted": "2014-09-01T17:32:29.583",
-      "processed": false,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 5,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": 5,
-      "date_submitted": "2014-09-02T11:37:24.634",
-      "processed": true,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 6,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": 6,
-      "date_submitted": "2014-09-02T14:44:22.441",
-      "processed": true,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 7,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": 7,
-      "date_submitted": "2014-09-02T15:29:12.124",
-      "processed": true,
-      "registry": 6
-    }
-  },
-  {
-    "pk": 8,
-    "model": "rdrf.questionnaireresponse",
-    "fields": {
-      "patient_id": 8,
-      "date_submitted": "2014-09-02T16:11:26.017",
-      "processed": true,
-      "registry": 6
     }
   }
 ]

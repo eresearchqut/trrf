@@ -37,7 +37,6 @@ definitions:
       django_model:
         enum:
           - Patient
-          - QuestionnaireResponse
         type: string
       context_id:
         type: integer
@@ -82,9 +81,6 @@ definitions:
                         type: array
                     required: [cdes]
           required: [name, sections]
-      questionnaire_context:
-        enum: [au, nz]
-        type: string
       timestamp: {$ref: '#/definitions/timestamp_iso'}
     patternProperties:
       ^.*_timestamp$: {$ref: '#/definitions/timestamp_iso'}
@@ -108,7 +104,6 @@ definitions:
     django_model:
       enum:
         - Patient
-        - QuestionnaireResponse
       type: string
     required: [django_id, django_model]
 
