@@ -58,7 +58,7 @@ class HasLowercaseLetterValidator(BaseHasCharacterValidator):
 
 class HasSpecialCharacterValidator(BaseHasCharacterValidator):
     name = 'special character'
-    pattern = re.compile(r'[!@#\$%\^&\*]')
+    pattern = re.compile(r'[^A-Za-z0-9\s]')
 
 
 class ConsecutivelyRepeatingCharacterValidator:
