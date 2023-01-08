@@ -141,14 +141,11 @@ class PatientContextMenu(object):
         return self._get_actions()
 
     def get_forms(self):
-        def not_generated(frm):
-            return not frm.name.startswith(self.registry_model.generated_questionnaire_name)
-
         if not self.context_model.context_form_group:
             forms = [f for f in RegistryForm.objects.filter(registry=self.registry_model).order_by(
-                'position') if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
+                'position') if self.user.can_view(f) and f.applicable_to(self.patient_model)]
         else:
             forms = [f for f in self.context_model.context_form_group.forms
-                     if not_generated(f) and self.user.can_view(f) and f.applicable_to(self.patient_model)]
+                     if self.user.can_view(f) and f.applicable_to(self.patient_model)]
 
         return forms

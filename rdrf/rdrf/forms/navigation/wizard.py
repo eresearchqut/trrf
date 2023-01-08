@@ -155,8 +155,7 @@ class NavigationWizard(object):
     def _free_forms(self):
         if self.registry_model.is_normal:
             return [
-                f for f in self.registry_model.forms if not f.is_questionnaire and f.applicable_to(
-                    self.patient_model)]
+                f for f in self.registry_model.forms if f.applicable_to(self.patient_model)]
         else:
             return []
 

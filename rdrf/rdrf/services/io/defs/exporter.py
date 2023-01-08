@@ -85,9 +85,6 @@ class Exporter:
             self._validate_section(self.registry.patient_data_section.code)
 
         for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
-            if frm.name == self.registry.generated_questionnaire_name:
-                # don't check the generated questionnaire
-                continue
             self._check_model_validity(frm)
             for section_code in frm.get_sections():
                 self._validate_section(section_code)
@@ -99,8 +96,7 @@ class Exporter:
         code: FH
         desc: This is a description that might take a few lines.
         forms:
-        - is_questionnaire: false
-          name: Foobar
+        - name: Foobar
           sections:
           - allow_multiple: false
             code: SEC001
@@ -112,8 +108,7 @@ class Exporter:
             display_name: Disease
             elements: [CDE88, CDE67]
             extra: 1
-        - is_questionnaire: false
-          name: Glug
+        - name: Glug
           sections:
           - allow_multiple: false
             code: SEC89
@@ -190,13 +185,11 @@ class Exporter:
             raise
         section_map = {}
         section_map["display_name"] = section_model.display_name
-        section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
         section_map["code"] = section_model.code
         section_map["abbreviated_name"] = section_model.abbreviated_name
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple
         section_map["elements"] = section_model.get_elements()
-        section_map["questionnaire_help"] = section_model.questionnaire_help
         section_map["header"] = section_model.header
         return section_map
 
@@ -206,9 +199,6 @@ class Exporter:
         frm_map["abbreviated_name"] = form_model.abbreviated_name
         frm_map["header"] = form_model.header
         frm_map["display_name"] = form_model.display_name
-        frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
-        frm_map["is_questionnaire"] = form_model.is_questionnaire
-        frm_map["questionnaire_questions"] = form_model.questionnaire_questions
         frm_map["position"] = form_model.position
         frm_map["sections"] = []
         frm_map["applicability_condition"] = form_model.applicability_condition
@@ -281,9 +271,6 @@ class Exporter:
             data["generic_sections"] = [gs for gs in generic_sections if gs]
 
             for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
-                if frm.name == self.registry.generated_questionnaire_name:
-                    # don't export the generated questionnaire
-                    continue
                 data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
@@ -353,7 +340,6 @@ class Exporter:
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation_query"] = cde_model.calculation_query
             cde_map["calculation"] = cde_model.calculation
-            cde_map["questionnaire_text"] = cde_model.questionnaire_text
 
             data["cdes"].append(cde_map)
 
@@ -368,7 +354,6 @@ class Exporter:
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
-                value_map["questionnaire_value"] = value.questionnaire_value
                 value_map["desc"] = value.desc
                 value_map["position"] = value.position
 
@@ -425,7 +410,6 @@ class Exporter:
                 cm = {"code": consent_model.code,
                       "position": consent_model.position,
                       "question_label": consent_model.question_label,
-                      "questionnaire_label": consent_model.questionnaire_label,
                       "instructions": consent_model.instructions}
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)

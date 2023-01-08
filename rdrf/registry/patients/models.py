@@ -1182,7 +1182,7 @@ class Patient(models.Model):
         """
         Completely replace a patient's mongo record
         Dangerous - assumes new_mongo_data is correct structure
-        Trying it to simulate rollback if questionnaire update fails
+        Trying it to simulate rollback if update fails
         """
         from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
@@ -1196,7 +1196,7 @@ class Patient(models.Model):
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient
-        # useful for "rolling back" after questionnaire update failure
+        # useful for "rolling back" after update failure
         logger.info(
             "Warning! : Updating existing dynamic data for %s(%s) in registry %s" %
             (self, self.pk, registry_model))

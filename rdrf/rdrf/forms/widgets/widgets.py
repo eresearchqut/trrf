@@ -299,28 +299,6 @@ class ParameterisedSelectWidget(widgets.Select):
             "subclass responsibility - it should return a list of pairs: [(code, display), ...]")
 
 
-class StateListWidget(ParameterisedSelectWidget):
-
-    @staticmethod
-    def usable_for_types():
-        return {CDEDataTypes.STRING}
-
-    def render(self, name, value, attrs, renderer=None):
-        country_states = pycountry.subdivisions.get(
-            country_code=self._widget_context['questionnaire_context'].upper())
-        output = ["<select class='form-select' id='%s' name='%s'>" % (name, name)]
-        empty_option = "<option value='---'>---------</option>"
-        output.append(empty_option)
-        for state in country_states:
-            if value == state.code:
-                output.append("<option value='%s' selected>%s</option>" %
-                              (state.code, state.name))
-            else:
-                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
-        output.append("</select>")
-        return mark_safe('\n'.join(output))
-
-
 class DataSourceSelect(ParameterisedSelectWidget):
     """
     A parametrised select that retrieves values from a data source specified in the parameter

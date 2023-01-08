@@ -165,7 +165,6 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
                         # because there is no FK from RDRFContext to Patient
                         'rdrf.RDRFContext',
                         'patients.Patient',
-                        'rdrf.QuestionnaireResponse',
                         # TODO is it ok to include all Doctors or should we include only
                         # referred Doctors?
                         'patients.Doctor',
