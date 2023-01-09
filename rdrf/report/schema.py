@@ -541,7 +541,7 @@ def create_dynamic_all_patients_type(registry):
         all_patients = parent.all_patients
 
         if id:
-            return [all_patients.get(id=id)]
+            return all_patients.filter(id=id)
 
         if sort:
             validate_sort_fields(sort)
