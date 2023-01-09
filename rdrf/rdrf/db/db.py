@@ -1,3 +1,4 @@
+import logging
 from io import StringIO
 import os
 
@@ -18,9 +19,13 @@ class RegistryRouter:
         ("rdrf", "clinicaldata"),
     )
 
+    clinical_apps = (
+        'analytics',
+    )
+
     @classmethod
     def is_clinical(cls, app_label, model_name):
-        return (app_label, model_name) in cls.clinical_models
+        return (app_label, model_name) in cls.clinical_models or app_label in cls.clinical_apps
 
     def choose_db_model(self, model):
         return self.choose_db(model._meta.app_label, model._meta.model_name)

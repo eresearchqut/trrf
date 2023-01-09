@@ -210,6 +210,7 @@ INSTALLED_APPS = [x for x in (
     'graphene_django',
     'django_filters',
     'report',
+    'analytics'
 ) if x is not None]
 
 
