@@ -26,6 +26,7 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.db import filestorage
 from rdrf.db.contexts_api import RDRFContextError
 from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.services.io.notifications.longitudinal_followups import handle_longitudinal_followups
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
 from rdrf.forms.components import RDRFContextLauncherComponent
@@ -700,6 +701,10 @@ class FormView(View):
 
             xray_recorder.begin_subsegment("file_notifications")
             handle_file_notifications(registry, patient, dyn_patient.filestorage)
+            xray_recorder.end_subsegment()
+
+            xray_recorder.begin_subsegment("longitudinal_followups")
+            handle_longitudinal_followups(request.user, patient, self.rdrf_context.context_form_group)
             xray_recorder.end_subsegment()
 
             xray_recorder.begin_subsegment("progress")

@@ -1,13 +1,12 @@
 import datetime
 import itertools
-import json
 import logging
 import operator
 from functools import reduce
 
-from django.core import serializers
 from django.db import transaction
 from django.db.models import Q
+from django.forms import model_to_dict
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import LongitudinalFollowup
@@ -17,17 +16,63 @@ from registry.patients.models import LongitudinalFollowupEntry, LongitudinalFoll
 logger = logging.getLogger(__name__)
 
 
+def handle_longitudinal_followups(user, patient, context_form_group):
+    now = datetime.datetime.now()
+    longitudinal_followups = LongitudinalFollowup.objects.filter(context_form_group=context_form_group)
+    LongitudinalFollowupEntry.objects.bulk_create([
+        LongitudinalFollowupEntry(
+            longitudinal_followup=longitudinal_followup,
+            patient=patient,
+            state=LongitudinalFollowupQueueState.PENDING,
+            send_at=now + longitudinal_followup.frequency,
+            created_by=user,
+        )
+        for longitudinal_followup in longitudinal_followups
+    ])
+
+
 def evaluate_condition(longitudinal_followup_entry):
-    if longitudinal_followup_entry.longitudinal_followup.condition:
-        return eval(longitudinal_followup_entry.longitudinal_followup.condition,
-                    {'patient': longitudinal_followup_entry.patient})
+    if condition := longitudinal_followup_entry.longitudinal_followup.condition:
+        return eval(condition, {'patient': longitudinal_followup_entry.patient})
     else:
         return True
 
 
+def serialize_entries(patient_entries):
+    grouped = itertools.groupby(
+        [
+            {
+                "entry": {
+                    "created_at": entry.created_at.timestamp(),
+                    "created_by": entry.created_by,
+                },
+                "longitudinal_followup": {
+                    "name": entry.longitudinal_followup.name,
+                    "description": entry.longitudinal_followup.description,
+                    "context_form_group": {
+                        "name": entry.longitudinal_followup.context_form_group.name,
+                        "context_type": entry.longitudinal_followup.context_form_group.context_type,
+                        "forms": [
+                            model_to_dict(
+                                item.registry_form,
+                                fields=["name", "abbreviated_name", "display_name", "tags"]
+                            )
+                            for item in entry.longitudinal_followup.context_form_group.items.all()
+                        ]
+                    },
+                }
+            }
+            for entry in patient_entries
+        ],
+        lambda lfe: lfe["longitudinal_followup"]["name"]
+    )
+
+    return {longitudinal_followup: list(entries) for longitudinal_followup, entries in grouped}
+
+
 def send_longitudinal_followups():
     now = datetime.datetime.now()
-    entries = LongitudinalFollowupEntry.objects.filter(
+    longitudinal_followups = LongitudinalFollowupEntry.objects.filter(
         reduce(
             operator.or_,
             [Q(longitudinal_followup=lf) & Q(send_at__lte=now + lf.debounce) for lf in
@@ -38,33 +83,40 @@ def send_longitudinal_followups():
             state=LongitudinalFollowupQueueState.PENDING,
             send_at__lte=now
         ).values("patient__id").distinct()
-    ).order_by("patient__id")
+    ) \
+        .select_related("longitudinal_followup") \
+        .select_related("longitudinal_followup__context_form_group") \
+        .select_related("patient") \
+        .order_by("patient__id")
 
-    for patient_id, entries in itertools.groupby(entries, lambda e: e.patient.id):
-        entries = list(filter(evaluate_condition, entries))
+    for patient_id, patient_entries_group in itertools.groupby(longitudinal_followups, lambda e: e.patient.id):
+        all_patient_entries = list(patient_entries_group)
+        patient_entries = list(filter(evaluate_condition, all_patient_entries))
+        logger.info(f"Patient {patient_id}: {len(patient_entries)} / {len(all_patient_entries)} followup entries")
 
-        if len(entries) == 0:
+        if len(patient_entries) == 0:
             continue
 
-        patient = entries[0].patient
+        patient = patient_entries[0].patient
 
         # At least one email that's eligible before debounce
-        assert any((entry.send_at <= now for entry in entries))
+        assert any(entry.send_at <= now for entry in patient_entries)
 
         now = datetime.datetime.now()
+
         with transaction.atomic():
+            longitudinal_followups = serialize_entries(patient_entries)
             sent_successfully, has_disabled = process_notification(
                 patient.rdrf_registry.first().code,
                 EventType.LONGITUDINAL_FOLLOWUP, {
                     "patient": patient,
-                    "entries": json.loads(serializers.serialize("json", entries)),
+                    "longitudinal_followups": longitudinal_followups,
                 }
             )
 
-            if sent_successfully:
-                for entry in entries:
-                    entry.sent_at.append(now)
+            for entry in patient_entries:
+                entry.sent_at.append(now)
+                if sent_successfully:
                     entry.state = LongitudinalFollowupQueueState.SENT
-                    # entry.save()
-                    # logger.info(entry.__dict__)
-                    # logger.info(str((sent_successfully, has_disabled)))
+
+            LongitudinalFollowupEntry.objects.bulk_update(patient_entries, ["sent_at", "state"])
