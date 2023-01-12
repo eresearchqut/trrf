@@ -104,19 +104,20 @@ def send_longitudinal_followups():
 
         now = datetime.datetime.now()
 
-        with transaction.atomic():
-            longitudinal_followups = serialize_entries(patient_entries)
-            sent_successfully, has_disabled = process_notification(
+        longitudinal_followups = serialize_entries(patient_entries)
+        try:
+            process_notification(
                 patient.rdrf_registry.first().code,
                 EventType.LONGITUDINAL_FOLLOWUP, {
                     "patient": patient,
                     "longitudinal_followups": longitudinal_followups,
                 }
             )
+        except Exception as e:
+            logger.error(e)
 
-            for entry in patient_entries:
-                entry.sent_at.append(now)
-                if sent_successfully:
-                    entry.state = LongitudinalFollowupQueueState.SENT
+        for entry in patient_entries:
+            entry.sent_at.append(now)
+            entry.state = LongitudinalFollowupQueueState.SENT
 
-            LongitudinalFollowupEntry.objects.bulk_update(patient_entries, ["sent_at", "state"])
+        LongitudinalFollowupEntry.objects.bulk_update(patient_entries, ["sent_at", "state"])
