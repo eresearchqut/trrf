@@ -302,6 +302,18 @@ def consent_status_for_patient(registry_code, patient):
     return all(sections[section_code].is_valid(section_answers) for section_code, section_answers in answers.items())
 
 
+def consent_status_for_patient_consent(registry, patient_id, consent_question_code):
+    from rdrf.models.definition.models import ConsentQuestion
+    from registry.patients.models import ConsentValue
+
+    consent_questions = ConsentQuestion.objects.filter(section__registry=registry,
+                                                       code=consent_question_code)
+    consents_accepted_cnt = [ConsentValue.objects.filter(consent_question__id=consent_question.id, patient_id=patient_id, answer=True).count()
+                             for consent_question in consent_questions]
+
+    return all(consents_accepted_cnt)
+
+
 def get_error_messages(forms):
     from rdrf.helpers.utils import de_camelcase
 

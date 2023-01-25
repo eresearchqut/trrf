@@ -748,3 +748,10 @@ if DEBUG:
 GRAPHENE = {
     "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
 }
+
+# XNAT Integration
+# If patient consent is required to lookup xnat results, specify ConsentQuestion item as identified by its code
+XNAT_CONSENT_QUESTION_CODE = env.get('xnat_consent_question_code', None)  # TODO should this be in parameter store?
+XNAT_API_USERNAME = env.get('xnat_api_username', "")
+XNAT_API_PASSWORD = env.get('xnat_api_password', "")
+XNAT_API_ENDPOINT = env.get('xnat_api_endpoint', "")

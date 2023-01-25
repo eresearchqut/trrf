@@ -1,12 +1,11 @@
 import base64
-from collections import namedtuple
 import datetime
 import inspect
 import logging
 import math
 import re
 import sys
-
+from collections import namedtuple
 from functools import reduce
 from importlib import import_module
 from operator import attrgetter
@@ -16,16 +15,19 @@ from django.conf import settings
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
+from django.template import Context
+from django.template.loader import get_template
 from django.utils.formats import date_format
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.db.filestorage import virus_checker_result
-from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
-from registry.patients.models import PatientConsent, upload_patient_consent_to
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.utils import consent_status_for_patient_consent
+from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
+from registry.patients.models import PatientConsent, upload_patient_consent_to
 
 logger = logging.getLogger(__name__)
 
@@ -823,6 +825,47 @@ class DurationWidget(widgets.TextInput):
             {script}
         '''
 
+
+class XnatWidget(LookupWidget):
+    SEPARATOR = ';'
+    WIDGET_NAME = 'XnatWidget'
+
+    @staticmethod
+    def extract_lookup_values(raw_value):
+        if raw_value:
+            values = raw_value.split(XnatWidget.SEPARATOR)
+            assert len(values) == 2, f"Invalid split result. Expected 2, got {len(values)}"
+            return values
+
+        return None, None
+    
+    @staticmethod
+    def usable_for_types():
+        return {CDEDataTypes.LOOKUP}
+
+    @staticmethod
+    def denormalized_value(raw_value):
+        lookup_values = XnatWidget.extract_lookup_values(raw_value)
+        return f'project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}'
+
+    def _consent_check(self):
+        xnat_consent_code = settings.XNAT_CONSENT_QUESTION_CODE
+        if xnat_consent_code:
+            patient_id = self.attrs.get('patient_id')
+            registry = self.attrs.get('registry_model')
+            return consent_status_for_patient_consent(registry, patient_id, xnat_consent_code)
+
+    def render(self, name, value, attrs, renderer=None):
+        project_id, subject_id = self.extract_lookup_values(value)
+        context = Context({
+            'id': name,
+            'value': value,
+            'base_xnat_url': settings.XNAT_API_ENDPOINT,
+            'project_id': project_id,
+            'subject_id': subject_id,
+            'consent_check': self._consent_check()
+        })
+        return get_template('rdrf_cdes/widgets/xnat_widget.html').render(context.flatten())
 
 def _all_widgets():
     EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput', 'LookupWidget']

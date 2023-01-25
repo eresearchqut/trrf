@@ -17,6 +17,7 @@ from rdrf.forms.dynamic import fields
 from rdrf.forms.dynamic.calculated_fields import CalculatedFieldParser, CalculatedFieldParseError
 from rdrf.forms.dynamic.validation import ValidatorFactory
 from rdrf.forms.widgets import widgets
+from rdrf.forms.widgets.widgets import XnatWidget
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.models.definition.models import CommonDataElement
 
@@ -230,14 +231,24 @@ class FieldFactory:
         """
         import django.forms as django_forms
 
+        widget_attrs = json.loads(cde.widget_settings) if cde.widget_settings else {}
         if cde.widget_name in widgets.get_all_widgets():
+
+            if cde.widget_name == XnatWidget.WIDGET_NAME:
+                widget_attrs.update(
+                    {
+                        'registry_model': self.registry,
+                        'patient_id': self.primary_id
+                    }
+                )
+
             widget_class = widgets.get_widget_class(cde.widget_name)
             if widget_class:
-                return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
+                return widget_class(attrs=widget_attrs) if cde.widget_settings else widget_class
 
         if hasattr(django_forms, cde.widget_name):
             widget_class = getattr(django_forms, cde.widget_name)
-            return widget_class(attrs=json.loads(cde.widget_settings)) if cde.widget_settings else widget_class
+            return widget_class(attrs=widget_attrs) if cde.widget_settings else widget_class
 
         if self._is_parametrised_widget(cde.widget_name):
             widget_context = {"registry_model": self.registry,
