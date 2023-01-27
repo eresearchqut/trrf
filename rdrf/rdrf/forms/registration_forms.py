@@ -30,7 +30,7 @@ class RegistrationFormCaseInsensitiveCheck(RegistrationForm):
             f"{UsernameField()}__iexact": username.lower()
         }
         if User.objects.filter(**search_dict).exists():
-            raise ValidationError(_('Email already exists !'))
+            raise ValidationError(_('User with this email already exists'))
 
         return username
 
