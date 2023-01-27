@@ -838,7 +838,7 @@ class XnatWidget(LookupWidget):
             return values
 
         return None, None
-    
+
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.LOOKUP}
@@ -854,6 +854,8 @@ class XnatWidget(LookupWidget):
             patient_id = self.attrs.get('patient_id')
             registry = self.attrs.get('registry_model')
             return consent_status_for_patient_consent(registry, patient_id, xnat_consent_code)
+        else:
+            return True
 
     def render(self, name, value, attrs, renderer=None):
         project_id, subject_id = self.extract_lookup_values(value)
@@ -866,6 +868,7 @@ class XnatWidget(LookupWidget):
             'consent_check': self._consent_check()
         })
         return get_template('rdrf_cdes/widgets/xnat_widget.html').render(context.flatten())
+
 
 def _all_widgets():
     EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput', 'LookupWidget']

@@ -125,10 +125,12 @@ class SchemaFor200ResponseBodyApplicationJson(
                                         class properties:
                                             id = schemas.StrSchema
                                             label = schemas.StrSchema
+                                            insert_date = schemas.StrSchema
                                             URI = schemas.StrSchema
                                             __annotations__ = {
                                                 "id": id,
                                                 "label": label,
+                                                "insert_date": insert_date,
                                                 "URI": URI,
                                             }
                                     
@@ -139,12 +141,15 @@ class SchemaFor200ResponseBodyApplicationJson(
                                     def __getitem__(self, name: typing_extensions.Literal["label"]) -> MetaOapg.properties.label: ...
                                     
                                     @typing.overload
+                                    def __getitem__(self, name: typing_extensions.Literal["insert_date"]) -> MetaOapg.properties.insert_date: ...
+                                    
+                                    @typing.overload
                                     def __getitem__(self, name: typing_extensions.Literal["URI"]) -> MetaOapg.properties.URI: ...
                                     
                                     @typing.overload
                                     def __getitem__(self, name: str) -> schemas.UnsetAnyTypeSchema: ...
                                     
-                                    def __getitem__(self, name: typing.Union[typing_extensions.Literal["id", "label", "URI", ], str]):
+                                    def __getitem__(self, name: typing.Union[typing_extensions.Literal["id", "label", "insert_date", "URI", ], str]):
                                         # dict_instance[name] accessor
                                         return super().__getitem__(name)
                                     
@@ -156,12 +161,15 @@ class SchemaFor200ResponseBodyApplicationJson(
                                     def get_item_oapg(self, name: typing_extensions.Literal["label"]) -> typing.Union[MetaOapg.properties.label, schemas.Unset]: ...
                                     
                                     @typing.overload
+                                    def get_item_oapg(self, name: typing_extensions.Literal["insert_date"]) -> typing.Union[MetaOapg.properties.insert_date, schemas.Unset]: ...
+                                    
+                                    @typing.overload
                                     def get_item_oapg(self, name: typing_extensions.Literal["URI"]) -> typing.Union[MetaOapg.properties.URI, schemas.Unset]: ...
                                     
                                     @typing.overload
                                     def get_item_oapg(self, name: str) -> typing.Union[schemas.UnsetAnyTypeSchema, schemas.Unset]: ...
                                     
-                                    def get_item_oapg(self, name: typing.Union[typing_extensions.Literal["id", "label", "URI", ], str]):
+                                    def get_item_oapg(self, name: typing.Union[typing_extensions.Literal["id", "label", "insert_date", "URI", ], str]):
                                         return super().get_item_oapg(name)
                                     
                                 
@@ -170,6 +178,7 @@ class SchemaFor200ResponseBodyApplicationJson(
                                         *_args: typing.Union[dict, frozendict.frozendict, ],
                                         id: typing.Union[MetaOapg.properties.id, str, schemas.Unset] = schemas.unset,
                                         label: typing.Union[MetaOapg.properties.label, str, schemas.Unset] = schemas.unset,
+                                        insert_date: typing.Union[MetaOapg.properties.insert_date, str, schemas.Unset] = schemas.unset,
                                         URI: typing.Union[MetaOapg.properties.URI, str, schemas.Unset] = schemas.unset,
                                         _configuration: typing.Optional[schemas.Configuration] = None,
                                         **kwargs: typing.Union[schemas.AnyTypeSchema, dict, frozendict.frozendict, str, date, datetime, uuid.UUID, int, float, decimal.Decimal, None, list, tuple, bytes],
@@ -179,6 +188,7 @@ class SchemaFor200ResponseBodyApplicationJson(
                                             *_args,
                                             id=id,
                                             label=label,
+                                            insert_date=insert_date,
                                             URI=URI,
                                             _configuration=_configuration,
                                             **kwargs,

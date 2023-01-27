@@ -76,9 +76,12 @@ paths:
                             label:
                               type: string
                               description: experiment label
+                            insert_date:
+                              type: string
+                              description: insert date
                             URI:
                               type: string
-                              description: path - TODO
+                              description: relative URI to this experiment
                       totalRecords:
                         type: string
   /data/experiments/{experiment_id}/scans:
@@ -118,6 +121,6 @@ paths:
                               description: series description
                             URI:
                               type: string
-                              description: path - TODO
+                              description: relative URI to this scan
                       totalRecords:
                         type: string

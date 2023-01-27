@@ -182,7 +182,7 @@ Key | Input Type | Accessed Type | Description | Notes
 **id** | str,  | str,  | scan id | [optional] 
 **type** | str,  | str,  | scan type | [optional] 
 **series_description** | str,  | str,  | series description | [optional] 
-**URI** | str,  | str,  | path - TODO | [optional] 
+**URI** | str,  | str,  | relative URI to this scan | [optional] 
 **any_string_name** | dict, frozendict.frozendict, str, date, datetime, int, float, bool, decimal.Decimal, None, list, tuple, bytes, io.FileIO, io.BufferedReader | frozendict.frozendict, str, BoolClass, decimal.Decimal, NoneClass, tuple, bytes, FileIO | any string name can be used but the value must be the correct type | [optional]
 
 ### Authorization
@@ -373,7 +373,8 @@ Key | Input Type | Accessed Type | Description | Notes
 ------------ | ------------- | ------------- | ------------- | -------------
 **id** | str,  | str,  | experiment id | [optional] 
 **label** | str,  | str,  | experiment label | [optional] 
-**URI** | str,  | str,  | path - TODO | [optional] 
+**insert_date** | str,  | str,  | insert date | [optional] 
+**URI** | str,  | str,  | relative URI to this experiment | [optional] 
 **any_string_name** | dict, frozendict.frozendict, str, date, datetime, int, float, bool, decimal.Decimal, None, list, tuple, bytes, io.FileIO, io.BufferedReader | frozendict.frozendict, str, BoolClass, decimal.Decimal, NoneClass, tuple, bytes, FileIO | any string name can be used but the value must be the correct type | [optional]
 
 ### Authorization
