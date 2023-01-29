@@ -14,7 +14,7 @@ fi
 
 alias aloe='docker-compose -f docker-compose-aloe.yml'
 alias selenium='docker-compose -f docker-compose-selenium.yml'
-alias teststack="docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-${STACK}.yml"
+alias teststack="docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-${STACK}.yml -f docker-compose-wiremock.yml"
 
 stop_all() {
     trap "echo 'Exiting'" HUP INT TERM
