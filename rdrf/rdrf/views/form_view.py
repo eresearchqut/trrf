@@ -383,6 +383,7 @@ class FormView(View):
 
         xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
+        self.rdrf_context_manager.get_or_create_default_context(patient_model)
 
         try:
             if not self.CREATE_MODE:
@@ -530,6 +531,7 @@ class FormView(View):
 
         xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
+        self.rdrf_context_manager.get_or_create_default_context(patient)
 
         try:
             if not self.CREATE_MODE:

@@ -105,12 +105,9 @@ class PatientFormMixin:
         patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
         return '%s?just_created=True' % patient_edit_url
 
-    def _get_initial_context(self, registry_code, patient_model):
-        from rdrf.models.definition.models import Registry
-        registry_model = Registry.objects.get(code=registry_code)
+    def _get_default_context(self, registry_model, patient_model):
         rdrf_context_manager = RDRFContextManager(registry_model)
-        return rdrf_context_manager.get_or_create_default_context(
-            patient_model, new_patient=True)
+        return rdrf_context_manager.get_or_create_default_context(patient_model)
 
     def set_patient_model(self, patient_model):
         self.patient_model = patient_model
@@ -607,6 +604,8 @@ class PatientEditView(PatientFormMixin, View):
             raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
 
+        self._get_default_context(registry_model, patient)
+
         xray_recorder.begin_subsegment("template")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
@@ -673,6 +672,8 @@ class PatientEditView(PatientFormMixin, View):
         if not consent_check(registry_model, user, patient, "see_patient"):
             raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
+
+        self._get_default_context(registry_model, patient)
 
         xray_recorder.begin_subsegment("validate")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
