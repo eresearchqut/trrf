@@ -1696,7 +1696,7 @@ class CDEFile(models.Model):
 
     registry_code = models.CharField(max_length=10)
     uploaded_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.PROTECT)
-    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.PROTECT)
+    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.RESTRICT)
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
