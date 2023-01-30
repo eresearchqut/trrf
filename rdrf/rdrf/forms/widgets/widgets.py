@@ -849,10 +849,11 @@ class XnatWidget(LookupWidget):
         return f'project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}'
 
     def _consent_check(self):
-        xnat_consent_code = settings.XNAT_CONSENT_QUESTION_CODE
+        registry = self.attrs.get('registry_model')
+        xnat_consent_code = registry.metadata.get('xnat_consent_code')
+
         if xnat_consent_code:
             patient_id = self.attrs.get('patient_id')
-            registry = self.attrs.get('registry_model')
             return consent_status_for_patient_consent(registry, patient_id, xnat_consent_code)
         else:
             return True
