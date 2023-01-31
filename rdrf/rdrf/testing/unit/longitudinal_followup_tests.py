@@ -7,15 +7,16 @@ from django.test import TestCase
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, ContextFormGroup, LongitudinalFollowup, EmailNotification, \
-    EmailTemplate
+    EmailTemplate, RegistryForm, ContextFormGroupItem
 from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups
 from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState
 
 logger = logging.getLogger(__name__)
 
 
-class LongitudinalFollowupTest(TestCase):
+class LongitudinalFollowupSentTest(TestCase):
     def setUp(self):
+        self.now = datetime.now()
         self.registry = Registry.objects.create(code='reg')
         template = EmailTemplate.objects.create(
             language='en',
@@ -35,12 +36,11 @@ class LongitudinalFollowupTest(TestCase):
 
     def _get_emails(self, num_emails):
         self.assertEqual(len(mail.outbox), 0)
-        send_longitudinal_followups()
+        send_longitudinal_followups(self.now)
         self.assertEqual(len(mail.outbox), num_emails)
         return mail.outbox
 
     def test_single_patient_single_lf(self):
-        now = datetime.now()
         longitudinal_followup = LongitudinalFollowup.objects.create(
             name="Test followup",
             context_form_group=self.cfg,
@@ -55,25 +55,25 @@ class LongitudinalFollowupTest(TestCase):
                 longitudinal_followup=longitudinal_followup,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
         ])
 
@@ -87,7 +87,6 @@ class LongitudinalFollowupTest(TestCase):
         self.assertEqual(len(entries), 2)
 
     def test_single_patient_multiple_lf(self):
-        now = datetime.now()
         longitudinal_followup1 = LongitudinalFollowup.objects.create(
             name="Test followup 1",
             context_form_group=self.cfg,
@@ -108,49 +107,49 @@ class LongitudinalFollowupTest(TestCase):
                 longitudinal_followup=longitudinal_followup1,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup1,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup1,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup1,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup2,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup2,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup2,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup2,
                 patient=patient,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
         ])
 
@@ -166,7 +165,6 @@ class LongitudinalFollowupTest(TestCase):
         self.assertEqual(len(second_entries), 2)
 
     def test_multiple_patient_single_lf(self):
-        now = datetime.now()
         longitudinal_followup = LongitudinalFollowup.objects.create(
             name="Test followup",
             context_form_group=self.cfg,
@@ -184,49 +182,49 @@ class LongitudinalFollowupTest(TestCase):
                 longitudinal_followup=longitudinal_followup,
                 patient=patient1,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient1,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient1,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient1,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient2,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient2,
                 state=LongitudinalFollowupQueueState.PENDING,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient2,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now - timedelta(days=1)
+                send_at=self.now - timedelta(days=1)
             ),
             LongitudinalFollowupEntry(
                 longitudinal_followup=longitudinal_followup,
                 patient=patient2,
                 state=LongitudinalFollowupQueueState.SENT,
-                send_at=now + timedelta(days=1)
+                send_at=self.now + timedelta(days=1)
             ),
         ])
 

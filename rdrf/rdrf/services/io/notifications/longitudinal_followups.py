@@ -69,9 +69,13 @@ def serialize_entries(patient_entries):
 
     return {longitudinal_followup: list(entries) for longitudinal_followup, entries in grouped}
 
+def with_now(func):
+    def wrapper(now=None):
+        return func(now=now or datetime.datetime.now())
+    return wrapper
 
-def send_longitudinal_followups():
-    now = datetime.datetime.now()
+@with_now
+def send_longitudinal_followups(now):
     longitudinal_followups = LongitudinalFollowupEntry.objects.filter(
         reduce(
             operator.or_,
