@@ -255,6 +255,9 @@ class PatientsListingView(View):
         return sort_field, sort_direction
 
     def _get_row_dict(self, instance):
+        # Create any missing fixed contexts
+        self.rdrf_context_manager.get_or_create_default_context(instance)
+
         # we need to do this so that the progress data for this instance
         # loaded!
         self.form_progress.reset()

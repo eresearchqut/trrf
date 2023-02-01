@@ -323,8 +323,7 @@ class FormTestCase(RDRFTestCase):
         p.rdrf_registry.set([self.registry])
 
         context_manager = RDRFContextManager(self.registry)
-        self.default_context = context_manager.get_or_create_default_context(
-            p, new_patient=True)
+        self.default_context = context_manager.get_or_create_default_context(p)
 
         return p
 
