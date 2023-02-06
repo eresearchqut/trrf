@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -1148,7 +1149,14 @@ class EmailTemplate(models.Model):
         return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
 
 
+class EmailNotificationManager(models.Manager):
+    def subscribable(self):
+        return self.filter(subscribable=True)
+
+
 class EmailNotification(models.Model):
+    objects = EmailNotificationManager()
+
     EMAIL_NOTIFICATIONS = (
         (EventType.ACCOUNT_LOCKED, "Account Locked"),
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
@@ -1180,6 +1188,7 @@ class EmailNotification(models.Model):
     }
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
+    public_description = models.CharField(max_length=200, help_text='Displayed to users when managing their email preferences', null=True, blank=True)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     email_from = models.EmailField(null=True, blank=True, help_text='Leave empty for default email address')
     recipient = models.CharField(max_length=100, null=True, blank=True)
@@ -1190,6 +1199,12 @@ class EmailNotification(models.Model):
         help_text='Select File CDEs to be notified about. Leave empty to be notified on all file uploads<br />',
     )
     disabled = models.BooleanField(null=False, blank=False, default=False)
+    subscribable = models.BooleanField(null=False, blank=False, default=False)
+
+    @property
+    def subscription_label(self):
+        default_label = dict(self.EMAIL_NOTIFICATIONS).get(self.description, self.description)
+        return self.public_description or default_label
 
     @property
     def warnings(self):
@@ -1211,6 +1226,39 @@ class EmailNotificationHistory(models.Model):
 
     class Meta:
         verbose_name_plural = 'Email Notification History'
+
+
+class EmailPreferenceManager(models.Manager):
+
+    def get_by_user(self, user):
+        return self.filter(user=user).first()
+
+    def filter_by_unsubscribed(self, email_notification):
+        return self.filter(Q(unsubscribe_all=True) | (Q(notification_preferences__email_notification=email_notification,
+                                                        notification_preferences__is_subscribed=False)))
+
+
+class EmailPreference(models.Model):
+    objects = EmailPreferenceManager()
+
+    user = models.OneToOneField('groups.CustomUser', on_delete=models.CASCADE)
+    unsubscribe_all = models.BooleanField(help_text=_("Unsubscribed from current and future system generated emails"))
+
+    def is_email_allowed(self, email_notification):
+        if self.unsubscribe_all:
+            return False
+        else:
+            preference = self.notification_preferences.filter(email_notification=email_notification).first()
+            return preference.is_subscribed if preference else True
+
+
+class EmailNotificationPreference(models.Model):
+    user_email_preference = models.ForeignKey(EmailPreference, related_name='notification_preferences', on_delete=models.CASCADE)
+    email_notification = models.ForeignKey(EmailNotification, limit_choices_to={'subscribable': True}, on_delete=models.CASCADE)
+    is_subscribed = models.BooleanField()
+
+    class Meta:
+        unique_together = (('user_email_preference', 'email_notification'),)
 
 
 class RDRFContextError(Exception):
