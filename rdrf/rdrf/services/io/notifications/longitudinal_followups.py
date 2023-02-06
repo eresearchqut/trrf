@@ -4,9 +4,9 @@ import logging
 import operator
 from functools import reduce
 
-from django.db import transaction
 from django.db.models import Q
 from django.forms import model_to_dict
+from django.urls import reverse
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import LongitudinalFollowup
@@ -58,7 +58,8 @@ def serialize_entries(patient_entries):
                                 fields=["name", "abbreviated_name", "display_name", "tags"]
                             )
                             for item in entry.longitudinal_followup.context_form_group.items.all()
-                        ]
+                        ],
+                        "link": f"{reverse('action')}?action=form&form_type=Registry&registry={entry.longitudinal_followup.context_form_group.registry.code}&cfg={entry.longitudinal_followup.context_form_group.name}&form={entry.longitudinal_followup.context_form_group.forms[0]}"
                     },
                 }
             }

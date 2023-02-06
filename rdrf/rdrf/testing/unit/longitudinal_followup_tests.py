@@ -1,5 +1,6 @@
 import json
 import logging
+import textwrap
 from datetime import timedelta, datetime
 
 from django.core import mail
@@ -7,7 +8,7 @@ from django.test import TestCase
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, ContextFormGroup, LongitudinalFollowup, EmailNotification, \
-    EmailTemplate, RegistryForm, ContextFormGroupItem
+    EmailTemplate, RegistryForm, ContextFormGroupItem, Section, CommonDataElement
 from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups
 from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState
 
@@ -18,6 +19,7 @@ class LongitudinalFollowupSentTest(TestCase):
     def setUp(self):
         self.now = datetime.now()
         self.registry = Registry.objects.create(code='reg')
+
         template = EmailTemplate.objects.create(
             language='en',
             description='Longitudinal Followup',
@@ -32,7 +34,28 @@ class LongitudinalFollowupSentTest(TestCase):
         )
         email_notification.email_templates.add(template)
         email_notification.save()
+
+        CommonDataElement.objects.create(
+            code=f'test',
+            abbreviated_name=f'test',
+            name="test"
+        )
+        Section.objects.create(
+            code=f'test',
+            elements=f'test',
+            abbreviated_name=f'test',
+            display_name=f'test'
+        )
+        form = RegistryForm.objects.create(
+            registry=self.registry,
+            name=f'test',
+            abbreviated_name=f'test',
+            sections=f'test'
+        )
+
         self.cfg = ContextFormGroup.objects.create(registry=self.registry, code='cfg')
+        cfg_item = ContextFormGroupItem.objects.create(context_form_group=self.cfg, registry_form=form)
+        self.cfg.items.add(cfg_item)
 
     def _get_emails(self, num_emails):
         self.assertEqual(len(mail.outbox), 0)
