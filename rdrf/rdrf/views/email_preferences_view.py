@@ -50,7 +50,7 @@ class UnsubscribeAllView(TokenAuthenticatedView):
             unsubscribe_successful = email_preference is not None
 
         if not unsubscribe_successful:
-            raise Exception(f'Unsubscribe all failed for user', (username, valid_token))
+            raise Exception('Unsubscribe all failed for user', (username, valid_token))
 
         return render(request, 'email_preference/unsubscribe_all_success.html', {})
 
