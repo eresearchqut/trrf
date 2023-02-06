@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 from rdrf.auth.signed_url.util import make_token, make_token_authenticated_link
@@ -40,10 +40,18 @@ class RdrfEmail(object):
         else:
             self.email_notification = self._get_email_notification()
 
+    def _send_mail(self, subject, body, address, recipient_list, html_message, headers=None):
+        mail = EmailMultiAlternatives(subject, body, address, recipient_list, headers)
+        if html_message:
+            mail.attach_alternative(html_message, 'text/html')
+
+        return mail.send()
+
     def send(self):
         success = False
         try:
             notification_record_saved = []
+            headers = {}
             recipients = self._get_recipients()
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
@@ -60,16 +68,18 @@ class RdrfEmail(object):
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
 
-                email_footer = self._get_email_footer(recipient)
-                if email_footer:
-                    email_body += email_footer
+                unsubscribe_footer, unsubscribe_headers = self._get_unsubscribe_footer(recipient)
+                if unsubscribe_footer:
+                    headers.update(unsubscribe_headers)
+                    email_body += unsubscribe_footer
 
-                send_mail(
-                    email_subject,
-                    email_body,
-                    sender_address,
-                    [recipient],
-                    html_message=email_body)
+                self._send_mail(email_subject,
+                                email_body,
+                                sender_address,
+                                [recipient],
+                                html_message=email_body,
+                                headers=headers)
+
                 if language not in notification_record_saved:
                     self._save_notification_record(language)
                     notification_record_saved.append(language)
@@ -141,7 +151,7 @@ class RdrfEmail(object):
 
         return template_subject, template_body
 
-    def _get_email_footer(self, email_address):
+    def _get_unsubscribe_footer(self, email_address):
         try:
             user = self._get_user_from_email(email_address)
             token = make_token(user.username)
@@ -150,13 +160,15 @@ class RdrfEmail(object):
 
             # Inject unsubscribe footer
             if self.email_notification.subscribable:
-                unsubscribe_context = Context({'unsubscribe_all_url': make_full_url(unsubscribe_all_url),
+                full_unsubscribe_url = make_full_url(unsubscribe_all_url)
+                unsubscribe_context = Context({'unsubscribe_all_url': full_unsubscribe_url,
                                                'email_preferences_url': make_full_url(email_preferences_url)})
                 template_footer = get_template('email_preference/_email_footer.html')
                 template_footer = template_footer.render(unsubscribe_context.flatten())
-                return template_footer
+                headers = {'List-Unsubscribe': full_unsubscribe_url}
+                return template_footer, headers
         except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
-            return None  # skip the unsubscribe footer
+            return None, None  # skip the unsubscribe footer
 
     def _get_email_notification(self):
         try:
