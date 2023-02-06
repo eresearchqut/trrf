@@ -2005,7 +2005,6 @@ class LongitudinalFollowup(models.Model):
     name = models.CharField(unique=True, max_length=255, help_text="The name of the followup as displayed to the user")
     description = models.TextField(blank=True)
     context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
-    # email_notification = models.ForeignKey(EmailNotification, on_delete=models.PROTECT)
     frequency = models.DurationField(help_text="The frequency at which followups are sent (days HH:MM:SS)")
     debounce = models.DurationField(
         null=True,

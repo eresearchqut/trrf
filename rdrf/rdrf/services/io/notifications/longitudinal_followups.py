@@ -79,8 +79,10 @@ def send_longitudinal_followups(now):
     longitudinal_followups = LongitudinalFollowupEntry.objects.filter(
         reduce(
             operator.or_,
-            [Q(longitudinal_followup=lf) & Q(send_at__lte=now + lf.debounce) for lf in
-             LongitudinalFollowup.objects.all()]
+            [
+                Q(longitudinal_followup=lf) & Q(send_at__lte=now + lf.debounce) for lf in
+                LongitudinalFollowup.objects.all()
+            ]
         ),
         state=LongitudinalFollowupQueueState.PENDING,
         patient__id__in=LongitudinalFollowupEntry.objects.filter(
