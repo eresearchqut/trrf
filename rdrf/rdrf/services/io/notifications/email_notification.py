@@ -1,5 +1,9 @@
 from django.conf import settings
 from django.core.mail import send_mail
+from django.template.loader import get_template
+
+from rdrf.auth.signed_url.util import make_token, make_token_authenticated_link
+from rdrf.helpers.utils import make_full_url
 from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
 from registry.groups.models import CustomUser
 from django.template import Context, Engine, Template
@@ -55,6 +59,11 @@ class RdrfEmail(object):
                     continue
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
+
+                email_footer = self._get_email_footer(recipient)
+                if email_footer:
+                    email_body += email_footer
+
                 send_mail(
                     email_subject,
                     email_body,
@@ -131,6 +140,23 @@ class RdrfEmail(object):
         template_body = template_body.render(context)
 
         return template_subject, template_body
+
+    def _get_email_footer(self, email_address):
+        try:
+            user = self._get_user_from_email(email_address)
+            token = make_token(user.username)
+            unsubscribe_all_url = make_token_authenticated_link('unsubscribe_all', user.username, token)
+            email_preferences_url = make_token_authenticated_link('email_preferences', user.username, token)
+
+            # Inject unsubscribe footer
+            if self.email_notification.subscribable:
+                unsubscribe_context = Context({'unsubscribe_all_url': make_full_url(unsubscribe_all_url),
+                                               'email_preferences_url': make_full_url(email_preferences_url)})
+                template_footer = get_template('email_preference/_email_footer.html')
+                template_footer = template_footer.render(unsubscribe_context.flatten())
+                return template_footer
+        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+            return None  # skip the unsubscribe footer
 
     def _get_email_notification(self):
         try:
