@@ -185,6 +185,7 @@ INSTALLED_APPS = [x for x in (
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'django.contrib.postgres',
     'django_extensions',
     'django.contrib.admin',
     'useraudit',
