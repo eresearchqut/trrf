@@ -126,6 +126,7 @@ patterns += [
     re_path(r'^import/?$', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
+    re_path(r'^analytics/', include(('analytics.urls', 'analytics_urls'), namespace='analytics')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
     re_path(r'^dashboards/?$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),
     re_path(r'^contexts/(?P<registry_code>\w+)/(?P<patient_id>\d+)/add/(?P<context_form_group_id>\d+)?$',

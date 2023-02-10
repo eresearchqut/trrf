@@ -1,0 +1,49 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load lookup %}
+
+{% block extrastyle %}
+  {{ block.super }}
+
+  {# ChartJS requirements #}
+  <script type="text/javascript" src="{% static 'js/vendor/moment-2.29.4.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/chart.js-3.3.2.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/chartjs-adapter-moment-1.0.0.js' %}"></script>
+
+{% endblock %}
+
+{% block extrahead %}
+  <script>
+    (function($) {
+      $(document).ready(function() {
+        const ctx = $('#chart');
+
+        new Chart(ctx, {
+          type: '{{ chart|lookup:'type'|safe }}',
+          data: {
+            labels: {{ chart|lookup:'labels'|safe }},
+            datasets: {{ chart|lookup:'datasets'|safe }}
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      });
+    })(jQuery);
+  </script>
+{% endblock %}
+
+{% block content %}
+  <h1>CDE: {{ cde_name }}</h1>
+  <ul>
+    <li>Datatype: {{ datatype }}</li>
+  </ul>
+  <p>
+    <canvas id="chart"></canvas>
+  </p>
+{% endblock %}

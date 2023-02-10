@@ -1,0 +1,21 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+  <h1>Analytics</h1>
+  <h2>Reportable CDES</h2>
+  <ul>
+    {% for cde in reportable_cdes %}
+      <li>
+        {{ cde.form_name }}, {{ cde.section_code }}, {{ cde.cde_code }} (values: {{ cde.cnt_value }})
+        <a href="{% url 'analytics:analytics_data' cde.form_name cde.section_code cde.cde_code %}">
+          data
+        </a> |
+        <a href="{% url 'analytics:analytics_chart' cde.form_name cde.section_code cde.cde_code %}">
+          chart
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

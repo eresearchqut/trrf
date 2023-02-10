@@ -2,6 +2,7 @@ from django.db import models
 
 
 class ClinicalDataView(models.Model):
+    id = models.IntegerField(primary_key=True)
     patient_id = models.IntegerField()
     form_name = models.CharField(max_length=80)
     form_entry_num = models.IntegerField()

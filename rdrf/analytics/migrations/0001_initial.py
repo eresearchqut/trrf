@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
                          section_code,
                          cde_entry_num, 
                          cde_code,
-                        val::text as cde_value
+                         trim('"' from val::text) as cde_value
                 from (
                     select cd_cdes_prep.*,
                              jsonb_array_elements_text(cde_value) as val
@@ -105,7 +105,8 @@ class Migration(migrations.Migration):
                     where jsonb_typeof(cde_value) != 'array'
                 ) cde_scalar_data
             )
-            select rcd.django_id as patient_id,
+            select   row_number() over() as id,
+                     rcd.django_id as patient_id,
                      cde.form_name,
                      cde.form_entry_num,
                      cde.section_code,
@@ -116,10 +117,17 @@ class Migration(migrations.Migration):
             join   rdrf_clinicaldata rcd
             on     rcd.id = cde.id
             order by patient_id, form_entry_num, form_name, section_code, cde_entry_num, cde_code;
-            CREATE UNIQUE INDEX analytics_clinicaldata_idx ON analytics_clinicaldataview(patient_id, form_name, form_entry_num, section_code, cde_entry_num, cde_code, cde_value);
             """,
             """
             DROP MATERIALIZED VIEW analytics_clinicaldataview;
+            """
+        ),
+        migrations.RunSQL(
+            """
+            CREATE UNIQUE INDEX analytics_clinicaldata_idx ON analytics_clinicaldataview(id);
+            """,
+            """
+            DROP INDEX analytics_clinicaldata_idx;
             """
         )
     ]
