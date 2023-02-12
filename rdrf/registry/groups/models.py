@@ -53,6 +53,11 @@ class WorkingGroup(models.Model):
             return self.name
 
 
+class CustomUserManager(UserManager):
+    def get_by_natural_key(self, username):
+        return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
+
+
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
         _('username'),
@@ -102,7 +107,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
-    objects = UserManager()
+    objects = CustomUserManager()
 
     @property
     def my_registry(self):
