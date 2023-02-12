@@ -17,7 +17,6 @@ class XnatScansLookup(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, project_id, subject_id):
-        results = xnat_experiments_scans(project_id, subject_id)
         return JsonResponse({
-            'experiments': results
+            'experiments': xnat_experiments_scans(project_id, subject_id)
         })

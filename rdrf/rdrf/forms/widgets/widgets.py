@@ -868,7 +868,7 @@ class XnatWidget(LookupWidget):
             'subject_id': subject_id,
             'consent_check': self._consent_check()
         })
-        return get_template('rdrf_cdes/widgets/xnat_widget.html').render(context.flatten())
+        return get_template('widgets/xnat_widget.html').render(context.flatten())
 
 
 def _all_widgets():

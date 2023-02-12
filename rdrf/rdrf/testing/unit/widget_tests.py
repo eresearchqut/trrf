@@ -12,4 +12,4 @@ class WidgetTest(TestCase):
         self.assertEqual(XnatWidget.extract_lookup_values(''), (None, None))
 
         with self.assertRaises(AssertionError):
-            XnatWidget.extract_lookup_values('1;2;3'), (None, None)
+            XnatWidget.extract_lookup_values('1;2;3')

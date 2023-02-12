@@ -232,8 +232,8 @@ class FieldFactory:
         import django.forms as django_forms
 
         widget_attrs = json.loads(cde.widget_settings) if cde.widget_settings else {}
-        if cde.widget_name in widgets.get_all_widgets():
 
+        if cde.widget_name in widgets.get_all_widgets():
             if cde.widget_name == XnatWidget.WIDGET_NAME:
                 widget_attrs.update(
                     {

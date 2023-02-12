@@ -34,6 +34,7 @@
     }
 
     async function loadExperiments(project_id, subject_id) {
+      toggleDisplay($loadingMessage, true);
       toggleDisplay($resultsContainer, false);
       toggleDisplay($resultsError, false);
 
@@ -69,10 +70,13 @@
         },
         error: function() {
           displayError(gettext("Could not load results from XNAT."));
+        },
+        complete: function() {
+          toggleDisplay($loadingMessage, false);
+          toggleDisplay($resultsContainer, true);
         }
-      })
+      });
 
-      toggleDisplay($resultsContainer, true);
     }
 
     const methods = {
@@ -88,9 +92,7 @@
         })
 
         $lookupButton.on('click', async function () {
-          toggleDisplay($loadingMessage, true);
           await loadExperiments($xnatProjectId.val(), $xnatSubjectId.val());
-          toggleDisplay($loadingMessage, false);
         });
       }
     }
