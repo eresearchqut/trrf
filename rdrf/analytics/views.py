@@ -154,3 +154,7 @@ class AnalyticsChartView(BaseAnalyticsView):
 
         return render(request, 'chart.html', chart_data)
 
+class AnalyticsTableView(View):
+    def get(self, request):
+        return render(request, 'table.html')
+
