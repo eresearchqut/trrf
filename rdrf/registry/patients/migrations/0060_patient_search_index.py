@@ -13,8 +13,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql="""
-            CREATE FUNCTION sanitise_text_for_search(text) RETURNS text LANGUAGE SQL IMMUTABLE AS
-            'SELECT unaccent(REPLACE($1, '''''''', ''''));'
+            CREATE FUNCTION sanitise_text_for_search(text varchar) RETURNS text LANGUAGE SQL IMMUTABLE AS
+            'SELECT unaccent(REPLACE(text, '''''''', ''''));'
             """,
             reverse_sql="DROP FUNCTION sanitise_text_for_search;"
         ),
