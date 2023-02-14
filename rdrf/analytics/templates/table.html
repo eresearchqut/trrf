@@ -2,7 +2,64 @@
 {% load static %}
 {% load i18n %}
 
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'vendor/datatables-1.12.0/css/datatables.min.css' %}">
+    <script type="text/javascript" src="{% static 'vendor/datatables-1.12.0/js/datatables.min.js' %}"></script>
+{% endblock %}
+
+{% block extrahead %}
+  <script>
+    (function($) {
+      $(document).ready(function() {
+
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            }
+        });
+
+         const setup_datatable = function () {
+           const clinical_data_table = $("#clinical_data_table");
+           clinical_data_table.DataTable(
+             {
+               serverSide: true,
+               ajax: {
+                 url: '/analytics/data',
+                 type: 'POST'
+               },
+               columns: [
+                 {data: 'form_name'},
+                 {data: 'form_entry_num'},
+                 {data: 'section_code'},
+                 {data: 'cde_code'},
+                 {data: 'cde_entry_num'},
+                 {data: 'cde_value'},
+               ]
+             }
+           )
+         }
+
+         setup_datatable();
+      });
+    })(jQuery);
+  </script>
+{% endblock %}
+
 {% block content %}
   <h1>Clinical Data</h1>
+{#  TODO add registry to view? #}
+  <table id="clinical_data_table" class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Form</th>
+        <th>Form Entry #</th>
+        <th>Section</th>
+        <th>Code</th>
+        <th>Code Entry #</th>
+        <th>Patient Entered Value</th>
+      </tr>
+    </thead>
+  </table>
   
 {% endblock %}

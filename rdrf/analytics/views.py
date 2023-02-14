@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 
@@ -154,7 +155,48 @@ class AnalyticsChartView(BaseAnalyticsView):
 
         return render(request, 'chart.html', chart_data)
 
+
 class AnalyticsTableView(View):
     def get(self, request):
         return render(request, 'table.html')
+
+
+# util, move somewhere else
+def getint(str_input):
+    return int(str_input or 0)
+
+
+class AnalyticsTableDataView(View):
+    def post(self, request):
+        draw = getint(request.POST.get('draw'))
+        start = getint(request.POST.get('start'))
+        length = getint(request.POST.get('length'))
+        # columns = request.POST.getlist('columns')
+        # order = request.POST.getlist('order')
+        search_value = request.POST.get('search[value]')
+        search_regex = request.POST.get('search[regex]')
+
+        logger.info(f'draw={draw}')
+        logger.info(f'start={start}')
+        logger.info(f'length={length}')
+        logger.info(f'search_value={search_value}')
+        logger.info(f'search_regex={search_regex}')
+
+        # Get records with appropriate pagination
+        offset = start
+        limit = length + offset
+        all_data = ClinicalDataView.objects.all()
+        paginated_data = all_data[offset:limit]
+
+        return JsonResponse({
+            "draw": draw,
+            "recordsTotal": all_data.count(),
+            "recordsFiltered": all_data.count(),
+            "data": [{'form_name': data.form_name,
+                      'form_entry_num': data.form_entry_num,
+                      'section_code': data.section_code,
+                      'cde_code': data.cde_code,
+                      'cde_entry_num': data.cde_entry_num,
+                      'cde_value': data.cde_value} for data in paginated_data]
+        })
 
