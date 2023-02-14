@@ -303,3 +303,9 @@ form .aligned ul.errorlist {
   }
 
 }
+
+/**************************************************************************
+ * Data tables overrides                                                  */
+.dataTables_processing {
+  top: 130px !important;
+}
