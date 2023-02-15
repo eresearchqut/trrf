@@ -204,7 +204,7 @@ class PatientsListingView(View):
         filters = {**self.selected_filters}
 
         if self.search_term:
-            patient_search = build_search_item(self.search_term, ['givenNames', 'familyName', 'stage'])
+            patient_search = build_search_item(self.search_term, ['givenNames', 'familyName'])
             filters.update({'search': [patient_search]})
 
         patient_fields = ['id']
