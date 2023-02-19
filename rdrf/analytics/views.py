@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 
-from analytics.models import ClinicalDataView
+from analytics.models import ClinicalDataView, ClinicalDataViewRefreshLog
 from rdrf.models.definition.models import CommonDataElement
 from registry.patients.models import Patient
 
@@ -158,7 +158,13 @@ class AnalyticsChartView(BaseAnalyticsView):
 
 class AnalyticsTableView(View):
     def get(self, request):
-        return render(request, 'table.html')
+        last_data_refresh = ClinicalDataViewRefreshLog.objects.order_by('-created_at').first()
+
+        params = {
+            'last_updated': last_data_refresh.created_at
+        }
+
+        return render(request, 'table.html', params)
 
 
 # util, move somewhere else
