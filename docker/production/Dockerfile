@@ -87,6 +87,8 @@ WORKDIR /requirements
 COPY --from=builder /root/.cache /root/.cache
 COPY --from=builder /requirements/requirements.txt .
 
+COPY clients ./clients
+
 RUN pip install -r requirements.txt
 
 # The generate snakeoil cert is valid for 10 years, but if you need to
