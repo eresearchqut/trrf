@@ -68,8 +68,12 @@
             displayError(gettext("You do not have access to XNAT."))
           }
         },
-        error: function() {
-          displayError(gettext("Could not load results from XNAT."));
+        error: function($xhr) {
+          if ($xhr["responseJSON"] && $xhr["responseJSON"]["message"]) {
+            displayError($xhr.responseJSON.message);
+          } else {
+            displayError(gettext("Could not load results from XNAT."));
+          }
         },
         complete: function() {
           toggleDisplay($loadingMessage, false);

@@ -60,3 +60,6 @@ class HelpersUtilTest(TestCase):
 
         # --> they have consented to a question in another registry that shares the same question code.
         self.assertFalse(consent_status_for_patient_consent(registry_2, patient_2.id, 'Q2'))
+
+        # consent question code does not exist
+        self.assertFalse(consent_status_for_patient_consent(registry_1, patient_1.id, 'NO_MATCH'))

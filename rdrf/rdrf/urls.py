@@ -139,7 +139,7 @@ patterns += [
     re_path(r"^cde_query/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<cde_code>\w+)?$",
             form_view.CdeCalculatedQueryLookup.as_view(), name='cde_query'),
 
-    re_path(r"^xnat_scans/(?P<project_id>.*)/(?P<subject_id>.*)?$", xnat_view.XnatScansLookup.as_view(), name='xnat_scans_lookup'),
+    re_path(r"^xnat_scans/(?P<registry_code>\w+)/(?P<project_id>.*)/(?P<subject_id>.*)?$", xnat_view.XnatScansLookup.as_view(), name='xnat_scans_lookup'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
             form_view.FormView.as_view(), name='form_add'),

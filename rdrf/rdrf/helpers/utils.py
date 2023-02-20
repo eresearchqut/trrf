@@ -311,7 +311,9 @@ def consent_status_for_patient_consent(registry, patient_id, consent_question_co
     consents_accepted_cnt = [ConsentValue.objects.filter(consent_question__id=consent_question.id, patient_id=patient_id, answer=True).count()
                              for consent_question in consent_questions]
 
-    return all(consents_accepted_cnt)
+    # Consent status is valid (True) if all relevant consent values are True
+    # There must be at least one consent value for the patient that matches the consent question code supplied
+    return len(consents_accepted_cnt) > 0 and all(consents_accepted_cnt)
 
 
 def get_error_messages(forms):

@@ -25,6 +25,7 @@ from django.utils.translation import gettext as _
 from rdrf.db.filestorage import virus_checker_result
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient_consent
 from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
 from registry.patients.models import PatientConsent, upload_patient_consent_to
@@ -828,7 +829,6 @@ class DurationWidget(widgets.TextInput):
 
 class XnatWidget(LookupWidget):
     SEPARATOR = ';'
-    WIDGET_NAME = 'XnatWidget'
 
     @staticmethod
     def extract_lookup_values(raw_value):
@@ -848,8 +848,7 @@ class XnatWidget(LookupWidget):
         lookup_values = XnatWidget.extract_lookup_values(raw_value)
         return f'project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}'
 
-    def _consent_check(self):
-        registry = self.attrs.get('registry_model')
+    def _consent_check(self, registry):
         xnat_consent_code = registry.metadata.get('xnat_consent_code')
 
         if xnat_consent_code:
@@ -860,13 +859,16 @@ class XnatWidget(LookupWidget):
 
     def render(self, name, value, attrs, renderer=None):
         project_id, subject_id = self.extract_lookup_values(value)
+        registry = self.attrs.get('registry_model')
         context = Context({
             'id': name,
             'value': value,
             'base_xnat_url': settings.XNAT_API_ENDPOINT,
+            'registry': registry,
             'project_id': project_id,
             'subject_id': subject_id,
-            'consent_check': self._consent_check()
+            'consent_check': self._consent_check(registry),
+            'xnat_enabled': registry.has_feature(RegistryFeatures.XNAT_INTEGRATION)
         })
         return get_template('widgets/xnat_widget.html').render(context.flatten())
 

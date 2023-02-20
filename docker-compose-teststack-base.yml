@@ -36,4 +36,4 @@ services:
     expose:
         - "8080"
     volumes:
-      - "./.xnat:/home/wiremock"
+      - "./clients/xnat/mock:/home/wiremock"
