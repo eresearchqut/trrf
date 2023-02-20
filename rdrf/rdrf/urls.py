@@ -12,7 +12,7 @@ from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
 
-from rdrf.views import favicon_view, dashboard_view
+from rdrf.views import favicon_view, dashboard_view, xnat_view
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
@@ -138,6 +138,8 @@ patterns += [
 
     re_path(r"^cde_query/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<cde_code>\w+)?$",
             form_view.CdeCalculatedQueryLookup.as_view(), name='cde_query'),
+
+    re_path(r"^xnat_scans/(?P<registry_code>\w+)/(?P<project_id>.*)/(?P<subject_id>.*)?$", xnat_view.XnatScansLookup.as_view(), name='xnat_scans_lookup'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
             form_view.FormView.as_view(), name='form_add'),

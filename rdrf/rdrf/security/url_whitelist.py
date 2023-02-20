@@ -391,4 +391,5 @@ SECURITY_WHITELISTED_URLS = (
     "v1:registry-forms",
     "v1:state_lookup",
     "verifications_list",
+    "xnat_scans_lookup",
 )

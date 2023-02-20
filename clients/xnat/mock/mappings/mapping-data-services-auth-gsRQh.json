@@ -1,0 +1,22 @@
+{
+  "id" : "4af61134-53bb-3601-82b2-cdfcfe0262fb",
+  "request" : {
+    "url" : "/data/services/auth",
+    "method" : "PUT"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "body-data-services-auth-gsRQh.txt",
+    "headers" : {
+      "Server" : "nginx/1.19.10",
+      "Date" : "Mon, 16 Jan 2023 05:28:05 GMT",
+      "Content-Type" : "text/html;charset=ISO-8859-1",
+      "Set-Cookie" : [ "JSESSIONID=B0019A649817B37EB47270F32B340DB8; Path=/; HttpOnly", "SESSION_EXPIRATION_TIME=\"1673846884455,900000\"; Version=1; Path=/" ],
+      "X-Content-Type-Options" : "nosniff",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'"
+    }
+  },
+  "uuid" : "4af61134-53bb-3601-82b2-cdfcfe0262fb"
+}

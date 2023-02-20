@@ -1,0 +1,24 @@
+{
+  "id" : "6fa8309f-b062-3da1-8faa-ab5e64666cd8",
+  "request" : {
+    "url" : "/data/projects/PT-1/subjects/patient1/experiments?format=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-data-projects-PT-1-subjects-patient1-experiments-R8K6R.json",
+    "headers" : {
+      "Server" : "nginx/1.19.10",
+      "Date" : "Mon, 16 Jan 2023 05:28:13 GMT",
+      "Content-Type" : "application/json",
+      "Set-Cookie" : "SESSION_EXPIRATION_TIME=\"1673846893379,900000\"; Version=1; Path=/",
+      "Vary" : "Accept-Charset, Accept-Encoding, Accept-Language, Accept",
+      "Accept-Ranges" : "bytes",
+      "X-Content-Type-Options" : "nosniff",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'"
+    }
+  },
+  "uuid" : "6fa8309f-b062-3da1-8faa-ab5e64666cd8"
+}

@@ -34,6 +34,8 @@ WORKDIR /requirements
 
 COPY requirements/* ./
 
+COPY clients ./clients
+
 RUN pip install -r requirements.txt
 RUN pip install -r dev-requirements.txt
 # TODO this should be installed only in the test images?
