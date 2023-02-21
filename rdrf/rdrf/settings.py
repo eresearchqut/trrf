@@ -185,6 +185,7 @@ INSTALLED_APPS = [x for x in (
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'django.contrib.postgres',
     'django_extensions',
     'django.contrib.admin',
     'useraudit',
@@ -749,3 +750,9 @@ if DEBUG:
 GRAPHENE = {
     "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
 }
+
+# XNAT Integration
+# If patient consent is required to lookup xnat results, specify ConsentQuestion item as identified by its code
+XNAT_API_USERNAME = env.get('xnat_api_username', "")
+XNAT_API_PASSWORD = env.get('xnat_api_password', "")
+XNAT_API_ENDPOINT = env.get('xnat_api_endpoint', "")

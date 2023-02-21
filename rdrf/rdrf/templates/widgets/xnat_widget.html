@@ -1,0 +1,90 @@
+{% load i18n %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+    {% if '__prefix__' in id %}
+      const initMultiSectionLookup = function (form_count) {
+        const id = "{{ id }}".replace('__prefix__', form_count)
+        $(`#id_${id}_xnat_widget`).xnat_lookup({
+          widget_id: id,
+          initial_project_id: '{{ project_id|default_if_none:"" }}',
+          initial_subject_id: '{{ subject_id|default_if_none:"" }}',
+          base_xnat_url: '{{ base_xnat_url }}',
+          base_lookup_url: '/xnat_scans/{{ registry.code }}'
+        });
+      }
+      {# Add a hook so that the xnat widget gets initialised for multisections #}
+      {# Defined in rdrf_cdes/form.html add_form function #}
+      add_form_hooks.push(initMultiSectionLookup);
+    {% else %}
+      $('#id_{{ id }}_xnat_widget').xnat_lookup({
+        widget_id: '{{ id }}',
+        initial_project_id: '{{ project_id|default_if_none:"" }}',
+        initial_subject_id: '{{ subject_id|default_if_none:"" }}',
+        base_xnat_url: '{{ base_xnat_url }}',
+        base_lookup_url: '/xnat_scans/{{ registry.code }}'
+      });
+    {% endif %}
+
+  });
+
+</script>
+
+<div id="id_{{ id }}_xnat_widget" class="border rounded">
+  <fieldset class="p-2">
+    <legend class="d-none">XNAT Lookup</legend>
+    <div class="mb-3 row">
+      <label for="id_{{ id }}_project_id" class="col-sm-2 col-form-label">{% trans "Project ID" %}</label>
+      <div class="col-sm-10">
+        <input id="id_{{ id }}_project_id" type="text" />
+      </div>
+    </div>
+    <div class="mb-3 row">
+      <label for="id_{{ id }}_subject_id" class="col-sm-2 col-form-label">{% trans "Subject ID" %}</label>
+      <div class="col-sm-10">
+        <input id="id_{{ id }}_subject_id" type="text" />
+      </div>
+    </div>
+    <input type="hidden" id="id_{{ id }}" name="{{ id }}"
+           {% if value %}
+              value="{{ value }}"
+           {% endif %}
+    >
+    <div class="offset-2">
+      {% if consent_check and xnat_enabled %}
+        <button data-xnat="trigger_lookup" type="button" class="btn btn-outline-secondary">{% trans "Load" %}</button>
+      {% else %}
+        <p class="alert alert-danger my-1 py-0">
+          {%  if not consent_check %}
+            {% trans "This patient hasn’t consented to linking their record with XNAT." %}
+          {% else %}
+            {% trans "XNAT Integration is not enabled for this registry." %}
+          {% endif %}
+        </p>
+      {% endif %}
+    </div>
+  </fieldset>
+
+{% if consent_check and xnat_enabled %}
+  <div data-xnat="loading" class="alert alert-info m-2 p-0 d-none"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> {% trans "Loading..." %} </div>
+  <div data-xnat="result" class="p-2 d-none">
+    <hr />
+    <div data-xnat="result_error" class="alert alert-danger mt-2 p-0 d-none"></div>
+    <table data-xnat="result_table" class="table">
+      <caption></caption>
+      <thead>
+        <tr>
+          <th>{% trans "Date" %}</th>
+          <th>{% trans "Experiment" %}</th>
+          <th>{% trans "Scan" %}</th>
+          <th>{% trans "Series Description" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+</div>

@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: XNAT REST API Translation
+  description: REST API converted to Open API
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+  parameters:
+    formatParam:
+      in: query
+      name: format
+      schema:
+        type: string
+        default: json
+      required: false
+      description: The format of the response
+security:
+  - cookieAuth: []
+paths:
+  /data/services/auth:
+    put:
+      description: Logs in and returns the authentication cookie
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a  cookie named `JSESSIONID`. You need to include this cookie in subsequent requests
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: JSESSIONID=abcde12345; Path=/; HttpOnly
+  /data/projects/{project_id}/subjects/{subject_id}/experiments:
+    get:
+      description: Get a list of experiments
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: subject_id
+          schema:
+            type: string
+          required: true
+        - $ref: '#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ResultSet:
+                    type: object
+                    properties:
+                      Result:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: experiment id
+                            label:
+                              type: string
+                              description: experiment label
+                            insert_date:
+                              type: string
+                              description: insert date
+                            URI:
+                              type: string
+                              description: relative URI to this experiment
+                      totalRecords:
+                        type: string
+  /data/experiments/{experiment_id}/scans:
+    get:
+      description: Get A Listing Of Scans From An Image Session
+      parameters:
+        - in: path
+          name: experiment_id
+          schema:
+            type: string
+          required: true
+        - $ref: '#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ResultSet:
+                    type: object
+                    properties:
+                      Result:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: scan id
+                            type:
+                              type: string
+                              description: scan type
+                            series_description:
+                              type: string
+                              description: series description
+                            URI:
+                              type: string
+                              description: relative URI to this scan
+                      totalRecords:
+                        type: string

@@ -6,8 +6,10 @@ from importlib import import_module
 
 import graphene
 from django.conf import settings
+from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import SearchVector
-from django.db.models import Count, Max, Q
+from django.db.models import Count, Max, Q, Value
+from django.db.models.functions import Replace
 from django.utils.translation import gettext as _
 from graphene import ObjectType, InputObjectType
 from graphene_django import DjangoObjectType
@@ -589,6 +591,10 @@ class PatientFilterType(InputObjectType):
 
 
 def create_dynamic_registry_type(registry):
+
+    def sanitise_search_field(field):
+        return Unaccent(Replace(field, Value("'"), Value("")))
+
     def resolve_all_patients(registry,
                              _info,
                              filter_args=PatientFilterType()):
@@ -597,10 +603,15 @@ def create_dynamic_registry_type(registry):
 
         if filter_args.search:
             for i, search_def in enumerate(filter_args.search):
+                search_text = sanitise_search_field(Value(search_def.text))
+
                 validate_fields(search_def.fields, _valid_search_fields, 'search field')
                 search_fields = [to_snake_case(field) for field in search_def.fields]
-                search_vector = SearchVector(*search_fields, config='simple')
-                all_patients = all_patients.annotate(**{f'search_{i}': search_vector}).filter(**{f'search_{i}__icontains': search_def.text})
+
+                search_annotations = {f'sanitised_{i}_{field}': sanitise_search_field(field) for field in search_fields}
+                search_annotations.update({f'search_{i}': (SearchVector(*search_annotations.keys(), config='simple'))})
+
+                all_patients = all_patients.annotate(**search_annotations).filter(**{f'search_{i}__icontains': search_text})
 
         return QueryResult(registry=registry,
                            all_patients=all_patients)

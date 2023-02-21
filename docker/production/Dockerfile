@@ -35,6 +35,8 @@ WORKDIR /requirements
 
 COPY requirements/* ./
 
+COPY clients ./clients
+
 RUN pip install -r requirements.txt
 
 # Actual image we are building
@@ -84,6 +86,8 @@ WORKDIR /requirements
 
 COPY --from=builder /root/.cache /root/.cache
 COPY --from=builder /requirements/requirements.txt .
+
+COPY clients ./clients
 
 RUN pip install -r requirements.txt
 

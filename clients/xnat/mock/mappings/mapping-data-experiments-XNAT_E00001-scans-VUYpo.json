@@ -1,0 +1,24 @@
+{
+  "id" : "635b5b5e-68e3-3f0f-9aa9-73bac180b35c",
+  "request" : {
+    "url" : "/data/experiments/XNAT_E00001/scans?format=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-data-experiments-XNAT_E00001-scans-VUYpo.json",
+    "headers" : {
+      "Server" : "nginx/1.19.10",
+      "Date" : "Mon, 16 Jan 2023 05:28:26 GMT",
+      "Content-Type" : "application/json",
+      "Set-Cookie" : "SESSION_EXPIRATION_TIME=\"1673846906783,900000\"; Version=1; Path=/",
+      "Vary" : "Accept-Charset, Accept-Encoding, Accept-Language, Accept",
+      "Accept-Ranges" : "bytes",
+      "X-Content-Type-Options" : "nosniff",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Content-Security-Policy" : "frame-ancestors 'self'"
+    }
+  },
+  "uuid" : "635b5b5e-68e3-3f0f-9aa9-73bac180b35c"
+}
