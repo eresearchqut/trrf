@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Refresh TRRF Analytics Views
+Globals:
+  Function:
+    Timeout: 100
+    MemorySize: 128
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  ApplicationName:
+    Type: String
+    Default: trrf
+  AnalyticsViewName:
+    Type: String
+    Default: analytics_clinicaldataview
+  AnalyticsLogTable:
+    Type: String
+    Default: analytics_clinicaldataviewrefreshlog
+  ClinicalDBParameterName:
+    Type: String
+    Default: CLINICAL_DBNAME
+  DatabasePortParameterName:
+    Type: String
+    Default: DBPORT
+  DatabaseHostParameterName:
+    Type: String
+    Default: DBSERVER
+  DatabaseUserParameterName:
+    Type: String
+    Default: DBUSER
+  DatabasePasswordParameterName:
+    Type: String
+    Default: DBPASS
+Resources:
+  AnalyticsRefresher:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: refresh_analytics/
+      Handler: app.refresh_analytics_view
+      Runtime: python3.9
+      Description: Refresh the analytics view across all relevant databases in the current environment
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          APPLICATION_NAME: !Ref ApplicationName
+          ANALYTICS_VIEW_NAME: !Ref AnalyticsViewName
+          ANALYTICS_LOG_TABLE: !Ref AnalyticsLogTable
+          CLINICAL_DB_PARAMETER_NAME: !Ref ClinicalDBParameterName
+          DATABASE_PORT_PARAMETER_NAME: !Ref DatabasePortParameterName
+          DATABASE_HOST_PARAMETER_NAME: !Ref DatabaseHostParameterName
+          DATABASE_USER_PARAMETER_NAME: !Ref DatabaseUserParameterName
+          DATABASE_PASSWORD_PARAMETER_NAME: !Ref DatabasePasswordParameterName
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 15 * * ? *)  # 3pm GMT time = 1am UTC+10 (Brisbane) time
+            Enabled: True
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub 'app/${Environment}/${ApplicationName}/${ClinicalDBParameterName}'
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub 'app/${Environment}/${ApplicationName}/${DatabasePortParameterName}'
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub 'app/${Environment}/${ApplicationName}/${DatabaseHostParameterName}'
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub 'app/${Environment}/${ApplicationName}/${DatabaseUserParameterName}'
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub 'app/${Environment}/${ApplicationName}/${DatabasePasswordParameterName}'
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-01bce79b831920465
+        SubnetIds:
+          - subnet-0a44efd7e3150f734
+
+Outputs:
+  AnalyticsRefresher:
+    Description: "Analytics Refresher Function ARN"
+    Value: !GetAtt AnalyticsRefresher.Arn
+#  HelloWorldFunctionIamRole:
+#    Description: "Implicit IAM Role created for Hello World function"
+#    Value: !GetAtt HelloWorldFunctionRole.Arn

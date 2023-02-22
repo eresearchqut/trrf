@@ -45,6 +45,7 @@ startup
 *.tags1
 .coverage
 .env_local
+**/.aws-sam
 
 
 node_modules
