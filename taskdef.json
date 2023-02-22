@@ -122,21 +122,6 @@
                     "name": "VIDEO_HOSTING_BASE_URL",
                     "value": "$VIDEO_HOSTING_BASE_URL"
                 }
-                ,
-                {
-                    "name": "XNAT_API_USERNAME",
-                    "valueFrom": "$XNAT_API_USERNAME"
-                }
-                ,
-                {
-                    "name": "XNAT_API_PASSWORD",
-                    "valueFrom": "$XNAT_API_PASSWORD"
-                }
-                ,
-                {
-                    "name": "XNAT_API_ENDPOINT",
-                    "valueFrom": "$XNAT_API_ENDPOINT"
-                }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",
             "healthCheck": {
@@ -190,6 +175,18 @@
                 {
                     "name": "DBPASS",
                     "valueFrom": "$DBPASS"
+                },
+                {
+                    "name": "XNAT_API_USERNAME",
+                    "valueFrom": "$XNAT_API_USERNAME"
+                },
+                {
+                    "name": "XNAT_API_PASSWORD",
+                    "valueFrom": "$XNAT_API_PASSWORD"
+                },
+                {
+                    "name": "XNAT_API_ENDPOINT",
+                    "valueFrom": "$XNAT_API_ENDPOINT"
                 }
             ]
         },
