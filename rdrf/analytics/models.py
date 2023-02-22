@@ -1,7 +1,19 @@
 from django.db import models
+from django.db.models import Q
+
+
+class ClinicalDataViewManager(models.Manager):
+    def filter_non_empty(self):
+        return self\
+            .exclude(cde_value__exact='')\
+            .exclude(cde_value__isnull=True)\
+            .exclude(cde_value__exact='null')
 
 
 class ClinicalDataView(models.Model):
+
+    objects = ClinicalDataViewManager()
+
     id = models.IntegerField(primary_key=True)
     patient_id = models.IntegerField()
     form_name = models.CharField(max_length=80)

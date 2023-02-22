@@ -2,7 +2,7 @@ import json
 import logging
 import random
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
@@ -191,7 +191,13 @@ class AnalyticsTableDataView(View):
         # Get records with appropriate pagination
         offset = start
         limit = length + offset
-        all_data = ClinicalDataView.objects.all()
+        all_data = ClinicalDataView.objects.filter_non_empty()
+
+        if search_value:
+            all_data.filter(Q(form_name__icontains=search_value) |
+                            Q(section_code__icontains=search_value) |
+                            Q(cde_code__icontains=search_value))
+
         paginated_data = all_data[offset:limit]
 
         return JsonResponse({
