@@ -1,0 +1,49 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block extrastyle %}
+    {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+  <h1>Clinical Data Charts</h1>
+  <form action="TODO" method="post">
+  <fieldset class="border p-2 mb-3">
+      <legend>Data Series</legend>
+      <div class="row">
+        <label for="id_registry" class="col-sm-2 col-form-label">Registry</label>
+        <div class="col-sm-10">
+          <select></select>
+        </div>
+      </div>
+      <div class="row">
+        <label for="id_form_name" class="col-sm-2 col-form-label">Form</label>
+        <div class="col-sm-10">
+          <select></select>
+        </div>
+      </div>
+    <div class="row">
+        <label for="id_section_code" class="col-sm-2 col-form-label">Section</label>
+        <div class="col-sm-10">
+          <select></select>
+        </div>
+      </div>
+    <div class="row">
+        <label for="id_cde_code" class="col-sm-2 col-form-label">Common Data Element</label>
+        <div class="col-sm-10">
+          <select></select>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="border p-2 mb-3">
+      <legend>Additional dataset</legend>
+      TODO - CDE selector or demographic
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Create chart</button>
+  </form>
+
+{% endblock %}

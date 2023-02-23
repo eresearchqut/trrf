@@ -40,7 +40,33 @@
            )
          }
 
+         const init_event_handlers = function() {
+
+           const get_search_value = function() {
+             return $('#clinical_data_table_filter input[type="search"]').val().replaceAll(' ', '');
+           }
+
+           const export_to_csv = function(base_url, filter_search_value) {
+             console.log(`export to csv: ${filter_search_value}`);
+             console.log(`baseurl: ${base_url}`)
+             const export_url = base_url + '?' + $.param({search_value: filter_search_value})
+             console.log(`full url: ${export_url}`);
+             window.open(export_url, '_blank')
+           }
+
+
+           $('#exportToCsv').on('click', function() {
+             const searchValue = get_search_value();
+             const base_url = $(this).attr('href');
+
+             export_to_csv(base_url, searchValue);
+
+             return false;
+           });
+         }
+
          setup_datatable();
+         init_event_handlers();
       });
     })(jQuery);
   </script>
@@ -50,6 +76,23 @@
   <h1>Clinical Data</h1>
   <p>Last updated: {{ last_updated }}</p>
 {#  TODO add registry to view? #}
+
+  {# Actions bar #}
+  <div class="row my-2">
+    <div class="col-12">
+      <div class="float-end">
+        <div class="dropdown">
+          <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dataActions" data-bs-toggle="dropdown" aria-expanded="false">
+            Actions
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dataActions">
+            <li><a id="exportToCsv" href="{% url 'analytics:export' %}" class="dropdown-item"><i class="fa fa-file-o"></i> Export results to CSV</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table id="clinical_data_table" class="table table-striped table-hover">
     <thead>
       <tr>

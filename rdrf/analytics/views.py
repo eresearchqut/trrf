@@ -1,14 +1,18 @@
+import codecs
+import csv
+import datetime
+import io
 import json
 import logging
 import random
 
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 from django.views import View
 
 from analytics.models import ClinicalDataView, ClinicalDataViewRefreshLog
-from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import CommonDataElement, Registry
 from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
@@ -140,8 +144,8 @@ class BaseAnalyticsView(View):
             }
         }
 
-class AnalyticsDataView(BaseAnalyticsView):
 
+class AnalyticsDataView(BaseAnalyticsView):
     def get(self, request, form_name, section_code, cde_code):
         return JsonResponse(self.get_chart_data(form_name, section_code, cde_code))
 
@@ -156,6 +160,36 @@ class AnalyticsChartView(BaseAnalyticsView):
         return render(request, 'chart.html', chart_data)
 
 
+def analytics_for_datatable(search_value):
+    all_data = ClinicalDataView.objects.filter_non_empty()
+    if search_value:
+        all_data = all_data.filter(Q(form_name__icontains=search_value) |
+                               Q(section_code__icontains=search_value) |
+                               Q(cde_code__icontains=search_value))
+    return all_data
+
+
+def export_to_csv(search_value):
+    yield codecs.BOM_UTF8
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Form', 'Form Entry #', 'Section', 'Code', 'code Entry #', 'Patient Entered Value'])
+    yield output.getvalue()
+    output.truncate(0)
+
+    data = analytics_for_datatable(search_value)
+    for datum in data:
+        writer.writerow([datum.form_name, datum.form_entry_num, datum.section_code, datum.cde_code, datum.cde_entry_num, datum.cde_value])
+        yield output.getvalue()
+        output.truncate(0)
+
+
+# util, move somewhere else
+def getint(str_input):
+    return int(str_input or 0)
+
+
 class AnalyticsTableView(View):
     def get(self, request):
         last_data_refresh = ClinicalDataViewRefreshLog.objects.order_by('-created_at').first()
@@ -167,9 +201,16 @@ class AnalyticsTableView(View):
         return render(request, 'table.html', params)
 
 
-# util, move somewhere else
-def getint(str_input):
-    return int(str_input or 0)
+class ExportAnalyticsView(View):
+
+    def get(self, request):
+        search_value = request.GET.get('search_value')
+        content = export_to_csv(search_value)
+        content_type = 'text/csv; charset=utf-8'
+        filename = f"analytics{f'_{search_value}' if search_value else ''}_{datetime.date.today()}.csv"
+        response = StreamingHttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 class AnalyticsTableDataView(View):
@@ -177,26 +218,16 @@ class AnalyticsTableDataView(View):
         draw = getint(request.POST.get('draw'))
         start = getint(request.POST.get('start'))
         length = getint(request.POST.get('length'))
-        # columns = request.POST.getlist('columns')
-        # order = request.POST.getlist('order')
+        # columns = request.POST.getlist('columns')  #  ??
+        # order = request.POST.getlist('order')  # TODO
         search_value = request.POST.get('search[value]')
-        search_regex = request.POST.get('search[regex]')
-
-        logger.info(f'draw={draw}')
-        logger.info(f'start={start}')
-        logger.info(f'length={length}')
-        logger.info(f'search_value={search_value}')
-        logger.info(f'search_regex={search_regex}')
+        # search_regex = request.POST.get('search[regex]')  # TODO
 
         # Get records with appropriate pagination
         offset = start
         limit = length + offset
-        all_data = ClinicalDataView.objects.filter_non_empty()
 
-        if search_value:
-            all_data.filter(Q(form_name__icontains=search_value) |
-                            Q(section_code__icontains=search_value) |
-                            Q(cde_code__icontains=search_value))
+        all_data = analytics_for_datatable(search_value)
 
         paginated_data = all_data[offset:limit]
 
@@ -212,3 +243,19 @@ class AnalyticsTableDataView(View):
                       'cde_value': data.cde_value} for data in paginated_data]
         })
 
+
+def get_registry_forms_sections_cdes(registries):
+    # Want to get to:
+    return {registry.code: 'TODO' for registry in registries}
+
+
+class AnalyticsChartDesignView(View):
+    def get(self, request):
+
+        registries = Registry.objects.filter_by_user(request.user)
+        params = {
+            'registries': registries,
+            'form_definition': get_registry_forms_sections_cdes(registries)
+        }
+
+        return render(request, 'chart_designer.html', params)
