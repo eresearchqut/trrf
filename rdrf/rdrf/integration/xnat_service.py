@@ -1,5 +1,7 @@
 import openapi_client
 from django.conf import settings
+from django.utils.translation import gettext as _
+from openapi_client import ApiException
 from openapi_client.apis.tags import default_api
 
 
@@ -9,6 +11,10 @@ def xnat_api_client():
         username=settings.XNAT_API_USERNAME,
         password=settings.XNAT_API_PASSWORD
     ))
+
+
+class XnatApiException(ApiException):
+    pass
 
 
 class XnatApi:
@@ -24,11 +30,15 @@ class XnatApi:
             return auth_cookie
 
     def get_experiments(self, project_id, subject_id):
-        api_response = self._api_instance.data_projects_project_id_subjects_subject_id_experiments_get(
-            path_params={'project_id': project_id,
-                         'subject_id': subject_id},
-            query_params={'format': 'json'}
-        )
+        try:
+            api_response = self._api_instance.data_projects_project_id_subjects_subject_id_experiments_get(
+                path_params={'project_id': project_id,
+                             'subject_id': subject_id},
+                query_params={'format': 'json'}
+            )
+        except ApiException as e:
+            if e.status == 404:
+                raise XnatApiException(e.status, reason=_('Invalid Project or Subject ID.'))
 
         result_set = api_response.body.get_item_oapg('ResultSet')
 
