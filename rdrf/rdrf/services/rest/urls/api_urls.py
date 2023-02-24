@@ -7,6 +7,7 @@ router = DefaultRouterWithSimpleViews()
 router.register(r'countries', api_views.ListCountries, basename='country')
 router.register(r'users', api_views.CustomUserViewSet)
 router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
+router.register(r'registries', api_views.ListRegistries, basename='registry')
 # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
 # router.register(r'registries/(?P<registry_code>\w+)/indices', api_views.LookupIndex, basename='index')
 

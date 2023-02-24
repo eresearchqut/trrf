@@ -172,6 +172,24 @@ class LookupIndex(APIView):
             list(map(to_dict, [p for p in Patient.objects.filter(query) if p.is_index])))
 
 
+class ListRegistriesSerializer(serializers.ModelSerializer):
+    context_form_groups = serializers.URLField(write_only=True)
+    class Meta:
+        model = Registry
+        fields = ('id', 'code', 'name', 'context_form_groups')
+
+
+class ListRegistries(generics.ListAPIView):
+    serializer_class = ListRegistriesSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Registry.objects.filter_by_user(self.request.user)
+        # registries = Registry.objects.filter_by_user(request.user)
+        # return Response([{'code': registry.code,
+        #                   'name': registry.name} for registry in registries])
+
+
 class RegistryFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegistryForm

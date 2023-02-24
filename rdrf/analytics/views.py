@@ -258,4 +258,6 @@ class AnalyticsChartDesignView(View):
             'form_definition': get_registry_forms_sections_cdes(registries)
         }
 
+        logger.info(registries)
+
         return render(request, 'chart_designer.html', params)
