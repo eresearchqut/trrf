@@ -279,5 +279,6 @@ class AnalyticsChartDesignView(AnalyticsChartView):
         chartjs_data_v2 = get_chartjs_data_v2(chart)
         logger.info(f'v2 data: {chartjs_data_v2}')
 
-        return render(request, 'chart.html', chartjs_data_v2)
+        # return render(request, 'chart.html', chartjs_data_v2)
+        return JsonResponse(chartjs_data_v2)
 

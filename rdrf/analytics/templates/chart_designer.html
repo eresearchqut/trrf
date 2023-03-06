@@ -3,6 +3,9 @@
 {% load i18n %}
 
 {% block extrahead %}
+  <script type="text/javascript" src="{% static 'js/vendor/moment-2.29.4.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/chart.js-3.3.2.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/vendor/chartjs-adapter-moment-1.0.0.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/form_section_cde_cascading_dropdown_plugin.js' %}"></script>
   <script>
     (function($) {
@@ -113,6 +116,41 @@
 
         init_dataset_type_toggle();
 
+        const ctx = $('#chart');
+        let chart;
+        $('#id_analytics_form').on('submit', function (event) {
+          event.preventDefault();
+          const form_values = $(this).serialize();
+
+          $.post('', form_values, function (data) {
+            if (chart) {
+              chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+              type: data.chart.type,
+              data: {
+                labels: data.chart.labels,
+                datasets: data.chart.datasets
+              },
+              options: {
+                plugins: {
+                  title: {
+                    display: true,
+                    text: data.chart.title
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                }
+              }
+            });
+          })
+
+        })
+
 
       });
     })(jQuery);
@@ -120,99 +158,111 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Analytics Chart Maker</h1>
-  <form name="analytics_chart_designer" method="post">
-  {% csrf_token %}
-  <fieldset>
-    <legend>Chart Description</legend>
-    <div class="row">
-      <label for="id_chart_title" class="col-sm-2 col-form-label">Chart Title</label>
-      <div class="col-sm-10">
-        <input type="text" id="id_chart_title" name="chart_title" class="form-control">
-      </div>
-    </div>
-    <div class="row">
-      <label for="id_chart_type" class="col-sm-2 col-form-label">Chart Type</label>
-      <div class="col-sm-10">
-        <select id="id_chart_type" name="chart_type" class="form-select">
-          {% for key, value in chart_types.items %}
-            <option value="{{ key }}">{{ value }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <label for="id_registry" class="col-sm-2 col-form-label">Registry</label>
-      <div class="col-sm-10">
-        <select id="id_registry" name="registry" class="form-select"></select>
-      </div>
-    </div>
-  </fieldset>
-  <fieldset id="dataset_container_0" data-id-template="dataset_container__index__" class="card m-2 dataset_container">
-    <legend class="card-title mx-2" data-attr="title">
-      {% trans "Dataset" %} 1
-    </legend>
-    <button class="btn btn-outline-danger btn-xs position-absolute top-0 end-0 m-2 d-none" disabled type="button" data-action="remove_dataset">
-      {% trans "Remove" %}
-    </button>
-    <div class="card-body">
-      <ul class="list-group dataset-type-toggle">
-        <li class="list-group-item">
-          <input type="radio" name="dataset_type_0" value="cde" class="form-check-input" id="id_dataset_type_cde_0" data-id-template="id_dataset_type_cde__index__" data-name-template="dataset_type__index__" />
-          <label for="id_dataset_type_cde_0" data-for-template="id_dataset_type_cde__index__">{% trans "Form Element" %}</label>
-          <div class="collapse dataset_body">
-            <div class="row">
-              <label for="id_form_0" data-for-template="id_form__index__" class="col-sm-2 col-form-label">Form</label>
-              <div class="col-sm-10">
-                <select id="id_form_0" data-id-template="id_form__index__" name="form" class="form-select" data-cde-widget="form">
-                  <option value="">Please select...</option>
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <label for="id_section_0" data-for-template="id_section__index__" class="col-sm-2 col-form-label">Section</label>
-              <div class="col-sm-10">
-                <select id="id_section_0" data-id-template="id_section__index__" name="section" class="form-select" data-cde-widget="section">
-                  <option value="">Please select...</option>
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <label for="id_cde_0" data-for-template="id_cde__index__" class="col-sm-2 col-form-label">Common Data Element</label>
-              <div class="col-sm-10">
-                <select id="id_cde_0" data-id-template="id_cde__index__" name="cde" class="form-select" data-cde-widget="cde">
-                  <option value="">Please select...</option>
-                </select>
-              </div>
+  <h1>Analytics</h1>
+  <div class="row">
+    <div class="col-6 border">
+      <form id="id_analytics_form" name="analytics_chart_designer" method="post">
+        {% csrf_token %}
+        <fieldset>
+          <legend>Chart Description</legend>
+          <div class="row">
+            <label for="id_chart_title" class="col-sm-2 col-form-label">Chart Title</label>
+            <div class="col-sm-10">
+              <input type="text" id="id_chart_title" name="chart_title" class="form-control">
             </div>
           </div>
-        </li>
-        <li class="list-group-item">
-          <input type="radio" name="dataset_type_0" value="demographic" class="form-check-input" id="id_dataset_type_demographic_0" data-id-template="id_dataset_type_demographic__index__" data-name-template="dataset_type__index__" />
-          <label for="id_dataset_type_demographic_0" data-for-template="id_dataset_type_demographic__index__">{% trans "Demographic Element" %}</label>
-          <div class="collapse dataset_body">
+          <div class="row">
+            <label for="id_registry" class="col-sm-2 col-form-label">Registry</label>
+            <div class="col-sm-10">
+              <select id="id_registry" name="registry" class="form-select"></select>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset id="dataset_container_0" data-id-template="dataset_container__index__" class="card m-2 dataset_container">
+          <legend class="card-title mx-2" data-attr="title">
+            {% trans "Dataset" %} 1
+          </legend>
+          <button class="btn btn-outline-danger btn-xs position-absolute top-0 end-0 m-2 d-none" disabled type="button" data-action="remove_dataset">
+            {% trans "Remove" %}
+          </button>
+          <div class="card-body">
             <div class="row">
-              <label for="id_demographic_field_0" data-for-template="id_demographic_field__index__" class="col-sm-2 col-form-label">Field</label>
+              <label for="id_chart_type_0" class="col-sm-2 col-form-label" data-for-template="id_chart_type__index__">Chart Type</label>
               <div class="col-sm-10">
-                <select id="id_demographic_field_0" data-id-template="id_demographic_field__index__" name="demographic_field" class="form-select">
-                  <option value=""></option>
-                  {% for key, label in demographic_fields.items %}
-                    <option value="{{ key }}">{{ label }}</option>
+                <select id="id_chart_type" name="chart_type" class="form-select" id="id_chart_type_0" data-id-template="iid_chart_type__index__">
+                  {% for key, value in chart_types.items %}
+                    <option value="{{ key }}">{{ value }}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
-          </div>
-        </li>
-      </ul>
+            <ul class="list-group dataset-type-toggle">
+              <li class="list-group-item">
+                <input type="radio" name="dataset_type_0" value="cde" class="form-check-input" id="id_dataset_type_cde_0" data-id-template="id_dataset_type_cde__index__" data-name-template="dataset_type__index__" />
+                <label for="id_dataset_type_cde_0" data-for-template="id_dataset_type_cde__index__">{% trans "Form Element" %}</label>
+                <div class="collapse dataset_body">
+                  <div class="row">
+                    <label for="id_form_0" data-for-template="id_form__index__" class="col-sm-2 col-form-label">Form</label>
+                    <div class="col-sm-10">
+                      <select id="id_form_0" data-id-template="id_form__index__" name="form" class="form-select" data-cde-widget="form">
+                        <option value="">Please select...</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <label for="id_section_0" data-for-template="id_section__index__" class="col-sm-2 col-form-label">Section</label>
+                    <div class="col-sm-10">
+                      <select id="id_section_0" data-id-template="id_section__index__" name="section" class="form-select" data-cde-widget="section">
+                        <option value="">Please select...</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <label for="id_cde_0" data-for-template="id_cde__index__" class="col-sm-2 col-form-label">Common Data Element</label>
+                    <div class="col-sm-10">
+                      <select id="id_cde_0" data-id-template="id_cde__index__" name="cde" class="form-select" data-cde-widget="cde">
+                        <option value="">Please select...</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li class="list-group-item">
+                <input type="radio" name="dataset_type_0" value="demographic" class="form-check-input" id="id_dataset_type_demographic_0" data-id-template="id_dataset_type_demographic__index__" data-name-template="dataset_type__index__" />
+                <label for="id_dataset_type_demographic_0" data-for-template="id_dataset_type_demographic__index__">{% trans "Demographic Element" %}</label>
+                <div class="collapse dataset_body">
+                  <div class="row">
+                    <label for="id_demographic_field_0" data-for-template="id_demographic_field__index__" class="col-sm-2 col-form-label">Field</label>
+                    <div class="col-sm-10">
+                      <select id="id_demographic_field_0" data-id-template="id_demographic_field__index__" name="demographic_field" class="form-select">
+                        <option value=""></option>
+                        {% for key, label in demographic_fields.items %}
+                          <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
 
+          </div>
+        <input type="hidden" name="dataset_type" value="">
+        </fieldset>
+        <div class="col-10 mb-4">
+          <button type="button" id="add_dataset" class="btn btn-outline-secondary">Add Dataset</button>
+          <button type="submit" class="btn btn-primary">Create chart</button>
+        </div>
+      </form>
     </div>
-    <input type="hidden" name="dataset_type" value="">
-    </fieldset>
-    <div class="col-10 mb-4">
-      <button type="button" id="add_dataset" class="btn btn-outline-secondary">Add Dataset</button>
-      <button type="submit" class="btn btn-primary">Create chart</button>
+    <div class="col-6">
+      <div class="card">
+        <div class="card-body">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
     </div>
-  </form>
+  </div>
+
 
 {% endblock %}

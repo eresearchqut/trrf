@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def chart_types():
-    return {'line': _('Line'), 'bar': _('Bar')}
+    return {'line': _('Line'), 'bar': _('Bar'), 'scatter': _('Scatter')}
 
 
 DATASOURCE_CDE = 'cde'
@@ -27,20 +27,17 @@ DATASOURCE_CHOICES = {
 def process_chart_design(post):
     dataset_types = post.getlist('dataset_type')
 
+    chart_types = post.getlist('chart_type')
     demographics = post.getlist('demographic_field')
     form = post.getlist('form')
     section = post.getlist('section')
     cde = post.getlist('cde')
 
-    logger.info(demographics)
-    logger.info(form)
-    logger.info(section)
-    logger.info(cde)
-
     datasets = []
 
     for i, dataset_type in enumerate(dataset_types):
-        dataset = {'type': dataset_type}
+        dataset = {'type': dataset_type,
+                   'chart_type': chart_types[i]}
         if dataset_type == DATASOURCE_CDE:
             dataset.update({'form': RegistryForm.objects.get(id=form[i]),
                             'section': Section.objects.get(id=section[i]),
@@ -53,7 +50,6 @@ def process_chart_design(post):
     chart_design_opts = {
         'registry': Registry.objects.get(id=post.get('registry')),
         'title': post.get('chart_title'),
-        'type': post.get('chart_type'),
         'datasets': datasets
     }
 
