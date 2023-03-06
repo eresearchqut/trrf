@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 from registry.patients.models import Patient, Registry, PatientStage, NextOfKinRelationship
 from registry.groups.models import CustomUser
-from rdrf.models.definition.models import RegistryForm
+from rdrf.models.definition.models import RegistryForm, ContextFormGroup, Section, CommonDataElement
 from rdrf.services.rest.paginators import PatientListPagination
 from rdrf.services.rest.serializers import CustomUserSerializer, PatientSerializer, NextOfKinRelationshipSerializer
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -173,10 +173,13 @@ class LookupIndex(APIView):
 
 
 class ListRegistriesSerializer(serializers.ModelSerializer):
-    context_form_groups = serializers.URLField(write_only=True)
+    forms = serializers.SerializerMethodField()
     class Meta:
         model = Registry
-        fields = ('id', 'code', 'name', 'context_form_groups')
+        fields = ('id', 'code', 'name', 'forms')
+
+    def get_forms(self, obj):
+        return reverse('registry-forms', args=[obj.id], request=self.context['request'])
 
 
 class ListRegistries(generics.ListAPIView):
@@ -185,23 +188,68 @@ class ListRegistries(generics.ListAPIView):
 
     def get_queryset(self):
         return Registry.objects.filter_by_user(self.request.user)
-        # registries = Registry.objects.filter_by_user(request.user)
-        # return Response([{'code': registry.code,
-        #                   'name': registry.name} for registry in registries])
+
+# class ListContextFormGroups(generics.ListAPIView):
+#     serializer_class = ListContextFormGroupsSerializer
+#     permission_classes = (IsAuthenticated,)
+#
+#     def get_queryset(self):
+#         registry_id
+#         return ContextFormGroup.objects.filter(registry=)
 
 
 class RegistryFormSerializer(serializers.ModelSerializer):
+    sections = serializers.SerializerMethodField()
+
     class Meta:
         model = RegistryForm
-        fields = ('id', 'name', 'nice_name')
+        fields = ('id', 'name', 'nice_name', 'sections')
+
+    def get_sections(self, obj):
+        return reverse('form_sections', args=[obj.id], request=self.context['request'])
 
 
 class RegistryForms(generics.ListAPIView):
     serializer_class = RegistryFormSerializer
 
+
     def get_queryset(self):
         registry_id = int(self.kwargs.get('registry_id'))
         return RegistryForm.objects.get_by_registry(registry_id)
+
+
+class RegistrySectionsSerializer(serializers.ModelSerializer):
+    cdes = serializers.SerializerMethodField()
+    class Meta:
+        model = Section
+        fields = ('id', 'code', 'display_name', 'cdes')
+
+    def get_cdes(self, obj):
+        return reverse('section_cdes', args=[obj.id], request=self.context['request'])
+
+
+class RegistrySections(generics.ListAPIView):
+    serializer_class = RegistrySectionsSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        form_id = int(self.kwargs.get('form_id'))
+        return RegistryForm.objects.get(id=form_id).section_models
+
+
+class RegistryCDESerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommonDataElement
+        fields = ('code', 'name')
+
+
+class RegistryCommonDataElements(generics.ListAPIView):
+    serializer_class = RegistryCDESerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        section_id = int(self.kwargs.get('section_id'))
+        return Section.objects.get(id=section_id).cde_models
 
 
 class PatientStageSerializer(serializers.ModelSerializer):

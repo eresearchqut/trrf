@@ -19,7 +19,7 @@
       $(document).ready(function() {
         const ctx = $('#chart');
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
           type: '{{ chart|lookup:'type'|safe }}',
           data: {
             labels: {{ chart|lookup:'labels'|safe }},
@@ -33,16 +33,17 @@
             }
           }
         });
+
       });
     })(jQuery);
   </script>
 {% endblock %}
 
 {% block content %}
-  <h1>CDE: {{ cde_name }}</h1>
-  <ul>
-    <li>Datatype: {{ datatype }}</li>
-  </ul>
+{#  <h1>CDE: {{ cde_name }}</h1>#}
+{#  <ul>#}
+{#    <li>Datatype: {{ datatype }}</li>#}
+{#  </ul>#}
   <p>
     <canvas id="chart"></canvas>
   </p>

@@ -2,48 +2,217 @@
 {% load static %}
 {% load i18n %}
 
-{% block extrastyle %}
-    {{ block.super }}
-{% endblock %}
-
 {% block extrahead %}
+  <script type="text/javascript" src="{% static 'js/form_section_cde_cascading_dropdown_plugin.js' %}"></script>
+  <script>
+    (function($) {
+      $(document).ready(function() {
+
+        function get_dataset_count() {
+          return $('.dataset_container').length;
+        }
+
+        function configure_dataset_container($container, index) {
+          const replace_attr = function(attr, searchValue, replaceValue) {
+            $container.find(`[${attr}]`).each(function() {
+              const template_str = $(this).data(`${attr}-template`);
+              if (template_str) {
+                $(this).attr(attr, template_str.replace(searchValue, replaceValue));
+              }
+            });
+          }
+
+          const replace_search_value = /__index__/g;
+          const replace_with = `_${index}`;
+
+          replace_attr('id', replace_search_value, replace_with);
+          replace_attr('for', replace_search_value, replace_with);
+          replace_attr('name', replace_search_value, replace_with);
+        }
+
+        function refresh_all_datasets() {
+          // update counts
+          const count = get_dataset_count();
+          $('.dataset_container').each(function(index) {
+            $(this).find('[data-attr="title"]').text(`${gettext('Dataset')} ${(index+1)}`);
+          });
+        }
+
+        const $registry = $('#id_registry');
+
+        const init_add_dataset = function() {
+          const add_dataset_button = $('#add_dataset');
+
+          add_dataset_button.on('click', function() {
+            const container_count = get_dataset_count();
+            const $templateContainer = $('.dataset_container:last');
+            const $datasetClone = $templateContainer.clone();
+            configure_dataset_container($datasetClone, container_count);
+            $datasetClone.cascading_cde_selector({
+              $registry: $registry
+            })
+
+            // clear previous selection
+            $datasetClone.find(':radio').prop('checked', false);
+            $datasetClone.find('.dataset_body').addClass('collapse');
+
+            // enable remove button
+            const $removeBtn = $datasetClone.find('[data-action="remove_dataset"]');
+            $removeBtn.removeClass('d-none');
+            $removeBtn.prop('disabled', false);
+
+            $templateContainer.after($datasetClone);
+
+            refresh_all_datasets();
+          });
+
+
+        }
+
+        const init_dataset_type_toggle = function() {
+          $(document).on('click', '.dataset-type-toggle :radio', function(evt) {
+            const $radio = $(this);
+            const $parent = $radio.closest('.dataset-type-toggle');
+            const $container = $parent.closest('.dataset_container');
+            const $all_dataset_bodies = $parent.find('.dataset_body');
+            const $this_dataset_body = $radio.siblings('.dataset_body');
+
+            $all_dataset_bodies.addClass('collapse');
+            $this_dataset_body.removeClass('collapse');
+
+            // populate dataset_type value
+            console.log('value: ' + $radio.val());
+            let $datasetType = $container.find('input[name="dataset_type"]');
+            $datasetType.val($radio.val())
+            console.log($datasetType.val());
+            console.log('dataset type: ' + $datasetType.val());
+          });
+
+          $(document).on('click', '[data-action="remove_dataset"]', function() {
+            const $parent = $(this).closest('.dataset_container').remove();
+            refresh_all_datasets();
+          });
+
+        }
+
+        // Initial configuration of dataset container
+        const existing_datasets = $('.dataset_container');
+
+        const cde_widgets = existing_datasets.map(function() {
+          return $(this).cascading_cde_selector({
+            $registry: $registry
+          });
+        })
+        const $primary_cde_selector = cde_widgets[0];
+
+        init_add_dataset();
+
+        // Initial population of registries dropdown.
+        $primary_cde_selector.update_registries();
+
+
+        init_dataset_type_toggle();
+
+
+      });
+    })(jQuery);
+  </script>
 {% endblock %}
 
 {% block content %}
-  <h1>Clinical Data Charts</h1>
-  <form action="TODO" method="post">
-  <fieldset class="border p-2 mb-3">
-      <legend>Data Series</legend>
-      <div class="row">
-        <label for="id_registry" class="col-sm-2 col-form-label">Registry</label>
-        <div class="col-sm-10">
-          <select></select>
-        </div>
-      </div>
-      <div class="row">
-        <label for="id_form_name" class="col-sm-2 col-form-label">Form</label>
-        <div class="col-sm-10">
-          <select></select>
-        </div>
-      </div>
+  <h1>Analytics Chart Maker</h1>
+  <form name="analytics_chart_designer" method="post">
+  {% csrf_token %}
+  <fieldset>
+    <legend>Chart Description</legend>
     <div class="row">
-        <label for="id_section_code" class="col-sm-2 col-form-label">Section</label>
-        <div class="col-sm-10">
-          <select></select>
-        </div>
+      <label for="id_chart_title" class="col-sm-2 col-form-label">Chart Title</label>
+      <div class="col-sm-10">
+        <input type="text" id="id_chart_title" name="chart_title" class="form-control">
       </div>
+    </div>
     <div class="row">
-        <label for="id_cde_code" class="col-sm-2 col-form-label">Common Data Element</label>
-        <div class="col-sm-10">
-          <select></select>
-        </div>
+      <label for="id_chart_type" class="col-sm-2 col-form-label">Chart Type</label>
+      <div class="col-sm-10">
+        <select id="id_chart_type" name="chart_type" class="form-select">
+          {% for key, value in chart_types.items %}
+            <option value="{{ key }}">{{ value }}</option>
+          {% endfor %}
+        </select>
       </div>
+    </div>
+    <div class="row">
+      <label for="id_registry" class="col-sm-2 col-form-label">Registry</label>
+      <div class="col-sm-10">
+        <select id="id_registry" name="registry" class="form-select"></select>
+      </div>
+    </div>
+  </fieldset>
+  <fieldset id="dataset_container_0" data-id-template="dataset_container__index__" class="card m-2 dataset_container">
+    <legend class="card-title mx-2" data-attr="title">
+      {% trans "Dataset" %} 1
+    </legend>
+    <button class="btn btn-outline-danger btn-xs position-absolute top-0 end-0 m-2 d-none" disabled type="button" data-action="remove_dataset">
+      {% trans "Remove" %}
+    </button>
+    <div class="card-body">
+      <ul class="list-group dataset-type-toggle">
+        <li class="list-group-item">
+          <input type="radio" name="dataset_type_0" value="cde" class="form-check-input" id="id_dataset_type_cde_0" data-id-template="id_dataset_type_cde__index__" data-name-template="dataset_type__index__" />
+          <label for="id_dataset_type_cde_0" data-for-template="id_dataset_type_cde__index__">{% trans "Form Element" %}</label>
+          <div class="collapse dataset_body">
+            <div class="row">
+              <label for="id_form_0" data-for-template="id_form__index__" class="col-sm-2 col-form-label">Form</label>
+              <div class="col-sm-10">
+                <select id="id_form_0" data-id-template="id_form__index__" name="form" class="form-select" data-cde-widget="form">
+                  <option value="">Please select...</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <label for="id_section_0" data-for-template="id_section__index__" class="col-sm-2 col-form-label">Section</label>
+              <div class="col-sm-10">
+                <select id="id_section_0" data-id-template="id_section__index__" name="section" class="form-select" data-cde-widget="section">
+                  <option value="">Please select...</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <label for="id_cde_0" data-for-template="id_cde__index__" class="col-sm-2 col-form-label">Common Data Element</label>
+              <div class="col-sm-10">
+                <select id="id_cde_0" data-id-template="id_cde__index__" name="cde" class="form-select" data-cde-widget="cde">
+                  <option value="">Please select...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="list-group-item">
+          <input type="radio" name="dataset_type_0" value="demographic" class="form-check-input" id="id_dataset_type_demographic_0" data-id-template="id_dataset_type_demographic__index__" data-name-template="dataset_type__index__" />
+          <label for="id_dataset_type_demographic_0" data-for-template="id_dataset_type_demographic__index__">{% trans "Demographic Element" %}</label>
+          <div class="collapse dataset_body">
+            <div class="row">
+              <label for="id_demographic_field_0" data-for-template="id_demographic_field__index__" class="col-sm-2 col-form-label">Field</label>
+              <div class="col-sm-10">
+                <select id="id_demographic_field_0" data-id-template="id_demographic_field__index__" name="demographic_field" class="form-select">
+                  <option value=""></option>
+                  {% for key, label in demographic_fields.items %}
+                    <option value="{{ key }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+    </div>
+    <input type="hidden" name="dataset_type" value="">
     </fieldset>
-    <fieldset class="border p-2 mb-3">
-      <legend>Additional dataset</legend>
-      TODO - CDE selector or demographic
-    </fieldset>
-    <button type="submit" class="btn btn-primary">Create chart</button>
+    <div class="col-10 mb-4">
+      <button type="button" id="add_dataset" class="btn btn-outline-secondary">Add Dataset</button>
+      <button type="submit" class="btn btn-primary">Create chart</button>
+    </div>
   </form>
 
 {% endblock %}

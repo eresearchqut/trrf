@@ -23,7 +23,7 @@
  * </ul>
  * ```
  *
- * Initialise the selector for you element with tree_selector($(".your-jq-selector")).init({expandSelected: true})
+ * Initialise the selector for your element with tree_selector($(".your-jq-selector")).init({expandSelected: true})
  * Options:
  * * expandSelected: boolean to indicate whether to expand the hierarchy for selected tip items.
  *

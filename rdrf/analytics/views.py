@@ -2,7 +2,6 @@ import codecs
 import csv
 import datetime
 import io
-import json
 import logging
 import random
 
@@ -11,7 +10,10 @@ from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
 from django.views import View
 
+from analytics.analytics_configuration import get_demographic_fields
+from analytics.forms import process_chart_design, chart_types
 from analytics.models import ClinicalDataView, ClinicalDataViewRefreshLog
+from analytics.utils import get_chartjs_data_v2
 from rdrf.models.definition.models import CommonDataElement, Registry
 from registry.patients.models import Patient
 
@@ -249,15 +251,33 @@ def get_registry_forms_sections_cdes(registries):
     return {registry.code: 'TODO' for registry in registries}
 
 
-class AnalyticsChartDesignView(View):
+class AnalyticsChartDesignView(AnalyticsChartView):
     def get(self, request):
 
         registries = Registry.objects.filter_by_user(request.user)
+        demographic_fields = get_demographic_fields()
+        logger.info(demographic_fields)
         params = {
+            'chart_types': chart_types(),
             'registries': registries,
-            'form_definition': get_registry_forms_sections_cdes(registries)
+            'form_definition': get_registry_forms_sections_cdes(registries),
+            'demographic_fields': demographic_fields
         }
 
         logger.info(registries)
 
         return render(request, 'chart_designer.html', params)
+
+    def post(self, request):
+        chart = process_chart_design(request.POST)
+        logger.info('processed chart')
+        logger.info(chart)
+
+        # chartjs_data = get_chartjs_data(chart)
+        # logger.info(f'chartjs_data: {chartjs_data}')
+
+        chartjs_data_v2 = get_chartjs_data_v2(chart)
+        logger.info(f'v2 data: {chartjs_data_v2}')
+
+        return render(request, 'chart.html', chartjs_data_v2)
+

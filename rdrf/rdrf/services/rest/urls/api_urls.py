@@ -7,11 +7,12 @@ router = DefaultRouterWithSimpleViews()
 router.register(r'countries', api_views.ListCountries, basename='country')
 router.register(r'users', api_views.CustomUserViewSet)
 router.register(r'nextofkinrelationship', api_views.NextOfKinRelationshipViewSet)
-router.register(r'registries', api_views.ListRegistries, basename='registry')
+router.register(r'registries', api_views.ListRegistries, basename='registries')
 # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
 # router.register(r'registries/(?P<registry_code>\w+)/indices', api_views.LookupIndex, basename='index')
 
 urlpatterns = [
+    re_path(r'registries/$', api_views.ListRegistries.as_view(), name='registries'),
     re_path(r'registries/(?P<registry_code>\w+)/patients/$',
             api_views.PatientList.as_view(), name='patient-list'),
     re_path(r'registries/(?P<registry_code>\w+)/patients/(?P<pk>\d+)/$',
@@ -20,6 +21,10 @@ urlpatterns = [
             api_views.ListStates.as_view(), name="state_lookup"),
     re_path(r'registries/(?P<registry_id>\d+)/forms/$',
             api_views.RegistryForms.as_view(), name='registry-forms'),
+    re_path(r'forms/(?P<form_id>\d+)/sections/$',
+            api_views.RegistrySections.as_view(), name='form_sections'),
+    re_path(r'sections/(?P<section_id>\d+)/cdes/$',
+            api_views.RegistryCommonDataElements.as_view(), name='section_cdes'),
     re_path(r'registries/(?P<registry_id>\d+)/stages/$',
             api_views.PatientStages.as_view(), name='patient-stages'),
 
