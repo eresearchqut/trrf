@@ -422,16 +422,6 @@ def get_display_value(cde_model, stored_value, permitted_values_map=None):
     return stored_value
 
 
-def report_function(func):
-    """
-    decorator to mark a function as available in the reporting interface
-    ( for safety and also to allow us later to discover these functions and
-      present in a menu )
-    """
-    func.report_function = True
-    return func
-
-
 def check_calculation(calculation):
     """
     Run a calculation javascript fragment through ADsafe to see

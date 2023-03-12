@@ -58,10 +58,6 @@
                     "value": "$DBUSER"
                 },
                 {
-                    "name": "REPORTING_DBNAME",
-                    "value": "$REPORTING_DBNAME"
-                },
-                {
                     "name": "TRRF_SITE_DOMAIN",
                     "value": "$TRRF_SITE_DOMAIN"
                 },

@@ -1,6 +1,5 @@
 DBSERVER=dbtest
 CLINICAL_DBSERVER=dbclinicaltest
-REPORTING_DBSERVER=dbreportingtest
 CACHESERVER=cachetest
 
 DJANGO_FIXTURES=DEV
