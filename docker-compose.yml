@@ -3,7 +3,6 @@ version: "3.7"
 volumes:
   dev_db_data:
   dev_clinicaldb_data:
-  dev_reportingdb_data:
 
 services:
   db:
@@ -25,15 +24,6 @@ services:
     ports:
       - "5432"
 
-  reportingdb:
-    image: postgres:10.7
-    env_file:
-      - docker/dev/envs/postgres
-    volumes:
-      - dev_reportingdb_data:/var/lib/postgresql/data
-    ports:
-      - "5432"
-
   runserver:
     build:
       context: .
@@ -52,7 +42,6 @@ services:
     depends_on:
       - db
       - clinicaldb
-      - reportingdb
       - xray-daemon
 
   xray-daemon:

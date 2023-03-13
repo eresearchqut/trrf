@@ -19,13 +19,6 @@ services:
     ports:
       - "5432"
 
-  dbreportingtest:
-    image: postgres:10.7
-    env_file:
-      - docker/dev/envs/postgres
-    ports:
-      - "5432"
-
   xnat-proxy:
     image: wiremock/wiremock
     container_name: xnat-proxy
