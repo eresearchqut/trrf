@@ -1,16 +1,16 @@
 import json
 
 from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.db.models.functions import Lower
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
     Select, ModelForm, BooleanField
 from django.utils.translation import gettext_lazy as _
+
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry, ContextFormGroup
+from registry.groups import PATIENT_OR_CAREGIVER_GROUPS
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
-
-from registry.groups import GROUPS as RDRF_GROUPS
 from report.utils import load_report_configuration
 
 
@@ -101,9 +101,10 @@ class ReportDesignerForm(ModelForm):
         self.fields['cde_fields'].choices = get_cde_choices()
         self.fields['filter_consents'].choices = get_filter_consent_choices()
         self.fields['filter_working_groups'].choices = get_working_group_choices()
-
-        self.fields['access_groups'].queryset = Group.objects.filter(
-            Q(name__icontains=RDRF_GROUPS.WORKING_GROUP_CURATOR) | Q(name__icontains=RDRF_GROUPS.CLINICAL))
+        self.fields['access_groups'].queryset = Group.objects\
+            .annotate(iname=Lower('name'))\
+            .exclude(iname__in=[name.lower() for name in PATIENT_OR_CAREGIVER_GROUPS])\
+            .order_by('name')
 
     class Meta:
         model = ReportDesign
