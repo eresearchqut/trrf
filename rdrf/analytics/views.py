@@ -13,7 +13,7 @@ from django.views import View
 from analytics.analytics_configuration import get_demographic_fields
 from analytics.forms import process_chart_design, chart_types
 from analytics.models import ClinicalDataView, ClinicalDataViewRefreshLog
-from analytics.utils import get_chartjs_data_v2
+from analytics.utils import get_chartjs_data
 from rdrf.models.definition.models import CommonDataElement, Registry
 from registry.patients.models import Patient
 
@@ -273,12 +273,8 @@ class AnalyticsChartDesignView(AnalyticsChartView):
         logger.info('processed chart')
         logger.info(chart)
 
-        # chartjs_data = get_chartjs_data(chart)
-        # logger.info(f'chartjs_data: {chartjs_data}')
+        chartjs_data = get_chartjs_data(chart)
+        logger.info(f'v2 data: {chartjs_data}')
 
-        chartjs_data_v2 = get_chartjs_data_v2(chart)
-        logger.info(f'v2 data: {chartjs_data_v2}')
-
-        # return render(request, 'chart.html', chartjs_data_v2)
-        return JsonResponse(chartjs_data_v2)
+        return JsonResponse(chartjs_data)
 
