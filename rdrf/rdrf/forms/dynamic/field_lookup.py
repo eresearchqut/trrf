@@ -231,33 +231,34 @@ class FieldFactory:
         import django.forms as django_forms
 
         widget_attrs = json.loads(cde.widget_settings) if cde.widget_settings else {}
-        widget_attrs.update(
-            {
-                'registry_model': self.registry,
-                'patient_id': self.primary_id
-            }
-        )
+        widget_context = {"registry_model": self.registry,
+                          "registry_form": self.registry_form,
+                          "cde": self.cde,
+                          "primary_model": self.primary_model,
+                          "primary_id": self.primary_id
+                          }
 
         if cde.widget_name in widgets.get_all_widgets():
             widget_class = widgets.get_widget_class(cde.widget_name)
             if widget_class:
-                return widget_class(attrs=widget_attrs) if cde.widget_settings else widget_class
+                widget_kwargs = {'attrs': widget_attrs}
+                if self._inject_widget_context(widget_class):
+                    widget_kwargs.update({'widget_context': widget_context})
+
+                return widget_class(**widget_kwargs) if cde.widget_settings else widget_class
 
         if hasattr(django_forms, cde.widget_name):
             widget_class = getattr(django_forms, cde.widget_name)
             return widget_class(attrs=widget_attrs) if cde.widget_settings else widget_class
 
         if self._is_parametrised_widget(cde.widget_name):
-            widget_context = {"registry_model": self.registry,
-                              "registry_form": self.registry_form,
-                              "cde": self.cde,
-                              "primary_model": self.primary_model,
-                              "primary_id": self.primary_id
-                              }
-
             return self._get_parametrised_widget_instance(cde.widget_name, widget_context)
 
         return None
+
+    def _inject_widget_context(self, widget_class):
+        if hasattr(widget_class, 'inject_widget_context'):
+            return widget_class.inject_widget_context()
 
     def _is_parametrised_widget(self, widget_string):
         return ":" in widget_string
