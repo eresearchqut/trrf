@@ -15,7 +15,7 @@ class ReportDesignManager(models.Manager):
     def reports_for_user(self, user):
         if user.is_superuser:
             return super().get_queryset()
-        if not (user.is_curator or user.is_clinician):
+        if not user.has_perm('report.can_run_reports'):
             return self.none()
 
         registries = user.get_registries()

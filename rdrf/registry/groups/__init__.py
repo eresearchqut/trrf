@@ -28,8 +28,6 @@ GROUPS = GroupLookup(
     'carer',
 )
 
-PATIENT_OR_CAREGIVER_GROUPS = [GROUPS.PATIENT, GROUPS.CARER, GROUPS.PARENT, GROUPS.CARRIER]
-
 
 def reverse_lookup(group_name):
     try:

@@ -1,4 +1,5 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -14,8 +15,13 @@ class ReportDesignTestCase(TestCase):
         return list(ReportDesign.objects.reports_for_user(user))
 
     def test_reports_for_user(self):
+        run_reports_perm = Permission.objects.create(codename='can_run_reports', name='Can run reports', content_type=ContentType.objects.get_for_model(ReportDesign))
+
         group_curator = Group.objects.create(name=RDRF_GROUPS.WORKING_GROUP_CURATOR)
         group_clinician = Group.objects.create(name=RDRF_GROUPS.CLINICAL)
+
+        group_curator.permissions.set([run_reports_perm])
+        group_clinician.permissions.set([run_reports_perm])
 
         registry_1 = Registry.objects.create(code='TEST1')
         registry_1.add_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE)
@@ -30,15 +36,15 @@ class ReportDesignTestCase(TestCase):
         registry_2 = Registry.objects.create(code='TEST2')
         report_4 = ReportDesign.objects.create(title='Report 4', registry=registry_2)
 
-        user_no_permissions = CustomUser.objects.create(username='standarduser')
+        user_no_permissions = CustomUser.objects.create(username='standarduser', is_active=True)
         user_is_superuser = CustomUser.objects.create(username='superuser', is_superuser=True)
-        user_curator = CustomUser.objects.create(username='registry1-curator')
+        user_curator = CustomUser.objects.create(username='registry1-curator', is_active=True)
         user_curator.registry.add(registry_1)
         user_curator.groups.add(group_curator)
-        user_clinician_1 = CustomUser.objects.create(username='clinician1', ethically_cleared=False)
+        user_clinician_1 = CustomUser.objects.create(username='clinician1', ethically_cleared=False, is_active=True)
         user_clinician_1.registry.add(registry_1)
         user_clinician_1.groups.add(group_clinician)
-        user_clinician_2 = CustomUser.objects.create(username='clinician2', ethically_cleared=True)
+        user_clinician_2 = CustomUser.objects.create(username='clinician2', ethically_cleared=True, is_active=True)
         user_clinician_2.registry.add(registry_1)
         user_clinician_2.groups.add(group_clinician)
 
