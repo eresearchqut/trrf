@@ -192,10 +192,8 @@ class MenuConfig:
 
     def permission_links(self, group_name):
         def has_permission(group, codename, model):
-            permission = Permission.objects.filter(codename=codename,
-                                                   content_type=ContentType.objects.get_for_model(model)).first()
-
-            return group and permission and permission in group_model.permissions.all()
+            return group and group.permissions.filter(codename=codename,
+                                                      content_type=ContentType.objects.get_for_model(model)).exists()
 
         is_super_user = group_name == RDRF_GROUPS.SUPER_USER
         group_model = Group.objects.filter(name__iexact=group_name).first()

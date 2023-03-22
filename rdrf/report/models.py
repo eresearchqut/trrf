@@ -54,6 +54,9 @@ class ReportDesign(models.Model):
     objects = ReportDesignManager()
 
     class Meta:
+        permissions = (
+            ('can_run_reports', 'Can run reports'),
+        )
         ordering = ['registry', 'title']
         constraints = [
             UniqueConstraint(fields=['registry', 'title'], name='unique_report_title')

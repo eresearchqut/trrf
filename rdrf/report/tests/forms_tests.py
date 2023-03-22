@@ -1,4 +1,5 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.forms import model_to_dict
 from django.test import TestCase
 
@@ -203,6 +204,10 @@ class ReportDesignFormTestCase(TestCase):
         group_patient = Group.objects.create(name=RDRF_GROUPS.PATIENT)
         group_parent = Group.objects.create(name=RDRF_GROUPS.PARENT)
 
+        run_report_perm = Permission.objects.get(codename='can_run_reports', content_type=ContentType.objects.get_for_model(ReportDesign))
+        group_curator.permissions.add(run_report_perm)
+        group_clinician.permissions.add(run_report_perm)
+
         reg_mnd = Registry.objects.create(code='mnd')
         reg_ang = Registry.objects.create(code='ang')
 
@@ -246,6 +251,8 @@ class ReportDesignFormTestCase(TestCase):
 
         self.assertIsNone(form.instance.id)
         valid = form.is_valid()
+        print(valid)
+        print(form.errors)
         self.assertTrue(valid)
 
         form.save_to_model()

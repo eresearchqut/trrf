@@ -101,7 +101,7 @@ class ReportDesignerForm(ModelForm):
         self.fields['filter_consents'].choices = get_filter_consent_choices()
         self.fields['filter_working_groups'].choices = get_working_group_choices()
 
-        run_report_permission = Permission.objects.filter(codename='can_run_reports', content_type=ContentType.objects.get_for_model(ReportDesign)).first()
+        run_report_permission = Permission.objects.get(codename='can_run_reports', content_type=ContentType.objects.get_for_model(ReportDesign))
         self.fields['access_groups'].queryset = Group.objects.filter(permissions=run_report_permission).order_by('name')
 
     class Meta:

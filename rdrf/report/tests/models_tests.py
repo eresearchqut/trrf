@@ -15,7 +15,8 @@ class ReportDesignTestCase(TestCase):
         return list(ReportDesign.objects.reports_for_user(user))
 
     def test_reports_for_user(self):
-        run_reports_perm = Permission.objects.create(codename='can_run_reports', name='Can run reports', content_type=ContentType.objects.get_for_model(ReportDesign))
+        run_reports_perm = Permission.objects.get(codename='can_run_reports',
+                                                  content_type=ContentType.objects.get_for_model(ReportDesign))
 
         group_curator = Group.objects.create(name=RDRF_GROUPS.WORKING_GROUP_CURATOR)
         group_clinician = Group.objects.create(name=RDRF_GROUPS.CLINICAL)
