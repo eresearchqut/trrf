@@ -3,18 +3,17 @@ from collections import namedtuple
 from functools import reduce
 from operator import attrgetter
 
-from django.contrib.auth.models import Permission, Group
-from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import gettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry import groups
-from report.models import ReportDesign
-
 from registry.groups import GROUPS as RDRF_GROUPS
+from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
 
