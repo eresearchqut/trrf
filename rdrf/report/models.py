@@ -15,7 +15,7 @@ class ReportDesignManager(models.Manager):
     def reports_for_user(self, user):
         if user.is_superuser:
             return super().get_queryset()
-        if not (user.is_curator or user.is_clinician):
+        if not user.has_perm('report.can_run_reports'):
             return self.none()
 
         registries = user.get_registries()
@@ -54,6 +54,9 @@ class ReportDesign(models.Model):
     objects = ReportDesignManager()
 
     class Meta:
+        permissions = (
+            ('can_run_reports', 'Can run reports'),
+        )
         ordering = ['registry', 'title']
         constraints = [
             UniqueConstraint(fields=['registry', 'title'], name='unique_report_title')

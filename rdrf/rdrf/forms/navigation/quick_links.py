@@ -3,13 +3,17 @@ from collections import namedtuple
 from functools import reduce
 from operator import attrgetter
 
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import gettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry import groups
+from registry.groups import GROUPS as RDRF_GROUPS
+from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +154,16 @@ class RegularLinks(Links):
         LinkDefs.BlacklistedMimeTypesConfig
     )
 
-    REPORTS = make_entries(LinkDefs.Reports)
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
+
+
+class PermissionBasedLinks(Links):
+    REPORTS = ('can_run_reports', ReportDesign, make_entries(LinkDefs.Reports))
+
+    ALL = (
+        REPORTS,
+    )
 
 
 class MenuConfig:
@@ -177,6 +188,18 @@ class MenuConfig:
             return {}
         attr_name = group.lower()
         return getattr(self, attr_name, {})
+
+    def permission_links(self, group_name):
+        def has_permission(group, codename, model):
+            return group and group.permissions.filter(codename=codename,
+                                                      content_type=ContentType.objects.get_for_model(model)).exists()
+
+        is_super_user = group_name == RDRF_GROUPS.SUPER_USER
+        group_model = Group.objects.filter(name__iexact=group_name).first()
+
+        return {key: val
+                for codename, model, link_entries in PermissionBasedLinks.ALL
+                for key, val in link_entries.items() if is_super_user or has_permission(group_model, codename, model)}
 
     def per_registry_links(self, label, url, feature=None):
         # build any per registry links that require the registry code as a param
@@ -263,13 +286,11 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.CONSENT,
             **RegularLinks.PATIENTS,
             **RegularLinks.DOCTORS,
-            **RegularLinks.REPORTS,
             **RegularLinks.USER_MANAGEMENT,
         }
 
         self.clinical = {
             **RegularLinks.PATIENTS,
-            **RegularLinks.REPORTS,
         }
 
         self.parent = {
@@ -302,7 +323,6 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
-            **RegularLinks.REPORTS,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,
@@ -311,6 +331,10 @@ class RegularMenuConfig(MenuConfig):
 
         # menu with everything, used for the admin page
         self.all = normal_menus
+
+        for codename, model, link_entries in PermissionBasedLinks.ALL:
+            self.all.update(link_entries)
+
         if settings.DESIGN_MODE:
             self.all.update({**Links.REGISTRY_DESIGN})
 
@@ -330,7 +354,13 @@ class RegularMenuConfig(MenuConfig):
         return self.settings
 
     def menu_links(self, groups, reports_disabled=False):
-        ret_val = reduce(add_dicts, map(self.group_links, groups), {})
+        ret_val = {}
+        group_links = reduce(add_dicts, map(self.group_links, groups), {})
+        permission_links = reduce(add_dicts, map(self.permission_links, groups), {})
+
+        ret_val.update(group_links)
+        ret_val.update(permission_links)
+
         if reports_disabled and 'Reports' in ret_val:
             del ret_val['Reports']
         return ret_val

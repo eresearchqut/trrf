@@ -48,6 +48,7 @@ PERMISSIONS_BY_ROLES = {
         'add_state',
         'change_state',
         'delete_state',
+        'can_run_reports',
     ],
 
     'Parents': [],
@@ -96,6 +97,7 @@ PERMISSIONS_BY_ROLES = {
         'add_state',
         'change_state',
         'delete_state',
+        'can_run_reports',
     ],
 
     'Working Group Staff': [
@@ -132,5 +134,6 @@ PERMISSIONS_BY_ROLES = {
         'add_state',
         'change_state',
         'delete_state',
+        'can_run_reports',
     ]
 }
