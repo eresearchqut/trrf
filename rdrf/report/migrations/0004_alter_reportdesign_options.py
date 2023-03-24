@@ -20,8 +20,11 @@ def _can_run_report_permission(apps):
     content_type = ContentType.objects.filter(app_label='report', model='reportdesign').first()
 
     if content_type:
-        return Permission.objects.filter(codename='can_run_reports',
-                                         content_type=content_type).first()
+        permission, created = Permission.objects.get_or_create(codename='can_run_reports',
+                                                               name='Can run reports',
+                                                               content_type=content_type)
+        return permission
+
 
 
 def grant_report_permission_to_groups(apps, schema_editor):
