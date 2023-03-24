@@ -308,8 +308,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            reports_disabled = self.is_clinician and not self.ethically_cleared
-            links = qlinks.menu_links([group.name for group in self.groups.all()], reports_disabled)
+            links = qlinks.menu_links([group.name for group in self.groups.all()])
 
         return links
 

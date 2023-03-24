@@ -353,7 +353,7 @@ class RegularMenuConfig(MenuConfig):
     def settings_links(self):
         return self.settings
 
-    def menu_links(self, groups, reports_disabled=False):
+    def menu_links(self, groups):
         ret_val = {}
         group_links = reduce(add_dicts, map(self.group_links, groups), {})
         permission_links = reduce(add_dicts, map(self.permission_links, groups), {})
@@ -361,8 +361,6 @@ class RegularMenuConfig(MenuConfig):
         ret_val.update(group_links)
         ret_val.update(permission_links)
 
-        if reports_disabled and 'Reports' in ret_val:
-            del ret_val['Reports']
         return ret_val
 
 
@@ -375,8 +373,8 @@ class QuickLinks:
     def __init__(self, registries):
         self.menu_config = self.REGULAR_MENU_CONFIG(registries)
 
-    def menu_links(self, groups, reports_disabled=False):
-        return ordered_links(self.menu_config.menu_links(groups, reports_disabled))
+    def menu_links(self, groups):
+        return ordered_links(self.menu_config.menu_links(groups))
 
     def settings_links(self):
         return ordered_links(self.menu_config.settings_links())
