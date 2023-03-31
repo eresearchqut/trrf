@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import timedelta
 
 import yaml
 from django.contrib.auth.models import Group
@@ -10,7 +11,8 @@ from rdrf.forms.widgets.widgets import get_widgets_for_data_type
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
 from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup, RegistryDashboardWidget, \
-    RegistryDashboard, RegistryDashboardDemographicData, RegistryDashboardCDEData, RegistryDashboardFormLink
+    RegistryDashboard, RegistryDashboardDemographicData, RegistryDashboardCDEData, RegistryDashboardFormLink, \
+    LongitudinalFollowup
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentConfiguration
@@ -689,6 +691,12 @@ class Importer(object):
         else:
             logger.info("no context form groups to import")
 
+        if "longitudinal_followups" in self.data:
+            self._create_longitudinal_followups()
+            logger.info("imported longitudinal followups OK")
+        else:
+            logger.info("no longitudinal followups to import")
+
         if "reports" in self.data:
             self._create_reports(self.data["reports"])
             logger.info("complete reports OK")
@@ -843,6 +851,21 @@ class Importer(object):
                 cfg_item.save()
 
             logger.info("imported cfg %s" % cfg.name)
+
+    def _create_longitudinal_followups(self):
+        if "longitudinal_followups" in self.data:
+            for lf_dict in self.data["longitudinal_followups"]:
+                lf, created = LongitudinalFollowup.objects.update_or_create(
+                    name=lf_dict["name"],
+                    defaults={
+                        "description": lf_dict["description"],
+                        "context_form_group": ContextFormGroup.objects.get(code=lf_dict["context_form_group"]),
+                        "frequency": timedelta(seconds=lf_dict["frequency"]),
+                        "debounce": timedelta(seconds=lf_dict["debounce"]),
+                        "condition": lf_dict["condition"],
+                    }
+                )
+                logger.info("imported longitudinal followup %s" % lf.name)
 
     def _create_form_permissions(self, registry):
         if "forms_allowed_groups" in self.data:

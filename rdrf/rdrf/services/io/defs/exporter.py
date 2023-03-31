@@ -10,7 +10,7 @@ from django.forms.models import model_to_dict
 
 from rdrf import VERSION
 import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard
+from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
@@ -238,6 +238,7 @@ class Exporter:
         data["reports"] = self._get_reports()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
+        data["longitudinal_followups"] = self._get_longitudinal_followups()
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
         data["form_titles"] = self._get_form_titles()
@@ -523,6 +524,16 @@ class Exporter:
             cfg_dict["ordering"] = cfg.ordering
             data.append(cfg_dict)
         return data
+
+    def _get_longitudinal_followups(self):
+        return [{
+            "name": lf.name,
+            "description": lf.description,
+            "context_form_group": lf.context_form_group.code,
+            "frequency": lf.frequency.total_seconds(),
+            "debounce": lf.debounce.total_seconds(),
+            "condition": lf.condition,
+        } for lf in LongitudinalFollowup.objects.filter(context_form_group__regsitry=self.registry)]
 
     def _get_email_notifications(self):
         from rdrf.models.definition.models import EmailNotification
