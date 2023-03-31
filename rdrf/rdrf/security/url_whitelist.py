@@ -329,6 +329,7 @@ SECURITY_WHITELISTED_URLS = (
     "logout",
     "mailbox",
     "mailbox_empty",
+    "mailbox_send_longitudinal_followups",
     "parent_dashboard",
     "parent_dashboard_list",
     "password_change",

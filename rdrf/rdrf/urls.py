@@ -23,7 +23,7 @@ import rdrf.views.consent_view as consent_view
 from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
-from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
+from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView, MailboxSendLongitudinalFollowups
 from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
@@ -60,6 +60,8 @@ if settings.DEBUG is True:
         re_path(r'^raise', handler_exceptions, name='test exception'),
         re_path(r'mail/outbox/empty', MailboxEmptyView.as_view(), name='mailbox_empty'),
         re_path(r'mail/outbox', MailboxView.as_view(), name='mailbox'),
+        re_path(r'mail/send_longitudinal_followups', MailboxSendLongitudinalFollowups.as_view(),
+                name='mailbox_send_longitudinal_followups'),
         path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
