@@ -703,10 +703,6 @@ class FormView(View):
             handle_file_notifications(registry, patient, dyn_patient.filestorage)
             xray_recorder.end_subsegment()
 
-            xray_recorder.begin_subsegment("longitudinal_followups")
-            handle_longitudinal_followups(request.user, patient, self.rdrf_context.context_form_group)
-            xray_recorder.end_subsegment()
-
             xray_recorder.begin_subsegment("progress")
             if not self.CREATE_MODE:
                 progress_dict = dyn_patient.save_form_progress(
@@ -733,6 +729,10 @@ class FormView(View):
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
 
+                xray_recorder.begin_subsegment("longitudinal_followups")
+                handle_longitudinal_followups(request.user, patient, newly_created_context.context_form_group)
+                xray_recorder.end_subsegment()
+
                 redirect_url = reverse('registry_form',
                                        args=(registry_code, form_id, patient.pk, newly_created_context.pk))
 
@@ -743,6 +743,10 @@ class FormView(View):
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
+
+            xray_recorder.begin_subsegment("longitudinal_followups")
+            handle_longitudinal_followups(request.user, patient, self.rdrf_context.context_form_group)
+            xray_recorder.end_subsegment()
 
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
                 xray_recorder.begin_subsegment("rules")
