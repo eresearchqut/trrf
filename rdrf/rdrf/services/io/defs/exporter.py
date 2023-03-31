@@ -49,6 +49,7 @@ class ExportType:
     # only the cdes in the supplied registry ( no forms)
     REGISTRY_CDES = "REGISTRY_CDES"
     ALL_CDES = "ALL_CDES"                               # All CDEs in the site
+    PARTIAL = 'PARTIAL'
 
 
 class Exporter:
@@ -137,6 +138,35 @@ class Exporter:
             self.validate(export_type)
         return self._export(ExportFormat.JSON, export_type)
 
+    def partial_export(self, export_definition):
+        def should_export(item_name):
+            return item_name in export_definition
+
+        data = self._skeleton_export(ExportType.PARTIAL)
+
+        if should_export('context_form_groups'):
+            context_form_groups = export_definition.get('context_form_groups')
+            data["context_form_groups"] = self._get_context_form_groups(context_form_groups)
+
+        if should_export('forms'):
+            forms = export_definition.get('forms')
+            data["forms"] = [self._create_form_map(form) for form in forms]
+            data["complete_fields"] = self._get_complete_fields(forms)
+            data["forms_allowed_groups"] = self._get_forms_allowed_groups(forms)
+            data["forms_readonly_groups"] = self._get_forms_readonly_groups(forms)
+
+        if should_export('cdes'):
+            cdes = export_definition.get('cdes')
+            data["cdes"] = [cde_to_dict(cde) for cde in cdes]
+            data["pvgs"] = [pvg.as_dict for pvg in set(cde.pv_group
+                                                       for cde in cdes if cde.pv_group)]
+
+        if should_export('registry_dashboards'):
+            dashboards = export_definition.get('registry_dashboards')
+            data["registry_dashboards"] = self._get_registry_dashboards(dashboards)
+
+        return dump_yaml(data)
+
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             cdes = set()
@@ -210,25 +240,39 @@ class Exporter:
 
         return frm_map
 
-    def _get_forms_allowed_groups(self):
+    def _get_forms_allowed_groups(self, forms=None):
         d = {}
 
-        for form in self.registry.forms:
+        forms = forms or self.registry.forms
+
+        for form in forms:
             d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
         return d
 
-    def _get_forms_readonly_groups(self):
-        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in self.registry.forms}
+    def _get_forms_readonly_groups(self, forms=None):
 
-    def _export(self, format, export_type):
+        forms = forms or self.registry.forms
+
+        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in forms}
+
+    def _skeleton_export(self, export_type):
         data = {}
+
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
+        data["REGISTRY_VERSION"] = self._get_registry_version()
+
+        if self.registry:
+            data["code"] = self.registry.code
+
+        return data
+
+    def _export(self, format, export_type):
+        data = self._skeleton_export(export_type)
         data["cdes"] = [cde_to_dict(cde) for cde in self._get_cdes(export_type)]
         data["pvgs"] = [pvg.as_dict for pvg in self._get_pvgs(export_type)]
-        data["REGISTRY_VERSION"] = self._get_registry_version()
-        data["metadata_json"] = self.registry.metadata_json
+
         data["consent_sections"] = self._get_consent_sections()
         data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
@@ -260,9 +304,9 @@ class Exporter:
                 ExportType.REGISTRY_PLUS_ALL_CDES,
                 ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
-            data["code"] = self.registry.code
             data["desc"] = self.registry.desc
             data["splash_screen"] = self.registry.splash_screen
+            data["metadata_json"] = self.registry.metadata_json
             data["forms"] = []
             generic_sections = [
                 self._create_section_map(section_code, optional=True)
@@ -457,8 +501,8 @@ class Exporter:
 
         return demographic_fields
 
-    def _get_complete_fields(self):
-        forms = RegistryForm.objects.filter(registry=self.registry)
+    def _get_complete_fields(self, forms=None):
+        forms = forms or RegistryForm.objects.filter(registry=self.registry)
         complete_fields = []
 
         for form in forms:
@@ -504,10 +548,13 @@ class Exporter:
             cde_policies.append(cde_pol_dict)
         return cde_policies
 
-    def _get_context_form_groups(self):
+    def _get_context_form_groups(self, context_form_groups=None):
         from rdrf.models.definition.models import ContextFormGroup
+
+        context_form_groups = context_form_groups or ContextFormGroup.objects.filter(registry=self.registry).order_by("name")
+
         data = []
-        for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by("name"):
+        for cfg in context_form_groups:
             cfg_dict = {}
             cfg_dict["context_type"] = cfg.context_type
             cfg_dict["code"] = cfg.code
@@ -625,7 +672,8 @@ class Exporter:
             data.append(group_dict)
         return data
 
-    def _get_registry_dashboards(self):
+    def _get_registry_dashboards(self, registry_dashboards=None):
+        registry_dashboards = registry_dashboards or RegistryDashboard.objects.filter(registry=self.registry)
         return [{
                 'registry': dashboard.registry.code,
                 'widgets': [{'widget_type': widget.widget_type,
@@ -648,7 +696,7 @@ class Exporter:
                                        'context_form_group': link.context_form_group.code,
                                        'registry_form': link.registry_form.name} for link in widget.links.all()]}
                             for widget in dashboard.widgets.all()]
-                } for dashboard in RegistryDashboard.objects.all()]
+                } for dashboard in registry_dashboards]
 
 
 def str_presenter(dumper, data):
