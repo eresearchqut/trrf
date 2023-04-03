@@ -1,60 +1,94 @@
+import logging
+from functools import partial
+
+from django.conf import settings
+from django.contrib import admin
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.forms import ChoiceField, ModelForm
+from django.http import HttpResponse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
-from django.contrib import admin
-from django.forms import ChoiceField, ModelForm
-from django.urls import reverse
+from reversion.admin import VersionAdmin
+
+from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
+from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
+from rdrf.admin_forms import ContextFormGroupItemAdminForm
+from rdrf.admin_forms import DemographicFieldsAdminForm
+from rdrf.admin_forms import EmailTemplateAdminForm
+from rdrf.admin_forms import FormTitleAdminForm
+from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.events.events import EventType
+from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
+from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import CDEFile
+from rdrf.models.definition.models import CDEPermittedValue
+from rdrf.models.definition.models import CDEPermittedValueGroup
+from rdrf.models.definition.models import CdePolicy
+from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import CommonDataElement
+from rdrf.models.definition.models import ConsentConfiguration
+from rdrf.models.definition.models import ConsentQuestion
+from rdrf.models.definition.models import ConsentRule
+from rdrf.models.definition.models import ConsentSection
+from rdrf.models.definition.models import ContextFormGroup
+from rdrf.models.definition.models import ContextFormGroupItem
+from rdrf.models.definition.models import DemographicFields
+from rdrf.models.definition.models import EmailNotification
+from rdrf.models.definition.models import EmailNotificationHistory
+from rdrf.models.definition.models import EmailTemplate
+from rdrf.models.definition.models import FormTitle
+from rdrf.models.definition.models import Notification
 from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, \
     RegistryDashboardFormLink, \
     RegistryDashboardCDEData, RegistryDashboardDemographicData
 from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import Notification
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import ConsentConfiguration
-from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import Section
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import DemographicFields
-from rdrf.models.definition.models import CdePolicy
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import EmailNotificationHistory
-from rdrf.models.definition.models import ContextFormGroup
-from rdrf.models.definition.models import ContextFormGroupItem
-from rdrf.models.definition.models import CDEFile
-from rdrf.models.definition.models import ConsentRule
-from rdrf.models.definition.models import ClinicalData
-from rdrf.models.definition.models import FormTitle
-from rdrf.models.definition.models import BlacklistedMimeType
-
-
-from reversion.admin import VersionAdmin
-
-import logging
-from django.http import HttpResponse
-from wsgiref.util import FileWrapper
-import io
-from django.contrib import messages
-from django.conf import settings
-
-from django.contrib.auth import get_user_model
-
-from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
-from rdrf.admin_forms import RegistryFormAdminForm
-from rdrf.admin_forms import EmailTemplateAdminForm
-from rdrf.admin_forms import DemographicFieldsAdminForm
-from rdrf.admin_forms import CommonDataElementAdminForm
-from rdrf.admin_forms import ContextFormGroupItemAdminForm
-from rdrf.admin_forms import FormTitleAdminForm
-from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
-
-from functools import reduce
-
 from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
+
+
+def export_wrapper(request, export_func):
+    try:
+        export_response = export_func()
+
+        if isinstance(export_response, HttpResponse):
+            return export_response
+        else:
+            # There were errors
+            errors, item_str = export_response
+            logger.error(f'Error(s) exporting {item_str}:')
+            for error in errors:
+                logger.error(f'Export Error: {error}')
+                messages.error(request, f'Error in export of {item_str}: {error}')
+                return None
+    except Exception as ex:
+        logger.exception(ex, exc_info=True)
+        messages.error(request, "Custom Action Failed: %s" % ex)
+        return None
+
+
+@admin.action(description='Export')
+def export_registry_action(modeladmin, request, registries):
+    return export_wrapper(request, partial(export_registries, registries))
+
+
+@admin.action(description='Export')
+def export_context_form_group_action(modeladmin, request, context_form_groups):
+    return export_wrapper(request, partial(export_context_form_groups, context_form_groups))
+
+
+@admin.action(description='Export')
+def export_registry_form_action(modeladmin, request, forms):
+    return export_wrapper(request, partial(export_forms, forms))
+
+
+@admin.action(description='Export')
+def export_registry_dashboard_action(modeladmin, request, dashboards):
+    return export_wrapper(request, partial(export_registry_dashboards, dashboards))
 
 
 @admin.register(ClinicalData)
@@ -89,6 +123,7 @@ class RegistryFormAdmin(admin.ModelAdmin):
     ordering = ['registry', 'name']
     form = RegistryFormAdminForm
     search_fields = ['name']
+    actions = [export_registry_form_action]
 
     list_filter = ['registry']
 
@@ -106,77 +141,6 @@ class RegistryFormAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return False
-
-
-def export_registry_action(modeladmin, request, registry_models_selected):
-    from datetime import datetime
-    export_time = str(datetime.now())
-
-    def export_registry(registry, request):
-        from rdrf.services.io.defs.exporter import Exporter
-        exporter = Exporter(registry)
-        logger.info("Exporting Registry %s" % registry.name)
-        try:
-            yaml_data, errors = exporter.export_yaml()
-            if errors:
-                logger.error("Error(s) exporting %s:" % registry.name)
-                for error in errors:
-                    logger.error("Export Error: %s" % error)
-                    messages.error(request, "Error in export of %s: %s" %
-                                   (registry.name, error))
-                return None
-            else:
-                logger.info("Exported YAML Data for %s OK" % registry.name)
-            return yaml_data
-        except Exception as ex:
-            logger.error("export registry action for %s error: %s" % (registry.name, ex))
-            messages.error(request, "Custom Action Failed: %s" % ex)
-            return None
-
-    registrys = list(registry_models_selected)
-
-    if len(registrys) == 1:
-        registry = registrys[0]
-        yaml_export_filename = registry.name + ".yaml"
-        yaml_data = export_registry(registry, request)
-        if yaml_data is None:
-            return
-
-        myfile = io.StringIO()
-        myfile.write(yaml_data)
-        myfile.flush()
-        myfile.seek(0)
-
-        response = HttpResponse(FileWrapper(myfile), content_type='text/yaml')
-        yaml_export_filename = "export_%s_%s" % (export_time, yaml_export_filename)
-        response['Content-Disposition'] = 'attachment; filename="%s"' % yaml_export_filename
-
-        return response
-    else:
-        import zipfile
-        zippedfile = io.BytesIO()
-        zf = zipfile.ZipFile(zippedfile, mode='w', compression=zipfile.ZIP_DEFLATED)
-
-        for registry in registrys:
-            yaml_data = export_registry(registry, request)
-            if yaml_data is None:
-                return
-
-            zf.writestr(registry.code + '.yaml', yaml_data)
-
-        zf.close()
-        zippedfile.flush()
-        zippedfile.seek(0)
-
-        response = HttpResponse(FileWrapper(zippedfile), content_type='application/zip')
-        name = "export_" + export_time + "_" + \
-            reduce(lambda x, y: x + '_and_' + y, [r.code for r in registrys]) + ".zip"
-        response['Content-Disposition'] = 'attachment; filename="%s"' % name
-
-        return response
-
-
-export_registry_action.short_description = "Export"
 
 
 class RegistryAdmin(admin.ModelAdmin):
@@ -404,6 +368,7 @@ class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
     list_display = ('name', 'registry')
     inlines = [ContextFormGroupItemAdmin]
+    actions = [export_context_form_group_action]
 
     def registry(self, obj):
         return obj.registry.name
@@ -474,6 +439,7 @@ class RegistryDashboardAdmin(admin.ModelAdmin):
     model = RegistryDashboard
     form = RegistryDashboardAdminForm
     list_display = ('registry',)
+    actions = [export_registry_dashboard_action]
 
 
 class DashboardWidgetAdmin(admin.ModelAdmin):

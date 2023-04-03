@@ -43,7 +43,7 @@ class ImportRegistryView(SuperuserRequiredMixin, View):
                 importer.create_registry()
 
         except Exception as ex:
-            logger.error("Import failed: %s" % ex)
+            logger.error("Import failed: %s" % ex, exc_info=ex)
             url_params = {
                 "state": "fail",
                 "error_message": str(ex),

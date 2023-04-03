@@ -24,6 +24,7 @@ from rdrf.models.definition.models import Section
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient, PatientStage, PatientStageRule, NextOfKinRelationship
 from report.models import ReportDesign, ReportDemographicField, ReportClinicalDataField
+from .exporter import ExportType
 from .patient_stage_changes import PatientStageChanges
 
 logger = logging.getLogger(__name__)
@@ -111,18 +112,20 @@ class Importer(object):
             logger.error("Cannot create registry as yaml is not well formed: %s" % self.errors)
             return
 
+        export_type = self.data['EXPORT_TYPE']
+
         if self.check_validity:
-            self._validate()
+            self._validate(export_type)
             if self.state == ImportState.INVALID:
                 raise DefinitionFileInvalid(
                     "Definition File does not have correct structure: %s" % self.errors)
         else:
             self.state = ImportState.VALID
 
-        self._create_registry_objects()
+        self._create_registry_objects(export_type)
 
         if self.check_soundness:
-            self._check_soundness()
+            self._check_soundness(export_type)
             if self.state == ImportState.UNSOUND:
                 raise DefinitionFileUnsound(
                     "Definition File refers to CDEs that don't exist: %s" % self.errors)
@@ -130,22 +133,27 @@ class Importer(object):
         else:
             self.state = ImportState.SOUND
 
-    def _validate(self):
+    def _validate(self, export_type):
         ve = []
+
+        if not export_type:
+            ve.append("invalid: missing 'EXPORT_TYPE' for definition")
+
         if "code" not in self.data:
             ve.append("invalid: missing 'code' for registry")
 
-        if "name" not in self.data:
-            self.errors.append("invalid: missing 'name' for registry")
+        if export_type != ExportType.PARTIAL:
+            if "name" not in self.data:
+                ve.append("invalid: missing 'name' for registry")
 
-        if "forms" not in self.data:
-            ve.append("invalid: 'forms' list missing")
+            if "forms" not in self.data:
+                ve.append("invalid: 'forms' list missing")
 
-        if "cdes" not in self.data:
-            ve.append("invalid: 'cdes' list missing")
+            if "cdes" not in self.data:
+                ve.append("invalid: 'cdes' list missing")
 
-        if "pvgs" not in self.data:
-            ve.append("invalid: 'pvgs' list missing")
+            if "pvgs" not in self.data:
+                ve.append("invalid: 'pvgs' list missing")
 
         if ve:
             self.state = ImportState.INVALID
@@ -153,7 +161,7 @@ class Importer(object):
         else:
             self.state = ImportState.VALID
 
-    def _check_soundness(self):
+    def _check_soundness(self, export_type):
         def exists(cde_code):
             try:
                 CommonDataElement.objects.get(code=cde_code)
@@ -163,7 +171,7 @@ class Importer(object):
 
         cde_codes = []
         missing_codes = []
-        for frm_map in self.data["forms"]:
+        for frm_map in self.data.get("forms", []):
             for section_map in frm_map["sections"]:
                 cde_codes.extend(section_map["elements"])
 
@@ -176,12 +184,14 @@ class Importer(object):
             self.errors.append(
                 "Unsound: The following cde codes do not exist: %s" % missing_codes)
         else:
-            registry = Registry.objects.get(code=self.data["code"])
-            # Perform some double checking on the imported registry's structure
-            self._check_forms(registry)
-            self._check_sections(registry)
-            self._check_cdes(registry)
-            self._check_group_permissions()
+
+            if export_type != ExportType.PARTIAL:
+                registry = Registry.objects.get(code=self.data["code"])
+                # Perform some double checking on the imported registry's structure
+                self._check_forms(registry)
+                self._check_sections(registry)
+                self._check_cdes(registry)
+                self._check_group_permissions()
 
             self.state = ImportState.SOUND
 
@@ -435,31 +445,38 @@ class Importer(object):
                         (metadata_json, verr))
             return False
 
-    def _create_registry_objects(self):
-        self._create_pvgs(self.data["pvgs"])
-        logger.info("imported pvgs OK")
-        self._create_cdes(self.data["cdes"])
-        logger.info("imported cdes OK")
+    def _create_registry_objects(self, export_type):
+
+        if "pvgs" in self.data:
+            self._create_pvgs(self.data["pvgs"])
+            logger.info("imported pvgs OK")
+
+        if "cdes" in self.data:
+            self._create_cdes(self.data["cdes"])
+            logger.info("imported cdes OK")
+
         if "generic_sections" in self.data:
             self._create_generic_sections(self.data["generic_sections"])
-
-        logger.info("imported generic sections OK")
+            logger.info("imported generic sections OK")
 
         r, created = Registry.objects.get_or_create(code=self.data["code"])
 
         original_forms = set([f.name for f in RegistryForm.objects.filter(registry=r)])
         imported_forms = set([])
+
         r.code = self.data["code"]
+
         if "desc" in self.data:
             r.desc = self.data["desc"]
-        r.name = self.data["name"]
+
+        if 'name' in self.data:
+            r.name = self.data["name"]
 
         if "REGISTRY_VERSION" in self.data:
             r.version = self.data["REGISTRY_VERSION"]
-        else:
-            r.version = ""  # old style no version
 
-        r.splash_screen = self.data["splash_screen"]
+        if 'splash_screen' in self.data:
+            r.splash_screen = self.data["splash_screen"]
 
         if "patient_data_section" in self.data:
             patient_data_section_map = self.data["patient_data_section"]
@@ -468,7 +485,6 @@ class Importer(object):
                     patient_data_section_map)
                 r.patient_data_section = patient_data_section
 
-        registry_consent_locked = False
         if "metadata_json" in self.data:
             metadata_json = self.data["metadata_json"]
             if self._check_metadata_json(metadata_json):
@@ -482,10 +498,6 @@ class Importer(object):
                     r.metadata_json = json.dumps(as_json)
                 else:
                     r.metadata_json = metadata_json
-                if 'features' in as_json and 'consent_lock' in as_json['features']:
-                    registry_consent_locked = True
-                    as_json['features'].remove('consent_lock')
-                    r.metadata_json = json.dumps(as_json)
             else:
                 raise DefinitionFileInvalid(
                     "Invalid JSON for registry metadata ( should be a json dictionary")
@@ -493,7 +505,6 @@ class Importer(object):
         r.save()
         logger.info("imported registry object OK")
 
-        changes = None
         if "patient_stages" in self.data:
             logger.info("Importing stages")
             stages = self.data["patient_stages"]
@@ -566,9 +577,8 @@ class Importer(object):
                 )
             logger.info("Patient stage rules imported")
 
-        consent_config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
-        consent_config.consent_locked = registry_consent_locked
         if "consent_configuration" in self.data and self.data["consent_configuration"]:
+            consent_config, __ = ConsentConfiguration.objects.get_or_create(registry=r)
             config_map = self.data["consent_configuration"]
             esignature_status = config_map['esignature']
             valid_choices = [v[0] for v in ConsentConfiguration.SIGNATURE_CHOICES]
@@ -581,7 +591,7 @@ class Importer(object):
                 )
             consent_config.consent_locked = config_map['consent_locked']
             consent_config.esignature = esignature_status
-        consent_config.save()
+            consent_config.save()
 
         if "form_titles" in self.data and self.data["form_titles"]:
             titles = self.data["form_titles"]
@@ -610,55 +620,59 @@ class Importer(object):
                     ft.groups.set(groups, clear=True)
                 logger.info("FormTitle records imported")
 
-        for frm_map in self.data["forms"]:
-            logger.info("starting import of form map %s" % frm_map)
+        if 'forms' in self.data:
+            for frm_map in self.data["forms"]:
+                logger.info("starting import of form map %s" % frm_map)
 
-            sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
+                sections = ",".join([section_map["code"] for section_map in frm_map["sections"]])
 
-            # First create section models so the form save validation passes
-            self._create_form_sections(frm_map)
+                # First create section models so the form save validation passes
+                self._create_form_sections(frm_map)
 
-            f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
-                                                            defaults={'sections': sections,
-                                                                      'abbreviated_name': frm_map['abbreviated_name']})
-            if not created:
-                f.sections = sections
+                f, created = RegistryForm.objects.get_or_create(registry=r,
+                                                                name=frm_map["name"],
+                                                                defaults={'sections': sections,
+                                                                          'abbreviated_name': frm_map['abbreviated_name']})
+                if not created:
+                    f.sections = sections
+                    f.abbreviated_name = frm_map['abbreviated_name']
 
-            f.name = frm_map["name"]
-            if "display_name" in frm_map:
-                f.display_name = frm_map["display_name"]
-            if "header" in frm_map:
-                f.header = frm_map["header"]
-            else:
-                f.header = ""
+                f.name = frm_map["name"]
+                if "display_name" in frm_map:
+                    f.display_name = frm_map["display_name"]
+                if "header" in frm_map:
+                    f.header = frm_map["header"]
+                else:
+                    f.header = ""
 
-            if "applicability_condition" in frm_map:
-                f.applicability_condition = frm_map["applicability_condition"]
+                if "applicability_condition" in frm_map:
+                    f.applicability_condition = frm_map["applicability_condition"]
 
-            if "conditional_rendering_rules" in frm_map:
-                f.conditional_rendering_rules = frm_map["conditional_rendering_rules"]
+                if "conditional_rendering_rules" in frm_map:
+                    f.conditional_rendering_rules = frm_map["conditional_rendering_rules"]
 
-            if "tags" in frm_map:
-                f.tags = frm_map["tags"]
+                if "tags" in frm_map:
+                    f.tags = frm_map["tags"]
 
-            f.registry = r
-            if 'position' in frm_map:
-                f.position = frm_map['position']
-            f.save()
-            logger.info("imported form %s OK" % f.name)
-            imported_forms.add(f.name)
+                f.registry = r
+                if 'position' in frm_map:
+                    f.position = frm_map['position']
+                f.save()
+                logger.info("imported form %s OK" % f.name)
+                imported_forms.add(f.name)
 
-        extra_forms = original_forms - imported_forms
-        # if there are extra forms in the original set, we delete them
-        for form_name in extra_forms:
-            try:
-                extra_form = RegistryForm.objects.get(registry=r, name=form_name)
-                assert form_name not in imported_forms
-                logger.info("deleting extra form not present in import file: %s" % form_name)
-                extra_form.delete()
-            except RegistryForm.DoesNotExist:
-                # shouldn't happen but if so just continue
-                pass
+            if export_type != ExportType.PARTIAL:
+                extra_forms = original_forms - imported_forms
+                # if there are extra forms in the original set, we delete them
+                for form_name in extra_forms:
+                    try:
+                        extra_form = RegistryForm.objects.get(registry=r, name=form_name)
+                        assert form_name not in imported_forms
+                        logger.info("deleting extra form not present in import file: %s" % form_name)
+                        extra_form.delete()
+                    except RegistryForm.DoesNotExist:
+                        # shouldn't happen but if so just continue
+                        pass
 
         self._create_working_groups(r)
         # create consent sections if they exist
