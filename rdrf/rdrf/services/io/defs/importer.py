@@ -629,11 +629,13 @@ class Importer(object):
                 # First create section models so the form save validation passes
                 self._create_form_sections(frm_map)
 
-                f, created = RegistryForm.objects.get_or_create(registry=r, name=frm_map["name"],
+                f, created = RegistryForm.objects.get_or_create(registry=r,
+                                                                name=frm_map["name"],
                                                                 defaults={'sections': sections,
                                                                           'abbreviated_name': frm_map['abbreviated_name']})
                 if not created:
                     f.sections = sections
+                    f.abbreviated_name = frm_map['abbreviated_name']
 
                 f.name = frm_map["name"]
                 if "display_name" in frm_map:

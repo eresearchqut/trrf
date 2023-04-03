@@ -86,25 +86,30 @@ def _export_cascading_form_definition(registry, context_form_groups=None, forms=
     non_null_args = [arg for arg in [context_form_groups, forms, sections, cdes] if arg]
     assert len(non_null_args) == 1, f'Expected 1 form definition part to be provided, got {len(non_null_args)}'
 
+    export_definition = {}
+
     if context_form_groups:
+        export_definition['context_form_groups'] = context_form_groups
         forms = set(form
                     for cfg in context_form_groups
                     for form in cfg.forms)
 
     if forms:
+        export_definition['forms'] = forms
         sections = set(section
                        for form in forms
                        for section in form.section_models)
 
     if sections:
+        export_definition['sections'] = sections
         cdes = set(cde
                    for section in sections
                    for cde in section.cde_models)
 
-    return Exporter(registry_model=registry).partial_export({'context_form_groups': context_form_groups,
-                                                             'forms': forms,
-                                                             'sections': sections,
-                                                             'cdes': cdes})
+    if cdes:
+        export_definition['cdes'] = cdes
+
+    return Exporter(registry_model=registry).partial_export(export_definition)
 
 
 def export_context_form_groups(context_form_groups):
