@@ -405,7 +405,7 @@ class Patient(models.Model):
 
     def as_dto(self):
         return PatientDTO(**{**{f: getattr(self, f) for f in patientdto_attr_fields},
-                             **{'working_groups': [wg.name for wg in self.working_groups.all()]}})
+                             **{'working_groups': list(self.working_groups.values_list('name', flat=True))}})
 
     @property
     def code_field(self):
