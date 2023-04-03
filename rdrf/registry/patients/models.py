@@ -404,7 +404,8 @@ class Patient(models.Model):
         )
 
     def as_dto(self):
-        return PatientDTO(**{f: getattr(self, f) for f in PatientDTO._fields})
+        return PatientDTO(**{**{f: getattr(self, f) for f in patientdto_attr_fields},
+                             **{'working_groups': [wg.name for wg in self.working_groups.all()]}})
 
     @property
     def code_field(self):
@@ -1766,7 +1767,7 @@ class PatientGUID(models.Model):
     objects = PatientGUIDManager()
 
 
-PatientDTO = namedtuple('PatientDTO', (
+patientdto_attr_fields = (
     'id',
     'consent',
     'consent_clinical_trials',
@@ -1808,4 +1809,6 @@ PatientDTO = namedtuple('PatientDTO', (
     'is_index',
     'my_index',
     'has_guardian',
-))
+)
+
+PatientDTO = namedtuple('PatientDTO', patientdto_attr_fields + ('working_groups',))
