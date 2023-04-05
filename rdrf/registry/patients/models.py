@@ -919,6 +919,7 @@ class Patient(models.Model):
             self.active = True
 
         self.last_updated_overall_at = timezone.now()
+
         super(Patient, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
