@@ -22,7 +22,7 @@ from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
 from registry.groups import GROUPS
-from registry.groups.models import CustomUser, WorkingGroup
+from registry.groups.models import CustomUser
 from registry.patients.models import ParentGuardian
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
@@ -365,26 +365,30 @@ class PatientFormMixin:
                 doctor_formset.instance = self.object
                 doctor_formset.save()
 
-        # create user
-        if isinstance(self, AddPatientView) and \
-                self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
-            user = CustomUser.objects.create(
-                email=self.object.email,
-                username=self.object.email,
-                force_password_change=True,
-            )
-            user.set_unusable_password()
-            user.working_groups.set(self.object.working_groups.all())
-            user.save()
+        # save users
+        if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
 
-            self.object.user = user
-            self.object.save(update_fields=["user"])
+            # create user
+            if isinstance(self, AddPatientView):
+                user = CustomUser.objects.create(
+                    email=self.object.email,
+                    username=self.object.email,
+                    force_password_change=True,
+                )
+                user.set_unusable_password()
+                user.working_groups.set(self.object.working_groups.all())
+                user.save()
 
-            RegistrationProfile.objects.create_profile(user)
-            registration = import_string(settings.REGISTRATION_CLASS)(self.request)
-            registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
-                                           self.object.given_names, self.object.family_name)
-            registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+                self.object.user = user
+                self.object.save(update_fields=["user"])
+
+                RegistrationProfile.objects.create_profile(user)
+                registration = import_string(settings.REGISTRATION_CLASS)(self.request)
+                registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
+                                               self.object.given_names, self.object.family_name)
+                registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+            elif self.object.user:
+                self.object.user.working_groups.set(self.object.working_groups.all())
 
         # patient relatives
         patient_relative_formset = forms.get('patient_relatives_form')

@@ -920,10 +920,6 @@ class Patient(models.Model):
 
         self.last_updated_overall_at = timezone.now()
 
-        # Synchronise the patient's working group with the patient's user's working groups
-        if self.user and set(self.working_groups.all()) != set(self.user.working_groups.all()):
-            self.user.working_groups.set(self.working_groups.all())
-
         super(Patient, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
