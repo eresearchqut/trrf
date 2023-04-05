@@ -374,7 +374,7 @@ class PatientFormMixin:
                 force_password_change=True,
             )
             user.set_unusable_password()
-            user.working_groups.set([WorkingGroup.objects.get_unallocated(self.registry_model)])
+            user.working_groups.set(self.object.working_groups.all())
             user.save()
 
             self.object.user = user
