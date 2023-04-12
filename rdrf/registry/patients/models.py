@@ -13,7 +13,7 @@ from django.core.files.storage import DefaultStorage
 from django.urls import reverse
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import post_save, m2m_changed, post_delete
+from django.db.models.signals import post_save, m2m_changed, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -1513,6 +1513,12 @@ class PatientConsent(models.Model, PatientUpdateMixin):
     filename = models.CharField(max_length=255)
 
     history = HistoricalRecords()
+
+
+@receiver(pre_delete, sender=PatientConsent)
+def consentfile_delete(sender, instance, **kwargs):
+    logger.debug(f'Deleting file {instance.filename}')
+    instance.form.delete(False)
 
 
 class PatientSignature(models.Model, PatientUpdateMixin):
