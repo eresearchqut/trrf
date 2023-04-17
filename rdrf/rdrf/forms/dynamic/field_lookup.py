@@ -421,8 +421,11 @@ class FieldFactory:
 
                 if isinstance(field_or_tuple, tuple):
                     field = field_or_tuple[0]
-                    extra_options = field_or_tuple[1]
-                    options.update(extra_options)
+                    default_options = field_or_tuple[1]
+
+                    for key, default_val in default_options.items():
+                        if not options.get(key):
+                            options[key] = default_val
                 else:
                     field = field_or_tuple
 
