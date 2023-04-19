@@ -394,11 +394,18 @@ class PatientForm(forms.ModelForm):
 
                 for field_config in field_configs:
                     field = field_config.field
-                    if field_config.status == DemographicFields.HIDDEN:
-                        self.fields[field].widget = forms.HiddenInput()
-                        self.fields[field].label = ""
-                    elif field_config.status == DemographicFields.READONLY:
-                        self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+                    if getattr(self.fields[field].widget, 'allow_multiple_selected', False):
+                        if field_config.status == DemographicFields.HIDDEN:
+                            self.fields[field].widget = forms.MultipleHiddenInput()
+                        elif field_config.status == DemographicFields.READONLY:
+                            self.fields[field].required = False
+                            self.fields[field].widget.attrs.update({'disabled': 'disabled'})
+                    else:
+                        if field_config.status == DemographicFields.HIDDEN:
+                            self.fields[field].widget = forms.HiddenInput()
+                            self.fields[field].label = ""
+                        elif field_config.status == DemographicFields.READONLY:
+                            self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
                 if 'stage' in self.initial and self.initial['stage']:
@@ -520,10 +527,15 @@ class PatientForm(forms.ModelForm):
         return registries
 
     def clean_working_groups(self):
-        ret_val = self.cleaned_data["working_groups"]
-        if not ret_val:
-            raise forms.ValidationError("Patient must be assigned to a working group")
-        return ret_val
+        is_disabled = 'disabled' in self.fields['working_groups'].widget.attrs
+
+        if is_disabled:
+            return self.instance.working_groups.all()
+        else:
+            ret_val = self.cleaned_data["working_groups"]
+            if not ret_val:
+                raise forms.ValidationError("Patient must be assigned to a working group")
+            return ret_val
 
     def clean_registered_clinicians(self):
         reg = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
