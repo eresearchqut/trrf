@@ -640,7 +640,7 @@ SEND_ACTIVATION_EMAIL = False
 RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
 RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
-EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
+EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', 'working_groups')
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
 
 STRONGHOLD_DEFAULTS = False
