@@ -158,14 +158,18 @@ class PatientManager(models.Manager):
         return self.really_all().filter(active=False)
 
     def get_by_clinician(self, clinician, registry_model):
-        filters = [Q(created_by=clinician)]
+        filters = []
+        if registry_model.has_feature(RegistryFeatures.CLINICIANS_SEE_CREATED_PATIENTS):
+            filters.append(Q(created_by=clinician))
         if registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
             filters.append(Q(registered_clinicians__in=[clinician]))
         if registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) and clinician.ethically_cleared:
             filters.append(Q(working_groups__in=clinician.working_groups.all()))
 
-        query = reduce(lambda a, b: a | b, filters)
-        return self.model.objects.filter(Q(rdrf_registry=registry_model) & query).distinct()
+        if filters:
+            query = reduce(lambda a, b: a | b, filters)
+            return self.model.objects.filter(Q(rdrf_registry=registry_model) & query).distinct()
+        return self.none()
 
     def get_by_user_and_registry(self, user, registry_model):
         qs = self.get_queryset()
