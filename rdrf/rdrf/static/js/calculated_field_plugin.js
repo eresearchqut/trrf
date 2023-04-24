@@ -71,21 +71,23 @@
             var model_promise = get_object(settings.injected_model.toLowerCase(),
                                            settings.injected_model_id);
 
-            $.when(model_promise)
-             .done(function(injected_models) {
-                        try {
-                            settings.calculation.apply(null, [context].concat(injected_models));
-                        }
-                        catch (err) {
-                            console.error("CDE calculation error", err);
-                            context.result = "ERROR";
-                        }
-                        $("#id_" + settings.prefix + settings.observer).val(context.result);
-                        $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
-             })
-             .fail(function(e) {
-                 console.error('CDE calculation error', e);
-             });
+            return $.when(model_promise).done(function(injected_models) {
+               try {
+                   settings.calculation.apply(null, [context].concat(injected_models));
+               }
+               catch (err) {
+                   console.error("CDE calculation error", err);
+                   context.result = "ERROR";
+               }
+               $("#id_" + settings.prefix + settings.observer).val(context.result);
+               $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
+
+               // Apply conditional rendering, as the change of calculation value may trigger a form state change
+               render_changes(visibility_handler());
+            })
+            .fail(function(e) {
+                console.error('CDE calculation error', e);
+            });
         };
 
         $(subject_codes_string).on("input change", update_function);
