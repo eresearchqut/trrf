@@ -876,6 +876,8 @@ class FormView(View):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, data_defs, registry_form, section, allowed_cdes, previous_values):
+        patient_model = get_object_or_404(Patient, id=self.patient_id)
+
         return create_form_class_for_section(
             registry,
             data_defs,
@@ -883,6 +885,7 @@ class FormView(View):
             section,
             injected_model="Patient",
             injected_model_id=self.patient_id,
+            patient_model=patient_model,
             is_superuser=self.request.user.is_superuser,
             user_groups=self.request.user.groups.all(),
             allowed_cdes=allowed_cdes,
