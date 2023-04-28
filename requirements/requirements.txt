@@ -39,3 +39,4 @@ graphene-django==2.15.0
 django-filter==21.1
 flatten_json==0.1.13
 gql-query-builder==0.1.7
+awslambdaric==2.0.4

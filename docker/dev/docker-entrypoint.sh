@@ -233,6 +233,16 @@ if [ "$1" = 'runserver_plus' ]; then
     _runserver
 fi
 
+# local lambda entrypoint
+if [ "$1" = 'lambda_local' ]; then
+    exec /aws-lambda-rie /usr/local/bin/python -m awslambdaric "${@:2}"
+fi
+
+# lambda entrypoint
+if [ "$1" = 'awslambdaric' ]; then
+    exec /usr/local/bin/python -m awslambdaric "${@:2}"
+fi
+
 # runtests entrypoint
 if [ "$1" = 'runtests' ]; then
     info "[Run] Starting tests"
