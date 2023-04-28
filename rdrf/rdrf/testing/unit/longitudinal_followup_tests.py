@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 class LongitudinalFollowupSetupMixin:
     def create_models(self):
         self.now = datetime.now()
-        self.registry = Registry.objects.create(code='reg')
+        self.registry = Registry.objects.create(
+            code='reg',
+            metadata_json=json.dumps({'features': ['longitudinal_followups']})
+        )
 
         template = EmailTemplate.objects.create(
             language='en',

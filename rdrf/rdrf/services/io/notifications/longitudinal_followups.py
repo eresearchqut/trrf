@@ -8,14 +8,21 @@ from django.db.models.functions import Coalesce
 from django.urls import reverse
 
 from rdrf.events.events import EventType
-from rdrf.models.definition.models import LongitudinalFollowup, ContextFormGroupItem
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import LongitudinalFollowup, ContextFormGroupItem, Registry
 from rdrf.services.io.notifications.email_notification import process_notification
 from registry.patients.models import LongitudinalFollowupEntry, LongitudinalFollowupQueueState
 
 logger = logging.getLogger(__name__)
 
 
-def handle_longitudinal_followups(user, patient, context_form_group):
+def handle_longitudinal_followups(user, patient, registry, context_form_group):
+    if not registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS):
+        return
+
+    if context_form_group is None:
+        return
+
     now = datetime.datetime.now()
     new_entries = [
         LongitudinalFollowupEntry(
@@ -82,6 +89,10 @@ def with_now(func):
 
 @with_now
 def send_longitudinal_followups(now):
+    allowed_registries = [
+        r.code for r in Registry.objects.all() if r.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS)
+    ]
+
     outstanding_entries = LongitudinalFollowupEntry.objects.annotate(
         debounce_value=Coalesce(
             "longitudinal_followup__debounce",
@@ -102,12 +113,13 @@ def send_longitudinal_followups(now):
         context_form_group_context_type=F("longitudinal_followup__context_form_group__context_type"),
         registry_code=F("longitudinal_followup__context_form_group__registry__code"),
     ).filter(
+        registry_code__in=allowed_registries,
         send_at_debounced__lte=now,
         state=LongitudinalFollowupQueueState.PENDING,
         patient__id__in=LongitudinalFollowupEntry.objects.filter(
             state=LongitudinalFollowupQueueState.PENDING,
             send_at__lte=now
-        ).values("patient__id").distinct()
+        ).values("patient__id").distinct(),
     ).order_by("patient__id", "created_at")
 
     logger.info(f"Found {len(outstanding_entries)} outstanding followup entries")

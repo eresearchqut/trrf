@@ -730,7 +730,7 @@ class FormView(View):
                 xray_recorder.end_subsegment()  # End main subsegment
 
                 xray_recorder.begin_subsegment("longitudinal_followups")
-                handle_longitudinal_followups(request.user, patient, newly_created_context.context_form_group)
+                handle_longitudinal_followups(request.user, patient, registry, newly_created_context.context_form_group)
                 xray_recorder.end_subsegment()
 
                 redirect_url = reverse('registry_form',
@@ -745,7 +745,7 @@ class FormView(View):
                 raise Exception("Content not created")
 
             xray_recorder.begin_subsegment("longitudinal_followups")
-            handle_longitudinal_followups(request.user, patient, self.rdrf_context.context_form_group)
+            handle_longitudinal_followups(request.user, patient, registry, self.rdrf_context.context_form_group)
             xray_recorder.end_subsegment()
 
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
