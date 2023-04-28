@@ -533,7 +533,7 @@ class Exporter:
             "frequency": lf.frequency.total_seconds(),
             "debounce": lf.debounce.total_seconds(),
             "condition": lf.condition,
-        } for lf in LongitudinalFollowup.objects.filter(context_form_group__regsitry=self.registry)]
+        } for lf in LongitudinalFollowup.objects.filter(context_form_group__registry=self.registry)]
 
     def _get_email_notifications(self):
         from rdrf.models.definition.models import EmailNotification
