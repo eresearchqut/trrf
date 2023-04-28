@@ -665,8 +665,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$',
 )
 if DEBUG:
-    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + \
-                             (r"^%s.+$" % STATIC_URL, r'/mail/(outbox|send_longitudinal_followups)')
+    STRONGHOLD_PUBLIC_URLS += (r"^%s.+$" % STATIC_URL, r'/mail/(outbox|send_longitudinal_followups)')
 
 # Public named urls can contain only urls without parameters
 # as django-stronghold cannot handle it otherwise

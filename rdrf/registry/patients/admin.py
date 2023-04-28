@@ -549,23 +549,17 @@ class ArchivedPatientAdmin(admin.ModelAdmin):
 class LongitudinalFollowupEntryAdmin(admin.ModelAdmin):
     model = LongitudinalFollowupEntry
     list_display = (
-                 "created_at",
-                 "created_by",
-                 "longitudinal_followup",
-                 "patient",
-                 "send_at",
-                 "sent_at",
-                 "state",
-             )
+        "created_at",
+        "created_by",
+        "longitudinal_followup",
+        "patient",
+        "send_at",
+        "sent_at",
+        "state",
+    )
     list_filter = ("state", "longitudinal_followup")
     readonly_fields = ("created_at", "created_by", "sent_at")
-    actions = ("send_email",)
-
-    @admin.action(description="Send Email")
-    def send_email(self, request, queryset):
-        for entry in queryset:
-            entry.sent_at.append(datetime.datetime.now())
-            entry.save()
+    actions = ("delete_selected", )
 
 
 # Use Proxy Model for Archived Patient as we can only register one model class once and the name
