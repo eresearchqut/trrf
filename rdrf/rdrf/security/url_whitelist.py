@@ -312,6 +312,7 @@ SECURITY_WHITELISTED_URLS = (
     "django_conf_urls:set_language",
     "embedded_registration_complete",
     "embedded_registration_register",
+    "email_address_change",
     "family_linkage",
     "favicon",
     "file_upload",

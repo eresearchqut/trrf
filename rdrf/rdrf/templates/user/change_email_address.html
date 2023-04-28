@@ -1,0 +1,78 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load translate %}
+{% load add_attr %}
+{% block content %}
+  <h1>{% trans "Change Email Address" %}</h1>
+
+  {% include "rdrf_cdes/form_list_errors.html" %}
+
+  <form class="my-4" method="post">
+    {% csrf_token %}
+
+    <div class="mb-3 row">
+      <span class="col-sm-3 col-form-label">Current email:</span>
+      <div class="col-sm-9 mt-2">
+        {{ current_email }}
+      </div>
+    </div>
+
+    {% if current_username != current_email %}
+      <div class="mb-3 row">
+        <span class="col-sm-3 col-form-label">Current username:</span>
+        <div class="col-sm-9 mt-2">
+          {{ current_username }}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if patient and patient.email != current_email %}
+      <div class="mb-3 row">
+        <span class="col-sm-3 col-form-label">Current email (Patient):</span>
+        <div class="col-sm-9 mt-2">
+          {{ patient.email }}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="mb-3 row">
+      <label for="{{ form.new_email.id_for_label }}" class="col-sm-3 col-form-label">{{ form.new_email.label_tag }}</label>
+      <div class="col-sm-9 mt-2">
+        {{ form.new_email | add_attr:"class,form-control" }}
+      </div>
+    </div>
+
+    <div class="mb-3 row">
+      <label for="{{ form.new_email2.id_for_label }}" class="col-sm-3 col-form-label">{{ form.new_email2.label_tag }}</label>
+      <div class="col-sm-9 mt-2">
+        {{ form.new_email2 | add_attr:"class,form-control" }}
+      </div>
+    </div>
+
+    <div class="mb-3 row">
+      <label for="{{ form.current_password.id_for_label }}" class="col-sm-3 col-form-label">{{ form.current_password.label_tag }}</label>
+      <div class="col-sm-9 mt-2">
+        {{ form.current_password | add_attr:"class,form-control" }}
+      </div>
+    </div>
+
+    <div class="mb-3 row">
+      <div class="offset-sm-3 col-sm-9">
+        <div class="alert alert-warning mt-4">
+          <p><strong>{% trans "Important" %}:
+            {% trans "Your updated email address will become your new username to log in to this registry" %}</strong>
+          </p>
+          <div class="form-check">
+            {{form.confirm_submit | add_attr:"class,form-check-input" }}
+            <label for="{{ form.confirm_submit.id_for_label }}" class="form-check-label">
+              {{ form.confirm_submit.label }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary offset-sm-3">{% trans "Change email" %}</button>
+  </form>
+
+{% endblock %}

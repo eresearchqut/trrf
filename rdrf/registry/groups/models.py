@@ -224,6 +224,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return reverse('patientslisting')
 
+    @property
+    def patient(self):
+        if self.is_patient:
+            return self.user_object.first()
+
     def get_groups(self):
         return self.groups.all()
 

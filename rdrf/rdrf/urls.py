@@ -11,6 +11,7 @@ from two_factor import views as twv
 from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
+from rdrf.users.views import ChangeEmailAddressView
 
 from rdrf.views import favicon_view, dashboard_view, xnat_view
 import rdrf.views.form_view as form_view
@@ -116,6 +117,8 @@ patterns += [
     re_path(r'^login_assistance/complete/?$', auth_views.PasswordResetCompleteView.as_view(),
             kwargs={'template_name': 'registration/login_assistance_complete.html'},
             name='login_assistance_complete'),
+
+    re_path(r'^email_address/?$', ChangeEmailAddressView.as_view(), name="email_address_change"),
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),
