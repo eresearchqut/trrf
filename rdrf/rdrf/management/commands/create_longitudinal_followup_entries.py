@@ -57,15 +57,20 @@ class Command(BaseCommand):
 
             return True
 
+        new_entries = [
+            LongitudinalFollowupEntry(
+                longitudinal_followup=longitudinal_followup,
+                patient=patient,
+                state=LongitudinalFollowupQueueState.PENDING,
+                send_at=now,
+            )
+            for patient in patients if can_add(patient)
+        ]
+
+        input(f"Creating {len(new_entries[:limit])} entries from {len(new_entries)} possible. Press enter to continue")
+
         entries = LongitudinalFollowupEntry.objects.bulk_create(
-            [
-                LongitudinalFollowupEntry(
-                    longitudinal_followup=longitudinal_followup,
-                    patient=patient,
-                    state=LongitudinalFollowupQueueState.PENDING,
-                    send_at=now,
-                ) for patient in patients if can_add(patient)
-            ][:limit]
+            new_entries[:limit]
         )
 
         self.stdout.write(self.style.SUCCESS(f"Created {len(entries)} entries"))
