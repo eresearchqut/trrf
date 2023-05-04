@@ -6,7 +6,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
-from rdrf.testing.behaviour.features.longitudinal_followups.utils import go_to_url, open_link_in_new_tab
+from rdrf.testing.behaviour.features.longitudinal_followups.utils import go_to_url, open_link_in_new_tab, get_email, \
+    EMAIL_SELECTOR
 from rdrf.testing.behaviour.features.steps import click_patient_listing
 from rdrf.testing.behaviour.features.utils import TEST_WAIT
 
@@ -23,13 +24,13 @@ def open_patient(_step, patient_name, registry_code):
 @step(r'see (\d+) emails?')
 def check_mail(_step, count):
     go_to_url("mail/outbox")
-    sent_emails = len(world.browser.find_elements_by_css_selector("#id_messages > tbody > tr"))
+    sent_emails = len(world.browser.find_elements_by_css_selector(EMAIL_SELECTOR))
     assert_equal(sent_emails, int(count))
 
 
 @step(r'open (\d+) links? in email (\d+)')
 def open_links(_step, count, email):
-    links = world.browser.find_elements_by_css_selector(f"#id_messages > tbody > tr:nth-child({email}) > td a")[:-2]
+    links = get_email(email)[:-2]
     assert_equal(len(links), int(count))
     for link in links:
         open_link_in_new_tab(link.get_attribute("href"))
@@ -37,8 +38,7 @@ def open_links(_step, count, email):
 
 @step(r'unsubscribe in email (\d+)')
 def unsubscribe(_step, email):
-    unsubscribe_link = \
-        world.browser.find_elements_by_css_selector(f"#id_messages > tbody > tr:nth-child({email}) > td a")[-2]
+    unsubscribe_link = get_email(email)[-2]
     unsubscribe_link.click()
     WebDriverWait(world.browser, TEST_WAIT).until(ec.presence_of_element_located((By.CLASS_NAME, "alert-success")))
 
