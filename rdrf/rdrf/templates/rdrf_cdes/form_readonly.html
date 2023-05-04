@@ -13,6 +13,7 @@
 {% block extrastyle %}
     {{ block.super }}
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/form_dsl.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/adsafe.min.js' %}"></script>
@@ -54,6 +55,14 @@
         });
     {% endif %}
 
+    {% autoescape off %}
+    {{ generated_declarations }}
+    {% endautoescape %}
+
+    {% autoescape off %}
+    {{ visibility_handler }}
+    {% endautoescape %}
+
     $(document).ready(function(){
         $("#form-progress-cdes").hide();
 
@@ -73,7 +82,14 @@
                 });
             });
         });
+        {% autoescape off %}
+        {{ generated_code }}
+        {% endautoescape %}
     });
+
+    {% autoescape off %}
+    {{ change_targets }}
+    {% endautoescape %}
 
     function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
@@ -234,9 +250,9 @@
                                     </div>
                                     {% for element in formset.empty_form %}
                                         {% if element.errors %}
-                                            <div class="row has-error">
+                                            <div class="row rdrf-cde-field has-error">
                                         {% else %}
-                                            <div class="row">
+                                            <div class="row rdrf-cde-field">
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
@@ -267,9 +283,9 @@
                                     <div>
                                         {% for element in f %}
                                             {% if element.errors %}
-                                                <div class="row has-error">
+                                                <div class="row rdrf-cde-field has-error">
                                             {% else %}
-                                                <div class="row">
+                                                <div class="row rdrf-cde-field">
                                             {% endif %}
                                                     <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {% if element.label == "Delete" %}
@@ -301,7 +317,7 @@
                             {% endwith%}
                         {% else %}
                             {% for field in forms|get_form_object:s %}
-                                <div class="row">
+                                <div class="row rdrf-cde-field">
                                     <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
