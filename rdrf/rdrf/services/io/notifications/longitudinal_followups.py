@@ -148,6 +148,11 @@ def send_longitudinal_followups(now):
 
         patient = patient_entries[0].patient
 
+        patient_registry = patient.rdrf_registry.first()
+
+        if not patient_registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS):
+            continue
+
         # At least one email that's eligible before debounce
         assert any(entry.send_at <= now for entry in patient_entries)
 
@@ -162,7 +167,7 @@ def send_longitudinal_followups(now):
 
         try:
             process_notification(
-                patient.rdrf_registry.first().code,
+                patient_registry.code,
                 EventType.LONGITUDINAL_FOLLOWUP, {
                     "patient": patient,
                     "longitudinal_followups": longitudinal_followups,
