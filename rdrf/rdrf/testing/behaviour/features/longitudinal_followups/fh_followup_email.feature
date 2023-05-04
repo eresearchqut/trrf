@@ -31,7 +31,7 @@ Feature: Longitudinal followup email notifications
     And I press "Add" button in "Follow Up" group in sidebar
     And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
     And I click the "Save" button
-      And I press "Add" button in "Second Follow Up" group in sidebar
+    And I press "Add" button in "Second Follow Up" group in sidebar
     And I enter value "01-01-2023" for form "Second Follow Up" section " " cde "Date of assessment"
     And I click the "Save" button
     And I send emails 1 hour later
