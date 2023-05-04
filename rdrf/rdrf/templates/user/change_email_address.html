@@ -12,7 +12,7 @@
     {% csrf_token %}
 
     <div class="mb-3 row">
-      <span class="col-sm-3 col-form-label">Current email:</span>
+      <span class="col-sm-3 col-form-label">{% trans "Current email" %}:</span>
       <div class="col-sm-9 mt-2">
         {{ current_email }}
       </div>
@@ -20,7 +20,7 @@
 
     {% if current_username != current_email %}
       <div class="mb-3 row">
-        <span class="col-sm-3 col-form-label">Current username:</span>
+        <span class="col-sm-3 col-form-label">{% trans "Current username" %}:</span>
         <div class="col-sm-9 mt-2">
           {{ current_username }}
         </div>
@@ -29,7 +29,7 @@
 
     {% if patient and patient.email != current_email %}
       <div class="mb-3 row">
-        <span class="col-sm-3 col-form-label">Current email (Patient):</span>
+        <span class="col-sm-3 col-form-label">{% trans "Current email (Patient)" %}:</span>
         <div class="col-sm-9 mt-2">
           {{ patient.email }}
         </div>
