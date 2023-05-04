@@ -37,9 +37,22 @@ def handle_longitudinal_followups(user, patient, registry, context_form_group):
     logger.info(f"Created {len(created_entries)} longitudinal followup entries")
 
 
+# Custom ConditionException that wraps the original exception
+class ConditionException(Exception):
+    def __init__(self, original_exception):
+        self.original_exception = original_exception
+
+    def __str__(self):
+        return f"ConditionException: {self.original_exception}"
+
+
 def evaluate_condition(longitudinal_followup_entry):
     if condition := longitudinal_followup_entry.longitudinal_followup.condition:
-        return eval(condition, {'patient': longitudinal_followup_entry.patient.as_dto()})
+        try:
+            return eval(condition, {'patient': longitudinal_followup_entry.patient.as_dto()})
+        except Exception as e:
+            logger.error(f"Error evaluating condition {condition} for {longitudinal_followup_entry.id=}")
+            raise ConditionException(e)
     else:
         return True
 

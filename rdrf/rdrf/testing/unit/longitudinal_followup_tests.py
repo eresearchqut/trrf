@@ -8,7 +8,7 @@ from django.test import TestCase
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, ContextFormGroup, LongitudinalFollowup, EmailNotification, \
     EmailTemplate, RegistryForm, ContextFormGroupItem, Section, CommonDataElement
-from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups
+from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups, ConditionException
 from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState
 
 logger = logging.getLogger(__name__)
@@ -454,6 +454,44 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
                 entries = body.get(lf)
                 self.assertIsNotNone(entries)
                 self.assertEqual(len(entries), 2)
+
+
+class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin):
+    def setUp(self):
+        self.create_models()
+
+    def create_entry(self, condition):
+        longitudinal_followup = LongitudinalFollowup.objects.create(
+            name="Test followup",
+            context_form_group=self.cfg,
+            frequency=timedelta(weeks=1),
+            debounce=timedelta(weeks=1),
+            condition=condition
+        )
+
+        patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient.rdrf_registry.add(self.registry)
+        patient.save()
+
+        LongitudinalFollowupEntry.objects.create(
+            longitudinal_followup=longitudinal_followup,
+            patient=patient,
+            state=LongitudinalFollowupQueueState.PENDING,
+            send_at=self.now - timedelta(days=1)
+        )
+
+    def test_true(self):
+        self.create_entry("patient.date_of_birth.year == 1970")
+        self.get_emails(1)
+
+    def test_false(self):
+        self.create_entry("patient.date_of_birth.year == 1971")
+        self.get_emails(0)
+
+    def test_exception(self):
+        self.create_entry("patient.missing_property")
+        with self.assertRaises(ConditionException):
+            self.get_emails(0)
 
 
 class LongitudinalFollowupDebounceTest(TestCase, LongitudinalFollowupSetupMixin):
