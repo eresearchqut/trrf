@@ -432,16 +432,17 @@ class FormView(View):
         context["header"] = _(self.registry_form.header)
         context["settings"] = settings
         context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
-        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
-            context["patient_info"] = patient_info_component.html
             context["not_linked"] = not patient_model.is_linked
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
+
+        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
+        context["patient_info"] = patient_info_component.html
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
