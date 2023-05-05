@@ -151,7 +151,8 @@ def send_longitudinal_followups(now):
         patient_registry = patient.rdrf_registry.first()
 
         if not patient_registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS):
-            continue
+            logger.info(f"Halting longitudinal followup processing as registry {patient_registry.code} disabled the feature")
+            break
 
         # At least one email that's eligible before debounce
         assert any(entry.send_at <= now for entry in patient_entries)
