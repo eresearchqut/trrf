@@ -37,6 +37,7 @@ class LinkDefs:
     Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
+    WorkingGroupTypes = make_link("admin:groups_workinggrouptype_changelist", _("Working Group Types"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))
     Importer = make_link("import_registry", _("Importer"))
     Groups = make_link("admin:auth_group_changelist", _("Groups"))
@@ -154,7 +155,8 @@ class RegularLinks(Links):
         LinkDefs.BlacklistedMimeTypesConfig
     )
 
-    WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
+    WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups,
+                                  LinkDefs.WorkingGroupTypes)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
 
 

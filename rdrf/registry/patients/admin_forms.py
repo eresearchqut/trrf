@@ -29,6 +29,8 @@ from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import gettext as _
 
+from ..groups.forms import working_group_optgroup_choices
+
 logger = logging.getLogger(__name__)
 
 
@@ -379,7 +381,7 @@ class PatientForm(forms.ModelForm):
                 self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
                 self.fields["working_groups"].queryset = instance.working_groups.all()
             else:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+                self.fields["working_groups"].choices = working_group_optgroup_choices(WorkingGroup.objects.filter(registry=self.registry_model))
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -480,10 +482,11 @@ class PatientForm(forms.ModelForm):
             user = None
 
         if not user.is_superuser:
-            initial_working_groups = user.working_groups.filter(registry=self.registry_model)
-            self.fields['working_groups'].queryset = initial_working_groups
+            working_groups_query = WorkingGroup.objects.get_by_user_and_registry(user, self.registry_model)
         else:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+            working_groups_query = WorkingGroup.objects.filter(registry=self.registry_model)
+
+        self.fields['working_groups'].choices = working_group_optgroup_choices(working_groups_query)
 
     date_of_birth = forms.DateField(
         widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
