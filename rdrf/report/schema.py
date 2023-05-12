@@ -490,8 +490,13 @@ def list_patients_query(user,
                         registry,
                         filter_args=None):
 
+    patient_ids = Patient.objects.get_by_user_and_registry(user, registry).values('id')
+
+    # Reload patient objects from filtered patients so that related objects aren't affected
+    # For example, if a clinician was limited to certain working groups, but the patient was a member of additional working groups
+    #              then we wouldn't be able to interact with those additional working groups later (e.g. filtering)
     patient_query = Patient.objects \
-        .get_by_user_and_registry(user, registry) \
+        .filter(id__in=patient_ids) \
         .prefetch_related('working_groups') \
         .prefetch_related('registered_clinicians')
 
