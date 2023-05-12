@@ -6,8 +6,6 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [('groups', '0019_add_working_group_types_and_rules'), ('groups', '0020_alter_workinggroup_options')]
-
     dependencies = [
         ('groups', '0018_alter_customuser_managers'),
         ('auth', '0012_alter_user_first_name_max_length'),
