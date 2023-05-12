@@ -29,7 +29,7 @@ from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import gettext as _
 
-from ..groups.forms import working_group_optgroup_choices
+from registry.groups.forms import working_group_optgroup_choices
 
 logger = logging.getLogger(__name__)
 
