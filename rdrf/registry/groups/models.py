@@ -44,22 +44,21 @@ class WorkingGroupManager(models.Manager):
         wg, _ = WorkingGroup.objects.get_or_create(name=self.UNALLOCATED_GROUP_NAME, registry=registry)
         return wg
 
-    def get_by_user(self, user, apply_type_rules=True):
+    def get_by_user(self, user):
         if not user.is_superuser:
             filters = [Q(id__in=user.working_groups.all())]
 
-            if apply_type_rules:
-                wg_rules = WorkingGroupTypeRule.objects.filter(user_group__in=user.groups.all(), has_default_access=True)
-                for rule in wg_rules:
-                    filters.append(Q(id__in=rule.type.working_groups.all()))
+            wg_rules = WorkingGroupTypeRule.objects.filter(user_group__in=user.groups.all(), has_default_access=True)
+            for rule in wg_rules:
+                filters.append(Q(id__in=rule.type.working_groups.all()))
 
             query = reduce(lambda a, b: a | b, filters)
             return self.model.objects.filter(query)
         else:
             return self.all()
 
-    def get_by_user_and_registry(self, user, registry, apply_type_rules=True):
-        return self.get_by_user(user, apply_type_rules).filter(registry=registry)
+    def get_by_user_and_registry(self, user, registry):
+        return self.get_by_user(user).filter(registry=registry)
 
 
 class WorkingGroup(models.Model):

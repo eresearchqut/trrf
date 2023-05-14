@@ -6,7 +6,7 @@ from registry.groups.models import CustomUser, WorkingGroupType, WorkingGroup, W
 
 class GroupModelTest(TestCase):
 
-    def setUp(self) -> None:
+    def setUp(self):
         self.group_clinician = Group.objects.create(name='Clinical Staff')
         self.group_research = Group.objects.create(name='Research Staff')
 
@@ -107,7 +107,3 @@ class GroupModelTest(TestCase):
                                                                            self.wg_outpatients,
                                                                            self.wg_royal,
                                                                            self.wg_stroke])
-
-        # Turn off apply_type_rules
-        self.assertEqual(list(WorkingGroup.objects.get_by_user(self.user_researcher, apply_type_rules=False)), [self.wg_arrythmia,
-                                                                                                                self.wg_stroke])
