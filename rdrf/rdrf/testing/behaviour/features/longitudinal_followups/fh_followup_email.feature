@@ -7,75 +7,58 @@ Feature: Longitudinal followup email notifications
     Given export "fh.zip"
     Given a registry named "FH Registry" with code "fh"
     Given I am expecting to receive email
+    Given I am logged in as curator
 
   Scenario: Receive a followup email
-    When I am logged in as curator
-    And I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    And I send emails 1 hour later
-    Then I see 0 emails
+    Given the "Follow Up" form in patient "SMITH John" is filled out
+    When 1 hour passes
+    Then 0 emails are sent
 
-    When I send emails 24 hours later
-    Then I see 1 email
-    And I open 1 link in email 1
-    Then I empty the mail
+    When 24 hours pass
+    Then 1 email is sent
+    And email 1 has 1 link
+    And each link in email 1 loads successfully
 
-    When I send emails 48 hours later
-    Then I see 0 emails
+    Then the mail is emptied
+
+    When 48 hours pass
+    Then no emails are sent
+
 
   Scenario: Receive a combined followup email
-    When I am logged in as curator
-    And I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    And I press "Add" button in "Second Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Second Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    And I send emails 1 hour later
-    Then I see 0 emails
+    Given the "Follow Up" form in patient "SMITH John" is filled out
+    And the "Second Follow Up" form in patient "SMITH John" is filled out
+    When 1 hour passes
+    Then 0 emails are sent
 
-    When I send emails 24 hours later
-    Then I see 1 email
-    And I open 2 links in email 1
-    And I empty the mail
+    When 24 hours pass
+    Then 1 email is sent
+    And email 1 has 2 links
+    And each link in email 1 loads successfully
 
-    When I send emails 48 hours later
-    Then I see 0 emails
+    Then the mail is emptied
+
+    When 48 hours pass
+    Then no emails are sent
+
 
   Scenario: Receive emails only when subscribed
-    When I am logged in as curator
-    And I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    And I send emails 1 hour later
-    Then I see 0 emails
-    And send emails 24 hours later
-    Then I see 1 email
-    And I empty the mail
+    Given the "Follow Up" form in patient "SMITH John" is filled out
+    When 1 hour passes
+    Then 0 emails are sent
 
-    When I click "Menu"
-    And I click "Patient List (FH Registry)"
-    And I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    And send emails 48 hours later
-    Then I see 1 email
+    When 24 hours pass
+    Then 1 email is sent
 
-    When I unsubscribe in email 1
-    And I empty the mail
-    And I click "Menu"
-    And I click "Patient List (FH Registry)"
+    Then the mail is emptied
 
-    And I click "SMITH John" on patientlisting
-    And I press "Add" button in "Follow Up" group in sidebar
-    And I enter value "01-01-2023" for form "Follow Up" section " " cde "Date of assessment"
-    And I click the "Save" button
-    Then I see 0 emails
+    When the "Follow Up" form in patient "SMITH John" is filled out again
+    And 48 hours pass
+    Then 1 email is sent
+    Then I unsubscribe in email 1
 
-    When I send emails 72 hours later
-    Then I see 0 emails
+    Then the mail is emptied
+
+    When the "Follow Up" form in patient "SMITH John" is filled out again
+    And 72 hours pass
+    Then 0 emails are sent
