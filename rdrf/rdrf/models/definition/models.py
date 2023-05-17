@@ -1180,7 +1180,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
         (EventType.FILE_UPLOADED, "File Uploaded"),
-        (EventType.LONGITUDINAL_FOLLOWUP, "Longitudinal Followup"),
+        (EventType.LONGITUDINAL_FOLLOWUP, 'Longitudinal Followup ["longitudinal_followup" feature required]'),
     )
 
     NOTIFICATION_REQUIRES_REGISTRY_FEATURE = {
