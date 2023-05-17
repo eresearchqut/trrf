@@ -77,6 +77,11 @@ class LinkDefs:
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
     Dashboards = make_link("admin:rdrf_registrydashboard_changelist", _("Dashboards"))
     DashboardWidgets = make_link("admin:rdrf_registrydashboardwidget_changelist", _("Dashboard Widgets"))
+    LongitudinalFollowups = make_link("admin:rdrf_longitudinalfollowup_changelist", _("Longitudinal Followups"))
+    LongitudinalFollowupEntries = make_link(
+        "admin:patients_longitudinalfollowupentry_changelist",
+        _("Longitudinal Followup Entries")
+    )
 
 
 class Links:
@@ -98,7 +103,7 @@ class Links:
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
         LinkDefs.Dashboards,
-        LinkDefs.DashboardWidgets
+        LinkDefs.DashboardWidgets,
     )
 
     # When enabled, doctors links
@@ -109,6 +114,12 @@ class Links:
         LinkDefs.ParentGuardian,
         LinkDefs.RegistrationProfiles,
         LinkDefs.ClinicianOther
+    )
+
+    # When enabled, longitudinal followup links
+    ENABLED_LONGITUDINAL_FOLLOWUPS = make_entries(
+        LinkDefs.LongitudinalFollowups,
+        LinkDefs.LongitudinalFollowupEntries,
     )
 
     # When enabled, patient stages links and patient stage rules
@@ -126,6 +137,7 @@ class Links:
     FAMILY_LINKAGE = {}
     PERMISSIONS = {}
     REGISTRATION = {}
+    LONGITUDINAL_FOLLOWUPS = {}
     STAGES = {}
 
     USER_MANAGEMENT = make_entries(LinkDefs.Users)
@@ -225,6 +237,10 @@ class MenuConfig:
         if any(registry.registration_allowed() for registry in self.registries):
             Links.REGISTRATION = Links.ENABLED_REGISTRATION
 
+    def longitudinal_followup_links(self):
+        if any(registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS) for registry in self.registries):
+            Links.LONGITUDINAL_FOLLOWUPS = Links.ENABLED_LONGITUDINAL_FOLLOWUPS
+
     def doctors_link(self):
         if any(registry.has_feature(RegistryFeatures.DOCTORS_LIST) for registry in self.registries):
             Links.DOCTORS = Links.ENABLED_DOCTORS
@@ -273,6 +289,7 @@ class MenuConfig:
         self.family_linkage_links()
         self.permission_matrix_links()
         self.registration_links()
+        self.longitudinal_followup_links()
         self.patient_stages_links()
 
 
@@ -313,6 +330,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
+            **RegularLinks.LONGITUDINAL_FOLLOWUPS,
         }
 
         normal_menus = {
@@ -325,6 +343,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
+            **RegularLinks.LONGITUDINAL_FOLLOWUPS,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,

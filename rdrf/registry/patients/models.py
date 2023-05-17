@@ -7,6 +7,7 @@ from operator import attrgetter
 import pycountry
 import random
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core import serializers
 from django.core.files.storage import DefaultStorage
@@ -20,7 +21,8 @@ from django.utils import timezone
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import ClinicalData, ConsentQuestion, DataDefinitions, Registry, Section
+from rdrf.models.definition.models import ClinicalData, ConsentQuestion, DataDefinitions, Registry, Section, \
+    LongitudinalFollowup
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.services.io.notifications.file_notifications import handle_file_notifications
@@ -1823,3 +1825,30 @@ patientdto_attr_fields = (
 )
 
 PatientDTO = namedtuple('PatientDTO', patientdto_attr_fields + ('working_groups',))
+
+
+class LongitudinalFollowupQueueState(models.TextChoices):
+    PENDING = "P"
+    SENT = "S"
+
+
+class LongitudinalFollowupEntry(models.Model):
+
+    class Meta:
+        ordering = ("send_at",)
+        verbose_name_plural = "Longitudinal Followup Entries"
+        indexes = (
+            models.Index(
+                name="idx_pending",
+                fields=("state",),
+                condition=Q(state=LongitudinalFollowupQueueState.PENDING)
+            ),
+        )
+
+    longitudinal_followup = models.ForeignKey(LongitudinalFollowup, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(CustomUser, max_length=1, null=True, on_delete=models.SET_NULL)
+    send_at = models.DateTimeField()
+    sent_at = ArrayField(models.DateTimeField(), default=list)
+    state = models.CharField(choices=LongitudinalFollowupQueueState.choices, max_length=1)

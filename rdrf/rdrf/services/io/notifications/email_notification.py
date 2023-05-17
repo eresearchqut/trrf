@@ -1,11 +1,16 @@
-from django.conf import settings
-from django.core.mail import send_mail
-from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory
-from registry.groups.models import CustomUser
-from django.template import Context, Engine, Template
-
 import json
 import logging
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template import Context, Engine, Template
+from django.template.loader import get_template
+
+from rdrf.auth.signed_url.util import make_token, make_token_authenticated_link
+from rdrf.helpers.utils import make_full_url
+from rdrf.models.definition.models import EmailNotification, EmailTemplate, EmailNotificationHistory, \
+    EmailPreference
+from registry.groups.models import CustomUser
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +41,18 @@ class RdrfEmail(object):
         else:
             self.email_notification = self._get_email_notification()
 
+    def _send_mail(self, subject, body, address, recipient_list, html_message, headers=None):
+        mail = EmailMultiAlternatives(subject, body, address, recipient_list, headers)
+        if html_message:
+            mail.attach_alternative(html_message, 'text/html')
+
+        return mail.send()
+
     def send(self):
         success = False
         try:
             notification_record_saved = []
+            headers = {}
             recipients = self._get_recipients()
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
@@ -55,12 +68,19 @@ class RdrfEmail(object):
                     continue
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
-                send_mail(
-                    email_subject,
-                    email_body,
-                    sender_address,
-                    [recipient],
-                    html_message=email_body)
+
+                unsubscribe_footer, unsubscribe_headers = self._get_unsubscribe_footer(recipient)
+                if unsubscribe_footer:
+                    headers.update(unsubscribe_headers)
+                    email_body += unsubscribe_footer
+
+                self._send_mail(email_subject,
+                                email_body,
+                                sender_address,
+                                [recipient],
+                                html_message=email_body,
+                                headers=headers)
+
                 if language not in notification_record_saved:
                     self._save_notification_record(language)
                     notification_record_saved.append(language)
@@ -74,6 +94,9 @@ class RdrfEmail(object):
                 (self.reg_code, self.description))
         return success
 
+    def _get_user_from_email(self, email_address):
+        return CustomUser.objects.get(email=email_address)
+
     def _get_preferred_language(self, email_address):
         def pref_lang():
             return self.template_data.get("preferred_language", "en")
@@ -85,8 +108,21 @@ class RdrfEmail(object):
         except CustomUser.MultipleObjectsReturned:
             return pref_lang()
 
-    def _get_user_from_email(self, email_address):
-        return CustomUser.objects.get(email=email_address)
+    def _is_allowed_to_email(self, recipient):
+        if self.email_notification.subscribable:
+            try:
+                user = self._get_user_from_email(recipient)
+            except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+                return True  # recipient is not a standard user, therefore we don't know their email preferences
+
+            email_preference = EmailPreference.objects.get_by_user(user)
+
+            if email_preference and not email_preference.is_email_allowed(self.email_notification):
+                logger.debug(f"User {user.id} does not allow emails for notification {self.email_notification.id}")
+                return False
+
+        # By default, allow the email unless we have previously determined otherwise
+        return True
 
     def _get_recipients(self):
         recipients = []
@@ -101,7 +137,7 @@ class RdrfEmail(object):
         # and a parent template is registered against the account verified
         # event , the recipient template will evaluate to an empty string ..
 
-        return [r for r in recipients if self._valid_email(r)]
+        return [r for r in recipients if self._valid_email(r) and self._is_allowed_to_email(r)]
 
     def _valid_email(self, s):
         return "@" in s
@@ -131,6 +167,28 @@ class RdrfEmail(object):
         template_body = template_body.render(context)
 
         return template_subject, template_body
+
+    def _get_unsubscribe_footer(self, email_address):
+        try:
+            user = self._get_user_from_email(email_address)
+            token = make_token(user.username)
+            unsubscribe_all_url = make_token_authenticated_link('unsubscribe_all', user.username, token)
+            email_preferences_url = make_token_authenticated_link('email_preferences', user.username, token)
+
+            # Inject unsubscribe footer
+            if self.email_notification.subscribable:
+                full_unsubscribe_url = make_full_url(unsubscribe_all_url)
+                unsubscribe_context = Context({'unsubscribe_all_url': full_unsubscribe_url,
+                                               'email_preferences_url': make_full_url(email_preferences_url)})
+                template_footer = get_template('email_preference/_email_footer.html')
+                template_footer = template_footer.render(unsubscribe_context.flatten())
+                headers = {'List-Unsubscribe': full_unsubscribe_url}
+                return template_footer, headers
+        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+            pass
+
+        # This email does not require an unsubscribe footer
+        return None, None
 
     def _get_email_notification(self):
         try:

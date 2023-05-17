@@ -26,6 +26,7 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.db import filestorage
 from rdrf.db.contexts_api import RDRFContextError
 from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.services.io.notifications.longitudinal_followups import handle_longitudinal_followups
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
 from rdrf.forms.components import RDRFContextLauncherComponent
@@ -729,6 +730,10 @@ class FormView(View):
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
 
+                xray_recorder.begin_subsegment("longitudinal_followups")
+                handle_longitudinal_followups(request.user, patient, registry, newly_created_context.context_form_group)
+                xray_recorder.end_subsegment()
+
                 redirect_url = reverse('registry_form',
                                        args=(registry_code, form_id, patient.pk, newly_created_context.pk))
 
@@ -739,6 +744,10 @@ class FormView(View):
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
+
+            xray_recorder.begin_subsegment("longitudinal_followups")
+            handle_longitudinal_followups(request.user, patient, registry, self.rdrf_context.context_form_group)
+            xray_recorder.end_subsegment()
 
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
                 xray_recorder.begin_subsegment("rules")
