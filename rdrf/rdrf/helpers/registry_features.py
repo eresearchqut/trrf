@@ -18,3 +18,4 @@ class RegistryFeatures:
     PATIENTS_CREATE_USERS = "patients_create_users"
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"
     XNAT_INTEGRATION = "xnat_integration"
+    LONGITUDINAL_FOLLOWUPS = "longitudinal_followups"

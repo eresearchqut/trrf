@@ -43,6 +43,26 @@ services:
       - clinicaldb
       - xray-daemon
 
+  longitudinal-followup-lambda:
+    image: ${TRRF_IMAGE_NAME}
+    env_file:
+      - docker/dev/envs/postgres
+      - docker/dev/envs/runserver
+      - .env_local
+    volumes:
+      - .:/app
+      - ./data/dev/:/data
+    ports:
+        - "8001:8080"
+    depends_on:
+      - db
+      - clinicaldb
+      - xray-daemon
+    working_dir: /app
+    command:
+      - lambda_local
+      - lambda.longitudinal_followup_handler
+
   xray-daemon:
     image: amazon/aws-xray-daemon:3.2.0
     ports:

@@ -88,6 +88,9 @@ RUN rm -Rf /root/.cache
 COPY docker/dev/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
+COPY docker/dev/lambda/aws-lambda-rie /
+RUN chmod +x /aws-lambda-rie
+
 VOLUME ["/app", "/data"]
 
 ENV HOME /data

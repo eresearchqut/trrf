@@ -131,7 +131,7 @@ def click_button_sidebar_group(step, button_name, group_name):
         by=By.XPATH,
         value='//div[@class="card-header"][contains(., "%s")]' % group_name
     ).find_element(by=By.XPATH, value="..")
-    button = form_group_panel.find_element(by=By.XPATH, value='//a[@class="btn btn-info btn-xs float-end"]')
+    button = form_group_panel.find_element(by=By.XPATH, value='.//a[@class="btn btn-info btn-xs float-end"]')
     utils.click(button)
 
 

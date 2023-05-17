@@ -864,7 +864,7 @@ def validate_abbreviated_name(value):
 def make_full_url(relative_url):
     splitted = urlsplit(relative_url)
     domain = Site.objects.get_current().domain.rstrip('/')
-    scheme = 'https' if domain != 'localhost:8000' else 'http'
+    scheme = 'https' if domain != 'localhost:8000' and domain != 'serverundertest:8000' else 'http'
     augmented = splitted._replace(scheme=scheme, netloc=domain)
     return urlunsplit(augmented)
 

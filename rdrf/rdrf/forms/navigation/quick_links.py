@@ -77,6 +77,11 @@ class LinkDefs:
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
     Dashboards = make_link("admin:rdrf_registrydashboard_changelist", _("Dashboards"))
     DashboardWidgets = make_link("admin:rdrf_registrydashboardwidget_changelist", _("Dashboard Widgets"))
+    LongitudinalFollowups = make_link("admin:rdrf_longitudinalfollowup_changelist", _("Longitudinal Followups"))
+    LongitudinalFollowupEntries = make_link(
+        "admin:patients_longitudinalfollowupentry_changelist",
+        _("Longitudinal Followup Entries")
+    )
 
 
 class Links:
@@ -98,7 +103,9 @@ class Links:
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
         LinkDefs.Dashboards,
-        LinkDefs.DashboardWidgets
+        LinkDefs.DashboardWidgets,
+        LinkDefs.LongitudinalFollowups,
+        LinkDefs.LongitudinalFollowupEntries,
     )
 
     # When enabled, doctors links
