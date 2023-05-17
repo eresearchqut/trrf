@@ -19,9 +19,8 @@ Feature: Longitudinal followup email notifications
     And email 1 has 1 link
     And each link in email 1 loads successfully
 
-    Then the mail is emptied
-
-    When 48 hours pass
+    When the mail is emptied
+    And 48 hours pass
     Then no emails are sent
 
 
@@ -36,9 +35,8 @@ Feature: Longitudinal followup email notifications
     And email 1 has 2 links
     And each link in email 1 loads successfully
 
-    Then the mail is emptied
-
-    When 48 hours pass
+    When the mail is emptied
+    And 48 hours pass
     Then no emails are sent
 
 
@@ -50,15 +48,13 @@ Feature: Longitudinal followup email notifications
     When 24 hours pass
     Then 1 email is sent
 
-    Then the mail is emptied
-
-    When the "Follow Up" form in patient "SMITH John" is filled out again
+    When the mail is emptied
+    And the "Follow Up" form in patient "SMITH John" is filled out again
     And 48 hours pass
     Then 1 email is sent
-    Then I unsubscribe in email 1
 
-    Then the mail is emptied
-
-    When the "Follow Up" form in patient "SMITH John" is filled out again
+    When I unsubscribe in email 1
+    And the mail is emptied
+    And the "Follow Up" form in patient "SMITH John" is filled out again
     And 72 hours pass
     Then 0 emails are sent
