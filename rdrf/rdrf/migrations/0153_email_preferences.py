@@ -9,7 +9,7 @@ from rdrf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0148_add_cde_calculation_query'),
+        ('rdrf', '0152_apply_unaccent_extension'),
     ]
 
     operations = [
