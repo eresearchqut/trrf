@@ -65,7 +65,7 @@ class WorkingGroup(models.Model):
     objects = WorkingGroupManager()
 
     name = models.CharField(max_length=100)
-    type = models.ForeignKey(WorkingGroupType, null=True, on_delete=models.SET_NULL, related_name='working_groups')
+    type = models.ForeignKey(WorkingGroupType, null=True, blank=True, on_delete=models.SET_NULL, related_name='working_groups')
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
     class Meta:
