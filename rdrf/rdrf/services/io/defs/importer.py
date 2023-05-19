@@ -23,7 +23,7 @@ from rdrf.models.definition.models import FormTitle
 from rdrf.models.definition.models import Registry
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
-from registry.groups.models import WorkingGroup
+from registry.groups.models import WorkingGroup, WorkingGroupType, WorkingGroupTypeRule
 from registry.patients.models import Patient, PatientStage, PatientStageRule, NextOfKinRelationship
 from report.models import ReportDesign, ReportDemographicField, ReportClinicalDataField
 from .exporter import ExportType
@@ -676,7 +676,12 @@ class Importer(object):
                         # shouldn't happen but if so just continue
                         pass
 
-        self._create_working_groups(r)
+        if "working_group_types" in self.data:
+            self._create_working_group_types()
+
+        if "working_groups" in self.data:
+            self._create_working_groups(r)
+
         # create consent sections if they exist
         self._create_consent_sections(r)
 
@@ -902,25 +907,45 @@ class Importer(object):
                 form_model.save()
                 logger.info(f"Import groups_readonly for form {form_name}: {groups_readonly}")
 
-    def _create_working_groups(self, registry):
-        if "working_groups" in self.data:
-            working_group_names = self.data["working_groups"]
-            existing_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry)])
-            new_groups = set([])
-            for working_group_name in working_group_names:
-                working_group, created = WorkingGroup.objects.get_or_create(
-                    name=working_group_name, registry=registry)
-                working_group.save()
-                new_groups.add(working_group)
+    def _create_working_group_types(self):
+        working_group_types = self.data['working_group_types']
 
-            groups_to_unlink = existing_groups - new_groups
-            for wg in groups_to_unlink:
-                logger.info("deleting delete()working group %s for %s registry import" %
-                            (wg.name, registry.name))
-                # if we delete the group the patients get deleted .. todo need to confirm
-                # behaviour
-                wg.registry = None
-                wg.save()
+        for type_dict in working_group_types:
+            type_model, _ = WorkingGroupType.objects.get_or_create(name=type_dict.get('name'))
+
+            existing_rules = set(type_model.rules.all())
+            imported_rules = set()
+            for rule_dict in type_dict.get('rules', []):
+                rule_model, _ = WorkingGroupTypeRule.objects.update_or_create(type=type_model,
+                                                                              user_group=Group.objects.get(name__iexact=rule_dict.get('user_group')),
+                                                                              defaults={'has_default_access': rule_dict.get('has_default_access')})
+                imported_rules.add(rule_model)
+
+            rules_to_remove = existing_rules - imported_rules
+            logger.info(f'rules to remove: {rules_to_remove}')
+
+            for rule in rules_to_remove:
+                rule.delete()
+
+    def _create_working_groups(self, registry):
+        working_groups_dict = self.data["working_groups"]
+        existing_groups = set([wg for wg in WorkingGroup.objects.filter(registry=registry)])
+        new_groups = set([])
+        for wg_dict in working_groups_dict:
+            working_group, created = WorkingGroup.objects.get_or_create(name=wg_dict.get('name'), registry=registry)
+            working_group.type = WorkingGroupType.objects.filter(name__iexact=(wg_dict.get('type'))).first()
+            working_group.save()
+
+            new_groups.add(working_group)
+
+        groups_to_unlink = existing_groups - new_groups
+        for wg in groups_to_unlink:
+            logger.info("deleting working group %s for %s registry import" %
+                        (wg.name, registry.name))
+            # if we delete the group the patients get deleted .. todo need to confirm
+            # behaviour
+            wg.registry = None
+            wg.save()
 
     def _create_consent_sections(self, registry):
         if "consent_sections" in self.data:

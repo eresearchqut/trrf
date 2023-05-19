@@ -293,6 +293,7 @@ class Exporter:
         else:
             data["patient_data_section"] = {}
 
+        data["working_group_types"] = self._get_working_group_types()
         data["working_groups"] = self._get_working_groups()
         data["patient_stages"] = self._get_patient_stages()
         data["patient_stage_rules"] = self._get_patient_stage_rules()
@@ -484,9 +485,19 @@ class Exporter:
     def _get_generic_cdes(self):
         return self._get_cdes_for_sections(self.registry.generic_sections, sections_optional=True)
 
+    def _get_working_group_types(self):
+        from registry.groups.models import WorkingGroupType
+        return [{'name': wg_type.name,
+                 'rules': [{'user_group': rule.user_group.name,
+                            'has_default_access': rule.has_default_access}
+                           for rule in wg_type.rules.all()]}
+                for wg_type in WorkingGroupType.objects.all()]
+
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
-        return [wg.name for wg in WorkingGroup.objects.filter(registry=self.registry)]
+        return [{'name': wg.name,
+                 'type': wg.type.name if wg.type else None}
+                for wg in WorkingGroup.objects.filter(registry=self.registry)]
 
     def _get_demographic_fields(self):
         demographic_fields = []
