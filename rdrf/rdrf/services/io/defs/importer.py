@@ -916,9 +916,11 @@ class Importer(object):
             existing_rules = set(type_model.rules.all())
             imported_rules = set()
             for rule_dict in type_dict.get('rules', []):
-                rule_model, _ = WorkingGroupTypeRule.objects.update_or_create(type=type_model,
-                                                                              user_group=Group.objects.get(name__iexact=rule_dict.get('user_group')),
-                                                                              defaults={'has_default_access': rule_dict.get('has_default_access')})
+                rule_model, _ = WorkingGroupTypeRule.objects.update_or_create(
+                    type=type_model,
+                    user_group=Group.objects.get(name__iexact=rule_dict.get('user_group')),
+                    defaults={'has_default_access': rule_dict.get('has_default_access')}
+                )
                 imported_rules.add(rule_model)
 
             rules_to_remove = existing_rules - imported_rules
