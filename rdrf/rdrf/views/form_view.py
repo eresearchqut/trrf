@@ -1,11 +1,9 @@
 import json
 import logging
-import os
 from collections import OrderedDict
 from urllib.parse import urlencode
 
 from aws_xray_sdk.core import xray_recorder
-from csp.decorators import csp_update
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -19,7 +17,6 @@ from django.shortcuts import render, get_object_or_404
 from django.template.context_processors import csrf
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic.base import View, TemplateView
@@ -29,13 +26,13 @@ from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.db import filestorage
 from rdrf.db.contexts_api import RDRFContextError
 from rdrf.db.contexts_api import RDRFContextManager
+from rdrf.services.io.notifications.longitudinal_followups import handle_longitudinal_followups
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.db.filestorage import virus_checker_result
 from rdrf.forms.components import RDRFContextLauncherComponent
 from rdrf.forms.components import RDRFPatientInfoComponent
 from rdrf.forms.consent_forms import CustomConsentFormGenerator
 from rdrf.forms.dsl.code_generator import CodeGenerator
-from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_consent_section
 from rdrf.forms.dynamic.dynamic_forms import create_form_class_for_section
 from rdrf.forms.dynamic.form_changes import FormChangesExtractor
 from rdrf.forms.dynamic.form_position import FormPositionForm
@@ -49,20 +46,18 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import FormLink, consent_check
 from rdrf.helpers.utils import consent_status_for_patient
-from rdrf.helpers.utils import de_camelcase, location_name, make_index_map, parse_iso_date, silk_profile
+from rdrf.helpers.utils import de_camelcase, location_name, make_index_map, silk_profile
 from rdrf.helpers.view_helper import FileErrorHandlingMixin
 from rdrf.models.definition.models import (
-    CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry, QuestionnaireResponse)
+    CDEFile, CommonDataElement, ContextFormGroup, DataDefinitions, RegistryForm, Registry)
 from rdrf.models.definition.models import RDRFContext
 from rdrf.patients.query_data import query_patient
-from rdrf.security.mixins import StaffMemberRequiredMixin
 from rdrf.security.security_checks import (
     security_check_user_patient, can_sign_consent,
     get_object_or_permission_denied
 )
 from rdrf.services.io.notifications.file_notifications import handle_file_notifications
 from rdrf.services.rpc.actions import ActionExecutor
-from rdrf.views.decorators.patient_decorators import patient_questionnaire_access
 from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from registry.patients.models import PatientConsent
@@ -84,18 +79,6 @@ class CustomConsentHelper(object):
         self.custom_consent_keys = []
         self.custom_consent_wrappers = []
         self.error_count = 0
-
-    def create_custom_consent_wrappers(self):
-
-        for consent_section_model in self.registry_model.consent_sections.order_by("code"):
-            consent_form_class = create_form_class_for_consent_section(
-                self.registry_model, consent_section_model)
-            consent_form = consent_form_class(data=self.custom_consent_data)
-            consent_form_wrapper = ConsentFormWrapper(consent_section_model.section_label,
-                                                      consent_form,
-                                                      consent_section_model)
-
-            self.custom_consent_wrappers.append(consent_form_wrapper)
 
     def get_custom_consent_keys_from_request(self, request):
         self.custom_consent_data = {}
@@ -401,6 +384,7 @@ class FormView(View):
 
         xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
+        self.rdrf_context_manager.get_or_create_default_context(patient_model)
 
         try:
             if not self.CREATE_MODE:
@@ -449,16 +433,17 @@ class FormView(View):
         context["header"] = _(self.registry_form.header)
         context["settings"] = settings
         context["is_multi_context"] = self.rdrf_context.is_multi_context if self.rdrf_context else False
-        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
 
         if not self.CREATE_MODE:
             context["CREATE_MODE"] = False
             context["show_print_button"] = True
-            context["patient_info"] = patient_info_component.html
             context["not_linked"] = not patient_model.is_linked
         else:
             context["CREATE_MODE"] = True
             context["show_print_button"] = False
+
+        patient_info_component = RDRFPatientInfoComponent(self.registry, patient_model, request.user)
+        context["patient_info"] = patient_info_component.html
 
         wizard = NavigationWizard(self.user,
                                   self.registry,
@@ -548,6 +533,7 @@ class FormView(View):
 
         xray_recorder.begin_subsegment("contexts")
         self.rdrf_context_manager = RDRFContextManager(self.registry)
+        self.rdrf_context_manager.get_or_create_default_context(patient)
 
         try:
             if not self.CREATE_MODE:
@@ -744,6 +730,10 @@ class FormView(View):
                 xray_recorder.end_subsegment()
                 xray_recorder.end_subsegment()  # End main subsegment
 
+                xray_recorder.begin_subsegment("longitudinal_followups")
+                handle_longitudinal_followups(request.user, patient, registry, newly_created_context.context_form_group)
+                xray_recorder.end_subsegment()
+
                 redirect_url = reverse('registry_form',
                                        args=(registry_code, form_id, patient.pk, newly_created_context.pk))
 
@@ -754,6 +744,10 @@ class FormView(View):
 
             if dyn_patient.rdrf_context_id == "add":
                 raise Exception("Content not created")
+
+            xray_recorder.begin_subsegment("longitudinal_followups")
+            handle_longitudinal_followups(request.user, patient, registry, self.rdrf_context.context_form_group)
+            xray_recorder.end_subsegment()
 
             if registry.has_feature(RegistryFeatures.RULES_ENGINE):
                 xray_recorder.begin_subsegment("rules")
@@ -840,21 +834,20 @@ class FormView(View):
         if request.user.is_parent:
             context['parent'] = ParentGuardian.objects.get(user=request.user)
 
-        if not self.registry_form.is_questionnaire:
-            form_progress_map = progress_dict.get(
-                self.registry_form.name + "_form_progress", {})
-            if "percentage" in form_progress_map:
-                progress_percentage = form_progress_map["percentage"]
-            else:
-                progress_percentage = 0
+        form_progress_map = progress_dict.get(
+            self.registry_form.name + "_form_progress", {})
+        if "percentage" in form_progress_map:
+            progress_percentage = form_progress_map["percentage"]
+        else:
+            progress_percentage = 0
 
-            context["form_progress"] = progress_percentage
-            progress_cdes = progress_dict.get(self.registry_form.name + "_form_cdes_status")
-            if progress_cdes is None:
-                context["form_progress_cdes"] = {cde_model.name: False for cde_model in self.registry_form.complete_form_cdes.all()}
-            else:
-                cdes = {cde.code: cde.name for cde in self.registry_form.complete_form_cdes.all()}
-                context["form_progress_cdes"] = {cdes.get(code, code): value for code, value in progress_cdes.items()}
+        context["form_progress"] = progress_percentage
+        progress_cdes = progress_dict.get(self.registry_form.name + "_form_cdes_status")
+        if progress_cdes is None:
+            context["form_progress_cdes"] = {cde_model.name: False for cde_model in self.registry_form.complete_form_cdes.all()}
+        else:
+            cdes = {cde.code: cde.name for cde in self.registry_form.complete_form_cdes.all()}
+            context["form_progress_cdes"] = {cdes.get(code, code): value for code, value in progress_cdes.items()}
 
         context.update(csrf(request))
         self.registry_form = self.get_registry_form(form_id)
@@ -893,6 +886,8 @@ class FormView(View):
         return RegistryForm.objects.get(id=form_id)
 
     def _get_form_class_for_section(self, registry, data_defs, registry_form, section, allowed_cdes, previous_values):
+        patient_model = get_object_or_404(Patient, id=self.patient_id)
+
         return create_form_class_for_section(
             registry,
             data_defs,
@@ -900,6 +895,7 @@ class FormView(View):
             section,
             injected_model="Patient",
             injected_model_id=self.patient_id,
+            patient_model=patient_model,
             is_superuser=self.request.user.is_superuser,
             user_groups=self.request.user.groups.all(),
             allowed_cdes=allowed_cdes,
@@ -919,7 +915,7 @@ class FormView(View):
                     selected=(
                         form.name == self.registry_form.name),
                     context_model=self.rdrf_context
-                ) for form in container_model.forms if not form.is_questionnaire and user.can_view(form)]
+                ) for form in container_model.forms if user.can_view(form)]
         else:
             return []
 
@@ -940,11 +936,6 @@ class FormView(View):
         formset_prefixes = {}
         section_field_ids_map = {}
         form_links = self._get_formlinks(user, self.rdrf_context)
-        if self.dynamic_data:
-            if 'questionnaire_context' in kwargs:
-                self.dynamic_data['questionnaire_context'] = kwargs['questionnaire_context']
-            else:
-                self.dynamic_data['questionnaire_context'] = 'au'
         changes_since_version = kwargs.get("changes_since_version")
         form_changes = FormChangesExtractor(self.registry_form, self.previous_data, self.dynamic_data)
         form_changes.determine_form_changes()
@@ -1049,7 +1040,7 @@ class FormView(View):
             "changes_since_version": changes_since_version,
         }
 
-        if not self.registry_form.is_questionnaire and self.registry_form.has_progress_indicator:
+        if self.registry_form.has_progress_indicator:
 
             form_progress = FormProgress(self.registry_form.registry)
 
@@ -1214,380 +1205,6 @@ class ConsentFormWrapper(object):
         return len(self.errors)
 
 
-class ConsentQuestionWrapper(object):
-
-    def __init__(self):
-        self.label = ""
-        self.answer = "No"
-
-
-class QuestionnaireView(FormView):
-
-    def __init__(self, *args, **kwargs):
-        super(QuestionnaireView, self).__init__(*args, **kwargs)
-        self.questionnaire_context = None
-        self.template = 'rdrf_cdes/questionnaire.html'
-        self.CREATE_MODE = False
-        self.show_multisection_delete_checkbox = False
-        self.init_previous_data_members()
-
-    @method_decorator(patient_questionnaire_access)
-    def get(self, request, registry_code, questionnaire_context="au"):
-        try:
-            if questionnaire_context is not None:
-                self.questionnaire_context = questionnaire_context
-            else:
-                self.questionnaire_context = 'au'
-            self.registry = self._get_registry(registry_code)
-            form = self.registry.questionnaire
-            if form is None:
-                raise RegistryForm.DoesNotExist()
-
-            self.registry_form = form
-            context = self._build_context(questionnaire_context=questionnaire_context)
-
-            custom_consent_helper = CustomConsentHelper(self.registry)
-            custom_consent_helper.create_custom_consent_wrappers()
-
-            context["custom_consent_errors"] = {}
-            context["custom_consent_wrappers"] = custom_consent_helper.custom_consent_wrappers
-            context["registry"] = self.registry
-            context["country_code"] = questionnaire_context
-            context["prelude_file"] = self._get_prelude(registry_code, questionnaire_context)
-
-            return self._render_context(request, context)
-        except RegistryForm.DoesNotExist:
-            context = {
-                'registry': self.registry,
-                'error_msg': 'No questionnaire for registry %s' % registry_code
-            }
-        except RegistryForm.MultipleObjectsReturned:
-            context = {
-                'registry': self.registry,
-                'error_msg': "Multiple questionnaire exists for %s" % registry_code
-            }
-        return render(request, 'rdrf_cdes/questionnaire_error.html', context)
-
-    def _get_template(self):
-        return "rdrf_cdes/questionnaire.html"
-
-    def _get_prelude(self, registry_code, questionnaire_context):
-        if questionnaire_context is None:
-            prelude_file = "prelude_%s.html" % registry_code
-        else:
-            prelude_file = "prelude_%s_%s.html" % (registry_code, questionnaire_context)
-
-        file_path = os.path.join(settings.TEMPLATES[0]["DIRS"][0], 'rdrf_cdes', prelude_file)
-        if os.path.exists(file_path):
-            return os.path.join('rdrf_cdes', prelude_file)
-        else:
-            return None
-
-    def _get_questionnaire_context(self, request):
-        parts = request.path.split("/")
-        context_flag = parts[-1]
-        if context_flag in ["au", "nz"]:
-            return context_flag
-        else:
-            return "au"
-
-    def _create_custom_consents_wrappers(self, post_data=None):
-        consent_form_wrappers = []
-
-        for consent_section_model in self.registry.consent_sections.order_by("code"):
-            consent_form_class = create_form_class_for_consent_section(
-                self.registry, consent_section_model)
-            consent_form = consent_form_class(data=post_data)
-            consent_form_wrapper = ConsentFormWrapper(
-                consent_section_model.section_label, consent_form, consent_section_model)
-            consent_form_wrappers.append(consent_form_wrapper)
-
-        return consent_form_wrappers
-
-    @method_decorator(patient_questionnaire_access)
-    def post(self, request, registry_code, **kwargs):
-        error_count = 0
-        registry = self._get_registry(registry_code)
-        self.registry = registry
-
-        # RDR-871 Allow "custom consents"
-        custom_consent_helper = CustomConsentHelper(self.registry)
-        custom_consent_helper.get_custom_consent_keys_from_request(request)
-        custom_consent_helper.create_custom_consent_wrappers()
-        custom_consent_helper.check_for_errors()
-
-        error_count += custom_consent_helper.error_count
-
-        self.questionnaire_context = self._get_questionnaire_context(request)
-
-        questionnaire_form = registry.questionnaire
-        self.registry_form = questionnaire_form
-        dd = DataDefinitions(registry.questionnaire)
-        # section --> dynamic data for questionnaire response object if no errors
-        data_map = {}
-        # section --> form instances if there are errors and form needs to be redisplayed
-        form_section = {}
-        formset_prefixes = {}
-        total_forms_ids = {}
-        initial_forms_ids = {}
-        section_element_map = {}
-        # this is used by formset plugin:
-        # the full ids on form eg { "section23": ["form23^^sec01^^CDEName", ... ] , ...}
-        section_field_ids_map = {}
-
-        for section_model in dd.section_models:
-            section = section_model.code
-            section_elements = section_model.get_elements()
-            section_element_map[section] = section_elements
-            form_class = create_form_class_for_section(
-                registry,
-                dd,
-                questionnaire_form,
-                section_model,
-                questionnaire_context=self.questionnaire_context)
-            section_field_ids_map[section] = self._get_field_ids(form_class)
-
-            if not section_model.allow_multiple:
-                form = form_class(request.POST, request.FILES)
-                form_section[section] = form
-                if form.is_valid():
-                    dynamic_data = form.cleaned_data
-                    data_map[section] = dynamic_data
-                else:
-                    for e in form.errors:
-                        error_count += 1
-            else:
-                if section_model.extra:
-                    extra = section_model.extra
-                else:
-                    extra = 0
-
-                prefix = "formset_%s" % section
-                form_set_class = formset_factory(form_class, extra=extra, can_delete=True)
-                form_section[section] = form_set_class(
-                    request.POST, request.FILES, prefix=prefix)
-                formset_prefixes[section] = prefix
-                total_forms_ids[section] = "id_%s-TOTAL_FORMS" % prefix
-                initial_forms_ids[section] = "id_%s-INITIAL_FORMS" % prefix
-                formset = form_set_class(request.POST, prefix=prefix)
-
-                if formset.is_valid():
-                    dynamic_data = formset.cleaned_data  # a list of values
-                    section_dict = {}
-                    section_dict[section] = dynamic_data
-                    data_map[section] = section_dict
-                else:
-                    for e in formset.errors:
-                        error_count += 1
-
-        if error_count == 0:
-            questionnaire_response = QuestionnaireResponse()
-            questionnaire_response.registry = registry
-            questionnaire_response.save()
-            questionnaire_response_wrapper = DynamicDataWrapper(questionnaire_response)
-            questionnaire_response_wrapper.current_form_model = questionnaire_form
-            questionnaire_response_wrapper.save_dynamic_data(
-                registry, "cdes", {
-                    "custom_consent_data": custom_consent_helper.custom_consent_data})
-
-            for section in dd.section_models:
-                data_map[section.code]['questionnaire_context'] = self.questionnaire_context
-                questionnaire_response_wrapper.save_dynamic_data(
-                    registry, "cdes", data_map[section.code], multisection=section.allow_multiple,
-                    additional_data={"questionnaire_context": self.questionnaire_context})
-
-            def get_completed_questions(
-                    questionnaire_form_model,
-                    data_map,
-                    custom_consent_data,
-                    consent_wrappers):
-                section_map = OrderedDict()
-
-                class SectionWrapper(object):
-
-                    def __init__(self, label):
-                        self.label = label
-                        self.is_multi = False
-                        self.subsections = []
-                        self.questions = []
-
-                    def load_consents(self, consent_section_model, custom_consent_data):
-                        for consent_question_model in consent_section_model.questions.order_by(
-                                "position"):
-                            question_wrapper = ConsentQuestionWrapper()
-                            question_wrapper.label = consent_question_model.label(
-                                on_questionnaire=True)
-                            field_key = consent_question_model.field_key
-                            try:
-                                value = custom_consent_data[field_key]
-                                if value == "on":
-                                    question_wrapper.answer = "Yes"
-                            except KeyError:
-                                pass
-                            self.questions.append(question_wrapper)
-
-                class Question(object):
-
-                    def __init__(self, delimited_key, value):
-                        self.delimited_key = delimited_key              # in Mongo
-                        self.value = value                              # value in Mongo
-                        # label looked up via cde code
-                        self.label = self._get_label(delimited_key)
-                        # display value if a range
-                        self.answer = self._get_answer()
-                        self.is_multi = False
-
-                    def _get_label(self, delimited_key):
-                        _, _, cde_code = delimited_key.split("____")
-                        cde_model = CommonDataElement.objects.get(code=cde_code)
-                        return cde_model.name
-
-                    def _get_answer(self):
-                        if self.value is None:
-                            return " "
-                        elif self.value == "":
-                            return " "
-                        else:
-                            cde_model = self._get_cde_model()
-                            if cde_model.pv_group:
-                                range_dict = cde_model.pv_group.as_dict
-                                for value_dict in range_dict["values"]:
-                                    if value_dict["code"] == self.value:
-                                        if value_dict["questionnaire_value"]:
-                                            return value_dict["questionnaire_value"]
-                                        else:
-                                            return value_dict["value"]
-                            elif cde_model.datatype == 'boolean':
-                                if self.value:
-                                    return "Yes"
-                                else:
-                                    return "No"
-                            elif cde_model.datatype == 'date':
-                                return parse_iso_date(self.value).strftime("%d-%m-%Y")
-                            return str(self.value)
-
-                    def _get_cde_model(self):
-                        _, _, cde_code = self.delimited_key.split("____")
-                        return CommonDataElement.objects.get(code=cde_code)
-
-                def get_question(form_model, section_model, cde_model, data_map):
-                    from rdrf.helpers.utils import mongo_key_from_models
-                    delimited_key = mongo_key_from_models(form_model, section_model, cde_model)
-                    section_data = data_map[section_model.code]
-                    if delimited_key in section_data:
-                        value = section_data[delimited_key]
-                    else:
-                        value = None
-                    return Question(delimited_key, value)
-
-                # Add custom consents first so they appear on top
-                for consent_wrapper in custom_consent_helper.custom_consent_wrappers:
-                    sw = SectionWrapper(consent_wrapper.label)
-                    consent_section_model = consent_wrapper.consent_section_model
-                    sw.load_consents(
-                        consent_section_model, custom_consent_helper.custom_consent_data)
-                    section_map[sw.label] = sw
-
-                for section_model in questionnaire_form_model.section_models:
-                    section_label = section_model.questionnaire_display_name or section_model.display_name
-                    if section_label not in section_map:
-                        section_map[section_label] = SectionWrapper(section_label)
-                    if not section_model.allow_multiple:
-
-                        for cde_model in section_model.cde_models:
-                            question = get_question(
-                                questionnaire_form_model, section_model, cde_model, data_map)
-                            section_map[section_label].questions.append(question)
-                    else:
-                        section_map[section_label].is_multi = True
-
-                        for multisection_map in data_map[
-                                section_model.code][
-                                section_model.code]:
-                            subsection = []
-                            section_wrapper = {section_model.code: multisection_map}
-                            for cde_model in section_model.cde_models:
-                                question = get_question(
-                                    questionnaire_form_model,
-                                    section_model,
-                                    cde_model,
-                                    section_wrapper)
-                                subsection.append(question)
-                            section_map[section_label].subsections.append(subsection)
-
-                return section_map
-
-            section_map = get_completed_questions(questionnaire_form,
-                                                  data_map,
-                                                  custom_consent_helper.custom_consent_data,
-                                                  custom_consent_helper.custom_consent_wrappers)
-
-            context = {}
-            context["custom_consent_errors"] = {}
-            context["completed_sections"] = section_map
-            context["prelude"] = self._get_prelude(registry_code, self.questionnaire_context)
-
-            return render(request, 'rdrf_cdes/completed_questionnaire_thankyou.html', context)
-        else:
-            context = {
-                'custom_consent_wrappers': custom_consent_helper.custom_consent_wrappers,
-                'custom_consent_errors': custom_consent_helper.custom_consent_errors,
-                'registry': registry_code,
-                'form_name': 'questionnaire',
-                'form_display_name': registry.questionnaire.name,
-                'patient_id': 'dummy',
-                'patient_name': '',
-                'sections': dd.sections,
-                'forms': form_section,
-                'display_names': dd.display_names,
-                'section_headers': dd.section_headers,
-                'section_element_map': section_element_map,
-                'section_field_ids_map': section_field_ids_map,
-                "total_forms_ids": total_forms_ids,
-                "initial_forms_ids": initial_forms_ids,
-                "formset_prefixes": formset_prefixes,
-                "metadata_json_for_sections": self._get_metadata_json_dict(dd)
-            }
-
-            context.update(csrf(request))
-            messages.add_message(request, messages.ERROR, _(
-                'The questionnaire was not submitted because of validation errors - please try again'))
-            return render(request, 'rdrf_cdes/questionnaire.html', context)
-
-    def _get_patient_id(self):
-        return "questionnaire"
-
-    def _get_patient_name(self):
-        return "questionnaire"
-
-    def _get_form_class_for_section(self, registry, data_defs, registry_form, section, allowed_cdes, previous_values):
-        return create_form_class_for_section(
-            registry, data_defs, registry_form, section,
-            allowed_cdes=allowed_cdes,
-            previous_values=previous_values,
-            questionnaire_context=self.questionnaire_context
-        )
-
-
-class QuestionnaireHandlingView(StaffMemberRequiredMixin, View):
-
-    @csp_update(SCRIPT_SRC=["'unsafe-eval'"])
-    def get(self, request, registry_code, questionnaire_response_id):
-        from rdrf.workflows.questionnaires.questionnaires import Questionnaire
-        context = csrf(request)
-        template_name = "rdrf_cdes/questionnaire_handling.html"
-        context["registry_model"] = get_object_or_404(Registry, code=registry_code)
-        context["form_model"] = context["registry_model"].questionnaire
-        context["qr_model"] = get_object_or_404(
-            QuestionnaireResponse, id=questionnaire_response_id)
-        context["patient_lookup_url"] = reverse("patient_lookup", args=(registry_code,))
-
-        context["questionnaire"] = Questionnaire(context["registry_model"],
-                                                 context["qr_model"])
-
-        return render(request, template_name, context)
-
-
 class FileUploadView(FileErrorHandlingMixin, View):
 
     def get(self, request, registry_code, file_id):
@@ -1631,79 +1248,6 @@ class StandardView(object):
     def render_error(request, error_message):
         context = {"application_error": error_message}
         return StandardView._render(request, StandardView.APPLICATION_ERROR, context)
-
-
-class QuestionnaireConfigurationView(StaffMemberRequiredMixin, View):
-
-    """
-    Allow an admin to choose which fields to expose in the questionnaire for a given cinical form
-    """
-    TEMPLATE = "rdrf_cdes/questionnaire_config.html"
-
-    def get(self, request, form_pk):
-        registry_form = RegistryForm.objects.get(pk=form_pk)
-
-        class QuestionWrapper(object):
-
-            def __init__(self, registry_form, section_model, cde_model):
-                self.registry_form = registry_form
-                self.section_model = section_model
-                self.cde_model = cde_model
-
-            @property
-            def clinical(self):
-                return self.cde_model.name  # The clinical label
-
-            @property
-            def questionnaire(self):
-                # The text configured at the cde level for the questionnaire
-                return self.cde_model.questionnaire_text
-
-            @property
-            def section(self):
-                return self.section_model.display_name
-
-            @property
-            def code(self):
-                return self.section_model.code + "." + self.cde_model.code
-
-            @property
-            def exposed(self):
-                if self.registry_form.on_questionnaire(
-                        self.section_model.code,
-                        self.cde_model.code):
-                    return "checked"
-                else:
-                    return ""
-
-        sections = []
-
-        class SectionWrapper(object):
-
-            def __init__(self, registry_form, section_model):
-                self.registry_form = registry_form
-                self.section_model = section_model
-
-            @property
-            def questions(self):
-                lst = []
-                for cde_model in self.section_model.cde_models:
-                    lst.append(QuestionWrapper(self.registry_form, self.section_model, cde_model))
-                return lst
-
-            @property
-            def name(self):
-                return self.section_model.display_name
-
-        for section_model in registry_form.section_models:
-            sections.append(SectionWrapper(registry_form, section_model))
-
-        context = {"registry_form": registry_form, "sections": sections}
-        return self._render_context(request, context)
-
-    def _render_context(self, request, context):
-        context.update(csrf(request))
-        return render(request, self.TEMPLATE, context)
 
 
 class RPCHandler(View):

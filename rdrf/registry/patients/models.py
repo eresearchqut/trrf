@@ -7,20 +7,22 @@ from operator import attrgetter
 import pycountry
 import random
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core import serializers
 from django.core.files.storage import DefaultStorage
 from django.urls import reverse
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import post_save, m2m_changed, post_delete
+from django.db.models.signals import post_save, m2m_changed, post_delete, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import ClinicalData, ConsentQuestion, DataDefinitions, Registry, Section
+from rdrf.models.definition.models import ClinicalData, ConsentQuestion, DataDefinitions, Registry, Section, \
+    LongitudinalFollowup
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.services.io.notifications.file_notifications import handle_file_notifications
@@ -158,14 +160,18 @@ class PatientManager(models.Manager):
         return self.really_all().filter(active=False)
 
     def get_by_clinician(self, clinician, registry_model):
-        filters = [Q(created_by=clinician)]
+        filters = []
+        if registry_model.has_feature(RegistryFeatures.CLINICIANS_SEE_CREATED_PATIENTS):
+            filters.append(Q(created_by=clinician))
         if registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
             filters.append(Q(registered_clinicians__in=[clinician]))
         if registry_model.has_feature(RegistryFeatures.CLINICIAN_ETHICAL_CLEARANCE) and clinician.ethically_cleared:
             filters.append(Q(working_groups__in=clinician.working_groups.all()))
 
-        query = reduce(lambda a, b: a | b, filters)
-        return self.model.objects.filter(Q(rdrf_registry=registry_model) & query).distinct()
+        if filters:
+            query = reduce(lambda a, b: a | b, filters)
+            return self.model.objects.filter(Q(rdrf_registry=registry_model) & query).distinct()
+        return self.none()
 
     def get_by_user_and_registry(self, user, registry_model):
         qs = self.get_queryset()
@@ -404,7 +410,8 @@ class Patient(models.Model):
         )
 
     def as_dto(self):
-        return PatientDTO(**{f: getattr(self, f) for f in PatientDTO._fields})
+        return PatientDTO(**{**{f: getattr(self, f) for f in patientdto_attr_fields},
+                             **{'working_groups': list(self.working_groups.values_list('name', flat=True))}})
 
     @property
     def code_field(self):
@@ -447,19 +454,23 @@ class Patient(models.Model):
     @property
     def age(self):
         """ in years """
-        from datetime import date
 
         def calculate_age(born):
-            today = date.today()
-            try:
-                birthday = born.replace(year=today.year)
-            # raised when birth date is February 29 and the current year is not a leap year
-            except ValueError:
-                birthday = born.replace(year=today.year, month=born.month + 1, day=1)
-            if birthday > today:
-                return today.year - born.year - 1
+            if self.date_of_death:
+                compare_date = self.date_of_death
             else:
-                return today.year - born.year
+                compare_date = datetime.date.today()
+
+            try:
+                birthday = born.replace(year=compare_date.year)
+            # raised when birthdate is February 29 and the current year is not a leap year
+            except ValueError:
+                birthday = born.replace(year=compare_date.year, month=born.month + 1, day=1)
+
+            if birthday > compare_date:
+                return compare_date.year - born.year - 1
+            else:
+                return compare_date.year - born.year
 
         try:
             age_in_years = calculate_age(self.date_of_birth)
@@ -914,6 +925,7 @@ class Patient(models.Model):
             self.active = True
 
         self.last_updated_overall_at = timezone.now()
+
         super(Patient, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -1178,7 +1190,7 @@ class Patient(models.Model):
         """
         Completely replace a patient's mongo record
         Dangerous - assumes new_mongo_data is correct structure
-        Trying it to simulate rollback if questionnaire update fails
+        Trying it to simulate rollback if update fails
         """
         from rdrf.db.dynamic_data import DynamicDataWrapper
         if context_id is None:
@@ -1192,7 +1204,7 @@ class Patient(models.Model):
 
         wrapper = DynamicDataWrapper(self, rdrf_context_id=context_id)
         # NB warning this completely replaces the existing mongo record for the patient
-        # useful for "rolling back" after questionnaire update failure
+        # useful for "rolling back" after update failure
         logger.info(
             "Warning! : Updating existing dynamic data for %s(%s) in registry %s" %
             (self, self.pk, registry_model))
@@ -1509,6 +1521,12 @@ class PatientConsent(models.Model, PatientUpdateMixin):
     history = HistoricalRecords()
 
 
+@receiver(pre_delete, sender=PatientConsent)
+def consentfile_delete(sender, instance, **kwargs):
+    logger.debug(f'Deleting file {instance.filename}')
+    instance.form.delete(False)
+
+
 class PatientSignature(models.Model, PatientUpdateMixin):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     signature = models.TextField()
@@ -1762,7 +1780,7 @@ class PatientGUID(models.Model):
     objects = PatientGUIDManager()
 
 
-PatientDTO = namedtuple('PatientDTO', (
+patientdto_attr_fields = (
     'id',
     'consent',
     'consent_clinical_trials',
@@ -1804,4 +1822,33 @@ PatientDTO = namedtuple('PatientDTO', (
     'is_index',
     'my_index',
     'has_guardian',
-))
+)
+
+PatientDTO = namedtuple('PatientDTO', patientdto_attr_fields + ('working_groups',))
+
+
+class LongitudinalFollowupQueueState(models.TextChoices):
+    PENDING = "P"
+    SENT = "S"
+
+
+class LongitudinalFollowupEntry(models.Model):
+
+    class Meta:
+        ordering = ("send_at",)
+        verbose_name_plural = "Longitudinal Followup Entries"
+        indexes = (
+            models.Index(
+                name="idx_pending",
+                fields=("state",),
+                condition=Q(state=LongitudinalFollowupQueueState.PENDING)
+            ),
+        )
+
+    longitudinal_followup = models.ForeignKey(LongitudinalFollowup, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(CustomUser, max_length=1, null=True, on_delete=models.SET_NULL)
+    send_at = models.DateTimeField()
+    sent_at = ArrayField(models.DateTimeField(), default=list)
+    state = models.CharField(choices=LongitudinalFollowupQueueState.choices, max_length=1)

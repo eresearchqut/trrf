@@ -41,7 +41,7 @@ class EmailPreferencesForm(ModelForm):
                 if self.instance.unsubscribe_all or self.instance.is_email_allowed(email_notification)]
         else:
             # For users without any existing saved preferences,
-            # select option to choose email subscriptions, with each, notification selected by default.
+            # select option to choose email subscriptions, with each notification selected by default.
             self.fields['unsubscribe_all'].initial = False
             self.fields['email_notifications'].initial = [
                 email_notification.id

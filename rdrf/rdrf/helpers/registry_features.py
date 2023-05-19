@@ -1,7 +1,6 @@
 class RegistryFeatures:
     STAGES = "stages"
     FAMILY_LINKAGE = "family_linkage"
-    QUESTIONNAIRES = "questionnaires"
     CONSENT_CHECKS = "consent_checks"
     CONTEXTS = "contexts"
     CLINICIANS_HAVE_PATIENTS = "clinicians_have_patients"
@@ -15,6 +14,8 @@ class RegistryFeatures:
     PATIENT_GUID = "patient_guid"
     PATIENT_ADDRESS_IS_MANDATORY = "patient_address_is_mandatory"
     CLINICIAN_ETHICAL_CLEARANCE = "clinicians_need_ethical_clearance"
+    CLINICIANS_SEE_CREATED_PATIENTS = "clinicians_see_created_patients"
     PATIENTS_CREATE_USERS = "patients_create_users"
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"
-    LEGACY_REPORTS = "legacy_reports"
+    XNAT_INTEGRATION = "xnat_integration"
+    LONGITUDINAL_FOLLOWUPS = "longitudinal_followups"

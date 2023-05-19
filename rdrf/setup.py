@@ -36,7 +36,6 @@ packages = ['rdrf',
             'rdrf.services.io.content.export_import',
             'rdrf.services.io.defs',
             'rdrf.services.io.notifications',
-            'rdrf.services.io.reporting',
             'rdrf.services.rest',
             'rdrf.services.rest.urls',
             'rdrf.services.rest.views',
@@ -47,17 +46,15 @@ packages = ['rdrf',
             'rdrf.views',
             'rdrf.views.decorators',
             'rdrf.workflows',
-            'rdrf.workflows.questionnaires',
             'registry',
             'registry.common',
             'registry.patients',
             'registry.groups',
-            'explorer',
             'report'
             ]
 
 for package in ['rdrf', 'registry.common',
-                'registry.groups', 'registry.patients', 'registry.humangenome', 'explorer', 'report']:
+                'registry.groups', 'registry.patients', 'registry.humangenome', 'report']:
     package_data[package] = []
     if "." in package:
         base_dir, package_dir = package.split(".")

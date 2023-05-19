@@ -22,7 +22,7 @@ from django.forms.models import inlineformset_factory
 from django.utils.html import strip_tags
 
 from registry.groups import GROUPS
-from registry.groups.models import CustomUser, WorkingGroup
+from registry.groups.models import CustomUser
 from registry.patients.models import ParentGuardian
 from registry.patients.models import Patient
 from registry.patients.models import PatientAddress
@@ -105,12 +105,9 @@ class PatientFormMixin:
         patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
         return '%s?just_created=True' % patient_edit_url
 
-    def _get_initial_context(self, registry_code, patient_model):
-        from rdrf.models.definition.models import Registry
-        registry_model = Registry.objects.get(code=registry_code)
+    def _get_default_context(self, registry_model, patient_model):
         rdrf_context_manager = RDRFContextManager(registry_model)
-        return rdrf_context_manager.get_or_create_default_context(
-            patient_model, new_patient=True)
+        return rdrf_context_manager.get_or_create_default_context(patient_model)
 
     def set_patient_model(self, patient_model):
         self.patient_model = patient_model
@@ -368,26 +365,30 @@ class PatientFormMixin:
                 doctor_formset.instance = self.object
                 doctor_formset.save()
 
-        # create user
-        if isinstance(self, AddPatientView) and \
-                self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
-            user = CustomUser.objects.create(
-                email=self.object.email,
-                username=self.object.email,
-                force_password_change=True,
-            )
-            user.set_unusable_password()
-            user.working_groups.set([WorkingGroup.objects.get_unallocated(self.registry_model)])
-            user.save()
+        # save users
+        if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
 
-            self.object.user = user
-            self.object.save(update_fields=["user"])
+            # create user
+            if isinstance(self, AddPatientView):
+                user = CustomUser.objects.create(
+                    email=self.object.email,
+                    username=self.object.email,
+                    force_password_change=True,
+                )
+                user.set_unusable_password()
+                user.working_groups.set(self.object.working_groups.all())
+                user.save()
 
-            RegistrationProfile.objects.create_profile(user)
-            registration = import_string(settings.REGISTRATION_CLASS)(self.request)
-            registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
-                                           self.object.given_names, self.object.family_name)
-            registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+                self.object.user = user
+                self.object.save(update_fields=["user"])
+
+                RegistrationProfile.objects.create_profile(user)
+                registration = import_string(settings.REGISTRATION_CLASS)(self.request)
+                registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
+                                               self.object.given_names, self.object.family_name)
+                registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+            elif self.object.user:
+                self.object.user.working_groups.set(self.object.working_groups.all())
 
         # patient relatives
         patient_relative_formset = forms.get('patient_relatives_form')
@@ -607,6 +608,8 @@ class PatientEditView(PatientFormMixin, View):
             raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
 
+        self._get_default_context(registry_model, patient)
+
         xray_recorder.begin_subsegment("template")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)
         patient_info = RDRFPatientInfoComponent(registry_model, patient, request.user)
@@ -673,6 +676,8 @@ class PatientEditView(PatientFormMixin, View):
         if not consent_check(registry_model, user, patient, "see_patient"):
             raise PermissionDenied(_("Patient consent must be recorded"))
         xray_recorder.end_subsegment()
+
+        self._get_default_context(registry_model, patient)
 
         xray_recorder.begin_subsegment("validate")
         context_launcher = RDRFContextLauncherComponent(request.user, registry_model, patient)

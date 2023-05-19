@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -15,13 +16,6 @@ from report.report_builder import ReportBuilder
 logger = logging.getLogger(__name__)
 
 
-class ReportsAccessCheckMixin:
-    def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_superuser or request.user.is_curator or request.user.is_clinician):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
-
 class ReportDownloadAccessCheckMixin:
     def dispatch(self, request, *args, **kwargs):
         if not ReportDesign.objects.reports_for_user(request.user).filter(pk=kwargs['report_id']).exists():
@@ -29,7 +23,9 @@ class ReportDownloadAccessCheckMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class ReportsView(ReportsAccessCheckMixin, View):
+class ReportsView(PermissionRequiredMixin, View):
+    permission_required = ("report.can_run_reports",)
+
     def get(self, request):
         return render(request, 'reports_list.html', {
             'reports': ReportDesign.objects.reports_for_user(request.user)

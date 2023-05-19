@@ -14,7 +14,7 @@ jobs:
     name: Build images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Make images dir
         run: mkdir /tmp/build_images
       - name: Build django image
@@ -22,7 +22,7 @@ jobs:
       - name: Save django image to file
         run: docker save $OWNER/runserver:$GITHUB_SHA -o /tmp/build_images/django_image.tar.gz
       - name: Upload images
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images
@@ -32,12 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_images
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images
@@ -49,12 +49,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_images
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images
@@ -68,12 +68,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_images
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images
@@ -82,7 +82,7 @@ jobs:
       - name: Unit tests
         run: ./scripts/unit-tests-coverage.sh
       - name: Upload test coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Unittest coverage
           path: data/test/unittest_coverage_report
@@ -92,12 +92,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_images
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images
@@ -112,7 +112,7 @@ jobs:
         run: tar -cvf aloe-results.tar data/aloe/dev
       - name: Upload test output
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Aloe output
           path: aloe-results.tar
@@ -122,12 +122,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_images
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           touch .env_local
           echo "TRRF_IMAGE_NAME=$OWNER/runserver:$GITHUB_SHA" >> $GITHUB_ENV
       - name: Download images
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: build_images
           path: /tmp/build_images

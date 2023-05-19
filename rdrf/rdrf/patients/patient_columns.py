@@ -32,7 +32,7 @@ class Column(object):
             patient_field, related_object_field = self.field.split("__")
             related_object = getattr(patient, patient_field)
             if related_object.__class__.__name__ == 'ManyRelatedManager':
-                related_object = related_object.first()
+                return ', '.join(list(related_object.values_list(related_object_field, flat=True)))
 
             if related_object is not None:
                 related_value = getattr(related_object, related_object_field)

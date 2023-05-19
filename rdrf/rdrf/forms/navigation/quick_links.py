@@ -3,13 +3,17 @@ from collections import namedtuple
 from functools import reduce
 from operator import attrgetter
 
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse_lazy
 from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import gettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
 from registry import groups
+from registry.groups import GROUPS as RDRF_GROUPS
+from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +30,14 @@ def make_link(url, text):
 
 
 class LinkDefs:
-    LegacyReports = make_link("reports", _("Reports (Legacy)"))
-    QuestionnaireResponses = make_link("admin:rdrf_questionnaireresponse_changelist", _("Questionnaire Responses"))
     Doctors = make_link("admin:patients_doctor_changelist", _("Doctors"))
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
-    LegacyExplorer = make_link("rdrf:explorer_main", _("Explorer"))
     Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
+    WorkingGroupTypes = make_link("admin:groups_workinggrouptype_changelist", _("Working Group Types"))
     Registries = make_link("admin:rdrf_registry_changelist", _("Registries"))
     Importer = make_link("import_registry", _("Importer"))
     Groups = make_link("admin:auth_group_changelist", _("Groups"))
@@ -75,6 +77,11 @@ class LinkDefs:
     BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
     Dashboards = make_link("admin:rdrf_registrydashboard_changelist", _("Dashboards"))
     DashboardWidgets = make_link("admin:rdrf_registrydashboardwidget_changelist", _("Dashboard Widgets"))
+    LongitudinalFollowups = make_link("admin:rdrf_longitudinalfollowup_changelist", _("Longitudinal Followups"))
+    LongitudinalFollowupEntries = make_link(
+        "admin:patients_longitudinalfollowupentry_changelist",
+        _("Longitudinal Followup Entries")
+    )
 
 
 class Links:
@@ -96,20 +103,23 @@ class Links:
         LinkDefs.ConsentValues,
         LinkDefs.ContextFormGroups,
         LinkDefs.Dashboards,
-        LinkDefs.DashboardWidgets
+        LinkDefs.DashboardWidgets,
     )
 
     # When enabled, doctors links
     ENABLED_DOCTORS = make_entries(LinkDefs.Doctors)
-
-    # When enabled, questionnaire links
-    ENABLED_QUESTIONNAIRE = make_entries(LinkDefs.QuestionnaireResponses)
 
     # When enabled, registration links
     ENABLED_REGISTRATION = make_entries(
         LinkDefs.ParentGuardian,
         LinkDefs.RegistrationProfiles,
         LinkDefs.ClinicianOther
+    )
+
+    # When enabled, longitudinal followup links
+    ENABLED_LONGITUDINAL_FOLLOWUPS = make_entries(
+        LinkDefs.LongitudinalFollowups,
+        LinkDefs.LongitudinalFollowupEntries,
     )
 
     # When enabled, patient stages links and patient stage rules
@@ -126,8 +136,8 @@ class Links:
     DOCTORS = {}
     FAMILY_LINKAGE = {}
     PERMISSIONS = {}
-    QUESTIONNAIRE = {}
     REGISTRATION = {}
+    LONGITUDINAL_FOLLOWUPS = {}
     STAGES = {}
 
     USER_MANAGEMENT = make_entries(LinkDefs.Users)
@@ -157,15 +167,17 @@ class RegularLinks(Links):
         LinkDefs.BlacklistedMimeTypesConfig
     )
 
-    LEGACY_EXPLORER = {}
-    LEGACY_REPORTS = {}
-
-    ENABLED_LEGACY_EXPLORER = make_entries(LinkDefs.LegacyExplorer)
-    ENABLED_LEGACY_REPORTS = make_entries(LinkDefs.LegacyReports)
-
-    REPORTS = make_entries(LinkDefs.Reports)
-    WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups)
+    WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups,
+                                  LinkDefs.WorkingGroupTypes)
     STATE_MANAGEMENT = make_entries(LinkDefs.States)
+
+
+class PermissionBasedLinks(Links):
+    REPORTS = ('can_run_reports', ReportDesign, make_entries(LinkDefs.Reports))
+
+    ALL = (
+        REPORTS,
+    )
 
 
 class MenuConfig:
@@ -191,6 +203,18 @@ class MenuConfig:
         attr_name = group.lower()
         return getattr(self, attr_name, {})
 
+    def permission_links(self, group_name):
+        def has_permission(group, codename, model):
+            return group and group.permissions.filter(codename=codename,
+                                                      content_type=ContentType.objects.get_for_model(model)).exists()
+
+        is_super_user = group_name == RDRF_GROUPS.SUPER_USER
+        group_model = Group.objects.filter(name__iexact=group_name).first()
+
+        return {key: val
+                for codename, model, link_entries in PermissionBasedLinks.ALL
+                for key, val in link_entries.items() if is_super_user or has_permission(group_model, codename, model)}
+
     def per_registry_links(self, label, url, feature=None):
         # build any per registry links that require the registry code as a param
         rval = {}
@@ -213,15 +237,13 @@ class MenuConfig:
         if any(registry.registration_allowed() for registry in self.registries):
             Links.REGISTRATION = Links.ENABLED_REGISTRATION
 
+    def longitudinal_followup_links(self):
+        if any(registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS) for registry in self.registries):
+            Links.LONGITUDINAL_FOLLOWUPS = Links.ENABLED_LONGITUDINAL_FOLLOWUPS
+
     def doctors_link(self):
         if any(registry.has_feature(RegistryFeatures.DOCTORS_LIST) for registry in self.registries):
             Links.DOCTORS = Links.ENABLED_DOCTORS
-
-    def questionnaire_links(self):
-        links = self.per_registry_links('Questionnaires', 'questionnaire', RegistryFeatures.QUESTIONNAIRES)
-        if len(links) > 0:
-            links.update(Links.ENABLED_QUESTIONNAIRE)
-        Links.QUESTIONNAIRE = links
 
     def family_linkage_links(self):
         Links.FAMILY_LINKAGE = self.per_registry_links(
@@ -258,14 +280,6 @@ class MenuConfig:
         # get links for the admin page
         return self.all
 
-    def reports_links(self):
-        if any(registry.has_feature(RegistryFeatures.LEGACY_REPORTS) for registry in self.registries):
-            RegularLinks.LEGACY_EXPLORER = RegularLinks.ENABLED_LEGACY_EXPLORER
-            RegularLinks.LEGACY_REPORTS = RegularLinks.ENABLED_LEGACY_REPORTS
-        else:
-            RegularLinks.LEGACY_EXPLORER = {}
-            RegularLinks.LEGACY_REPORTS = {}
-
     def build_menu(self):
         # enable dynamic links and build the menu
         self.patient_links()
@@ -273,11 +287,10 @@ class MenuConfig:
         self.consent_links()
         self.doctors_link()
         self.family_linkage_links()
-        self.questionnaire_links()
         self.permission_matrix_links()
         self.registration_links()
+        self.longitudinal_followup_links()
         self.patient_stages_links()
-        self.reports_links()
 
 
 class RegularMenuConfig(MenuConfig):
@@ -292,17 +305,11 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.CONSENT,
             **RegularLinks.PATIENTS,
             **RegularLinks.DOCTORS,
-            **RegularLinks.REPORTS,
-            **RegularLinks.LEGACY_REPORTS,
             **RegularLinks.USER_MANAGEMENT,
-            **RegularLinks.QUESTIONNAIRE,
         }
 
         self.clinical = {
             **RegularLinks.PATIENTS,
-            **RegularLinks.QUESTIONNAIRE,
-            **RegularLinks.REPORTS,
-            **RegularLinks.LEGACY_REPORTS,
         }
 
         self.parent = {
@@ -320,10 +327,10 @@ class RegularMenuConfig(MenuConfig):
         self.settings = {
             **RegularLinks.AUDITING,
             **RegularLinks.DOCTORS,
-            **RegularLinks.LEGACY_EXPLORER,
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.PERMISSIONS,
             **RegularLinks.REGISTRATION,
+            **RegularLinks.LONGITUDINAL_FOLLOWUPS,
         }
 
         normal_menus = {
@@ -335,10 +342,8 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.FAMILY_LINKAGE,
             **RegularLinks.OTHER,
             **RegularLinks.PERMISSIONS,
-            **RegularLinks.QUESTIONNAIRE,
             **RegularLinks.REGISTRATION,
-            **RegularLinks.LEGACY_REPORTS,
-            **RegularLinks.REPORTS,
+            **RegularLinks.LONGITUDINAL_FOLLOWUPS,
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,
@@ -347,6 +352,10 @@ class RegularMenuConfig(MenuConfig):
 
         # menu with everything, used for the admin page
         self.all = normal_menus
+
+        for codename, model, link_entries in PermissionBasedLinks.ALL:
+            self.all.update(link_entries)
+
         if settings.DESIGN_MODE:
             self.all.update({**Links.REGISTRY_DESIGN})
 
@@ -365,10 +374,14 @@ class RegularMenuConfig(MenuConfig):
     def settings_links(self):
         return self.settings
 
-    def menu_links(self, groups, reports_disabled=False):
-        ret_val = reduce(add_dicts, map(self.group_links, groups), {})
-        if reports_disabled and 'Reports' in ret_val:
-            del ret_val['Reports']
+    def menu_links(self, groups):
+        ret_val = {}
+        group_links = reduce(add_dicts, map(self.group_links, groups), {})
+        permission_links = reduce(add_dicts, map(self.permission_links, groups), {})
+
+        ret_val.update(group_links)
+        ret_val.update(permission_links)
+
         return ret_val
 
 
@@ -381,8 +394,8 @@ class QuickLinks:
     def __init__(self, registries):
         self.menu_config = self.REGULAR_MENU_CONFIG(registries)
 
-    def menu_links(self, groups, reports_disabled=False):
-        return ordered_links(self.menu_config.menu_links(groups, reports_disabled))
+    def menu_links(self, groups):
+        return ordered_links(self.menu_config.menu_links(groups))
 
     def settings_links(self):
         return ordered_links(self.menu_config.settings_links())

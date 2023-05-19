@@ -30,7 +30,7 @@ class RDRFContextManager:
         self.registry_model = registry_model
         self.supports_contexts = self.registry_model.has_feature(RegistryFeatures.CONTEXTS)
 
-    def get_or_create_default_context(self, patient_model, new_patient=False):
+    def get_or_create_default_context(self, patient_model):
         if not self.supports_contexts:
             contexts = RDRFContext.objects.get_for_patient(patient_model, self.registry_model)
             if len(contexts) == 0:
@@ -142,8 +142,6 @@ class RDRFContextManager:
                 ),
                 Prefetch(
                     lookup="items",
-                    queryset=ContextFormGroupItem.objects.filter(
-                        registry_form__is_questionnaire=False
-                    )
+                    queryset=ContextFormGroupItem.objects.all()
                 )
             )

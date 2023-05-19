@@ -11,7 +11,7 @@ import yaml
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
@@ -40,18 +40,6 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 logger = logging.getLogger(__name__)
 
 
-class InvalidQuestionnaireError(Exception):
-    pass
-
-
-def new_style_questionnaire(registry):
-    for form_model in registry.forms:
-        if form_model.questionnaire_questions:
-            if len(form_model.questionnaire_list) > 0:
-                return True
-    return False
-
-
 class SectionManager(models.Manager):
 
     def get_by_natural_key(self, code):
@@ -74,14 +62,12 @@ class Section(models.Model):
     abbreviated_name = models.CharField(max_length=100,
                                         help_text='Abbreviated name for identification of this Section in other contexts (e.g. reports)',
                                         validators=[validate_abbreviated_name])
-    questionnaire_display_name = models.CharField(max_length=200, blank=True)
     header = models.TextField(blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(
         default=False, help_text="Allow extra items to be added")
     extra = models.IntegerField(
         blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
-    questionnaire_help = models.TextField(blank=True)
 
     def natural_key(self):
         return (self.code, )
@@ -230,23 +216,6 @@ class Registry(models.Model):
         return self.metadata.get(item, None)
 
     @property
-    def questionnaire(self):
-        try:
-            return RegistryForm.objects.get(registry=self, is_questionnaire=True)
-        except RegistryForm.DoesNotExist:
-            return None
-        except RegistryForm.MultipleObjectsReturned:
-            return None
-
-    @property
-    def generated_questionnaire_name(self):
-        return "GeneratedQuestionnaireFor%s" % self.code
-
-    @property
-    def questionnaire_section_prefix(self):
-        return "GenQ" + self.code
-
-    @property
     def patient_fields(self):
         """
         Registry specific fields for the demographic form
@@ -286,104 +255,6 @@ class Registry(models.Model):
     @property
     def has_diagnosis_progress_defined(self):
         return len(self.diagnosis_progress_cde_triples) > 0
-
-    def _generated_section_questionnaire_code(self, form_name, section_code):
-        return self.questionnaire_section_prefix + form_name + section_code
-
-    def generate_questionnaire(self):
-        logger.info("starting to generate questionnaire for %s" % self)
-        if not new_style_questionnaire(self):
-            logger.info(
-                "This reqistry is not exposing any questionnaire questions - nothing to do")
-            return
-        questions = []
-        for form in self.forms:
-            for sectioncode_dot_cdecode in form.questionnaire_list:
-                section_code, cde_code = sectioncode_dot_cdecode.split(".")
-                questions.append((form.name, section_code, cde_code))
-
-        from collections import OrderedDict
-        section_map = OrderedDict()
-
-        for form_name, section_code, cde_code in questions:
-            section_key = (form_name, section_code)
-
-            if section_key in section_map:
-                section_map[section_key].append(cde_code)
-            else:
-                section_map[section_key] = [cde_code]
-
-        generated_questionnaire_form_name = self.generated_questionnaire_name
-
-        # get rid of any existing generated sections
-        for section in Section.objects.all():
-            if section.code.startswith(self.questionnaire_section_prefix):
-                section.delete()
-
-        generated_section_codes = []
-
-        section_ordering_map = {}
-
-        for (form_name, original_section_code) in section_map:
-            # generate sections
-            try:
-                original_section = Section.objects.get(code=original_section_code)
-            except Section.DoesNotExist:
-                raise InvalidQuestionnaireError(
-                    "section with code %s doesn't exist!" % original_section_code)
-
-            qsection = Section()
-            qsection.code = self._generated_section_questionnaire_code(
-                form_name, original_section_code)
-            qsection.abbreviated_name = original_section.abbreviated_name
-            qsection.questionnaire_help = original_section.questionnaire_help
-            try:
-                original_form = RegistryForm.objects.get(registry=self, name=form_name)
-            except RegistryForm.DoesNotExist:
-                raise InvalidQuestionnaireError("form with name %s doesn't exist!" % form_name)
-
-            if not original_section.questionnaire_display_name:
-                qsection.display_name = original_form.questionnaire_name + \
-                    " - " + original_section.display_name
-            else:
-                qsection.display_name = original_form.questionnaire_name + \
-                    " - " + original_section.questionnaire_display_name
-
-            qsection.allow_multiple = original_section.allow_multiple
-            qsection.extra = 0
-            qsection.elements = ",".join(
-                [cde_code for cde_code in section_map[(form_name, original_section_code)]])
-            qsection.save()
-            logger.info("created section %s containing cdes %s" %
-                        (qsection.code, qsection.elements))
-            generated_section_codes.append(qsection.code)
-
-            section_ordering_map[form_name + "." + original_section_code] = qsection.code
-
-        ordered_codes = []
-
-        for f in self.forms:
-            for s in f.get_sections():
-                k = f.name + "." + s
-                if k in section_ordering_map:
-                    ordered_codes.append(section_ordering_map[k])
-
-        patient_info_section = self._get_patient_info_section()
-
-        generated_questionnaire_form, created = RegistryForm.objects.get_or_create(
-            registry=self,
-            name=generated_questionnaire_form_name,
-            abbreviated_name=generated_questionnaire_form_name[0:100],
-            sections=patient_info_section + "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
-        )
-        generated_questionnaire_form.registry = self
-        generated_questionnaire_form.is_questionnaire = True
-        logger.info("created questionnaire form %s" % generated_questionnaire_form.name)
-        generated_questionnaire_form.sections = patient_info_section + \
-            "," + self._get_patient_address_section() + "," + ",".join(ordered_codes)
-        generated_questionnaire_form.save()
-
-        logger.info("finished generating questionnaire for registry %s" % self.code)
 
     def _get_patient_info_section(self):
         return "PatientData"
@@ -463,7 +334,7 @@ class Registry(models.Model):
         owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms]
 
         forms = sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
-                        form_model.pk not in owned_form_ids and not form_model.is_questionnaire],
+                        form_model.pk not in owned_form_ids],
                        key=lambda form: form.position)
 
         return forms
@@ -538,7 +409,6 @@ class CDEPermittedValueGroup(models.Model):
             value_dict = {}
             value_dict["code"] = value.code
             value_dict["value"] = value.value
-            value_dict["questionnaire_value"] = value.questionnaire_value
             value_dict["desc"] = value.desc
             value_dict["position"] = value.position
             d["values"].append(value_dict)
@@ -574,7 +444,6 @@ class CDEPermittedValue(models.Model):
     id = models.AutoField(primary_key=True)
     code = models.CharField(max_length=30)
     value = models.CharField(max_length=256)
-    questionnaire_value = models.CharField(max_length=256, null=True, blank=True)
     desc = models.TextField(null=True)
     pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set', on_delete=models.CASCADE)
     position = models.IntegerField(null=True, blank=True)
@@ -587,13 +456,6 @@ class CDEPermittedValue(models.Model):
         return mark_safe("<a href='%s'>%s</a>" % (url, self.pv_group.code))
 
     pvg_link.short_description = 'Permitted Value Group'
-
-    def questionnaire_value_formatted(self):
-        if not self.questionnaire_value:
-            return mark_safe("<i><font color='red'>Not set</font></i>")
-        return mark_safe("<font color='green'>%s</font>" % self.questionnaire_value)
-
-    questionnaire_value_formatted.short_description = 'Questionnaire Value'
 
     def position_formatted(self):
         if not self.position:
@@ -675,9 +537,6 @@ class CommonDataElement(models.Model):
     calculation = models.TextField(
         blank=True,
         help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
-    questionnaire_text = models.TextField(
-        blank=True,
-        help_text="The text to use in any public facing questionnaires/registration forms")
 
     important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
 
@@ -834,17 +693,8 @@ class RegistryForm(models.Model):
                                     null=True,
                                     help_text="Form Name displayed to users")
     header = models.TextField(blank=True)
-    questionnaire_display_name = models.CharField(max_length=80, blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
-    is_questionnaire = models.BooleanField(
-        default=False, help_text="Check if this form is questionnaire form for it's registry")
-    is_questionnaire_login = models.BooleanField(
-        default=False,
-        help_text="If the form is a questionnaire, is it accessible only by logged in users?",
-        verbose_name="Questionnaire Login Required")
     position = models.PositiveIntegerField(default=0)
-    questionnaire_questions = models.TextField(
-        blank=True, help_text="Comma-separated list of sectioncode.cdecodes for questionnnaire")
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
     groups_readonly = models.ManyToManyField(Group, blank=True, related_name='groups_readonly')
@@ -890,18 +740,6 @@ class RegistryForm(models.Model):
     def restricted(self):
         return not self.open
 
-    @property
-    def login_required(self):
-        return self.is_questionnaire_login
-
-    @property
-    def questionnaire_name(self):
-        from rdrf.helpers.utils import de_camelcase
-        if self.questionnaire_display_name:
-            return self.questionnaire_display_name
-        else:
-            return de_camelcase(self.name)
-
     def __str__(self):
         return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
 
@@ -909,19 +747,8 @@ class RegistryForm(models.Model):
         return [s.strip() for s in self.sections.split(",")]
 
     @property
-    def questionnaire_list(self):
-        """
-        returns a list of sectioncode.cde_code strings
-        E.g. [ "sectionA.cdecode23", "sectionB.code100" , ...]
-        """
-        return [q.strip() for q in self.questionnaire_questions.split(",") if q.strip()]
-
-    @property
     def section_models(self):
         return Section.objects.get_by_comma_separated_codes(self.sections)
-
-    def in_questionnaire(self, section_code, cde_code):
-        return f"{section_code}.{cde_code}" in self.questionnaire_list
 
     @property
     def has_progress_indicator(self):
@@ -1058,79 +885,6 @@ class Wizard(models.Model):
     #  else present form6
     #
     rules = models.TextField(help_text="Rules")
-
-
-class QuestionnaireResponse(models.Model):
-    registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    date_submitted = models.DateTimeField(auto_now_add=True)
-    processed = models.BooleanField(default=False)
-    patient_id = models.IntegerField(
-        blank=True,
-        null=True,
-        help_text="The id of the patient created from this response, if any")
-
-    def __str__(self):
-        return "%s (%s)" % (self.registry, self.processed)
-
-    @property
-    def name(self):
-        return self._get_patient_field(
-            "CDEPatientGivenNames") + " " + self._get_patient_field("CDEPatientFamilyName")
-
-    @property
-    def date_of_birth(self):
-        # time was being included from questionnaire for some data: e.g. '1918-08-01T00:00:00'
-        dob_string = self._get_patient_field("CDEPatientDateOfBirth")
-        if not dob_string:
-            return ""
-
-        try:
-            return parse_iso_datetime(dob_string).date()
-        except ValueError:
-            return ""
-
-    def _get_patient_field(self, patient_field):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
-        wrapper = DynamicDataWrapper(self)
-
-        if not self.has_mongo_data:
-            raise ObjectDoesNotExist
-
-        questionnaire_form_name = RegistryForm.objects.get(
-            registry=self.registry, is_questionnaire=True).name
-
-        value = wrapper.get_nested_cde(
-            self.registry.code,
-            questionnaire_form_name,
-            "PatientData",
-            patient_field)
-
-        if value is None:
-            return ""
-
-        return value
-
-    @property
-    def has_mongo_data(self):
-        from rdrf.db.dynamic_data import DynamicDataWrapper
-        wrapper = DynamicDataWrapper(self)
-        return wrapper.has_data(self.registry.code)
-
-    @property
-    def data(self):
-        # return the filled in questionnaire data
-        from rdrf.db.dynamic_data import DynamicDataWrapper
-        wrapper = DynamicDataWrapper(self)
-        return wrapper.load_dynamic_data(self.registry.code, "cdes", flattened=False)
-
-
-def appears_in(cde, registry, registry_form, section):
-    if section.code not in registry_form.get_sections():
-        return False
-    elif registry_form.name not in [f.name for f in RegistryForm.objects.filter(registry=registry)]:
-        return False
-    else:
-        return cde.code in section.get_elements()
 
 
 class MissingData(object):
@@ -1316,7 +1070,6 @@ class ConsentQuestion(models.Model):
     section = models.ForeignKey(ConsentSection, related_name="questions", on_delete=models.CASCADE)
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
-    questionnaire_label = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -1352,12 +1105,6 @@ class ConsentQuestion(models.Model):
         registry_model = self.section.registry
         consent_section_model = self.section
         return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
-
-    def label(self, on_questionnaire=False):
-        if on_questionnaire and self.questionnaire_label:
-            return self.questionnaire_label
-        else:
-            return self.question_label
 
     def __str__(self):
         return "%s" % self.question_label
@@ -1433,6 +1180,7 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
         (EventType.FILE_UPLOADED, "File Uploaded"),
+        (EventType.LONGITUDINAL_FOLLOWUP, 'Longitudinal Followup ["longitudinal_followup" feature required]'),
     )
 
     NOTIFICATION_REQUIRES_REGISTRY_FEATURE = {
@@ -1997,7 +1745,7 @@ class CDEFile(models.Model):
 
     registry_code = models.CharField(max_length=10)
     uploaded_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.PROTECT)
-    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.PROTECT)
+    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.CASCADE)
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
@@ -2251,3 +1999,18 @@ class RegistryDashboardCDEData(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class LongitudinalFollowup(models.Model):
+    name = models.CharField(unique=True, max_length=255, help_text="The name of the followup as displayed to the user")
+    description = models.TextField(blank=True)
+    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    frequency = models.DurationField(help_text="The frequency at which followups are sent (days HH:MM:SS)")
+    debounce = models.DurationField(
+        null=True,
+        help_text="The range in which subsequent followups are de-duplicated (days HH:MM:SS)"
+    )
+    condition = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name

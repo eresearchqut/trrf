@@ -44,6 +44,7 @@ function setupDurationWidget(inputName, attributesStr) {
 $.timeDurationPicker.langs.en_US = {
   years: gettext("years"),
   months: gettext("months"),
+  weeks: gettext("weeks"),
   days: gettext("days"),
   hours: gettext("hours"),
   minutes: gettext("minutes"),
@@ -74,6 +75,10 @@ $.timeDurationPicker.langs.en_US = {
     second: {
       one: gettext("second"),
       other: gettext("seconds")
+    },
+    week: {
+      one: gettext("week"),
+      other: gettext("weeks")
     }
   }
 }

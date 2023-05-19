@@ -197,7 +197,7 @@ class ExporterTestCase(RDRFTestCase):
         assert data['code'] == 'fh', "Reg code fh not in export"
         test_key('forms', data)
         for form_map in data['forms']:
-            test_keys(['is_questionnaire', 'name', 'sections'], form_map)
+            test_keys(['name', 'sections'], form_map)
             for section_map in form_map['sections']:
                 test_keys(['code',
                            'display_name',
@@ -323,8 +323,7 @@ class FormTestCase(RDRFTestCase):
         p.rdrf_registry.set([self.registry])
 
         context_manager = RDRFContextManager(self.registry)
-        self.default_context = context_manager.get_or_create_default_context(
-            p, new_patient=True)
+        self.default_context = context_manager.get_or_create_default_context(p)
 
         return p
 
@@ -338,7 +337,7 @@ class FormTestCase(RDRFTestCase):
         section.save()
         return section
 
-    def create_form(self, name, sections, is_questionnnaire=False):
+    def create_form(self, name, sections):
         sections = ",".join([section.code for section in sections])
         form, created = RegistryForm.objects.get_or_create(name=name, registry=self.registry,
                                                            defaults={'sections': sections, 'abbreviated_name': name})
@@ -346,7 +345,6 @@ class FormTestCase(RDRFTestCase):
             form.sections = sections
         form.name = name
         form.registry = self.registry
-        form.is_questionnaire = is_questionnnaire
         form.save()
         # self.working_group
         return form
@@ -354,7 +352,7 @@ class FormTestCase(RDRFTestCase):
     def create_forms(self):
         self.simple_form = self.create_form("simple", [self.sectionA, self.sectionB])
         self.multi_form = self.create_form("multi", [self.sectionC])
-        # TODO file forms, questionnaire forms
+        # TODO file forms
 
     def _create_request(self, form_obj, form_data):
         # return a dictionary representing what is sent from filled in form

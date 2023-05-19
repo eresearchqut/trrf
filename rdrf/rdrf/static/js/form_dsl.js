@@ -1,3 +1,9 @@
+function total_forms_count(prefix) {
+    var mgmt_form = $("#mgmt_" + prefix);
+    var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
+    return parseInt(total_forms.val());
+}
+
 function update_cde($target_cde, visibility_array) {
     for (var idx=0; idx < visibility_array.length; idx++) {
         var visibility = visibility_array[idx];

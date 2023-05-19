@@ -4,7 +4,7 @@ from functools import reduce
 
 from django.conf import settings
 from django.core import validators
-from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin, Group
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -22,6 +22,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class WorkingGroupType(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class WorkingGroupTypeRule(models.Model):
+    type = models.ForeignKey(WorkingGroupType, on_delete=models.CASCADE, related_name='rules')
+    user_group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    has_default_access = models.BooleanField(default=False,
+                                             help_text=_('Indicates whether the user group automatically has access to '
+                                                         'the working groups in this working group type'))
+
+
 class WorkingGroupManager(models.Manager):
     UNALLOCATED_GROUP_NAME = 'Unallocated'
 
@@ -29,15 +44,32 @@ class WorkingGroupManager(models.Manager):
         wg, _ = WorkingGroup.objects.get_or_create(name=self.UNALLOCATED_GROUP_NAME, registry=registry)
         return wg
 
+    def get_by_user(self, user):
+        if not user.is_superuser:
+            filters = [Q(id__in=user.working_groups.all())]
+
+            wg_rules = WorkingGroupTypeRule.objects.filter(user_group__in=user.groups.all(), has_default_access=True)
+            for rule in wg_rules:
+                filters.append(Q(id__in=rule.type.working_groups.all()))
+
+            query = reduce(lambda a, b: a | b, filters)
+            return self.model.objects.filter(query)
+        else:
+            return self.all()
+
+    def get_by_user_and_registry(self, user, registry):
+        return self.get_by_user(user).filter(registry=registry)
+
 
 class WorkingGroup(models.Model):
     objects = WorkingGroupManager()
 
     name = models.CharField(max_length=100)
+    type = models.ForeignKey(WorkingGroupType, null=True, blank=True, on_delete=models.SET_NULL, related_name='working_groups')
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
     class Meta:
-        ordering = ["registry__code"]
+        ordering = ["registry__code", "name"]
 
     def __str__(self):
         if self.registry:
@@ -51,6 +83,11 @@ class WorkingGroup(models.Model):
             return "%s %s" % (self.registry.code, self.name)
         else:
             return self.name
+
+
+class CustomUserManager(UserManager):
+    def get_by_natural_key(self, username):
+        return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -102,7 +139,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
-    objects = UserManager()
+    objects = CustomUserManager()
 
     @property
     def my_registry(self):
@@ -303,8 +340,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            reports_disabled = self.is_clinician and not self.ethically_cleared
-            links = qlinks.menu_links([group.name for group in self.groups.all()], reports_disabled)
+            links = qlinks.menu_links([group.name for group in self.groups.all()])
 
         return links
 

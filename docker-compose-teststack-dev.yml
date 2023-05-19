@@ -9,6 +9,7 @@ services:
     working_dir: /data
     environment:
       - CONSOLE_LOG_LEVEL=DEBUG
+      - XNAT_API_ENDPOINT=http://xnat-proxy:8080
     env_file:
       - docker/dev/envs/postgres
       - docker/dev/envs/runserver
@@ -17,8 +18,8 @@ services:
       - .:/app
       - ./data/test/:/data
     ports:
-      - 8000
+      - "8000:8000"
     depends_on:
       - dbtest
       - dbclinicaltest
-      - dbreportingtest
+      - xnat-proxy

@@ -204,7 +204,7 @@ class PatientsListingView(View):
         filters = {**self.selected_filters}
 
         if self.search_term:
-            patient_search = build_search_item(self.search_term, ['givenNames', 'familyName', 'stage'])
+            patient_search = build_search_item(self.search_term, ['givenNames', 'familyName'])
             filters.update({'search': [patient_search]})
 
         patient_fields = ['id']
@@ -255,6 +255,9 @@ class PatientsListingView(View):
         return sort_field, sort_direction
 
     def _get_row_dict(self, instance):
+        # Create any missing fixed contexts
+        self.rdrf_context_manager.get_or_create_default_context(instance)
+
         # we need to do this so that the progress data for this instance
         # loaded!
         self.form_progress.reset()

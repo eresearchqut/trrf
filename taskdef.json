@@ -58,10 +58,6 @@
                     "value": "$DBUSER"
                 },
                 {
-                    "name": "REPORTING_DBNAME",
-                    "value": "$REPORTING_DBNAME"
-                },
-                {
                     "name": "TRRF_SITE_DOMAIN",
                     "value": "$TRRF_SITE_DOMAIN"
                 },
@@ -175,6 +171,18 @@
                 {
                     "name": "DBPASS",
                     "valueFrom": "$DBPASS"
+                },
+                {
+                    "name": "XNAT_API_USERNAME",
+                    "valueFrom": "$XNAT_API_USERNAME"
+                },
+                {
+                    "name": "XNAT_API_PASSWORD",
+                    "valueFrom": "$XNAT_API_PASSWORD"
+                },
+                {
+                    "name": "XNAT_API_ENDPOINT",
+                    "valueFrom": "$XNAT_API_ENDPOINT"
                 }
             ]
         },

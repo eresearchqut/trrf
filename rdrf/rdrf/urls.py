@@ -12,21 +12,19 @@ from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
 
-from rdrf.views import favicon_view, dashboard_view
+from rdrf.views import favicon_view, dashboard_view, xnat_view
 import rdrf.views.form_view as form_view
 import rdrf.views.registry_view as registry_view
 import rdrf.views.landing_view as landing_view
 import rdrf.views.import_registry_view as import_registry_view
 import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
-import rdrf.views.report_view as report_view
 import rdrf.views.consent_view as consent_view
 from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
-from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
+from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView, MailboxSendLongitudinalFollowups
 from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
-from rdrf.views.lookup_views import PatientLookup
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
@@ -62,6 +60,8 @@ if settings.DEBUG is True:
         re_path(r'^raise', handler_exceptions, name='test exception'),
         re_path(r'mail/outbox/empty', MailboxEmptyView.as_view(), name='mailbox_empty'),
         re_path(r'mail/outbox', MailboxView.as_view(), name='mailbox'),
+        re_path(r'mail/send_longitudinal_followups', MailboxSendLongitudinalFollowups.as_view(),
+                name='mailbox_send_longitudinal_followups'),
         path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
@@ -135,10 +135,6 @@ patterns += [
     re_path(r'^$', landing_view.LandingView.as_view(), name='landing'),
     re_path(r'^import/?$', import_registry_view.ImportRegistryView.as_view(),
             name='import_registry'),
-    re_path(r'^reports/?$', report_view.ReportView.as_view(), name="reports"),
-    re_path(r'^reportdatatable/(?P<query_model_id>\d+)/?$', report_view.ReportDataTableView.as_view(),
-            name="report_datatable"),
-    re_path(r'^explorer/', include(('explorer.urls', 'explorer_urls'), namespace=None)),
     re_path(r'^report/', include(('report.urls', 'report_urls'), namespace='report')),
     re_path(r'^patientslisting/?$', patients_listing.PatientsListsView.as_view(), name="patientslisting"),
     re_path(r'^dashboards/?$', dashboard_view.DashboardListView.as_view(), name='parent_dashboard_list'),
@@ -152,6 +148,8 @@ patterns += [
 
     re_path(r"^cde_query/(?P<registry_code>\w+)/(?P<patient_id>\d+)/(?P<cde_code>\w+)?$",
             form_view.CdeCalculatedQueryLookup.as_view(), name='cde_query'),
+
+    re_path(r"^xnat_scans/(?P<registry_code>\w+)/(?P<project_id>.*)/(?P<subject_id>.*)?$", xnat_view.XnatScansLookup.as_view(), name='xnat_scans_lookup'),
 
     re_path(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/(?P<context_id>add)/?$",
             form_view.FormView.as_view(), name='form_add'),
@@ -217,19 +215,11 @@ patterns += [
     re_path(r"^(?P<registry_code>\w+)/familylinkage/(?P<initial_index>\d+)?$",
             FamilyLinkageView.as_view(), name='family_linkage'),
 
-    re_path(r'^(?P<registry_code>\w+)/questionnaire/(?P<questionnaire_context>\w+)?$',
-            form_view.QuestionnaireView.as_view(), name='questionnaire'),
-    re_path(r'^(?P<registry_code>\w+)/approval/(?P<questionnaire_response_id>\d+)/?$', form_view.QuestionnaireHandlingView.as_view(),
-            name='questionnaire_response'),
     re_path(r'^(?P<registry_code>\w+)/uploads/(?P<file_id>([0-9a-fA-F]{24})|(\d+))$',
             form_view.FileUploadView.as_view(), name='file_upload'),
-    re_path(r'^questionnaireconfig/(?P<form_pk>\d+)/?$',
-            form_view.QuestionnaireConfigurationView.as_view(), name='questionnaire_config'),
 
     # Disabled as no registries use Family Linkage currently. Make sure it is secure if it needs to be re-enabled!
     # re_path(r'api/familylookup/(?P<reg_code>\w+)/?$', FamilyLookup.as_view(), name="family_lookup"),
-
-    re_path(r'api/patientlookup/(?P<reg_code>\w+)/?$', PatientLookup.as_view(), name="patient_lookup"),
 
     # --- Embeddable registration views
     re_path(r'^(?P<registry_code>\w+)/embed/register/complete/?$',

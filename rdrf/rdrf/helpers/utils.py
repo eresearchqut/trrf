@@ -262,7 +262,7 @@ def get_form_links(user, patient_id, registry_model, context_model=None, current
             selected=(
                 form.name == current_form_name),
             context_model=context_model) for form in container_model.forms
-        if not form.is_questionnaire and user.can_view(form) and form.applicable_to(patient_model, patient_in_registry_checked=True)]
+        if user.can_view(form) and form.applicable_to(patient_model, patient_in_registry_checked=True)]
 
 
 def forms_and_sections_containing_cde(registry_model, cde_model_to_find):
@@ -300,6 +300,20 @@ def consent_status_for_patient(registry_code, patient):
         return True
 
     return all(sections[section_code].is_valid(section_answers) for section_code, section_answers in answers.items())
+
+
+def consent_status_for_patient_consent(registry, patient_id, consent_question_code):
+    from rdrf.models.definition.models import ConsentQuestion
+    from registry.patients.models import ConsentValue
+
+    consent_questions = ConsentQuestion.objects.filter(section__registry=registry,
+                                                       code=consent_question_code)
+    consents_accepted_cnt = [ConsentValue.objects.filter(consent_question__id=consent_question.id, patient_id=patient_id, answer=True).count()
+                             for consent_question in consent_questions]
+
+    # Consent status is valid (True) if all relevant consent values are True
+    # There must be at least one consent value for the patient that matches the consent question code supplied
+    return len(consents_accepted_cnt) > 0 and all(consents_accepted_cnt)
 
 
 def get_error_messages(forms):
@@ -406,16 +420,6 @@ def get_display_value(cde_model, stored_value, permitted_values_map=None):
         return ":NaN"
 
     return stored_value
-
-
-def report_function(func):
-    """
-    decorator to mark a function as available in the reporting interface
-    ( for safety and also to allow us later to discover these functions and
-      present in a menu )
-    """
-    func.report_function = True
-    return func
 
 
 def check_calculation(calculation):
@@ -725,10 +729,6 @@ def applicable_forms_for_patient_type(registry_model, patient_type):
     return [form for form in all_forms if form.name in applicable_form_names]
 
 
-def is_generated_form(form_model):
-    return form_model.name.startswith(form_model.registry.generated_questionnaire_name)
-
-
 def patients_family_in_users_groups(patient, user):
     patient_wgs = set([wg.id for wg in patient.working_groups.all()])
     user_wgs = set([wg.id for wg in user.working_groups.all()])
@@ -864,7 +864,7 @@ def validate_abbreviated_name(value):
 def make_full_url(relative_url):
     splitted = urlsplit(relative_url)
     domain = Site.objects.get_current().domain.rstrip('/')
-    scheme = 'https' if domain != 'localhost:8000' else 'http'
+    scheme = 'https' if domain not in ['localhost:8000', 'serverundertest:8000'] else 'http'
     augmented = splitted._replace(scheme=scheme, netloc=domain)
     return urlunsplit(augmented)
 

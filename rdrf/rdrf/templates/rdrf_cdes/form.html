@@ -19,6 +19,7 @@
     <script type="text/javascript" src="{% static 'js/form.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/form_dsl.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/calculated_field_plugin.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/xnat_lookup_plugin.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/lookup.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/moment-2.29.4.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/vendor/chart.js-3.3.2.min.js' %}"></script>
@@ -161,17 +162,12 @@
     {{ change_targets }}
     {% endautoescape %}
 
-    function total_forms_count(prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
-        return parseInt(total_forms.val());
-    }
-
     function attribute_replace($el, attribute_name, form_count) {
         var replaced_value = $el.attr(attribute_name).replace(/__prefix__/g, form_count)
         $el.attr(attribute_name, replaced_value);
     }
 
+    const add_form_hooks = [];
 
     function add_form(el, prefix) {
         var mgmt_form = $("#mgmt_" + prefix);
@@ -263,6 +259,14 @@
         }
         // Apply conditional rendering across the whole form
         render_changes(visibility_handler());
+
+        // Hook to register further events required when a new multisection is added
+        if (add_form_hooks.length > 0) {
+          for (const hook_function of add_form_hooks) {
+            hook_function(form_count);
+          }
+        }
+
     }
 
     function delete_form(form_div, prefix) {

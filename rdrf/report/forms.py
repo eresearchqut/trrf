@@ -1,16 +1,16 @@
 import json
 
-from django.contrib.auth.models import Group
-from django.db.models import Q
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.forms import SelectMultiple, ModelChoiceField, MultipleChoiceField, ChoiceField, CheckboxSelectMultiple, \
     Select, ModelForm, BooleanField
 from django.utils.translation import gettext_lazy as _
+
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry, ContextFormGroup
+from registry.groups.forms import working_group_optgroup_choices
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
-
-from registry.groups import GROUPS as RDRF_GROUPS
 from report.utils import load_report_configuration
 
 
@@ -58,7 +58,11 @@ def get_working_group_field_value(wg):
 
 
 def get_working_group_choices():
-    return [(get_working_group_field_value(wg), wg.display_name) for wg in WorkingGroup.objects.all()]
+    def make_working_group_field(wg):
+        return get_working_group_field_value(wg), wg.display_name
+
+    return working_group_optgroup_choices(WorkingGroup.objects.all(),
+                                          make_option_fn=make_working_group_field)
 
 
 def get_filter_consent_field_value(consent_question):
@@ -102,8 +106,8 @@ class ReportDesignerForm(ModelForm):
         self.fields['filter_consents'].choices = get_filter_consent_choices()
         self.fields['filter_working_groups'].choices = get_working_group_choices()
 
-        self.fields['access_groups'].queryset = Group.objects.filter(
-            Q(name__icontains=RDRF_GROUPS.WORKING_GROUP_CURATOR) | Q(name__icontains=RDRF_GROUPS.CLINICAL))
+        run_report_permission = Permission.objects.get(codename='can_run_reports', content_type=ContentType.objects.get_for_model(ReportDesign))
+        self.fields['access_groups'].queryset = Group.objects.filter(permissions=run_report_permission).order_by('name')
 
     class Meta:
         model = ReportDesign

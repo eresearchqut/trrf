@@ -98,15 +98,6 @@ DATABASES["clinical"] = {
     "PORT": env.get("clinical_dbport", DATABASES["default"]["PORT"]),
 }
 
-DATABASES["reporting"] = {
-    "ENGINE": env.get_db_engine("reporting_dbtype", "pgsql"),
-    "NAME": env.get("reporting_dbname", DATABASES["default"]["NAME"]),
-    "USER": env.get("reporting_dbuser", DATABASES["default"]["USER"]),
-    "PASSWORD": env.get("reporting_dbpass", DATABASES["default"]["PASSWORD"]),
-    "HOST": env.get("reporting_dbserver", DATABASES["default"]["HOST"]),
-    "PORT": env.get("reporting_dbport", DATABASES["default"]["PORT"]),
-}
-
 DATABASE_ROUTERS = ["rdrf.db.db.RegistryRouter"]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -185,9 +176,9 @@ INSTALLED_APPS = [x for x in (
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'django.contrib.postgres',
     'django_extensions',
     'django.contrib.admin',
-    'explorer',
     'useraudit',
     'rest_framework',
     'rest_framework.authtoken',
@@ -649,7 +640,7 @@ SEND_ACTIVATION_EMAIL = False
 RECAPTCHA_SITE_KEY = env.get("recaptcha_site_key", "")
 RECAPTCHA_SECRET_KEY = env.get("recaptcha_secret_key", "")
 
-EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', )
+EXTRA_HIDABLE_DEMOGRAPHICS_FIELDS = ('living_status', 'working_groups')
 LOGIN_LOG_FILTERED_USERS = env.getlist('login_log_filtered_users', ['newrelic'])
 
 STRONGHOLD_DEFAULTS = False
@@ -666,7 +657,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$',
 )
 if DEBUG:
-    STRONGHOLD_PUBLIC_URLS = STRONGHOLD_PUBLIC_URLS + (r"^%s.+$" % STATIC_URL, r'/mail/outbox')
+    STRONGHOLD_PUBLIC_URLS += (r"^%s.+$" % STATIC_URL, r'/mail/(outbox|send_longitudinal_followups)')
 
 # Public named urls can contain only urls without parameters
 # as django-stronghold cannot handle it otherwise
@@ -751,3 +742,9 @@ if DEBUG:
 GRAPHENE = {
     "MIDDLEWARE": ["graphene_django.debug.DjangoDebugMiddleware", ]
 }
+
+# XNAT Integration
+# If patient consent is required to lookup xnat results, specify ConsentQuestion item as identified by its code
+XNAT_API_USERNAME = env.get('xnat_api_username', "")
+XNAT_API_PASSWORD = env.get('xnat_api_password', "")
+XNAT_API_ENDPOINT = env.get('xnat_api_endpoint', "")

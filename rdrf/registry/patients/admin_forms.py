@@ -29,6 +29,8 @@ from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from django.utils.translation import gettext as _
 
+from registry.groups.forms import working_group_optgroup_choices
+
 logger = logging.getLogger(__name__)
 
 
@@ -379,7 +381,7 @@ class PatientForm(forms.ModelForm):
                 self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
                 self.fields["working_groups"].queryset = instance.working_groups.all()
             else:
-                self.fields["working_groups"].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+                self.fields["working_groups"].choices = working_group_optgroup_choices(WorkingGroup.objects.filter(registry=self.registry_model))
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -394,11 +396,18 @@ class PatientForm(forms.ModelForm):
 
                 for field_config in field_configs:
                     field = field_config.field
-                    if field_config.status == DemographicFields.HIDDEN:
-                        self.fields[field].widget = forms.HiddenInput()
-                        self.fields[field].label = ""
-                    elif field_config.status == DemographicFields.READONLY:
-                        self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+                    if getattr(self.fields[field].widget, 'allow_multiple_selected', False):
+                        if field_config.status == DemographicFields.HIDDEN:
+                            self.fields[field].widget = forms.MultipleHiddenInput()
+                        elif field_config.status == DemographicFields.READONLY:
+                            self.fields[field].required = False
+                            self.fields[field].widget.attrs.update({'disabled': 'disabled'})
+                    else:
+                        if field_config.status == DemographicFields.HIDDEN:
+                            self.fields[field].widget = forms.HiddenInput()
+                            self.fields[field].label = ""
+                        elif field_config.status == DemographicFields.READONLY:
+                            self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
 
             if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
                 if 'stage' in self.initial and self.initial['stage']:
@@ -473,10 +482,11 @@ class PatientForm(forms.ModelForm):
             user = None
 
         if not user.is_superuser:
-            initial_working_groups = user.working_groups.filter(registry=self.registry_model)
-            self.fields['working_groups'].queryset = initial_working_groups
+            working_groups_query = WorkingGroup.objects.get_by_user_and_registry(user, self.registry_model)
         else:
-            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
+            working_groups_query = WorkingGroup.objects.filter(registry=self.registry_model)
+
+        self.fields['working_groups'].choices = working_group_optgroup_choices(working_groups_query)
 
     date_of_birth = forms.DateField(
         widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
@@ -520,10 +530,15 @@ class PatientForm(forms.ModelForm):
         return registries
 
     def clean_working_groups(self):
-        ret_val = self.cleaned_data["working_groups"]
-        if not ret_val:
-            raise forms.ValidationError("Patient must be assigned to a working group")
-        return ret_val
+        is_disabled = 'disabled' in self.fields['working_groups'].widget.attrs
+
+        if is_disabled:
+            return self.instance.working_groups.all()
+        else:
+            ret_val = self.cleaned_data["working_groups"]
+            if not ret_val:
+                raise forms.ValidationError("Patient must be assigned to a working group")
+            return ret_val
 
     def clean_registered_clinicians(self):
         reg = self.cleaned_data.get("rdrf_registry", Registry.objects.none())

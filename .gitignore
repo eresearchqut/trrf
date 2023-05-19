@@ -56,3 +56,4 @@ yarn_cache/
 yarn-error.log
 
 .vscode/settings.json
+/.python-version

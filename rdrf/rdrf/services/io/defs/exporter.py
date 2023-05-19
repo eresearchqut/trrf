@@ -10,11 +10,10 @@ from django.forms.models import model_to_dict
 
 from rdrf import VERSION
 import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard
+from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
-from explorer.models import Query
 from report.models import ReportDesign
 
 logger = logging.getLogger(__name__)
@@ -50,6 +49,7 @@ class ExportType:
     # only the cdes in the supplied registry ( no forms)
     REGISTRY_CDES = "REGISTRY_CDES"
     ALL_CDES = "ALL_CDES"                               # All CDEs in the site
+    PARTIAL = 'PARTIAL'
 
 
 class Exporter:
@@ -86,9 +86,6 @@ class Exporter:
             self._validate_section(self.registry.patient_data_section.code)
 
         for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
-            if frm.name == self.registry.generated_questionnaire_name:
-                # don't check the generated questionnaire
-                continue
             self._check_model_validity(frm)
             for section_code in frm.get_sections():
                 self._validate_section(section_code)
@@ -100,8 +97,7 @@ class Exporter:
         code: FH
         desc: This is a description that might take a few lines.
         forms:
-        - is_questionnaire: false
-          name: Foobar
+        - name: Foobar
           sections:
           - allow_multiple: false
             code: SEC001
@@ -113,8 +109,7 @@ class Exporter:
             display_name: Disease
             elements: [CDE88, CDE67]
             extra: 1
-        - is_questionnaire: false
-          name: Glug
+        - name: Glug
           sections:
           - allow_multiple: false
             code: SEC89
@@ -142,6 +137,35 @@ class Exporter:
         if validate:
             self.validate(export_type)
         return self._export(ExportFormat.JSON, export_type)
+
+    def partial_export(self, export_definition):
+        def should_export(item_name):
+            return item_name in export_definition
+
+        data = self._skeleton_export(ExportType.PARTIAL)
+
+        if should_export('context_form_groups'):
+            context_form_groups = export_definition.get('context_form_groups')
+            data["context_form_groups"] = self._get_context_form_groups(context_form_groups)
+
+        if should_export('forms'):
+            forms = export_definition.get('forms')
+            data["forms"] = [self._create_form_map(form) for form in forms]
+            data["complete_fields"] = self._get_complete_fields(forms)
+            data["forms_allowed_groups"] = self._get_forms_allowed_groups(forms)
+            data["forms_readonly_groups"] = self._get_forms_readonly_groups(forms)
+
+        if should_export('cdes'):
+            cdes = export_definition.get('cdes')
+            data["cdes"] = [cde_to_dict(cde) for cde in cdes]
+            data["pvgs"] = [pvg.as_dict for pvg in set(cde.pv_group
+                                                       for cde in cdes if cde.pv_group)]
+
+        if should_export('registry_dashboards'):
+            dashboards = export_definition.get('registry_dashboards')
+            data["registry_dashboards"] = self._get_registry_dashboards(dashboards)
+
+        return dump_yaml(data)
 
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
@@ -191,13 +215,11 @@ class Exporter:
             raise
         section_map = {}
         section_map["display_name"] = section_model.display_name
-        section_map["questionnaire_display_name"] = section_model.questionnaire_display_name
         section_map["code"] = section_model.code
         section_map["abbreviated_name"] = section_model.abbreviated_name
         section_map["extra"] = section_model.extra
         section_map["allow_multiple"] = section_model.allow_multiple
         section_map["elements"] = section_model.get_elements()
-        section_map["questionnaire_help"] = section_model.questionnaire_help
         section_map["header"] = section_model.header
         return section_map
 
@@ -207,9 +229,6 @@ class Exporter:
         frm_map["abbreviated_name"] = form_model.abbreviated_name
         frm_map["header"] = form_model.header
         frm_map["display_name"] = form_model.display_name
-        frm_map["questionnaire_display_name"] = form_model.questionnaire_display_name
-        frm_map["is_questionnaire"] = form_model.is_questionnaire
-        frm_map["questionnaire_questions"] = form_model.questionnaire_questions
         frm_map["position"] = form_model.position
         frm_map["sections"] = []
         frm_map["applicability_condition"] = form_model.applicability_condition
@@ -221,25 +240,39 @@ class Exporter:
 
         return frm_map
 
-    def _get_forms_allowed_groups(self):
+    def _get_forms_allowed_groups(self, forms=None):
         d = {}
 
-        for form in self.registry.forms:
+        forms = forms or self.registry.forms
+
+        for form in forms:
             d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
         return d
 
-    def _get_forms_readonly_groups(self):
-        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in self.registry.forms}
+    def _get_forms_readonly_groups(self, forms=None):
 
-    def _export(self, format, export_type):
+        forms = forms or self.registry.forms
+
+        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in forms}
+
+    def _skeleton_export(self, export_type):
         data = {}
+
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
         data["EXPORT_TIME"] = str(datetime.datetime.now())
+        data["REGISTRY_VERSION"] = self._get_registry_version()
+
+        if self.registry:
+            data["code"] = self.registry.code
+
+        return data
+
+    def _export(self, format, export_type):
+        data = self._skeleton_export(export_type)
         data["cdes"] = [cde_to_dict(cde) for cde in self._get_cdes(export_type)]
         data["pvgs"] = [pvg.as_dict for pvg in self._get_pvgs(export_type)]
-        data["REGISTRY_VERSION"] = self._get_registry_version()
-        data["metadata_json"] = self.registry.metadata_json
+
         data["consent_sections"] = self._get_consent_sections()
         data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
@@ -247,9 +280,9 @@ class Exporter:
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
-        data["reports_v2"] = self._get_reports_v2()
         data["cde_policies"] = self._get_cde_policies()
         data["context_form_groups"] = self._get_context_form_groups()
+        data["longitudinal_followups"] = self._get_longitudinal_followups()
         data["email_notifications"] = self._get_email_notifications()
         data["consent_rules"] = self._get_consent_rules()
         data["form_titles"] = self._get_form_titles()
@@ -272,9 +305,9 @@ class Exporter:
                 ExportType.REGISTRY_PLUS_ALL_CDES,
                 ExportType.REGISTRY_PLUS_CDES]:
             data["name"] = self.registry.name
-            data["code"] = self.registry.code
             data["desc"] = self.registry.desc
             data["splash_screen"] = self.registry.splash_screen
+            data["metadata_json"] = self.registry.metadata_json
             data["forms"] = []
             generic_sections = [
                 self._create_section_map(section_code, optional=True)
@@ -283,9 +316,6 @@ class Exporter:
             data["generic_sections"] = [gs for gs in generic_sections if gs]
 
             for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
-                if frm.name == self.registry.generated_questionnaire_name:
-                    # don't export the generated questionnaire
-                    continue
                 data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
@@ -355,7 +385,6 @@ class Exporter:
             cde_map["widget_name"] = cde_model.widget_name
             cde_map["calculation_query"] = cde_model.calculation_query
             cde_map["calculation"] = cde_model.calculation
-            cde_map["questionnaire_text"] = cde_model.questionnaire_text
 
             data["cdes"].append(cde_map)
 
@@ -370,7 +399,6 @@ class Exporter:
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
-                value_map["questionnaire_value"] = value.questionnaire_value
                 value_map["desc"] = value.desc
                 value_map["position"] = value.position
 
@@ -427,7 +455,6 @@ class Exporter:
                 cm = {"code": consent_model.code,
                       "position": consent_model.position,
                       "question_label": consent_model.question_label,
-                      "questionnaire_label": consent_model.questionnaire_label,
                       "instructions": consent_model.instructions}
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)
@@ -475,8 +502,8 @@ class Exporter:
 
         return demographic_fields
 
-    def _get_complete_fields(self):
-        forms = RegistryForm.objects.filter(registry=self.registry)
+    def _get_complete_fields(self, forms=None):
+        forms = forms or RegistryForm.objects.filter(registry=self.registry)
         complete_fields = []
 
         for form in forms:
@@ -490,28 +517,6 @@ class Exporter:
         return complete_fields
 
     def _get_reports(self):
-        registry_queries = Query.objects.filter(registry=self.registry)
-
-        queries = []
-        for query in registry_queries:
-            q = {}
-            q["registry"] = query.registry.code
-            q["access_group"] = [ag.name for ag in query.access_group.order_by("name")]
-            q["title"] = query.title
-            q["description"] = query.description
-            q["mongo_search_type"] = query.mongo_search_type
-            q["sql_query"] = query.sql_query
-            q["collection"] = query.collection
-            q["criteria"] = query.criteria
-            q["projection"] = query.projection
-            q["aggregation"] = query.aggregation
-            q["created_by"] = query.created_by
-            q["created_at"] = query.created_at
-            queries.append(q)
-
-        return queries
-
-    def _get_reports_v2(self):
         return [{'title': r.title,
                  'description': r.description,
                  'registry': r.registry.code,
@@ -544,10 +549,13 @@ class Exporter:
             cde_policies.append(cde_pol_dict)
         return cde_policies
 
-    def _get_context_form_groups(self):
+    def _get_context_form_groups(self, context_form_groups=None):
         from rdrf.models.definition.models import ContextFormGroup
+
+        context_form_groups = context_form_groups or ContextFormGroup.objects.filter(registry=self.registry).order_by("name")
+
         data = []
-        for cfg in ContextFormGroup.objects.filter(registry=self.registry).order_by("name"):
+        for cfg in context_form_groups:
             cfg_dict = {}
             cfg_dict["context_type"] = cfg.context_type
             cfg_dict["code"] = cfg.code
@@ -563,6 +571,16 @@ class Exporter:
             cfg_dict["ordering"] = cfg.ordering
             data.append(cfg_dict)
         return data
+
+    def _get_longitudinal_followups(self):
+        return [{
+            "name": lf.name,
+            "description": lf.description,
+            "context_form_group": lf.context_form_group.code,
+            "frequency": lf.frequency.total_seconds(),
+            "debounce": lf.debounce.total_seconds(),
+            "condition": lf.condition,
+        } for lf in LongitudinalFollowup.objects.filter(context_form_group__registry=self.registry)]
 
     def _get_email_notifications(self):
         from rdrf.models.definition.models import EmailNotification
@@ -665,7 +683,8 @@ class Exporter:
             data.append(group_dict)
         return data
 
-    def _get_registry_dashboards(self):
+    def _get_registry_dashboards(self, registry_dashboards=None):
+        registry_dashboards = registry_dashboards or RegistryDashboard.objects.filter(registry=self.registry)
         return [{
                 'registry': dashboard.registry.code,
                 'widgets': [{'widget_type': widget.widget_type,
@@ -688,7 +707,7 @@ class Exporter:
                                        'context_form_group': link.context_form_group.code,
                                        'registry_form': link.registry_form.name} for link in widget.links.all()]}
                             for widget in dashboard.widgets.all()]
-                } for dashboard in RegistryDashboard.objects.all()]
+                } for dashboard in registry_dashboards]
 
 
 def str_presenter(dumper, data):

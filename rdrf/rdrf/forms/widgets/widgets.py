@@ -1,12 +1,11 @@
 import base64
-from collections import namedtuple
 import datetime
 import inspect
 import logging
 import math
 import re
 import sys
-
+from collections import namedtuple
 from functools import reduce
 from importlib import import_module
 from operator import attrgetter
@@ -16,16 +15,20 @@ from django.conf import settings
 from django.forms import HiddenInput, MultiWidget, Textarea, Widget, widgets
 from django.forms.renderers import get_default_renderer
 from django.forms.utils import flatatt
+from django.template import Context
+from django.template.loader import get_template
 from django.utils.formats import date_format
 from django.utils.html import format_html, conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.db.filestorage import virus_checker_result
-from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
-from registry.patients.models import PatientConsent, upload_patient_consent_to
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import consent_status_for_patient_consent
+from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
+from registry.patients.models import PatientConsent, upload_patient_consent_to
 
 logger = logging.getLogger(__name__)
 
@@ -297,28 +300,6 @@ class ParameterisedSelectWidget(widgets.Select):
     def _get_items(self):
         raise NotImplementedError(
             "subclass responsibility - it should return a list of pairs: [(code, display), ...]")
-
-
-class StateListWidget(ParameterisedSelectWidget):
-
-    @staticmethod
-    def usable_for_types():
-        return {CDEDataTypes.STRING}
-
-    def render(self, name, value, attrs, renderer=None):
-        country_states = pycountry.subdivisions.get(
-            country_code=self._widget_context['questionnaire_context'].upper())
-        output = ["<select class='form-select' id='%s' name='%s'>" % (name, name)]
-        empty_option = "<option value='---'>---------</option>"
-        output.append(empty_option)
-        for state in country_states:
-            if value == state.code:
-                output.append("<option value='%s' selected>%s</option>" %
-                              (state.code, state.name))
-            else:
-                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
-        output.append("</select>")
-        return mark_safe('\n'.join(output))
 
 
 class DataSourceSelect(ParameterisedSelectWidget):
@@ -844,6 +825,62 @@ class DurationWidget(widgets.TextInput):
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
             {script}
         '''
+
+
+class XnatWidget(LookupWidget):
+    SEPARATOR = ';'
+
+    def __init__(self, *args, **kwargs):
+        _widget_context = kwargs.pop('widget_context')
+
+        self.registry = _widget_context.get('registry_model')
+        self.patient_id = _widget_context.get('primary_id')
+
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def extract_lookup_values(raw_value):
+        if raw_value:
+            values = raw_value.split(XnatWidget.SEPARATOR)
+            assert len(values) == 2, f"Invalid split result. Expected 2, got {len(values)}"
+            return values
+
+        return None, None
+
+    @staticmethod
+    def usable_for_types():
+        return {CDEDataTypes.LOOKUP}
+
+    @staticmethod
+    def inject_widget_context():
+        return True
+
+    @staticmethod
+    def denormalized_value(raw_value):
+        lookup_values = XnatWidget.extract_lookup_values(raw_value)
+        return f'project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}'
+
+    def _consent_check(self):
+        xnat_consent_code = self.registry.metadata.get('xnat_consent_code')
+
+        if xnat_consent_code:
+            return consent_status_for_patient_consent(self.registry, self.patient_id, xnat_consent_code)
+        else:
+            return True
+
+    def render(self, name, value, attrs, renderer=None):
+        project_id, subject_id = self.extract_lookup_values(value)
+        context = Context({
+            'id': name,
+            'value': value,
+            'base_xnat_url': settings.XNAT_API_ENDPOINT,
+            'registry': self.registry,
+            'project_id': project_id,
+            'subject_id': subject_id,
+            'consent_check': self._consent_check(),
+            'xnat_enabled': self.registry.has_feature(RegistryFeatures.XNAT_INTEGRATION)
+        })
+        return get_template('widgets/xnat_widget.html').render(context.flatten())
 
 
 def _all_widgets():

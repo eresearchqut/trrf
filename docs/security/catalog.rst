@@ -46,15 +46,10 @@ Django
 ----------
 - **PermissionsMixin**
 
-Explorer
---------
-- **AccessCheckMixin**: Verify that user has access to a given query.
-
 Decorators
 ==========
 - **csrf_exempt**: Mark a view as being exempt from the CSRF view protection.
 - **never_cache**: Add headers that stop view from being cached.
-- **patient_questionnaire_access**: Verify user can access questionnaires.
 - **superuser_required**: Check if user is superuser.
 - **staff_member_required**: Check if user is staff member.
 
