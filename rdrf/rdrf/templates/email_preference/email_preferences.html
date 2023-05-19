@@ -1,0 +1,66 @@
+{% extends "rdrf_cdes/base.html" %}
+
+{% load i18n %}
+{% load project_title %}
+
+{% block extrahead %}
+  <script>
+    $(document).ready(function () {
+      const emailNotificationSelector = document.getElementById('email_notification_selector');
+      const emailSelectorCollapse = new bootstrap.Collapse(emailNotificationSelector, {
+        toggle: false
+      });
+
+      $('input[name="unsubscribe_all"]').on('click', function() {
+        const selected_value = $(this).val();
+        if (selected_value == '{{ True }}') {
+          emailSelectorCollapse.hide();
+        } else {
+          emailSelectorCollapse.show();
+        }
+      });
+
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+  {% include "snippets/_page_heading.html" with page_heading="Email Preferences" %}
+  {% if state == 'success' %}
+    <div class="alert alert-success alert-dismissable">
+      {%  include "snippets/_alert_dismiss_button.html" %}
+      <p>{% trans "Your preferences have been successfully updated to" %}:
+        {% if instance.unsubscribe_all %}
+          <strong>Unsubscribed from all emails</strong>
+        {% else %}
+          <strong>Only send selected emails</strong>
+        {% endif %}
+      </p>
+      {% include "email_preference/_resubscribe_instructions.html" %}
+
+    </div>
+  {% endif %}
+<form method="post">
+  {% csrf_token %}
+  <ul class="list-group">
+    <li class="list-group-item">
+      {{ form.unsubscribe_all.0 }}
+    </li>
+    {% if form.email_notifications %}
+    <li class="list-group-item">
+      {{ form.unsubscribe_all.1 }}
+      <ul class="list-unstyled mt-2 ms-4 collapse {% if not form.unsubscribe_all.value %}show{% endif %}" id="email_notification_selector">
+        {% for input in form.email_notifications %}
+        <li>
+          <label>
+            {{ input }}
+          </label>
+        </li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endif %}
+  </ul>
+  <button type="submit" class="btn btn-primary">{% trans "Save my preferences" %}</button>
+</form>
+{% endblock %}

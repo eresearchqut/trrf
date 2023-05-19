@@ -1,5 +1,5 @@
 ccg-django-utils==0.4.2
-Django==3.2.18
+Django==3.2.19
 django-anymail==8.5
 django-countries==7.2.1
 django-csp==3.7
@@ -39,4 +39,5 @@ graphene-django==2.15.0
 django-filter==21.1
 flatten_json==0.1.13
 gql-query-builder==0.1.7
+awslambdaric==2.0.4
 ./clients/xnat/generated

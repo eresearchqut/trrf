@@ -18,7 +18,7 @@ services:
       - .:/app
       - ./data/test/:/data
     ports:
-      - 8000
+      - "8000:8000"
     depends_on:
       - dbtest
       - dbclinicaltest

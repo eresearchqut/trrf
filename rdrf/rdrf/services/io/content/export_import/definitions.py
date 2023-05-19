@@ -69,6 +69,7 @@ _REGISTRY_DEF_GROUP = GroupDefinition(
         'rdrf.Wizard',
         'rdrf.ContextFormGroup',
         'rdrf.ContextFormGroupItem',
+        'rdrf.LongitudinalFollowup',
     ))
 
 

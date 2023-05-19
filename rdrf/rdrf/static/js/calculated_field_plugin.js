@@ -83,7 +83,10 @@
                $("#id_" + settings.prefix + settings.observer).trigger("rdrf_calculation_performed");
 
                // Apply conditional rendering, as the change of calculation value may trigger a form state change
-               render_changes(visibility_handler());
+               // If the visibility_handler function is not defined, it has likely been disabled.
+               if (typeof visibility_handler === 'function') {
+                   render_changes(visibility_handler());
+               }
             })
             .fail(function(e) {
                 console.error('CDE calculation error', e);

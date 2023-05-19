@@ -21,9 +21,10 @@ import rdrf.views.import_registry_view as import_registry_view
 import rdrf.views.patient_view as patient_view
 import rdrf.routing.login_router as login_router
 import rdrf.views.consent_view as consent_view
+from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
-from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView
+from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView, MailboxSendLongitudinalFollowups
 from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.email_notification_view import ResendEmail
@@ -60,6 +61,8 @@ if settings.DEBUG is True:
         re_path(r'^raise', handler_exceptions, name='test exception'),
         re_path(r'mail/outbox/empty', MailboxEmptyView.as_view(), name='mailbox_empty'),
         re_path(r'mail/outbox', MailboxView.as_view(), name='mailbox'),
+        re_path(r'mail/send_longitudinal_followups', MailboxSendLongitudinalFollowups.as_view(),
+                name='mailbox_send_longitudinal_followups'),
         path('graphql', lambda request: TrrfGraphQLView.as_view(schema=create_dynamic_schema(), graphiql=True)(request))
     ]
 
@@ -119,6 +122,12 @@ patterns += [
             name='login_assistance_complete'),
 
     re_path(r'^email_address/?$', ChangeEmailAddressView.as_view(), name="email_address_change"),
+    # --- Unsubscribe public views
+    re_path(r'^unsubscribe_all/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', UnsubscribeAllView.as_view(),
+            name='unsubscribe_all'),
+    re_path(r'^unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', EmailPreferencesView.as_view(), name='email_preferences'),
+    re_path(r'^email_preferences/?$', EmailPreferencesView.as_view(), name='email_preferences'),
+    # ---
 
     # ------ Copyright URL -----------
     re_path(r"^copyright/?$", CopyrightView.as_view(), name="copyright"),

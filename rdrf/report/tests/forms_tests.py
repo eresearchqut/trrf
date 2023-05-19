@@ -97,8 +97,8 @@ class WorkingGroupTestCase(TestCase):
         self.assertEqual('{"registry": "reg2", "wg": 2}', get_working_group_field_value(self.wg2))
 
     def test_get_working_group_choices(self):
-        self.assertEqual([('{"registry": "reg1", "wg": 1}', 'reg1 Working Group 1'),
-                          ('{"registry": "reg2", "wg": 2}', 'reg2 Uncategorised')], get_working_group_choices())
+        self.assertEqual([(None, [('{"registry": "reg1", "wg": 1}', 'reg1 Working Group 1'),
+                                  ('{"registry": "reg2", "wg": 2}', 'reg2 Uncategorised')])], get_working_group_choices())
 
 
 class FilterConsentTestCase(TestCase):

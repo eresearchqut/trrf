@@ -43,7 +43,7 @@
     </script>
     <div>
         <div class="row">
-            <div class="col-sm-6 mb-4"><h1>{% trans "Reports" %}</h1></div>
+            {% include "snippets/_page_heading.html" with page_heading="Reports" %}
             {% if request.user.is_superuser  %}
             <div class="col-sm-6 d-sm-flex align-items-center justify-content-end">
                 <a href="{% url 'report:report_designer' %}" class="btn btn-success"><i class="fa fa-plus"></i> {% trans "Create a new report" %}</a>

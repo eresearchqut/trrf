@@ -162,12 +162,6 @@
     {{ change_targets }}
     {% endautoescape %}
 
-    function total_forms_count(prefix) {
-        var mgmt_form = $("#mgmt_" + prefix);
-        var total_forms = mgmt_form.find("input[id=id_"+ prefix +"-TOTAL_FORMS]");
-        return parseInt(total_forms.val());
-    }
-
     function attribute_replace($el, attribute_name, form_count) {
         var replaced_value = $el.attr(attribute_name).replace(/__prefix__/g, form_count)
         $el.attr(attribute_name, replaced_value);

@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load project_title %}
+
+<hr />
+<p>{% trans "You've received this email as part of your membership with " %}{% project_title %}</p>
+<p>
+  {% trans "If you would no longer like to receive these, please" %}
+  <a href="{{ unsubscribe_all_url }}">{% trans "unsubscribe" %}</a>
+  {% trans "or" %}
+  <a href="{{ email_preferences_url }}">{% trans "manage your email preferences" %}</a>.
+</p>

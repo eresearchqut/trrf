@@ -11,14 +11,16 @@ from useraudit.admin import LogAdmin
 from useraudit.models import FailedLoginLog, LoginLog, UserDeactivation
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
-from .models import WorkingGroup
-
+from .models import WorkingGroup, WorkingGroupType, WorkingGroupTypeRule
 
 logger = logging.getLogger(__name__)
 
 
 class WorkingGroupAdmin(admin.ModelAdmin):
     search_fields = ["name"]
+    list_display = ['registry', 'name', 'type']
+    list_display_links = ['name']
+    list_filter = ['registry', 'type']
 
     def get_queryset(self, request):
         if request.user.is_superuser:
@@ -27,6 +29,21 @@ class WorkingGroupAdmin(admin.ModelAdmin):
         user = request.user
 
         return WorkingGroup.objects.filter(id__in=user.working_groups.all())
+
+
+class WorkingGroupsInline(admin.StackedInline):
+    model = WorkingGroup
+    extra = 0
+
+
+class WorkingGroupTypeRulesInline(admin.StackedInline):
+    model = WorkingGroupTypeRule
+    extra = 0
+
+
+class WorkingGroupTypeAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    inlines = (WorkingGroupsInline, WorkingGroupTypeRulesInline)
 
 
 class CustomUserAdmin(UserAdmin):
@@ -151,6 +168,7 @@ class CustomLoginLogAdmin(LogAdmin):
 
 admin.site.register(get_user_model(), CustomUserAdmin)
 admin.site.register(WorkingGroup, WorkingGroupAdmin)
+admin.site.register(WorkingGroupType, WorkingGroupTypeAdmin)
 
 admin.site.unregister(LoginLog)
 admin.site.register(LoginLog, CustomLoginLogAdmin)

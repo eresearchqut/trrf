@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rdrf.helpers.utils import mongo_key
 from rdrf.models.definition.models import ConsentQuestion, RegistryForm, Registry, ContextFormGroup
+from registry.groups.forms import working_group_optgroup_choices
 from registry.groups.models import WorkingGroup
 from report.models import ReportClinicalDataField, ReportDemographicField, ReportDesign
 from report.utils import load_report_configuration
@@ -57,7 +58,11 @@ def get_working_group_field_value(wg):
 
 
 def get_working_group_choices():
-    return [(get_working_group_field_value(wg), wg.display_name) for wg in WorkingGroup.objects.all()]
+    def make_working_group_field(wg):
+        return get_working_group_field_value(wg), wg.display_name
+
+    return working_group_optgroup_choices(WorkingGroup.objects.all(),
+                                          make_option_fn=make_working_group_field)
 
 
 def get_filter_consent_field_value(consent_question):

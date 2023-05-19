@@ -65,6 +65,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libpq5 \
   mime-support \
   nodejs \
+  postgresql-client \
   unixodbc \
   unixodbc-dev \
   build-essential \
@@ -86,6 +87,9 @@ RUN rm -Rf /root/.cache
 
 COPY docker/dev/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
+
+COPY docker/dev/lambda/aws-lambda-rie /
+RUN chmod +x /aws-lambda-rie
 
 VOLUME ["/app", "/data"]
 

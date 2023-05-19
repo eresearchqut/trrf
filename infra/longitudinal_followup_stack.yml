@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Longitudinal Followup lambda'
+Parameters:
+  ApplicationName:
+    Description: 'Name of the trrf application'
+    Type: String
+  NetworkStackName:
+    Description: 'Name of network Stack'
+    Type: String
+  AlertStackName:
+    Description: 'Name of stack creating SNS alert topic'
+    Type: String
+  EcrAccount:
+    Description: 'AWS account ID for ECR'
+    Type: String
+  ImageTag:
+    Description: 'Image tag to deploy'
+    Type: String
+  Environment:
+    Description: 'Environment name'
+    Type: String
+Resources:
+  FollowupFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
+      Description: 'Run the longitudinal followup django command'
+      Role: !GetAtt FollowupRole.Arn
+      PackageType: Image
+      MemorySize: 1024
+      Code:
+        ImageUri: !Sub '${EcrAccount}.dkr.ecr.ap-southeast-2.amazonaws.com/${ApplicationName}:${ImageTag}'
+      VpcConfig:
+        SecurityGroupIds:
+          - !ImportValue
+            Fn::Sub: '${ApplicationName}-ContainerSGId'
+        SubnetIds:
+          - !ImportValue
+            Fn::Sub: '${NetworkStackName}:PrivateSubnet1'
+          - !ImportValue
+            Fn::Sub: '${NetworkStackName}:PrivateSubnet2'
+          - !ImportValue
+            Fn::Sub: '${NetworkStackName}:PrivateSubnet3'
+      ImageConfig:
+        EntryPoint:
+          - /docker-entrypoint.sh
+        Command:
+          - awslambdaric
+          - lambda.longitudinal_followup_handler
+        WorkingDirectory: /app
+      Environment:
+          Variables:
+            DEBUG: "0"
+            DEFAULT_FROM_EMAIL: !Sub "no-reply@${Environment}.registryframework.net"
+            DESIGN_MODE: "1"
+            PRODUCTION: "1"
+            TRRF_SITE_DOMAIN: !Sub "${Environment}.registryframework.net"
+            TRRF_SITE_NAME: !Sub "${Environment} Registry"
+            ENVIRONMENT: !Ref Environment
+            APPLICATION_NAME: !Ref ApplicationName
+      Timeout: 300
+  FollowupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupRolePolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ssm:GetParameter'
+                  - 'ssm:GetParameters'
+                  - 'ssm:GetParametersByPath'
+                Resource:
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/SECRET_KEY'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/AWS_SES_ACCESS_KEY_ID'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/AWS_SES_SECRET_ACCESS_KEY'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/${ApplicationName}/*'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+  ScheduledRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: 'Run the longitudinal followup lambda every day'
+      ScheduleExpression: 'rate(1 day)'
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt FollowupFunction.Arn
+          Id: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
+  FollowupPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt FollowupFunction.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ScheduledRule.Arn
+  FollowupAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupAlarm'
+      AlarmDescription: 'Longitudinal followup lambda failed'
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Sum
+      Threshold: 0
+      AlarmActions:
+        - { 'Fn::ImportValue': !Sub '${AlertStackName}-TopicARN' }
+      OKActions:
+        - { 'Fn::ImportValue': !Sub '${AlertStackName}-TopicARN' }
+      Dimensions:
+        - Name: FunctionName
+          Value: !GetAtt FollowupFunction.Arn
+      TreatMissingData: notBreaching
+Outputs:
+  FollowupArn:
+    Description: 'ARN of the followup lambda'
+    Value: !GetAtt FollowupFunction.Arn
+  FollowupName:
+    Description: 'Name of the followup lambda'
+    Value: !Ref FollowupFunction

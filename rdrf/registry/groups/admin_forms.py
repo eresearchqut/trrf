@@ -5,11 +5,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, UserChangeForm as OldUserChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.forms import ChoiceField
 
 from rdrf.helpers.utils import get_supported_languages
 from registry.groups import GROUPS as RDRF_GROUPS
-
+from registry.groups.forms import working_group_optgroup_choices
+from registry.groups.models import WorkingGroup
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +65,23 @@ class UserMixin:
 
     def restrict_registries_and_working_groups(self, user):
         # Enforce that non-admin users can create users only in their own registries and working groups
-        if user and not user.is_superuser:
-            self.fields['registry'].queryset = user.registry.all()
-            self.fields['working_groups'].queryset = user.working_groups.all()
-            self.fields['registry'].required = True
-            self.fields['working_groups'].required = True
+        wg_queryset = WorkingGroup.objects.none()
+        if user:
+            if user.is_superuser:
+                wg_queryset = WorkingGroup.objects.all()
+            else:
+                if self.instance.id:
+                    instance_wgs = self.instance.working_groups.all()
+                    user_wgs = user.working_groups.all()
+                    wg_queryset = WorkingGroup.objects.filter(Q(id__in=instance_wgs) | Q(id__in=user_wgs))
+                else:
+                    wg_queryset = user.working_groups.all()
+
+                self.fields['registry'].queryset = user.registry.all()
+                self.fields['registry'].required = True
+                self.fields['working_groups'].required = True
+
+        self.fields['working_groups'].choices = working_group_optgroup_choices(wg_queryset)
 
 
 class RDRFUserCreationForm(UserMixin, forms.ModelForm):
