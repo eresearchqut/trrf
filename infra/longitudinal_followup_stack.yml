@@ -16,14 +16,14 @@ Parameters:
   ImageTag:
     Description: 'Image tag to deploy'
     Type: String
-  Environment:
+  EnvironmentName:
     Description: 'Environment name'
     Type: String
 Resources:
   FollowupFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
+      FunctionName: !Sub '${EnvironmentName}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
       Description: 'Run the longitudinal followup django command'
       Role: !GetAtt FollowupRole.Arn
       PackageType: Image
@@ -51,12 +51,12 @@ Resources:
       Environment:
           Variables:
             DEBUG: "0"
-            DEFAULT_FROM_EMAIL: !Sub "no-reply@${Environment}.registryframework.net"
+            DEFAULT_FROM_EMAIL: !Sub "no-reply@${EnvironmentName}.registryframework.net"
             DESIGN_MODE: "1"
             PRODUCTION: "1"
-            TRRF_SITE_DOMAIN: !Sub "${Environment}.registryframework.net"
-            TRRF_SITE_NAME: !Sub "${Environment} Registry"
-            ENVIRONMENT: !Ref Environment
+            TRRF_SITE_DOMAIN: !Sub "${EnvironmentName}.registryframework.net"
+            TRRF_SITE_NAME: !Sub "${EnvironmentName} Registry"
+            ENVIRONMENT: !Ref EnvironmentName
             APPLICATION_NAME: !Ref ApplicationName
       Timeout: 300
   FollowupRole:
@@ -72,7 +72,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Policies:
-        - PolicyName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupRolePolicy'
+        - PolicyName: !Sub '${EnvironmentName}-${ApplicationName}-${AWS::StackName}-FollowupRolePolicy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -82,10 +82,10 @@ Resources:
                   - 'ssm:GetParameters'
                   - 'ssm:GetParametersByPath'
                 Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/SECRET_KEY'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/AWS_SES_ACCESS_KEY_ID'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/AWS_SES_SECRET_ACCESS_KEY'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${Environment}/${ApplicationName}/*'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${EnvironmentName}/SECRET_KEY'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${EnvironmentName}/AWS_SES_ACCESS_KEY_ID'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${EnvironmentName}/AWS_SES_SECRET_ACCESS_KEY'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/app/${EnvironmentName}/${ApplicationName}/*'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
   ScheduledRule:
@@ -96,7 +96,7 @@ Resources:
       State: ENABLED
       Targets:
         - Arn: !GetAtt FollowupFunction.Arn
-          Id: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
+          Id: !Sub '${EnvironmentName}-${ApplicationName}-${AWS::StackName}-FollowupFunction'
   FollowupPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -107,7 +107,7 @@ Resources:
   FollowupAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub '${Environment}-${ApplicationName}-${AWS::StackName}-FollowupAlarm'
+      AlarmName: !Sub '${EnvironmentName}-${ApplicationName}-${AWS::StackName}-FollowupAlarm'
       AlarmDescription: 'Longitudinal followup lambda failed'
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
