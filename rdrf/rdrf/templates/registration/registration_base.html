@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load project_title %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 
@@ -20,7 +21,7 @@
 
     <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/vendor/jquery-validation-1.19.5.min.js' %}"></script>
-    <script src="https://www.google.com/recaptcha/api.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?hl={{ LANGUAGE_CODE }}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
     <style>
@@ -140,7 +141,7 @@
 
         <form id="registration-form" method="POST" autocomplete="off">
             {% block content %}
-                <p><em>Required fields are marked with an asterisk (*).</em></p>
+                <p><em>{% trans "Required fields are marked with an asterisk (*)." %}</em></p>
             {% endblock %}
         </form>
 
