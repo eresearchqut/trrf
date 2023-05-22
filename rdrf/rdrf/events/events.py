@@ -22,6 +22,7 @@ class EventType:
     CLINICIAN_UNASSIGNED = "clinician-unassigned"
     FILE_UPLOADED = "file-uploaded"
     LONGITUDINAL_FOLLOWUP = "longitudinal-followup"
+    EMAIL_CHANGE_REQUEST = "email-change-request"
 
     REGISTRATION_TYPES = [NEW_PATIENT_USER_REGISTERED, NEW_PATIENT_PARENT]
     CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]

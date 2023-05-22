@@ -2,7 +2,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.forms import Form, EmailField, EmailInput, BooleanField, CharField, PasswordInput
+from django.forms import Form, EmailField, EmailInput, CharField, PasswordInput
 
 from django.utils.translation import gettext_lazy as _
 
@@ -20,10 +20,9 @@ class EmailChangeForm(Form):
         'incorrect_password': _('Your current password is incorrect'),
     }
 
-    new_email = EmailField(label=_('New email'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email', 'autofocus': True}))
+    new_email = EmailField(label=_('New email / username'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email', 'autofocus': True}))
     new_email2 = EmailField(label=_('Confirm new email'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email'}))
     current_password = CharField(label=_('Current password'), widget=PasswordInput())
-    confirm_submit = BooleanField(label=_('I confirm that my new email address will become my new username when I next log in to this site.'))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')

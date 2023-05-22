@@ -3,10 +3,110 @@
 {% load i18n %}
 {% load translate %}
 {% load add_attr %}
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+      $(document).ready(function() {
+        $('#btnDeleteEmailChangeRequest').on('click', function(e) {
+            const delete_url = "{% url 'email_address_change' %}";
+            $.ajax({
+                type: 'DELETE',
+                url: delete_url,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function (data) {
+                    window.location.reload();
+                }
+            });
+        });
+
+      });
+    </script>
+{% endblock %}
 {% block content %}
-  <h1>{% trans "Change Email Address" %}</h1>
+  <h1>{% trans "Initiate Change of Email Address" %}</h1>
 
   {% include "rdrf_cdes/form_list_errors.html" %}
+
+  {% if current_request %}
+
+    <div id="deleteModal" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Delete Email Change Request" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% trans "Are you sure you want to delete this request to change your email address?" %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="btnDeleteEmailChangeRequest" type="button" class="btn btn-danger" data-delete-url="">
+                        <i class="fa fa-trash-o"></i> {% trans "Delete" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+          {% if current_request.status == EmailChangeRequestStatus.PENDING %}
+            <button class="btn btn-danger btn-sm float-end" data-bs-toggle="modal" data-bs-target="#deleteModal">{% trans "Cancel this request" %}</button>
+          {% endif %}
+          <h5>
+          {% if current_request.status == EmailChangeRequestStatus.PENDING %}
+            {% trans "Current Email Change Request" %}
+          {% else %}
+            {% trans "Previous Email Change Request" %}
+          {% endif %}
+          </h5>
+        </div>
+
+      <div class="card-body">
+        <div class="row">
+          <span class="col-sm-3 col-form-label">{% trans "Requested email address" %}:</span>
+          <div class="col-sm-9 mt-2">{{ current_request.new_email }}</div>
+        </div>
+        <div class="row">
+          <span class="col-sm-3 col-form-label">{% trans "Requested date" %}:</span>
+          <div class="col-sm-9 mt-2">{{ current_request.request_date }}</div>
+        </div>
+
+        <div class="row">
+          <span class="col-sm-3 col-form-label">{% trans "Status" %}:</span>
+          <div class="col-sm-9 mt-2">
+            <span class="badge {% if current_request.status == EmailChangeRequestStatus.PENDING %} bg-warning
+                               {% elif current_request.status == EmailChangeRequestStatus.COMPLETED %} bg-success
+                               {% else %} bg-info
+                               {% endif %}
+                                ">{% if is_expired %}EXPIRED{% else %}{{ current_request.status|upper }}{% endif %}</span>
+            {% if current_request.status == EmailChangeRequestStatus.PENDING %}
+              <div class="form-text">
+                  {% trans "You are required to click the activation link in the email we have sent to " %}
+                  {{ current_request.new_email }}
+                  {% trans "before this request can be completed." %}<br/>
+                  {% trans "The activation link will expire " %} {{ expiry_hours }} {% trans "hours after being requested." %}
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="alert alert-info" role="alert">
+    <h6 class="alert-heading">{% trans "Important information about changing your email address" %}</h6>
+    <hr>
+    <p>{% trans "Changing your email address is a multi-step process" %}:</p>
+    <ol class="list">
+      <li>{% trans "Fill out this form to indicate the email address you wish to change to." %}</li>
+      <li>{% trans "On successful completion of the form, we will send an email to the new address you have nominated." %}</li>
+      <li>{% trans "Verify your new email address by clicking the activation link in the email we have sent you." %}</li>
+    </ol>
+  </div>
 
   <form class="my-4" method="post">
     {% csrf_token %}
@@ -57,22 +157,7 @@
       </div>
     </div>
 
-    <div class="mb-3 row">
-      <div class="offset-sm-3 col-sm-9">
-        <div class="alert alert-warning mt-4">
-          <p><strong>{% trans "Important" %}:
-            {% trans "Your updated email address will become your new username to log in to this registry" %}</strong>
-          </p>
-          <div class="form-check">
-            {{form.confirm_submit | add_attr:"class,form-check-input" }}
-            <label for="{{ form.confirm_submit.id_for_label }}" class="form-check-label">
-              {{ form.confirm_submit.label }}
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <button type="submit" class="btn btn-primary offset-sm-3">{% trans "Change email" %}</button>
+    <button type="submit" class="btn btn-primary offset-sm-3">{% trans "Initiate change of email address" %}</button>
   </form>
 
 {% endblock %}
