@@ -1,0 +1,17 @@
+name: Submodule Update All
+on:
+  workflow_dispatch:
+jobs:
+  submodule_update:
+    name: Submodule Update
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        registry: [ 'angelman', 'arrk', 'mnd' ]
+    steps:
+      - name: Send repository_dispatch event
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.QUT_SERVICE_ACCOUNT_TOKEN }}
+          repository: "eresearchqut/${{ matrix.registry }}"
+          event-type: submodule_update
