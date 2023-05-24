@@ -125,7 +125,7 @@ class RdrfEmail(object):
         return True
 
     def _get_recipients(self):
-        recipients = self.recipients
+        recipients = self.recipients or []
         if self.email_notification.recipient:
             recipient = self._get_recipient_template(self.email_notification.recipient)
             recipients.append(recipient)
@@ -238,19 +238,19 @@ class RdrfEmail(object):
         return self
 
 
-def process_given_notification(notification, template_data={}, recipients=[]):
+def process_given_notification(notification, template_data={}, additional_recipients=None):
     if notification.disabled:
         logger.warning("Email %s disabled" % notification)
         return False
     else:
         logger.info("Sending email %s" % notification)
         email = RdrfEmail(email_notification=notification)
-        email.recipients = recipients
+        email.recipients = additional_recipients
         email.template_data = template_data
         return email.send()
 
 
-def process_notification(reg_code=None, description=None, template_data={}, recipients=[]):
+def process_notification(reg_code=None, description=None, template_data={}, additional_recipients=None):
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     has_disabled = False
     sent_successfully = True
@@ -259,7 +259,7 @@ def process_notification(reg_code=None, description=None, template_data={}, reci
             logger.warning("Email %s disabled" % note)
             has_disabled = True
             continue
-        send_result = process_given_notification(note, template_data, recipients)
+        send_result = process_given_notification(note, template_data, additional_recipients)
         sent_successfully = sent_successfully and send_result
     return sent_successfully, has_disabled
 
