@@ -19,6 +19,7 @@ class TokenAuthenticatedMixin(AccessMixin):
 
     # Outputs
     username_b64 = None
+    username = None
     token = None
     user = None
     is_valid_token = False
