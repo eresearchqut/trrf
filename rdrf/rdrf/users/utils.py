@@ -52,7 +52,7 @@ def send_email_change_request_notification(user):
                                                      'expiration_hours': EMAIL_CHANGE_REQUEST_EXPIRY_HOURS,
                                                      'user_full_name': user.get_full_name()},
                                       default_template=email_template,
-                                      default_subject=_('Email Reset Activation'),
+                                      default_subject=_('New Email Address Activation'),
                                       default_recipient=[user.emailchangerequest.new_email])
 
 

@@ -49,7 +49,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div id="id_current_request" class="card">
         <div class="card-header">
           {% if current_request.status == EmailChangeRequestStatus.PENDING %}
             <button class="btn btn-danger btn-sm float-end" data-bs-toggle="modal" data-bs-target="#deleteModal">{% trans "Cancel this request" %}</button>
@@ -66,11 +66,11 @@
       <div class="card-body">
         <div class="row">
           <span class="col-sm-3 col-form-label">{% trans "Requested email address" %}:</span>
-          <div class="col-sm-9 mt-2">{{ current_request.new_email }}</div>
+          <div class="col-sm-9 mt-2" id="id_current_request_email">{{ current_request.new_email }}</div>
         </div>
         <div class="row">
           <span class="col-sm-3 col-form-label">{% trans "Requested date" %}:</span>
-          <div class="col-sm-9 mt-2">{{ current_request.request_date }}</div>
+          <div class="col-sm-9 mt-2" id="id_current_request_date">{{ current_request.request_date }}</div>
         </div>
 
         <div class="row">
@@ -79,8 +79,7 @@
             <span class="badge {% if current_request.status == EmailChangeRequestStatus.PENDING %} bg-warning
                                {% elif current_request.status == EmailChangeRequestStatus.COMPLETED %} bg-success
                                {% else %} bg-info
-                               {% endif %}
-                                ">{% if is_expired %}EXPIRED{% else %}{{ current_request.status|upper }}{% endif %}</span>
+                               {% endif %}" id="id_current_request_status">{% if is_expired %}EXPIRED{% else %}{{ current_request.status|upper }}{% endif %}</span>
             {% if current_request.status == EmailChangeRequestStatus.PENDING %}
               <div class="form-text">
                   {% trans "You are required to click the activation link in the email we have sent to " %}
@@ -113,7 +112,7 @@
 
     <div class="mb-3 row">
       <span class="col-sm-3 col-form-label">{% trans "Current email" %}:</span>
-      <div class="col-sm-9 mt-2">
+      <div class="col-sm-9 mt-2" id="id_current_email">
         {{ current_email }}
       </div>
     </div>

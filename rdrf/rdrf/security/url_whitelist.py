@@ -1,5 +1,6 @@
 SECURITY_WHITELISTED_URLS = (
     "action",
+    "activate_email_request",
     "admin:app_list",
     "admin:auth_group_add",
     "admin:auth_group_autocomplete",
