@@ -52,7 +52,6 @@ class RdrfEmail(object):
         success = False
         try:
             notification_record_saved = []
-            headers = {}
             recipients = self._get_recipients()
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
@@ -69,17 +68,14 @@ class RdrfEmail(object):
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
 
-                unsubscribe_footer, unsubscribe_headers = self._get_unsubscribe_footer(recipient)
-                if unsubscribe_footer:
-                    headers.update(unsubscribe_headers)
+                if unsubscribe_footer := self._get_unsubscribe_footer(recipient):
                     email_body += unsubscribe_footer
 
                 self._send_mail(email_subject,
                                 email_body,
                                 sender_address,
                                 [recipient],
-                                html_message=email_body,
-                                headers=headers)
+                                html_message=email_body)
 
                 if language not in notification_record_saved:
                     self._save_notification_record(language)
@@ -182,13 +178,12 @@ class RdrfEmail(object):
                                                'email_preferences_url': make_full_url(email_preferences_url)})
                 template_footer = get_template('email_preference/_email_footer.html')
                 template_footer = template_footer.render(unsubscribe_context.flatten())
-                headers = {'List-Unsubscribe': full_unsubscribe_url}
-                return template_footer, headers
+                return template_footer
         except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
             pass
 
         # This email does not require an unsubscribe footer
-        return None, None
+        return None
 
     def _get_email_notification(self):
         try:
