@@ -22,13 +22,12 @@ class UnsubscribeAllView(TokenAuthenticatedMixin, View):
 
     def get(self, request, *args, **kwargs):
 
-        user = get_object_or_404(CustomUser, username=self.username, is_active=True)
-        email_preference, created = EmailPreference.objects.update_or_create(user=user,
+        email_preference, created = EmailPreference.objects.update_or_create(user=self.user,
                                                                              defaults={'unsubscribe_all': True})
         unsubscribe_successful = email_preference is not None
 
         if not unsubscribe_successful:
-            raise Exception('Unsubscribe all failed for user', (self.username, self.is_valid_token))
+            raise Exception('Unsubscribe all failed for user', (self.user.username, self.is_valid_token))
 
         return render(request, 'email_preference/unsubscribe_all_success.html', {})
 

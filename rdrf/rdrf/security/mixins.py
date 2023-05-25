@@ -19,7 +19,6 @@ class TokenAuthenticatedMixin(AccessMixin):
 
     # Outputs
     username_b64 = None
-    username = None
     token = None
     user = None
     is_valid_token = False
@@ -35,8 +34,8 @@ class TokenAuthenticatedMixin(AccessMixin):
             self.username_b64 = kwargs.get('username_b64')
             self.token = kwargs.get('token')
 
-            self.is_valid_token, self.username = check_token(self.username_b64, self.token, self.max_age)
-            self.user = get_object_or_404(CustomUser, username=self.username, is_active=True)
+            self.is_valid_token, username = check_token(self.username_b64, self.token, self.max_age)
+            self.user = get_object_or_404(CustomUser, username=username, is_active=True)
 
             if not self.is_valid_token:
                 raise Exception('Invalid token')
