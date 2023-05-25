@@ -1,6 +1,6 @@
 import logging
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.views import View
@@ -8,7 +8,6 @@ from django.views import View
 from rdrf.forms.email_preferences import EmailPreferencesForm
 from rdrf.models.definition.models import EmailPreference
 from rdrf.security.mixins import TokenAuthenticatedMixin
-from registry.groups.models import CustomUser
 
 logger = logging.getLogger(__name__)
 
