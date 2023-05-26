@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template import Context, Engine, Template
 from django.template.loader import get_template
 
@@ -273,7 +273,6 @@ def process_notification_with_default(reg_code=None, description=None, template_
         logger.debug('Registry notification not found, using default template')
         email_body = default_template.render(Context(template_data).flatten())
 
-        from django.core.mail import send_mail
         send_mail(subject=default_subject,
                   message=email_body,
                   from_email=settings.DEFAULT_FROM_EMAIL,

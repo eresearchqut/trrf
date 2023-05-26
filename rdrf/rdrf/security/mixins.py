@@ -1,4 +1,8 @@
 from django.contrib.auth.mixins import UserPassesTestMixin, AccessMixin
+from django.shortcuts import get_object_or_404
+
+from rdrf.auth.signed_url.util import check_token
+from registry.groups.models import CustomUser
 
 
 class SuperuserRequiredMixin(UserPassesTestMixin):
@@ -24,10 +28,6 @@ class TokenAuthenticatedMixin(AccessMixin):
     is_valid_token = False
 
     def dispatch(self, request, *args, **kwargs):
-        from rdrf.auth.signed_url.util import check_token
-        from registry.groups.models import CustomUser
-        from django.shortcuts import get_object_or_404
-
         if request.user.is_authenticated:
             self.user = request.user
         else:
