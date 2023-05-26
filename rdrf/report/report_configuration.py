@@ -69,7 +69,8 @@ def get_configuration():
                 'multi_field': True,
                 'variant_lookup': 'maxWorkingGroupCount',
                 'fields': {
-                    'displayName': 'Name'
+                    'displayName': 'Name',
+                    'type { name }': 'Type'
                 }
             },
             'registeredClinicians': {
