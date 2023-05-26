@@ -1182,6 +1182,7 @@ class EmailNotification(models.Model):
         (EventType.FILE_UPLOADED, "File Uploaded"),
         (EventType.LONGITUDINAL_FOLLOWUP, 'Longitudinal Followup ["longitudinal_followup" feature required]'),
         (EventType.EMAIL_CHANGE_REQUEST, "Email Change Request Submitted"),
+        (EventType.EMAIL_CHANGE_COMPLETE, "Email Change Request Completed"),
     )
 
     NOTIFICATION_REQUIRES_REGISTRY_FEATURE = {

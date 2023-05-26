@@ -56,7 +56,23 @@ def send_email_change_request_notification(user):
                                       default_recipient=[user.emailchangerequest.new_email])
 
 
+def send_email_change_request_completed_notification(user, user_previous_email):
+    email_template = get_template('registration/email_reset_completed.html')
+
+    process_notification_with_default(reg_code=user.registry_code,
+                                      description=EventType.EMAIL_CHANGE_COMPLETE,
+                                      template_data={'user': user,
+                                                     'user_full_name': user.get_full_name(),
+                                                     'registry': user.my_registry.name},
+                                      default_template=email_template,
+                                      default_subject=_('Change of Email Completed'),
+                                      default_recipient=[user_previous_email])
+
+
 def sync_user_email_update(user, new_email_address):
+
+    previous_email = user.email
+
     user.username = new_email_address
     user.email = new_email_address
     user.save()
@@ -65,6 +81,8 @@ def sync_user_email_update(user, new_email_address):
         patient = Patient.objects.get(user=user)
         patient.email = new_email_address
         patient.save()
+
+    send_email_change_request_completed_notification(user, previous_email)
 
 
 def activate_email_change_request(user):
