@@ -82,10 +82,10 @@
                                {% endif %}" id="id_current_request_status">{% if is_expired %}EXPIRED{% else %}{{ current_request.status|upper }}{% endif %}</span>
             {% if current_request.status == EmailChangeRequestStatus.PENDING %}
               <div class="form-text">
-                  {% trans "You are required to click the activation link in the email we have sent to " %}
-                  {{ current_request.new_email }}
-                  {% trans "before this request can be completed." %}<br/>
-                  {% trans "The activation link will expire " %} {{ expiry_hours }} {% trans "hours after being requested." %}
+                {% blocktrans trimmed with new_email=current_request.new_email expiry_hours=expiry_hours %}
+                  You are required to click the activation link in the email we have sent to {{ new_email }} before this request can be completed.<br />
+                  The activation link will expire {{ expiry_hours }} hours after being requested.
+                {% endblocktrans %}
               </div>
             {% endif %}
           </div>

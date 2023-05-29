@@ -238,7 +238,7 @@ class RdrfEmail(object):
         return self
 
 
-def process_given_notification(notification, template_data={}, additional_recipients=None):
+def process_given_notification(notification, template_data=None, additional_recipients=None):
     if notification.disabled:
         logger.warning("Email %s disabled" % notification)
         return False
@@ -246,11 +246,12 @@ def process_given_notification(notification, template_data={}, additional_recipi
         logger.info("Sending email %s" % notification)
         email = RdrfEmail(email_notification=notification)
         email.recipients = additional_recipients
-        email.template_data = template_data
+        email.template_data = template_data or {}
         return email.send()
 
 
-def process_notification(reg_code=None, description=None, template_data={}, additional_recipients=None):
+def process_notification(reg_code=None, description=None, template_data=None, additional_recipients=None):
+    template_data = template_data or {}
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     has_disabled = False
     sent_successfully = True
@@ -264,7 +265,8 @@ def process_notification(reg_code=None, description=None, template_data={}, addi
     return sent_successfully, has_disabled
 
 
-def process_notification_with_default(reg_code=None, description=None, template_data={}, default_template=None, default_subject=None, default_recipient=[]):
+def process_notification_with_default(reg_code=None, description=None, template_data=None, default_template=None, default_subject=None, default_recipient=None):
+    template_data = template_data or {}
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
 
     if notes:
