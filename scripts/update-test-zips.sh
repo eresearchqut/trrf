@@ -4,10 +4,13 @@ teststack() {
   docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-dev.yml "$@"
 }
 
+teststack-run-django() {
+  teststack run serverundertest /docker-entrypoint.sh django-admin "$@"
+}
+
 teststack-exec-django() {
   teststack exec serverundertest /docker-entrypoint.sh django-admin "$@"
 }
-
 
 wait_for_server() {
     while ! curl -Is http://localhost:$1 > /dev/null; do
@@ -20,6 +23,7 @@ wait_for_server() {
 export_zip() {
     teststack stop
     teststack rm --force
+    teststack-run-django migrate
     teststack up -d
 
     PORT=$(teststack port serverundertest 8000 | cut -d':' -f2)
