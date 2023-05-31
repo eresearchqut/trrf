@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('groups', '0022_emailchangerequest_historicalemailchangerequest'),
+        ('groups', '0022_alter_workinggroup_options'),
     ]
 
     operations = [

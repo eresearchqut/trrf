@@ -9,7 +9,7 @@ import simple_history.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('groups', '0021_alter_workinggroup_options'),
+        ('groups', '0020_alter_workinggroup_type'),
     ]
 
     operations = [
