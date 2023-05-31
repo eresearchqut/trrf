@@ -18,7 +18,7 @@ from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
     ConsentRule
-from registry.groups.models import WorkingGroup, CustomUser
+from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
 from report.TrrfGraphQLView import PublicGraphQLError
@@ -136,12 +136,18 @@ class AddressTypeType(DjangoObjectType):
         fields = ('type',)
 
 
-class WorkingGroupType(DjangoObjectType):
+class WorkingGroupTypeType(DjangoObjectType):
+    class Meta:
+        model = WorkingGroupType
+        fields = ('name',)
+
+
+class WorkingGroupSchemaType(DjangoObjectType):
     display_name = graphene.String()
 
     class Meta:
         model = WorkingGroup
-        fields = ('name',)
+        fields = ('name', 'type')
 
     def resolve_display_name(self, _info):
         return self.display_name

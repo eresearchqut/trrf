@@ -1,13 +1,21 @@
-from django.urls import re_path
+import datetime
+import json
+import logging
+import os
+
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import HttpResponse
+from django.urls import re_path
 from django.urls import reverse
-import os
-import json
-import datetime
-from rdrf.models.definition.models import Registry
+from django.utils.translation import gettext as _
+
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import ClinicalData
+from rdrf.models.definition.models import Registry
+from registry.patients.models import ConsentValue
 from registry.utils import get_static_url
 from registry.utils import get_working_groups
 from .admin_forms import (
@@ -16,7 +24,8 @@ from .admin_forms import (
     PatientStageRuleForm,
     PatientAddressForm,
     PatientDoctorForm,
-    PatientRelativeForm)
+    PatientRelativeForm,
+    PatientUserForm)
 from .models import (
     AddressType,
     ClinicianOther,
@@ -33,10 +42,6 @@ from .models import (
     NextOfKinRelationship,
     LongitudinalFollowupEntry
 )
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from django.contrib.auth import get_user_model
-import logging
-from registry.patients.models import ConsentValue
 
 logger = logging.getLogger(__name__)
 
@@ -564,10 +569,69 @@ class LongitudinalFollowupEntryAdmin(admin.ModelAdmin):
     actions = ("delete_selected", )
 
 
+class UnlinkedPatientFilter(admin.SimpleListFilter):
+    title = _("User Link Status")
+    parameter_name = "linked"
+
+    def lookups(self, request, model_admin):
+        return [('Y', _('Linked')),
+                ('N', _('Not linked'))]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'Y':
+            return queryset.filter(user__isnull=False)
+        elif self.value() == 'N':
+            return queryset.filter(user__isnull=True)
+        else:
+            return queryset
+
+
+class PatientUserAdmin(admin.ModelAdmin):
+    # List page
+    list_display_links = ('patient_user',)
+    list_filter = [UnlinkedPatientFilter]
+    search_fields = ['family_name', 'given_names', 'email']
+
+    # Change page
+    form = PatientUserForm
+    fields = ['patient', 'user']
+    readonly_fields = ['patient']
+    autocomplete_fields = ['user']
+
+    def patient(self, patient_model):
+        patient_attrs = [f'ID: {patient_model.id}']
+
+        if patient_model.guid:
+            patient_attrs.append(f'GUID: {patient_model.guid}')
+
+        return f'{patient_model.display_name} ({", ".join(patient_attrs)})'
+
+    def get_list_display(self, request):
+        supports_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in request.user.get_registries_or_all())
+
+        return [prop for prop in ['id',
+                                  'display_name',
+                                  'guid' if supports_guid else None,
+                                  'date_of_birth',
+                                  'sex',
+                                  'patient_user'] if prop]
+
+    def patient_user(self, patient_model):
+        user = patient_model.user
+        if user:
+            return user.email
+        else:
+            return _('Not linked')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 # Use Proxy Model for Archived Patient as we can only register one model class once and the name
 # comes from the model
-
-
 def create_proxy_class(base_model, new_name):
     # Adapted from
     # http://stackoverflow.com/questions/2223375/multiple-modeladmins-views-for-same-model-in-django-admin
@@ -591,5 +655,6 @@ admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
 admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
 admin.site.register(LongitudinalFollowupEntry, LongitudinalFollowupEntryAdmin)
+admin.site.register(create_proxy_class(Patient, "PatientUser"), PatientUserAdmin)
 
 admin.site.disable_action('delete_selected')

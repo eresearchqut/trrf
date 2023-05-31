@@ -655,6 +655,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/api/v1/registries/(?P<registry_code>\w+)/patients/$',  # Authentication implemented in class
     r'/unsubscribe_all/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$',
     r'/unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$',
+    r'/activate_email_request/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$',
 )
 if DEBUG:
     STRONGHOLD_PUBLIC_URLS += (r"^%s.+$" % STATIC_URL, r'/mail/(outbox|send_longitudinal_followups)')
