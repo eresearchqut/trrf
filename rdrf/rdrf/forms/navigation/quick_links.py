@@ -6,8 +6,9 @@ from operator import attrgetter
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.urls.exceptions import NoReverseMatch
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -34,6 +35,7 @@ class LinkDefs:
     ArchivedPatients = make_link("admin:patients_archivedpatient_changelist", _("Archived Patients"))
     PatientStages = make_link("admin:patients_patientstage_changelist", _("Patient Stages"))
     PatientStageRules = make_link("admin:patients_patientstagerule_changelist", _("Patient Stages Rules"))
+    PatientUser = QuickLink(f'{reverse("admin:patients_patientuser_changelist")}?{urlencode({"linked": "N"})}', _("Patient Users"))
     Reports = make_link("report:reports_list", _("Reports"))
     Users = make_link("admin:groups_customuser_changelist", _('Users'))
     WorkingGroups = make_link("admin:groups_workinggroup_changelist", _("Working Groups"))
@@ -109,6 +111,9 @@ class Links:
     # When enabled, doctors links
     ENABLED_DOCTORS = make_entries(LinkDefs.Doctors)
 
+    # When enabled, patient user links
+    ENABLED_PATIENT_USER = make_entries(LinkDefs.PatientUser)
+
     # When enabled, registration links
     ENABLED_REGISTRATION = make_entries(
         LinkDefs.ParentGuardian,
@@ -132,6 +137,7 @@ class Links:
     # Populated at runtime
     PATIENTS = {}
     PARENT_PATIENTS = {}
+    PATIENT_USER = {}
     CONSENT = {}
     DOCTORS = {}
     FAMILY_LINKAGE = {}
@@ -233,6 +239,10 @@ class MenuConfig:
                         url, registry.code))
         return rval
 
+    def patient_user_links(self):
+        if any(r.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS) for r in self.registries):
+            Links.PATIENT_USER = Links.ENABLED_PATIENT_USER
+
     def registration_links(self):
         if any(registry.registration_allowed() for registry in self.registries):
             Links.REGISTRATION = Links.ENABLED_REGISTRATION
@@ -284,6 +294,7 @@ class MenuConfig:
         # enable dynamic links and build the menu
         self.patient_links()
         self.parent_patient_links()
+        self.patient_user_links()
         self.consent_links()
         self.doctors_link()
         self.family_linkage_links()
@@ -337,6 +348,7 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.AUDITING,
             **RegularLinks.CONSENT,
             **RegularLinks.PATIENTS,
+            **RegularLinks.PATIENT_USER,
             **RegularLinks.DOCTORS,
             **RegularLinks.EMAIL,
             **RegularLinks.FAMILY_LINKAGE,
