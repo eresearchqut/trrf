@@ -71,6 +71,7 @@ class WorkingGroup(models.Model):
 
     class Meta:
         ordering = ["registry__code", "type__name", "name"]
+        unique_together = ['registry', 'name']
 
     def __str__(self):
         if self.registry:

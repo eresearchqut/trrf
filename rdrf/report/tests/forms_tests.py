@@ -156,8 +156,8 @@ class ReportDesignFormTestCase(TestCase):
 
     def test_clean_filter_working_groups(self):
         wg1 = WorkingGroup.objects.create(id=1, registry=self.reg1)
-        wg2 = WorkingGroup.objects.create(id=2, registry=self.reg2)
-        wg3 = WorkingGroup.objects.create(id=3, registry=self.reg2)
+        wg2 = WorkingGroup.objects.create(id=2, registry=self.reg2, name='A')
+        wg3 = WorkingGroup.objects.create(id=3, registry=self.reg2, name='B')
 
         form1 = ReportDesignerForm(data=(dict(self.required_attrs,
                                               **{"filter_working_groups": ['{"registry": "reg1", "wg": 1}', '{"registry": "reg2", "wg": 2}']})))
@@ -211,10 +211,10 @@ class ReportDesignFormTestCase(TestCase):
         reg_mnd = Registry.objects.create(code='mnd')
         reg_ang = Registry.objects.create(code='ang')
 
-        wg1_ang = WorkingGroup.objects.create(registry=reg_ang)
-        wg2_ang = WorkingGroup.objects.create(registry=reg_ang)
-        wg1_mnd = WorkingGroup.objects.create(registry=reg_mnd)
-        wg2_mnd = WorkingGroup.objects.create(registry=reg_mnd)
+        wg1_ang = WorkingGroup.objects.create(registry=reg_ang, name='A')
+        wg2_ang = WorkingGroup.objects.create(registry=reg_ang, name='B')
+        wg1_mnd = WorkingGroup.objects.create(registry=reg_mnd, name='A')
+        wg2_mnd = WorkingGroup.objects.create(registry=reg_mnd, name='B')
 
         cs1 = ConsentSection.objects.create(registry=reg_ang, section_label="Section 1", code="S1")
         cs2 = ConsentSection.objects.create(registry=reg_ang, section_label="Section 2", code="S2")
