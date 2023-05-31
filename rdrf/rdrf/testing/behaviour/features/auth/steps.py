@@ -101,9 +101,14 @@ def login(_step, username, password):
                             .submit()
 
 
+@step('logout')
+def logout(_step):
+    open_option_from_menu(_step, 'Logout', 'user')
+
+
 @step('reauthenticate with username "([^"]+)" and password "([^"]+)"')
 def reauthenticate(_step, username, password):
-    open_option_from_menu(_step, 'Logout', 'user')
+    logout(_step)
     login(_step, username, password)
 
 

@@ -1,5 +1,6 @@
 SECURITY_WHITELISTED_URLS = (
     "action",
+    "activate_email_request",
     "admin:app_list",
     "admin:auth_group_add",
     "admin:auth_group_autocomplete",
@@ -329,6 +330,7 @@ SECURITY_WHITELISTED_URLS = (
     "email_preferences",
     "embedded_registration_complete",
     "embedded_registration_register",
+    "email_address_change",
     "family_linkage",
     "favicon",
     "file_upload",

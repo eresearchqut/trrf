@@ -28,6 +28,9 @@ class BasePage:
     def get_user_menu_text(self):
         return self._get_element(self.SITE_MENU.get('user')).text
 
+    def get_page_error(self):
+        return self._get_element((By.XPATH, '//div[@class="alert alert-danger"][1]')).text
+
 
 class LoginPage(BasePage):
     USERNAME_ELEMENT = (By.ID, 'id_auth-username')
@@ -124,6 +127,44 @@ class MailOutboxPage(BasePage):
 
     def is_displayed(self):
         return self.browser.find_element(*self.PAGE_TITLE).text == "Mail Outbox"
+
+
+class ChangeEmailAddressPage(BasePage):
+
+    CURRENT_EMAIL = (By.ID, 'id_current_email')
+    NEW_EMAIL = (By.ID, 'id_new_email')
+    CONFIRM_NEW_EMAIL = (By.ID, 'id_new_email2')
+    CURRENT_PASSWORD = (By.ID, 'id_current_password')
+    SUBMIT_BTN = (By.XPATH, '//button[text()="Initiate change of email address"]')
+
+    CURRENT_REQUEST = (By.ID, 'id_current_request')
+
+    def get_current_request(self):
+        current_request = self._get_element(self.CURRENT_REQUEST)
+
+        return {
+            'email': current_request.find_element(By.ID, 'id_current_request_email').text,
+            'date': current_request.find_element(By.ID, 'id_current_request_date').text,
+            'status': current_request.find_element(By.ID, 'id_current_request_status').text
+        }
+
+    def get_current_email(self):
+        return self._get_element(self.CURRENT_EMAIL).text
+
+    def set_new_email(self, new_email):
+        self._set_element(self.NEW_EMAIL, new_email)
+        return self
+
+    def set_confirm_new_email(self, confirm_email):
+        self._set_element(self.CONFIRM_NEW_EMAIL, confirm_email)
+        return self
+
+    def set_current_password(self, current_password):
+        self._set_element(self.CURRENT_PASSWORD, current_password)
+        return self
+
+    def submit(self):
+        self._get_element(self.SUBMIT_BTN).click()
 
 
 def get_site_links(site_url, registry_code):

@@ -8,11 +8,11 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 logger = logging.getLogger(__name__)
 
 
-def check_token(username_b64, token):
+def check_token(username_b64, token, max_token_age):
+    assert max_token_age, 'Max token age is required'
     try:
         username = force_str(urlsafe_base64_decode(username_b64))
         key = f'{username}:{token}'
-        max_token_age = 60 * 60 * 24 * 30  # 30 days
         TimestampSigner().unsign(key, max_age=max_token_age)
     except (BadSignature, SignatureExpired):
         return False, username
