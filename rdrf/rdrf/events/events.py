@@ -8,9 +8,9 @@ class EventType:
     PASSWORD_EXPIRY_WARNING = "password-expiry-warning"
     REMINDER = "reminder"
     CLINICIAN_SELECTED = "clinician-selected"  # existing clinician selected by patient as their clinician
-    CLINICIAN_SIGNUP_REQUEST = "clinician-signup-request"  # clinican email to sign up
-    CLINICIAN_ACTIVATION = "clinician-activation"  # clinican email to confirm registration
-    PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"  # participant ( parent) notified when clinician verifies
+    CLINICIAN_SIGNUP_REQUEST = "clinician-signup-request"  # clinician email to sign up
+    CLINICIAN_ACTIVATION = "clinician-activation"  # clinician email to confirm registration
+    PARTICIPANT_CLINICIAN_NOTIFICATION = "participant-clinician-notification"  # participant (parent) notified when clinician verifies
     PATIENT_CONSENT_CHANGE = "patient-consent-change"   # clinician is notified of a patient changing consent values
     NEW_CARER = "new-carer"
     CARER_INVITED = "carer-invited"
@@ -22,6 +22,8 @@ class EventType:
     CLINICIAN_UNASSIGNED = "clinician-unassigned"
     FILE_UPLOADED = "file-uploaded"
     LONGITUDINAL_FOLLOWUP = "longitudinal-followup"
+    EMAIL_CHANGE_REQUEST = "email-change-request"
+    EMAIL_CHANGE_COMPLETE = "email-change-complete"
 
     REGISTRATION_TYPES = [NEW_PATIENT_USER_REGISTERED, NEW_PATIENT_PARENT]
     CARER_REGISTRATION_TYPES = [NEW_CARER, CARER_INVITED]

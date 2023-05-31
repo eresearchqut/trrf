@@ -439,16 +439,12 @@ class Patient(models.Model):
 
     @property
     def patient_info(self):
-        supports_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in self.rdrf_registry.all())
-        patient_guid = None
-        if supports_guid and hasattr(self, 'patientguid'):
-            patient_guid = self.patientguid.guid
         return {
             'dob': self.date_of_birth.strftime("%Y-%m-%d"),
             'gender': dict(self.SEX_CHOICES).get(self.sex),
             'ancestry': self.ethnic_origin,
             'age': self.age,
-            'guid': patient_guid,
+            'guid': self.guid,
         }
 
     @property
@@ -481,6 +477,12 @@ class Patient(models.Model):
     @property
     def display_age(self):
         return f'{self.age} {_("years")}'
+
+    @property
+    def guid(self):
+        supports_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in self.rdrf_registry.all())
+        if supports_guid and hasattr(self, 'patientguid'):
+            return self.patientguid.guid
 
     def has_feature(self, feature):
         return any([r.has_feature(feature) for r in self.rdrf_registry.all()])

@@ -40,7 +40,9 @@ Use UserPassesTestMixin to block requests on dispatch that don't match condition
 
 - **SuperuserRequiredMixin**
 - **StaffMemberRequiredMixin**
-- **ReportAccessMixin**
+
+Other mixins:
+- **TokenAuthenticatedMixin**
 
 Django
 ----------

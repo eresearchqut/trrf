@@ -142,9 +142,11 @@ $(function () {
 {% block content %}
   <div id="content-main">
     {% url cl.opts|admin_urlname:'add' as add_url %}
-    <a href="{% add_preserved_filters add_url is_popup %}" class="d-none btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
-      <span class="fa fa-plus" aria-hidden="true"></span> Add
-    </a>
+    {% if has_add_permission %}
+      <a href="{% add_preserved_filters add_url is_popup %}" class="d-none btn btn-success btn-xs float-end" style="margin-left: 5px;" id="add_button">
+        <span class="fa fa-plus" aria-hidden="true"></span> Add
+      </a>
+    {% endif %}
     <div class="row">
         <div class="col-md-12">
             <p><h3><span class="fa fa-list-alt" aria-hidden="true"></span> {% blocktrans with cl.opts.verbose_name_plural|title as name %}{{ name }}{% endblocktrans %}</h3></p>

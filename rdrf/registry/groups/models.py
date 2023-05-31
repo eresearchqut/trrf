@@ -13,6 +13,7 @@ from django.db import models
 from django.dispatch import receiver
 
 from registration.signals import user_activated
+from simple_history.models import HistoricalRecords
 
 from rdrf.helpers.utils import consent_check
 from rdrf.models.definition.models import Registry, RegistryDashboard
@@ -256,6 +257,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         return reverse('patientslisting')
 
+    @property
+    def patient(self):
+        if self.is_patient:
+            return self.user_object.first()
+
     def get_groups(self):
         return self.groups.all()
 
@@ -402,3 +408,28 @@ def user_activated_callback(sender, user, request, **kwargs):
         process_notification(registry_code,
                              email_notification_description,
                              template_data)
+
+
+class EmailChangeRequestStatus:
+    PENDING = 'Pending'
+    COMPLETED = 'Completed'
+
+    CHOICES = (
+        (PENDING, _(PENDING)),
+        (COMPLETED, _(COMPLETED)),
+    )
+
+
+class EmailChangeRequest(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    current_username = models.CharField(max_length=254)
+    current_user_email = models.EmailField(_('current email address'), max_length=254)
+    current_patient_email = models.EmailField(_('current email address'), max_length=254, null=True)
+    new_email = models.EmailField(_('new email address'), max_length=254)
+    request_date = models.DateTimeField(auto_now_add=True, null=True)
+    status = models.CharField(
+        choices=EmailChangeRequestStatus.CHOICES,
+        max_length=80,
+        default=EmailChangeRequestStatus.PENDING)
+
+    history = HistoricalRecords()

@@ -1,13 +1,23 @@
 import base64
 import binascii
-from itertools import chain
 import json
 import logging
+from itertools import chain
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
+from django.utils.translation import gettext as _
 
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.forms.dynamic.fields import FileTypeRestrictedFileField
+from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
+from registry.groups import GROUPS
+from registry.groups.forms import working_group_optgroup_choices
+from registry.groups.models import CustomUser, WorkingGroup
+from registry.patients.patient_widgets import PatientRelativeLinkWidget
 from .models import (
     Patient,
     PatientAddress,
@@ -20,16 +30,6 @@ from .models import (
     PatientSignature,
     PatientStageRule
 )
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
-from rdrf.forms.dynamic.fields import FileTypeRestrictedFileField
-from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
-from rdrf.helpers.registry_features import RegistryFeatures
-from registry.groups.models import CustomUser, WorkingGroup
-from registry.patients.patient_widgets import PatientRelativeLinkWidget
-from django.utils.translation import gettext as _
-
-from registry.groups.forms import working_group_optgroup_choices
 
 logger = logging.getLogger(__name__)
 
@@ -722,3 +722,39 @@ class ParentGuardianForm(forms.ModelForm):
         exclude = ['user', 'patient', 'place_of_birth', 'date_of_migration']
 
         widgets = {'state': StateWidget(), 'country': CountryWidget()}
+
+
+class PatientUserForm(forms.ModelForm):
+
+    def clean_user(self):
+        user = self.cleaned_data.get('user')
+
+        if user:
+            # Check if any other patient is linked to this user
+            user_patients = Patient.objects.filter(user=user).exclude(id=self.instance.id)
+            if user_patients:
+                raise ValidationError(_('User is already linked to another patient') + f' ({user_patients.first().display_name})')
+
+            # Check the user is a patient
+            if not user.in_group(GROUPS.PATIENT):
+                raise ValidationError(_('User must be a member of the Patient group'))
+
+            # Check the user is a member of all the registries the patient is
+            user_registries = set(user.registry.all())
+            patient_registries = set(self.instance.rdrf_registry.all())
+
+            missing_registries = patient_registries.difference(user_registries)
+            extra_registries = user_registries.difference(patient_registries)
+
+            if missing_registries or extra_registries:
+                registry_diff_error = _('User must belong to the same registries as the patient.')
+
+                if missing_registries:
+                    registry_diff_error += ' ' + _("User's missing registries") + ': ' + f'{", ".join(r.name for r in missing_registries)}.'
+
+                if extra_registries:
+                    registry_diff_error += ' ' + _("User's extra registries") + ': ' + f'{", ".join(r.name for r in extra_registries)}.'
+
+                raise ValidationError(registry_diff_error)
+
+        return user

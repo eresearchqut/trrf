@@ -83,22 +83,24 @@
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="authMenuDropdown" role="menu">
                     {% if request.user.is_superuser %}
-                        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-wrench"></span>
+                        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><span class="fa fa-fw fa-wrench"></span>
                             {% trans 'Admin Page' %}</a></li>
                         <li><hr class="dropdown-divider"></li>
                     {% endif %}
                     {% if request.user.is_parent and registry_code and parent %}
                         <li><a class="dropdown-item" href="{% url 'registry:parent_edit' registry_code parent.id %}"><span
-                                class="fa fa-wrench"></span>
+                                class="fa fa-fw fa-wrench"></span>
                             {% trans 'Account' %}</a></li>
                     {% endif %}
-                    <li><a class="dropdown-item" href="{% url 'password_change' %}"><span class="fa fa-random"></span>
+                    <li><a class="dropdown-item" href="{% url 'email_address_change' %}"><span class="fa fa-fw fa-envelope"></span>
+                        {% trans 'Change Email Address' %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'password_change' %}"><span class="fa fa-fw fa-lock"></span>
                         {% trans 'Change Password' %}</a></li>
                     {% if user.is_verified %}
-                        <li><a class="dropdown-item" href="{% url 'two_factor:disable' %}"><span class="fa fa-times"></span>
+                        <li><a class="dropdown-item" href="{% url 'two_factor:disable' %}"><span class="fa fa-fw fa-times"></span>
                             {% trans "Disable two-factor auth" %}</a></li>
                     {% else %}
-                        <li><a class="dropdown-item" href="{% url 'two_factor:setup' %}"><span class="fa fa-check"></span>
+                        <li><a class="dropdown-item" href="{% url 'two_factor:setup' %}"><span class="fa fa-fw fa-check"></span>
                             {% trans "Enable two-factor auth" %}</a></li>
                     {% endif %}
                     <li><a class="dropdown-item" href="{% url 'email_preferences' %}"><span class="fa fa-envelope-o"></span>
@@ -106,14 +108,14 @@
                     {% block patient_menu %}
                     {% endblock %}
                     <li><a class="dropdown-item" href="{% url 'logout' %}?next={% url 'login_router' %}"><span
-                            class="fa fa-sign-out"></span>
+                            class="fa fa-fw fa-sign-out"></span>
                         {% trans 'Logout' %}</a></li>
 
                 </ul>
             </li>
         {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'two_factor:login' %}?next={% url 'login_router' %}"><span
-                    class="fa fa-sign-in"></span>
+                    class="fa fa-fw fa-sign-in"></span>
                 {% trans 'Log in' %}</a></li>
         {% endif %}
     </ul>
