@@ -42,14 +42,14 @@ class GroupModelTest(TestCase):
     def test_get_by_user_for_super_user(self):
         self.assertEqual(self._list_working_groups(self.user_superuser),
                          [self.wg_arrythmia,
-                          self.wg_cardiology,
                           self.wg_coronary,
+                          self.wg_stroke,
                           self.wg_greenslopes,
                           self.wg_mater,
+                          self.wg_royal,
+                          self.wg_cardiology,
                           self.wg_neurology,
                           self.wg_outpatients,
-                          self.wg_royal,
-                          self.wg_stroke,
                           self.wg_teaching,
                           self.wg_unassigned])
 
@@ -74,8 +74,8 @@ class GroupModelTest(TestCase):
         rule_condition_clinician.save()
         self.assertEqual(self._list_working_groups(self.user_clinician), [self.wg_arrythmia,
                                                                           self.wg_coronary,
-                                                                          self.wg_royal,
                                                                           self.wg_stroke,
+                                                                          self.wg_royal,
                                                                           self.wg_teaching])
         self.assertEqual(self._list_working_groups(self.user_researcher), [self.wg_arrythmia, self.wg_stroke])
 
@@ -83,27 +83,27 @@ class GroupModelTest(TestCase):
         WorkingGroupTypeRule.objects.create(type=self.type_facility, user_group=self.group_research, has_default_access=True)
         self.assertEqual(self._list_working_groups(self.user_clinician), [self.wg_arrythmia,
                                                                           self.wg_coronary,
-                                                                          self.wg_royal,
                                                                           self.wg_stroke,
+                                                                          self.wg_royal,
                                                                           self.wg_teaching])
         self.assertEqual(self._list_working_groups(self.user_researcher), [self.wg_arrythmia,
+                                                                           self.wg_stroke,
                                                                            self.wg_greenslopes,
                                                                            self.wg_mater,
-                                                                           self.wg_royal,
-                                                                           self.wg_stroke])
+                                                                           self.wg_royal])
 
         # Turn on a second default access rule for researcher's to access all units
         WorkingGroupTypeRule.objects.create(type=self.type_unit, user_group=self.group_research, has_default_access=True)
         self.assertEqual(self._list_working_groups(self.user_clinician), [self.wg_arrythmia,
                                                                           self.wg_coronary,
-                                                                          self.wg_royal,
                                                                           self.wg_stroke,
+                                                                          self.wg_royal,
                                                                           self.wg_teaching])
         self.assertEqual(self._list_working_groups(self.user_researcher), [self.wg_arrythmia,
-                                                                           self.wg_cardiology,
+                                                                           self.wg_stroke,
                                                                            self.wg_greenslopes,
                                                                            self.wg_mater,
-                                                                           self.wg_neurology,
-                                                                           self.wg_outpatients,
                                                                            self.wg_royal,
-                                                                           self.wg_stroke])
+                                                                           self.wg_cardiology,
+                                                                           self.wg_neurology,
+                                                                           self.wg_outpatients])

@@ -70,7 +70,7 @@ class WorkingGroup(models.Model):
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
     class Meta:
-        ordering = ["registry__code", "name"]
+        ordering = ["registry__code", "type__name", "name"]
 
     def __str__(self):
         if self.registry:
