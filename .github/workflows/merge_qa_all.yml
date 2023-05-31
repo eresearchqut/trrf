@@ -1,0 +1,17 @@
+name: Merge QA All
+on:
+  workflow_dispatch:
+jobs:
+  merge_qa:
+    name: Merge into QA
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        registry: [ 'angelman', 'arrk', 'mnd' ]
+    steps:
+      - name: Send repository_dispatch event
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.QUT_SERVICE_ACCOUNT_TOKEN }}
+          repository: "eresearchqut/${{ matrix.registry }}"
+          event-type: merge_qa

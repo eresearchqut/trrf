@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template import Context, Engine, Template
 from django.template.loader import get_template
 
@@ -52,7 +52,6 @@ class RdrfEmail(object):
         success = False
         try:
             notification_record_saved = []
-            headers = {}
             recipients = self._get_recipients()
             if len(recipients) == 0:
                 # If the recipient template does not evaluate to a valid email address this will be
@@ -69,17 +68,14 @@ class RdrfEmail(object):
 
                 email_subject, email_body = self._get_email_subject_and_body(language)
 
-                unsubscribe_footer, unsubscribe_headers = self._get_unsubscribe_footer(recipient)
-                if unsubscribe_footer:
-                    headers.update(unsubscribe_headers)
+                if unsubscribe_footer := self._get_unsubscribe_footer(recipient):
                     email_body += unsubscribe_footer
 
                 self._send_mail(email_subject,
                                 email_body,
                                 sender_address,
                                 [recipient],
-                                html_message=email_body,
-                                headers=headers)
+                                html_message=email_body)
 
                 if language not in notification_record_saved:
                     self._save_notification_record(language)
@@ -125,7 +121,7 @@ class RdrfEmail(object):
         return True
 
     def _get_recipients(self):
-        recipients = []
+        recipients = self.recipients or []
         if self.email_notification.recipient:
             recipient = self._get_recipient_template(self.email_notification.recipient)
             recipients.append(recipient)
@@ -182,13 +178,12 @@ class RdrfEmail(object):
                                                'email_preferences_url': make_full_url(email_preferences_url)})
                 template_footer = get_template('email_preference/_email_footer.html')
                 template_footer = template_footer.render(unsubscribe_context.flatten())
-                headers = {'List-Unsubscribe': full_unsubscribe_url}
-                return template_footer, headers
+                return template_footer
         except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
             pass
 
         # This email does not require an unsubscribe footer
-        return None, None
+        return None
 
     def _get_email_notification(self):
         try:
@@ -238,18 +233,20 @@ class RdrfEmail(object):
         return self
 
 
-def process_given_notification(notification, template_data={}):
+def process_given_notification(notification, template_data=None, additional_recipients=None):
     if notification.disabled:
         logger.warning("Email %s disabled" % notification)
         return False
     else:
         logger.info("Sending email %s" % notification)
         email = RdrfEmail(email_notification=notification)
-        email.template_data = template_data
+        email.recipients = additional_recipients
+        email.template_data = template_data or {}
         return email.send()
 
 
-def process_notification(reg_code=None, description=None, template_data={}):
+def process_notification(reg_code=None, description=None, template_data=None, additional_recipients=None):
+    template_data = template_data or {}
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
     has_disabled = False
     sent_successfully = True
@@ -258,6 +255,25 @@ def process_notification(reg_code=None, description=None, template_data={}):
             logger.warning("Email %s disabled" % note)
             has_disabled = True
             continue
-        send_result = process_given_notification(note, template_data)
+        send_result = process_given_notification(note, template_data, additional_recipients)
         sent_successfully = sent_successfully and send_result
     return sent_successfully, has_disabled
+
+
+def process_notification_with_default(reg_code=None, description=None, template_data=None, default_template=None, default_subject=None, default_recipient=None):
+    template_data = template_data or {}
+    notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
+
+    if notes:
+        return process_notification(reg_code, description, template_data, default_recipient)
+    elif default_template:
+        logger.debug('Registry notification not found, using default template')
+        email_body = default_template.render(Context(template_data).flatten())
+
+        send_mail(subject=default_subject,
+                  message=email_body,
+                  from_email=settings.DEFAULT_FROM_EMAIL,
+                  recipient_list=default_recipient,
+                  html_message=email_body)
+
+        return True, False  # has sent successfully, wasn't disabled.
