@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from django.core.management.base import BaseCommand, CommandError
-from rdrf.models.definition.models import LongitudinalFollowup, Registry, RDRFContext, ClinicalData
-from registry.patients.models import Patient, LongitudinalFollowupEntry, LongitudinalFollowupQueueState
+from rdrf.models.definition.models import LongitudinalFollowup, Registry, RDRFContext, ClinicalData, ConsentQuestion
+from registry.patients.models import Patient, LongitudinalFollowupEntry, LongitudinalFollowupQueueState, LivingStates
 
 
 class Command(BaseCommand):
@@ -14,6 +14,8 @@ class Command(BaseCommand):
         parser.add_argument("--limit", type=int, default=None)
         parser.add_argument("--allow-duplicates", action="store_true")
         parser.add_argument("--check-for-form-response", action="store_true")
+        parser.add_argument("--require-consents", type=str, nargs="+", default=[])
+        parser.add_argument("--require-living", action="store_true")
 
     def handle(self, *args, **options):
         registry_code = options["registry_code"]
@@ -21,14 +23,19 @@ class Command(BaseCommand):
         limit = options["limit"]
         allow_duplicates = options["allow_duplicates"]
         check_for_form_response = options["check_for_form_response"]
+        require_consents = options["require_consents"]
+        require_living = options["require_living"]
 
         try:
             registry = Registry.objects.get(code=registry_code)
             longitudinal_followup = LongitudinalFollowup.objects.get(name=longitudinal_followup_name)
+            consent_questions = [ConsentQuestion.objects.get(code=code) for code in require_consents]
         except Registry.DoesNotExist:
             raise CommandError(f"Registry {registry_code} does not exist")
         except LongitudinalFollowup.DoesNotExist:
             raise CommandError(f"LongitudinalFollowup {longitudinal_followup_name} does not exist")
+        except ConsentQuestion.DoesNotExist:
+            raise CommandError(f"ConsentQuestion does not exist")
 
         pending_entries = LongitudinalFollowupEntry.objects.filter(
             longitudinal_followup=longitudinal_followup,
@@ -53,6 +60,15 @@ class Command(BaseCommand):
                 context_response = ClinicalData.objects.filter(django_id=patient, context_id=context).exists()
 
                 if not context_response:
+                    return False
+
+            if require_consents:
+                for consent in consent_questions:
+                    if not patient.get_consent(consent):
+                        return False
+
+            if require_living:
+                if patient.living_status != LivingStates.ALIVE:
                     return False
 
             return True
