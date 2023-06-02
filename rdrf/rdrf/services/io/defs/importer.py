@@ -916,9 +916,10 @@ class Importer(object):
             existing_rules = set(type_model.rules.all())
             imported_rules = set()
             for rule_dict in type_dict.get('rules', []):
+                rule_user_group, _ = Group.objects.get_or_create(name=rule_dict.get('user_group'))
                 rule_model, _ = WorkingGroupTypeRule.objects.update_or_create(
                     type=type_model,
-                    user_group=Group.objects.get(name__iexact=rule_dict.get('user_group')),
+                    user_group=rule_user_group,
                     defaults={'has_default_access': rule_dict.get('has_default_access')}
                 )
                 imported_rules.add(rule_model)
