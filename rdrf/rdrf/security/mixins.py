@@ -38,6 +38,6 @@ class TokenAuthenticatedMixin(AccessMixin):
             self.user = get_object_or_404(CustomUser, username=username, is_active=True)
 
             if not self.is_valid_token:
-                raise Exception('Invalid token')
+                return self.handle_no_permission()
 
         return super().dispatch(request, *args, **kwargs)
