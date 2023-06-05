@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from rdrf.auth.signed_url.util import make_token, make_token_authenticated_link
 from rdrf.events.events import EventType
 from rdrf.helpers.utils import make_full_url
-from rdrf.services.io.notifications.email_notification import process_notification_with_default
+from rdrf.services.io.notifications.email_notification import process_notification
 from registry.groups.models import EmailChangeRequest, EmailChangeRequestStatus
 from registry.patients.models import Patient
 
@@ -44,29 +44,31 @@ def send_email_change_request_notification(user):
                                                              username=user.username,
                                                              token=token)
     activation_link = make_full_url(token_authenticated_link)
+    email_recipient = {user.emailchangerequest.new_email: user.preferred_language}
 
-    process_notification_with_default(reg_code=user.registry_code,
-                                      description=EventType.EMAIL_CHANGE_REQUEST,
-                                      template_data={'user': user,
-                                                     'activation_link': activation_link,
-                                                     'expiration_hours': EMAIL_CHANGE_REQUEST_EXPIRY_HOURS,
-                                                     'user_full_name': user.get_full_name()},
-                                      default_template=email_template,
-                                      default_subject=_('New Email Address Activation'),
-                                      default_recipient=[user.emailchangerequest.new_email])
+    process_notification(reg_code=user.registry_code,
+                         description=EventType.EMAIL_CHANGE_REQUEST,
+                         template_data={'user': user,
+                                        'activation_link': activation_link,
+                                        'expiration_hours': EMAIL_CHANGE_REQUEST_EXPIRY_HOURS,
+                                        'user_full_name': user.get_full_name()},
+                         default_template=email_template,
+                         default_subject=_('New Email Address Activation'),
+                         mandatory_recipients=email_recipient)
 
 
 def send_email_change_request_completed_notification(user, user_previous_email):
     email_template = get_template('registration/email_reset_completed.html')
+    email_recipient = {user_previous_email: user.preferred_language}
 
-    process_notification_with_default(reg_code=user.registry_code,
-                                      description=EventType.EMAIL_CHANGE_COMPLETE,
-                                      template_data={'user': user,
-                                                     'user_full_name': user.get_full_name(),
-                                                     'registry': user.my_registry.name},
-                                      default_template=email_template,
-                                      default_subject=_('Change of Email Completed'),
-                                      default_recipient=[user_previous_email])
+    process_notification(reg_code=user.registry_code,
+                         description=EventType.EMAIL_CHANGE_COMPLETE,
+                         template_data={'user': user,
+                                        'user_full_name': user.get_full_name(),
+                                        'registry': user.my_registry.name},
+                         default_template=email_template,
+                         default_subject=_('Change of Email Completed'),
+                         mandatory_recipients=email_recipient)
 
 
 def sync_user_email_update(user, new_email_address):

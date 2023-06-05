@@ -25,7 +25,7 @@ class RdrfEmail(object):
 
     def __init__(self, reg_code=None, description=None, email_notification=None, language=None):
         self.email_from = None
-        self.recipients = []
+        self.recipient_dict = {}  # Dict of email addresses with preferred language
         self.email_templates = []
         self.template_data = {}
 
@@ -99,10 +99,8 @@ class RdrfEmail(object):
         try:
             user_model = self._get_user_from_email(email_address)
             return user_model.preferred_language
-        except CustomUser.DoesNotExist:
-            return pref_lang()
-        except CustomUser.MultipleObjectsReturned:
-            return pref_lang()
+        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
+            return self.recipient_dict.get(email_address, pref_lang())
 
     def _is_allowed_to_email(self, recipient):
         if self.email_notification.subscribable:
@@ -121,7 +119,7 @@ class RdrfEmail(object):
         return True
 
     def _get_recipients(self):
-        recipients = self.recipients or []
+        recipients = list(self.recipient_dict.keys()) or []
         if self.email_notification.recipient:
             recipient = self._get_recipient_template(self.email_notification.recipient)
             recipients.append(recipient)
@@ -233,47 +231,45 @@ class RdrfEmail(object):
         return self
 
 
-def process_given_notification(notification, template_data=None, additional_recipients=None):
+def process_given_notification(notification, template_data=None, mandatory_recipients=None):
     if notification.disabled:
         logger.warning("Email %s disabled" % notification)
         return False
     else:
         logger.info("Sending email %s" % notification)
         email = RdrfEmail(email_notification=notification)
-        email.recipients = additional_recipients
+        email.recipient_dict = mandatory_recipients
         email.template_data = template_data or {}
         return email.send()
 
 
-def process_notification(reg_code=None, description=None, template_data=None, additional_recipients=None):
+def process_raw_email(subject, message_template, message_template_data, recipient_list):
+    email_body = message_template.render(Context(message_template_data).flatten())
+
+    return send_mail(subject=subject,
+                     message=email_body,
+                     from_email=settings.DEFAULT_FROM_EMAIL,
+                     recipient_list=recipient_list,
+                     html_message=email_body)
+
+
+def process_notification(reg_code=None, description=None, template_data=None, mandatory_recipients=None, default_template=None, default_subject=None):
     template_data = template_data or {}
+    mandatory_recipients = mandatory_recipients or {}
     notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
-    has_disabled = False
-    sent_successfully = True
-    for note in notes:
-        if note.disabled:
-            logger.warning("Email %s disabled" % note)
-            has_disabled = True
-            continue
-        send_result = process_given_notification(note, template_data, additional_recipients)
-        sent_successfully = sent_successfully and send_result
-    return sent_successfully, has_disabled
-
-
-def process_notification_with_default(reg_code=None, description=None, template_data=None, default_template=None, default_subject=None, default_recipient=None):
-    template_data = template_data or {}
-    notes = EmailNotification.objects.filter(registry__code=reg_code, description=description)
-
     if notes:
-        return process_notification(reg_code, description, template_data, default_recipient)
+        has_disabled = False
+        sent_successfully = True
+        for note in notes:
+            if note.disabled:
+                logger.warning("Email %s disabled" % note)
+                has_disabled = True
+                continue
+            send_result = process_given_notification(note, template_data, mandatory_recipients)
+            sent_successfully = sent_successfully and send_result
+        return sent_successfully, has_disabled
     elif default_template:
         logger.debug('Registry notification not found, using default template')
-        email_body = default_template.render(Context(template_data).flatten())
-
-        send_mail(subject=default_subject,
-                  message=email_body,
-                  from_email=settings.DEFAULT_FROM_EMAIL,
-                  recipient_list=default_recipient,
-                  html_message=email_body)
-
-        return True, False  # has sent successfully, wasn't disabled.
+        recipient_list = list(mandatory_recipients.keys())
+        num_sent_emails = process_raw_email(default_subject, default_template, template_data, recipient_list)
+        return num_sent_emails > 0, False  # has sent successfully, wasn't disabled.
