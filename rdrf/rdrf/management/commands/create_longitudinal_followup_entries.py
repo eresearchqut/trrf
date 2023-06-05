@@ -29,13 +29,17 @@ class Command(BaseCommand):
         try:
             registry = Registry.objects.get(code=registry_code)
             longitudinal_followup = LongitudinalFollowup.objects.get(name=longitudinal_followup_name)
-            consent_questions = [ConsentQuestion.objects.get(code=code) for code in require_consents]
         except Registry.DoesNotExist:
             raise CommandError(f"Registry {registry_code} does not exist")
         except LongitudinalFollowup.DoesNotExist:
             raise CommandError(f"LongitudinalFollowup {longitudinal_followup_name} does not exist")
-        except ConsentQuestion.DoesNotExist:
-            raise CommandError(f"ConsentQuestion does not exist")
+
+        consent_questions = []
+        for consent_question in require_consents:
+            try:
+                consent_questions.append(ConsentQuestion.objects.get(name=consent_question))
+            except ConsentQuestion.DoesNotExist:
+                raise CommandError(f"ConsentQuestion {consent_question} does not exist")
 
         pending_entries = LongitudinalFollowupEntry.objects.filter(
             longitudinal_followup=longitudinal_followup,
