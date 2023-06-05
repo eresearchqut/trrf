@@ -598,6 +598,11 @@ class PatientUserAdmin(admin.ModelAdmin):
     readonly_fields = ['patient']
     autocomplete_fields = ['user']
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        enabled_registries = [r for r in request.user.get_registries_or_all() if r.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS)]
+        return queryset.filter(rdrf_registry__in=enabled_registries)
+
     def patient(self, patient_model):
         patient_attrs = [f'ID: {patient_model.id}']
 
