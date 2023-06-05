@@ -270,5 +270,6 @@ def process_notification(reg_code=None, description=None, template_data=None, ma
         return sent_successfully, has_disabled
     elif default_template:
         logger.debug('Registry notification not found, using default template')
-        num_sent_emails = process_raw_email(default_subject, default_template, template_data, mandatory_recipients)
+        recipient_list = list(mandatory_recipients.keys())
+        num_sent_emails = process_raw_email(default_subject, default_template, template_data, recipient_list)
         return num_sent_emails > 0, False  # has sent successfully, wasn't disabled.
