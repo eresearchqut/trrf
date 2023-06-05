@@ -156,7 +156,5 @@ class UserChangeForm(UserMixin, forms.ModelForm):
             group_member = rdrf_group.rstrip('s')
             return ValidationError(f"You can't assign this user to the {group_name} group because it isn't associated with a {group_member}")
 
-        if RDRF_GROUPS.PATIENT == group_name.lower() and not self.instance.user_object.exists():
-            return group_error_msg(RDRF_GROUPS.PATIENT)
         if RDRF_GROUPS.PARENT == group_name.lower() and not self.instance.parent_user_object.exists():
             return group_error_msg(RDRF_GROUPS.PARENT)
