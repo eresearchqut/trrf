@@ -11,7 +11,7 @@ from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import LongitudinalFollowup, ContextFormGroupItem, Registry
 from rdrf.services.io.notifications.email_notification import process_notification
-from registry.patients.models import LongitudinalFollowupEntry, LongitudinalFollowupQueueState
+from registry.patients.models import LongitudinalFollowupEntry, LongitudinalFollowupQueueState, ConsentValue
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,30 @@ class ConditionException(Exception):
         return f"ConditionException: {self.original_exception}"
 
 
+def _get_consents(patient):
+    return {
+        f"{registry.code}.{section.code}.{question.code}": (
+            consent_value.answer
+            if (consent_value := ConsentValue.objects.filter(patient=patient, consent_question=question).first())
+            else None
+        )
+        for registry in patient.rdrf_registry.all()
+        for section in registry.consent_sections.all()
+        for question in section.questions.all()
+    }
+
+
 def evaluate_condition(longitudinal_followup_entry):
     if condition := longitudinal_followup_entry.longitudinal_followup.condition:
         try:
-            return eval(condition, {'patient': longitudinal_followup_entry.patient.as_dto()})
+            patient = longitudinal_followup_entry.patient
+            return eval(
+                condition,
+                {
+                    'patient': patient.as_dto(),
+                    'consents': _get_consents(patient),
+                }
+            )
         except Exception as e:
             logger.error(f"Error evaluating condition {condition} for {longitudinal_followup_entry.id=}")
             raise ConditionException(e)
