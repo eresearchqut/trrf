@@ -7,9 +7,9 @@ from django.test import TestCase
 
 from rdrf.events.events import EventType
 from rdrf.models.definition.models import Registry, ContextFormGroup, LongitudinalFollowup, EmailNotification, \
-    EmailTemplate, RegistryForm, ContextFormGroupItem, Section, CommonDataElement
+    EmailTemplate, RegistryForm, ContextFormGroupItem, Section, CommonDataElement, ConsentSection, ConsentQuestion
 from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups, ConditionException
-from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState
+from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState, ConsentValue
 
 logger = logging.getLogger(__name__)
 
@@ -469,9 +469,34 @@ class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin
             condition=condition
         )
 
+        consent_section = ConsentSection.objects.create(
+            code="test",
+            section_label="Test",
+            registry=self.registry,
+        )
+        question1 = ConsentQuestion.objects.create(
+            code="test1",
+            section=consent_section,
+        )
+        question2 = ConsentQuestion.objects.create(
+            code="test2",
+            section=consent_section,
+        )
+
         patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
         patient.rdrf_registry.add(self.registry)
         patient.save()
+
+        ConsentValue.objects.create(
+            patient=patient,
+            consent_question=question1,
+            answer=True
+        )
+        ConsentValue.objects.create(
+            patient=patient,
+            consent_question=question2,
+            answer=False
+        )
 
         LongitudinalFollowupEntry.objects.create(
             longitudinal_followup=longitudinal_followup,
@@ -492,6 +517,18 @@ class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin
         self.create_entry("patient.missing_property")
         with self.assertRaises(ConditionException):
             self.get_emails(0)
+
+    def test_consent_true(self):
+        self.create_entry("consents.get('reg.test.test1') == True")
+        self.get_emails(1)
+
+    def test_consent_false(self):
+        self.create_entry("consents.get('reg.test.test2') == True")
+        self.get_emails(0)
+
+    def test_consent_none(self):
+        self.create_entry("consents.get('reg.test.test3') == True")
+        self.get_emails(0)
 
 
 class LongitudinalFollowupDebounceTest(TestCase, LongitudinalFollowupSetupMixin):
