@@ -1281,6 +1281,10 @@ class CustomConsentFormView(View):
         security_check_user_patient(request.user, patient_model)
 
         registry_model = Registry.objects.get(code=registry_code)
+
+        rdrf_context_manager = RDRFContextManager(registry_model)
+        rdrf_context_manager.get_or_create_default_context(patient_model)
+
         form_sections = self._get_form_sections(request.user, registry_model, patient_model)
         wizard = NavigationWizard(request.user,
                                   registry_model,
