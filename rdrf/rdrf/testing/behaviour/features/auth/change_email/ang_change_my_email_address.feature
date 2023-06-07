@@ -41,6 +41,8 @@ Feature: Change my email address
     # Activate new email
     When I logout
     And  I visit the provided link to activate my account
+    Then I should see "You have recently requested to update your email address"
+    When I press the "Activate this email address" button
     Then I should see "You have successfully activated your account."
 
     # Attempt to log in with old email

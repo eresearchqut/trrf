@@ -1,0 +1,19 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+{% load translate %}
+
+{% block content %}
+  {% include "snippets/_page_heading.html" with page_heading="Activate Email Change Request" %}
+  {% if pending_request %}
+    <p>
+      {% blocktrans trimmed with registry_name=registry.name %}
+        You have recently requested to update your email address for the {{ registry_name }} site.
+      {% endblocktrans %}
+    </p>
+    <p><strong>{% trans "Email Address" %}:</strong> {{ pending_request.new_email }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">{% trans "Activate this email address" %}</button>
+    </form>
+  {% endif %}
+{% endblock %}
