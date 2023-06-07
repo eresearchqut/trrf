@@ -120,6 +120,8 @@ def restore_snapshot(snapshot_name):
 
 
 def load_export(export_name):
+    django_init_cache()
+
     """
     To save time cache the stellar snapshots ( one per export file )
     Create / reset on first use
@@ -131,7 +133,6 @@ def load_export(export_name):
         save_snapshot(export_name)
 
     reset_database_connection()
-    django_init_cache()
     django_init_default_site()
     show_stats(export_name)
 
