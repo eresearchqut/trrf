@@ -74,6 +74,14 @@ class ActivateEmailChangeRequestView(TokenAuthenticatedMixin, View):
     max_age = EMAIL_CHANGE_REQUEST_EXPIRY_SECONDS
 
     def get(self, request, *args, **kwargs):
+        pending_request = EmailChangeRequest.objects.filter(user=self.user, status=EmailChangeRequestStatus.PENDING).first()
+
+        context = {'registry': self.user.my_registry,
+                   'pending_request': pending_request}
+
+        return render(request, 'user/activate_email_change_request.html', context)
+
+    def post(self, request, *args, **kwargs):
         activate_email_change_request(self.user)
         auth.logout(request)  # Force logout, requiring the user to reauthenticate with their new email address
         return redirect(reverse('registration_activation_complete'))
