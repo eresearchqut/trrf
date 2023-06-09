@@ -392,6 +392,8 @@ ALLOWED_HOSTS = env.getlist("allowed_hosts", ["localhost"])
 # see: https://docs.djangoproject.com/en/1.4/ref/settings/#use-x-forwarded-host
 USE_X_FORWARDED_HOST = env.get("use_x_forwarded_host", True)
 
+CACHE_DEFAULT_TIMEOUT = 3600
+
 if env.get("memcache", ""):
     CACHES = {
         'default': {
@@ -407,7 +409,7 @@ else:
         'default': {
             'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
             'LOCATION': 'trrf_django_cache',
-            'TIMEOUT': 3600,
+            'TIMEOUT': CACHE_DEFAULT_TIMEOUT,
             'MAX_ENTRIES': 600
         }
     }

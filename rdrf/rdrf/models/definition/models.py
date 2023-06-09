@@ -865,7 +865,11 @@ class RegistryForm(models.Model):
 @receiver([post_save, post_delete], sender=CommonDataElement)
 def registry_form_definition_changed(sender, instance, **kwargs):
     from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
-    clear_prefetched_form_data_cache()
+    all_forms = list(RegistryForm.objects.all())
+    if isinstance(instance, RegistryForm) and instance not in all_forms:
+        all_forms.append(instance)
+
+    clear_prefetched_form_data_cache(all_forms)
 
 
 class Wizard(models.Model):
