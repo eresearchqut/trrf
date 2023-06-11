@@ -321,7 +321,6 @@ class PatientForm(forms.ModelForm):
             wgs = ', '.join([wg.name for wg in obj.working_groups.all()])
             return f"{title} {full_name} ({wgs})"
 
-        registered_clinicians = CustomUser.objects.all()
         instance = None
 
         if 'registry_model' in kwargs:
@@ -350,19 +349,18 @@ class PatientForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        registered_clinicians_filtered = [c.id for c in registered_clinicians if c.is_clinician]
-        self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(id__in=registered_clinicians_filtered)
-        self.fields["registered_clinicians"].label_from_instance = clinician_display_str
-
-        # registered_clinicians field should only be visible for registries which
-        # support linking of patient to an "owning" clinician
         if self.registry_model:
-            if not self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
+            if self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
+                self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(groups__name__iexact=GROUPS.CLINICAL)
+                self.fields["registered_clinicians"].label_from_instance = clinician_display_str
+
+                if instance and instance.registered_clinicians.exists():
+                    clinician_wgs = set([wg for c in instance.registered_clinicians.all() for wg in c.working_groups.all()])
+                    instance.working_groups.add(*clinician_wgs)
+                    instance.wgs_set_by_clinicians = True
+            else:
                 self.fields["registered_clinicians"].widget = forms.HiddenInput()
-            elif instance and instance.registered_clinicians.exists():
-                clinician_wgs = set([wg for c in instance.registered_clinicians.all() for wg in c.working_groups.all()])
-                instance.working_groups.add(*clinician_wgs)
-                instance.wgs_set_by_clinicians = True
+
             if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                 self.fields["email"].required = True
 
