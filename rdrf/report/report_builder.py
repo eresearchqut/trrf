@@ -10,11 +10,12 @@ from collections import OrderedDict
 from flatten_json import flatten
 from gql_query_builder import GqlQuery
 
+from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.helpers.utils import models_from_mongo_key, BadKeyError
 from rdrf.patients.query_data import build_patient_filters, build_all_patients_query, build_data_summary_query, \
     build_patients_query, get_all_patients
-from report.models import ReportCdeHeadingFormat
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
+from report.models import ReportCdeHeadingFormat
 from report.schema import create_dynamic_schema, get_schema_field_name
 from report.utils import load_report_configuration
 
@@ -131,8 +132,12 @@ class ReportBuilder:
             cfg = cde_field.context_form_group
             form, section, cde = models_from_mongo_key(self.report_design.registry, cde_field.cde_key)
 
+            # Load models from cache for consistency and performance.
+            form_sections, cde_dict = prefetch_form_data(form)
+            section_cdes = cde_dict.get(section.code)
+
             # validate cde reference
-            if cde not in section.cde_models or section not in form.section_models:
+            if cde not in section_cdes or section not in form_sections:
                 invalid_cdes.append(cde.code)
 
             cfg_dict = cfg_dicts.setdefault(cfg.code, {'is_fixed': cfg.is_fixed, 'forms': {}})
