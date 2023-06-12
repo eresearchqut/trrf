@@ -1741,6 +1741,9 @@ class ConsentValue(models.Model, PatientUpdateMixin):
 
     history = HistoricalRecords()
 
+    class Meta:
+        unique_together = ('patient', 'consent_question')
+
     def __str__(self):
         return "Consent Value for %s question %s is %s" % (
             self.patient, self.consent_question, self.answer)
