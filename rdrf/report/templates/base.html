@@ -23,8 +23,6 @@
         <link rel="stylesheet" href="{% static 'css/report.css' %}">
         <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
         
-        <script type="text/javascript" src="{% static 'js/jquery.cookies.js' %}"></script>
-
         <script>
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
         </script>
