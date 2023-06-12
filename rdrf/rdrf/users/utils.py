@@ -1,5 +1,7 @@
 import logging
 
+from django.contrib.auth.models import User
+from django.dispatch import Signal
 from django.template.loader import get_template
 from django.utils.translation import gettext as _
 
@@ -14,6 +16,9 @@ logger = logging.getLogger(__name__)
 
 EMAIL_CHANGE_REQUEST_EXPIRY_HOURS = 48
 EMAIL_CHANGE_REQUEST_EXPIRY_SECONDS = 60 * 60 * EMAIL_CHANGE_REQUEST_EXPIRY_HOURS
+
+
+user_email_updated = Signal()
 
 
 def user_has_email_change_request(user):
@@ -83,6 +88,8 @@ def sync_user_email_update(user, new_email_address):
         patient = Patient.objects.get(user=user)
         patient.email = new_email_address
         patient.save()
+
+    user_email_updated.send(sender=User, user=user)
 
     send_email_change_request_completed_notification(user, previous_email)
 
