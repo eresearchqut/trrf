@@ -1,3 +1,5 @@
+import re
+
 from selenium.webdriver.common.by import By
 
 
@@ -117,12 +119,23 @@ class MailOutboxPage(BasePage):
         return len(self._get_message_rows())
 
     def get_message(self, index):
+        def _get_links(web_element):
+            # Pull out links from the email, regardless of whether they are semantic links <a href=.../> or plain text
+            links = [link.get_attribute('href') for link in web_element.find_elements(By.TAG_NAME, 'a')]
+            text_link_search = re.search(r'https?://\S*', web_element.text)
+            if text_link_search:
+                links.append(text_link_search[0])
+            return links
+
         message_row = self._get_message_rows()[index]
+        message_body = message_row.find_element(By.CLASS_NAME, 'messageBody')
+
         return {
             'to': message_row.find_element(By.CLASS_NAME, 'messageTo').text,
             'from': message_row.find_element(By.CLASS_NAME, 'messageFrom').text,
             'subject': message_row.find_element(By.CLASS_NAME, 'messageSubject').text,
-            'body': message_row.find_element(By.CLASS_NAME, 'messageBody').text
+            'body': message_body.text,
+            'links': _get_links(message_body)
         }
 
     def is_displayed(self):
