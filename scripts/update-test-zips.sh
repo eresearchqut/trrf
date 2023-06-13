@@ -23,6 +23,7 @@ wait_for_server() {
 export_zip() {
     teststack stop
     teststack rm --force
+    teststack-run-django createcachetable
     teststack-run-django migrate
     teststack up -d
 
