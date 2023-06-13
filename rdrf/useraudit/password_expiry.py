@@ -260,7 +260,7 @@ class AccountExpiryBackend(object):
 
             if should_warn_about_password_expiry(user):
                 days_left = days_to_password_expiry(user)
-                logger.info("User's '%s' password will expire in %d days", user, days_left)
+                logger.info("User's '%s' access will expire in %d days", user, days_left)
                 password_will_expire_warning.send(sender=user.__class__, user=user, days_left=days_left)
 
         # pass on to next handler
