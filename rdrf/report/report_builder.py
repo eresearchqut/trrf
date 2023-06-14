@@ -128,13 +128,21 @@ class ReportBuilder:
         # - create a dictionary to respectively group together cfg, form, sections by keys
         invalid_cdes = []
         cfg_dicts = {}
+
+        form_data_dict = {}  # Reduce the number of calls to prefetch_form_data
+
+        def _get_form_data(form):
+            if form.name not in form_data_dict:
+                form_data_dict[form.name] = prefetch_form_data(form)
+
+            return form_data_dict[form.name]
+
         for cde_field in self.report_design.reportclinicaldatafield_set.all().order_by('id'):
             cfg = cde_field.context_form_group
             form, section, cde = models_from_mongo_key(self.report_design.registry, cde_field.cde_key)
 
-            # Load models from cache for consistency and performance.
-            form_sections, cde_dict = prefetch_form_data(form)
-            section_cdes = cde_dict.get(section.code)
+            form_sections, cde_dict = _get_form_data(form)
+            section_cdes = cde_dict.get(section.code, [])
 
             # validate cde reference
             if cde not in section_cdes or section not in form_sections:
