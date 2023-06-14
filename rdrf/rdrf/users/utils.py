@@ -1,6 +1,5 @@
 import logging
 
-from django.contrib.auth.models import User
 from django.dispatch import Signal
 from django.template.loader import get_template
 from django.utils.translation import gettext as _
@@ -89,7 +88,7 @@ def sync_user_email_update(user, new_email_address):
         patient.email = new_email_address
         patient.save()
 
-    user_email_updated.send(sender=User, user=user)
+    user_email_updated.send(sender=sync_user_email_update, user=user)
 
     send_email_change_request_completed_notification(user, previous_email)
 
