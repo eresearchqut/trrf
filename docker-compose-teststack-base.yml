@@ -21,7 +21,6 @@ services:
 
   xnat-proxy:
     image: wiremock/wiremock
-    container_name: xnat-proxy
     command: --port 8080 --https-port 8443 --disable-banner --verbose
     ports:
       - "8443:8443"
