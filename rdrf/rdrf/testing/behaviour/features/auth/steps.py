@@ -148,7 +148,7 @@ def assert_email_received(_step):
         assert_equal(actual_message['from'], expected_message['From'])
         assert_equal(actual_message['subject'], expected_message['Subject'])
 
-        world.email_link = re.search(r'https?://\S*', actual_message['body'])[0]
+        world.email_link = actual_message['links'][0]
 
 
 @step('visit the provided link to .*')
