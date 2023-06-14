@@ -176,7 +176,8 @@ def send_longitudinal_followups(now):
             break
 
         # At least one email that's eligible before debounce
-        assert any(entry.send_at <= now for entry in patient_entries)
+        if not any(entry.send_at <= now for entry in patient_entries):
+            continue
 
         sent_at = datetime.datetime.now()
 
