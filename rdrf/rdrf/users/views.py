@@ -83,5 +83,6 @@ class ActivateEmailChangeRequestView(TokenAuthenticatedMixin, View):
 
     def post(self, request, *args, **kwargs):
         activate_email_change_request(self.user)
-        auth.logout(request)  # Force logout, requiring the user to reauthenticate with their new email address
+        if request.user == self.user:
+            auth.logout(request)  # Force logout, requiring the user to reauthenticate with their new email address
         return redirect(reverse('registration_activation_complete'))
