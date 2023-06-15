@@ -57,7 +57,7 @@ DATE_FORMAT = "d-m-Y"
 ALL_LANGUAGES = (
     ("en", "English"),
     ("af", "Afrikaans"),
-    ("ar", "العربية"),
+    ("ar-AR", "العربية"),
     ("cs", "Čeština"),
     ("de", "Deutsch"),
     ("es", "Español"),
