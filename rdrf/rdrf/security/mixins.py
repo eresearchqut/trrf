@@ -28,16 +28,13 @@ class TokenAuthenticatedMixin(AccessMixin):
     is_valid_token = False
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            self.user = request.user
-        else:
-            self.username_b64 = kwargs.get('username_b64')
-            self.token = kwargs.get('token')
+        self.username_b64 = kwargs.get('username_b64')
+        self.token = kwargs.get('token')
 
-            self.is_valid_token, username = check_token(self.username_b64, self.token, self.max_age)
-            self.user = get_object_or_404(CustomUser, username=username, is_active=True)
+        self.is_valid_token, username = check_token(self.username_b64, self.token, self.max_age)
+        self.user = get_object_or_404(CustomUser, username=username, is_active=True)
 
-            if not self.is_valid_token:
-                return self.handle_no_permission()
+        if not self.is_valid_token:
+            return self.handle_no_permission()
 
         return super().dispatch(request, *args, **kwargs)
