@@ -1,6 +1,6 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 
+from registry.groups.models import CustomUser
 from .. import models as m
 from .utils import chain_maps, is_recent, simulate_login
 
@@ -10,8 +10,9 @@ class LoginIsLoggedTest(TestCase):
     DEFAULT_HEADERS = {'REMOTE_ADDR': '192.168.1.1', 'HTTP_USER_AGENT': 'Test client'}
 
     def setUp(self):
-        user = User.objects.create_user(**self.CORRECT_CREDENTIALS)
+        user = CustomUser.objects.create_user(**self.CORRECT_CREDENTIALS)
         user.is_staff = True
+        user.is_active = True
         user.save()
 
     def login(self, **headers):
