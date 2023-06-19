@@ -151,16 +151,6 @@ class ExpiryTestCase(TestCase):
         self.user.refresh_from_db()
         self.assertGreater(self.user.password_change_date, before_the_change)
 
-    # Keeping the test to remind us about this behaviour
-    @unittest.skip("currently changing the password to the previous password is considered a password change")
-    def test_saving_same_password_does_not_update_password_change_date_field(self):
-        one_day_ago = password_change_date=timezone.now() - timedelta(days=1)
-        self.setuser(password_change_date=one_day_ago)
-        self.user.set_password("testuser") # same password
-        self.user.save()
-        self.user.refresh_from_db()
-        self.assertEqual(one_day_ago, self.user.password_change_date, "Password change date shouldn't change")
-
 
     @override_settings(PASSWORD_EXPIRY_DAYS=5)
     def test_password_not_expired(self):
