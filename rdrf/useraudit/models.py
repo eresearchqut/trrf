@@ -10,7 +10,7 @@ logger = logging.getLogger('django.security')
 
 
 class LoginAttempt(models.Model):
-    username = models.CharField(max_length=255, null=True, blank=True)
+    username = models.CharField(max_length=255, null=True, blank=True, unique=True)
     count = models.PositiveIntegerField(null=True, blank=True, default=0)
     timestamp = models.DateTimeField(auto_now_add=True)
 
