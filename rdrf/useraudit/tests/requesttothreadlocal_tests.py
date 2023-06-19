@@ -10,4 +10,4 @@ class RequestToThreadLocalMiddlewareTest(TestCase):
 
         request = get_request()
         self.assertTrue(request is not None)
-        self.assertEquals(request.META['X_TEST'], 'middleware test')
+        self.assertEqual(request.META['X_TEST'], 'middleware test')

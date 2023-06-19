@@ -22,13 +22,13 @@ class LoginIsLoggedTest(TestCase):
     def test_login_is_logged(self):
         self.login()
 
-        self.assertEquals(m.FailedLoginLog.objects.count(), 0)
-        self.assertEquals(m.LoginLog.objects.count(), 1)
+        self.assertEqual(m.FailedLoginLog.objects.count(), 0)
+        self.assertEqual(m.LoginLog.objects.count(), 1)
         log = m.LoginLog.objects.all()[0]
-        self.assertEquals(log.username, 'john')
+        self.assertEqual(log.username, 'john')
         self.assertTrue(is_recent(log.timestamp), 'Should have logged it recently')
-        self.assertEquals(log.ip_address, '192.168.1.1')
-        self.assertEquals(log.user_agent, 'Test client')
+        self.assertEqual(log.ip_address, '192.168.1.1')
+        self.assertEqual(log.user_agent, 'Test client')
 
     def test_long_user_agent_is_truncated(self):
         user_agent_field_length = m.LoginLog._meta.get_field('user_agent').max_length
@@ -37,7 +37,7 @@ class LoginIsLoggedTest(TestCase):
         self.login(HTTP_USER_AGENT=long_user_agent)
 
         log = m.LoginLog.objects.all()[0]
-        self.assertEquals(len(log.user_agent), user_agent_field_length)
+        self.assertEqual(len(log.user_agent), user_agent_field_length)
         self.assertTrue(long_user_agent.startswith(log.user_agent))
 
     def test_ip_forwarded_by_proxies(self):
@@ -47,5 +47,5 @@ class LoginIsLoggedTest(TestCase):
 
         log = m.LoginLog.objects.first()
         self.assertIsNotNone(log)
-        self.assertEquals(log.ip_address, '192.168.1.1')
-        self.assertEquals(log.forwarded_by, '3.3.3.3,2.2.2.2,1.1.1.1')
+        self.assertEqual(log.ip_address, '192.168.1.1')
+        self.assertEqual(log.forwarded_by, '3.3.3.3,2.2.2.2,1.1.1.1')
