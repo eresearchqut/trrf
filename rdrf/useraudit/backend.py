@@ -9,7 +9,6 @@ from django.views.decorators.debug import sensitive_variables
 from .signals import login_failure_limit_reached
 from .models import LoginLogger, LoginAttempt
 from .models import LoginAttemptLogger
-from .middleware import get_request
 
 
 logger = logging.getLogger("django.security")
@@ -37,11 +36,7 @@ class AuthFailedLoggerBackend(object):
         self.login_attempt_logger = LoginAttemptLogger()
 
     @sensitive_variables('credentials')
-    def authenticate(self, request=None, **credentials):
-        if request is None:
-            # TODO remove this when we don't support Django 1.10 anymore
-            # request is passed to authenticate starting with Django 1.11
-            request = get_request()
+    def authenticate(self, request, **credentials):
         UserModel = get_user_model()
         self.username = credentials.get(UserModel.USERNAME_FIELD)
         self.login_logger.log_failed_login(self.username, request)

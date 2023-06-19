@@ -442,16 +442,3 @@ class FailedLoginAttemtpsTestCase(TestCase):
         login_failure_limit_reached.disconnect(handler)
 
         self.assertTrue(self.handler_called)
-
-
-class MiddlewareTestCase(TestCase):
-
-    @override_settings(MIDDLEWARE_CLASSES=['useraudit.middleware.RequestToThreadLocalMiddleware'])
-    def test_middleware_loads_on_PRE_django_1_10s_old_style_middleware(self):
-        handler = BaseHandler()
-        handler.load_middleware()
-
-    @override_settings(MIDDLEWARE=['useraudit.middleware.RequestToThreadLocalMiddleware'])
-    def test_middleware_loads_on_django_1_10s_new_style_middleware(self):
-        handler = BaseHandler()
-        handler.load_middleware()

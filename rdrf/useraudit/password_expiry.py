@@ -273,7 +273,7 @@ class AccountExpiryBackend(object):
 
         logger.info("Login Prevented for user '%s'! %s", username, msg)
         if is_failed_login_logger_configured():
-            AuthFailedLoggerBackend().authenticate(username=username)
+            AuthFailedLoggerBackend().authenticate(request=None, username=username)
         raise PermissionDenied(msg)
 
     def _lookup_user(self, username=None, password=None, **kwargs):

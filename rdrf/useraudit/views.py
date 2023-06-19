@@ -1,23 +1,14 @@
 import logging
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from .models import LoginAttemptLogger
-from . import middleware
-
 
 logger = logging.getLogger("django.security")
 
 login_attempt_logger = LoginAttemptLogger()
-
-
-def test_request_available(request):
-    thread_request = middleware.get_request()
-    if thread_request == request:
-        return HttpResponse('OK')
-    return HttpResponseNotFound()
 
 
 def reactivate_user(request, user_id):

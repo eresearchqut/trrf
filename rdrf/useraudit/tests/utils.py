@@ -7,8 +7,6 @@ from django.contrib.auth import authenticate, login
 
 from django.test.client import RequestFactory
 
-from .. import middleware
-
 
 def is_recent(time):
     return datetime.now() - timedelta(seconds=3) < time
@@ -20,15 +18,7 @@ def simulate_login(username, password, headers=None):
     engine = import_module(settings.SESSION_ENGINE)
     request.session = engine.SessionStore()
 
-    # TODO remove when we don't support Django 1.10 anymore
-    # request passed in to authenticate only after Django 1.10
-    # Also the middleware saving the request to thread local can be dropped
-    try:
-        user = authenticate(request, username=username, password=password)
-    except TypeError:
-        middleware.thread_data.request = request
-        user = authenticate(username=username, password=password)
-    if user:
+    if user := authenticate(request, username=username, password=password):
         login(request, user)
 
 
