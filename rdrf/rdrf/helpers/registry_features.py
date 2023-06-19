@@ -19,3 +19,4 @@ class RegistryFeatures:
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"
     XNAT_INTEGRATION = "xnat_integration"
     LONGITUDINAL_FOLLOWUPS = "longitudinal_followups"
+    PATIENT_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN = "patient_email_activation_optional_for_admin"

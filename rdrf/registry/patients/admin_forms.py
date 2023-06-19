@@ -7,6 +7,8 @@ from itertools import chain
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorDict
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
@@ -362,7 +364,19 @@ class PatientForm(forms.ModelForm):
                 self.fields["registered_clinicians"].widget = forms.HiddenInput()
 
             if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
-                self.fields["email"].required = True
+                if instance and instance.user:
+                    self.fields["email"].widget.attrs.update({'disabled': 'disabled'})
+
+                    change_email_url = None
+                    if instance.user == self.user:
+                        change_email_url = reverse('email_address_change')
+                    elif self.user.has_perm('patients.change_patientuser'):
+                        change_email_url = reverse("patient_email_change", kwargs={"patient_id": instance.id})
+
+                    if change_email_url:
+                        self.fields["email"].help_text = mark_safe(f'<a href="{change_email_url}">Change email address</a>')
+                else:
+                    self.fields["email"].required = True
 
         registries = Registry.objects.all()
         if self.registry_model:
@@ -550,18 +564,12 @@ class PatientForm(forms.ModelForm):
         return reg_clinicians
 
     def clean_email(self):
-        registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
-        email = self.cleaned_data.get("email")
+        is_disabled = 'disabled' in self.fields["email"].widget.attrs
 
-        # When patient is created or email is updated
-        if "email" in self.changed_data:
-            for registry in registries:
-                if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
-                    if CustomUser.objects.filter(email=email).first():
-                        raise ValidationError(
-                            _("User with this email already exists")
-                        )
-        return email
+        if is_disabled:
+            return self.instance.email
+        else:
+            return self.cleaned_data['email']
 
     def clean(self):
         self.custom_consents = {}

@@ -8,7 +8,8 @@
     <script>
       $(document).ready(function() {
         $('#btnDeleteEmailChangeRequest').on('click', function(e) {
-            const delete_url = "{% url 'email_address_change' %}";
+            const $form = $('#emailchangerequest_form');
+            const delete_url = $form[0].action;
             $.ajax({
                 type: 'DELETE',
                 url: delete_url,
@@ -82,8 +83,17 @@
                                {% endif %}" id="id_current_request_status">{% if is_expired %}EXPIRED{% else %}{{ current_request.status|upper }}{% endif %}</span>
             {% if current_request.status == EmailChangeRequestStatus.PENDING %}
               <div class="form-text">
-                {% blocktrans trimmed with new_email=current_request.new_email expiry_hours=expiry_hours %}
-                  You are required to click the activation link in the email we have sent to {{ new_email }} before this request can be completed.<br />
+                {% if form.current_user == form.user %}
+                  {% blocktrans trimmed with new_email=current_request.new_email %}
+                    You are required to click the activation link in the email we have sent to {{ new_email }} before this request can be completed.
+                  {% endblocktrans %}
+                {% else %}
+                  {% blocktrans trimmed with user_full_name=form.user.get_full_name new_email=current_request.new_email %}
+                    {{ user_full_name }} is required to click the activation link in the email we have sent to {{ new_email }} before this request can be completed.
+                  {% endblocktrans %}
+                {% endif %}
+                <br />
+                {% blocktrans trimmed with expiry_hours=expiry_hours %}
                   The activation link will expire {{ expiry_hours }} hours after being requested.
                 {% endblocktrans %}
               </div>
@@ -97,40 +107,59 @@
   {% endif %}
 
   <div class="alert alert-info" role="alert">
-    <h6 class="alert-heading">{% trans "Important information about changing your email address" %}</h6>
+    <h6 class="alert-heading">
+      {% trans "Important information" %} {% if form.current_user == form.user %}{% trans "about changing your email address" %}{% endif %}
+    </h6>
     <hr>
-    <p>{% trans "Changing your email address is a multi-step process" %}:</p>
+    <p>
+      {% trans "Changing email address is a multi-step process" %}:
+    </p>
     <ol class="list">
-      <li>{% trans "Fill out this form to indicate the email address you wish to change to." %}</li>
+      <li>{% trans "Fill out this form to indicate the new email address." %}</li>
       <li>{% trans "On successful completion of the form, we will send an email to the new address you have nominated." %}</li>
-      <li>{% trans "Verify your new email address by clicking the activation link in the email we have sent you." %}</li>
+      <li>
+        {% if form.current_user == form.user %}
+          {% trans "Verify your new email address by clicking the activation link in the email we have sent you." %}
+        {% else %}
+          {% trans "The patient needs to verify their new email address by clicking the activation link in the email we have sent." %}
+        {% endif %}
+      </li>
     </ol>
   </div>
 
-  <form class="my-4" method="post">
+  <form class="my-4" method="post" id="emailchangerequest_form">
     {% csrf_token %}
 
-    <div class="mb-3 row">
-      <span class="col-sm-3 col-form-label">{% trans "Current email" %}:</span>
-      <div class="col-sm-9 mt-2" id="id_current_email">
-        {{ current_email }}
-      </div>
-    </div>
-
-    {% if current_username != current_email %}
+    {% if form.current_user != form.user and form.user.patient %}
       <div class="mb-3 row">
-        <span class="col-sm-3 col-form-label">{% trans "Current username" %}:</span>
-        <div class="col-sm-9 mt-2">
-          {{ current_username }}
+        <span class="col-sm-3 col-form-label">{% trans "Patient" %}:</span>
+        <div class="col-sm-9 mt-2" id="id_patient">
+          <a href="{% url 'patient_edit' form.user.my_registry.code form.user.patient.id %}">{{ form.user.patient }} ({{ form.user.my_registry.name }})</a>
         </div>
       </div>
     {% endif %}
 
-    {% if patient and patient.email != current_email %}
+    <div class="mb-3 row">
+      <span class="col-sm-3 col-form-label">{% trans "Current email" %}:</span>
+      <div class="col-sm-9 mt-2" id="id_current_email">
+        {{ form.user.email }}
+      </div>
+    </div>
+
+    {% if form.user.username != form.user.email %}
+      <div class="mb-3 row">
+        <span class="col-sm-3 col-form-label">{% trans "Current username" %}:</span>
+        <div class="col-sm-9 mt-2">
+          {{ form.user.username }}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if form.user.patient and form.user.patient.email != form.user.email %}
       <div class="mb-3 row">
         <span class="col-sm-3 col-form-label">{% trans "Current email (Patient)" %}:</span>
         <div class="col-sm-9 mt-2">
-          {{ patient.email }}
+          {{ form.user.patient.email }}
         </div>
       </div>
     {% endif %}
@@ -149,12 +178,44 @@
       </div>
     </div>
 
-    <div class="mb-3 row">
-      <label for="{{ form.current_password.id_for_label }}" class="col-sm-3 col-form-label">{{ form.current_password.label_tag }}</label>
-      <div class="col-sm-9 mt-2">
-        {{ form.current_password | add_attr:"class,form-control" }}
+    {% if form.current_password.field.required %}
+      <div class="mb-3 row">
+        <label for="{{ form.current_password.id_for_label }}" class="col-sm-3 col-form-label">{{ form.current_password.label_tag }}</label>
+        <div class="col-sm-9 mt-2">
+          {{ form.current_password | add_attr:"class,form-control" }}
+        </div>
       </div>
-    </div>
+    {% endif %}
+
+    {% if form.is_activation_optional %}
+      <div class="mb-3 row">
+        <span class="col-sm-3 col-form-label">Patient Activation Method:</span>
+        <div class="col-sm-9 mt-2">
+          {% for radio in form.patient_activation_required %}
+            <div class="form-check ps-sm-0">
+              {{ radio }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if not form.user.is_active %}
+      <div class="mb-3 row">
+        <span class="col-sm-3 col-form-label">{% trans "User status" %}:</span>
+        <div class="col-sm-9 mt-2" id="id_patient">
+          <span class="badge bg-warning">{% trans "INACTIVE" %}</span>
+          <div class="form-text">
+            {% if form.is_activation_optional %}
+              {% trans "An email change request requiring activation cannot be submitted for an inactive user" %}.
+              <a href="{% url 'admin:groups_customuser_change' form.user.id %}">{% trans "Manage user" %}</a>
+            {% else %}
+              {% trans "An email change request cannot be submitted for an inactive user" %}.
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
 
     <button type="submit" class="btn btn-primary offset-sm-3">{% trans "Initiate change of email address" %}</button>
   </form>

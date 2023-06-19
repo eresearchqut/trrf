@@ -20,13 +20,29 @@ EMAIL_CHANGE_REQUEST_EXPIRY_SECONDS = 60 * 60 * EMAIL_CHANGE_REQUEST_EXPIRY_HOUR
 user_email_updated = Signal()
 
 
-def user_has_email_change_request(user):
+def initiate_email_change_request(user, new_email_address, requires_activation=True):
+    _create_email_change_request(user, new_email_address)
+
+    if requires_activation:
+        _send_email_change_request_notification(user)
+    else:
+        _sync_user_email_update(user, new_email_address)
+        _complete_change_request(user)
+
+
+def activate_email_change_request(user):
+    if _user_has_email_change_request(user) and user.emailchangerequest.status == EmailChangeRequestStatus.PENDING:
+        _sync_user_email_update(user, user.emailchangerequest.new_email)
+        _complete_change_request(user)
+        _send_email_change_request_completed_notification(user, user.emailchangerequest.current_user_email)
+
+
+def _user_has_email_change_request(user):
     return hasattr(user, 'emailchangerequest')
 
 
-def create_email_change_request(user, new_email_address):
-
-    if user_has_email_change_request(user):
+def _create_email_change_request(user, new_email_address):
+    if _user_has_email_change_request(user):
         user.emailchangerequest.delete()
 
     user.emailchangerequest = EmailChangeRequest(new_email=new_email_address,
@@ -37,10 +53,13 @@ def create_email_change_request(user, new_email_address):
 
     user.emailchangerequest.save()
 
-    send_email_change_request_notification(user)
+
+def _complete_change_request(user):
+    user.emailchangerequest.status = EmailChangeRequestStatus.COMPLETED
+    user.emailchangerequest.save()
 
 
-def send_email_change_request_notification(user):
+def _send_email_change_request_notification(user):
     email_template = get_template('registration/email_reset_activation.html')
 
     token = make_token(user.username)
@@ -61,7 +80,7 @@ def send_email_change_request_notification(user):
                          mandatory_recipients=email_recipient)
 
 
-def send_email_change_request_completed_notification(user, user_previous_email):
+def _send_email_change_request_completed_notification(user, user_previous_email):
     email_template = get_template('registration/email_reset_completed.html')
     email_recipient = {user_previous_email: user.preferred_language}
 
@@ -75,10 +94,7 @@ def send_email_change_request_completed_notification(user, user_previous_email):
                          mandatory_recipients=email_recipient)
 
 
-def sync_user_email_update(user, new_email_address):
-
-    previous_email = user.email
-
+def _sync_user_email_update(user, new_email_address):
     user.username = new_email_address
     user.email = new_email_address
     user.save()
@@ -88,13 +104,4 @@ def sync_user_email_update(user, new_email_address):
         patient.email = new_email_address
         patient.save()
 
-    user_email_updated.send(sender=sync_user_email_update, user=user)
-
-    send_email_change_request_completed_notification(user, previous_email)
-
-
-def activate_email_change_request(user):
-    if user_has_email_change_request(user) and user.emailchangerequest.status == EmailChangeRequestStatus.PENDING:
-        sync_user_email_update(user, user.emailchangerequest.new_email)
-        user.emailchangerequest.status = EmailChangeRequestStatus.COMPLETED
-        user.emailchangerequest.save()
+    user_email_updated.send(sender=_sync_user_email_update, user=user)
