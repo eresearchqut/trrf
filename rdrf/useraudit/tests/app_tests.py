@@ -11,7 +11,6 @@ from django.test.signals import setting_changed
 from django.test import Client
 from django.utils import timezone
 import re
-import unittest
 
 import useraudit.password_expiry
 from registry.groups.models import CustomUser
