@@ -121,7 +121,7 @@
         {% if form.current_user == form.user %}
           {% trans "Verify your new email address by clicking the activation link in the email we have sent you." %}
         {% else %}
-          {% trans "The patient needs to verify their new email address by clicking the activation link in the email we have sent." %}
+          {% trans "The user needs to verify their new email address by clicking the activation link in the email we have sent." %}
         {% endif %}
       </li>
     </ol>
@@ -133,7 +133,7 @@
     {% if form.current_user != form.user and form.user.patient %}
       <div class="mb-3 row">
         <span class="col-sm-3 col-form-label">{% trans "Patient" %}:</span>
-        <div class="col-sm-9 mt-2" id="id_patient">
+        <div class="col-sm-9 mt-2">
           <a href="{% url 'patient_edit' form.user.my_registry.code form.user.patient.id %}">{{ form.user.patient }} ({{ form.user.my_registry.name }})</a>
         </div>
       </div>
@@ -189,9 +189,9 @@
 
     {% if form.is_activation_optional %}
       <div class="mb-3 row">
-        <span class="col-sm-3 col-form-label">Patient Activation Method:</span>
+        <span class="col-sm-3 col-form-label">{{ form.user_activation_required.label_tag }}</span>
         <div class="col-sm-9 mt-2">
-          {% for radio in form.patient_activation_required %}
+          {% for radio in form.user_activation_required %}
             <div class="form-check ps-sm-0">
               {{ radio }}
             </div>
@@ -203,7 +203,7 @@
     {% if not form.user.is_active %}
       <div class="mb-3 row">
         <span class="col-sm-3 col-form-label">{% trans "User status" %}:</span>
-        <div class="col-sm-9 mt-2" id="id_patient">
+        <div class="col-sm-9 mt-2">
           <span class="badge bg-warning">{% trans "INACTIVE" %}</span>
           <div class="form-text">
             {% if form.is_activation_optional %}

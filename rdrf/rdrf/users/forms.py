@@ -21,17 +21,17 @@ class EmailChangeForm(Form):
         'inactive_user': _('An email change request requiring activation cannot be submitted for an inactive user.'),
     }
 
-    PATIENT_ACTIVATION_CHOICES = ((True, _('Require patient to activate this email change request')),
-                                  (False, _('Complete request without requiring patient to activate')))
+    ACTIVATION_CHOICES = ((True, _('Require user to activate this email change request')),
+                          (False, _('Complete request without requiring user to activate')))
 
     new_email = EmailField(label=_('New email / username'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email', 'autofocus': True}))
     new_email2 = EmailField(label=_('Confirm new email'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email'}))
     current_password = CharField(label=_('Current password'), widget=PasswordInput())
-    patient_activation_required = TypedChoiceField(coerce=lambda value: value == str(True),
-                                                   choices=PATIENT_ACTIVATION_CHOICES,
-                                                   label=_('Patient Activation Method'),
-                                                   widget=RadioSelect,
-                                                   initial=True)
+    user_activation_required = TypedChoiceField(coerce=lambda value: value == str(True),
+                                                choices=ACTIVATION_CHOICES,
+                                                label=_('User Activation Method'),
+                                                widget=RadioSelect,
+                                                initial=True)
 
     def __init__(self, *args, **kwargs):
         self.current_user = kwargs.pop('current_user')
@@ -39,12 +39,14 @@ class EmailChangeForm(Form):
 
         super().__init__(*args, **kwargs)
 
-        self.fields['patient_activation_required'].required = self.is_activation_optional
+        self.fields['user_activation_required'].required = self.is_activation_optional
         self.fields['current_password'].required = not self.current_user.is_staff
 
     @property
     def is_activation_optional(self):
-        return self.current_user.is_staff and self.user.my_registry.has_feature(RegistryFeatures.PATIENT_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN)
+        return self.current_user.is_staff \
+            and self.user.my_registry \
+            and self.user.my_registry.has_feature(RegistryFeatures.PATIENT_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN)
 
     def clean_new_email(self):
         email = self.cleaned_data.get('new_email')
@@ -81,13 +83,13 @@ class EmailChangeForm(Form):
             raise ValidationError(self.error_messages['incorrect_password'])
         return password
 
-    def clean_patient_activation_required(self):
+    def clean_user_activation_required(self):
         if self.is_activation_optional:
-            return self.cleaned_data['patient_activation_required']
+            return self.cleaned_data['user_activation_required']
         return True
 
     def clean(self):
-        if not self.user.is_active and self.cleaned_data['patient_activation_required']:
+        if not self.user.is_active and self.cleaned_data['user_activation_required']:
             raise ValidationError(self.error_messages['inactive_user'])
 
         return super().clean()

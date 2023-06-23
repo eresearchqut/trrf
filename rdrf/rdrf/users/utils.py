@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.dispatch import Signal
 from django.template.loader import get_template
 from django.utils.translation import gettext as _
@@ -84,11 +85,16 @@ def _send_email_change_request_completed_notification(user, user_previous_email)
     email_template = get_template('registration/email_reset_completed.html')
     email_recipient = {user_previous_email: user.preferred_language}
 
+    if user.my_registry:
+        registry_name = user.my_registry.name
+    else:
+        registry_name = settings.PROJECT_TITLE
+
     process_notification(reg_code=user.registry_code,
                          description=EventType.EMAIL_CHANGE_COMPLETE,
                          template_data={'user': user,
                                         'user_full_name': user.get_full_name(),
-                                        'registry': user.my_registry.name},
+                                        'registry': registry_name},
                          default_template=email_template,
                          default_subject=_('Change of Email Completed'),
                          mandatory_recipients=email_recipient)

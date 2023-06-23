@@ -7,6 +7,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import ChoiceField
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 from rdrf.helpers.utils import get_supported_languages
 from registry.groups import GROUPS as RDRF_GROUPS
@@ -125,6 +128,10 @@ class UserChangeForm(UserMixin, forms.ModelForm):
             contains_clinician = any(RDRF_GROUPS.CLINICAL == g.name.lower() for g in self.instance.groups.all())
             if 'ethically_cleared' in self.fields and not contains_clinician:
                 self.fields['ethically_cleared'].widget = forms.HiddenInput()
+
+        change_email_url = reverse("user_email_change", kwargs={"user_id": self.instance.id})
+        self.fields['email'].help_text = mark_safe(f'{_("Synchronised email address changes can be made using")}: '
+                                                   f'<a href="{change_email_url}">{_("Change email address form")}</a>.')
 
     def clean_password(self):
         return self.initial["password"]
