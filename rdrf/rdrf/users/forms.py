@@ -45,8 +45,7 @@ class EmailChangeForm(Form):
     @property
     def is_activation_optional(self):
         return self.current_user.is_staff \
-            and self.user.my_registry \
-            and self.user.my_registry.has_feature(RegistryFeatures.PATIENT_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN)
+            and self.user.has_feature(RegistryFeatures.USER_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN)
 
     def clean_new_email(self):
         email = self.cleaned_data.get('new_email')
