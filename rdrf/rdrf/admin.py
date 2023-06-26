@@ -23,7 +23,7 @@ from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.events.events import EventType
 from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
-from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import BlacklistedMimeType, WhitelistedFileExtension
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import CDEPermittedValueGroup
@@ -396,6 +396,12 @@ class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
     list_display = ('mime_type', 'description')
 
 
+class WhitelistedFileExtensionAdmin(admin.ModelAdmin):
+    model = WhitelistedFileExtension
+    list_display = ('file_extension',)
+    ordering = ('file_extension',)
+
+
 class DashboardLinksInline(admin.StackedInline):
     model = RegistryDashboardFormLink
     verbose_name_plural = 'Registry Form Links'
@@ -505,6 +511,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (WhitelistedFileExtension, WhitelistedFileExtensionAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),
@@ -525,6 +532,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
     (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (WhitelistedFileExtension, WhitelistedFileExtensionAdmin),
 ]
 
 ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS

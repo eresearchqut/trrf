@@ -84,6 +84,8 @@ class LinkDefs:
         "admin:patients_longitudinalfollowupentry_changelist",
         _("Longitudinal Followup Entries")
     )
+    WhitelistedFileExtension = make_link("admin:rdrf_whitelistedfileextension_changelist",
+                                         _("Allowed extensions for file uploads"))
 
 
 class Links:
@@ -170,7 +172,8 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.BlacklistedMimeTypesConfig
+        LinkDefs.BlacklistedMimeTypesConfig,
+        LinkDefs.WhitelistedFileExtension
     )
 
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups,

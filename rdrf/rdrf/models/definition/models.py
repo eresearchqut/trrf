@@ -1812,6 +1812,10 @@ class FormTitle(models.Model):
         return ', '.join(group.name for group in self.groups.order_by('name').all())
 
 
+class WhitelistedFileExtension(models.Model):
+    file_extension = models.CharField(max_length=256, unique=True)
+
+
 class BlacklistedMimeType(models.Model):
     mime_type = models.CharField(max_length=256, unique=True)
     description = models.TextField()
