@@ -21,8 +21,8 @@ class EmailChangeForm(Form):
         'inactive_user': _('An email change request requiring activation cannot be submitted for an inactive user.'),
     }
 
-    ACTIVATION_CHOICES = ((True, _('Require user to activate this email change request')),
-                          (False, _('Complete request without requiring user to activate')))
+    ACTIVATION_CHOICES = ((False, _('Complete request without requiring user to activate')),
+                          (True, _('Require user to activate this email change request')))
 
     new_email = EmailField(label=_('New email / username'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email', 'autofocus': True}))
     new_email2 = EmailField(label=_('Confirm new email'), max_length=254, widget=EmailInput(attrs={'autocomplete': 'email'}))
@@ -31,7 +31,7 @@ class EmailChangeForm(Form):
                                                 choices=ACTIVATION_CHOICES,
                                                 label=_('User Activation Method'),
                                                 widget=RadioSelect,
-                                                initial=True)
+                                                initial=False)
 
     def __init__(self, *args, **kwargs):
         self.current_user = kwargs.pop('current_user')
