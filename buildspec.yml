@@ -6,7 +6,8 @@ phases:
     commands:
       - git submodule update --init --recursive
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
+      - echo $ECR_PASSWORD | docker login --username AWS --password-stdin $AWS_ACCCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - echo Logging in to Docker Hub...
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - touch .env_local
