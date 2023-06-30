@@ -1,13 +1,17 @@
+from unittest import TestCase, mock
+from unittest.mock import Mock
+
+import pwnedpasswords
 from django.contrib.auth.password_validation import (
     CommonPasswordValidator, MinimumLengthValidator, UserAttributeSimilarityValidator
 )
 from django.forms import ValidationError
-from unittest import TestCase
 
+from rdrf.auth import password_validation
 from rdrf.auth.password_validation import (
     ConsecutivelyRepeatingCharacterValidator, ConsecutivelyIncreasingNumberValidator,
     ConsecutivelyDecreasingNumberValidator, HasNumberValidator, HasUppercaseLetterValidator,
-    HasLowercaseLetterValidator, HasSpecialCharacterValidator
+    HasLowercaseLetterValidator, HasSpecialCharacterValidator, EnhancedCommonPasswordValidator
 )
 from registry.groups.models import CustomUser
 
@@ -120,3 +124,40 @@ class PasswordValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             # Similar to username
             validator.validate("clinician123", user=user)
+
+    def test_insecure_validation(self):
+        # Given standard password validator, which essentially uses the Django CommonPasswordValidator
+        # Then Password12! passes validation
+        validator = EnhancedCommonPasswordValidator(breached_password_detection=False)
+        validator.validate('Password12!')
+        # And password123 fails validation
+        with self.assertRaises(ValidationError):
+            validator.validate('password123')
+
+        # When  we switch on enhanced password validation:
+        # Then Password12! fails validation
+        validator = EnhancedCommonPasswordValidator(breached_password_detection=True, max_breach_threshold=1)
+        with self.assertRaises(ValidationError):
+            validator.validate('Password12!')
+        # And password123 fails validation
+        with self.assertRaises(ValidationError):
+            validator.validate('password123')
+        # And a complex password passes validation
+        validator.validate('R3a1!y S3CuRE P@$$w0rd!')
+
+    @mock.patch(f'{password_validation.__name__}.pwnedpasswords', wraps=pwnedpasswords)
+    def test_pwnedpasswords_api_is_down(self, *args, **kwargs):
+        validator = EnhancedCommonPasswordValidator(breached_password_detection=True, max_breach_threshold=1)
+
+        # Given the API is working, then expect Password12! to be throw a Validation Error when checked against the API
+        with self.assertRaises(ValidationError) as e:
+            validator.validate('Password12!')
+        self.assertEqual(e.exception.message, 'This password is too insecure.')
+
+        # Given the API is down,
+        password_validation.pwnedpasswords.check = Mock(side_effect=Exception('Mock API Exception'))
+        # Then expect the validation to fall back to the CommonPasswordValidator
+        validator.validate('Password12!')
+        with self.assertRaises(ValidationError) as e:
+            validator.validate('password123')
+        self.assertEqual(e.exception.message, 'This password is too common.')
