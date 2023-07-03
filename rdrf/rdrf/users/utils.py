@@ -88,7 +88,7 @@ def sync_user_email_update(user, new_email_address):
         patient.email = new_email_address
         patient.save()
 
-    user_email_updated.send(sender=sync_user_email_update, user=user)
+    user_email_updated.send(sender=sync_user_email_update, user=user, previous_email=previous_email)
 
     send_email_change_request_completed_notification(user, previous_email)
 
