@@ -1816,17 +1816,6 @@ class WhitelistedFileExtension(models.Model):
     file_extension = models.CharField(max_length=256, unique=True)
 
 
-class BlacklistedMimeType(models.Model):
-    mime_type = models.CharField(max_length=256, unique=True)
-    description = models.TextField()
-
-    def __str__(self):
-        return f"{self.mime_type} - {self.description}"
-
-    class Meta:
-        verbose_name = "Disallowed mime type"
-
-
 class DataDefinitions:
     def __init__(self, registry_form):
         self.registry_form = registry_form

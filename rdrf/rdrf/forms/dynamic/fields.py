@@ -1,7 +1,6 @@
 # Custom Fields
 from itertools import zip_longest
 import datetime
-import magic
 import os
 
 from django.core.exceptions import ValidationError
@@ -48,23 +47,15 @@ class FileTypeRestrictedFileField(FileField):
     def _find_whitelisted_file_types(self, file_extension):
         return WhitelistedFileExtension.objects.filter(file_extension__iexact=file_extension)
 
-    def _find_blacklisted_mime_type(self, mt):
-        from rdrf.models.definition.models import BlacklistedMimeType
-        return BlacklistedMimeType.objects.filter(mime_type=mt).first()
-
     def validate(self, value):
         if not value:
             return super().validate(value)
         __, ext = os.path.splitext(value.name)
-        mime_type = magic.from_buffer(value.file.read(2048), mime=True)
         value.file.seek(0)
 
         if not self._find_whitelisted_file_types(ext):
             raise ValidationError(_(f"{ext} is not a supported file extension."))  # contact details if they believe it should be supported?
 
-        blacklisted_mime_type = self._find_blacklisted_mime_type(mime_type)
-        if blacklisted_mime_type:
-            raise ValidationError(_(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !"))
         return super().validate(value)
 
 
