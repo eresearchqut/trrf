@@ -3,12 +3,14 @@ from itertools import zip_longest
 import datetime
 import os
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.forms.widgets.widgets import MultipleFileInput, CustomFileInput
@@ -54,7 +56,8 @@ class FileTypeRestrictedFileField(FileField):
         value.file.seek(0)
 
         if not self._find_whitelisted_file_types(ext):
-            raise ValidationError(_(f"{ext} is not a supported file extension."))  # contact details if they believe it should be supported?
+            raise ValidationError(mark_safe(_((f'{ext} is not a supported file extension. '
+                                               f'Please contact {settings.CURATOR_EMAIL} if you believe this is an error.'))))
 
         return super().validate(value)
 
