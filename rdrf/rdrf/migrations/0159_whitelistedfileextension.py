@@ -21,7 +21,24 @@ def create_default_whitelist(apps, schema_editor):
         WhitelistedFileExtension(file_extension='.tif'),
         WhitelistedFileExtension(file_extension='.png'),
         WhitelistedFileExtension(file_extension='.heic'),
-        WhitelistedFileExtension(file_extension='.mov')
+        WhitelistedFileExtension(file_extension='.mov'),
+        WhitelistedFileExtension(file_extension='.apng'),
+        WhitelistedFileExtension(file_extension='.avif'),
+        WhitelistedFileExtension(file_extension='.gif'),
+        WhitelistedFileExtension(file_extension='.webp'),
+        WhitelistedFileExtension(file_extension='.3gp'),
+        WhitelistedFileExtension(file_extension='.aac'),
+        WhitelistedFileExtension(file_extension='.flac'),
+        WhitelistedFileExtension(file_extension='.mpg'),
+        WhitelistedFileExtension(file_extension='.mpeg'),
+        WhitelistedFileExtension(file_extension='.mp3'),
+        WhitelistedFileExtension(file_extension='.mp4'),
+        WhitelistedFileExtension(file_extension='.m4a'),
+        WhitelistedFileExtension(file_extension='.m4p'),
+        WhitelistedFileExtension(file_extension='.ogv'),
+        WhitelistedFileExtension(file_extension='.ogg'),
+        WhitelistedFileExtension(file_extension='.wav'),
+        WhitelistedFileExtension(file_extension='.webm'),
     ])
 
 
