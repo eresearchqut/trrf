@@ -91,6 +91,19 @@ class CustomUserManager(UserManager):
     def get_by_natural_key(self, username):
         return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
 
+    def get_by_user(self, staff_user):
+        if staff_user.is_superuser:
+            return self.all()
+
+        if staff_user.is_staff:
+            # Get users within the same working groups and registries, as long as they aren't superusers
+            return self.filter(Q(working_groups__in=staff_user.working_groups.all()) | Q(working_groups__isnull=True)) \
+                       .filter(registry__in=staff_user.registry.all()) \
+                       .filter(is_superuser=False) \
+                       .distinct()
+        else:
+            return None
+
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(

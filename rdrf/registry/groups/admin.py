@@ -2,16 +2,15 @@ import logging
 
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 from django.utils.encoding import force_str
 from django.utils.translation import gettext as _
-
 from useraudit.admin import LogAdmin
 from useraudit.models import FailedLoginLog, LoginLog, UserDeactivation
 
 from .admin_forms import UserChangeForm, RDRFUserCreationForm
-from .models import WorkingGroup, WorkingGroupType, WorkingGroupTypeRule
+from .models import WorkingGroup, WorkingGroupType, WorkingGroupTypeRule, CustomUser
 
 logger = logging.getLogger(__name__)
 
@@ -65,19 +64,7 @@ class CustomUserAdmin(UserAdmin):
         return super().get_fieldsets(request, obj)
 
     def get_queryset(self, request):
-        from django.db.models import Q
-
-        if request.user.is_superuser:
-            return get_user_model().objects.all()
-
-        filter1 = Q(working_groups__in=request.user.working_groups.all()) | Q(
-            working_groups__isnull=True)
-        filter2 = Q(registry__in=request.user.registry.all())
-
-        filtered = get_user_model().objects.filter(filter1).filter(
-            filter2).distinct().filter(is_superuser=False)
-
-        return filtered
+        return CustomUser.objects.get_by_user(request.user)
 
     def get_working_groups(self, user):
         return ", ".join(wg.name for wg in user.working_groups.all())

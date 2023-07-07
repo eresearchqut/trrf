@@ -4,7 +4,7 @@ import logging
 from django.contrib import messages, auth
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError, PermissionDenied, ObjectDoesNotExist
-from django.db.models import Q, F
+from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -85,10 +85,7 @@ def get_user_by_user(user, request_user):
 
     if request_user.is_staff:
         # Filter the users by those that the current logged in staff member has access to
-        users = CustomUser.objects \
-            .filter(Q(working_groups__in=request_user.working_groups.all()) | Q(working_groups__isnull=True)) \
-            .filter(registry__in=request_user.registry.all()) \
-            .filter(is_superuser=False)
+        users = CustomUser.objects.get_by_user(request_user)
     elif user.is_patient:
         # Filter the patients by those the current user has access to
         common_registry = _get_common_patient_registry(user.patient)

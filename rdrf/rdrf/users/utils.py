@@ -85,8 +85,8 @@ def _send_email_change_request_completed_notification(user, user_previous_email)
     email_template = get_template('registration/email_reset_completed.html')
     email_recipient = {user_previous_email: user.preferred_language}
 
-    if user.my_registry:
-        registry_name = user.my_registry.name
+    if registry := user.my_registry:
+        registry_name = registry.name
     else:
         registry_name = settings.PROJECT_TITLE
 
