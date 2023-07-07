@@ -95,6 +95,7 @@ def _send_email_change_request_completed_notification(user, user_previous_email)
 
 
 def _sync_user_email_update(user, new_email_address):
+    previous_email = user.email
     user.username = new_email_address
     user.email = new_email_address
     user.save()
@@ -104,4 +105,4 @@ def _sync_user_email_update(user, new_email_address):
         patient.email = new_email_address
         patient.save()
 
-    user_email_updated.send(sender=_sync_user_email_update, user=user)
+    user_email_updated.send(sender=_sync_user_email_update, user=user, previous_email=previous_email)

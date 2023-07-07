@@ -23,7 +23,7 @@ Resources:
   FollowupFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-FollowupFunction'
+      FunctionName: !Sub '${EnvironmentName}-${ApplicationName}-FollowupFunction'
       Description: 'Run the longitudinal followup django command'
       Role: !GetAtt FollowupRole.Arn
       PackageType: Image
@@ -62,6 +62,7 @@ Resources:
   FollowupRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub '${EnvironmentName}-${ApplicationName}-FollowupRole'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -72,7 +73,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Policies:
-        - PolicyName: !Sub '${AWS::StackName}-FollowupRolePolicy'
+        - PolicyName: !Sub '${EnvironmentName}-${ApplicationName}-FollowupRolePolicy'
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -91,6 +92,7 @@ Resources:
   ScheduledRule:
     Type: AWS::Events::Rule
     Properties:
+      Name: !Sub '${EnvironmentName}-${ApplicationName}-FollowupRule'
       Description: 'Run the longitudinal followup lambda every day'
       ScheduleExpression: 'rate(1 day)'
       State: ENABLED
@@ -107,7 +109,7 @@ Resources:
   FollowupAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: !Sub '${AWS::StackName}-FollowupAlarm'
+      AlarmName: !Sub '${EnvironmentName}-${ApplicationName}-FollowupAlarm'
       AlarmDescription: 'Longitudinal followup lambda failed'
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
