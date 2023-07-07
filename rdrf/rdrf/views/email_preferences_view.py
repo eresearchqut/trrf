@@ -26,14 +26,21 @@ class UnsubscribeAllView(TokenAuthenticatedMixin, View):
         unsubscribe_successful = email_preference is not None
 
         if not unsubscribe_successful:
-            raise Exception('Unsubscribe all failed for user', (self.user.username, self.is_valid_token))
+            raise Exception('Unsubscribe all failed for user', (self.user.username,))
 
         return render(request, 'email_preference/unsubscribe_all_success.html', {})
 
 
-class EmailPreferencesView(TokenAuthenticatedMixin, View):
+class EmailPreferencesView(View):
 
-    max_age = MAX_TOKEN_AGE
+    user = None
+
+    def _redirect_kwargs(self):
+        return {}
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = self.user or request.user
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         form = EmailPreferencesForm(self.user)
@@ -57,7 +64,13 @@ class EmailPreferencesView(TokenAuthenticatedMixin, View):
             'state': 'success' if success else 'error'
         }
 
-        redirect_kwargs = {'username_b64': self.username_b64,
-                           'token': self.token}
+        return redirect(reverse('email_preferences', kwargs=self._redirect_kwargs()) + '?' + urlencode(query))
 
-        return redirect(reverse('email_preferences', kwargs=redirect_kwargs) + '?' + urlencode(query))
+
+class PublicEmailPreferencesView(TokenAuthenticatedMixin, EmailPreferencesView):
+    max_age = MAX_TOKEN_AGE
+    is_public = True
+
+    def _redirect_kwargs(self):
+        return {'username_b64': self.username_b64,
+                'token': self.token}

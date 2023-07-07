@@ -28,7 +28,7 @@ from rdrf.views.actions import ActionExecutorView
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.email_notification_view import ResendEmail
-from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView
+from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView, PublicEmailPreferencesView
 from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
@@ -124,11 +124,12 @@ patterns += [
     re_path(r'^email_address/patient/(?P<patient_id>\d+)//?$', PatientEmailChangeRequestView.as_view(), name="patient_email_change"),
     re_path(r'^email_address/user/(?P<user_id>\d+)//?$', UserAdminEmailChangeRequestView.as_view(), name="user_email_change"),
 
-    # --- Token Authenticated views
-    re_path(r'^unsubscribe_all/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', UnsubscribeAllView.as_view(),
-            name='unsubscribe_all'),
-    re_path(r'^unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', EmailPreferencesView.as_view(), name='email_preferences'),
     re_path(r'^email_preferences/?$', EmailPreferencesView.as_view(), name='email_preferences'),
+
+    # --- Token Authenticated views
+    re_path(r'^unsubscribe_all/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', UnsubscribeAllView.as_view(), name='unsubscribe_all'),
+    re_path(r'^unsubscribe_preferences/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', PublicEmailPreferencesView.as_view(), name='email_preferences'),
+
     re_path(r'^activate_email_request/(?P<username_b64>\w+)/(?P<token>[\w.:\-_=]+)/?$', ActivateEmailChangeRequestView.as_view(), name="activate_email_request"),
     # ---
 
