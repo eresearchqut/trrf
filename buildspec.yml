@@ -33,6 +33,19 @@ phases:
       - echo Pushing the Docker image...
       - docker push "${IMAGE_REPO}:${GIT_TAG}"
       - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
+
+      - >
+        aws cloudformation deploy
+        --template-file infra/longitudinal_followup_stack.yml
+        --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
+        --capabilities CAPABILITY_IAM
+        --parameter-overrides
+          EnvironmentName=$ENVIRONMENT_NAME
+          ApplicationName=$APPLICATION_NAME
+          AlertStackName=$ALERT_STACK_NAME
+          NetworkStackName=$NETWORK_STACK_NAME
+          EcrAccount=$ECR_ACCOUNT
+          ImageTag=$GIT_BRANCH_NAME
   post_build:
     commands:
       - aws ssm put-parameter --overwrite --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
