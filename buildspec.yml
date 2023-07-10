@@ -38,7 +38,7 @@ phases:
         aws cloudformation deploy
         --template-file infra/longitudinal_followup_stack.yml
         --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
-        --capabilities CAPABILITY_IAM
+        --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
         --parameter-overrides
         EnvironmentName=$ENVIRONMENT_NAME
         ApplicationName=$APPLICATION_NAME
