@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from django.dispatch import Signal
 from django.template.loader import get_template
 from django.utils.translation import gettext as _
@@ -75,6 +76,7 @@ def send_email_change_request_completed_notification(user, user_previous_email):
                          mandatory_recipients=email_recipient)
 
 
+@transaction.atomic
 def sync_user_email_update(user, new_email_address):
 
     previous_email = user.email
