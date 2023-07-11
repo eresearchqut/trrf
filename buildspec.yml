@@ -4,12 +4,22 @@ env:
 phases:
   pre_build:
     commands:
+      - mkdir -p ~/.aws
+      - >
+        cat > ~/.aws/config << EOF
+        [profile cross-account]
+        role_arn = ${CLOUDFORMATION_BUILDER_ROLE_ARN}
+        region = ${AWS_DEFAULT_REGION}
+        EOF
+
       - git submodule update --init --recursive
+
       - echo Logging in to Amazon ECR...
       - ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
       - echo $ECR_PASSWORD | docker login --username AWS --password-stdin $AWS_ACCCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - echo Logging in to Docker Hub...
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+
       - touch .env_local
   build:
     commands:
@@ -36,6 +46,7 @@ phases:
 
       - >
         aws cloudformation deploy
+        --profile cross-account
         --template-file infra/longitudinal_followup_stack.yml
         --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
@@ -45,7 +56,7 @@ phases:
         AlertStackName=$ALERT_STACK_NAME
         NetworkStackName=$NETWORK_STACK_NAME
         EcrAccount=$ECR_ACCOUNT
-        ImageTag=$GIT_BRANCH_NAME
+        ImageTag=$GIT_TAG
   post_build:
     commands:
       - aws ssm put-parameter --overwrite --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
