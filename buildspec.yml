@@ -44,7 +44,7 @@ phases:
 
       - >
         aws cloudformation deploy
-        --profile cross-account
+#        --profile cross-account
         --template-file infra/longitudinal_followup_stack.yml
         --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
         --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
