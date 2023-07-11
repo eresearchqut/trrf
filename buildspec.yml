@@ -40,6 +40,8 @@ phases:
       - docker push "${IMAGE_REPO}:${GIT_TAG}"
       - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
 
+      - export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" $(aws sts assume-role --role-arn "${CLOUDFORMATION_BUILDER_ROLE_ARN}" --role-session-name "CloudformationBuilderRole" --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" --output text))
+
       - >
         aws cloudformation deploy
         --profile cross-account
@@ -53,6 +55,8 @@ phases:
         NetworkStackName=$NETWORK_STACK_NAME
         EcrAccount=$ECR_ACCOUNT
         ImageTag=$GIT_TAG
+
+      - unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
   post_build:
     commands:
       - aws ssm put-parameter --overwrite --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
