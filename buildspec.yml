@@ -5,12 +5,7 @@ phases:
   pre_build:
     commands:
       - mkdir -p ~/.aws
-      - >
-        cat > ~/.aws/config << EOF
-        [profile cross-account]
-        role_arn = ${CLOUDFORMATION_BUILDER_ROLE_ARN}
-        region = ${AWS_DEFAULT_REGION}
-        EOF
+      - echo "[profile cross-account]\nrole_arn = ${CLOUDFORMATION_BUILDER_ROLE_ARN}\nregion = ${AWS_DEFAULT_REGION}" > ~/.aws/config
 
       - git submodule update --init --recursive
 
