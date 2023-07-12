@@ -26,8 +26,8 @@ phases:
       - scripts/django-checks.sh
       - scripts/js_dependencies.py --verify
       - scripts/check-migrations.sh
-#      - scripts/unit-tests.sh
-#      - scripts/end2end-tests.sh
+      - scripts/unit-tests.sh
+      - scripts/end2end-tests.sh
       - export GIT_TAG="$(echo $GIT_COMMIT_ID | cut -c1-8)"
       - export IMAGE_TAG=$GIT_TAG
       - echo "Building image from commit ${GIT_COMMIT_ID} ${GIT_COMMIT_URL}"
