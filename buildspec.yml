@@ -4,10 +4,6 @@ env:
 phases:
   pre_build:
     commands:
-      - mkdir -p ~/.aws
-      - echo "[profile cross-account]\nrole_arn = ${CLOUDFORMATION_BUILDER_ROLE_ARN}\ncredential_source = EcsContainer\nregion = ${AWS_DEFAULT_REGION}" >> ~/.aws/config
-      - touch ~/.aws/credentials
-
       - git submodule update --init --recursive
 
       - echo Logging in to Amazon ECR...
@@ -40,9 +36,17 @@ phases:
       - docker push "${IMAGE_REPO}:${GIT_TAG}"
       - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
 
-      - export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s" $(aws sts assume-role --role-arn "${CLOUDFORMATION_BUILDER_ROLE_ARN}" --role-session-name "CloudformationBuilderRole" --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]" --output text))
-
       - >
+        export $(printf "CFB_ACCESS_KEY_ID=%s CFB_SECRET_ACCESS_KEY=%s CFB_SESSION_TOKEN=%s"
+        $(aws sts assume-role
+        --role-arn "${CLOUDFORMATION_BUILDER_ROLE_ARN}"
+        --role-session-name "CloudformationBuilderRole"
+        --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]"
+        --output text))
+      - >
+        AWS_ACCESS_KEY_ID=$CFB_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY=$CFB_SECRET_ACCESS_KEY
+        AWS_SESSION_TOKEN=$CFB_SESSION_TOKEN
         aws cloudformation deploy
         --template-file infra/longitudinal_followup_stack.yml
         --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
@@ -54,8 +58,6 @@ phases:
         NetworkStackName=$NETWORK_STACK_NAME
         EcrAccount=$ECR_ACCOUNT
         ImageTag=$GIT_TAG
-
-      - unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
   post_build:
     commands:
       - aws ssm put-parameter --overwrite --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
