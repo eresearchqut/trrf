@@ -1,7 +1,6 @@
 from unittest import TestCase, mock
 from unittest.mock import Mock
 
-import pwnedpasswords
 from django.contrib.auth.password_validation import (
     CommonPasswordValidator, MinimumLengthValidator, UserAttributeSimilarityValidator
 )
@@ -13,6 +12,7 @@ from rdrf.auth.password_validation import (
     ConsecutivelyDecreasingNumberValidator, HasNumberValidator, HasUppercaseLetterValidator,
     HasLowercaseLetterValidator, HasSpecialCharacterValidator, EnhancedCommonPasswordValidator
 )
+from rdrf.auth.pwned_passwords import pwned_passwords
 from registry.groups.models import CustomUser
 
 
@@ -145,7 +145,7 @@ class PasswordValidationTests(TestCase):
         # And a complex password passes validation
         validator.validate('R3a1!y S3CuRE P@$$w0rd!')
 
-    @mock.patch(f'{password_validation.__name__}.pwnedpasswords', wraps=pwnedpasswords)
+    @mock.patch(f'{password_validation.__name__}.pwned_passwords', wraps=pwned_passwords)
     def test_pwnedpasswords_api_is_down(self, *args, **kwargs):
         validator = EnhancedCommonPasswordValidator(breached_password_detection=True, max_breach_threshold=1)
 
@@ -155,7 +155,7 @@ class PasswordValidationTests(TestCase):
         self.assertEqual(e.exception.message, 'This password is too insecure.')
 
         # Given the API is down,
-        password_validation.pwnedpasswords.check = Mock(side_effect=Exception('Mock API Exception'))
+        password_validation.pwned_passwords.check_breaches = Mock(side_effect=Exception('Mock API Exception'))
         # Then expect the validation to fall back to the CommonPasswordValidator
         validator.validate('Password12!')
         with self.assertRaises(ValidationError) as e:
