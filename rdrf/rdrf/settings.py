@@ -573,6 +573,7 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
+BREACHED_PASSWORD_ENDPOINT = env.get("breached_password_endpoint", "")
 BREACHED_PASSWORD_DETECTION = env.get("breached_password_detection", True)
 MAX_BREACHED_PASSWORD_THRESHOLD = env.get("max_breached_password_threshold", 0)
 

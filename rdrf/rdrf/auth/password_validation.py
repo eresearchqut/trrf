@@ -1,13 +1,12 @@
-import hashlib
 import logging
 import re
 
-import pwnedpasswords
 from django.contrib.auth.password_validation import CommonPasswordValidator
 from django.core.exceptions import ValidationError
-from django.utils.translation import ngettext
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 
+from rdrf.auth.pwned_passwords import pwned_passwords
 
 logger = logging.getLogger(__name__)
 
@@ -149,12 +148,9 @@ class EnhancedCommonPasswordValidator:
     def validate(self, password, user=None):
         validated = False
         if self.breached_password_detection:
-            # Hash the password before we send it away, so that we are sure we are not exposing the user's password.
-            sha1_password = hashlib.sha1(password.encode("utf8")).hexdigest()
             breached_cnt = None
-
             try:
-                breached_cnt = pwnedpasswords.check(sha1_password)
+                breached_cnt = pwned_passwords.check_breaches(password)
             except Exception as e:
                 logger.error(e)  # Log the error, but fall back to the common password validator
 
