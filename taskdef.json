@@ -118,12 +118,12 @@
                     "value": "$VIDEO_HOSTING_BASE_URL"
                 },
                 {
-                    "name": "BREACHED_PASSWORD_ENDPOINT",
-                    "value": "$BREACHED_PASSWORD_ENDPOINT"
+                    "name": "BREACHED_PASSWORD_DETECTION_ENABLED",
+                    "value": "$BREACHED_PASSWORD_DETECTION_ENABLED"
                 },
                 {
-                    "name": "BREACHED_PASSWORD_DETECTION",
-                    "value": "$BREACHED_PASSWORD_DETECTION"
+                    "name": "BREACHED_PASSWORD_ENDPOINT",
+                    "value": "$BREACHED_PASSWORD_ENDPOINT"
                 },
                 {
                     "name": "MAX_BREACHED_PASSWORD_THRESHOLD",

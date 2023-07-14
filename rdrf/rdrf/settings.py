@@ -573,8 +573,8 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
+BREACHED_PASSWORD_DETECTION_ENABLED = env.get("breached_password_detection_enabled", False)
 BREACHED_PASSWORD_ENDPOINT = env.get("breached_password_endpoint", "")
-BREACHED_PASSWORD_DETECTION = env.get("breached_password_detection", True)
 MAX_BREACHED_PASSWORD_THRESHOLD = env.get("max_breached_password_threshold", 0)
 
 
@@ -624,7 +624,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'rdrf.auth.password_validation.EnhancedCommonPasswordValidator',
         'OPTIONS': {
-            'breached_password_detection': BREACHED_PASSWORD_DETECTION,
+            'breached_password_detection': BREACHED_PASSWORD_DETECTION_ENABLED,
             'max_breach_threshold': MAX_BREACHED_PASSWORD_THRESHOLD
         }
     }
