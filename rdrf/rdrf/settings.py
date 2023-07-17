@@ -11,6 +11,7 @@ from rdrf.security import url_whitelist
 env = EnvConfig()
 
 TRRF_SITE_NAME = env.get("trrf_site_name", "trrf")
+CURATOR_EMAIL = env.get("curator_email", "eresearch@qut.edu.au")
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None

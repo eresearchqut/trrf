@@ -13,7 +13,6 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from reversion.admin import VersionAdmin
 
-from rdrf.admin_forms import BlacklistedMimeTypeAdminForm
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
@@ -23,7 +22,7 @@ from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.events.events import EventType
 from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
-from rdrf.models.definition.models import BlacklistedMimeType
+from rdrf.models.definition.models import WhitelistedFileExtension
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import CDEPermittedValueGroup
@@ -390,10 +389,10 @@ class FormTitleAdmin(admin.ModelAdmin):
     list_display_links = ('default_title',)
 
 
-class BlacklistedMimeTypeAdmin(admin.ModelAdmin):
-    model = BlacklistedMimeType
-    form = BlacklistedMimeTypeAdminForm
-    list_display = ('mime_type', 'description')
+class WhitelistedFileExtensionAdmin(admin.ModelAdmin):
+    model = WhitelistedFileExtension
+    list_display = ('file_extension',)
+    ordering = ('file_extension',)
 
 
 class DashboardLinksInline(admin.StackedInline):
@@ -504,7 +503,7 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (CDEPermittedValueGroup, CDEPermittedValueGroupAdmin),
     (RegistryForm, RegistryFormAdmin),
     (ConsentConfiguration, ConsentConfigurationAdmin),
-    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (WhitelistedFileExtension, WhitelistedFileExtensionAdmin),
     (Section, SectionAdmin),
     (ConsentSection, ConsentSectionAdmin),
     (CdePolicy, CdePolicyAdmin),
@@ -524,7 +523,7 @@ NORMAL_MODE_ADMIN_COMPONENTS = [
     (DemographicFields, DemographicFieldsAdmin),
     (ConsentRule, ConsentRuleAdmin),
     (FormTitle, FormTitleAdmin),
-    (BlacklistedMimeType, BlacklistedMimeTypeAdmin),
+    (WhitelistedFileExtension, WhitelistedFileExtensionAdmin),
 ]
 
 ADMIN_COMPONENTS = NORMAL_MODE_ADMIN_COMPONENTS
