@@ -12,7 +12,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
 from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup, RegistryDashboardWidget, \
     RegistryDashboard, RegistryDashboardDemographicData, RegistryDashboardCDEData, RegistryDashboardFormLink, \
-    LongitudinalFollowup
+    LongitudinalFollowup, WhitelistedFileExtension
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentConfiguration
@@ -742,6 +742,10 @@ class Importer(object):
             self._create_registry_dashboards(self.data["registry_dashboards"])
             logger.info("imported registry dashboards OK")
 
+        if "whitelisted_file_extensions" in self.data:
+            self._create_whitelisted_file_extensions(self.data["whitelisted_file_extensions"])
+            logger.info('imported whitelisted file extensions OK')
+
         logger.info("end of import registry objects!")
 
     def _create_consent_rules(self, registry_model):
@@ -1151,3 +1155,7 @@ class Importer(object):
                                                                     registry_form=registry_form
                                                                     )
                     logger.info(f'Created link {link.label}')
+
+    def _create_whitelisted_file_extensions(self, data):
+        for file_ext in data:
+            WhitelistedFileExtension.objects.get_or_create(file_extension=file_ext)

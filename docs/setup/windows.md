@@ -22,10 +22,14 @@ Download the latest version from [Docker](https://www.docker.com/products/docker
 Full instructions here: https://docs.microsoft.com/en-us/windows/wsl/install-win10.  
 Docker Desktop would have installed WSL for you. Run `wsl` from command prompt to confirm
 
-1. Set WSL version to 2.
+1. Check which version of WSL you are running
    ```shell
-   wsl --set-default-version 2
+   wsl -v
    ```
+   1. If not already, set the wsl version to 2
+      ```shell
+      wsl --set-default-version 2
+      ```
 
 2. Select a Linux distribution e.g. Ubuntu 20.04 and Get it from the Microsoft Store.
 Running Launch from the Microsoft Store once it has downloaded will install it.

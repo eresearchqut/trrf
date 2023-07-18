@@ -11,6 +11,7 @@ from rdrf.security import url_whitelist
 env = EnvConfig()
 
 TRRF_SITE_NAME = env.get("trrf_site_name", "trrf")
+CURATOR_EMAIL = env.get("curator_email", "eresearch@qut.edu.au")
 
 SCRIPT_NAME = env.get("script_name", os.environ.get("HTTP_SCRIPT_NAME", ""))
 FORCE_SCRIPT_NAME = env.get("force_script_name", "") or SCRIPT_NAME or None
@@ -573,15 +574,17 @@ PROJECT_LOGO_LINK = env.get("project_logo_link", "")
 
 LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translations/locale")])
 
+BREACHED_PASSWORD_DETECTION_ENABLED = env.get("breached_password_detection_enabled", False)
+BREACHED_PASSWORD_ENDPOINT = env.get("breached_password_endpoint", "")
+MAX_BREACHED_PASSWORD_THRESHOLD = env.get("max_breached_password_threshold", 0)
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
             'min_length': 8,
         }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'rdrf.auth.password_validation.HasUppercaseLetterValidator',
@@ -618,6 +621,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'rdrf.auth.password_validation.DifferentToPrevious'
+    },
+    {
+        'NAME': 'rdrf.auth.password_validation.EnhancedCommonPasswordValidator',
+        'OPTIONS': {
+            'breached_password_detection': BREACHED_PASSWORD_DETECTION_ENABLED,
+            'max_breach_threshold': MAX_BREACHED_PASSWORD_THRESHOLD
+        }
     }
 ]
 

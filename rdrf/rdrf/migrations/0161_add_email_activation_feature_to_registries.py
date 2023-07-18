@@ -45,7 +45,7 @@ def rollback_turn_on_feature(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0158_update_arabic'),
+        ('rdrf', '0160_delete_blacklistedmimetype'),
     ]
 
     operations = [
