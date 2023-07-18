@@ -1,8 +1,14 @@
+import logging
 import re
 
+from django.contrib.auth.password_validation import CommonPasswordValidator
 from django.core.exceptions import ValidationError
-from django.utils.translation import ngettext
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
+
+from rdrf.auth.pwned_passwords import pwned_passwords
+
+logger = logging.getLogger(__name__)
 
 
 class BaseHasCharacterValidator:
@@ -128,3 +134,33 @@ class DifferentToPrevious:
 
     def get_help_text(self):
         return _("You must change the password to something other than your current password.")
+
+
+class EnhancedCommonPasswordValidator:
+
+    breached_password_detection = None
+    max_breach_threshold = None
+
+    def __init__(self, breached_password_detection, max_breach_threshold=0):
+        self.breached_password_detection = breached_password_detection
+        self.max_breach_threshold = max_breach_threshold
+
+    def validate(self, password, user=None):
+        validated = False
+        if self.breached_password_detection:
+            breached_cnt = None
+            try:
+                breached_cnt = pwned_passwords.check_breaches(password)
+            except Exception as e:
+                logger.error(e)  # Log the error, but fall back to the common password validator
+
+            if breached_cnt is not None:
+                validated = True
+                if breached_cnt > self.max_breach_threshold:
+                    raise ValidationError(_('This password is too insecure.'))
+
+        if not validated:
+            CommonPasswordValidator().validate(password, user)
+
+    def get_help_text(self):
+        return _("Your password can't be a commonly used password.")
