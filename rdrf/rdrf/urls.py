@@ -11,7 +11,7 @@ from two_factor import views as twv
 from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
-from rdrf.users.views import EmailChangeRequestView, ActivateEmailChangeRequestView
+from rdrf.users.views import EmailChangeRequestView, ActivateEmailChangeRequestView, PatientUserEmailView
 
 from rdrf.views import favicon_view, dashboard_view, xnat_view
 import rdrf.views.form_view as form_view
@@ -122,6 +122,8 @@ patterns += [
             name='login_assistance_complete'),
 
     re_path(r'^email_address/?$', EmailChangeRequestView.as_view(), name="email_address_change"),
+    re_path(r'^email_address/(?P<patient_id>\d+)//?$', PatientUserEmailView.as_view(), name="patient_email_change"),
+
     re_path(r'^email_preferences/?$', EmailPreferencesView.as_view(), name='email_preferences'),
 
     # --- Token Authenticated views

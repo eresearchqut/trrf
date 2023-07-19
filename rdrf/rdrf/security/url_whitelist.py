@@ -364,6 +364,7 @@ SECURITY_WHITELISTED_URLS = (
     "password_reset_done",
     "patient_add",
     "patient_edit",
+    "patient_email_change",
     "patient_verification",
     "patientslisting",
     "patient_list",
