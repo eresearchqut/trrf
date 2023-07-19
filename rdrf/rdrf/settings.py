@@ -576,7 +576,7 @@ LOCALE_PATHS = env.getlist("locale_paths", [os.path.join(WEBAPP_ROOT, "translati
 
 BREACHED_PASSWORD_DETECTION_ENABLED = env.get("breached_password_detection_enabled", False)
 BREACHED_PASSWORD_ENDPOINT = env.get("breached_password_endpoint", "")
-MAX_BREACHED_PASSWORD_THRESHOLD = env.get("max_breached_password_threshold", '') or 0
+MAX_BREACHED_PASSWORD_THRESHOLD = int(env.get("max_breached_password_threshold", '') or 0)
 
 
 AUTH_PASSWORD_VALIDATORS = [
