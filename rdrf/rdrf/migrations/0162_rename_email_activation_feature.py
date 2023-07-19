@@ -32,7 +32,7 @@ def rollback_rename_feature(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rdrf', '0159_add_email_activation_feature_to_registries'),
+        ('rdrf', '0161_add_email_activation_feature_to_registries'),
     ]
 
     operations = [
