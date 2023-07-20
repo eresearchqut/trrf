@@ -1,43 +1,42 @@
-from django.urls import re_path, include, path
-from django.contrib import admin
-from django.views.generic.base import TemplateView
-from django.contrib.auth import views as auth_views
-from django.views.i18n import JavaScriptCatalog
-from django.conf import settings
-from django.utils.translation import gettext as _
+import logging
 
+from django.conf import settings
+from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from django.urls import re_path, include, path
+from django.utils.translation import gettext as _
+from django.views.generic.base import TemplateView
+from django.views.i18n import JavaScriptCatalog
 from two_factor import views as twv
 
+import rdrf.routing.login_router as login_router
+import rdrf.views.consent_view as consent_view
+import rdrf.views.form_view as form_view
+import rdrf.views.import_registry_view as import_registry_view
+import rdrf.views.landing_view as landing_view
+import rdrf.views.patient_view as patient_view
+import rdrf.views.registry_view as registry_view
 from rdrf.auth.forms import RDRFPasswordResetForm, RDRFSetPasswordForm
 from rdrf.auth.views import LoginView, login_assistance_confirm, QRGeneratorView, SetupView, DisableView
 from rdrf.forms.password_change import PasswordChangeForm
-from rdrf.users.views import EmailChangeRequestView, ActivateEmailChangeRequestView, PatientUserEmailView
-
+from rdrf.users.views import ActivateEmailChangeRequestView, SelfEmailChangeRequestView, PatientEmailChangeRequestView, \
+    UserAdminEmailChangeRequestView
+from rdrf.views import clinician_view
 from rdrf.views import favicon_view, dashboard_view, xnat_view
-import rdrf.views.form_view as form_view
-import rdrf.views.registry_view as registry_view
-import rdrf.views.landing_view as landing_view
-import rdrf.views.import_registry_view as import_registry_view
-import rdrf.views.patient_view as patient_view
-import rdrf.routing.login_router as login_router
-import rdrf.views.consent_view as consent_view
+from rdrf.views import patients_listing
+from rdrf.views.actions import ActionExecutorView
+from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
+from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.email_preferences_view import EmailPreferencesView, UnsubscribeAllView, PublicEmailPreferencesView
+from rdrf.views.family_linkage import FamilyLinkageView
 from rdrf.views.handler_views import handler404, handler500, handler_application_error, handler_exceptions
 from rdrf.views.health_check import health_check
 from rdrf.views.mailbox_view import MailboxView, MailboxEmptyView, MailboxSendLongitudinalFollowups
-from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, RdrfRegistrationView, PatientActivationView
-from rdrf.views.family_linkage import FamilyLinkageView
-from rdrf.views.email_notification_view import ResendEmail
 from rdrf.views.permission_matrix import PermissionMatrixView
-from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
-from rdrf.views import patients_listing
-from rdrf.views import clinician_view
-from rdrf.views.copyright_view import CopyrightView
+from rdrf.views.registration_rdrf import EmbeddedRegistrationCompletedView, EmbeddedRegistrationView, \
+    RdrfRegistrationView, PatientActivationView
 from rdrf.views.session_refresh_view import session_refresh
-
-from rdrf.views.actions import ActionExecutorView
-import logging
-
 from report.TrrfGraphQLView import TrrfGraphQLView
 from report.schema import create_dynamic_schema
 
@@ -121,8 +120,9 @@ patterns += [
             kwargs={'template_name': 'registration/login_assistance_complete.html'},
             name='login_assistance_complete'),
 
-    re_path(r'^email_address/?$', EmailChangeRequestView.as_view(), name="email_address_change"),
-    re_path(r'^email_address/(?P<patient_id>\d+)//?$', PatientUserEmailView.as_view(), name="patient_email_change"),
+    re_path(r'^email_address/?$', SelfEmailChangeRequestView.as_view(), name="email_address_change"),
+    re_path(r'^email_address/patient/(?P<patient_id>\d+)//?$', PatientEmailChangeRequestView.as_view(), name="patient_email_change"),
+    re_path(r'^email_address/user/(?P<user_id>\d+)//?$', UserAdminEmailChangeRequestView.as_view(), name="user_email_change"),
 
     re_path(r'^email_preferences/?$', EmailPreferencesView.as_view(), name='email_preferences'),
 

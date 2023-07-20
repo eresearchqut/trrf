@@ -374,7 +374,7 @@ class PatientForm(forms.ModelForm):
                         change_email_url = reverse("patient_email_change", kwargs={"patient_id": instance.id})
 
                     if change_email_url:
-                        self.fields["email"].help_text = mark_safe(f'<a href="{change_email_url}">Change email address</a>')
+                        self.fields["email"].help_text = mark_safe(f'<a href="{change_email_url}">{_("Change email address")}</a>')
                 else:
                     self.fields["email"].required = True
 

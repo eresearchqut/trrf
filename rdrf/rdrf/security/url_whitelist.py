@@ -403,6 +403,7 @@ SECURITY_WHITELISTED_URLS = (
     "two_factor:setup",
     "two_factor:setup_complete",
     "unsubscribe_all",
+    "user_email_change",
     "useraudit:reactivate_user",
     "v1:api-root",
     "v1:api-root",
