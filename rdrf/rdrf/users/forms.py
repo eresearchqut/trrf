@@ -40,11 +40,15 @@ class EmailChangeForm(Form):
         super().__init__(*args, **kwargs)
 
         self.fields['user_activation_required'].required = self.is_activation_optional
-        self.fields['current_password'].required = not self.current_user.is_staff
+
+        self.fields['current_password'].required = not self._is_staff_user_updating_another_user()
+
+    def _is_staff_user_updating_another_user(self):
+        return self.current_user != self.user and self.current_user.is_staff
 
     @property
     def is_activation_optional(self):
-        return self.current_user.is_staff \
+        return self._is_staff_user_updating_another_user() \
             and self.user.has_feature(RegistryFeatures.USER_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN)
 
     def clean_new_email(self):
