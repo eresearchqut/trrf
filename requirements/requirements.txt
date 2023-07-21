@@ -1,5 +1,5 @@
 ccg-django-utils==0.4.2
-Django==3.2.19
+Django==3.2.20
 django-anymail==8.5
 django-countries==7.2.1
 django-csp==3.7

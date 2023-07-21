@@ -1,18 +1,20 @@
 # Custom Fields
 from itertools import zip_longest
 import datetime
-import magic
 import os
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import CharField
 from django.forms import ChoiceField
 from django.forms import FileField
 from django.forms import URLField
 from django.forms import DateField
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from rdrf.forms.widgets.widgets import MultipleFileInput, CustomFileInput
+from rdrf.models.definition.models import WhitelistedFileExtension
 
 
 class DatatypeFieldAlphanumericxxsx(URLField):
@@ -44,20 +46,19 @@ class ChoiceFieldNonBlankValidation(ChoiceField):
 
 class FileTypeRestrictedFileField(FileField):
 
-    def _find_blacklisted_mime_type(self, mt):
-        from rdrf.models.definition.models import BlacklistedMimeType
-        return BlacklistedMimeType.objects.filter(mime_type=mt).first()
+    def _find_whitelisted_file_types(self, file_extension):
+        return WhitelistedFileExtension.objects.filter(file_extension__iexact=file_extension)
 
     def validate(self, value):
         if not value:
             return super().validate(value)
-        __, ext = os.path.splitext(value._name)
-        mime_type = magic.from_buffer(value.file.read(2048), mime=True)
+        __, ext = os.path.splitext(value.name)
         value.file.seek(0)
 
-        blacklisted_mime_type = self._find_blacklisted_mime_type(mime_type)
-        if blacklisted_mime_type:
-            raise ValidationError(_(f"{blacklisted_mime_type.description} file types aren't allowed to be uploaded into the system !"))
+        if not self._find_whitelisted_file_types(ext):
+            raise ValidationError(mark_safe(_((f'{ext} is not a supported file extension. '
+                                               f'Please contact {settings.CURATOR_EMAIL} if you believe this is an error.'))))
+
         return super().validate(value)
 
 

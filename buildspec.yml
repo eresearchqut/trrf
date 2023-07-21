@@ -5,10 +5,13 @@ phases:
   pre_build:
     commands:
       - git submodule update --init --recursive
+
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_DEFAULT_REGION)
+      - echo $ECR_PASSWORD | docker login --username AWS --password-stdin $AWS_ACCCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - echo Logging in to Docker Hub...
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
+
       - touch .env_local
   build:
     commands:
@@ -32,6 +35,29 @@ phases:
       - echo Pushing the Docker image...
       - docker push "${IMAGE_REPO}:${GIT_TAG}"
       - docker push "${IMAGE_REPO}:${GIT_BRANCH_NAME}"
+
+      - >
+        export $(printf "CFB_ACCESS_KEY_ID=%s CFB_SECRET_ACCESS_KEY=%s CFB_SESSION_TOKEN=%s"
+        $(aws sts assume-role
+        --role-arn "${CLOUDFORMATION_BUILDER_ROLE_ARN}"
+        --role-session-name "CloudformationBuilderRole"
+        --query "Credentials.[AccessKeyId,SecretAccessKey,SessionToken]"
+        --output text))
+      - >
+        AWS_ACCESS_KEY_ID=$CFB_ACCESS_KEY_ID
+        AWS_SECRET_ACCESS_KEY=$CFB_SECRET_ACCESS_KEY
+        AWS_SESSION_TOKEN=$CFB_SESSION_TOKEN
+        aws cloudformation deploy
+        --template-file infra/longitudinal_followup_stack.yml
+        --stack-name "${ENVIRONMENT_NAME}-${APPLICATION_NAME}-longitudinal-followup-stack"
+        --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+        --parameter-overrides
+        EnvironmentName=$ENVIRONMENT_NAME
+        ApplicationName=$APPLICATION_NAME
+        AlertStackName=$ALERT_STACK_NAME
+        NetworkStackName=$NETWORK_STACK_NAME
+        EcrAccount=$ECR_ACCOUNT
+        ImageTag=$GIT_TAG
   post_build:
     commands:
       - aws ssm put-parameter --overwrite --type String --name /app/$ENVIRONMENT_NAME/$APPLICATION_NAME/RELEASE_ID --value $IMAGE_TAG
