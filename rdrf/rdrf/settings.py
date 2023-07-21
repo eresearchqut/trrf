@@ -159,7 +159,6 @@ MIDDLEWARE = [x for x in (
     'aws_xray_sdk.ext.django.middleware.XRayMiddleware',
     'registry.common.middleware.XrayMetadataMiddleware',
     'silk.middleware.SilkyMiddleware' if PROFILING else None,
-    'useraudit.middleware.RequestToThreadLocalMiddleware',
     'registry.common.middleware.NoCacheMiddleware',
     'csp.middleware.CSPMiddleware',
     'registry.common.middleware.LaxSameSiteCookieMiddleware',
