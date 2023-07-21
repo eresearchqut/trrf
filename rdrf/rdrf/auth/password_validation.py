@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import logging
 import re
 
@@ -11,60 +12,80 @@ from rdrf.auth.pwned_passwords import pwned_passwords
 logger = logging.getLogger(__name__)
 
 
-class BaseHasCharacterValidator:
+class BaseHasCharacterValidator(ABC):
     name = None
     pattern = None
 
-    def __init__(self, min_occurences=1):
-        self.min_occurences = min_occurences
+    def __init__(self, min_occurrences=1):
+        self.min_occurrences = min_occurrences
 
-    @property
-    def msg(self):
-        return 'The password must contain at least %(min_occurences)s ' + self.name + '.'
-
-    @property
-    def msg_plural(self):
-        return 'The password must contain at least %(min_occurences)s ' + self.name + 's.'
-
-    @property
-    def help_text(self):
-        return 'Your password must contain at least %(min_occurences)s ' + self.name + '.'
-
-    @property
-    def help_text_plural(self):
-        return 'Your password must contain at least %(min_occurences)s ' + self.name + 's.'
+    @staticmethod
+    @abstractmethod
+    def validation_error_text(min_occurrences):
+        pass
 
     def validate(self, password, user=None):
-        if len(self.pattern.findall(password)) < self.min_occurences:
+        if len(self.pattern.findall(password)) < self.min_occurrences:
             raise ValidationError(
-                ngettext(self.msg, self.msg_plural, self.min_occurences),
+                self.validation_error_text(self.min_occurrences),
                 code='password_does_not_have_enough_%ss' % self.name,
-                params={'min_occurences': self.min_occurences},
+                params={'min_occurrences': self.min_occurrences},
             )
 
     def get_help_text(self):
-        return ngettext(self.help_text, self.help_text_plural, self.min_occurences) % {
-            'min_occurences': self.min_occurences}
+        return self.validation_error_text(self.min_occurrences)
 
 
 class HasNumberValidator(BaseHasCharacterValidator):
     name = 'number'
     pattern = re.compile(r'\d')
 
+    @staticmethod
+    def validation_error_text(min_occurrences):
+        return ngettext(
+            "Your password must contain at least {min_occurrences} number",
+            "Your password must contain at least {min_occurrences} numbers",
+            min_occurrences
+        ).format(min_occurrences=min_occurrences)
+
 
 class HasUppercaseLetterValidator(BaseHasCharacterValidator):
     name = 'uppercase letter'
     pattern = re.compile(r'[A-Z]')
+
+    @staticmethod
+    def validation_error_text(min_occurrences):
+        return ngettext(
+            "Your password must contain at least {min_occurrences} uppercase letter",
+            "Your password must contain at least {min_occurrences} uppercase letters",
+            min_occurrences
+        ).format(min_occurrences=min_occurrences)
 
 
 class HasLowercaseLetterValidator(BaseHasCharacterValidator):
     name = 'lowercase letter'
     pattern = re.compile(r'[a-z]')
 
+    @staticmethod
+    def validation_error_text(min_occurrences):
+        return ngettext(
+            "Your password must contain at least {min_occurrences} lowercase letter",
+            "Your password must contain at least {min_occurrences} lowercase letters",
+            min_occurrences
+        ).format(min_occurrences=min_occurrences)
+
 
 class HasSpecialCharacterValidator(BaseHasCharacterValidator):
     name = 'special character'
     pattern = re.compile(r'[^A-Za-z0-9\s]')
+
+    @staticmethod
+    def validation_error_text(min_occurrences):
+        return ngettext(
+            "Your password must contain at least {min_occurrences} special character",
+            "Your password must contain at least {min_occurrences} special characters",
+            min_occurrences
+        ).format(min_occurrences=min_occurrences)
 
 
 class ConsecutivelyRepeatingCharacterValidator:
@@ -83,16 +104,23 @@ class ConsecutivelyRepeatingCharacterValidator:
             raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
-        return _(f"Your password must not contain {self.length} repeating characters.")
+        return _("Your password must not contain {length} repeating characters.").format(length=self.length)
 
 
-class NumberRuleValidator:
+class NumberRuleValidator(ABC):
     def __init__(self, length=3):
         self.length = length
         assert self.length > 1, "Length should be at least 2 for numbers related password validators!"
 
-    def validation_func(self, prev, cur):
-        raise NotImplementedError("subclass responsibility")
+    @staticmethod
+    @abstractmethod
+    def validation_func(prev, cur):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def validation_error_text(min_occurrences):
+        pass
 
     def validate(self, password, user=None):
         digit_groups = re.findall(r'\d{%s,}' % self.length, password)
@@ -110,21 +138,29 @@ class NumberRuleValidator:
                 raise ValidationError(self.get_help_text())
 
     def get_help_text(self):
-        return _(f"Your password must not contain {self.length} consecutively {self.name} numbers.")
+        return self.validation_error_text(self.length)
 
 
 class ConsecutivelyIncreasingNumberValidator(NumberRuleValidator):
-    name = 'increasing'
-
-    def validation_func(self, prev, cur):
+    @staticmethod
+    def validation_func(prev, cur):
         return int(prev) + 1 == int(cur) or prev == '9' and cur == '0'
+
+    @staticmethod
+    def validation_error_text(max_consecutive):
+        return _("Your password must not contain {max_consecutive} consecutively increasing numbers.")\
+            .format(max_consecutive=max_consecutive)
 
 
 class ConsecutivelyDecreasingNumberValidator(NumberRuleValidator):
-    name = 'decreasing'
-
-    def validation_func(self, prev, cur):
+    @staticmethod
+    def validation_func(prev, cur):
         return int(prev) - 1 == int(cur) or prev == '0' and cur == '9'
+
+    @staticmethod
+    def validation_error_text(max_consecutive):
+        return _("Your password must not contain {max_consecutive} consecutively decreasing numbers.")\
+            .format(max_consecutive=max_consecutive)
 
 
 class DifferentToPrevious:
