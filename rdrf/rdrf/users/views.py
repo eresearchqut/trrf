@@ -4,7 +4,6 @@ import logging
 from django.contrib import messages, auth
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError, PermissionDenied, ObjectDoesNotExist
-from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -89,7 +88,8 @@ def get_user_by_user(user, request_user):
     elif user.is_patient:
         # Filter the patients by those the current user has access to
         common_registry = _get_common_patient_registry(user.patient)
-        users = Patient.objects.get_by_user_and_registry(request_user, common_registry).values('user').annotate(id=F('user'))
+        patients = Patient.objects.get_by_user_and_registry(request_user, common_registry)
+        users = CustomUser.objects.filter(id__in=patients.values('user'))
     else:
         raise PermissionDenied()
 
