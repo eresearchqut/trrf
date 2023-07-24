@@ -112,11 +112,22 @@
                 {
                     "name": "ENABLE_VIDEO_HOSTING",
                     "value": "$ENABLE_VIDEO_HOSTING"
-                }
-                ,
+                },
                 {
                     "name": "VIDEO_HOSTING_BASE_URL",
                     "value": "$VIDEO_HOSTING_BASE_URL"
+                },
+                {
+                    "name": "BREACHED_PASSWORD_DETECTION_ENABLED",
+                    "value": "$BREACHED_PASSWORD_DETECTION_ENABLED"
+                },
+                {
+                    "name": "BREACHED_PASSWORD_ENDPOINT",
+                    "value": "$BREACHED_PASSWORD_ENDPOINT"
+                },
+                {
+                    "name": "MAX_BREACHED_PASSWORD_THRESHOLD",
+                    "value": "$MAX_BREACHED_PASSWORD_THRESHOLD"
                 }
             ],
             "image": "${IMAGE_REPO}:${IMAGE_TAG}",

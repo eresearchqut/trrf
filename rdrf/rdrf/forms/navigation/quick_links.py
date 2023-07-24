@@ -76,7 +76,6 @@ class LinkDefs:
     ContextFormGroups = make_link("admin:rdrf_contextformgroup_changelist", _("Registry Context Form Groups"))
     ConsentConfig = make_link("admin:rdrf_consentconfiguration_changelist", _("Registry Consent Configuration"))
     FormTitlesConfig = make_link("admin:rdrf_formtitle_changelist", _("Registry Form Titles"))
-    BlacklistedMimeTypesConfig = make_link("admin:rdrf_blacklistedmimetype_changelist", _("Disallowed file upload types"))
     Dashboards = make_link("admin:rdrf_registrydashboard_changelist", _("Dashboards"))
     DashboardWidgets = make_link("admin:rdrf_registrydashboardwidget_changelist", _("Dashboard Widgets"))
     LongitudinalFollowups = make_link("admin:rdrf_longitudinalfollowup_changelist", _("Longitudinal Followups"))
@@ -84,6 +83,8 @@ class LinkDefs:
         "admin:patients_longitudinalfollowupentry_changelist",
         _("Longitudinal Followup Entries")
     )
+    WhitelistedFileExtension = make_link("admin:rdrf_whitelistedfileextension_changelist",
+                                         _("Allowed extensions for file uploads"))
 
 
 class Links:
@@ -170,7 +171,7 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.BlacklistedMimeTypesConfig
+        LinkDefs.WhitelistedFileExtension
     )
 
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups,

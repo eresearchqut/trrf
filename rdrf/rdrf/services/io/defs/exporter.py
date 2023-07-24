@@ -10,7 +10,8 @@ from django.forms.models import model_to_dict
 
 from rdrf import VERSION
 import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup
+from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup, \
+    WhitelistedFileExtension
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
@@ -300,6 +301,7 @@ class Exporter:
         data["next_of_kin_relationships"] = self._get_next_of_kin_relationships()
         data["group_permissions"] = self._get_group_permissions()
         data["registry_dashboards"] = self._get_registry_dashboards()
+        data["whitelisted_file_extensions"] = self._get_whitelisted_file_extensions()
 
         if export_type in [
                 ExportType.REGISTRY_ONLY,
@@ -719,6 +721,9 @@ class Exporter:
                                        'registry_form': link.registry_form.name} for link in widget.links.all()]}
                             for widget in dashboard.widgets.all()]
                 } for dashboard in registry_dashboards]
+
+    def _get_whitelisted_file_extensions(self):
+        return [item.file_extension for item in WhitelistedFileExtension.objects.all()]
 
 
 def str_presenter(dumper, data):

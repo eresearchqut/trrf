@@ -6,7 +6,7 @@ Includes:
 
 from registry.patients.models import AddressType
 
-deps = ['patient_stage', 'blacklisted_mime_types']
+deps = ['patient_stage']
 
 
 def load_data(**kwargs):

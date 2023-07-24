@@ -238,7 +238,7 @@ def process_given_notification(notification, template_data=None, mandatory_recip
     else:
         logger.info("Sending email %s" % notification)
         email = RdrfEmail(email_notification=notification)
-        email.recipient_dict = mandatory_recipients
+        email.recipient_dict = mandatory_recipients or {}
         email.template_data = template_data or {}
         return email.send()
 
