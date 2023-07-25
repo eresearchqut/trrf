@@ -3,6 +3,7 @@
 {% load project_title %}
 {% load project_title_link %}
 {% load get_language_settings %}
+{% load has_subscribable_email %}
 
 {% include "localisation/language_picker_form.html" %}
 <div class="collapse navbar-collapse justify-content-end" id="navbar-collapsing-links">
@@ -103,8 +104,10 @@
                         <li><a class="dropdown-item" href="{% url 'two_factor:setup' %}"><span class="fa fa-fw fa-check"></span>
                             {% trans "Enable two-factor auth" %}</a></li>
                     {% endif %}
-                    <li><a class="dropdown-item" href="{% url 'email_preferences' %}"><span class="fa fa-envelope-o"></span>
-                        {% trans 'Email Preferences' %}</a></li>
+                    {% if request.user|has_subscribable_email %}
+                        <li><a class="dropdown-item" href="{% url 'email_preferences' %}"><span class="fa fa-envelope-o"></span>
+                            {% trans 'Email Preferences' %}</a></li>
+                    {% endif %}
                     {% block patient_menu %}
                     {% endblock %}
                     <li><a class="dropdown-item" href="{% url 'logout' %}?next={% url 'login_router' %}"><span
