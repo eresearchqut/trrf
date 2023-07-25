@@ -130,8 +130,10 @@ class UserChangeForm(UserMixin, forms.ModelForm):
                 self.fields['ethically_cleared'].widget = forms.HiddenInput()
 
         change_email_url = reverse("user_email_change", kwargs={"user_id": self.instance.id})
-        self.fields['email'].help_text = mark_safe(f'{_("Synchronised email address changes can be made using")}: '
-                                                   f'<a href="{change_email_url}">{_("Change email address form")}</a>.')
+        sync_email_help_text = f'{_("Synchronised email address changes can be made using")}: ' \
+                               f'<a href="{change_email_url}">{_("Change email address form")}</a>.'
+        self.fields['username'].help_text += mark_safe(f'<br/>{sync_email_help_text}')
+        self.fields['email'].help_text = mark_safe(f'{sync_email_help_text}')
 
     def clean_password(self):
         return self.initial["password"]
