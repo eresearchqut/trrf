@@ -28,7 +28,7 @@ from django.utils.text import Truncator
 from django.utils.translation import gettext as _
 
 
-from rdrf.helpers.utils import check_calculation, get_display_value, validate_abbreviated_name
+from rdrf.helpers.utils import check_calculation, get_display_value, validate_abbreviated_name, validate_file_extension_format
 from rdrf.helpers.utils import format_date, is_alphanumeric, parse_iso_datetime
 from rdrf.events.events import EventType
 
@@ -1813,7 +1813,7 @@ class FormTitle(models.Model):
 
 
 class WhitelistedFileExtension(models.Model):
-    file_extension = models.CharField(max_length=256, unique=True)
+    file_extension = models.CharField(max_length=256, unique=True, validators=[validate_file_extension_format])
 
 
 class DataDefinitions:
