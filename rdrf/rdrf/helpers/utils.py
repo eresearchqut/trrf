@@ -862,7 +862,7 @@ def validate_abbreviated_name(value):
 
 
 def validate_file_extension_format(value):
-    if re.match(r'^\.([^\.]*)', value) is None:
+    if re.match(r'^\.[^.]+$', value) is None:
         raise ValidationError(_('File extension '
                                 'is invalid. '
                                 'File extension should begin with a period followed by some characters e.g: .pdf'))
