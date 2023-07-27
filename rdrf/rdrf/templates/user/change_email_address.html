@@ -208,7 +208,9 @@
           <div class="form-text">
             {% if form.is_activation_optional %}
               {% trans "An email change request requiring activation cannot be submitted for an inactive user" %}.
-              <a href="{% url 'admin:groups_customuser_change' form.user.id %}">{% trans "Manage user" %}</a>
+              {% if perms.groups.change_customuser %}
+                <a href="{% url 'admin:groups_customuser_change' form.user.id %}">{% trans "Manage user" %}</a>
+              {% endif %}
             {% else %}
               {% trans "An email change request cannot be submitted for an inactive user" %}.
             {% endif %}
