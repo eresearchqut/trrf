@@ -82,14 +82,14 @@ def get_user_by_user(user, request_user):
     if request_user.is_superuser:
         return user  # Superuser has automatic access to this user
 
-    if request_user.is_staff:
-        # Filter the users by those that the current logged in staff member has access to
-        users = CustomUser.objects.get_by_user(request_user)
-    elif user.is_patient:
+    if user.is_patient:
         # Filter the patients by those the current user has access to
         common_registry = _get_common_patient_registry(user.patient)
         patients = Patient.objects.get_by_user_and_registry(request_user, common_registry)
         users = CustomUser.objects.filter(id__in=patients.values('user'))
+    elif request_user.is_staff:
+        # Filter the users by those that the current logged in staff member has access to
+        users = CustomUser.objects.get_by_user(request_user)
     else:
         raise PermissionDenied()
 
