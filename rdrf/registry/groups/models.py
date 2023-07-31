@@ -1,17 +1,17 @@
+import logging
 import operator
 import re
 from functools import reduce
 
 from django.conf import settings
-from django.core import validators
 from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin, Group
+from django.core import validators
+from django.db import models
 from django.db.models import Q
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
-from django.db import models
-from django.dispatch import receiver
-
 from registration.signals import user_activated
 from simple_history.models import HistoricalRecords
 
@@ -19,7 +19,6 @@ from rdrf.helpers.utils import consent_check
 from rdrf.models.definition.models import Registry, RegistryDashboard
 from registry.groups import GROUPS as RDRF_GROUPS
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -96,11 +95,26 @@ class CustomUserManager(UserManager):
             return self.all()
 
         if staff_user.is_staff:
+
+            or_filters = [Q(working_groups__in=staff_user.working_groups.all()),
+                          Q(working_groups__isnull=True)]
+
+            if staff_user.is_clinician:
+                # Clinicians have special logic that potentially grants them access to users
+                # outside their working groups
+                from registry.patients.models import Patient
+                patients_per_registry = [Patient.objects.get_by_clinician(staff_user, registry)
+                                         for registry in staff_user.registry.all()]
+
+                or_filters.extend([Q(user_object__in=patients) for patients in patients_per_registry])
+
             # Get users within the same working groups and registries, as long as they aren't superusers
-            return self.filter(Q(working_groups__in=staff_user.working_groups.all()) | Q(working_groups__isnull=True)) \
+            query = reduce(lambda a, b: a | b, or_filters)
+            return self.filter(query) \
                        .filter(registry__in=staff_user.registry.all()) \
                        .filter(is_superuser=False) \
                        .distinct()
+
         else:
             return None
 
