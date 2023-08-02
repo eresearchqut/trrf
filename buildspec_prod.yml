@@ -4,6 +4,9 @@ phases:
     commands:
       - export GIT_TAG=$(aws ssm get-parameter --name /app/qa/$APPLICATION_NAME/RELEASE_ID | jq -r ".Parameter.Value")
       - export IMAGE_TAG="${GIT_TAG:-latest}"
+  build:
+    commands:
+      - ./infra/deploy_longitudinal_followup_stack.sh
   post_build:
     commands:
       - envsubst < taskdef.json > out && mv out taskdef.json
