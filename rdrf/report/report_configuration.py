@@ -1,12 +1,13 @@
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import Registry, EmailNotification
 
 
 def get_configuration():
     def get_patient_fields():
         patient_fields_dict = {'id': 'ID'}
+        all_registries = Registry.objects.all()
 
-        if any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in Registry.objects.all()):
+        if any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in all_registries):
             patient_fields_dict.update({'patientguid {guid}': 'GUID'})
 
         patient_fields_dict.update({
@@ -44,6 +45,9 @@ def get_configuration():
             'livingStatus': 'Living Status',
             'patientType': 'Patient Type'
         })
+
+        if EmailNotification.objects.is_registry_subscribable(all_registries):
+            patient_fields_dict.update({'unsubscribeAll': 'Unsubscribe All'})
 
         return patient_fields_dict
 

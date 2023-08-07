@@ -17,7 +17,7 @@ from graphene_django import DjangoObjectType
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
-    ConsentRule
+    ConsentRule, EmailPreference
 from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
@@ -368,7 +368,7 @@ def get_clinical_data_fields(registry):
 
 
 def get_patient_fields():
-    return {
+    fields = {
         "Meta": type("Meta", (), {
             "model": Patient,
             "fields": ['id', 'family_name', 'given_names', 'maiden_name', 'umrn',
@@ -390,6 +390,15 @@ def get_patient_fields():
         "age": graphene.Int(),
         "resolve_age": lambda patient, _info: patient.age,
     }
+
+    def unsubscribe_all_resolver(patient, _info):
+        email_preference = EmailPreference.objects.get_by_user(patient.user)
+        return False if email_preference is None else email_preference.unsubscribe_all
+
+    fields['unsubscribe_all'] = graphene.Boolean()
+    fields['resolve_unsubscribe_all'] = unsubscribe_all_resolver
+
+    return fields
 
 
 def get_consent_question_fields(consent_section):
