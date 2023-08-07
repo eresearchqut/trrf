@@ -1087,14 +1087,15 @@ class Importer(object):
             group_permissions = []
             for permission_dict in group_dict["permissions"]:
                 lookup_content_type = permission_dict["content_type"]
+                codename = permission_dict["codename"]
                 try:
                     permission = Permission.objects.get(
                         content_type=(ContentType.objects.get_by_natural_key(*lookup_content_type)),
-                        codename=permission_dict["codename"])
+                        codename=codename)
                     group_permissions.append(permission)
                     logger.info(f"Add {permission.codename} to group {group.name}")
                 except ContentType.DoesNotExist:
-                    logger.info(f"Could not add permission {permission.codename} to group {group.name}. "
+                    logger.info(f"Could not add permission {codename} to group {group.name}. "
                                 f"Content Type \"{lookup_content_type}\" does not exist.")
 
             group.permissions.set(group_permissions)
