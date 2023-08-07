@@ -564,12 +564,22 @@ class PatientForm(forms.ModelForm):
         return reg_clinicians
 
     def clean_email(self):
+        registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
+        email = self.cleaned_data.get("email")
+
+        if "email" in self.changed_data:
+            for registry in registries:
+                if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+                    if CustomUser.objects.filter(email__iexact=email).exists():
+                        raise ValidationError(_("User with this email already exists"))
+                    break
+
         is_disabled = 'disabled' in self.fields["email"].widget.attrs
 
         if is_disabled:
             return self.instance.email
         else:
-            return self.cleaned_data['email']
+            return email
 
     def clean(self):
         self.custom_consents = {}
