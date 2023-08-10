@@ -190,6 +190,14 @@ class ParentGuardianType(DjangoObjectType):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
 
 
+class EmailNotificationsType(ObjectType):
+    unsubscribe_all = graphene.Boolean()
+
+    def resolve_unsubscribe_all(patient, _info):
+        email_preference = EmailPreference.objects.get_by_user(patient.user)
+        return False if email_preference is None else email_preference.unsubscribe_all
+
+
 class PatientStageType(DjangoObjectType):
     class Meta:
         model = PatientStage
@@ -368,7 +376,7 @@ def get_clinical_data_fields(registry):
 
 
 def get_patient_fields():
-    fields = {
+    return {
         "Meta": type("Meta", (), {
             "model": Patient,
             "fields": ['id', 'family_name', 'given_names', 'maiden_name', 'umrn',
@@ -390,15 +398,6 @@ def get_patient_fields():
         "age": graphene.Int(),
         "resolve_age": lambda patient, _info: patient.age,
     }
-
-    def unsubscribe_all_resolver(patient, _info):
-        email_preference = EmailPreference.objects.get_by_user(patient.user)
-        return False if email_preference is None else email_preference.unsubscribe_all
-
-    fields['unsubscribe_all'] = graphene.Boolean()
-    fields['resolve_unsubscribe_all'] = unsubscribe_all_resolver
-
-    return fields
 
 
 def get_consent_question_fields(consent_section):
