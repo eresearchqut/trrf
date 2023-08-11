@@ -392,7 +392,7 @@ def get_patient_fields():
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
                        'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
-                       'patientguid', 'parentguardian_set', 'stage', 'email_notifications']
+                       'patientguid', 'parentguardian_set', 'stage']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex),
