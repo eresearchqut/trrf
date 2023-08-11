@@ -123,10 +123,10 @@ def get_configuration():
         }
     }
 
-    if EmailNotification.objects.is_registry_subscribable(all_registries):
+    if EmailNotification.objects.has_subscribable_registry(all_registries):
         demographic_model['demographic_model'].update({
             'emailNotifications': {
-                'label': 'Email Notification',
+                'label': 'Email Notifications',
                 'fields': {
                     'unsubscribeAll': 'Unsubscribe All'
                 }
