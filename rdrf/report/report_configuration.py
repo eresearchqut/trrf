@@ -125,8 +125,8 @@ def get_configuration():
 
     if EmailNotification.objects.has_subscribable_registry(all_registries):
         demographic_model['demographic_model'].update({
-            'emailNotifications': {
-                'label': 'Email Notifications',
+            'emailPreferences': {
+                'label': 'Email Preferences',
                 'fields': {
                     'unsubscribeAll': 'Unsubscribe All'
                 }

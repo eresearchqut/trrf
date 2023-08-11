@@ -22,7 +22,6 @@ from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
 from report.TrrfGraphQLView import PublicGraphQLError
-from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +190,10 @@ class ParentGuardianType(DjangoObjectType):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
 
 
-class EmailNotificationsType(ObjectType):
+class EmailPreferencesType(ObjectType):
     unsubscribe_all = graphene.Boolean()
 
-    def resolve_unsubscribe_all(patient, _info):
-        email_preference = EmailPreference.objects.get_by_user(patient.user)
+    def resolve_unsubscribe_all(email_preference, _info):
         return False if email_preference is None else email_preference.unsubscribe_all
 
 
@@ -470,13 +468,12 @@ def create_dynamic_patient_type(registry):
             collection="cdes"
         ).order_by('created_at').all()
 
-    def email_notification_resolver(patient, _info):
-        return patient
+    def email_preferences_resolver(patient, _info):
+        return EmailPreference.objects.get_by_user(patient.user)
 
     schema_module = import_module(settings.SCHEMA_MODULE)
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
     patient_fields = patient_fields_func()
-    report_config = load_report_configuration()['demographic_model']
 
     consent_fields = get_consent_section_fields(registry)
 
@@ -502,11 +499,10 @@ def create_dynamic_patient_type(registry):
             "resolve_clinical_data": clinical_data_resolver,
         })
 
-    if 'emailNotifications' in report_config:
-        patient_fields.update({
-            "email_notifications": graphene.Field(EmailNotificationsType),
-            "resolve_email_notifications": email_notification_resolver,
-        })
+    patient_fields.update({
+        "email_preferences": graphene.Field(EmailPreferencesType),
+        "resolve_email_preferences": email_preferences_resolver,
+    })
 
     return type(f"DynamicPatient_{registry.code}", (DjangoObjectType,), patient_fields)
 
