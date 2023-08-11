@@ -39,7 +39,6 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     For more info, refer to https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
 
 4. Set up a unix username/password when prompted  
-    FYI - C drive is available through `/mnt/c/`
 
 5. Update packages: `sudo apt update -y`
 
@@ -71,7 +70,7 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
      ```
 11. Install project dependencies
     ```shell
-    cd /mnt/c/path/to/trrf
+    cd /path/to/trrf
     pip install -r requirements/requirements.txt
     pip install -r requirements/dev-requirements.txt
     pip install -r requirements/test-requirements.txt
@@ -107,6 +106,7 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
    1. File > Settings > Languages and Frameworks > Enable Django Support
       * Django project root: `\\wsl$\Ubuntu-20.04\path\to\trrf\rdrf`
       * Settings: `rdrf\settings.py`
+4. Mark `trrf\rdrf` as Sources Root
 
 ### Configure the debugger
 1. Configure remote python interpreter
