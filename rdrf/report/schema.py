@@ -22,6 +22,7 @@ from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
 from report.TrrfGraphQLView import PublicGraphQLError
+from report.utils import load_report_configuration
 
 logger = logging.getLogger(__name__)
 
@@ -391,7 +392,7 @@ def get_patient_fields():
                        'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
                        'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
-                       'patientguid', 'parentguardian_set', 'stage']
+                       'patientguid', 'parentguardian_set', 'stage', 'email_notifications']
         }),
         "sex": graphene.String(),
         "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex),
@@ -469,9 +470,13 @@ def create_dynamic_patient_type(registry):
             collection="cdes"
         ).order_by('created_at').all()
 
+    def email_notification_resolver(patient, _info):
+        return patient
+
     schema_module = import_module(settings.SCHEMA_MODULE)
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
     patient_fields = patient_fields_func()
+    report_config = load_report_configuration()['demographic_model']
 
     consent_fields = get_consent_section_fields(registry)
 
@@ -495,6 +500,12 @@ def create_dynamic_patient_type(registry):
                 get_clinical_data_fields(registry)),
             ),
             "resolve_clinical_data": clinical_data_resolver,
+        })
+
+    if 'emailNotifications' in report_config:
+        patient_fields.update({
+            "email_notifications": graphene.Field(EmailNotificationsType),
+            "resolve_email_notifications": email_notification_resolver,
         })
 
     return type(f"DynamicPatient_{registry.code}", (DjangoObjectType,), patient_fields)
