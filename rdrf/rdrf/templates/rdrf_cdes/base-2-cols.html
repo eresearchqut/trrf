@@ -70,6 +70,7 @@
 
             $("#submit-btn").click(function () {
                 $("#main-form").submit();
+                $(this).prop('disabled', true);
             });
 
             hide_empty_menu();

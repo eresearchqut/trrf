@@ -66,6 +66,7 @@
                     onBeforeSubmit();
                     if (registration_form.valid()) {
                         registration_form.submit();
+                        $(this).prop("disabled", true);
                     } else {
                         $(':input.error:first').focus();
                         onValidationError();
