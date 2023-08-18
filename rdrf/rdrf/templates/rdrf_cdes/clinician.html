@@ -51,6 +51,7 @@
 
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
+                $("#submit-btn").prop("disabled", true);
             });
 
 	$("#id_user").change(function() {

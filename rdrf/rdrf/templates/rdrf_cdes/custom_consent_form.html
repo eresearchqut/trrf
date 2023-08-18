@@ -100,6 +100,7 @@
 
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
+                $("#submit-btn").prop("disabled", true);
             });
             {% if not can_sign_consent %}
                 if (typeof disable_signature === "function") {
