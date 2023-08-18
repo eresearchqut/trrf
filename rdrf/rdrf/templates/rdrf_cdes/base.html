@@ -72,11 +72,6 @@
         $(document).ready(function () {
             addExtraValidationMethods();
 
-            $("#submit-btn").click(function () {
-                $("#main-form").submit();
-                $(this).prop('disabled', true);
-            });
-
             hide_empty_menu(); // Hide the menu dropdown option if there are no elements
 
             $('[data-bs-toggle="popover"]').popover({
