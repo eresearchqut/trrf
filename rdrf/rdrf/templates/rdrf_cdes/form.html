@@ -323,7 +323,7 @@
 
     <div class="row">
     <div class="col-md-12">
-        <form class="form-horizontal" id="main-form" enctype="multipart/form-data" method="post">{% csrf_token %}
+        <form class="form-horizontal" id="main-form" novalidate enctype="multipart/form-data" method="post">{% csrf_token %}
             {% if has_form_progress %}
                 <div class="well">
                     <p class="text-muted"><i><strong>{% trans "Progress on this page" %}</strong></i></p>
