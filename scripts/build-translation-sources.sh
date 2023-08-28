@@ -12,8 +12,8 @@ then
 fi
 
 # Build django strings
-docker-compose run --rm -w "/app" runserver django-admin makemessages -d django -l en
-docker-compose run --rm -w "/app" runserver django-admin makemessages -d djangojs -l en -i "*node_modules*" -i "*yarn*"
+docker compose run --rm -w "/app" runserver django-admin makemessages -d django -l en
+docker compose run --rm -w "/app" runserver django-admin makemessages -d djangojs -l en -i "*node_modules*" -i "*yarn*"
 
 # Build registry definition strings
-docker-compose run --rm -w "/app" -e REGISTRY_DEFINITION="$1" runserver bash -c 'django-admin create_translation_file --yaml_file "$REGISTRY_DEFINITION" --system_po_file "translations/locale/en/LC_MESSAGES/django.po" >> "translations/locale/en/LC_MESSAGES/django.po"'
+docker compose run --rm -w "/app" -e REGISTRY_DEFINITION="$1" runserver bash -c 'django-admin create_translation_file --yaml_file "$REGISTRY_DEFINITION" --system_po_file "translations/locale/en/LC_MESSAGES/django.po" >> "translations/locale/en/LC_MESSAGES/django.po"'

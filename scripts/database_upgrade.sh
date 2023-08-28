@@ -25,25 +25,25 @@ databases=(db clinicaldb)
 
 set -ex
 
-POSTGRES_VERSION=$pg_old docker-compose stop
-POSTGRES_VERSION=$pg_new docker-compose stop
+POSTGRES_VERSION=$pg_old docker compose stop
+POSTGRES_VERSION=$pg_new docker compose stop
 
 log_progress "Databases stopped"
 
 for db in "${databases[@]}";
 do
-  POSTGRES_VERSION=$pg_old docker-compose run --rm runserver pg_dump -d "$(get_connection_string "$db")" -f "$(get_file_path "$db")"
+  POSTGRES_VERSION=$pg_old docker compose run --rm runserver pg_dump -d "$(get_connection_string "$db")" -f "$(get_file_path "$db")"
 done
 
 log_progress "Databases dumped"
 
-POSTGRES_VERSION=$pg_old docker-compose down -v --remove-orphans
+POSTGRES_VERSION=$pg_old docker compose down -v --remove-orphans
 
 log_progress "Databases removed"
 
 for db in "${databases[@]}";
 do
-  POSTGRES_VERSION=$pg_new docker-compose run --rm runserver psql -d "$(get_connection_string "$db")" -f "$(get_file_path "$db")"
+  POSTGRES_VERSION=$pg_new docker compose run --rm runserver psql -d "$(get_connection_string "$db")" -f "$(get_file_path "$db")"
 done
 
 log_progress "Databases restored"

@@ -86,9 +86,9 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     ```shell
     touch .env_local
     ```
-3. Run docker-compose
+3. Run docker compose
     ```shell
-    docker-compose up    
+    docker compose up    
     ```
 
 ### Running aloe (end to end) tests

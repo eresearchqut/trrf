@@ -1,7 +1,7 @@
 #!/bin/bash
 
 teststack() {
-  docker-compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-dev.yml "$@"
+  docker compose -f docker-compose-teststack-base.yml -f docker-compose-teststack-dev.yml "$@"
 }
 
 teststack-run-django() {
