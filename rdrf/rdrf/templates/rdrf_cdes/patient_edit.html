@@ -121,6 +121,7 @@
 
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
+                $("#submit-btn").prop("disabled", true);
             });
 
         });
@@ -154,7 +155,7 @@
 
 {% block formbtns %}
 	<div class="btn-group" role="group" aria-label="...">
-		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+		<button id="submit-btn" type="submit" class="btn btn-success" form="main-form" value="Save">
 			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
@@ -187,7 +188,7 @@
 
             {{ family_linkage_panel|safe }}
 
-            <form class="form-horizontal" method="post" id="main-form" enctype="multipart/form-data">
+            <form class="form-horizontal" method="post" id="main-form" novalidate enctype="multipart/form-data">
 
                 {% csrf_token %}
                 <div class="card card-info trrf-page-header">

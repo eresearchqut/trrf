@@ -121,6 +121,7 @@
 
             $("#main-form").submit(function() {
                 $(window).unbind("beforeunload");
+                $("#submit-btn").prop("disabled", true);
             });
         });
     </script>
@@ -131,7 +132,7 @@
 {% block formbtns %}
     <br>
 	<div class="btn-group" role="group" aria-label="...">
-		<button id="submit-btn" type="submit" class="btn btn-success" value="Save">
+		<button id="submit-btn" type="submit" class="btn btn-success" form="main-form" value="Save">
 			<span class="fa fa-save" aria-hidden="true"></span> {% trans "Save" %}
 		</button>
 
@@ -176,7 +177,7 @@
       {% endif %}
 
 
-      <form class="form-horizontal" id="main-form" method="post" enctype="multipart/form-data">
+      <form class="form-horizontal" id="main-form" novalidate method="post" enctype="multipart/form-data">
 
           {% csrf_token %}
 
