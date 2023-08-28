@@ -45,8 +45,6 @@ logger = logging.getLogger(__name__)
 # very important so that registry admins (patient, etc) are discovered.
 admin.autodiscover()
 
-JavaScriptCatalog.domain = "django"  # The default domain didn't work for me
-
 patterns = [
     path('favicon.ico', favicon_view.redirect_to_static, name='favicon'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type="text/plain"), name='robots_txt'),
