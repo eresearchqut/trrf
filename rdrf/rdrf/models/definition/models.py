@@ -1150,7 +1150,7 @@ class EmailTemplate(models.Model):
     body = models.TextField()
 
     def __str__(self):
-        return "%s (%s)" % (self.description, dict(settings.LANGUAGES)[self.language])
+        return f"{self.description} ({dict(settings.ALL_LANGUAGES).get(self.language, self.language)})"
 
 
 class EmailNotificationManager(models.Manager):
