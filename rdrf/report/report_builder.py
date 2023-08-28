@@ -104,7 +104,11 @@ class ReportBuilder:
 
         fields_nested_demographics = []
         for model_name, fields in other_demographic_fields.items():
-            model_config = self.report_config[model_name]
+            if model_name in self.report_config:
+                model_config = self.report_config[model_name]
+            else:
+                continue
+
             if model_config.get('pivot', False):
                 # Lookup the variants of this item which will form the column header groupings
                 # e.g. for consents, returns a list of the unique consent codes

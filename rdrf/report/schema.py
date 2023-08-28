@@ -17,7 +17,7 @@ from graphene_django import DjangoObjectType
 from rdrf.forms.dsl.parse_utils import prefetch_form_data
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry, ClinicalData, RDRFContext, ContextFormGroup, ConsentQuestion, \
-    ConsentRule
+    ConsentRule, EmailPreference
 from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
@@ -188,6 +188,13 @@ class ParentGuardianType(DjangoObjectType):
 
     def resolve_gender(parent_guardian, _info):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
+
+
+class EmailPreferencesType(ObjectType):
+    unsubscribe_all = graphene.Boolean()
+
+    def resolve_unsubscribe_all(email_preference, _info):
+        return False if email_preference is None else email_preference.unsubscribe_all
 
 
 class PatientStageType(DjangoObjectType):
@@ -461,6 +468,9 @@ def create_dynamic_patient_type(registry):
             collection="cdes"
         ).order_by('created_at').all()
 
+    def email_preferences_resolver(patient, _info):
+        return EmailPreference.objects.get_by_user(patient.user)
+
     schema_module = import_module(settings.SCHEMA_MODULE)
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
     patient_fields = patient_fields_func()
@@ -488,6 +498,11 @@ def create_dynamic_patient_type(registry):
             ),
             "resolve_clinical_data": clinical_data_resolver,
         })
+
+    patient_fields.update({
+        "email_preferences": graphene.Field(EmailPreferencesType),
+        "resolve_email_preferences": email_preferences_resolver,
+    })
 
     return type(f"DynamicPatient_{registry.code}", (DjangoObjectType,), patient_fields)
 

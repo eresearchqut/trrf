@@ -1157,6 +1157,9 @@ class EmailNotificationManager(models.Manager):
     def subscribable(self):
         return self.filter(subscribable=True)
 
+    def has_subscribable_registry(self, registries):
+        return self.filter(registry__in=registries, subscribable=True).exists()
+
 
 class EmailNotification(models.Model):
     objects = EmailNotificationManager()
