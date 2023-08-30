@@ -12,7 +12,7 @@ register = template.Library()
 
 
 @register.filter()
-def get_info_text_expression(fields, current_lang='en'):
+def get_info_text_expression(fields, current_language='en'):
     #  ['customconsent_15_13_21', 'customconsent_15_13_22']
     if len(fields) > 0:
         consent_field = fields[0]
@@ -25,8 +25,8 @@ def get_info_text_expression(fields, current_lang='en'):
             if consent_section_model.information_text:
                 information_text = Template(consent_section_model.information_text)
                 context = Context({
-                    'all_available_langs': settings.LANGUAGES,
-                    'current_language': current_lang,
+                    'all_available_languages': settings.LANGUAGES,
+                    'current_language': current_language,
                 })
                 information_text = information_text.render(context)
                 return _(information_text)
