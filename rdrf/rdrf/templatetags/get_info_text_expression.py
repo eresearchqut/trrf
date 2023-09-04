@@ -2,6 +2,7 @@ from django import template
 from django.utils.translation import gettext as _
 from django.template import Template, Context
 from django.conf import settings
+import json
 
 from rdrf.models.definition.models import ConsentSection
 import logging
@@ -25,8 +26,8 @@ def get_info_text_expression(fields, current_language='en'):
             if consent_section_model.information_text:
                 information_text = Template(consent_section_model.information_text)
                 context = Context({
-                    'all_available_languages': settings.LANGUAGES,
-                    'current_language': current_language,
+                    'all_available_languages': json.dumps(settings.LANGUAGES),
+                    'current_language': json.dumps([current_language['code'], current_language['name_local']]),
                 })
                 information_text = information_text.render(context)
                 return _(information_text)
