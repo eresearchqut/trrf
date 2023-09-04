@@ -114,14 +114,14 @@ def _serialize_entries(patient_entries):
 
 
 def with_now(func):
-    def wrapper(now=None):
-        return func(now=now or datetime.datetime.now())
+    def wrapper(now=None, *args, **kwargs):
+        return func(now=now or datetime.datetime.now(), *args, **kwargs)
 
     return wrapper
 
 
 @with_now
-def send_longitudinal_followups(now):
+def send_longitudinal_followups(now, limit=None):
     allowed_registries = [
         r.code for r in Registry.objects.all() if r.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS)
     ]
@@ -200,5 +200,8 @@ def send_longitudinal_followups(now):
         except Exception as e:
             logger.error(e)
             sent_failure += 1
+
+        if limit is not None and sent_success + sent_failure >= limit:
+            break
 
     logger.info(f"Sent {sent_success} followup emails, failed to send {sent_failure}")

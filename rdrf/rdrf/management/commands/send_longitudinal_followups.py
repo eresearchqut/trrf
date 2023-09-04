@@ -10,9 +10,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("delta_seconds", type=int)
+        parser.add_argument("--limit", type=int, default=None)
 
     def handle(self, *args, **options):
         delta_seconds = options["delta_seconds"]
+        limit = options["limit"]
 
         now = datetime.now()
-        send_longitudinal_followups(now + timedelta(seconds=delta_seconds))
+        send_longitudinal_followups(now + timedelta(seconds=delta_seconds), limit=limit)
