@@ -15,7 +15,7 @@ class RegistryView(View):
         registry_model = get_object_or_404(Registry, code=registry_code)
 
         context = {
-            'splash_screen': Template(registry_model.splash_screen).render(Context({'home_page_link': request.user.default_page})),
+            'splash_screen': Template(registry_model.splash_screen).render(Context({'request': request})),
             'registry_code': registry_code,
             'state': "ok",
         }
