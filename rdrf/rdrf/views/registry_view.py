@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import View
 from django.template.context_processors import csrf
+from django.template import Template, Context
 import logging
 
 from rdrf.models.definition.models import Registry
@@ -14,7 +15,7 @@ class RegistryView(View):
         registry_model = get_object_or_404(Registry, code=registry_code)
 
         context = {
-            'splash_screen': registry_model.splash_screen,
+            'splash_screen': Template(registry_model.splash_screen).render(Context({'request': request})),
             'registry_code': registry_code,
             'state': "ok",
         }
