@@ -302,7 +302,8 @@
                             <div class="card">
                                 <div class="card-header"><strong>{{name|translate}}</strong>
                                 {% with link=section|get_information_link %}
-                                {% with info_text_expression=section|get_info_text_expression %}
+                                {% get_language_info for request.LANGUAGE_CODE as lang %}
+                                {% with info_text_expression=section|get_info_text_expression:lang %}
 				                {% with doc="docs/"|add:link %}
 
                                 {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}

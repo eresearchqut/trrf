@@ -77,8 +77,8 @@ ALL_LANGUAGES = (
     ("tr", "Türkçe"),
     ("ur", "اردو"),
     ("vi", "Tiếng Việt"),
-    ("zh-CN", "汉语"),
-    ("zh-TW", "漢語"),
+    ("zh-CN", "简体中文"),
+    ("zh-TW", "繁體中文"),
 )
 
 # This must be a subset of ALL_LANGUAGES
