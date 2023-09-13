@@ -1,11 +1,14 @@
 import logging
 from functools import partial
 import datetime
+import re
 
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.sites.shortcuts import get_current_site
+from django.db import transaction
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
 from django.urls import reverse
@@ -47,6 +50,8 @@ from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryD
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from report.utils import load_report_configuration
+from registration.admin import RegistrationAdmin
+from registration.models import RegistrationProfile
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +181,93 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
         return () if obj is None else ("code",)
+
+
+class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
+    title = _('activation key expired')
+    parameter_name = 'activation_key_expired'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('True', _('True')),
+            ('False', _('False')),
+        ]
+
+    def queryset(self, request, queryset):
+        expired_emails = []
+        unexpired_emails = []
+        for profile in queryset:
+            user_email = profile.user.email
+            if profile.activation_key_expired():
+                expired_emails.append(user_email)
+            else:
+                unexpired_emails.append(user_email)
+
+        if self.value() == 'True':
+            return RegistrationProfile.objects.filter(user__email__in=expired_emails)
+        if self.value() == 'False':
+            return RegistrationProfile.objects.filter(user__email__in=unexpired_emails)
+
+
+def resend_activation_mail(email, site, request=None):
+    user = RegistrationProfile.objects.filter(user__email__iexact=email)
+    if not user.exists():
+        return False
+
+    user_profile = user.first()
+    if user_profile.activated:
+        return False
+
+    user_profile.create_new_activation_key()
+    user_profile.send_activation_email(site, request)
+
+    return True
+
+
+def activate_user(activation_key):
+    sha256_re = re.compile('^[a-f0-9]{40,64}$')
+
+    def activate(user_profile):
+        user = user_profile.user
+        user.is_active = True
+        user_profile.activated = True
+
+        with transaction.atomic():
+            user.save()
+            user_profile.save()
+
+        return user
+
+    if sha256_re.search(activation_key):
+        profile = RegistrationProfile.objects.filter(activation_key=activation_key)
+        if not profile.exists():
+            return False, False
+
+        profile = profile.first()
+        if not profile.activation_key_expired():
+            return activate(profile), True
+
+    return False, False
+
+
+class CustomRegistrationProfileAdmin(RegistrationAdmin):
+    list_display = ('user', 'activation_key_expired', 'activated')
+    list_filter = ['activated', ActivationKeyExpirationListFilter]
+
+    def activate_users(self, request, queryset):
+        for profile in queryset:
+            activate_user(profile.activation_key)
+    activate_users.short_description = _('Activate users')
+
+    def resend_activation_email(self, request, queryset):
+        site = get_current_site(request)
+        for profile in queryset:
+            user = profile.user
+            resend_activation_mail(user.email, site, request)
+            user.date_joined = datetime.datetime.now()
+            user.save()
+
+    resend_activation_email.short_description = _('Re-send activation emails')
 
 
 def create_restricted_model_admin_class(
@@ -534,3 +626,6 @@ if settings.DESIGN_MODE:
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):
         admin.site.register(model_class, model_admin)
+
+admin.site.unregister(RegistrationProfile)
+admin.site.register(RegistrationProfile, CustomRegistrationProfileAdmin)
