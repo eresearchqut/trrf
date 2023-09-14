@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
@@ -189,85 +190,75 @@ class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return [
-            ('True', _('True')),
-            ('False', _('False')),
+            ('True', _('Yes')),
+            ('False', _('No')),
         ]
 
     def queryset(self, request, queryset):
-        expired_emails = []
-        unexpired_emails = []
-        for profile in queryset:
-            user_email = profile.user.email
-            if profile.activation_key_expired():
-                expired_emails.append(user_email)
-            else:
-                unexpired_emails.append(user_email)
+        expired_profiles = [profile.id for profile in queryset if profile.activation_key_expired()]
 
         if self.value() == 'True':
-            return RegistrationProfile.objects.filter(user__email__in=expired_emails)
-        if self.value() == 'False':
-            return RegistrationProfile.objects.filter(user__email__in=unexpired_emails)
+            return queryset.filter(id__in=expired_profiles)
+        elif self.value() == 'False':
+            return queryset.exclude(id__in=expired_profiles)
+        else:
+            return queryset
 
 
-def resend_activation_mail(email, site, request=None):
-    user = RegistrationProfile.objects.filter(user__email__iexact=email)
-    if not user.exists():
+def resend_activation_mail(profile, site, request=None):
+    try:
+        profile.user._meta.get_field('registrationprofile')
+    except FieldDoesNotExist:
         return False
 
-    user_profile = user.first()
-    if user_profile.activated:
+    if profile.activated:
         return False
-
-    user_profile.create_new_activation_key()
-    user_profile.send_activation_email(site, request)
+    profile.create_new_activation_key()
+    profile.send_activation_email(site, request)
 
     return True
-
-
-def activate_user(activation_key):
-    sha256_re = re.compile('^[a-f0-9]{40,64}$')
-
-    def activate(user_profile):
-        user = user_profile.user
-        user.is_active = True
-        user_profile.activated = True
-
-        with transaction.atomic():
-            user.save()
-            user_profile.save()
-
-        return user
-
-    if sha256_re.search(activation_key):
-        profile = RegistrationProfile.objects.filter(activation_key=activation_key)
-        if not profile.exists():
-            return False, False
-
-        profile = profile.first()
-        if not profile.activation_key_expired():
-            return activate(profile), True
-
-    return False, False
 
 
 class CustomRegistrationProfileAdmin(RegistrationAdmin):
     list_display = ('user', 'activation_key_expired', 'activated')
     list_filter = ['activated', ActivationKeyExpirationListFilter]
 
+    def activate_user(self, activation_key):
+        sha256_re = re.compile('^[a-f0-9]{40,64}$')
+
+        def activate(user_profile):
+            user = user_profile.user
+            user.is_active = True
+            user_profile.activated = True
+
+            with transaction.atomic():
+                user.save()
+                user_profile.save()
+
+            return user
+
+        if sha256_re.search(activation_key):
+            profile = RegistrationProfile.objects.filter(activation_key=activation_key)
+            if not profile.exists():
+                return False, False
+
+            profile = profile.first()
+            if not profile.activation_key_expired():
+                return activate(profile), True
+
+        return False, False
+
     def activate_users(self, request, queryset):
         for profile in queryset:
-            activate_user(profile.activation_key)
-    activate_users.short_description = _('Activate users')
+            self.activate_user(profile.activation_key)
 
     def resend_activation_email(self, request, queryset):
         site = get_current_site(request)
         for profile in queryset:
+            resend_activation_mail(profile, site, request)
             user = profile.user
-            resend_activation_mail(user.email, site, request)
             user.date_joined = datetime.datetime.now()
             user.save()
-
-    resend_activation_email.short_description = _('Re-send activation emails')
 
 
 def create_restricted_model_admin_class(
