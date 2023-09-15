@@ -8,7 +8,6 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
@@ -206,13 +205,9 @@ class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
 
 
 def resend_activation_mail(profile, site, request=None):
-    try:
-        profile.user._meta.get_field('registrationprofile')
-    except FieldDoesNotExist:
+    if not hasattr(profile.user, 'registrationprofile') or profile.activated:
         return False
 
-    if profile.activated:
-        return False
     profile.create_new_activation_key()
     profile.send_activation_email(site, request)
 
