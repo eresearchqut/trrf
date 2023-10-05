@@ -4,7 +4,6 @@ import io
 import itertools
 import json
 import logging
-import re
 from collections import OrderedDict
 
 from flatten_json import flatten
@@ -17,7 +16,7 @@ from rdrf.patients.query_data import build_patient_filters, build_all_patients_q
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.models import ReportCdeHeadingFormat
 from report.schema import create_dynamic_schema, get_schema_field_name
-from report.utils import load_report_configuration
+from report.utils import load_report_configuration, get_flattened_json_path
 
 logger = logging.getLogger(__name__)
 
@@ -207,19 +206,7 @@ class ReportBuilder:
             else:
                 prefix = f'{report_model}_'
 
-            # When report_field contains nested fields (indicated by the presence of curly braces),
-            # Then apply further transformation to the report field to flatten it
-            if re.search('[{}]', report_field):
-                # e.g. addressType { type }
-                # 1. Remove spaces = addressType{type}
-                json_field_path = re.sub(r"\s", "", report_field)
-                # 2. Replace curly brace with a single underscore to separate the parts = addressType_type
-                # --> regex group 1 = addressType
-                # --> regex group 2 = {type}
-                # --> regex group 3 = type
-                json_field_path = re.sub(r"(.+)({(.*)})", r"\1_\3", json_field_path)
-            else:
-                json_field_path = report_field
+            json_field_path = get_flattened_json_path(report_field)
 
             if variant_index is not None:
                 return f"{prefix}{variant_index}_{json_field_path}"

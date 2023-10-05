@@ -1,6 +1,8 @@
 {% load i18n %}
 {% load join_if_list %}
 
+{% trans 'None' as no_data_msg %}
+
 <div class="card page-break-inside-avoid {% if primary %}border-primary{% endif %}">
   <div class="card-header {% if primary %}bg-primary text-white{% endif %}">
       {% block card_header %}
@@ -19,7 +21,7 @@
                 {% for key, demographic in widget.demographic_data.items %}
                   <tr>
                     <td class="w-50">{{ demographic.label }}</td>
-                    <td>{{ demographic.value }}</td>
+                    <td>{{ demographic.value|default_if_none:no_data_msg }}</td>
                   </tr>
                 {% endfor %}
               {% endif %}
