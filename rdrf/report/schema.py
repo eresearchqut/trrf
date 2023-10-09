@@ -543,7 +543,7 @@ def list_patients_query(user,
     if filter_args.living_status:
         patient_query = patient_query.filter(living_status__in=filter_args.living_status)
 
-    if registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
+    if filter_args.consent_checks and registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
         consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
         for consent_question in [consent_rule.consent_question for consent_rule in consent_rules]:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question=consent_question)
@@ -608,12 +608,14 @@ class PatientFilterType(InputObjectType):
     working_groups = graphene.List(graphene.String)
     consent_questions = graphene.List(graphene.String)
     living_status = graphene.List(graphene.String)
+    consent_checks = graphene.Boolean()
 
     def __init__(self):
         self.search = []
         self.working_groups = []
         self.consent_questions = []
         self.living_status = []
+        self.consent_checks = True
 
 
 def create_dynamic_registry_type(registry):

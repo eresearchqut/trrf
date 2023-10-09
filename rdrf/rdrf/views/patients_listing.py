@@ -201,7 +201,10 @@ class PatientsListingView(View):
         if not self._check_security():
             return []
 
-        filters = {**self.selected_filters}
+        filters = {
+            "consentChecks": False,
+            **self.selected_filters
+        }
 
         if self.search_term:
             patient_search = build_search_item(self.search_term, ['givenNames', 'familyName'])
