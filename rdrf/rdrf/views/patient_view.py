@@ -101,6 +101,10 @@ class PatientFormMixin:
         After a successful add where to go?
         Returns the supplied success URL. (We override to redirect to edit screen for the newly added patient)
         """
+        if not consent_check(self.registry_model, self.user, self.object, "see_patient"):
+            return reverse('consent_form_view',
+                           kwargs={'registry_code': self.registry_model.code, "patient_id": self.object.id})
+
         registry_code = self.registry_model.code
         patient_id = self.object.pk
         patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
