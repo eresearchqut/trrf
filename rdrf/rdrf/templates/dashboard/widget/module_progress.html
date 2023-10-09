@@ -52,7 +52,9 @@
             </td>
             <td style="width: 35%" class="text-end">
               {% if progress_dict.last_completed %}
-                {% trans "Last completed" %} {{ progress_dict.last_completed }}
+                {% blocktrans trimmed with last_completed=progress_dict.last_completed  %}
+                  Last completed {{ last_completed }}
+                {% endblocktrans %}
               {% else %}
                 {% trans "Not started" %}
               {% endif %}
