@@ -15,6 +15,7 @@ from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry, RegistryDashboard, ContextFormGroup, RDRFContext, ConsentQuestion
 from rdrf.patients.query_data import query_patient
 from registry.patients.models import Patient, ConsentValue, ParentGuardian
+from report.utils import get_graphql_result_value
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,9 @@ class ParentDashboard(object):
         if fields:
             result = query_patient(self._request, self.registry, self.patient.id, fields)
             if result:
-                return {k: {'label': v, 'value': result.get(k)} for k, v in config.items()}
+                return {k: {'label': v,
+                            'value': get_graphql_result_value(result, k)}
+                        for k, v in config.items()}
 
         return {}
 

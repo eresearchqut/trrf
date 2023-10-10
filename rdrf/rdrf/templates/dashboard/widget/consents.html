@@ -21,12 +21,12 @@
   {% block card_body_text %}
     {% if not consent_status.valid %}
       <p class="alert alert-danger">
-        Patient consent must be completed to enable access to the registry.
+        {% trans "Patient consent must be completed to enable access to the registry." %}
       </p>
     {% endif %}
     <p>
       {% blocktrans trimmed with completed=consent_status.completed total=consent_status.total %}
-        You have approved {{ completed }} out of {{ total }} consents.</p>
+        You have approved {{ completed }} out of {{ total }} consents.
       {% endblocktrans %}
     </p>
   {% endblock %}
