@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.contrib import messages
 from django.db import transaction
 from django.forms.models import ALL_FIELDS
 from django.shortcuts import render, redirect
@@ -100,6 +101,10 @@ class PatientFormMixin:
         After a successful add where to go?
         Returns the supplied success URL. (We override to redirect to edit screen for the newly added patient)
         """
+        if not consent_check(self.registry_model, self.user, self.object, "see_patient"):
+            return reverse('consent_form_view',
+                           kwargs={'registry_code': self.registry_model.code, "patient_id": self.object.id})
+
         registry_code = self.registry_model.code
         patient_id = self.object.pk
         patient_edit_url = reverse('patient_edit', args=[registry_code, patient_id])
@@ -605,7 +610,9 @@ class PatientEditView(PatientFormMixin, View):
         security_check_user_patient(request.user, patient)
 
         if not consent_check(registry_model, request.user, patient, "see_patient"):
-            raise PermissionDenied(_("Patient consent must be recorded"))
+            messages.error(request, _("Patient consent must be recorded"))
+            return HttpResponseRedirect(reverse('consent_form_view',
+                                                kwargs={'registry_code': registry_code, "patient_id": patient_id}))
         xray_recorder.end_subsegment()
 
         self._get_default_context(registry_model, patient)
@@ -673,8 +680,10 @@ class PatientEditView(PatientFormMixin, View):
         registry_model = Registry.objects.get(code=registry_code)
         self.registry_model = registry_model
 
-        if not consent_check(registry_model, user, patient, "see_patient"):
-            raise PermissionDenied(_("Patient consent must be recorded"))
+        if not consent_check(registry_model, request.user, patient, "see_patient"):
+            messages.error(request, _("Patient consent must be recorded"))
+            return HttpResponseRedirect(reverse('consent_form_view',
+                                                kwargs={'registry_code': registry_code, "patient_id": patient_id}))
         xray_recorder.end_subsegment()
 
         self._get_default_context(registry_model, patient)

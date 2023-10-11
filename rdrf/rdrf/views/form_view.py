@@ -318,7 +318,9 @@ class FormView(View):
         security_check_user_patient(request.user, patient_model)
         self.registry = self._get_registry(registry_code)
         if not consent_check(self.registry, request.user, patient_model, "see_patient"):
-            raise PermissionDenied(_("Patient consent must be recorded"))
+            messages.error(request, _("Patient consent must be recorded"))
+            return HttpResponseRedirect(reverse('consent_form_view',
+                                                kwargs={'registry_code': registry_code, "patient_id": patient_id}))
 
         rdrf_context = get_object_or_404(RDRFContext, pk=context_id)
         if rdrf_context.is_multi_context:
@@ -374,8 +376,10 @@ class FormView(View):
 
         self.registry = self._get_registry(registry_code)
 
-        if not consent_check(self.registry, self.user, patient_model, "see_patient"):
-            raise PermissionDenied(_("Patient consent must be recorded"))
+        if not consent_check(self.registry, request.user, patient_model, "see_patient"):
+            messages.error(request, _("Patient consent must be recorded"))
+            return HttpResponseRedirect(reverse('consent_form_view',
+                                                kwargs={'registry_code': registry_code, "patient_id": patient_id}))
 
         self.registry_form = self.get_registry_form(form_id)
         if not self.user.can_view(self.registry_form):
@@ -526,7 +530,9 @@ class FormView(View):
         self.registry_permissions_check(request, registry_code, form_id, patient_id, context_id)
 
         if not consent_check(self.registry, request.user, patient, "see_patient"):
-            raise PermissionDenied(_("Patient consent must be recorded"))
+            messages.error(request, _("Patient consent must be recorded"))
+            return HttpResponseRedirect(reverse('consent_form_view',
+                                                kwargs={'registry_code': registry_code, "patient_id": patient_id}))
 
         self.patient_id = patient_id
         xray_recorder.end_subsegment()

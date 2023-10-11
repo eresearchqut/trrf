@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 import pytest
@@ -6,8 +7,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from graphene.test import Client
 
-from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, Section, \
-    CommonDataElement, ConsentQuestion, ConsentSection, CDEPermittedValueGroup, CDEPermittedValue
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.models.definition.models import Registry, ClinicalData, ContextFormGroup, RDRFContext, RegistryForm, \
+    Section, CommonDataElement, ConsentQuestion, ConsentSection, CDEPermittedValueGroup, CDEPermittedValue, ConsentRule
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, AddressType, ConsentValue
@@ -264,7 +266,7 @@ class SchemaTest(TestCase):
             }
         }, result)
 
-    def test_query_filter_consents(self):
+    def test_query_filter_consent_questions(self):
         p1 = Patient.objects.create(id=1, consent=True, date_of_birth=datetime(1970, 1, 1))
         p2 = Patient.objects.create(id=2, consent=True, date_of_birth=datetime(1970, 1, 1))
         p3 = Patient.objects.create(id=3, consent=True, date_of_birth=datetime(1970, 1, 1))
@@ -357,6 +359,141 @@ class SchemaTest(TestCase):
                     "allPatients": {
                         "patients": [
                             {'id': '2'}
+                        ]
+                    }
+                }
+            }
+        }, result)
+
+    def test_query_filter_consent_checks(self):
+        self.registry.metadata_json = json.dumps({
+            "features": [RegistryFeatures.CONSENT_CHECKS, RegistryFeatures.CLINICIANS_SEE_CREATED_PATIENTS]
+        })
+        self.registry.save()
+
+        clinician = CustomUser.objects.create(username="clinician", is_staff=True)
+        clinician.registry.add(self.registry)
+        group = Group.objects.create(name=RDRF_GROUPS.CLINICAL)
+        clinician.groups.add(group)
+
+        consent_section = ConsentSection.objects.create(code='consent_section', section_label='CS', registry=self.registry)
+        consent_question = ConsentQuestion.objects.create(code='consent_question', section=consent_section)
+        ConsentRule.objects.create(registry=self.registry, user_group=group, consent_question=consent_question,
+                                   enabled=True, capability="see_patient")
+
+        patient1 = Patient.objects.create(id=1, consent=True, date_of_birth=datetime(1970, 1, 1), created_by=clinician)
+        patient1.rdrf_registry.set([self.registry])
+        ConsentValue.objects.create(consent_question=consent_question, answer=True, patient=patient1)
+
+        patient2 = Patient.objects.create(id=2, consent=True, date_of_birth=datetime(1970, 1, 1), created_by=clinician)
+        patient2.rdrf_registry.set([self.registry])
+
+        self.assertEqual(Patient.objects.all().count(), 2)
+        self.assertEqual(Patient.objects.get_by_user_and_registry(clinician, self.registry).count(), 2)
+
+        client = Client(create_dynamic_schema())
+
+        class TestContext:
+            user = clinician
+
+        query_context = TestContext()
+
+        # No filter args
+        result = client.execute("""
+        {
+            test {
+                allPatients {
+                    patients {
+                        id
+                    }
+                }
+            }
+        }
+        """, context_value=query_context)
+
+        self.assertEqual({
+            "data": {
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                        ]
+                    }
+                }
+            }
+        }, result)
+
+        # Empty filter args
+        result = client.execute("""
+        {
+            test {
+                allPatients(filterArgs: {}) {
+                    patients {
+                        id
+                    }
+                }
+            }
+        }
+        """, context_value=query_context)
+
+        self.assertEqual({
+            "data": {
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                            {'id': '2'},
+                        ]
+                    }
+                }
+            }
+        }, result)
+
+        # consentChecks: true
+        result = client.execute("""
+        {
+            test {
+                allPatients(filterArgs: {consentChecks: true}) {
+                    patients {
+                        id
+                    }
+                }
+            }
+        }
+        """, context_value=query_context)
+
+        self.assertEqual({
+            "data": {
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                        ]
+                    }
+                }
+            }
+        }, result)
+
+        # consentChecks: false
+        result = client.execute("""
+        {
+            test {
+                allPatients(filterArgs: {consentChecks: false}) {
+                    patients {
+                        id
+                    }
+                }
+            }
+        }
+        """, context_value=query_context)
+
+        self.assertEqual({
+            "data": {
+                "test": {
+                    "allPatients": {
+                        "patients": [
+                            {'id': '1'},
+                            {'id': '2'},
                         ]
                     }
                 }
