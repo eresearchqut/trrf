@@ -25,6 +25,7 @@ from rdrf.views import clinician_view
 from rdrf.views import favicon_view, dashboard_view, xnat_view
 from rdrf.views import patients_listing
 from rdrf.views.actions import ActionExecutorView
+from rdrf.views.activation_email_link_view import ActivationEmailLinkView
 from rdrf.views.context_views import RDRFContextCreateView, RDRFContextEditView
 from rdrf.views.copyright_view import CopyrightView
 from rdrf.views.email_notification_view import ResendEmail
@@ -258,6 +259,9 @@ patterns += [
     re_path(r'^activate/(?P<activation_key>\w+)/?$',
             PatientActivationView.as_view(),
             name='registration_activate'),
+    re_path(r"^activate-email/(?P<activation_key>\w+)/?$",
+            ActivationEmailLinkView.as_view(),
+            name="activate_email_link"),
 
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 

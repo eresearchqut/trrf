@@ -1,0 +1,11 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% load project_title %}
+
+{% block content %}
+    <div class="alert alert-primary" role="alert">
+        <h3>Please activate your account.</h3>
+        <p>You are required to activate your account to gain access to the {% project_title %}.</p>
+        <button class="btn btn-primary" onclick="window.open('{{ activation_url }}', '_self')">Activate my account</button>
+    </div>
+
+{% endblock %}

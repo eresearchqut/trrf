@@ -147,7 +147,7 @@ class PatientActivationView(ActivationView):
     def get_success_url(self, user):
         if not user.has_usable_password():
             login(self.request, user, 'django.contrib.auth.backends.ModelBackend')
-        return "registration_activation_complete"
+        return "two_factor:login"
 
 
 def validate_recaptcha(response_value):
