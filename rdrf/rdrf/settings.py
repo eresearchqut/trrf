@@ -71,6 +71,7 @@ ALL_LANGUAGES = (
     ("ms", "Bahasa Melayu"),
     ("pl", "Język polski"),
     ("pt", "Português"),
+    ("pt-BR", "Português (Brasil)"),
     ("ro", "Română"),
     ("ru", "Русский"),
     ("sv", "Svenska"),

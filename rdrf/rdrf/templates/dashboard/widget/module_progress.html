@@ -4,7 +4,7 @@
 
 {% block card_header %}
   {% if not widget.title %}
-    Module Progress
+    {% trans "Module Progress" %}
   {% else %}
     {{ block.super }}
   {% endif %}
@@ -19,7 +19,7 @@
         {% for form, form_dict in forms.items  %}
           <tr>
             <td style="width: 70%" class="pe-2">
-              <a href="{{ form_dict.link }}" class="card-link">{{ form.display_name }}</a>
+              <a href="{{ form_dict.link }}" class="card-link">{% trans form.display_name %}</a>
             </td>
             <td style="width: 30%"><div class="progress">
               {% with progress=form_dict.progress %}
@@ -48,17 +48,19 @@
         {% for form, progress_dict in forms.items %}
           <tr>
             <td>
-              {{ form.display_name }}
+              {% trans form.display_name %}
             </td>
             <td style="width: 35%" class="text-end">
               {% if progress_dict.last_completed %}
-                Last completed {{ progress_dict.last_completed }}
+                {% blocktrans trimmed with last_completed=progress_dict.last_completed  %}
+                  Last completed {{ last_completed }}
+                {% endblocktrans %}
               {% else %}
-                Not started
+                {% trans "Not started" %}
               {% endif %}
             </td>
             <td style="width: 12%" class="ps-2 d-print-none"><a href="{{ progress_dict.link }}" class="btn btn-outline-info btn-xs">
-              <i class="fa fa-plus"></i> Add</a>
+              <i class="fa fa-plus"></i> {% trans "Add" %}</a>
             </td>
           </tr>
         {% endfor %}

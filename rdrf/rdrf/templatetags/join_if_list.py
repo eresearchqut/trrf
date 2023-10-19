@@ -1,4 +1,5 @@
 from django import template
+from django.utils.translation import gettext as _
 
 register = template.Library()
 
@@ -10,4 +11,4 @@ def join_if_list(list_or_value, separator=", ", none_text='None'):
             list_as_str = [str(item) for item in list_or_value]
             return separator.join(list_as_str)
 
-    return list_or_value if list_or_value else none_text
+    return list_or_value if list_or_value else _(none_text)

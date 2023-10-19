@@ -123,6 +123,9 @@ class NextOfKinRelationshipType(DjangoObjectType):
         model = NextOfKinRelationship
         fields = ('relationship',)
 
+    def resolve_relationship(next_of_kin_relationship, _info):
+        return _(next_of_kin_relationship.relationship)
+
 
 class PatientAddressType(DjangoObjectType):
     class Meta:
@@ -134,6 +137,9 @@ class AddressTypeType(DjangoObjectType):
     class Meta:
         model = AddressType
         fields = ('type',)
+
+    def resolve_type(address_type, _info):
+        return _(address_type.type)
 
 
 class WorkingGroupTypeType(DjangoObjectType):
@@ -387,7 +393,7 @@ def get_patient_fields():
                        'next_of_kin_state', 'next_of_kin_postcode', 'next_of_kin_home_phone',
                        'next_of_kin_mobile_phone',
                        'next_of_kin_work_phone', 'next_of_kin_email', 'next_of_kin_parent_place_of_birth',
-                       'next_of_kin_country', 'active', 'inactive_reason', 'living_status', 'patient_type',
+                       'next_of_kin_country', 'active', 'inactive_reason', 'patient_type',
                        'stage', 'created_at', 'last_updated_at', 'last_updated_overall_at', 'created_by',
                        'rdrf_registry', 'patientaddress_set', 'working_groups', 'registered_clinicians', 'consents',
                        'patientguid', 'parentguardian_set', 'stage']
@@ -396,6 +402,9 @@ def get_patient_fields():
         "resolve_sex": lambda patient, _info: dict(Patient.SEX_CHOICES).get(patient.sex, patient.sex),
         "age": graphene.Int(),
         "resolve_age": lambda patient, _info: patient.age,
+        "living_status": graphene.String(),
+        "resolve_living_status": lambda patient, _info: dict(LivingStates.CHOICES).get(patient.living_status, patient.living_status)
+
     }
 
 
@@ -543,7 +552,7 @@ def list_patients_query(user,
     if filter_args.living_status:
         patient_query = patient_query.filter(living_status__in=filter_args.living_status)
 
-    if registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
+    if filter_args.consent_checks and registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
         consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
         for consent_question in [consent_rule.consent_question for consent_rule in consent_rules]:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question=consent_question)
@@ -608,12 +617,14 @@ class PatientFilterType(InputObjectType):
     working_groups = graphene.List(graphene.String)
     consent_questions = graphene.List(graphene.String)
     living_status = graphene.List(graphene.String)
+    consent_checks = graphene.Boolean()
 
     def __init__(self):
         self.search = []
         self.working_groups = []
         self.consent_questions = []
         self.living_status = []
+        self.consent_checks = True
 
 
 def create_dynamic_registry_type(registry):
