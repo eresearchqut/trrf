@@ -150,6 +150,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
+    date_activated = models.DateTimeField(_('date activated'), null=True)
+
     working_groups = models.ManyToManyField(
         WorkingGroup, blank=True, related_name='working_groups')
     title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")

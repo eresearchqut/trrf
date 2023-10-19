@@ -215,8 +215,16 @@ def resend_activation_mail(profile, site, request=None):
 
 
 class CustomRegistrationProfileAdmin(RegistrationAdmin):
-    list_display = ('user', 'activation_key_expired', 'activated')
+    list_display = ('user', 'custom_activation_key_expired', 'activated')
     list_filter = ['activated', ActivationKeyExpirationListFilter]
+
+    @admin.display(description="Activation key expired")
+    def custom_activation_key_expired(self, obj):
+        max_expiry_days = datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
+        activation_date = obj.user.date_activated
+        expiration_date = (obj.user.date_joined if activation_date is None else activation_date) + max_expiry_days
+
+        return obj.activated or expiration_date <= datetime.datetime.now()
 
     def activate_user(self, activation_key):
         sha256_re = re.compile('^[a-f0-9]{40,64}$')
@@ -238,7 +246,7 @@ class CustomRegistrationProfileAdmin(RegistrationAdmin):
                 return False, False
 
             profile = profile.first()
-            if not profile.activation_key_expired():
+            if not self.custom_activation_key_expired(profile):
                 return activate(profile), True
 
         return False, False
@@ -252,7 +260,7 @@ class CustomRegistrationProfileAdmin(RegistrationAdmin):
         for profile in queryset:
             resend_activation_mail(profile, site, request)
             user = profile.user
-            user.date_joined = datetime.datetime.now()
+            user.date_activated = datetime.datetime.now()
             user.save()
 
 
