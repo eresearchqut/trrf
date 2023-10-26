@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
@@ -53,6 +52,8 @@ from report.utils import load_report_configuration
 from registration.admin import RegistrationAdmin
 from registration.models import RegistrationProfile
 
+from registry.groups.registration.patient import PatientRegistration
+from rdrf.helpers.utils import make_full_url
 logger = logging.getLogger(__name__)
 
 
@@ -204,27 +205,21 @@ class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
             return queryset
 
 
-def resend_activation_mail(profile, site, request=None):
-    if not hasattr(profile.user, 'registrationprofile') or profile.activated:
-        return False
-
-    profile.create_new_activation_key()
-    profile.send_activation_email(site, request)
-
-    return True
-
-
 class CustomRegistrationProfileAdmin(RegistrationAdmin):
-    list_display = ('user', 'custom_activation_key_expired', 'activated')
+    list_display = ('user', 'custom_activation_key_expired', 'is_activated')
     list_filter = ['activated', ActivationKeyExpirationListFilter]
 
     @admin.display(description="Activation key expired")
     def custom_activation_key_expired(self, obj):
         max_expiry_days = datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
         activation_date = obj.user.date_activated
-        expiration_date = (obj.user.date_joined if activation_date is None else activation_date) + max_expiry_days
+        expiration_date = (activation_date or obj.user.date_joined) + max_expiry_days
 
         return obj.activated or expiration_date <= datetime.datetime.now()
+
+    @admin.display(description="Activated")
+    def is_activated(self, obj):
+        return obj.activated
 
     def activate_user(self, activation_key):
         sha256_re = re.compile('^[a-f0-9]{40,64}$')
@@ -255,11 +250,19 @@ class CustomRegistrationProfileAdmin(RegistrationAdmin):
         for profile in queryset:
             self.activate_user(profile.activation_key)
 
+    def get_registration_activation_url(self, registration_profile):
+        activation_url = reverse(
+            "registration_activate",
+            kwargs={"activation_key": registration_profile.activation_key})
+        return make_full_url(activation_url)
+
     def resend_activation_email(self, request, queryset):
-        site = get_current_site(request)
         for profile in queryset:
-            resend_activation_mail(profile, site, request)
+            if not hasattr(profile.user, 'registrationprofile') or profile.activated:
+                continue
             user = profile.user
+            profile.create_new_activation_key()
+            PatientRegistration.send_activation_email(self, user.registry_code, user, user.patient)
             user.date_activated = datetime.datetime.now()
             user.save()
 
