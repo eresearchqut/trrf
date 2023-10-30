@@ -65,7 +65,9 @@ class RdrfRegistrationView(RegistrationView):
         return self.form.is_valid()
 
     def is_recaptcha_valid(self):
-        response_value = self.request.POST['g-recaptcha-response']
+        response_value = self.request.POST.get('g-recaptcha-response')
+        if not response_value:
+            return False
         resp_data = validate_recaptcha(response_value)
         return resp_data.get('success', False)
 
