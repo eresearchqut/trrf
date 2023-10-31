@@ -69,7 +69,7 @@ class BaseRegistration(abc.ABC):
 
     def get_registration_activation_url(self, registration_profile):
         activation_url = reverse(
-            "activate_account",
+            "registration_activate_account",
             kwargs={"activation_key": registration_profile.activation_key})
         return make_full_url(activation_url)
 

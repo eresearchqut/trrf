@@ -261,7 +261,7 @@ patterns += [
             name='registration_activate'),
     re_path(r"^activate-account/(?P<activation_key>\w+)/?$",
             ActivateAccountView.as_view(),
-            name="activate_account"),
+            name="registration_activate_account"),
 
     re_path(r'^i18n/', include(('django.conf.urls.i18n', 'django_conf_urls'), namespace=None)),
 
