@@ -1,4 +1,3 @@
-import datetime
 import logging
 import requests
 from csp.decorators import csp_update
@@ -14,12 +13,9 @@ from django.views.generic.base import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 
 from registration.backends.default.views import RegistrationView, ActivationView
-from registration import signals
 
 from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_preferred_languages
-
-from rdrf.admin import CustomRegistrationProfileAdmin
 
 logger = logging.getLogger(__name__)
 
@@ -148,22 +144,6 @@ class EmbeddedRegistrationView(RdrfRegistrationView):
 
 
 class PatientActivationView(ActivationView):
-
-    def custom_activation_key_expired(self, profile):
-        max_expiry_days = datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
-        activation_date = profile.user.date_activated
-        expiration_date = (activation_date or profile.user.date_joined) + max_expiry_days
-
-        return profile.activated or expiration_date <= datetime.datetime.now()
-
-    def activate(self, *args, **kwargs):
-        activation_key = kwargs.get('activation_key', '')
-        user, activated = CustomRegistrationProfileAdmin.activate_user(self, activation_key)
-        if activated:
-            signals.user_activated.send(sender=self.__class__, user=user, request=self.request)
-
-        return user
-
     def get_success_url(self, user):
         if not user.has_usable_password():
             login(self.request, user, 'django.contrib.auth.backends.ModelBackend')

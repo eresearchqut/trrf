@@ -1,13 +1,11 @@
 import logging
 from functools import partial
 import datetime
-import re
 
 from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.db import transaction
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
 from django.urls import reverse
@@ -52,8 +50,6 @@ from report.utils import load_report_configuration
 from registration.admin import RegistrationAdmin
 from registration.models import RegistrationProfile
 
-from registry.groups.registration.patient import PatientRegistration
-from rdrf.helpers.utils import make_full_url
 logger = logging.getLogger(__name__)
 
 
@@ -206,65 +202,13 @@ class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
 
 
 class CustomRegistrationProfileAdmin(RegistrationAdmin):
-    list_display = ('user', 'custom_activation_key_expired', 'is_activated')
-    list_filter = ['activated', ActivationKeyExpirationListFilter]
-
-    @admin.display(description="Activation key expired")
-    def custom_activation_key_expired(self, obj):
-        max_expiry_days = datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
-        activation_date = obj.user.date_activated
-        expiration_date = (activation_date or obj.user.date_joined) + max_expiry_days
-
-        return obj.activated or expiration_date <= datetime.datetime.now()
+    actions = ['activate_users']
+    list_display = ('user', 'activation_key_expired', 'is_activated')
+    list_filter = [ActivationKeyExpirationListFilter, 'activated']
 
     @admin.display(description="Activated")
     def is_activated(self, obj):
         return obj.activated
-
-    def activate_user(self, activation_key):
-        sha256_re = re.compile('^[a-f0-9]{40,64}$')
-
-        def activate(user_profile):
-            user = user_profile.user
-            user.is_active = True
-            user_profile.activated = True
-
-            with transaction.atomic():
-                user.save()
-                user_profile.save()
-
-            return user
-
-        if sha256_re.search(activation_key):
-            profile = RegistrationProfile.objects.filter(activation_key=activation_key)
-            if not profile.exists():
-                return False, False
-
-            profile = profile.first()
-            if not self.custom_activation_key_expired(profile):
-                return activate(profile), True
-
-        return False, False
-
-    def activate_users(self, request, queryset):
-        for profile in queryset:
-            self.activate_user(profile.activation_key)
-
-    def get_registration_activation_url(self, registration_profile):
-        activation_url = reverse(
-            "registration_activate",
-            kwargs={"activation_key": registration_profile.activation_key})
-        return make_full_url(activation_url)
-
-    def resend_activation_email(self, request, queryset):
-        for profile in queryset:
-            if not hasattr(profile.user, 'registrationprofile') or profile.activated:
-                continue
-            user = profile.user
-            profile.create_new_activation_key()
-            PatientRegistration.send_activation_email(self, user.registry_code, user, user.patient)
-            user.date_activated = datetime.datetime.now()
-            user.save()
 
 
 def create_restricted_model_admin_class(
