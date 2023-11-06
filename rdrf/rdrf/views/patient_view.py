@@ -172,6 +172,7 @@ class PatientFormMixin:
         patient_address_formset = kwargs.get("patient_address_formset", None)
         patient_doctor_formset = kwargs.get("patient_doctor_formset", None)
         patient_relative_formset = kwargs.get("patient_relative_formset", None)
+        error_after_all_forms_are_valid = kwargs["all_errors"] if kwargs.get("after_all_forms_are_valid", None) else None
 
         patient, forms_sections = self._get_patient_and_forms_sections(patient_id,
                                                                        self.registry_model.code,
@@ -179,7 +180,8 @@ class PatientFormMixin:
                                                                        self.patient_form,
                                                                        patient_address_form=patient_address_formset,
                                                                        patient_doctor_form=patient_doctor_formset,
-                                                                       patient_relative_form=patient_relative_formset)
+                                                                       patient_relative_form=patient_relative_formset,
+                                                                       error_after_all_forms_are_valid=error_after_all_forms_are_valid)
 
         error_messages = get_error_messages([pair[0] for pair in forms_sections])
 
@@ -218,7 +220,8 @@ class PatientFormMixin:
         return self.object.pk if self.object else None
 
     def get_form_sections(self, user, request, patient, registry, patient_form,
-                          patient_address_form, patient_doctor_form, patient_relative_form, builder):
+                          patient_address_form, patient_doctor_form, patient_relative_form, builder,
+                          error_after_all_forms_are_valid=None):
 
         registry_code = registry.code
         form_sections = [
@@ -300,7 +303,8 @@ class PatientFormMixin:
                                         patient_form=None,
                                         patient_address_form=None,
                                         patient_doctor_form=None,
-                                        patient_relative_form=None):
+                                        patient_relative_form=None,
+                                        error_after_all_forms_are_valid=None):
 
         user = request.user
         if patient_id is None:
@@ -329,7 +333,7 @@ class PatientFormMixin:
 
         form_sections = self.get_form_sections(
             user, request, patient, registry, patient_form, patient_address_form,
-            patient_doctor_form, patient_relative_form, DemographicsSectionFieldBuilder()
+            patient_doctor_form, patient_relative_form, DemographicsSectionFieldBuilder(), error_after_all_forms_are_valid
         )
 
         return patient, form_sections
@@ -414,7 +418,7 @@ class PatientFormMixin:
                                 self.registry_model,
                                 self.object.working_groups.all())
 
-        return HttpResponseRedirect(self.get_success_url())
+        return True, HttpResponseRedirect(self.get_success_url())
 
     def _run_consent_closures(self, patient_model, registry_ids):
         if hasattr(patient_model, "add_registry_closures"):
@@ -423,7 +427,7 @@ class PatientFormMixin:
             delattr(patient_model, 'add_registry_closures')
 
     def form_invalid(self, forms,
-                     errors):
+                     errors, after_all_forms_are_valid=False):
         has_errors = len(errors) > 0
         return self.render_to_response(
             self.get_context_data(
@@ -432,7 +436,8 @@ class PatientFormMixin:
                 errors=has_errors,
                 patient_address_formset=forms.get('address_form'),
                 patient_doctor_formset=forms.get('doctors_form'),
-                patient_relative_formset=forms.get('patient_relatives_form')
+                patient_relative_formset=forms.get('patient_relatives_form'),
+                after_all_forms_are_valid=after_all_forms_are_valid
             )
         )
 
@@ -583,7 +588,8 @@ class AddPatientView(StaffMemberRequiredMixin, PatientFormMixin, CreateView):
         forms = self.get_forms(request, self.registry_model, self.user)
 
         if all([form.is_valid() for form in forms.values() if form]):
-            return self.all_forms_valid(forms)
+            is_valid, value = self.all_forms_valid(forms)
+            return value if is_valid else self.form_invalid(forms, errors=value, after_all_forms_are_valid=True)
         else:
             errors = get_error_messages([form for form in forms.values() if form])
             return self.form_invalid(forms, errors=errors)
@@ -719,16 +725,19 @@ class PatientEditView(PatientFormMixin, View):
         patient_relatives_form = None
         if all(valid_forms):
             xray_recorder.begin_subsegment("save")
-            self.all_forms_valid(forms)
+            is_valid, value = self.all_forms_valid(forms)
             patient, form_sections = self._get_patient_and_forms_sections(
-                patient_id, registry_code, request)
+                patient_id, registry_code, request, patient_form=None if is_valid else forms.get('patient_form'),
+                error_after_all_forms_are_valid=None if is_valid else value)
             context = {
                 "forms": form_sections,
                 "patient": patient,
                 "context_launcher": context_launcher.html,
-                "message": _("Patient's details saved successfully"),
-                "error_messages": [],
+                "error_messages": [] if is_valid else value,
+                "errors": not is_valid
             }
+            if is_valid:
+                context["message"] = _("Patient's details saved successfully")
             xray_recorder.end_subsegment()
         else:
             xray_recorder.begin_subsegment("error")
