@@ -345,7 +345,7 @@ class PatientFormMixin:
         kwargs["registry_model"] = self.registry_model
         return kwargs
 
-    def all_forms_valid(self, forms):
+    def all_forms_valid(self, forms, send_activation_email=True):
         # save patient
         patient_form = forms['patient_form']
         self.object = patient_form.save()
@@ -395,7 +395,8 @@ class PatientFormMixin:
                 registration = import_string(settings.REGISTRATION_CLASS)(self.request)
                 registration.setup_django_user(user, self.registry_model, GROUPS.PATIENT,
                                                self.object.given_names, self.object.family_name)
-                registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
+                if send_activation_email:
+                    registration.send_activation_email(self.registry_model.code, user, self.object, self_registration=False)
             elif self.object.user:
                 self.object.user.working_groups.set(self.object.working_groups.all())
 
