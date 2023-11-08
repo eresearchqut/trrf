@@ -47,6 +47,8 @@ from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryD
 from rdrf.models.definition.models import RegistryForm
 from rdrf.models.definition.models import Section
 from report.utils import load_report_configuration
+from registration.admin import RegistrationAdmin
+from registration.models import RegistrationProfile
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +178,37 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         "Registry code is readonly after creation"
         return () if obj is None else ("code",)
+
+
+class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
+    title = _('activation key expired')
+    parameter_name = 'activation_key_expired'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('True', _('Yes')),
+            ('False', _('No')),
+        ]
+
+    def queryset(self, request, queryset):
+        expired_profiles = [profile.id for profile in queryset if profile.activation_key_expired()]
+
+        if self.value() == 'True':
+            return queryset.filter(id__in=expired_profiles)
+        elif self.value() == 'False':
+            return queryset.exclude(id__in=expired_profiles)
+        else:
+            return queryset
+
+
+class CustomRegistrationProfileAdmin(RegistrationAdmin):
+    actions = ['activate_users']
+    list_display = ('user', 'activation_key_expired', 'is_activated')
+    list_filter = [ActivationKeyExpirationListFilter, 'activated']
+
+    @admin.display(description="Activated")
+    def is_activated(self, obj):
+        return obj.activated
 
 
 def create_restricted_model_admin_class(
@@ -534,3 +567,6 @@ if settings.DESIGN_MODE:
 for model_class, model_admin in ADMIN_COMPONENTS:
     if not admin.site.is_registered(model_class):
         admin.site.register(model_class, model_admin)
+
+admin.site.unregister(RegistrationProfile)
+admin.site.register(RegistrationProfile, CustomRegistrationProfileAdmin)
