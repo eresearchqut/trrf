@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base-1-col.html" %}
+{% load project_title %}
+{% load i18n %}
+
+{% block content %}
+    <div class="alert alert-primary" role="alert">
+        <h3>{% trans "Please activate your account." %}</h3>
+        {% project_title as title %}
+        <p>{% blocktranslate %} You are required to activate your account to gain access to the {{ title }}.{% endblocktranslate %}</p>
+        <a class="btn btn-primary" href="{{ activation_url }}">{% trans "Activate my account" %}</a>
+    </div>
+
+{% endblock %}

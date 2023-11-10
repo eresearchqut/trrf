@@ -27,11 +27,12 @@ Feature: Patient Registration
 
     # Patient activates their membership
     When I visit the provided link to activate my account
-    Then I should see "You have successfully activated your account."
+    Then I should see "Please activate your account."
 
     # Patient clicks the link to login
-    When I click "login page"
+    When I click "Activate my account"
     Then I should be on the login page
+    And I should see "You have successfully activated your account."
 
     # Patient uses their registered credentials to login
     When I login with username "bob.smith@example.com" and password "End2EndTest!s"

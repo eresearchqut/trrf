@@ -672,6 +672,7 @@ STRONGHOLD_PUBLIC_URLS = (
     r'/(?P<registry_code>\w+)/register',
     r'/(?P<registry_code>\w+)/embed',
     r'/activate/(?P<activation_key>\w+)/?$',
+    r'/activate-account/(?P<activation_key>\w+)/?$',
     r'/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]+-[0-9A-Za-z]+)/?$',
     r'^i18n/',
     r'/api/v1/countries/(?P<country_code>[A-Z]{2})/states/$',

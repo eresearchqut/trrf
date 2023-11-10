@@ -69,7 +69,11 @@ $(document).ready(function (){
 
           {% if wizard.steps.current == 'auth' %}
             <input type="hidden" name="login_view-current_step" value="auth" id="id_login_view-current_step">
-
+            {% if 'new_activation' in request.get_full_path %}
+                <div class="alert alert-success" role="alert">
+                  {% trans "You have successfully activated your account. Please login." %}
+                </div>
+            {% endif %}
             <div class="mb-3">
               <label for="id_auth-username">{{ form.username.label }}:</label>
               <input type="text" name="auth-username" class="form-control" autofocus="autofocus" value="{{ form.username.value|default:"" }}"maxlength="254" required="required" id="id_auth-username">

@@ -380,6 +380,7 @@ SECURITY_WHITELISTED_URLS = (
     "registration_disallowed",
     "registration_failed",
     "registration_register",
+    "registration_activate_account",
     "registry",
     "registry:consent-form-download",
     "registry:parent_edit",

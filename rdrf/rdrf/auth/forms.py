@@ -192,3 +192,7 @@ class LoginAuthenticationForm(AuthenticationForm):
         'invalid_login': _("Please enter a correct username and password."),
         'inactive': _("This account is inactive."),
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = _('Email Address')

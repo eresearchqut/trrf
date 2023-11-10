@@ -453,7 +453,7 @@ def should_be_on_the_login_page(step):
         by=By.XPATH,
         value='.//div[@class="card-header"][text()[contains(.,"Login")]]'
     )
-    world.browser.find_element(by=By.XPATH, value='.//label[text()[contains(.,"Username")]]')
+    world.browser.find_element(by=By.XPATH, value='.//label[text()[contains(.,"Email Address")]]')
     world.browser.find_element(by=By.XPATH, value='.//label[text()[contains(.,"Password")]]')
 
 
