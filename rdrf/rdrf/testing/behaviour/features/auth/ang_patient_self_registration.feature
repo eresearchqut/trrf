@@ -30,7 +30,7 @@ Feature: Patient Registration
     Then I should see "Please activate your account."
 
     # Patient clicks the link to login
-    When I press the "Activate my account" button
+    When I click "Activate my account"
     Then I should be on the login page
     And I should see "You have successfully activated your account."
 

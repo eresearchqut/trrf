@@ -1,11 +1,12 @@
 {% extends "rdrf_cdes/base-1-col.html" %}
 {% load project_title %}
+{% load i18n %}
 
 {% block content %}
     <div class="alert alert-primary" role="alert">
-        <h3>Please activate your account.</h3>
-        <p>You are required to activate your account to gain access to the {% project_title %}.</p>
-        <button class="btn btn-primary" onclick="window.open('{{ activation_url }}', '_self')">Activate my account</button>
+        <h3>{% trans "Please activate your account." %}</h3>
+        <p>{% trans "You are required to activate your account to gain access to the " %}{% project_title %}</p>
+        <a class="btn btn-primary" href="{{ activation_url }}">{% trans "Activate my account" %}</a>
     </div>
 
 {% endblock %}

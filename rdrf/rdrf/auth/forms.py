@@ -195,4 +195,4 @@ class LoginAuthenticationForm(AuthenticationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].label = 'Email Address'
+        self.fields['username'].label = _('Email Address')

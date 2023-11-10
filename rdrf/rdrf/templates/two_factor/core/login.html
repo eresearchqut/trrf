@@ -71,7 +71,7 @@ $(document).ready(function (){
             <input type="hidden" name="login_view-current_step" value="auth" id="id_login_view-current_step">
             {% if 'new_activation' in request.get_full_path %}
                 <div class="alert alert-success" role="alert">
-                  You have successfully activated your account. Please login.
+                  {% trans "You have successfully activated your account. Please login." %}
                 </div>
             {% endif %}
             <div class="mb-3">
