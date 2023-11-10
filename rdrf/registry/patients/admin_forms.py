@@ -365,7 +365,7 @@ class PatientForm(forms.ModelForm):
 
             if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                 if instance and instance.user:
-                    self.fields["email"].widget.attrs.update({'disabled': 'disabled'})
+                    self.fields["email"].disabled = True
 
                     change_email_url = None
                     if instance.user == self.user:
@@ -574,9 +574,7 @@ class PatientForm(forms.ModelForm):
                         raise ValidationError(_("User with this email already exists"))
                     break
 
-        is_disabled = 'disabled' in self.fields["email"].widget.attrs
-
-        if is_disabled:
+        if self.fields["email"].disabled:
             return self.instance.email
         else:
             return email
