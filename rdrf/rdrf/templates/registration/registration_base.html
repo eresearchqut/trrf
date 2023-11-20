@@ -139,6 +139,7 @@
         {% endblock %}
 
         {%  include "rdrf_cdes/form_list_errors.html" %}
+        {% include "rdrf_cdes/alert_language_is_not_supported.html" %}
 
         <form id="registration-form" method="POST" autocomplete="off">
             {% block content %}
