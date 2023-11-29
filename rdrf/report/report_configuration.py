@@ -116,7 +116,8 @@ def get_configuration():
                     'country': 'Country',
                     'phone': 'Phone',
                     'email': 'Email',
-                    'selfPatientId': 'Self Patient ID'
+                    'selfPatientId': 'Self Patient ID',
+                    'preferredLanguage': 'Preferred Language'
                 }
             },
 
