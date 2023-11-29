@@ -48,7 +48,6 @@ class PatientRegistration(BaseRegistration):
 
     def update_django_user(self, django_user, registry):
         form_data = self.form.cleaned_data
-        django_user.preferred_language = form_data.get('preferred_languages', 'en')
         return self.setup_django_user(django_user, registry, GROUPS.PATIENT, form_data['first_name'], form_data['surname'])
 
     def get_template_name(self):

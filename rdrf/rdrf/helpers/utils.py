@@ -705,31 +705,6 @@ def get_supported_languages():
     return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES]
 
 
-def get_all_language_codes():
-    from collections import namedtuple
-    from django.conf import settings
-    from langcodes import Language, standardize_tag, LANGUAGE_ALPHA3
-
-    languages = []
-    language_info = namedtuple('Language', ['code', 'name'])
-    languages_in_settings = dict(settings.LANGUAGES)
-    language_codes = list(languages_in_settings.keys())
-    extra_language_codes = LANGUAGE_ALPHA3.keys()
-    language_codes.extend(code for code in extra_language_codes if code not in language_codes)
-
-    for subtag in language_codes:
-        if subtag == 'pseudo':
-            languages.append(language_info(subtag, subtag))
-        elif subtag in languages_in_settings and not any(subtag == language.code for language in languages):
-            languages.append(language_info(subtag, languages_in_settings[subtag]))
-        else:
-            language_name = Language.get(standardize_tag(subtag)).autonym()
-            if 'Unknown' not in language_name and not any(subtag == language.code.split('-')[0] for language in languages):
-                languages.append(language_info(subtag, language_name))
-
-    return [language.code for language in languages], languages
-
-
 def applicable_forms(registry_model, patient_model):
     patient_type = patient_model.patient_type or "default"
     return applicable_forms_for_patient_type(registry_model, patient_type)

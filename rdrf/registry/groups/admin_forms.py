@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
-from rdrf.helpers.utils import get_supported_languages, get_all_language_codes
+from rdrf.helpers.utils import get_supported_languages
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.forms import working_group_optgroup_choices
 from registry.groups.models import WorkingGroup
@@ -116,7 +116,7 @@ class UserChangeForm(UserMixin, forms.ModelForm):
     password = ReadOnlyPasswordHashField(
         help_text=(OldUserChangeForm.base_fields['password'].help_text.format('../password/')))
 
-    preferred_language = ChoiceField(choices=get_all_language_codes()[1])
+    preferred_language = ChoiceField(choices=get_supported_languages())
 
     class Meta:
         fields = "__all__"
