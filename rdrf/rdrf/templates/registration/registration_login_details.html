@@ -2,6 +2,23 @@
 
 <script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
 <script>
+    function getPureLanguageCode(language) {
+        return language.split('-')[0];
+    }
+
+    function constructPreferredLanguages() {
+        const browser_language = navigator.languages[0];
+        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
+
+        {{ preferred_languages|safe }}.forEach((language) => {
+            $("#id_preferred_languages").append(`
+                <option value="${language.code}"
+                    ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) == getPureLanguageCode(browser_language)) ? 'selected' : ''}
+                >${language.name}</option>
+            `);
+        });
+    }
+
     $(document).ready(function() {
         initToggleShowPassword($("input[id^='id_password']"), $("#id_toggle-password"));
 
@@ -13,6 +30,8 @@
         passwordHint.addEventListener('hidden.bs.collapse', function() {
             $(passwordHintToggle).text('{% trans "Show password requirements" %}');
         });
+
+        constructPreferredLanguages();
     });
 </script>
 
@@ -57,7 +76,7 @@
         {% if preferred_languages %}
             <div class="col-12">
               <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
-              {{form.preferred_languages}}
+              <select name="preferred_languages" class="form-select" id="id_preferred_languages" aria-label="Preferred languages"></select>
             </div>
         {% endif %}
     </div>
