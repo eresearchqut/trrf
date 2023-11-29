@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from registration.users import UsernameField, UserModel
 from registration.forms import RegistrationForm
-from rdrf.helpers.utils import get_preferred_languages
+from rdrf.helpers.utils import get_preferred_languages, get_all_language_codes
 from registry.patients.models import Patient
 
 
@@ -13,7 +13,7 @@ def _tuple(code, name):
 
 
 def _preferred_languages():
-    languages = get_preferred_languages()
+    languages = get_all_language_codes()[1]
     return [_tuple(lang.code, lang.name) for lang in languages] if languages else [_tuple('en', 'English')]
 
 
