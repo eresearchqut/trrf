@@ -15,7 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 from registration.backends.default.views import RegistrationView, ActivationView
 
 from rdrf.models.definition.models import Registry
-from rdrf.helpers.utils import get_preferred_languages, get_all_language_codes
+from rdrf.helpers.utils import get_all_language_codes
 
 logger = logging.getLogger(__name__)
 

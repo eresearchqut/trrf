@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from registration.users import UsernameField, UserModel
 from registration.forms import RegistrationForm
-from rdrf.helpers.utils import get_preferred_languages, get_all_language_codes
+from rdrf.helpers.utils import get_all_language_codes
 from registry.patients.models import Patient
 
 
