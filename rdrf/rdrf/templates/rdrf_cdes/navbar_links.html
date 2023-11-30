@@ -36,11 +36,11 @@
 
 <div class="collapse navbar-collapse justify-content-end" id="navbar-collapsing-links">
     <ul class="navbar-nav navbar-right">
-    <li class="nav-item"><a class="nav-link d-md-none" href="{% project_title_link %}">{% project_title %}</a></li>
-    <li class="nav-item form-check form-switch d-flex align-items-center me-3 ps-0">
-       <label class="form-check-label nav-link pe-5" for="autoTranslation">Translate page</label>
-       <input class="form-check-input mb-1" type="checkbox" role="switch" id="autoTranslation">
-     </li>
+        <li class="nav-item"><a class="nav-link d-md-none" href="{% project_title_link %}">{% project_title %}</a></li>
+        <li class="nav-item form-check form-switch d-flex align-items-center me-3 ps-0">
+            <label class="form-check-label nav-link pe-5" for="autoTranslation">Translate page</label>
+            <input class="form-check-input mb-1" type="checkbox" role="switch" id="autoTranslation">
+        </li>
         {% get_language_settings as LANGUAGES %}
         {% get_current_language as CURRENT_LANGUAGE %}
         {% if LANGUAGES|length > 1 %}
