@@ -1,18 +1,26 @@
-{% load alert_language_not_support %}
+{% load get_language_settings_codes %}
+{% get_language_settings_codes as LANGUAGES %}
 
-{% with language_not_support=request.LANGUAGE_CODE|alert_language_not_support %}
-    {% if language_not_support %}
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">Language {{ request.LANGUAGE_CODE }} is not currently supported.
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endif %}
-     <script type="text/javascript">
-        const language_not_support = '{{ language_not_support }}'
+<script type="text/javascript">
+    $(document).ready(function(){
+        const browser_language = navigator.language;
+        const browser_language_in_settings = [browser_language, browser_language.split('-')[0]].some((language) => {{ LANGUAGES|safe }}.includes(language));
         const existing_not_support_language = localStorage.getItem('not_support_language');
-        if (language_not_support === 'True' && (existing_not_support_language === null || existing_not_support_language !== language_not_support)) {
-            localStorage.setItem('not_support_language', '{{ request.LANGUAGE_CODE }}')
-        } else if (language_not_support === 'False' && existing_not_support_language) {
+        const $alertPanel = document.getElementById('id_language_not_support_alert');
+        $alertPanel.innerHTML = `Language ${browser_language} is not currently supported.`
+        $alertPanel.classList.add('d-none');
+
+        if (!browser_language_in_settings) {
+            $alertPanel.classList.remove('d-none');
+            if (existing_not_support_language === null || existing_not_support_language !== browser_language) {
+                localStorage.setItem('not_support_language', browser_language);
+            }
+        } else if (browser_language_in_settings && existing_not_support_language) {
             localStorage.removeItem('not_support_language');
         }
-    </script>
-{% endwith %}
+    });
+</script>
+
+<div class="alert alert-warning alert-dismissible fade show" role="alert" id="id_language_not_support_alert">{{ LANGUAGES }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
