@@ -1,7 +1,17 @@
 {% load i18n static %}
 
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-select-1.14.0-beta3/css/bootstrap-select.min.css' %}">
+
 <script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
+<script id="id_bootstrap_selector_js" type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
+
 <script>
+    const scriptTag = document.createElement('script');
+    scriptTag.type = "text/javascript";
+    scriptTag.setAttribute("async", "false");
+    scriptTag.src = `/static/vendor/bootstrap-select-1.14.0-beta3/js/i18n/defaults-${navigator.languages[0].replace('-', '_')}.min.js`;
+    document.getElementById('id_bootstrap_selector_js').after(scriptTag);
+
     function getPureLanguageCode(language) {
         return language.split('-')[0];
     }
@@ -12,11 +22,12 @@
 
         {{ preferred_languages|safe }}.forEach((language) => {
             $("#id_preferred_languages").append(`
-                <option value="${language.code}"
+                <option value="${language.code}" data-tokens="${language.code}"
                     ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) == getPureLanguageCode(browser_language)) ? 'selected' : ''}
                 >${language.name}</option>
             `);
         });
+        $("#id_preferred_languages").selectpicker();
     }
 
     $(document).ready(function() {
@@ -75,8 +86,9 @@
 
         {% if preferred_languages %}
             <div class="col-12">
-              <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
-              <select name="preferred_languages" class="form-select" id="id_preferred_languages" aria-label="Preferred languages"></select>
+                <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
+                <select name="preferred_languages" class="form-control show-tick" id="id_preferred_languages"
+                    aria-label="Preferred languages" data-live-search="true" data-style="border"></select>
             </div>
         {% endif %}
     </div>
