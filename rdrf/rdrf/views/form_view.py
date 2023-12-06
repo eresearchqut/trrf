@@ -476,6 +476,9 @@ class FormView(View):
         self.set_code_generator_data(context, empty_stubs=conditional_rendering_disabled)
 
         context["selected_version_name"] = selected_version_name
+        context["session_info"] = {'max_session_age': settings.SESSION_COOKIE_AGE,
+                                   'warning_lead_time': settings.SESSION_EXPIRY_WARNING_LEAD_TIME,
+                                   'refresh_lead_time': settings.SESSION_REFRESH_LEAD_TIME}
 
         xray_recorder.end_subsegment()
 
