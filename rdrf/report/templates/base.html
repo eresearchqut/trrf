@@ -2,8 +2,9 @@
 {% load static %}
 {% load project_title %}
 {% load i18n %}
+{% load no_translation %}
     
-<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} {% if registry_code|no_translation:request %}translate="no"{% endif %}>
     <head>
         <title>{% project_title %}</title>
         <meta charset="utf-8">

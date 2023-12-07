@@ -1,9 +1,10 @@
 {% load static %}
 {% load i18n %}
 {% load project_title %}
+{% load no_translation %}
 {% get_current_language as LANGUAGE_CODE %}
 
-<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} {% if registry_code|no_translation:request %}translate="no"{% endif %}>
 
 <head>
     <title>{% project_title %} | Registration</title>
