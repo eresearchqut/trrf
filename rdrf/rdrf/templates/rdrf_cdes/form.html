@@ -11,6 +11,7 @@
 {% load static %}
 {% load i18n admin_urls static admin_modify %}
 {% load translate %}
+{% load session_info %}
 
 
 {% block extrastyle %}
@@ -558,9 +559,10 @@
             </div>
         </div>
     </div>
-
-
 <script>
+
+    {% session_info as session_info %}
+    {{ session_info.session }}
 
     function ModalSessionNotifier() {
 
