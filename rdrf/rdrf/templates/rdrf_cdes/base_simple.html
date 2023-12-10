@@ -1,11 +1,14 @@
 {% load static %}
 {% load i18n %}
 {% load project_title %}
-{% load no_translation %}
+{% load get_most_relevant_registry %}
+{% load is_no_translation %}
 {% get_current_language_bidi as LANGUAGE_BIDI %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" {% if registry_code|no_translation:request %}translate="no"{% endif %}>
+{% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" translate="{{ relevant_registry|is_no_translation }}" >
+{% endwith %}
     <head>
         <title>{% project_title %}</title>
 

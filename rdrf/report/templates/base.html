@@ -2,9 +2,12 @@
 {% load static %}
 {% load project_title %}
 {% load i18n %}
-{% load no_translation %}
-    
-<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} {% if registry_code|no_translation:request %}translate="no"{% endif %}>
+{% load get_most_relevant_registry %}
+{% load is_no_translation %}
+
+{% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} translate="{{ relevant_registry|is_no_translation }}">
+{% endwith %}
     <head>
         <title>{% project_title %}</title>
         <meta charset="utf-8">
