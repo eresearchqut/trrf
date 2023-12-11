@@ -5,7 +5,7 @@ register = template.Library()
 
 
 @register.filter
-def is_no_translation(registry):
+def get_translate_value(registry):
     if registry:
         return 'no' if registry.has_feature('no_translation') else 'yes'
 
