@@ -11,7 +11,6 @@
 {% load static %}
 {% load i18n admin_urls static admin_modify %}
 {% load translate %}
-{% load session_info %}
 
 
 {% block extrastyle %}
@@ -545,7 +544,7 @@
             <div class="modal-content">
                 <div class="modal-body">
                     <p data-session-state="expiring">{% trans "Your session will expire in " %}<strong id="sessionExpiryTimeout">X seconds</strong>.</p>
-                    <p data-session-state="expired" class="d-none alert alert-danger">Your session has expired.</p>
+                    <p data-session-state="expired" class="d-none alert alert-danger">{% trans "Your session has expired." %}</p>
                 </div>
                 <div class="modal-footer">
                     <div data-session-state="expiring">
@@ -560,9 +559,6 @@
         </div>
     </div>
 <script>
-
-    {% session_info as session_info %}
-    {{ session_info.session }}
 
     function ModalSessionNotifier() {
 
@@ -579,15 +575,16 @@
 
         function updateSessionTimeoutMessage(secondsLeft) {
             const ONE_MINUTE_IN_SECONDS = 60;
-            let unit = "seconds";
-            let time = secondsLeft;
+            let timeoutText = "";
 
             if (secondsLeft >= ONE_MINUTE_IN_SECONDS) {
-                time = Math.round(secondsLeft / ONE_MINUTE_IN_SECONDS);
-                unit = time > 1 ? "minutes" : "minute";
+                const minutesLeft = Math.round(secondsLeft / ONE_MINUTE_IN_SECONDS);
+                timeoutText = interpolate(ngettext("%s minute", "%s minutes", minutesLeft), [minutesLeft]);
+            } else {
+                timeoutText = interpolate(ngettext("%s second", "%s seconds", secondsLeft), [secondsLeft]);
             }
 
-            $sessionTimeoutModal.find("#sessionExpiryTimeout").text(`${time} ${gettext(unit)}`);
+            $sessionTimeoutModal.find("#sessionExpiryTimeout").text(timeoutText);
         }
 
         function displayComponents(sessionState) {
@@ -600,7 +597,6 @@
                 case SessionState.Expired: {
                     $sessionExpiredComponents.removeClass("d-none");
                     $sessionExpiringComponents.addClass("d-none");
-                    console.log('showing expired.');
                     $('.modal-backdrop').css("opacity", ".9");
                     break;
                 }
@@ -614,25 +610,25 @@
         function show(secondsLeftInSession) {
             let secondsUntilNextCountdownUpdate = 30;
 
-                function countdownTimer() {
-                    if (secondsLeftInSession > 0) {
-                        updateSessionTimeoutMessage(secondsLeftInSession);
-                        if (secondsLeftInSession === 30) {
-                            clearCountdownTimer();
-                            secondsUntilNextCountdownUpdate = 10;
-                            countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
-                        }
-                        secondsLeftInSession -= secondsUntilNextCountdownUpdate;
-                    } else {
+            function countdownTimer() {
+                if (secondsLeftInSession > 0) {
+                    updateSessionTimeoutMessage(secondsLeftInSession);
+                    if (secondsLeftInSession === 30) {
                         clearCountdownTimer();
-                        displayComponents(SessionState.Expired)
+                        secondsUntilNextCountdownUpdate = 10;
+                        countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
                     }
+                    secondsLeftInSession -= secondsUntilNextCountdownUpdate;
+                } else {
+                    clearCountdownTimer();
+                    displayComponents(SessionState.Expired)
                 }
+            }
 
-                countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
-                countdownTimer();
-                displayComponents(SessionState.Expiring);
-                sessionTimeoutModal.show();
+            countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
+            countdownTimer();
+            displayComponents(SessionState.Expiring);
+            sessionTimeoutModal.show();
         }
 
         return {
@@ -644,9 +640,9 @@
 
     function SessionManager(sessionNotifier) {
 
-        const maxSessionAge = parseInt("{{ session_info.max_session_age }}");
-        const sessionWarningLeadTime = parseInt("{{ session_info.warning_lead_time }}");
-        const sessionRefreshLeadTime = parseInt("{{ session_info.refresh_lead_time }}");
+        const maxSessionAge = parseInt("{{ SESSION_COOKIE_AGE }}");
+        const sessionWarningLeadTime = parseInt("{{ SESSION_EXPIRY_WARNING_LEAD_TIME }}");
+        const sessionRefreshLeadTime = parseInt("{{ SESSION_REFRESH_LEAD_TIME }}");
         const secondsUntilNextSessionRefresh = maxSessionAge - sessionRefreshLeadTime;
         const secondsUntilExpiryWarning = maxSessionAge - sessionWarningLeadTime;
         let sessionRefreshInterval;
