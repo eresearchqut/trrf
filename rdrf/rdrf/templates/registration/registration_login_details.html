@@ -1,29 +1,23 @@
 {% load i18n static %}
+{% load get_bootstrap_select_i18n_file %}
+{% get_current_language as CURRENT_LANGUAGE %}
 
 <link rel="stylesheet" href="{% static 'vendor/bootstrap-select-1.14.0-beta3/css/bootstrap-select.min.css' %}">
 
 <script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
 <script id="id_bootstrap_selector_js" type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
+<script type="text/javascript" src="{{ CURRENT_LANGUAGE|get_bootstrap_select_i18n_file }}"></script>
 
 <script>
-    const scriptTag = document.createElement('script');
-    scriptTag.type = "text/javascript";
-    scriptTag.setAttribute("async", "false");
-    scriptTag.src = `/static/vendor/bootstrap-select-1.14.0-beta3/js/i18n/defaults-${navigator.languages[0].replace('-', '_')}.min.js`;
-    document.getElementById('id_bootstrap_selector_js').after(scriptTag);
-
-    function getPureLanguageCode(language) {
-        return language.split('-')[0];
-    }
-
     function constructPreferredLanguages() {
         const browser_language = navigator.languages[0];
         const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
+        const getPureLanguageCode = (language) => language.split('-')[0];
 
         {{ preferred_languages|safe }}.forEach((language) => {
             $("#id_preferred_languages").append(`
                 <option value="${language.code}" data-tokens="${language.code}"
-                    ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) == getPureLanguageCode(browser_language)) ? 'selected' : ''}
+                    ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === getPureLanguageCode(browser_language)) ? 'selected' : ''}
                 >${language.name}</option>
             `);
         });
