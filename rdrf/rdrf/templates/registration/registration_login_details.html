@@ -1,27 +1,29 @@
 {% load i18n static %}
-{% load get_bootstrap_select_i18n_file %}
+{% load get_locale %}
 {% get_current_language as CURRENT_LANGUAGE %}
 
 <link rel="stylesheet" href="{% static 'vendor/bootstrap-select-1.14.0-beta3/css/bootstrap-select.min.css' %}">
 
 <script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
-<script id="id_bootstrap_selector_js" type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
-<script type="text/javascript" src="{{ CURRENT_LANGUAGE|get_bootstrap_select_i18n_file }}"></script>
+<script type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
+<script type="text/javascript" src="/static/vendor/bootstrap-select-1.14.0-beta3/js/i18n/defaults-{{ CURRENT_LANGUAGE|get_locale }}.js"></script>
 
 <script>
     function constructPreferredLanguages() {
         const browser_language = navigator.languages[0];
         const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
         const getPureLanguageCode = (language) => language.split('-')[0];
+        const pure_language_code = getPureLanguageCode(browser_language);
+        let options = [];
 
         {{ preferred_languages|safe }}.forEach((language) => {
-            $("#id_preferred_languages").append(`
+            options.push(`
                 <option value="${language.code}" data-tokens="${language.code}"
-                    ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === getPureLanguageCode(browser_language)) ? 'selected' : ''}
+                    ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code) ? 'selected' : ''}
                 >${language.name}</option>
             `);
         });
-        $("#id_preferred_languages").selectpicker();
+        $("#id_preferred_languages").append(options).selectpicker();
     }
 
     $(document).ready(function() {
@@ -82,7 +84,7 @@
             <div class="col-12">
                 <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
                 <select name="preferred_languages" class="form-control show-tick" id="id_preferred_languages"
-                    aria-label="Preferred languages" data-live-search="true" data-style="border"></select>
+                    aria-label="Preferred languages" data-live-search="true" data-style="border" data-size="10"></select>
             </div>
         {% endif %}
     </div>

@@ -116,7 +116,7 @@ class UserChangeForm(UserMixin, forms.ModelForm):
     password = ReadOnlyPasswordHashField(
         help_text=(OldUserChangeForm.base_fields['password'].help_text.format('../password/')))
 
-    preferred_language = ChoiceField(choices=get_all_language_codes()[1])
+    preferred_language = ChoiceField(choices=get_all_language_codes())
 
     class Meta:
         fields = "__all__"

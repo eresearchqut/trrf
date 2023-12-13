@@ -17,6 +17,8 @@ from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
+from collections import namedtuple
+from langcodes import Language, standardize_tag, LANGUAGE_ALPHA3
 
 from .cde_data_types import CDEDataTypes
 from .registry_features import RegistryFeatures
@@ -705,29 +707,24 @@ def get_supported_languages():
     return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES]
 
 
+LanguageInfo = namedtuple('Language', ['code', 'name'])
+
+
 def get_all_language_codes():
-    from collections import namedtuple
-    from django.conf import settings
-    from langcodes import Language, standardize_tag, LANGUAGE_ALPHA3
-
-    languages = []
-    language_info = namedtuple('Language', ['code', 'name'])
     languages_in_settings = dict(settings.LANGUAGES)
-    language_codes = list(languages_in_settings.keys())
-    extra_language_codes = LANGUAGE_ALPHA3.keys()
-    language_codes.extend(code for code in extra_language_codes if code not in language_codes)
+    language_codes = set(languages_in_settings.keys())
+    extra_language_codes = [language_code for language_code in LANGUAGE_ALPHA3.keys() if not any(language_code in code for code in language_codes)]
+    language_codes.update(extra_language_codes)
+    languages = []
+    if 'pseudo' in language_codes:
+        languages = [LanguageInfo('pseudo', 'pseudo')]
+        language_codes.remove('pseudo')
+    for subtag in sorted(language_codes):
+        alpha3_language_name = Language.get(standardize_tag(subtag)).autonym()
+        if 'Unknown' not in alpha3_language_name:
+            languages.append(LanguageInfo(subtag, languages_in_settings.get(subtag, alpha3_language_name)))
 
-    for subtag in language_codes:
-        if subtag == 'pseudo':
-            languages.append(language_info(subtag, subtag))
-        elif subtag in languages_in_settings and not any(subtag == language.code for language in languages):
-            languages.append(language_info(subtag, languages_in_settings[subtag]))
-        else:
-            language_name = Language.get(standardize_tag(subtag)).autonym()
-            if 'Unknown' not in language_name and not any(subtag == language.code.split('-')[0] for language in languages):
-                languages.append(language_info(subtag, language_name))
-
-    return [language.code for language in languages], languages
+    return languages
 
 
 def applicable_forms(registry_model, patient_model):

@@ -44,12 +44,12 @@ class RdrfRegistrationView(RegistrationView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        all_language_codes, languages_dict = get_all_language_codes()
+        languages_dict = get_all_language_codes()
         context = super().get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
         context['preferred_languages'] = [{'code': lang.code, 'name': lang.name} for lang in languages_dict]
         context['is_mobile'] = self.request.user_agent.is_mobile
-        context['all_language_codes'] = all_language_codes
+        context['all_language_codes'] = [language.code for language in languages_dict]
 
         return context
 

@@ -13,7 +13,7 @@ def _tuple(code, name):
 
 
 def _preferred_languages():
-    languages = get_all_language_codes()[1]
+    languages = get_all_language_codes()
     return [_tuple(lang.code, lang.name) for lang in languages] if languages else [_tuple('en', 'English')]
 
 
