@@ -402,7 +402,7 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.auto_id}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -447,7 +447,7 @@
                                                     {% if changes_since_version and element.label == "Delete" %}
                                                         <div></div>
                                                     {% else %}
-                                                        <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                        <label for="{{ element.auto_id}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                             {% if element.label == "Delete" %}
                                                                 {% trans "Mark for deletion" %}
                                                             {% else %}
@@ -498,7 +498,7 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="row rdrf-cde-field invisibutton-container">
-                                    <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
+                                    <label for="{{field.auto_id}}" class="col-sm-3 col-form-label">
                                         {% if field.field.cde.code and not CREATE_MODE and have_dynamic_data %}
                                         <a href="{% url 'registry_form_field_history' registry_code form_name patient_id s context_id field.field.cde.code %}"
                                            onclick="rdrf_click_form_field_history(event, this)"

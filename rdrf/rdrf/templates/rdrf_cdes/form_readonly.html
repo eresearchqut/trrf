@@ -256,7 +256,7 @@
                                         {% endif %}
                                                 {% if element.label == "Delete" %}
                                                 {% else %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.auto_id}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {{ element.label }}
                                                         {% if  element.field.required %}
                                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
@@ -287,7 +287,7 @@
                                             {% else %}
                                                 <div class="row rdrf-cde-field">
                                             {% endif %}
-                                                    <label for="{{ element.id_for_label}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
+                                                    <label for="{{ element.auto_id}}" style="display: {{element.is_hidden|yesno:"None,block"}}" class="col-sm-3 col-form-label">
                                                         {% if element.label == "Delete" %}
                                                             Mark for deletion
                                                         {% else %}
@@ -318,7 +318,7 @@
                         {% else %}
                             {% for field in forms|get_form_object:s %}
                                 <div class="row rdrf-cde-field">
-                                    <label for="{{field.id_for_label}}" class="col-md-4 col-form-label">
+                                    <label for="{{field.auto_id}}" class="col-md-4 col-form-label">
                                         {{field.label}}
                                         {% if  field.field.required %}
                                             <span class="fa fa-asterisk" style="color: red;" aria-hidden="true"></span>
