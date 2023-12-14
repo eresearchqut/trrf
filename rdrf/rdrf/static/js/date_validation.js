@@ -6,7 +6,7 @@ function setUpDatePickers() {
             'changeYear': true,
             'minDate': '-100Y',
             'maxDate': '0',
-            'yearRange': '-100:+0',
+            'yearRange': '-120:+120',
             'defaultDate': '-30Y',
             onSelect: function(date, inst) {
                 $(this).valid();
