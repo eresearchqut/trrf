@@ -51,7 +51,7 @@
         {% csrf_token %}
         {% for field in parent_form %}
             <div class="row {% if field.errors %}has-error{% endif %}">
-                <label for="{{field.id_for_label}}" class="col-md-3 offset-md-1 col-form-label">{% if field.field.required %}<span class="fa fa-asterisk" style="color: red" aria-hidden="true"></span>{% endif %} {{field.label}}</label>
+                <label for="{{field.auto_id}}" class="col-md-3 offset-md-1 col-form-label">{% if field.field.required %}<span class="fa fa-asterisk" style="color: red" aria-hidden="true"></span>{% endif %} {{field.label}}</label>
                 <div class="col-md-6">
                     {{ field }}
                 </div>
