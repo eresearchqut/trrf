@@ -11,7 +11,6 @@
 {% load static %}
 {% load i18n admin_urls static admin_modify %}
 {% load translate %}
-{% load session_refresh_interval %}
 
 
 {% block extrastyle %}
@@ -540,24 +539,65 @@
 
  </div>
 
-
+    <div id="sessionTimeoutModal" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p data-session-state="expiring">{% trans "Your session will expire in " %}<strong id="sessionExpiryTimeout">X seconds</strong>.</p>
+                    <p data-session-state="expired" class="d-none alert alert-danger">{% trans "Your session has expired." %}</p>
+                </div>
+                <div class="modal-footer">
+                    <div data-session-state="expiring">
+                        <button id="continueWorkingBtn" type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans "Continue working" %}</button>
+                        <button id="logoutBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Logout" %}</button>
+                    </div>
+                    <div data-session-state="expired" class="d-none">
+                        <button id="goToLoginBtn" type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans "Go to Login Page" %}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript" src="{% static 'js/session_timeout_manager.js' %}"></script>
 <script>
+
     $(document).ready(function () {
+
         $(":input").not(':input[type=checkbox], :input[type=radio], :input[type=button], :input[type=submit], :input[type=reset]').addClass("form-control");
         $("textarea").addClass("form-control");
         $("select").addClass("form-select");
         $("label[for*='-clear']").removeClass();
 
-        var session_refresh_interval = setInterval( function() {
-            $.get("{% url 'session_refresh' %}", function( data ) {
-                if (data && !data.success) {
-                    clearInterval(session_refresh_interval);
-                    alert("{% trans "Your session is about to expire. Press 'OK' and submit your changes or reload the page to continue using this session" %}");
-                }
-            }).fail(function() {
-                alert("{% trans "Error while refreshing session. Please check your connection" %}");
-            });
-        }, {% session_refresh_interval %});
+        const sessionNotifier = ModalSessionNotifier({
+            $modal: $("#sessionTimeoutModal"),
+            sessionExpiryTimeoutSelector: "#sessionExpiryTimeout"
+        });
+
+        const sessionManager = SessionManager(sessionNotifier, {
+            session: {
+                maxAge: {{ SESSION_COOKIE_AGE }},
+                warningLeadTime: {{ SESSION_EXPIRY_WARNING_LEAD_TIME }},
+                refreshLeadTime: {{ SESSION_REFRESH_LEAD_TIME }}
+            },
+            urls: {
+                sessionRefresh: "{% url 'session_refresh' %}",
+                login: `{%  url 'two_factor:login' %}?next=${(window.location.pathname)}`,
+                logout: `{% url 'logout' %}?next=${(window.location.pathname)}`
+            }
+        });
+
+        $("#continueWorkingBtn").on("click", function() {
+            sessionManager.restart();
+        });
+
+        $("#logoutBtn").on("click", function() {
+            sessionManager.logout();
+        });
+
+        $("#goToLoginBtn").on("click", function() {
+            sessionManager.goToLoginPage();
+        });
+
     });
 </script>
 

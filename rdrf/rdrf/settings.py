@@ -710,6 +710,9 @@ SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
 # Frontend session renewal
 SESSION_REFRESH_MAX_RETRIES = env.get('session_refresh_max_retries', 5)
 SESSION_REFRESH_LEAD_TIME = env.get('session_refresh_lead_time', 120)
+# How far in advance before the end of the session should the user be warned their session's expiring?
+# The value should be less than SESSION_COOKIE_AGE and greater than or equal to SESSION_REFRESH_LEAD_TIME
+SESSION_EXPIRY_WARNING_LEAD_TIME = env.get('session_expiry_warning_lead_time', 300)
 
 # Quicklinks settings
 QUICKLINKS_CLASS = 'rdrf.forms.navigation.quick_links.QuickLinks'
