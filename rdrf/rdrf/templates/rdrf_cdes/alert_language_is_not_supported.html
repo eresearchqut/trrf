@@ -11,13 +11,18 @@
         const dismiss_alert = `dismiss_language_${browser_language}_not_support_alert`;
         const get_dismiss_alert_value = localStorage.getItem(dismiss_alert);
 
-        if (!is_browser_language_in_settings && get_dismiss_alert_value === null) {
-            const language_name_converter = new Intl.DisplayNames(['en'], { type: 'language' });
-            $('#id_language_not_support_alert').text(gettext(`Language "${language_name_converter.of(browser_language)}" is not currently supported.`))
-                .append(`<button id="id_dismiss_alert" type="button" class="btn-close" data-bs-dismiss="alert" aria-label={% translate "Close" %}></button>`)
-                .removeClass('d-none');
+        if (!is_browser_language_in_settings) {
             if (existing_not_support_language === null || existing_not_support_language !== browser_language) {
                 localStorage.setItem('not_support_language', browser_language);
+            }
+            if (get_dismiss_alert_value === null) {
+                const language_name_converter = (language_code) => {
+                    const converter = new Intl.DisplayNames([language_code], {type: 'language'});
+                    return converter.of(browser_language);
+                };
+                $('#id_language_not_support_alert').text(interpolate($('#id_alert_language_is_not_supported_message').text(), [language_name_converter(browser_language), language_name_converter('en')]))
+                    .append(`<button id="id_dismiss_alert" type="button" class="btn-close" data-bs-dismiss="alert" aria-label={% translate "Close" %}></button>`)
+                    .removeClass('d-none');
             }
         } else if (is_browser_language_in_settings && existing_not_support_language) {
             localStorage.removeItem('not_support_language');
@@ -30,5 +35,4 @@
         });
     });
 </script>
-
-<div class="alert alert-warning alert-dismissible fade show d-none" role="alert" id="id_language_not_support_alert"></div>
+<div class="alert alert-warning alert-dismissible fade show d-none" role="alert" id="id_language_not_support_alert">{% include 'rdrf_cdes/alert_language_is_not_supported_message.html' %}</div>
