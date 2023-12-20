@@ -14,15 +14,14 @@
         const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
         const getPureLanguageCode = (language) => language.split('-')[0];
         const pure_language_code = getPureLanguageCode(browser_language);
-        let options = [];
-
-        {{ preferred_languages|safe }}.forEach((language) => {
-            options.push(`
+        const options = {{ preferred_languages|safe }}.map((language) => {
+            return `
                 <option value="${language.code}" data-tokens="${language.code}"
                     ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code) ? 'selected' : ''}
                 >${language.name}</option>
-            `);
-        });
+            `;
+        })
+
         $("#id_preferred_languages").append(options).selectpicker();
     }
 
