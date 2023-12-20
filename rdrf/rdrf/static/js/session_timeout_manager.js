@@ -10,11 +10,26 @@ function ModalSessionNotifier(options) {
         Expired: "expired"
     }
 
+    const CountdownIncrements = {
+        EVERY_HALF_MINUTE: 30,
+        EVERY_SECOND: 1
+    }
+
     const $sessionTimeoutModal = settings.$modal;
     const $sessionExpiredComponents = $(`[data-session-state="${SessionState.Expired}"]`);
     const $sessionExpiringComponents = $(`[data-session-state="${SessionState.Expiring}"]`);
     const sessionTimeoutModal = new bootstrap.Modal($sessionTimeoutModal, {backdrop: "static"});
+
+    let sessionExpiryTimestamp;
+    let nextCountdownUpdateInSeconds = CountdownIncrements.EVERY_HALF_MINUTE;
     let countdownInterval;
+
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden && countdownInterval) {
+            // update the countdown timer when the user comes back to this site from elsewhere.
+            countdownTimer();
+        }
+    });
 
     function updateSessionTimeoutMessage(secondsLeft) {
         const ONE_MINUTE_IN_SECONDS = 60;
@@ -24,10 +39,27 @@ function ModalSessionNotifier(options) {
             const minutesLeft = Math.round(secondsLeft / ONE_MINUTE_IN_SECONDS);
             timeoutText = interpolate(ngettext("%s minute", "%s minutes", minutesLeft), [minutesLeft]);
         } else {
-            timeoutText = interpolate(ngettext("%s second", "%s seconds", secondsLeft), [secondsLeft]);
+            const roundedSecondsLeft = Math.round(secondsLeft);
+            timeoutText = interpolate(ngettext("%s second", "%s seconds", roundedSecondsLeft), [roundedSecondsLeft]);
         }
 
         $sessionTimeoutModal.find(settings.sessionExpiryTimeoutSelector).text(timeoutText);
+    }
+
+    function countdownTimer() {
+        const now = new Date()
+        const secondsLeftInSession = (sessionExpiryTimestamp.getTime() - now.getTime()) / 1000;
+        if (secondsLeftInSession > 0) {
+            updateSessionTimeoutMessage(secondsLeftInSession);
+            if (nextCountdownUpdateInSeconds === CountdownIncrements.EVERY_HALF_MINUTE && secondsLeftInSession < 60 ) {
+                nextCountdownUpdateInSeconds = CountdownIncrements.EVERY_SECOND;
+                clearInterval(countdownInterval)
+                countdownInterval = setInterval(countdownTimer, nextCountdownUpdateInSeconds * 1000);
+            }
+        } else {
+            clearNotifier();
+            displayComponents(SessionState.Expired)
+        }
     }
 
     function displayComponents(sessionState) {
@@ -46,37 +78,29 @@ function ModalSessionNotifier(options) {
         }
     }
 
-    function clearCountdownTimer() {
+    function clearNotifier() {
         if (countdownInterval) clearInterval(countdownInterval);
+        nextCountdownUpdateInSeconds = CountdownIncrements.EVERY_HALF_MINUTE;
+        sessionExpiryTimestamp = undefined;
     }
 
-    function show(secondsLeftInSession) {
-        let secondsUntilNextCountdownUpdate = 30;
-
-        function countdownTimer() {
-            if (secondsLeftInSession > 0) {
-                updateSessionTimeoutMessage(secondsLeftInSession);
-                if (secondsLeftInSession === 30) {
-                    clearCountdownTimer();
-                    secondsUntilNextCountdownUpdate = 10;
-                    countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
-                }
-                secondsLeftInSession -= secondsUntilNextCountdownUpdate;
-            } else {
-                clearCountdownTimer();
-                displayComponents(SessionState.Expired)
-            }
-        }
-
-        countdownInterval = setInterval(countdownTimer, secondsUntilNextCountdownUpdate * 1000);
+    function show(_sessionExpiryTimestamp) {
+        sessionExpiryTimestamp = _sessionExpiryTimestamp;
+        countdownInterval = setInterval(countdownTimer, nextCountdownUpdateInSeconds * 1000);
         countdownTimer();
         displayComponents(SessionState.Expiring);
         sessionTimeoutModal.show();
     }
 
+    function showExpired() {
+        displayComponents(SessionState.Expired);
+        sessionTimeoutModal.show()
+    }
+
     return {
-        clearCountdownTimer,
-        show
+        clearNotifier,
+        show,
+        showExpired
     }
 }
 
@@ -116,13 +140,19 @@ function SessionManager(sessionNotifier, options) {
     }
 
     function restart() {
-        sessionNotifier.clearCountdownTimer();
+        sessionNotifier.clearNotifier();
 
         const sessionRefresh = (forcedRefresh = false) => {
             keepAlive(forcedRefresh).then(function ( data, status, jqXHR ) {
-                if (data && !data.success) {
-                    clearInterval(sessionRefreshInterval);
-                    setTimeout(() => { sessionNotifier.show(sessionWarningLeadTime) }, secondsUntilExpiryWarning * 1000);
+                if (forcedRefresh && data.success === undefined) {
+                    sessionNotifier.showExpired();
+                } else {
+                    if (data && !data.success) {
+                        const expiryTimestamp = new Date();
+                        expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + maxSessionAge);
+                        clearInterval(sessionRefreshInterval);
+                        setTimeout(() => { sessionNotifier.show(expiryTimestamp) }, secondsUntilExpiryWarning * 1000);
+                    }
                 }
             });
         }
