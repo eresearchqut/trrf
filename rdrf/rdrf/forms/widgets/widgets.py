@@ -186,7 +186,7 @@ class DateWidget(widgets.TextInput):
         def just_date(value):
             if value:
                 if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
-                    return date_format(value)
+                    return date_format(value, "d-m-Y")
                 else:
                     return value
             else:

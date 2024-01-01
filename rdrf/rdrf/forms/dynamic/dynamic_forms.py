@@ -57,7 +57,7 @@ def create_form_class_for_section(
             return
         # TODO: python 3.7 re-write to use date.fromisoformat(input)
         as_date = dt.strptime(input, "%Y-%m-%d")
-        return date_format(as_date)
+        return date_format(as_date, format='d-m-Y')
 
     if previous_values is None:
         previous_values = {}
