@@ -36,10 +36,10 @@ COPY requirements/* ./
 
 COPY clients ./clients
 
-RUN pip install -r requirements.txt
-RUN pip install -r dev-requirements.txt
-# TODO this should be installed only in the test images?
-RUN pip install -r test-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt && \
+    pip install -r dev-requirements.txt && \
+    pip install -r test-requirements.txt
 
 VOLUME ["/data"]
 
@@ -76,12 +76,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir /requirements
 WORKDIR /requirements
 
-COPY --from=builder /root/.cache /root/.cache
 COPY --from=builder /requirements/ .
 
-RUN pip install -r requirements.txt
-RUN pip install -r dev-requirements.txt
-RUN pip install -r test-requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt && \
+    pip install -r dev-requirements.txt && \
+    pip install -r test-requirements.txt
 
 RUN rm -Rf /root/.cache
 
