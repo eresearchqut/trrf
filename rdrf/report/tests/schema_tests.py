@@ -1049,8 +1049,8 @@ class SchemaTest(TestCase):
 
         # Check schema fields
         schema = create_dynamic_schema()
-        schema_section_type = schema.get_type('DynamicSection_CFG1_FORM1_SEC1')
-        fields = (list(schema_section_type.fields.keys()))
+        schema_section_type = schema.DynamicSection_CFG1_FORM1_SEC1
+        fields = (list(schema_section_type._meta.fields.keys()))
 
         self.assertEqual(fields, ['CDE1'])
 
@@ -1059,8 +1059,8 @@ class SchemaTest(TestCase):
         sec1.save()
 
         schema = create_dynamic_schema()
-        schema_section_type = schema.get_type('DynamicSection_CFG1_FORM1_SEC1')
-        fields = (list(schema_section_type.fields.keys()))
+        schema_section_type = schema.DynamicSection_CFG1_FORM1_SEC1
+        fields = (list(schema_section_type._meta.fields.keys()))
 
         self.assertEqual(fields, ['CDE1', 'CDE2'])
 

@@ -110,8 +110,7 @@ class ReportGeneratorTestCase(TestCase):
       }
     }
   }
-}
-"""
+}"""
         # Use formatted query for comparison to help with debugging if assertion fails.
         self.assertEqual({'filterArgs': {'consentQuestions': [], 'workingGroups': []}}, variables)
         self.assertEqual(expected, print_ast(parse(actual_query)))
@@ -209,8 +208,7 @@ class ReportGeneratorTestCase(TestCase):
       }
     }
   }
-}
-"""
+}"""
 
         # Use formatted query for comparison to help with debugging if assertion fails.
         self.assertEqual({'filterArgs': {'consentQuestions': ["1", "2"], 'workingGroups': ["8", "9"]}}, variables)
@@ -287,8 +285,7 @@ class ReportGeneratorTestCase(TestCase):
       }
     }
   }
-}
-"""
+}"""
 
         # Use formatted query for comparison to help with debugging if assertion fails.
         self.assertEqual(expected, print_ast(parse(query)))
