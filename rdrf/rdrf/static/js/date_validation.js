@@ -4,9 +4,9 @@ function setUpDatePickers() {
             'showAnim': 'blind',
             'changeMonth': true,
             'changeYear': true,
-            'minDate': '-100Y',
+            'minDate': '-120Y',
             'maxDate': '0',
-            'yearRange': '-100:+0',
+            'yearRange': '-120:+0',
             'defaultDate': '-30Y',
             onSelect: function(date, inst) {
                 $(this).valid();
