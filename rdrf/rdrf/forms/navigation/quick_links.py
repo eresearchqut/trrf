@@ -85,6 +85,7 @@ class LinkDefs:
     )
     WhitelistedFileExtension = make_link("admin:rdrf_whitelistedfileextension_changelist",
                                          _("Allowed extensions for file uploads"))
+    TotpDevices = make_link("admin:otp_totp_totpdevice_changelist", _("Totp Devices"))
 
 
 class Links:
@@ -171,7 +172,8 @@ class RegularLinks(Links):
         LinkDefs.ArchivedPatients,
         LinkDefs.ConsentRules,
         LinkDefs.FormTitlesConfig,
-        LinkDefs.WhitelistedFileExtension
+        LinkDefs.WhitelistedFileExtension,
+        LinkDefs.TotpDevices
     )
 
     WORKING_GROUPS = make_entries(LinkDefs.WorkingGroups,
