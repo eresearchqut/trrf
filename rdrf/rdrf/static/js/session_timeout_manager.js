@@ -25,7 +25,7 @@ function ModalSessionNotifier(options) {
     let countdownInterval;
 
     document.addEventListener("visibilitychange", function() {
-        if (!document.hidden && countdownInterval) {
+        if (!document.hidden && countdownInterval && sessionExpiryTimestamp) {
             // update the countdown timer when the user comes back to this site from elsewhere.
             countdownTimer();
         }
