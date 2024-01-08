@@ -717,8 +717,9 @@ def get_all_language_codes():
     if 'pseudo' in language_codes:
         languages = [LanguageInfo('pseudo', 'pseudo')]
         language_codes.remove('pseudo')
-    for subtag in sorted(language_codes):
-        alpha3_language_name = Language.get(standardize_tag(subtag))
+    sorted_language_codes = sorted(set(standardize_tag(subtag) for subtag in language_codes))
+    for subtag in sorted_language_codes:
+        alpha3_language_name = Language.get(subtag)
         if alpha3_language_name.is_valid():
             languages.append(LanguageInfo(subtag, languages_in_settings.get(subtag, alpha3_language_name.autonym())))
 
