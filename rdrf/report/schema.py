@@ -180,6 +180,7 @@ class ParentGuardianType(DjangoObjectType):
     email = graphene.String()
     self_patient_id = graphene.Int()
     gender = graphene.String()
+    preferred_language = graphene.String()
 
     class Meta:
         model = ParentGuardian
@@ -194,6 +195,9 @@ class ParentGuardianType(DjangoObjectType):
 
     def resolve_gender(parent_guardian, _info):
         return dict(ParentGuardian.GENDER_CHOICES).get(parent_guardian.gender, parent_guardian.gender)
+
+    def resolve_preferred_language(parent_guardian, _info):
+        return parent_guardian.user.preferred_language if parent_guardian.user else None
 
 
 class EmailPreferencesType(ObjectType):
