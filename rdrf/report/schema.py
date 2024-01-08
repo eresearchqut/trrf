@@ -481,8 +481,13 @@ def create_dynamic_patient_type(registry):
             collection="cdes"
         ).order_by('created_at').all()
 
-    def email_preferences_resolver(patient, _info):
+    def patient_email_preferences_resolver(patient, _info):
         return EmailPreference.objects.get_by_user(patient.user)
+
+    def parent_email_preferences_resolver(patient, _info):
+        parent = ParentGuardian.objects.filter(patient=patient).first()
+
+        return None if parent is None else EmailPreference.objects.get_by_user(parent.user)
 
     schema_module = import_module(settings.SCHEMA_MODULE)
     patient_fields_func = getattr(schema_module, settings.SCHEMA_METHOD_PATIENT_FIELDS)
@@ -513,8 +518,10 @@ def create_dynamic_patient_type(registry):
         })
 
     patient_fields.update({
-        "email_preferences": graphene.Field(EmailPreferencesType),
-        "resolve_email_preferences": email_preferences_resolver,
+        "patient_email_preferences": graphene.Field(EmailPreferencesType),
+        "resolve_patient_email_preferences": patient_email_preferences_resolver,
+        "parent_email_preferences": graphene.Field(EmailPreferencesType),
+        "resolve_parent_email_preferences": parent_email_preferences_resolver,
     })
 
     return type(f"DynamicPatient_{registry.code}", (DjangoObjectType,), patient_fields)
