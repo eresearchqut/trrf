@@ -2,12 +2,14 @@
 import json
 import os
 import sys
+import re
 from operator import itemgetter
 
 
 def collect_framework_deps():
-    return [tuple(split) for dep in os.listdir("rdrf/rdrf/static/vendor")
-            if len(split := dep.rsplit("-", 1)) == 2]
+    pattern = re.compile(r'([a-zA-Z0-9_.-]+)-(\d+(\.\d+)*(-\w+)?)')
+    return [(split.group(1), split.group(2)) for dep in os.listdir("rdrf/rdrf/static/vendor")
+            if (split := pattern.match(dep))]
 
 
 def collect_js_deps():

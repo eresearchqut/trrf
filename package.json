@@ -4,6 +4,7 @@
   "description": "This file MUST ONLY be modified using scripts/js_dependencies.py",
   "dependencies": {
     "bootstrap": "5.1.0",
+    "bootstrap-select": "1.14.0-beta3",
     "bootstrap-slider": "11.0.2",
     "chart.js": "3.3.2",
     "chartjs-adapter-moment": "1.0.0.js",

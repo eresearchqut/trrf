@@ -15,7 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 from registration.backends.default.views import RegistrationView, ActivationView
 
 from rdrf.models.definition.models import Registry
-from rdrf.helpers.utils import get_preferred_languages
+from rdrf.helpers.utils import get_all_language_codes
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +44,13 @@ class RdrfRegistrationView(RegistrationView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+        languages_dict = get_all_language_codes()
         context = super().get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
-        context['preferred_languages'] = get_preferred_languages()
+        context['preferred_languages'] = [{'code': lang.code, 'name': lang.name} for lang in languages_dict]
         context['is_mobile'] = self.request.user_agent.is_mobile
+        context['all_language_codes'] = [language.code for language in languages_dict]
+
         return context
 
     def post(self, request, *args, **kwargs):

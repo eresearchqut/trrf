@@ -17,6 +17,8 @@ from django.urls import reverse
 from django.utils.encoding import smart_bytes
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
+from collections import namedtuple
+from langcodes import Language, standardize_tag, LANGUAGE_ALPHA3
 
 from .cde_data_types import CDEDataTypes
 from .registry_features import RegistryFeatures
@@ -698,11 +700,30 @@ def trans_file(request, doc_name_with_out_language):
     return doc_name_with_out_language
 
 
+LanguageInfo = namedtuple('Language', ['code', 'name'])
+
+
 def get_supported_languages():
-    from collections import namedtuple
-    from django.conf import settings
-    Language = namedtuple('Language', ['code', 'name'])
-    return [Language(pair[0], pair[1]) for pair in settings.LANGUAGES]
+    return [LanguageInfo(pair[0], pair[1]) for pair in settings.LANGUAGES]
+
+
+def get_all_language_codes():
+    languages_in_settings = dict(settings.ALL_LANGUAGES)
+    language_codes = set(languages_in_settings.keys())
+    language_codes_simple = set(s.split("-")[0] for s in language_codes)
+    extra_language_codes = set(LANGUAGE_ALPHA3.keys()).difference(language_codes_simple)
+    language_codes.update(extra_language_codes)
+    languages = []
+    if 'pseudo' in language_codes:
+        languages = [LanguageInfo('pseudo', 'pseudo')]
+        language_codes.remove('pseudo')
+    sorted_language_codes = sorted(set(standardize_tag(subtag) for subtag in language_codes))
+    for subtag in sorted_language_codes:
+        alpha3_language_name = Language.get(subtag)
+        if alpha3_language_name.is_valid():
+            languages.append(LanguageInfo(subtag, languages_in_settings.get(subtag, alpha3_language_name.autonym())))
+
+    return languages
 
 
 def applicable_forms(registry_model, patient_model):
