@@ -1,9 +1,13 @@
 {% load static %}
 {% load i18n %}
 {% load project_title %}
+{% load get_most_relevant_registry %}
+{% load get_translate_value %}
 {% get_current_language as LANGUAGE_CODE %}
 
-<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+{% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
+<html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} translate="{{ relevant_registry|get_translate_value }}">
+{% endwith %}
 
 <head>
     <title>{% project_title %} | Registration</title>
