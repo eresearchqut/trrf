@@ -90,20 +90,20 @@ class ReportGeneratorTestCase(TestCase):
         consents {
           cs1 {
             angConsent1 {
-              firstSave
               answer
+              firstSave
             }
             angConsent2 {
-              firstSave
               answer
+              firstSave
             }
             angConsent3 {
-              firstSave
               answer
+              firstSave
             }
             angConsent4 {
-              firstSave
               answer
+              firstSave
             }
           }
         }
