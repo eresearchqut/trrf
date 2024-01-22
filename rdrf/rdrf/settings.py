@@ -737,7 +737,7 @@ if ENABLE_CROWDIN_IN_CONTEXT_TRANSLATION:
     CSP_CONNECT_SRC += ["https://eresearchqut.crowdin.com"]
     CSP_FRAME_SRC += ["https://cdn.crowdin.com", "https://eresearchqut.crowdin.com"]
 
-ENABLE_VIDEO_HOSTING = env.get('enable_video_hosting', True)
+ENABLE_VIDEO_HOSTING = env.get('enable_video_hosting', False)
 VIDEO_HOSTING_BASE_URL = env.get('video_hosting_base_url', '')
 if ENABLE_VIDEO_HOSTING:
     CSP_SCRIPT_SRC += ["blob:"]
