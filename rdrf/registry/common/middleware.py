@@ -1,4 +1,5 @@
 import logging
+import sys
 from django.http import HttpResponseRedirect
 from django.urls import reverse, resolve
 from django.utils.cache import add_never_cache_headers
@@ -138,3 +139,9 @@ class NoCacheMiddleware:
         if not response.has_header('Cache-Control'):
             add_never_cache_headers(response)
         return response
+
+
+class UserIDMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        user_id = request.user.id if request.user.is_authenticated else None
+        sys.stderr.write(f'[User id: {user_id}] ')
