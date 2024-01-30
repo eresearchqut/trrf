@@ -49,16 +49,16 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
     * Confirm it's working by running `pyenv`. If this doesn't work you'll need to add `$HOME/.pyenv/bin` to your PATH in your WSL
     * Follow the instructions output by `pyenv init`
 
-7. Install python
+7. Install python. Check the current python version in the `Dockerfile`.
     ```shell
-    pyenv global 3.8.9
+    pyenv global 3.9
     ```
    Confirm it's working: `python --version`
 8. Configure Git
    * Configure your Git client, as desired, on your WSL distribution
    * Clone the trrf repo into your WSL to an unmounted directory. N.B Cloning to a mounted windows directory will cause significant performance issues!
 
-9. Configure TRRF virtual python environment. Check the current python version in the `Dockerfile`.
+9. Configure TRRF virtual python environment.
     ```shell
     pyenv virtualenv 3.9 trrf 
     pyenv shell trrf
