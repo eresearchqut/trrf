@@ -58,9 +58,9 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
    * Configure your Git client, as desired, on your WSL distribution
    * Clone the trrf repo into your WSL to an unmounted directory. N.B Cloning to a mounted windows directory will cause significant performance issues!
 
-9. Configure TRRF virtual python environment
+9. Configure TRRF virtual python environment. Check the current python version in the `Dockerfile`.
     ```shell
-    pyenv virtualenv 3.8.9 trrf 
+    pyenv virtualenv 3.9 trrf 
     pyenv shell trrf
     ```
 10. Install pre-requisite packages  
