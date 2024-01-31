@@ -1,6 +1,6 @@
 {# Adapted from 'django/forms/widgets/multiple_input.html' #}
 {% with id=widget.attrs.id %}
-  <div{% if id %} id="{{ id }}"{% endif %} class="{{ column_width }} {% if widget.attrs.class %}{{ widget.attrs.class }}{% endif %}">
+  <div{% if id %} id="{{ id }}"{% endif %} class="py-2 {% if widget.attrs.class %}{{ widget.attrs.class }}{% endif %}">
     {% for group, options, index in widget.optgroups %}
       {% if group %}
         <div><label>{{ group }}</label>
@@ -8,7 +8,9 @@
       {% endif %}
       {% for option in options %}
         <div class="form-check {% if group %} ms-4 {% endif %}">
-          <input class="form-check-input" type="radio" name="{{ option.name }}" id="{{ option.attrs.id }}" />
+          <input class="form-check-input" type="radio" name="{{ option.name }}" id="{{ option.attrs.id }}"
+            value="{{ option.value }}" {% if option.selected %} checked {% endif %}
+            {% include "django/forms/widgets/attrs.html" %} />
           <label class="form-check-label" for="{{ option.attrs.id }}">{{ option.label }}</label>
         </div>
       {% endfor %}
