@@ -637,13 +637,6 @@ HIGHLIGHT_FORM_CHANGES_ENABLED = env.get('highlight_form_changes_enabled', True)
 
 # Feature to auto-logout users if their are inactive
 
-# Enable/disable feature overall
-AUTO_LOGOUT_ENABLED = env.get('auto_logout_enabled', False)
-# Warn the user they will be logged out after this much milliseconds
-AUTO_LOGOUT_WARN_AFTER_MS = env.get('auto_logout_warn_after_ms', 120 * 1000)
-# Log out the user if they have been warned but didn't react for this many milliseconds
-AUTO_LOGOUT_WARNED_USER_AFTER_MS = env.get('auto_logout_warned_user_after_ms', 30 * 1000)
-
 ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS = env.get('account_authenticated_registration_redirects', False)
 
 # Patient Registration
