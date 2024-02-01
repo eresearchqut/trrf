@@ -568,6 +568,17 @@
         $("select").addClass("form-select");
         $("label[for*='-clear']").removeClass();
 
+        // Credit to https://www.joshwcomeau.com/snippets/javascript/debounce/
+        const debounce = (callback, wait) => {
+          let timeoutId = null;
+          return (...args) => {
+            window.clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(() => {
+              callback(...args);
+            }, wait);
+          };
+        }
+
         const sessionNotifier = ModalSessionNotifier({
             $modal: $("#sessionTimeoutModal"),
             sessionExpiryTimeoutSelector: "#sessionExpiryTimeout"
@@ -597,6 +608,14 @@
         $("#goToLoginBtn").on("click", function() {
             sessionManager.goToLoginPage();
         });
+
+        const handleFormChange = debounce((event) => {
+            sessionManager.restart();
+        }, 1000);
+
+        $("#main-form").on("change", handleFormChange);
+        $("#main-form :text, #main-form textarea").on("keypress", handleFormChange);
+
 
     });
 </script>

@@ -125,6 +125,7 @@ function SessionManager(sessionNotifier, options) {
     const secondsUntilNextSessionRefresh = maxSessionAge - sessionRefreshLeadTime;
     const secondsUntilExpiryWarning = maxSessionAge - sessionWarningLeadTime;
     let sessionRefreshInterval;
+    let warningTimeout;
     let restartCount = 0;
 
     function keepAlive(forcedRefresh = false) {
@@ -139,29 +140,31 @@ function SessionManager(sessionNotifier, options) {
         });
     }
 
-    function restart() {
-        sessionNotifier.clearNotifier();
-
-        const sessionRefresh = (forcedRefresh = false) => {
-            keepAlive(forcedRefresh).then(function ( data, status, jqXHR ) {
-                if (forcedRefresh && data.success === undefined) {
-                    sessionNotifier.showExpired();
-                } else {
-                    if (data && !data.success) {
-                        const expiryTimestamp = new Date();
-                        expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + maxSessionAge);
-                        clearInterval(sessionRefreshInterval);
-                        setTimeout(() => { sessionNotifier.show(expiryTimestamp) }, secondsUntilExpiryWarning * 1000);
-                    }
+    function sessionRefresh(forcedRefresh = false) {
+        keepAlive(forcedRefresh).then(function ( data, status, jqXHR ) {
+            if (forcedRefresh && data.success === undefined) {
+                sessionNotifier.showExpired();
+            } else {
+                if (data && !data.success) {
+                    const expiryTimestamp = new Date();
+                    expiryTimestamp.setSeconds(expiryTimestamp.getSeconds() + maxSessionAge);
+                    clearInterval(sessionRefreshInterval);
+                    warningTimeout = setTimeout(() => { sessionNotifier.show(expiryTimestamp)}, secondsUntilExpiryWarning * 1000);
                 }
-            });
-        }
+            }
+        });
+    }
+
+    function restart() {
+        if (warningTimeout) clearTimeout(warningTimeout);
+        sessionNotifier.clearNotifier();
 
         if (restartCount > 0) {
             sessionRefresh(true);
         }
         restartCount += 1;
 
+        clearInterval(sessionRefreshInterval);
         sessionRefreshInterval = setInterval(sessionRefresh, secondsUntilNextSessionRefresh * 1000);
     }
 
