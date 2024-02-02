@@ -8,8 +8,8 @@ $(document).ready(function() {
   // Save defaults in each DOM element's pre data and append transitions
   $('#main-form *').filter(monitoredFields).each(function() {
     if ($(this).is(':radio')) {
-      $(this).parent().parent().data('pre', $(this).parent().parent().find(':checked').val());
-      $(this).parent().parent().css("transition", transition);
+      $(this).parent().data('pre', $(this).is(':checked') ? $(this).val() : '');
+      $(this).parent().css("transition", transition);
     } else if ($(this).is(':checkbox')) {
       $(this).data('pre', $(this).is(":checked") ? $(this).val() : '');
     } else {
@@ -30,8 +30,8 @@ $(document).ready(function() {
       function didChange(el) {
         var pre, curVal;
         if (el.is(':radio')) {
-          pre = el.parent().parent().data('pre');
-          curVal = el.parent().parent().find(':checked').val();
+          pre = el.parent().data('pre');
+          curVal = el.is(':checked') ? el.val() : '';
         } else if (el.is(':checkbox')) {
           pre = el.data('pre');
           curVal = el.is(":checked") ? el.val() : '';
@@ -45,10 +45,12 @@ $(document).ready(function() {
       var didValueChange = didChange($(this));
 
       var elementToHighlight = $(this);
-      var highlightBorder = true;
-      if ($(this).is(':radio') || $(this).is(':checkbox')) {
+      var highlightBorder = !($(this).is(':radio') || $(this).is(':checkbox'));
+      if ($(this).is(':checkbox')) {
         elementToHighlight = $(this).parent().parent();
-        highlightBorder = false;
+      }
+      if ($(this).is(':radio')) {
+        elementToHighlight = $(this).parent();
       }
 
       function handleHighlighting(el, propertyName, newValue) {

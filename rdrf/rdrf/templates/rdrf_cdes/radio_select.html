@@ -2,21 +2,14 @@
 {% with id=widget.attrs.id %}
   <div{% if id %} id="{{ id }}"{% endif %} class="py-2 {% if widget.attrs.class %}{{ widget.attrs.class }}{% endif %}">
     {% for group, options, index in widget.optgroups %}
-      {% if group %}
-        <div><label>{{ group }}</label>
-        <div{% if id %} id="{{ id }}_{{ index }}"{% endif %}>
-      {% endif %}
       {% for option in options %}
-        <div class="form-check {% if group %} ms-4 {% endif %}">
+        <div class="form-check mb-0 {% if group %} ms-4 {% endif %}" data-option="{{ option.attrs.id }}">
           <input class="form-check-input" type="radio" name="{{ option.name }}" id="{{ option.attrs.id }}"
             value="{{ option.value }}" {% if option.selected %} checked {% endif %}
             {% include "django/forms/widgets/attrs.html" %} />
           <label class="form-check-label" for="{{ option.attrs.id }}">{{ option.label }}</label>
         </div>
       {% endfor %}
-      {% if group %}
-        </div></div>
-      {% endif %}
     {% endfor %}
   </div>
 {% endwith %}
