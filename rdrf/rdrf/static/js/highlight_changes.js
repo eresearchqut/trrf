@@ -45,9 +45,10 @@ $(document).ready(function() {
       var didValueChange = didChange($(this));
 
       var elementToHighlight = $(this);
-      var highlightBorder = !($(this).is(':radio') || $(this).is(':checkbox'));
-      if ($(this).is(':checkbox')) {
-        elementToHighlight = $(this).parent().parent();
+      var highlightBorder = true;
+      if ($(this).is(':radio') || $(this).is(':checkbox')) {
+        elementToHighlight = $(this).is(':checkbox') ? $(this).parent().parent() : $(this).parent();
+        highlightBorder = false;
       }
       if ($(this).is(':radio')) {
         elementToHighlight = $(this).parent();
