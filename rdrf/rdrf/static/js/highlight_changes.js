@@ -50,9 +50,6 @@ $(document).ready(function() {
         elementToHighlight = $(this).is(':checkbox') ? $(this).parent().parent() : $(this).parent();
         highlightBorder = false;
       }
-      if ($(this).is(':radio')) {
-        elementToHighlight = $(this).parent();
-      }
 
       function handleHighlighting(el, propertyName, newValue) {
         var savedPropertyName = 'saved-' + propertyName;
