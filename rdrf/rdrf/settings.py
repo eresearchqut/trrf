@@ -177,7 +177,6 @@ MIDDLEWARE = [x for x in (
     'django_user_agents.middleware.UserAgentMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     'stronghold.middleware.LoginRequiredMiddleware',
-    'registry.common.middleware.UserIDMiddleware',
 ) if x is not None]
 
 

@@ -42,6 +42,8 @@ services:
       - db
       - clinicaldb
       - xray-daemon
+    command:
+      - "uwsgi"
 
   longitudinal-followup-lambda:
     image: ${TRRF_IMAGE_NAME}
