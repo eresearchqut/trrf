@@ -85,10 +85,11 @@ class SetupView(tfv.core.SetupView):
 @tfv.utils.class_view_decorator(never_cache)
 class DisableView(tfv.profile.DisableView):
     def form_valid(self, form):
-        for device in devices_for_user(self.request.user):
+        user = self.request.user
+        for device in devices_for_user(user):
             device.delete()
 
-        return redirect(self.request.POST['redirect_url'])
+        return redirect(user.default_page)
 
 
 # Doesn't need csrf_protect since no-one can guess the URL
