@@ -138,3 +138,11 @@ class NoCacheMiddleware:
         if not response.has_header('Cache-Control'):
             add_never_cache_headers(response)
         return response
+
+
+class AddUserIdToResponseMiddleware(MiddlewareMixin):
+    def process_response(self, request, response):
+        if request.user.is_authenticated:
+            response.user_id = request.user.id
+
+        return response
