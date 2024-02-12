@@ -179,8 +179,7 @@ if [ "$1" = 'uwsgi' ]; then
 
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-#    exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
-    exec uwsgi --http 0.0.0.0:8000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static --logformat '[pid: %(pid)|app: -|req: -/-] [user_id: %(user_id)]  %(addr) (%(user)) {%(vars) vars in %(pktsize) bytes} [%(ctime)] %(method) %(uri) => generated %(rsize) bytes in %(msecs) msecs (%(proto) %(status)) %(headers) headers in %(hsize) bytes (%(switches) switches on core %(core))'
+    exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
 fi
 
 # prod uwsgi HTTPS entrypoint
