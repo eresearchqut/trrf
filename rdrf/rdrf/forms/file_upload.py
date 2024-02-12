@@ -63,7 +63,7 @@ def wrap_fs_data_for_form(registry, data):
     """
     :param data: Dynamic data loaded from Mongo
     fs data is stored like this:
-    'cdecodeforfile': { "django_file_id' : 82327 , file_name: 'some name' }
+    'cdecodeforfile': { "django_file_id' : 82327 , original_filename: 'some name' }
 
     :return: --  Munges the passed in dictionary and wraps any fs references with
     wrappers which display a download link to the file

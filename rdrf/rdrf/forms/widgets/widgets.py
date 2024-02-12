@@ -517,12 +517,12 @@ FieldFileDummy.__str__ = lambda ff: ff.name
 class ConsentFileInput(FileInputWrapper):
 
     def get_value(self, value):
-        filename = PatientConsent.objects.get(form=value).filename
+        filename = PatientConsent.objects.get(form=value).original_filename
         return FieldFileDummy(name=filename, url=value.url)
 
     def get_filename(self, value):
         patient_consent = PatientConsent.objects.get(form=value)
-        return upload_patient_consent_to(patient_consent, patient_consent.filename)
+        return patient_consent.original_filename
 
 
 class CustomFileInput(FileInputWrapper):

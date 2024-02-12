@@ -1488,13 +1488,13 @@ class PatientConsentStorage(DefaultStorage):
     def url(self, name):
         consent = PatientConsent.objects.filter(form=name).first()
         if consent is not None:
-            rev = dict(consent_id=consent.id, filename=consent.filename)
+            rev = dict(consent_id=consent.id, filename=consent.original_filename)
             return reverse("registry:consent-form-download", kwargs=rev)
         return None
 
 
 def upload_patient_consent_to(instance, filename):
-    return 'consents/patient/{0}/{1}'.format(instance.patient.pk, filename)
+    return 'consents/patient/{0}/{1}'.format(instance.patient.pk, instance.filename)
 
 
 class ConsentFileField(models.FileField):
@@ -1519,6 +1519,7 @@ class PatientConsent(models.Model, PatientUpdateMixin):
         blank=True,
         null=True)
     filename = models.CharField(max_length=255)
+    original_filename = models.CharField(max_length=255)
 
     history = HistoricalRecords()
 

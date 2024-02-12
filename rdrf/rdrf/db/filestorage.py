@@ -1,3 +1,5 @@
+import uuid
+
 import botocore
 from collections import namedtuple
 from enum import Enum
@@ -83,6 +85,8 @@ def delete_file_wrapper(file_ref):
 def store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_name=None, section_code=None):
     mime_type = magic.from_buffer(file_obj.read(2048), mime=True)
     file_obj.seek(0)
+    storage_filename = str(uuid.uuid4())
+    original_filename = file_obj.name
     cde_file = CDEFile(registry_code=registry_code,
                        uploaded_by=uploaded_by,
                        patient=patient,
@@ -90,13 +94,14 @@ def store_file(registry_code, uploaded_by, patient, cde_code, file_obj, form_nam
                        section_code=section_code,
                        cde_code=cde_code,
                        item=file_obj,
-                       filename=file_obj.name,
+                       original_filename=original_filename,
+                       filename=storage_filename,
                        mime_type=mime_type)
     cde_file.save()
 
     return {
         "django_file_id": cde_file.id,
-        "file_name": file_obj.name
+        "file_name": original_filename
     }
 
 

@@ -1734,10 +1734,13 @@ class ClinicalData(models.Model):
 
 
 def file_upload_to(instance, filename):
-    return "/".join(filter(bool, [
-        instance.registry_code,
-        instance.section_code or "_",
-        instance.cde_code, filename]))
+    storage_filename = instance.filename
+    return "/".join(filter(bool, ["clinical",
+                                  instance.registry_code,
+                                  instance.section_code or "_", instance.cde_code,
+                                  "patient",
+                                  str(instance.patient.id),
+                                  storage_filename]))
 
 
 class CDEFile(models.Model):
@@ -1759,11 +1762,12 @@ class CDEFile(models.Model):
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
     item = models.FileField(upload_to=file_upload_to, max_length=300)
+    original_filename = models.CharField(max_length=255)
     filename = models.CharField(max_length=255)
     mime_type = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.item.name
+        return self.original_filename
 
 
 @receiver(pre_delete, sender=CDEFile)

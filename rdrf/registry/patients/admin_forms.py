@@ -2,6 +2,7 @@ import base64
 import binascii
 import json
 import logging
+import uuid
 from itertools import chain
 
 from django import forms
@@ -150,7 +151,7 @@ class PatientConsentFileForm(forms.ModelForm):
     class Meta:
         model = PatientConsent
         fields = ["form"]
-        exclude = ["filename"]
+        exclude = ["filename", "original_filename"]
 
     form = FileTypeRestrictedFileField(widget=ConsentFileInput, required=False)
 
@@ -158,7 +159,8 @@ class PatientConsentFileForm(forms.ModelForm):
         # remember the filename of the uploaded file
         logger.debug("File Saved")
         if self.cleaned_data.get("form"):
-            self.instance.filename = self.cleaned_data["form"].name
+            (self.instance).filename = uuid.uuid4()
+            (self.instance).original_filename = self.cleaned_data["form"].name
         return super(PatientConsentFileForm, self).save(commit)
 
 
