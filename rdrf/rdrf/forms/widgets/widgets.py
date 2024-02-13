@@ -28,7 +28,7 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient_consent
 from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
-from registry.patients.models import PatientConsent, upload_patient_consent_to
+from registry.patients.models import PatientConsent
 
 logger = logging.getLogger(__name__)
 
