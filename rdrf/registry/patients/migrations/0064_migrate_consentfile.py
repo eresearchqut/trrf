@@ -17,13 +17,14 @@ def migrate_consentfile_location(apps, schema_editor):
         new_filename = str(uuid.uuid4())
         original_file = consent.form
         original_path = original_file.name
-        if default_storage.exists(original_file.name):
-            consent.filename = new_filename
-            consent.form = File(original_file, name=consent.original_filename)
-            consent.save()
-            logger.info(f'id={consent.id} - COMPLETED: original_path={original_path}, new_path={consent.form.name}')
-        else:
-            logger.info(f'id={consent.id} - FAILED: could not find original_path={original_path}')
+        if original_path:
+            if default_storage.exists(original_file.name):
+                consent.filename = new_filename
+                consent.form = File(original_file, name=consent.original_filename)
+                consent.save()
+                logger.info(f'id={consent.id} - COMPLETED: original_path={original_path}, new_path={consent.form.name}')
+            else:
+                logger.info(f'id={consent.id} - FAILED: could not find original_path={original_path}')
 
 
 class Migration(migrations.Migration):

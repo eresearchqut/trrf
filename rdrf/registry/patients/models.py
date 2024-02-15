@@ -1494,7 +1494,7 @@ class PatientConsentStorage(DefaultStorage):
 
 
 def upload_patient_consent_to(instance, filename):
-    return 'consents/patient/{0}/{1}'.format(instance.patient.pk, instance.filename)
+    return 'patient/{0}/consents/{1}'.format(instance.patient.pk, instance.filename)
 
 
 class ConsentFileField(models.FileField):

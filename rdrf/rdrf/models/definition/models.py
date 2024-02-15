@@ -1735,11 +1735,11 @@ class ClinicalData(models.Model):
 
 def file_upload_to(instance, filename):
     storage_filename = instance.filename
-    return "/".join(filter(bool, ["clinical",
+    return "/".join(filter(bool, ["patient",
+                                  str(instance.patient.id),
+                                  "clinical",
                                   instance.registry_code,
                                   instance.section_code or "_", instance.cde_code,
-                                  "patient",
-                                  str(instance.patient.id),
                                   storage_filename]))
 
 

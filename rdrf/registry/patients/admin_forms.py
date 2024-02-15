@@ -154,7 +154,7 @@ class PatientConsentFileForm(forms.ModelForm):
         exclude = ["filename", "original_filename"]
 
     form = FileTypeRestrictedFileField(widget=ConsentFileInput, required=False)
-    
+
     def clean(self):
         cleaned_data = super().clean()
         uploaded_file = cleaned_data['form']
