@@ -3,12 +3,14 @@ import os
 import uwsgi
 from django.core.wsgi import get_wsgi_application
 
+wsgi_application = get_wsgi_application()
+
 def application(environ, start):
     # copy any vars into os.environ
     for key in environ:
         os.environ[key] = str(environ[key])
 
-    response = get_wsgi_application()(environ,start)
+    response = wsgi_application(environ,start)
     user_id = str(response.user_id) if hasattr(response, 'user_id') else ''
     app = uwsgi.workers()[0]['apps'][0]['id']
     current_req = uwsgi.request_id() + 1
