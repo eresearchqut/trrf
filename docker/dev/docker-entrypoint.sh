@@ -179,7 +179,7 @@ if [ "$1" = 'uwsgi' ]; then
 
     set -x
     # exec uwsgi --die-on-term --ini "${UWSGI_OPTS}"
-    exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static
+    exec uwsgi --http :9000 --wsgi-file /app/uwsgi/django.wsgi --static-map /static=/data/static --ini "${UWSGI_OPTS}"
 fi
 
 # prod uwsgi HTTPS entrypoint
