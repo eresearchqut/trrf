@@ -1733,14 +1733,13 @@ class ClinicalData(models.Model):
                 raise ValidationError({"data": e})
 
 
-def file_upload_to(instance, filename):
-    storage_filename = instance.filename
+def file_upload_to(instance, _filename):
     return "/".join(filter(bool, ["patient",
                                   str(instance.patient.id),
                                   "clinical",
                                   instance.registry_code,
                                   instance.section_code or "_", instance.cde_code,
-                                  storage_filename]))
+                                  instance.filename]))
 
 
 class CDEFile(models.Model):

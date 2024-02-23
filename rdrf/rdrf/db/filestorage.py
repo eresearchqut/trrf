@@ -73,7 +73,7 @@ def delete_file_wrapper(file_ref):
         try:
             cde_file = CDEFile.objects.get(id=django_file_id)
             cde_file.delete()
-            logger.info(f"CDEfile id={django_file_id} deleted")
+            logger.debug(f"CDEfile id={django_file_id} deleted")
             return cde_file
         except CDEFile.DoesNotExist:
             logger.warning("Tried to delete CDEFile id=%s which doesn't exist" % django_file_id)
