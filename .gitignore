@@ -57,3 +57,5 @@ yarn-error.log
 
 .vscode/settings.json
 /.python-version
+
+clients/*/generated/*.egg-info
