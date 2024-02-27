@@ -128,8 +128,10 @@ def get_file(file_id):
     try:
         cde_file = CDEFile.objects.get(id=file_id)
         return StorageFileInfo(
-            item=cde_file.item, filename=cde_file.filename,
-            uploaded_by=cde_file.uploaded_by, patient=cde_file.patient,
+            item=cde_file.item,
+            filename=cde_file.original_filename,
+            uploaded_by=cde_file.uploaded_by,
+            patient=cde_file.patient,
             mime_type=cde_file.mime_type
         )
     except CDEFile.DoesNotExist:
