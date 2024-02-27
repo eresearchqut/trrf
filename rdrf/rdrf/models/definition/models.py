@@ -1096,7 +1096,7 @@ class ConsentQuestion(models.Model):
                 title = _('Never consented')
             else:
                 action_date = consent_value.first_save or consent_value.last_updated
-                date = date_format(action_date)
+                date = date_format(action_date, "d-m-Y")
                 if consent_value.answer:
                     title = _('Consented on {date}'.format(date=date))
                 else:
