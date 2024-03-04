@@ -24,6 +24,6 @@ class ConsentFileView(FileErrorHandlingMixin, View):
 
         if consent.form and consent.form.file:
             response = FileResponse(consent.form.file, content_type='application/octet-stream')
-            response['Content-disposition'] = "filename=%s" % consent.filename
+            response['Content-disposition'] = "filename=%s" % filename
             return response
-        raise Http404("The file %s (consent %s) was not found" % (consent.filename, consent_id))
+        raise Http404("The file %s (consent %s) was not found" % (filename, consent_id))
