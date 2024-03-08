@@ -1,16 +1,17 @@
 from django.core.checks import Error, register, Tags
 from rdrf.services.io.defs import migrations_list
 from django.db.migrations.recorder import MigrationRecorder
+from django.db import connection
 
 
 @register(Tags.models, deploy=True)
 def import_export_logic_updates_check(app_configs, **kwargs):
     existing_migrations = migrations_list.MIGRATIONS_LIST
-    all_migrations = [(m.app, m.name) for m in MigrationRecorder.Migration.objects.filter(app__in=migrations_list.MIGRATIONS_LIST.keys())]
+    all_migrations = MigrationRecorder(connection).applied_migrations()
     new_migrations = []
-    for migration in all_migrations:
-        if migration[1] not in existing_migrations[migration[0]]:
-            new_migrations.append(migration)
+    for (app, name) in all_migrations.keys():
+        if app in existing_migrations and name not in existing_migrations[app]:
+            new_migrations.append((app, name))
 
     return [
         Error(
