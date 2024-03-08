@@ -698,7 +698,7 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 )
 
 # URLs whitelisted for meeting the security conventions
-# Refer to docs/security/README.rst
+# Refer to docs/security/README.md
 SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
 
 # Frontend session renewal
