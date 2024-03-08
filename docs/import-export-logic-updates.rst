@@ -18,4 +18,4 @@ After making relevant changes to the models, it's crucial to update the import/e
 Adding Migration to migrations_list.py
 ======================================
 
-Once the import/export logic has been updated, it's important to document the changes by adding the name of the new migration to [rdrf/rdrf/services/io/defs/migrations_list.py](rdrf/rdrf/services/io/defs/migrations_list.py).
+Once the import/export logic has been updated, it's important to document the changes by adding the name of the new migration to :doc:`rdrf/rdrf/services/io/defs/migrations_list.py <rdrf/rdrf/services/io/defs/migrations_list.py>`.
