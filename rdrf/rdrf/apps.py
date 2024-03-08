@@ -16,7 +16,7 @@ class RDRFConfig(AppConfig):
         import rdrf.models.definition.models
         # migration wasn't being found - importing here fixed that
         import rdrf.checks.security  # noqa
-        import rdrf.checks.import_export_logic_updates
+        import rdrf.checks.import_export_logic_updates   # noqa
 
         xray_recorder.begin_segment(self.name)
         atexit.register(lambda: xray_recorder.end_segment())

@@ -15,7 +15,7 @@ def import_export_logic_updates_check(app_configs, **kwargs):
     return [
         Error(
             f"New migration {name} for {app} has not been added to migrations list",
-            hint="Read the instructions in docs/import-export-logic-updates.rst",
+            hint="Read the instructions in docs/import-export-logic-updates.md",
             id='trrf.E002',
         ) for (app, name) in new_migrations
     ]
