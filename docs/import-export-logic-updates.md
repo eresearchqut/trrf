@@ -13,6 +13,6 @@ After making relevant changes to the models, it's crucial to update the import/e
 
 3. **Testing**: Thoroughly test the updated import/export logic to ensure that it functions correctly and accurately handles the new data fields or models.
 
-## Adding Migration to migrations_list.py
+## Adding Migration to migrations_considered_for_import_export.py
 
-Once the import/export logic has been updated, it's important to document the changes by adding the name of the new migration to [migrations_list.py](../rdrf/rdrf/services/io/defs/migrations_list.py).
+Once the import/export logic has been updated, it's important to document the changes by adding the name of the new migration to [migrations_considered_for_import_export.py](../rdrf/rdrf/services/io/defs/migrations_considered_for_import_export.py).

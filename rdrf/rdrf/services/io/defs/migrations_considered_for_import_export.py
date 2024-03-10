@@ -1,4 +1,6 @@
-MIGRATIONS_LIST = {
+# For further information, please read the instructions in docs/import-export-logic-updates.md
+
+MIGRATIONS_CONSIDERED_FOR_IMPORT_EXPORT = {
     'auth': {
         '0001_initial',
         '0002_alter_permission_name_max_length',
