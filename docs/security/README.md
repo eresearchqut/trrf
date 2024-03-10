@@ -36,20 +36,20 @@ However, there are some simple conventions that all views should use:
 
 ### When retrieving an object using a parameter from a url, use `get_object_or_404`
 
-```
-    def get(self, request, registry):
-        registry = get_object_or_404(Registry, code=registry_code)
-        ...
+```python
+def get(self, request, registry):
+    registry = get_object_or_404(Registry, code=registry_code)
+    ...
 ```
 
 ### When verifying whether a patient is accessing their own data (not another patient's), use `get_object_or_permission_denied` and `security_check_user_patient`
 
-```
-    def get(self, request, registry, patient):
-        ...
-        patient_model = get_object_or_permission_denied(Patient, pk=patient)
-        security_check_user_patient(self.user, patient_model)
-        ...
+```python
+def get(self, request, registry, patient):
+    ...
+    patient_model = get_object_or_permission_denied(Patient, pk=patient)
+    security_check_user_patient(self.user, patient_model)
+    ...
 ```
 
 This raises a `PermissionDenied` exception if the user is not found, or if the user is found but doesn't match the request user
@@ -58,20 +58,20 @@ This raises a `PermissionDenied` exception if the user is not found, or if the u
 
 Add the feature to the list of [registry features](../../rdrf/rdrf/helpers/registry_features.py):
 
-```
-    class RegistryFeatures:
-        ...
-        NEW_FEATURE = "new_feature"
+```python
+class RegistryFeatures:
+    ...
+    NEW_FEATURE = "new_feature"
 ```
 
 In the view, check whether the feature is enabled in this registry:
 
-```
-    def get(self, request, registry, patient):
-        ...
-        if not registry_model.has_feature(RegistryFeatures.NEW_FEATURE):
-            raise PermissionDenied
-        ...
+```python
+def get(self, request, registry, patient):
+    ...
+    if not registry_model.has_feature(RegistryFeatures.NEW_FEATURE):
+        raise PermissionDenied
+    ...
 ```
 
 ## Any Content Security Policy changes are kept to a minimum
@@ -80,16 +80,16 @@ Any Content Security Policy (CSP) changes should only be applied to specific vie
 
 Use django-csp's `@csp_update` decorator to append additional rules like so:
 
-```
-   @csp_update(SCRIPT_SRC=["https://cdn.example.com/"], IMG_SRC=["https://cdn.example.com/images"])
+```python
+@csp_update(SCRIPT_SRC=["https://cdn.example.com/"], IMG_SRC=["https://cdn.example.com/images"])
 ```
 
 Any Global CSP updates can be applied in `settings`:
 
-```
-    CSP_DEFAULT_SRC = ["'self'"]
-    CSP_OBJECT_SRC = ["'none'"]
-    ...
+```python
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_OBJECT_SRC = ["'none'"]
+...
 ```
 
 For more information about how to use django-csp, refer to the [documentation](https://django-csp.readthedocs.io/en/latest/).
