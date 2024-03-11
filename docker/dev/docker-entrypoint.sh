@@ -159,7 +159,7 @@ function _aloe() {
     export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"_test
     shift
     set -x
-    exec django-admin harvest --with-xunit --xunit-file="${WRITABLE_DIRECTORY}"/tests.xml --verbosity=3 "$@"
+    exec django-admin test --testrunner=rdrf.testing.behaviour.features.runner.GherkinNoDjangoTestDBTestRunner --with-xunit --xunit-file="${WRITABLE_DIRECTORY}"/tests.xml --verbosity=3 "$@"
 }
 
 

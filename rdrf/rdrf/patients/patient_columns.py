@@ -78,7 +78,7 @@ class ColumnDateOfBirth(Column):
     sort_fields = ["date_of_birth"]
 
     def fmt(self, val):
-        return date_format(val) if val is not None else ""
+        return date_format(val, "d-m-Y") if val is not None else ""
 
 
 class ColumnCodeField(Column):
@@ -194,7 +194,7 @@ class ColumnDateLastUpdated(Column):
     sort_fields = ["last_updated_overall_at"]
 
     def fmt(self, val):
-        return date_format(val) if val is not None else ""
+        return date_format(val, "d-m-Y") if val is not None else ""
 
 
 class ColumnActionsMenu(Column):
