@@ -1,17 +1,14 @@
-TRRF
-====
+## TRRF
 
-About
------
+### About
 
 The Trial Ready Registry Framework (or TRRF) has been forked from the Rare Disease Registry Framework (or RDRF) by Queensland University of Technology's eResearch team in order to produce a trial ready framework that is fit for purpose across all diseases, with easy deployment, availability and efficient use.
 
-RDRF has been developed at the `Centre for Comparative Genomics <http://ccg.murdoch.edu.au>`_, Murdoch University, Western Australia.
+RDRF has been developed at the [Centre for Comparative Genomics](http://ccg.murdoch.edu.au), Murdoch University, Western Australia.
 
 The Rare Disease Registry Framework (RDRF) is an open source tool for the creation of web-based patient registries. What makes it unique is that data entry forms are based on reusable data element definitions (called "Common Data Elements" ) which can be created and/or loaded into the system at runtime. This means that registries can be created and modified without changes to the source code.
 
-Contact
--------
+### Contact
 
 Hosted on GitHub:
 
@@ -19,10 +16,9 @@ https://github.com/eresearchqut/trrf
 
 Email:
 
-matthew.bellgard@qut.edu.au
+[matthew.bellgard@qut.edu.au](mailto:matthew.bellgard@qut.edu.au)
 
-Publications
-------------
+### Publications
 
 **Please cite the following**:
 
