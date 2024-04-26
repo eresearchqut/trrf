@@ -50,10 +50,11 @@ class PatientsListingView(View):
 
         # Filters
         self.facets = None
+        self.static_filters = {"consentChecks": False}
         self.selected_filters = None
 
     def _user_facets(self, request, registry_facets):
-        facets = query_patient_facets(request, self.registry_model, registry_facets.keys())
+        facets = query_patient_facets(request, self.registry_model, registry_facets.keys(), self.static_filters)
 
         user_facets = {}
         for key, facet_config in registry_facets.items():
@@ -202,7 +203,7 @@ class PatientsListingView(View):
             return []
 
         filters = {
-            "consentChecks": False,
+            **self.static_filters,
             **self.selected_filters
         }
 
