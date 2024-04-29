@@ -563,7 +563,7 @@ def list_patients_query(user,
     if filter_args.living_status:
         patient_query = patient_query.filter(living_status__in=filter_args.living_status)
 
-    if filter_args.consent_checks and registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
+    if not user.is_superuser and filter_args.consent_checks and registry.has_feature(RegistryFeatures.CONSENT_CHECKS):
         consent_rules = ConsentRule.objects.filter(registry=registry, capability='see_patient', user_group__in=user.groups.all(), enabled=True)
         for consent_question in [consent_rule.consent_question for consent_rule in consent_rules]:
             patient_query = patient_query.filter(consents__answer=True, consents__consent_question=consent_question)
