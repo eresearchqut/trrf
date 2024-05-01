@@ -137,7 +137,7 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
    pyenv virtualenv mnd
    pyenv shell mnd
    ```
-3. Install the python lib dependencies
+3. Install the python lib dependencies. 
    ```
    cd path/to/mnd/rdrf/requirements
    
