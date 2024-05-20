@@ -1,8 +1,5 @@
 from django import template
 from django.utils.translation import gettext as _
-from django.template import Template, Context
-from django.conf import settings
-import json
 
 from rdrf.models.definition.models import ConsentSection
 import logging
