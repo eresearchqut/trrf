@@ -1,21 +1,21 @@
 import logging
+
 import requests
 from csp.decorators import csp_update
-
 from django.conf import settings
 from django.contrib.auth import login
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
-from django.views.generic.base import TemplateView
+from django.utils.translation import gettext as _
+from django.utils.translation.trans_real import parse_accept_lang_header, language_code_re
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.generic.base import TemplateView
 from registration.backends.default.views import RegistrationView, ActivationView
 
-from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_all_language_codes
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,29 @@ class RdrfRegistrationView(RegistrationView):
             registration_class = import_string(settings.REGISTRATION_CLASS)
             return registration_class(request, form)
 
+    def get_user_requested_language(self):
+        # 1. If user has activated a language, this takes precedence as the requested language
+        site_language = self.request.COOKIES.get(settings.LANGUAGE_COOKIE_NAME)
+        if site_language:
+            return site_language
+
+        # 2. Otherwise, get the default browser language
+        accept = self.request.META.get('HTTP_ACCEPT_LANGUAGE', '')
+        for accept_lang, unused in parse_accept_lang_header(accept):
+            if accept_lang == '*':
+                break
+
+            if not language_code_re.search(accept_lang):
+                continue
+
+            try:
+                return accept_lang
+            except LookupError:
+                continue
+
+        # Not expected to get to this point, but if so then use the default language
+        return settings.LANGUAGE_CODE
+
     @csp_update(SCRIPT_SRC=registration_csp_script_src,
                 FRAME_SRC=registration_csp_frame_src)
     def dispatch(self, request, *args, **kwargs):
@@ -48,6 +71,7 @@ class RdrfRegistrationView(RegistrationView):
         context = super().get_context_data(**kwargs)
         context['registry_code'] = self.registry_code
         context['preferred_languages'] = [{'code': lang.code, 'name': lang.name} for lang in languages_dict]
+        context['preferred_language'] = self.get_user_requested_language()
         context['is_mobile'] = self.request.user_agent.is_mobile
         context['all_language_codes'] = [language.code for language in languages_dict]
 

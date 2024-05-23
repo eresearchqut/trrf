@@ -10,13 +10,13 @@
 
 <script>
     function constructPreferredLanguages() {
-        const browser_language = navigator.languages[0];
-        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
+        const preferred_language = "{{ preferred_language }}";
+        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(preferred_language);
         const getPureLanguageCode = (language) => language.split('-')[0];
-        const pure_language_code = getPureLanguageCode(browser_language);
+        const pure_language_code = getPureLanguageCode(preferred_language);
         const options = {{ preferred_languages|safe }}.map((language) => `
             <option value="${language.code}" data-tokens="${language.code}"
-                ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code) ? 'selected' : ''}
+                ${(language.code === preferred_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code) ? 'selected' : ''}
             >${language.name}</option>
         `);
 
