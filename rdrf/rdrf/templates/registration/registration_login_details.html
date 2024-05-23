@@ -78,7 +78,7 @@
         </div>
 
         {% if preferred_languages %}
-            <div class="col-12">
+            <div class="col-12 {% if form.preferred_languages.is_hidden %}d-none{% endif %}">
                 <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
                 <select name="preferred_languages" class="form-control show-tick" id="id_preferred_languages"
                     aria-label="Preferred languages" data-live-search="true" data-style="border" data-size="10"></select>
