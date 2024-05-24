@@ -20,7 +20,7 @@
         );
         const options = preferred_languages.map((language) => `
             <option value="${language.code}" data-tokens="${language.code}"
-                ${language.code === selected_preferred_language.code ? 'selected' : ''}
+                ${language.code === selected_preferred_language?.code ? 'selected' : ''}
             >${language.name}</option>
         `);
 
