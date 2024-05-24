@@ -10,13 +10,17 @@
 
 <script>
     function constructPreferredLanguages() {
-        const browser_language = navigator.languages[0];
-        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(browser_language);
+        const preferred_language = "{{ preferred_language }}";
+        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(preferred_language);
         const getPureLanguageCode = (language) => language.split('-')[0];
-        const pure_language_code = getPureLanguageCode(browser_language);
-        const options = {{ preferred_languages|safe }}.map((language) => `
+        const pure_language_code = getPureLanguageCode(preferred_language);
+        const preferred_languages = {{ preferred_languages|safe }};
+        const selected_preferred_language = preferred_languages.find(
+            (language) => (language.code === preferred_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code)
+        ) ?? "{{ CURRENT_LANGUAGE }}";
+        const options = preferred_languages.map((language) => `
             <option value="${language.code}" data-tokens="${language.code}"
-                ${(language.code === browser_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code) ? 'selected' : ''}
+                ${language.code === selected_preferred_language.code ? 'selected' : ''}
             >${language.name}</option>
         `);
 
@@ -78,7 +82,7 @@
         </div>
 
         {% if preferred_languages %}
-            <div class="col-12">
+            <div class="col-12 {% if form.preferred_languages.is_hidden %}d-none{% endif %}">
                 <label for="id_preferred_languages">{{form.preferred_languages.label}}</label>
                 <select name="preferred_languages" class="form-control show-tick" id="id_preferred_languages"
                     aria-label="Preferred languages" data-live-search="true" data-style="border" data-size="10"></select>
