@@ -17,10 +17,10 @@
         const preferred_languages = {{ preferred_languages|safe }};
         const selected_preferred_language = preferred_languages.find(
             (language) => (language.code === preferred_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code)
-        );
+        ) ?? "{{ CURRENT_LANGUAGE }}";
         const options = preferred_languages.map((language) => `
             <option value="${language.code}" data-tokens="${language.code}"
-                ${language.code === selected_preferred_language?.code ? 'selected' : ''}
+                ${language.code === selected_preferred_language.code ? 'selected' : ''}
             >${language.name}</option>
         `);
 
