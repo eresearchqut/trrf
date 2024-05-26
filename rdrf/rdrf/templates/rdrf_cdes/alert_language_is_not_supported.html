@@ -1,30 +1,34 @@
 {% load i18n %}
 {% load get_language_settings_codes %}
+{% load get_user_requested_language %}
+{% get_user_requested_language as USER_REQUESTED_LANGUAGE %}
 {% get_language_settings_codes as LANGUAGES %}
 
 <script type="text/javascript">
     $(document).ready(function(){
-        const browser_language = navigator.language;
-        const supported_languages = {{ LANGUAGES|safe }};
-        const is_browser_language_in_settings = [browser_language, browser_language.split('-')[0]].some((language) => supported_languages.includes(language));
+        const user_requested_language = "{{ USER_REQUESTED_LANGUAGE }}";
+        const supported_languages = {{ LANGUAGES|safe }}.map(language => language.toLowerCase());
+        const is_user_requested_language_in_settings = [
+            user_requested_language.toLowerCase(), user_requested_language.split('-')[0]
+        ].some((language) => supported_languages.includes(language));
         const existing_not_support_language = localStorage.getItem('not_support_language');
-        const dismiss_alert = `dismiss_language_${browser_language}_not_support_alert`;
+        const dismiss_alert = `dismiss_language_${user_requested_language}_not_support_alert`;
         const get_dismiss_alert_value = localStorage.getItem(dismiss_alert);
 
-        if (!is_browser_language_in_settings) {
-            if (existing_not_support_language === null || existing_not_support_language !== browser_language) {
-                localStorage.setItem('not_support_language', browser_language);
+        if (!is_user_requested_language_in_settings) {
+            if (existing_not_support_language === null || existing_not_support_language !== user_requested_language) {
+                localStorage.setItem('not_support_language', user_requested_language);
             }
             if (get_dismiss_alert_value === null) {
                 const language_name_converter = (language_code) => {
                     const converter = new Intl.DisplayNames([language_code], {type: 'language'});
-                    return converter.of(browser_language);
+                    return converter.of(user_requested_language);
                 };
-                $('#id_language_not_support_alert').text(interpolate($('#id_alert_language_is_not_supported_message').text(), [language_name_converter(browser_language), language_name_converter('en')]))
+                $('#id_language_not_support_alert').text(interpolate($('#id_alert_language_is_not_supported_message').text(), [language_name_converter(user_requested_language), language_name_converter('en')]))
                     .append(`<button id="id_dismiss_alert" type="button" class="btn-close" data-bs-dismiss="alert" aria-label={% translate "Close" %}></button>`)
                     .removeClass('d-none');
             }
-        } else if (is_browser_language_in_settings && existing_not_support_language) {
+        } else if (is_user_requested_language_in_settings && existing_not_support_language) {
             localStorage.removeItem('not_support_language');
         }
 
