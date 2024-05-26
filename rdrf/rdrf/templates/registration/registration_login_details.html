@@ -1,7 +1,5 @@
 {% load i18n static %}
 {% load get_locale %}
-{% load get_user_requested_language %}
-{% get_user_requested_language as USER_REQUESTED_LANGUAGE %}
 {% get_current_language as CURRENT_LANGUAGE %}
 
 <link rel="stylesheet" href="{% static 'vendor/bootstrap-select-1.14.0-beta3/css/bootstrap-select.min.css' %}">
@@ -12,13 +10,13 @@
 
 <script>
     function constructPreferredLanguages() {
-        const preferred_language = "{{ USER_REQUESTED_LANGUAGE }}";
-        const not_in_languages_array = !{{ all_language_codes|safe }}.map(language => language.toLowerCase()).includes(preferred_language);
+        const preferred_language = "{{ preferred_language }}";
+        const not_in_languages_array = !{{ all_language_codes|safe }}.includes(preferred_language);
         const getPureLanguageCode = (language) => language.split('-')[0];
         const pure_language_code = getPureLanguageCode(preferred_language);
         const preferred_languages = {{ preferred_languages|safe }};
         const selected_preferred_language = preferred_languages.find(
-            (language) => (language.code.toLowerCase() === preferred_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code)
+            (language) => (language.code === preferred_language) || (not_in_languages_array && getPureLanguageCode(language.code) === pure_language_code)
         ) ?? { code: "{{ CURRENT_LANGUAGE }}" };
         const options = preferred_languages.map((language) => `
             <option value="${language.code}" data-tokens="${language.code}"
