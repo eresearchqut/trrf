@@ -10,7 +10,7 @@
         const supported_languages = {{ LANGUAGES|safe }}.map(language => language.toLowerCase());
         const is_user_requested_language_in_settings = [
             user_requested_language.toLowerCase(), user_requested_language.split('-')[0]
-        ].some((language) => supported_languages.includes(language));
+        ].find((language) => supported_languages.includes(language));
         const existing_not_support_language = localStorage.getItem('not_support_language');
         const dismiss_alert = `dismiss_language_${user_requested_language}_not_support_alert`;
         const get_dismiss_alert_value = localStorage.getItem(dismiss_alert);
