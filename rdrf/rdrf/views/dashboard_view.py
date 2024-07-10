@@ -103,7 +103,10 @@ class ParentDashboard(object):
                     if context:
                         form_timestamp = self.patient.get_form_timestamp(form, context)
                         if form_timestamp:
-                            last_completed = date_format(parse_datetime(self.patient.get_form_timestamp(form, context)))
+                            last_completed = date_format(
+                                parse_datetime(self.patient.get_form_timestamp(form, context)),
+                                format='d-m-Y'
+                            )
 
                     progress_dict['link'] = cfg.get_add_action(self.patient)[0]
                     progress_dict['last_completed'] = last_completed or None

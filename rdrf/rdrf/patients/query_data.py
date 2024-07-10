@@ -66,9 +66,9 @@ def build_all_patients_query(registry, patient_query_fields, query_input=None, o
     return registry_query.generate()
 
 
-def execute_query(request, query):
+def execute_query(request, query, variable_values=None):
     schema = create_dynamic_schema()
-    result = schema.execute(query, context_value=request)
+    result = schema.execute(query, context_value=request, variable_values=variable_values)
 
     if hasattr(result, 'errors') and result.errors:
         raise GraphQLResultError(result.errors)
@@ -76,12 +76,18 @@ def execute_query(request, query):
     return result
 
 
-def query_patient_facets(request, registry, facet_keys):
+def query_patient_facets(request, registry, facet_keys, filters=None):
     if not facet_keys:
         return []
+    if filters:
+        operation_input, query_input, variables = build_patient_filters(filters)
+    else:
+        query_input = None
+        operation_input = None
+        variables = None
     facet_query = build_facet_query(facet_keys)
-    all_patients_query = build_all_patients_query(registry, [facet_query])
-    result = execute_query(request, all_patients_query)
+    all_patients_query = build_all_patients_query(registry, [facet_query], query_input, operation_input)
+    result = execute_query(request, all_patients_query, variable_values=variables)
     return get_all_patients(result, registry).get('facets')
 
 

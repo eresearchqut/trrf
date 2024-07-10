@@ -18,9 +18,21 @@
 
 
         // locate the codes anywhere on the page ( we assume only one occurrence of given cde for now
-        function locate_code(code) {
-            var id = $('[id*=' + code + ']').attr("id");
-            return "#" + id;
+        function locate_code(code, filterChecked=false) {
+            const id = $('[id*=' + code + ']').attr("id");
+            const idSelector = `#${id}`;
+
+            if ($(idSelector).is(":input")) {
+                return idSelector
+            }
+
+            const name = $("input[name*='" + code + "']").attr("name");
+            const nameSelector = "input[name='" + name + "']";
+
+            if ($(nameSelector).is(":radio")) {
+                return filterChecked ? `${nameSelector}:checked` : nameSelector;
+            }
+
         }
 
         var subject_codes_string;
@@ -63,8 +75,8 @@
                 for (var i = 0; i < subject_codes.length; i++) {
                     // Note how we use the prefix to map from the page to the context variable names
                     // and reverse map to update the output
-                    var subject_code_id_on_page = locate_code(subject_codes[i]);
-                    context[subject_codes[i]] = $(subject_code_id_on_page).val();
+                    var subject_code_selector = locate_code(subject_codes[i], true);
+                    context[subject_codes[i]] = $(subject_code_selector).val();
                 }
             }
 

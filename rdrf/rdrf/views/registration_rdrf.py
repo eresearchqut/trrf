@@ -1,21 +1,20 @@
 import logging
+
 import requests
 from csp.decorators import csp_update
-
 from django.conf import settings
 from django.contrib.auth import login
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.utils.module_loading import import_string
-from django.views.generic.base import TemplateView
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.generic.base import TemplateView
 from registration.backends.default.views import RegistrationView, ActivationView
 
-from rdrf.models.definition.models import Registry
 from rdrf.helpers.utils import get_all_language_codes
+from rdrf.models.definition.models import Registry
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from rdrf.models.definition.models import Registry
 from rdrf.patients.query_data import build_facet_query, build_all_patients_query, \
     build_patients_query, query_patient_facets, query_patient
 from rdrf.testing.unit.tests import RDRFTestCase
-from registry.groups.models import CustomUser
+from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import Patient, LivingStates
 
 
@@ -23,6 +23,7 @@ class PatientQueryDataTest(RDRFTestCase):
                         registry,
                         date_of_birth=datetime(1978, 6, 15),
                         living_state=LivingStates.ALIVE,
+                        working_groups=None,
                         given_names=None,
                         family_name=None):
         p = Patient.objects.create(consent=True,
@@ -31,6 +32,10 @@ class PatientQueryDataTest(RDRFTestCase):
                                    date_of_birth=date_of_birth,
                                    living_status=living_state)
         p.rdrf_registry.set([registry])
+
+        if working_groups:
+            p.working_groups.set([wg.id for wg in working_groups])
+
         p.save()
         return p
 
@@ -69,6 +74,30 @@ class PatientQueryDataTest(RDRFTestCase):
 
         facets = query_patient_facets(self._request(), registry, ['livingStatus'])
         self.assertEqual(['livingStatus'], list(facets.keys()))
+
+    def test_get_facets_with_filter(self):
+        registry = Registry.objects.get(code='fh')
+
+        qld = WorkingGroup.objects.create(name="QLD")
+        vic = WorkingGroup.objects.create(name="VIC")
+        nsw = WorkingGroup.objects.create(name="NSW")
+
+        self._create_patient(registry, living_state=LivingStates.ALIVE, working_groups=[qld])
+        self._create_patient(registry, living_state=LivingStates.ALIVE, working_groups=[qld, nsw])
+        self._create_patient(registry, living_state=LivingStates.ALIVE, working_groups=[nsw])
+        self._create_patient(registry, living_state=LivingStates.ALIVE, working_groups=[nsw])
+        self._create_patient(registry, living_state=LivingStates.ALIVE, working_groups=[vic, nsw])
+        self._create_patient(registry, living_state=LivingStates.DECEASED, working_groups=[vic])
+        self._create_patient(registry, living_state=LivingStates.DECEASED, working_groups=[vic])
+        self._create_patient(registry, living_state=LivingStates.DECEASED, working_groups=[nsw])
+        self._create_patient(registry, living_state=LivingStates.DECEASED, working_groups=[qld])
+
+        facets = query_patient_facets(self._request(), registry, ['workingGroups'], filters={"livingStatus": LivingStates.ALIVE})
+        self.assertEqual({"workingGroups": [
+            {"label": "QLD", "total": 2, "value": str(qld.id)},
+            {"label": "VIC", "total": 1, "value": str(vic.id)},
+            {"label": "NSW", "total": 4, "value": str(nsw.id)}
+        ]}, facets)
 
     def test_build_patients_query(self):
         query = build_patients_query(['givenNames', 'familyName'], ['-date_of_birth'], {'offset': 0, 'limit': 5})

@@ -4,13 +4,13 @@ pytest==7.1.1
 pytest-django==4.5.2
 nose==1.3.7
 nose-timer==0.7.5
-aloe==0.1.19
-aloe_webdriver==0.5.11
-aloe_django==0.1.6
+aloe==0.2.0
+aloe_webdriver==0.6.0
+aloe_django==0.2.0
 pyvirtualdisplay==0.2.5
 selenium==4.1.3
 unittest-xml-reporting==2.5.2
-requests==2.31.0
+requests==2.32.0
 sqlalchemy-utils==0.36.1
 stellar==0.4.5
 coverage==5.5

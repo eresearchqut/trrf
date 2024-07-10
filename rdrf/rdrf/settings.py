@@ -25,7 +25,6 @@ PRODUCTION = env.get("production", False)
 SECURE_SSL_REDIRECT = env.get("secure_ssl_redirect", PRODUCTION)
 SECURE_SSL_HOST = env.get("secure_ssl_host", False)
 SECURE_CONTENT_TYPE_NOSNIFF = env.get("secure_content_type_nosniff", PRODUCTION)
-SECURE_BROWSER_XSS_FILTER = env.get("secure_browser_xss_filter", PRODUCTION)
 SECURE_REDIRECT_EXEMPT = env.getlist("secure_redirect_exempt", [])
 SECURE_HSTS_SECONDS = env.get("SECURE_HSTS_SECONDS", 3600)  # TODO: Bump to 1 week, 1 month, 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -62,6 +61,7 @@ ALL_LANGUAGES = (
     ("cs", "Čeština"),
     ("de", "Deutsch"),
     ("es", "Español"),
+    ("el", "Ελληνικά"),
     ("fr", "Français"),
     ("he", "עִבְרִית"),
     ("hi", "हिन्दी"),
@@ -698,7 +698,7 @@ STRONGHOLD_PUBLIC_NAMED_URLS = (
 )
 
 # URLs whitelisted for meeting the security conventions
-# Refer to docs/security/README.rst
+# Refer to docs/security/README.md
 SECURITY_WHITELISTED_URLS = url_whitelist.SECURITY_WHITELISTED_URLS
 
 # Frontend session renewal
