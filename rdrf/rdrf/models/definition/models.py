@@ -620,7 +620,7 @@ class CommonDataElement(models.Model):
 
     def display_value(self, value):
         datatype = self.datatype.strip().lower()
-        if datatype == 'lookup':
+        if datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP]:
             from rdrf.forms.widgets.widgets import get_widget_class
             value = get_widget_class(self.widget_name).denormalized_value(value)
         elif self.pv_group:
