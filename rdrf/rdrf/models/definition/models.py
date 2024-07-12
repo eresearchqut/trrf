@@ -946,6 +946,7 @@ class ConsentSection(models.Model):
     registry = models.ForeignKey(Registry, related_name="consent_sections", on_delete=models.CASCADE)
     information_link = models.CharField(max_length=100, blank=True, null=True)
     information_text = models.TextField(blank=True, null=True)
+    information_media = models.TextField(blank=True, null=True)
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)
