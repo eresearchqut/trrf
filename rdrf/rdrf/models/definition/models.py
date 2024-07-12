@@ -620,9 +620,12 @@ class CommonDataElement(models.Model):
 
     def display_value(self, value):
         datatype = self.datatype.strip().lower()
-        if datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP]:
+        if datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP] and self.widget_name:
             from rdrf.forms.widgets.widgets import get_widget_class
             value = get_widget_class(self.widget_name).denormalized_value(value)
+        elif datatype == CDEDataTypes.FILE:
+            from rdrf.forms.widgets.widgets import CustomFileInput
+            value = CustomFileInput.denormalized_value(value)
         elif self.pv_group:
             cde_values_dict = self.pv_group.cde_values_dict
             if isinstance(value, list):
