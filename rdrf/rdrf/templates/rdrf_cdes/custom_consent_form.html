@@ -302,24 +302,26 @@
                             <div class="card">
                                 <div class="card-header"><strong>{{name|translate}}</strong>
                                 {% with consent_info=section|get_consent_information %}
-                                {% with link=consent_info|lookup:"link" info_text_expression=consent_info|lookup:"text" media=consent_info|lookup:"media" %}
-				                {% with doc="docs/"|add:link %}
+                                    {% if consent_info %}
+                                        {% with link=consent_info|lookup:"link" info_text_expression=consent_info|lookup:"text" media=consent_info|lookup:"media" %}
+                                        {% with doc="docs/"|add:link %}
 
-                                {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
-                                {% if info_text_expression %}
-                                    <br>
-                                    <hr>
-                                        {% autoescape off %}
-                                            {{ info_text_expression }}
-                                        {% endautoescape %}
-                                {% endif %}
-                                {% if media %}
-                                    {% autoescape off %}
-                                        {{ media }}
-                                    {% endautoescape %}
-                                {% endif %}
-		                        {% endwith %}
-                                {% endwith %}
+                                        {% if link %}<br><a href="{% static doc %}" target="_blank">{% trans 'Download or print a copy of this information to keep' %}</a>{% endif %}
+                                        {% if info_text_expression %}
+                                            <br>
+                                            <hr>
+                                                {% autoescape off %}
+                                                    {{ info_text_expression }}
+                                                {% endautoescape %}
+                                        {% endif %}
+                                        {% if media %}
+                                            {% autoescape off %}
+                                                {{ media }}
+                                            {% endautoescape %}
+                                        {% endif %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                    {% endif %}
                                 </div>
                                 <div class="card-body">
                                     {% for s in section %}
