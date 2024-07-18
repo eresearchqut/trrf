@@ -22,6 +22,7 @@ from registry.groups.models import WorkingGroup, CustomUser, WorkingGroupType
 from registry.patients.models import Patient, AddressType, PatientAddress, NextOfKinRelationship, ConsentValue, \
     PatientGUID, ParentGuardian, LivingStates, PatientStage
 from report.TrrfGraphQLView import PublicGraphQLError
+from useraudit.models import LoginLog
 
 logger = logging.getLogger(__name__)
 
@@ -385,6 +386,10 @@ def get_clinical_data_fields(registry):
 
 
 def get_patient_fields():
+    def resolve_last_login(patient, _info):
+        if patient.user:
+            return LoginLog.objects.filter(username=patient.user.username).aggregate(Max('timestamp')).get('timestamp__max')
+
     return {
         "Meta": type("Meta", (), {
             "model": Patient,
@@ -407,7 +412,11 @@ def get_patient_fields():
         "age": graphene.Int(),
         "resolve_age": lambda patient, _info: patient.age,
         "living_status": graphene.String(),
-        "resolve_living_status": lambda patient, _info: dict(LivingStates.CHOICES).get(patient.living_status, patient.living_status)
+        "resolve_living_status": lambda patient, _info: dict(LivingStates.CHOICES).get(patient.living_status, patient.living_status),
+        "self_registered": graphene.Boolean(),
+        "resolve_self_registered": lambda patient, _info: patient.created_by is None,
+        "last_login": graphene.DateTime(),
+        "resolve_last_login": resolve_last_login,
 
     }
 
