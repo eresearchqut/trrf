@@ -34,6 +34,7 @@ from registry.patients.models import (AddressType, Patient, PatientAddress,
                                       State)
 
 logger = logging.getLogger(__name__)
+TEST_EXPORTED_YAML_FILE = "/tmp/test.yaml"
 
 
 class MigrateCDESTestCase(TestCase):
@@ -151,6 +152,16 @@ class TestFormPermissions(RDRFTestCase):
         assert not curator_user.can_view(f), "A form set to be viewed "
 
 
+def export_yaml_file_test(registry):
+    exporter = Exporter(registry)
+    yaml_data, errors = exporter.export_yaml()
+    assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
+    assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
+    assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
+    with open(TEST_EXPORTED_YAML_FILE, "w") as f:
+        f.write(yaml_data)
+
+
 class ExporterTestCase(RDRFTestCase):
 
     def _get_cde_codes_from_registry_export_data(self, data):
@@ -178,15 +189,9 @@ class ExporterTestCase(RDRFTestCase):
                 test_key(key, data)
 
         self.registry = Registry.objects.get(code='fh')
-        self.exporter = Exporter(self.registry)
-        yaml_data, errors = self.exporter.export_yaml()
-        assert isinstance(errors, list), "Expected errors list in exporter export_yaml"
-        assert len(errors) == 0, "Expected zero errors instead got:%s" % errors
-        assert isinstance(yaml_data, str), "Expected yaml_data is  string:%s" % type(yaml_data)
-        with open("/tmp/test.yaml", "w") as f:
-            f.write(yaml_data)
+        export_yaml_file_test(self.registry)
 
-        with open("/tmp/test.yaml") as f:
+        with open(TEST_EXPORTED_YAML_FILE) as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
 
         test_key('EXPORT_TYPE', data)
@@ -248,6 +253,9 @@ class ExporterTestCase(RDRFTestCase):
             values.add(value.code)
         return values
 
+    def tearDown(self):
+        os.remove(TEST_EXPORTED_YAML_FILE)
+
 
 class ImporterTestCase(TestCase):
 
@@ -266,6 +274,31 @@ class ImporterTestCase(TestCase):
         importer.load_yaml(yaml_file)
         importer.create_registry()
         assert importer.state == ImportState.SOUND
+
+
+class ImporterUsingExporterFileTest(RDRFTestCase):
+    def setUp(self):
+        self.registry = Registry.objects.get(code='fh')
+        self.importer = Importer()
+
+    def test_importer_using_exporter_file(self):
+        self.assertFalse(os.path.exists(TEST_EXPORTED_YAML_FILE))
+        export_yaml_file_test(self.registry)
+        self.assertTrue(os.path.exists(TEST_EXPORTED_YAML_FILE))
+        with open(TEST_EXPORTED_YAML_FILE) as f:
+            data = yaml.load(f, Loader=yaml.FullLoader)
+        self.assertEqual(data['code'], 'fh')
+
+        self.registry.delete()
+        self.assertEqual(Registry.objects.filter(code='fh').count(), 0)
+
+        self.importer.load_yaml(TEST_EXPORTED_YAML_FILE)
+        self.importer.create_registry()
+        self.assertEqual(Registry.objects.filter(code='fh').count(), 1)
+        self.assertEqual(self.importer.state, ImportState.SOUND)
+
+    def tearDown(self):
+        os.remove(TEST_EXPORTED_YAML_FILE)
 
 
 class FormTestCase(RDRFTestCase):

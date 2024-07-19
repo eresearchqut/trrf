@@ -487,7 +487,7 @@ class Importer(object):
                     patient_data_section_map)
                 r.patient_data_section = patient_data_section
 
-        if "metadata_json" in self.data:
+        if "metadata_json" in self.data and self.data["metadata_json"].strip():
             metadata_json = self.data["metadata_json"]
             if self._check_metadata_json(metadata_json):
                 as_json = json.loads(metadata_json)
