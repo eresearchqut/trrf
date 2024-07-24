@@ -390,6 +390,15 @@ def get_patient_fields():
         if patient.user:
             return LoginLog.objects.filter(username=patient.user.username).aggregate(Max('timestamp')).get('timestamp__max')
 
+    def resolve_user_status(patient, _info):
+        if patient.user:
+            if patient.user.is_active:
+                return "Active"
+            else:
+                return "Inactive"
+        else:
+            return "No Account"
+
     return {
         "Meta": type("Meta", (), {
             "model": Patient,
@@ -417,6 +426,8 @@ def get_patient_fields():
         "resolve_self_registered": lambda patient, _info: patient.created_by is None,
         "last_login": graphene.DateTime(),
         "resolve_last_login": resolve_last_login,
+        "user_status": graphene.String(),
+        "resolve_user_status": resolve_user_status
 
     }
 

@@ -17,6 +17,7 @@ def get_configuration():
             'maidenName': 'Maiden Name',
             'umrn': 'Umrn',
             'selfRegistered': "Self Registered",
+            'userStatus': "User Account Status",
             'lastLogin': "Date and Time of Last Login",
             'createdAt': "Date And Time Of Creation",
             'lastUpdatedOverallAt': 'Date and Time Last Updated',
