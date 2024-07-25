@@ -1,6 +1,10 @@
 import re
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.expected_conditions import text_to_be_present_in_element_value
+from selenium.webdriver.support.wait import WebDriverWait
+
+from rdrf.testing.behaviour.features.utils import TEST_WAIT
 
 
 class BasePage:
@@ -21,6 +25,11 @@ class BasePage:
             element.clear()
 
         element.send_keys(value)
+
+        # Hoping this will stop errors where the next instruction happens before the keys are finished sending
+        WebDriverWait(self.browser, TEST_WAIT).until(
+            text_to_be_present_in_element_value(locator, value)
+        )
         return self
 
     def open_menu(self, menu_key):
