@@ -410,6 +410,10 @@ class MultipleFileInput(Widget):
     def input_name(base_name, i):
         return "%s_%s" % (base_name, i)
 
+    @staticmethod
+    def denormalized_value(raw_files):
+        return [FileInputWrapper.denormalized_value(raw_file) for raw_file in raw_files]
+
     number_pat = re.compile(r"_(\d+)$")
 
     @classmethod
@@ -473,6 +477,10 @@ class MultipleFileInput(Widget):
 class FileInputWrapper(widgets.ClearableFileInput):
 
     template_name = 'widgets/custom_file_input.html'
+
+    @staticmethod
+    def denormalized_value(raw_value):
+        return raw_value.get('file_name') if isinstance(raw_value, dict) else None
 
     def get_value(self, value):
         return value

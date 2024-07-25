@@ -451,6 +451,7 @@ class Exporter:
                             "section_label": consent_section.section_label,
                             "information_link": consent_section.information_link,
                             "information_text": consent_section.information_text,
+                            "information_media": consent_section.information_media,
                             "applicability_condition": consent_section.applicability_condition,
                             "validation_rule": consent_section.validation_rule,
                             "questions": []}

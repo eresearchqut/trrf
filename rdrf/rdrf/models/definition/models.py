@@ -620,9 +620,12 @@ class CommonDataElement(models.Model):
 
     def display_value(self, value):
         datatype = self.datatype.strip().lower()
-        if datatype == 'lookup':
+        if datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP] and self.widget_name:
             from rdrf.forms.widgets.widgets import get_widget_class
             value = get_widget_class(self.widget_name).denormalized_value(value)
+        elif datatype == CDEDataTypes.FILE:
+            from rdrf.forms.widgets.widgets import CustomFileInput
+            value = CustomFileInput.denormalized_value(value)
         elif self.pv_group:
             cde_values_dict = self.pv_group.cde_values_dict
             if isinstance(value, list):
@@ -943,6 +946,7 @@ class ConsentSection(models.Model):
     registry = models.ForeignKey(Registry, related_name="consent_sections", on_delete=models.CASCADE)
     information_link = models.CharField(max_length=100, blank=True, null=True)
     information_text = models.TextField(blank=True, null=True)
+    information_media = models.TextField(blank=True, null=True)
     # eg "patient.age > 6 and patient.age" < 10
     applicability_condition = models.TextField(blank=True)
     validation_rule = models.TextField(blank=True)

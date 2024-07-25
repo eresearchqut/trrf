@@ -966,6 +966,8 @@ class Importer(object):
                     "information_link", section_model.information_link)
                 section_model.information_text = section_dict.get(
                     "information_text", section_model.information_text)
+                section_model.information_media = section_dict.get(
+                    "information_media", section_model.information_media)
                 section_model.applicability_condition = section_dict["applicability_condition"]
                 if "validation_rule" in section_dict:
                     section_model.validation_rule = section_dict['validation_rule']
