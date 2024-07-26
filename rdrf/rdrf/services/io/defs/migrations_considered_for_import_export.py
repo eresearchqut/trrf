@@ -105,6 +105,7 @@ MIGRATIONS_CONSIDERED_FOR_IMPORT_EXPORT = {
         '0061_patientuser',
         '0062_unique_consentvalue',
         '0063_patientconsent_original_filename',
+        '0064_patient_stages'
     },
     'rdrf': {
         '0001_initial',
@@ -276,12 +277,13 @@ MIGRATIONS_CONSIDERED_FOR_IMPORT_EXPORT = {
         '0166_brazilian_portuguese',
         '0167_brazilian_portuguese',
         '0168_cdefile_original_filename',
+        '0169_greek',
+        '0170_consentsection_information_media'
     },
     'report': {
         '0001_initial',
         '0002_reportclinicaldatafield_context_form_group',
         '0003_reportdesign_cde_include_form_timestamp',
         '0004_alter_reportdesign_options',
-        '0005_add_test_fields',
     }
 }
