@@ -177,7 +177,27 @@ class RegistryType(DjangoObjectType):
         fields = ('name', 'code')
 
 
-class ParentGuardianType(DjangoObjectType):
+class RegisteredUserType(ObjectType):
+    last_login = graphene.DateTime()
+    user_status = graphene.String()
+
+    @staticmethod
+    def resolve_last_login(usertype, _info):
+        if usertype.user:
+            return LoginLog.objects.filter(username=usertype.user.username).aggregate(Max('timestamp')).get('timestamp__max')
+
+    @staticmethod
+    def resolve_user_status(usertype, _info):
+        if usertype.user:
+            if usertype.user.is_active:
+                return "Active"
+            else:
+                return "Inactive"
+        else:
+            return "No Account"
+
+
+class ParentGuardianType(DjangoObjectType, RegisteredUserType):
     email = graphene.String()
     self_patient_id = graphene.Int()
     gender = graphene.String()
@@ -386,19 +406,6 @@ def get_clinical_data_fields(registry):
 
 
 def get_patient_fields():
-    def resolve_last_login(patient, _info):
-        if patient.user:
-            return LoginLog.objects.filter(username=patient.user.username).aggregate(Max('timestamp')).get('timestamp__max')
-
-    def resolve_user_status(patient, _info):
-        if patient.user:
-            if patient.user.is_active:
-                return "Active"
-            else:
-                return "Inactive"
-        else:
-            return "No Account"
-
     return {
         "Meta": type("Meta", (), {
             "model": Patient,
@@ -425,9 +432,9 @@ def get_patient_fields():
         "self_registered": graphene.Boolean(),
         "resolve_self_registered": lambda patient, _info: patient.created_by is None,
         "last_login": graphene.DateTime(),
-        "resolve_last_login": resolve_last_login,
+        "resolve_last_login": RegisteredUserType.resolve_last_login,
         "user_status": graphene.String(),
-        "resolve_user_status": resolve_user_status
+        "resolve_user_status": RegisteredUserType.resolve_user_status
 
     }
 
