@@ -17,8 +17,6 @@ def get_configuration():
             'maidenName': 'Maiden Name',
             'umrn': 'Umrn',
             'selfRegistered': "Self Registered",
-            'userStatus': "User Account Status",
-            'lastLogin': "Date and Time of Last Login",
             'createdAt': "Date And Time Of Creation",
             'lastUpdatedOverallAt': 'Date and Time Last Updated',
             'dateOfBirth': 'Date Of Birth',
@@ -49,6 +47,10 @@ def get_configuration():
             'livingStatus': 'Living Status',
             'patientType': 'Patient Type'
         })
+
+        if any(r.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS) for r in all_registries):
+            patient_fields_dict.update({'userStatus': "User Account Status",
+                                        'lastLogin': "Date and Time of Last Login"})
 
         return patient_fields_dict
 
@@ -120,7 +122,9 @@ def get_configuration():
                     'phone': 'Phone',
                     'email': 'Email',
                     'selfPatientId': 'Self Patient ID',
-                    'preferredLanguage': 'Preferred Language'
+                    'preferredLanguage': 'Preferred Language',
+                    'userStatus': "User Account Status",
+                    'lastLogin': "Date and Time of Last Login"
                 }
             },
 
