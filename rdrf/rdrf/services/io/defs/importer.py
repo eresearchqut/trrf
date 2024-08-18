@@ -12,7 +12,7 @@ from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.data_fixes import CdeMappings
 from rdrf.models.definition.models import CDEPermittedValue, ContextFormGroup, RegistryDashboardWidget, \
     RegistryDashboard, RegistryDashboardDemographicData, RegistryDashboardCDEData, RegistryDashboardFormLink, \
-    LongitudinalFollowup, WhitelistedFileExtension
+    LongitudinalFollowup, WhitelistedFileExtension, Language, RegistryFormTranslation
 from rdrf.models.definition.models import CDEPermittedValueGroup
 from rdrf.models.definition.models import CommonDataElement
 from rdrf.models.definition.models import ConsentConfiguration
@@ -686,6 +686,14 @@ class Importer(object):
         self._create_consent_sections(r)
 
         self._create_form_permissions(r)
+
+        if "forms_translated" in self.data:
+            self._create_form_translations(r, self.data["forms_translated"])
+            logger.info("registry form translations OK")
+        else:
+            logger.info("no registry form translations to import")
+
+
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
             logger.info("demographic field definitions OK ")
@@ -988,6 +996,17 @@ class Importer(object):
                     question_model.question_label = question_label
                     question_model.instructions = instructions
                     question_model.save()
+
+    def _create_form_translations(self, registry, data):
+        for (language_code) in data:
+            language, _created = Language.objects.get_or_create(language_code=language_code)
+            form_translation, _created = RegistryFormTranslation.objects.get_or_create(language_id=language.id)
+            forms = data.get(language_code, [])
+            for form_name in forms:
+                form = RegistryForm.objects.get(registry=registry, name=form_name)
+                form_translation.translated_forms.add(form)
+            form_translation.save()
+
 
     def _create_demographic_fields(self, data):
         for d in data:

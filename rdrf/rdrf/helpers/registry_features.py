@@ -21,3 +21,4 @@ class RegistryFeatures:
     LONGITUDINAL_FOLLOWUPS = "longitudinal_followups"
     USER_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN = "user_email_activation_optional_for_admin"
     NO_TRANSLATION = "no_translation"
+    FORMS_REQUIRE_TRANSLATION = "forms_require_translation"

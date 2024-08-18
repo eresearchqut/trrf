@@ -13,7 +13,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from reversion.admin import VersionAdmin
 
-from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import CommonDataElementAdminForm, RegistryFormTranslationAdminForm
 from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
@@ -22,7 +22,7 @@ from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.events.events import EventType
 from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
-from rdrf.models.definition.models import WhitelistedFileExtension
+from rdrf.models.definition.models import WhitelistedFileExtension, RegistryFormTranslation, Language
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import CDEPermittedValueGroup
@@ -502,6 +502,38 @@ class LongitudinalFollowupAdmin(admin.ModelAdmin):
         }
 
 
+class LanguageAdmin(admin.ModelAdmin):
+    model = Language
+
+
+class RegistryFormTranslationAdmin(admin.ModelAdmin):
+    model = RegistryFormTranslation
+    form = RegistryFormTranslationAdminForm
+    list_display = ('language', 'translation_progress')
+    ordering = ('language',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.forms_count = RegistryForm.objects.count()
+
+    def translated_forms_count(self, obj):
+        return obj.translated_forms.all().count()
+
+    def translation_progress(self, obj):
+        fraction = self.translated_forms_count(obj) / self.forms_count
+        percentage = fraction * 100
+        str_percentage = f'{fraction:.0%}'
+        progress_type = 'bg-danger' if percentage < 25 else 'bg-warning' if percentage>=25 and percentage < 100 else 'bg-success'
+
+        return mark_safe(f'''
+        <div class="progress-bar {progress_type} {'text-dark' if progress_type in ['bg-warning'] else ''}" 
+             role="progressbar" style="width: {percentage}%" aria-valuenow="{percentage}" aria-valuemin="0" aria-valuemax="100">
+             {str_percentage}
+         </div>''')
+
+    translation_progress.short_description = 'Forms Translated (%)'
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -545,6 +577,8 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (RegistryDashboard, RegistryDashboardAdmin),
     (RegistryDashboardWidget, DashboardWidgetAdmin),
     (LongitudinalFollowup, LongitudinalFollowupAdmin),
+    (Language, LanguageAdmin),
+    (RegistryFormTranslation, RegistryFormTranslationAdmin),
 ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [

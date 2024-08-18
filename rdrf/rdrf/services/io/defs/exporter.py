@@ -11,7 +11,7 @@ from django.forms.models import model_to_dict
 from rdrf import VERSION
 import datetime
 from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup, \
-    WhitelistedFileExtension
+    WhitelistedFileExtension, RegistryFormTranslation
 from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
 from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
 
@@ -155,6 +155,7 @@ class Exporter:
             data["complete_fields"] = self._get_complete_fields(forms)
             data["forms_allowed_groups"] = self._get_forms_allowed_groups(forms)
             data["forms_readonly_groups"] = self._get_forms_readonly_groups(forms)
+            data["forms_translated"] = self._get_registry_forms_translated(forms)
 
         if should_export('cdes'):
             cdes = export_definition.get('cdes')
@@ -256,6 +257,13 @@ class Exporter:
 
         return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in forms}
 
+    def _get_registry_forms_translated(self, forms=None):
+        forms_ids = [form.id for form in forms or self.registry.forms]
+        form_translations = RegistryFormTranslation.objects.filter(translated_forms__in=forms_ids)
+        return {translation.language.language_code: [form.name
+                                                     for form in translation.translated_forms.filter(id__in=forms_ids)]
+                for translation in form_translations}
+
     def _skeleton_export(self, export_type):
         data = {}
 
@@ -278,6 +286,7 @@ class Exporter:
         data["consent_configuration"] = self._get_consent_configuration()
         data["forms_allowed_groups"] = self._get_forms_allowed_groups()
         data["forms_readonly_groups"] = self._get_forms_readonly_groups()
+        data["forms_translated"] = self._get_registry_forms_translated()
         data["demographic_fields"] = self._get_demographic_fields()
         data["complete_fields"] = self._get_complete_fields()
         data["reports"] = self._get_reports()
