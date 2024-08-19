@@ -153,6 +153,13 @@ class ColumnContextMenu(Column):
     field = "context_menu"
     sort_fields = []
 
+    def _has_visible_forms(self, user, cfg):
+        for form in cfg.forms:
+            if user.can_view(form):
+                return True
+
+        return False
+
     def configure(self, registry, user, order):
         super(ColumnContextMenu, self).configure(registry, user, order)
         self.registry_has_context_form_groups = registry.has_groups if registry else False
@@ -160,8 +167,10 @@ class ColumnContextMenu(Column):
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))
-            self.fixed_form_groups = registry.fixed_form_groups
-            self.multiple_form_groups = registry.multiple_form_groups
+            self.fixed_form_groups = [group for group in registry.fixed_form_groups
+                                      if self._has_visible_forms(user, group)]
+            self.multiple_form_groups = [group for group in registry.multiple_form_groups
+                                         if self._has_visible_forms(user, group)]
 
     def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
         return " ".join(self._get_forms_buttons(patient))
@@ -171,6 +180,10 @@ class ColumnContextMenu(Column):
             # if there are no context groups -normal registry
             return [self._get_forms_button(patient, None, self.free_forms)]
         else:
+
+            if len(self.fixed_form_groups) == 0 and len(self.multiple_form_groups) == 0:
+                return ["None"]
+
             # display one button per form group
             buttons = []
             for fixed_form_group in self.fixed_form_groups:
