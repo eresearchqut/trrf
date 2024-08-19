@@ -11,10 +11,11 @@ from django.db.models import Q
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, get_language
 from registration.signals import user_activated
 from simple_history.models import HistoricalRecords
 
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_check
 from rdrf.models.definition.models import Registry, RegistryDashboard
 from registry.groups import GROUPS as RDRF_GROUPS
@@ -335,6 +336,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if form_registry not in my_registries:
             return False
+
+        if form_registry.has_feature(RegistryFeatures.FORMS_REQUIRE_TRANSLATION):
+            user_language = get_language()
+            if not registry_form_model.has_translation(user_language):
+                return False
 
         if registry_form_model.open:
             return True

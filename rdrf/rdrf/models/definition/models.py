@@ -873,6 +873,10 @@ class RegistryForm(models.Model):
 
         return is_applicable
 
+    def has_translation(self, language_code):
+        return language_code == settings.LANGUAGE_CODE or self.registryformtranslation_set.filter(
+            language__language_code=language_code).exists()
+
 
 @receiver([post_save, post_delete], sender=RegistryForm)
 @receiver([post_save, post_delete], sender=Section)
