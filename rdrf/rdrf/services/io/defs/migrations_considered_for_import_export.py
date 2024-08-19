@@ -278,7 +278,9 @@ MIGRATIONS_CONSIDERED_FOR_IMPORT_EXPORT = {
         '0167_brazilian_portuguese',
         '0168_cdefile_original_filename',
         '0169_greek',
-        '0170_consentsection_information_media'
+        '0170_consentsection_information_media',
+        '0171_bulgarian',
+        '0172_language_registryformtranslation'
     },
     'report': {
         '0001_initial',

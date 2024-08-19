@@ -693,7 +693,6 @@ class Importer(object):
         else:
             logger.info("no registry form translations to import")
 
-
         if "demographic_fields" in self.data:
             self._create_demographic_fields(self.data["demographic_fields"])
             logger.info("demographic field definitions OK ")
@@ -1006,7 +1005,6 @@ class Importer(object):
                 form = RegistryForm.objects.get(registry=registry, name=form_name)
                 form_translation.translated_forms.add(form)
             form_translation.save()
-
 
     def _create_demographic_fields(self, data):
         for d in data:

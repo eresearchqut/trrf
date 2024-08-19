@@ -898,7 +898,6 @@ class RegistryFormTranslation(models.Model):
         return f'{self.language}: {self.translated_forms.count()} translated forms'
 
 
-
 class Wizard(models.Model):
     registry = models.CharField(max_length=50)
     forms = models.TextField(help_text="A comma-separated list of forms")

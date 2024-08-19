@@ -514,19 +514,18 @@ class RegistryFormTranslationAdmin(admin.ModelAdmin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.forms_count = RegistryForm.objects.count()
 
     def translated_forms_count(self, obj):
         return obj.translated_forms.all().count()
 
     def translation_progress(self, obj):
-        fraction = self.translated_forms_count(obj) / self.forms_count
+        fraction = self.translated_forms_count(obj) / RegistryForm.objects.count()
         percentage = fraction * 100
         str_percentage = f'{fraction:.0%}'
-        progress_type = 'bg-danger' if percentage < 25 else 'bg-warning' if percentage>=25 and percentage < 100 else 'bg-success'
+        progress_type = 'bg-danger' if percentage < 25 else 'bg-warning' if 25 <= percentage < 100 else 'bg-success'
 
         return mark_safe(f'''
-        <div class="progress-bar {progress_type} {'text-dark' if progress_type in ['bg-warning'] else ''}" 
+        <div class="progress-bar {progress_type} {'text-dark' if progress_type in ['bg-warning'] else ''}"
              role="progressbar" style="width: {percentage}%" aria-valuenow="{percentage}" aria-valuemin="0" aria-valuemax="100">
              {str_percentage}
          </div>''')

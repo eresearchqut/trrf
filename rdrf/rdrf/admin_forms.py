@@ -257,4 +257,3 @@ class RegistryFormTranslationAdminForm(ModelForm):
         widgets = {
             'translated_forms': SelectMultiple(attrs={'size': 30})
         }
-
