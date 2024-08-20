@@ -1,32 +1,72 @@
+{% load get_locale %}
 {% load i18n %}
+{% load static %}
 {% load translate %}
 {% load project_title %}
 {% load project_title_link %}
 {% load get_language_settings %}
 {% load has_subscribable_email %}
+{% get_current_language as CURRENT_LANGUAGE %}
+{% get_language_settings as LANGUAGES %}
 
 {% include "localisation/language_picker_form.html" %}
+
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-select-1.14.0-beta3/css/bootstrap-select.min.css' %}">
+
+<script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
+<script type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
+<script type="text/javascript" src="/static/vendor/bootstrap-select-1.14.0-beta3/js/i18n/defaults-{{ CURRENT_LANGUAGE|get_locale }}.js"></script>
+<script>
+
+  $(document).ready(function () {
+    const $languageForm = $("#languageForm");
+    const $language = $("#language");
+
+    $language.selectpicker({
+        liveSearch: true,
+        style: "",
+        styleBase: "form-control",
+        liveSearchNormalize: true
+    });
+
+    $language.on("changed.bs.select", (e) => {
+        setLanguage(e.target.value);
+    });
+
+    // focus on the live search as soon as the user triggers the selectpicker to be shown
+    // which enables to either start typing or use the arrow keys to navigate the options
+    $language.on("shown.bs.select", () => {
+        $languageForm.find("input[type='search']").focus();
+    });
+
+  });
+</script>
+
 <div class="collapse navbar-collapse justify-content-end" id="navbar-collapsing-links">
     <ul class="navbar-nav navbar-right">
       <li class="nav-item"><a class="nav-link d-md-none" href="{% project_title_link %}">{% project_title %}</a></li>
-        {% get_language_settings as LANGUAGES %}
-        {% get_current_language as CURRENT_LANGUAGE %}
         {% if LANGUAGES|length > 1 %}
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" id="languageDropdown" data-bs-toggle="dropdown" role="button"
-                   aria-expanded="false">
-                    <span class="fa fa-globe"></span> {% trans 'Language' %}<span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu" role="menu" style="cursor: pointer" aria-labelledby="languageDropdown">
+          <li class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" id="languageDropdownToggle" data-bs-toggle="dropdown"
+               data-bs-auto-close="outside" role="button"
+               aria-expanded="false">
+              <span class="fa fa-globe"></span> {% trans 'Language' %}<span class="caret"></span>
+            </a>
+            <div id="languageDropdownMenu" class="dropdown-menu dropdown-menu-end">
+              <form id="languageForm" class="px-3 py-2">
+                <div>
+                  <select id="language" aria-labelledby="languageDropdownToggle">
                     {% for language_code, language_name in LANGUAGES %}
-                        {% if language_code|lower == CURRENT_LANGUAGE %}
-                            <li><a class="dropdown-item" onclick="setLanguage('{{ language_code }}')" style="font-weight: bold">{{ language_name }} - {% trans 'Selected' %}</a></li>
-                        {% else %}
-                            <li><a class="dropdown-item" onclick="setLanguage('{{ language_code }}')">{{ language_name }}</a></li>
-                        {% endif %}
+                      <option value="{{ language_code }}"
+                              {% if language_code|lower == CURRENT_LANGUAGE %}selected{% endif %}>
+                        {{ language_name }}
+                      </option>
                     {% endfor %}
-                </ul>
-            </li>
+                  </select>
+                </div>
+              </form>
+            </div>
+          </li>
         {% endif %}
         {% if request.user.is_authenticated %}
             {% block parent_menu %}
