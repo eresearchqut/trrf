@@ -1,0 +1,14 @@
+<ol class="list-group">
+  {% for cfg in cfgs %}
+    <li class="list-group-item d-flex justify-content-between align-items-start">
+      <div class="ms-2 me-auto" style="width: 80%;">
+        <div class="fw-bold text-nowrap overflow-hidden text-truncate">{{ cfg.name }}</div>
+      </div>
+      <span class="badge
+                   {% if cfg.translated_forms_cnt == cfg.total_forms_cnt %}bg-success{% elif cfg.translated_forms_cnt == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}
+                   rounded-pill">
+        {{ cfg.translated_forms_cnt }} / {{ cfg.total_forms_cnt }}
+      </span>
+    </li>
+  {% endfor %}
+</ol>

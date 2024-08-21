@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
+from django.template import loader, Context
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -509,28 +510,24 @@ class LanguageAdmin(admin.ModelAdmin):
 class RegistryFormTranslationAdmin(admin.ModelAdmin):
     model = RegistryFormTranslation
     form = RegistryFormTranslationAdminForm
-    list_display = ('language', 'translation_progress')
+    list_display = ('language', 'form_translation_progress')
+    list_filter = ('language',)
     ordering = ('language',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def translated_forms_count(self, obj):
-        return obj.translated_forms.all().count()
+    def form_translation_progress(self, obj):
 
-    def translation_progress(self, obj):
-        fraction = self.translated_forms_count(obj) / RegistryForm.objects.count()
-        percentage = fraction * 100
-        str_percentage = f'{fraction:.0%}'
-        progress_type = 'bg-danger' if percentage < 25 else 'bg-warning' if 25 <= percentage < 100 else 'bg-success'
-
-        return mark_safe(f'''
-        <div class="progress-bar {progress_type} {'text-dark' if progress_type in ['bg-warning'] else ''}"
-             role="progressbar" style="width: {percentage}%" aria-valuenow="{percentage}" aria-valuemin="0" aria-valuemax="100">
-             {str_percentage}
-         </div>''')
-
-    translation_progress.short_description = 'Forms Translated (%)'
+        cfgs = ContextFormGroup.objects.all().order_by('sort_order')
+        template = loader.get_template("admin/form_translation_progress.html")
+        data = {'context_form_groups': ContextFormGroup.objects.all().order_by('sort_order'),
+                'cfgs': [{'name': cfg.name,
+                          'translated_forms_cnt': obj.translated_forms.filter(id__in=[form.id for form in cfg.forms]).count(),
+                          'total_forms_cnt': len(cfg.forms)}
+                         for cfg in cfgs]}
+        context = Context(data)
+        return template.render(context.flatten())
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
