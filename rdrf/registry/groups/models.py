@@ -337,7 +337,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if form_registry not in my_registries:
             return False
 
-        if form_registry.has_feature(RegistryFeatures.HIDE_UNTRANSLATED_FORMS):
+        if self.is_patient_or_delegate and form_registry.has_feature(RegistryFeatures.HIDE_UNTRANSLATED_FORMS):
             user_language = get_language()
             if not registry_form_model.has_translation(user_language):
                 return False

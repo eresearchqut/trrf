@@ -518,7 +518,6 @@ class RegistryFormTranslationAdmin(admin.ModelAdmin):
         super().__init__(*args, **kwargs)
 
     def form_translation_progress(self, obj):
-
         cfgs = ContextFormGroup.objects.all().order_by('sort_order')
         template = loader.get_template("admin/form_translation_progress.html")
         data = {'context_form_groups': ContextFormGroup.objects.all().order_by('sort_order'),
