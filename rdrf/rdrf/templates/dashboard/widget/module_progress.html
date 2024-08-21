@@ -41,6 +41,7 @@
 
   {% with multi_module_progress=dashboard.patient_status.module_progress.multi %}
 
+  {% if multi_module_progress.items|length > 0 %}
   <table class="w-100 caption-top mt-2 table table-sm table-striped">
     <caption>{% trans "Longitudinal modules" %}</caption>
     <tbody>
@@ -67,6 +68,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% endif %}
 
   {% endwith %}
 {% endblock %}
