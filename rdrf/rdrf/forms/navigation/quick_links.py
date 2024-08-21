@@ -262,7 +262,7 @@ class MenuConfig:
             Links.LONGITUDINAL_FOLLOWUPS = Links.ENABLED_LONGITUDINAL_FOLLOWUPS
 
     def registry_translation_links(self):
-        if any(registry.has_feature(RegistryFeatures.FORMS_TRANSLATION_ADMIN) for registry in self.registries):
+        if any(registry.has_feature(RegistryFeatures.FORMS_REQUIRE_TRANSLATION) for registry in self.registries):
             Links.REGISTRY_TRANSLATION = Links.ENABLED_REGISTRY_TRANSLATION
 
     def doctors_link(self):
