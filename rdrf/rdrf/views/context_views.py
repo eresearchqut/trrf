@@ -296,7 +296,6 @@ class RDRFContextEditView(View, ContextFormGroupHelperMixin):
                        "context_launcher": self.get_context_launcher(request.user,
                                                                      registry_model,
                                                                      patient_model),
-                       "error_messages": error_messages,
                        "naming_info": naming_info,
                        "patient_name": patient_model.display_name,
                        "form": ContextForm(request.POST)}

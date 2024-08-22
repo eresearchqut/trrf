@@ -1,13 +1,13 @@
 from rdrf.helpers.transform_cd_dict import structure_valid, transform_cd_dict
 from rdrf.models.definition.models import ClinicalData
 from django.db import transaction
+import django
 """
 Custom Script
 GitHub Repo: rdrf
 Issue#1007(in rdrf-ccg repo)
 Move CDEs from one section to another and migrate data on ClinicalData form
 """
-import django
 django.setup()
 
 

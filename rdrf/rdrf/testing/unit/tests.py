@@ -1225,7 +1225,7 @@ class StructureChecker(TestCase):
                        "context_id": 1,
                        "record_type": "snapshot",
                        "django_model": "Patient",
-                       "registry_code": "foobar"}
+                       }
 
         self.clear_modjgo_objects()
         self.make_modjgo("history", bad_history)
