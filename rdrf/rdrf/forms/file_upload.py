@@ -94,7 +94,7 @@ def wrap_file_cdes(
     section_data,
     mongo_data,
     multisection=False,
-    index_map={},
+    index_map=None,
 ):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
@@ -133,6 +133,8 @@ def wrap_file_cdes(
     #               no upload and value False in form to indicate clearing - don't wrap
     #               upload of file : wrap form data
 
+    if index_map is None:
+        index_map = {}
     from rdrf.helpers.utils import get_code, get_form_section_code
 
     def is_existing_in_mongo(section_index, key, value):

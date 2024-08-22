@@ -11,6 +11,7 @@ exclude = [
 [tool.ruff.lint]
 extend-select = [
     "I",
+    "B006"
 ]
 exclude = [
     "**/tests/*.py",

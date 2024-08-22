@@ -161,7 +161,9 @@ class CalculatedFieldWidget(widgets.TextInput):
     def usable_for_types():
         return {CDEDataTypes.CALCULATED}
 
-    def __init__(self, script, attrs={}):
+    def __init__(self, script, attrs=None):
+        if attrs is None:
+            attrs = {}
         attrs["readonly"] = "readonly"
         self.script = script
         super(CalculatedFieldWidget, self).__init__(attrs=attrs)

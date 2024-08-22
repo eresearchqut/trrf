@@ -166,11 +166,15 @@ def django_init_default_site():
     django_admin(["set_default_site"] + args)
 
 
-def django_flush(args=[]):
+def django_flush(args=None):
+    if args is None:
+        args = []
     django_admin(["flush", "--noinput"] + args)
 
 
-def django_migrate(args=[]):
+def django_migrate(args=None):
+    if args is None:
+        args = []
     django_admin(["migrate", "--noinput"] + args)
 
 

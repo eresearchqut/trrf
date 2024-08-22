@@ -72,7 +72,11 @@ ETHNICITIES = sorted(
 
 
 class SpreadSheetCreator(object):
-    def __init__(self, registry_dict, output_filename, nrows=300, excludes=[]):
+    def __init__(
+        self, registry_dict, output_filename, nrows=300, excludes=None
+    ):
+        if excludes is None:
+            excludes = []
         self.registry_dict = registry_dict
         self.output_filename = output_filename
         self.current_column = 1

@@ -65,10 +65,12 @@ class DemographicField(object):
         section,
         name,
         datatype="STRING",
-        members=[],
+        members=None,
         validation="",
         required=False,
     ):
+        if members is None:
+            members = []
         self.name = name
         self.section = section
         self._members = members

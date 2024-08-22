@@ -55,8 +55,10 @@ class ClinicianForm(forms.ModelForm):
         }
 
     def __init__(
-        self, registry_model, initial={}, post_data=None, instance=None
+        self, registry_model, initial=None, post_data=None, instance=None
     ):
+        if initial is None:
+            initial = {}
         self.registry_model = registry_model
 
         if post_data:

@@ -161,7 +161,9 @@ class CustomConsentFormGenerator(object):
         self.viewing_user = viewing_user
         self.fields = {}
 
-    def create_form(self, post_data={}):
+    def create_form(self, post_data=None):
+        if post_data is None:
+            post_data = {}
         form_dict = {"base_fields": self._create_custom_consent_fields()}
         form_class = type("PatientConsentForm", (BaseConsentForm,), form_dict)
         form_instance = form_class(

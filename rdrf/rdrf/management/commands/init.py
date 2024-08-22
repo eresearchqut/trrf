@@ -17,7 +17,9 @@ class Command(BaseCommand):
             first_line = doc.split("\n")[0]
             self.stdout.write("      %s" % first_line)
 
-    def handle(self, dataset=[], **options):
+    def handle(self, dataset=None, **options):
+        if dataset is None:
+            dataset = []
         if options.get("list"):
             self.stdout.write("Possible datasets are:")
             for m in initial_data.datasets:

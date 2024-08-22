@@ -66,7 +66,9 @@ class Command(BaseCommand):
     def _error(self, msg):
         self.stderr.write(msg + "\n")
 
-    def _dummy_send(self, reg_code, description=None, template_data={}):
+    def _dummy_send(self, reg_code, description=None, template_data=None):
+        if template_data is None:
+            template_data = {}
         msg = "dummy send reg_code=%s description=%s template_data=%s" % (
             reg_code,
             description,
