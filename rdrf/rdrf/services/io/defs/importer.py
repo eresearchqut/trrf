@@ -997,13 +997,14 @@ class Importer(object):
                     question_model.save()
 
     def _create_form_translations(self, registry, data):
-        for (language_code) in data:
+        for language_code in data:
             language, _created = Language.objects.get_or_create(language_code=language_code)
             form_translation, _created = RegistryFormTranslation.objects.get_or_create(language_id=language.id)
             forms = data.get(language_code, [])
             for form_name in forms:
                 form = RegistryForm.objects.get(registry=registry, name=form_name)
                 form_translation.translated_forms.add(form)
+            form_translation.full_clean()
             form_translation.save()
 
     def _create_demographic_fields(self, data):
