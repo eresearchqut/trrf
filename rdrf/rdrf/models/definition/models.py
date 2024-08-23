@@ -676,9 +676,12 @@ class Language(models.Model):
     class Meta:
         ordering = ("language_code",)
 
+    @property
+    def endonym(self):
+        return dict(settings.ALL_LANGUAGES).get(self.language_code, self.language_code)
+
     def __str__(self):
-        language_endonym = dict(settings.ALL_LANGUAGES).get(self.language_code, self.language_code)
-        return f'{language_endonym} ({self.language_code})'
+        return f'{self.endonym} ({self.language_code})'
 
 
 class RegistryFormManager(models.Manager):
