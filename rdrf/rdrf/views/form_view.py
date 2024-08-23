@@ -58,6 +58,7 @@ from rdrf.security.security_checks import (
 )
 from rdrf.services.io.notifications.file_notifications import handle_file_notifications
 from rdrf.services.rpc.actions import ActionExecutor
+from registry.groups.models import UserFormPermission
 from registry.patients.admin_forms import PatientConsentFileForm, PatientSignatureForm
 from registry.patients.models import Patient, ParentGuardian, PatientSignature
 from registry.patients.models import PatientConsent
@@ -382,7 +383,10 @@ class FormView(View):
                                                 kwargs={'registry_code': registry_code, "patient_id": patient_id}))
 
         self.registry_form = self.get_registry_form(form_id)
-        if not self.user.can_view(self.registry_form):
+        form_permission = self.user.get_form_permission(self.registry_form)
+        if not form_permission.can_view():
+            if form_permission == UserFormPermission.FORM_NOT_TRANSLATED:
+                return render(request, "rdrf_cdes/form_error_not_translated.html")
             raise PermissionDenied
         xray_recorder.end_subsegment()
 

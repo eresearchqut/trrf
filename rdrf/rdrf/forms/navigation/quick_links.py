@@ -374,7 +374,8 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,
-            **RegularLinks.STAGES
+            **RegularLinks.STAGES,
+            **RegularLinks.REGISTRY_TRANSLATION
         }
 
         # menu with everything, used for the admin page
@@ -384,7 +385,7 @@ class RegularMenuConfig(MenuConfig):
             self.all.update(link_entries)
 
         if settings.DESIGN_MODE:
-            self.all.update({**Links.REGISTRY_DESIGN, **RegularLinks.REGISTRY_TRANSLATION})
+            self.all.update({**Links.REGISTRY_DESIGN})
 
     def patient_links(self):
         Links.PATIENTS = self.per_registry_links('Patient List', 'patient_list')

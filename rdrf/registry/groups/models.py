@@ -1,6 +1,7 @@
 import logging
 import operator
 import re
+from enum import Enum
 from functools import reduce
 
 from django.conf import settings
@@ -118,6 +119,16 @@ class CustomUserManager(UserManager):
 
         else:
             return None
+
+
+class UserFormPermission(Enum):
+    CAN_VIEW = 1
+    NOT_IN_REGISTRY = 2
+    FORM_NOT_TRANSLATED = 3
+    GROUP_NOT_ALLOWED = 4
+
+    def can_view(self):
+        return self == self.CAN_VIEW
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -327,31 +338,28 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             group, __ = Group.objects.get_or_create(name=group_name)
             self.groups.add(group)
 
-    def can_view(self, registry_form_model):
+    def get_form_permission(self, registry_form_model):
         if self.is_superuser:
-            return True
+            return UserFormPermission.CAN_VIEW
 
         form_registry = registry_form_model.registry
-        my_registries = [r for r in self.registry.all()]
 
-        if form_registry not in my_registries:
-            return False
+        if not self.registry.filter(id=form_registry.id).exists():
+            return UserFormPermission.NOT_IN_REGISTRY
+
+        if not registry_form_model.open:
+            if not registry_form_model.groups_allowed.filter(id__in=self.groups.all().values_list('id')).exists():
+                return UserFormPermission.GROUP_NOT_ALLOWED
 
         if self.is_patient_or_delegate and form_registry.has_feature(RegistryFeatures.HIDE_UNTRANSLATED_FORMS):
             user_language = get_language()
             if not registry_form_model.has_translation(user_language):
-                return False
+                return UserFormPermission.FORM_NOT_TRANSLATED
 
-        if registry_form_model.open:
-            return True
+        return UserFormPermission.CAN_VIEW
 
-        form_allowed_groups = [g for g in registry_form_model.groups_allowed.all()]
-
-        for group in self.groups.all():
-            if group in form_allowed_groups:
-                return True
-
-        return False
+    def can_view(self, registry_form_model):
+        return self.get_form_permission(registry_form_model).can_view()
 
     def is_readonly(self, registry_form_model):
         return any(group in registry_form_model.groups_readonly.all() for group in self.groups.all())

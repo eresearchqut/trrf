@@ -1,0 +1,11 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+{% load get_language %}
+
+{% block content %}
+    <div class="alert alert-danger">
+      {% blocktrans trimmed with current_language=LANGUAGE_CODE|get_language %}
+        This form is not available in {{ current_language }}.
+      {% endblocktrans %}
+    </div>
+{% endblock %}
