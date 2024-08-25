@@ -83,6 +83,7 @@ class LinkDefs:
         "admin:patients_longitudinalfollowupentry_changelist",
         _("Longitudinal Followup Entries")
     )
+    RegistryFormTranslation = make_link("admin:rdrf_registryformtranslation_changelist", _("Registry Form Translations"))
     WhitelistedFileExtension = make_link("admin:rdrf_whitelistedfileextension_changelist",
                                          _("Allowed extensions for file uploads"))
     TotpDevices = make_link("admin:otp_totp_totpdevice_changelist", _("Totp Devices"))
@@ -129,6 +130,11 @@ class Links:
         LinkDefs.LongitudinalFollowupEntries,
     )
 
+    # When enabled, registry form translation links
+    ENABLED_REGISTRY_TRANSLATION = make_entries(
+        LinkDefs.RegistryFormTranslation,
+    )
+
     # When enabled, patient stages links and patient stage rules
     ENABLED_STAGES = make_entries(
         LinkDefs.PatientStages,
@@ -146,6 +152,7 @@ class Links:
     PERMISSIONS = {}
     REGISTRATION = {}
     LONGITUDINAL_FOLLOWUPS = {}
+    REGISTRY_TRANSLATION = {}
     STAGES = {}
 
     USER_MANAGEMENT = make_entries(LinkDefs.Users)
@@ -254,6 +261,10 @@ class MenuConfig:
         if any(registry.has_feature(RegistryFeatures.LONGITUDINAL_FOLLOWUPS) for registry in self.registries):
             Links.LONGITUDINAL_FOLLOWUPS = Links.ENABLED_LONGITUDINAL_FOLLOWUPS
 
+    def registry_translation_links(self):
+        if any(registry.has_feature(RegistryFeatures.FORMS_REQUIRE_TRANSLATION) for registry in self.registries):
+            Links.REGISTRY_TRANSLATION = Links.ENABLED_REGISTRY_TRANSLATION
+
     def doctors_link(self):
         if any(registry.has_feature(RegistryFeatures.DOCTORS_LIST) for registry in self.registries):
             Links.DOCTORS = Links.ENABLED_DOCTORS
@@ -304,6 +315,7 @@ class MenuConfig:
         self.permission_matrix_links()
         self.registration_links()
         self.longitudinal_followup_links()
+        self.registry_translation_links()
         self.patient_stages_links()
 
 
@@ -362,7 +374,8 @@ class RegularMenuConfig(MenuConfig):
             **RegularLinks.STATE_MANAGEMENT,
             **RegularLinks.USER_MANAGEMENT,
             **RegularLinks.WORKING_GROUPS,
-            **RegularLinks.STAGES
+            **RegularLinks.STAGES,
+            **RegularLinks.REGISTRY_TRANSLATION
         }
 
         # menu with everything, used for the admin page

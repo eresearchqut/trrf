@@ -670,6 +670,20 @@ class CdePolicy(models.Model):
         return result
 
 
+class Language(models.Model):
+    language_code = models.CharField(max_length=6, choices=settings.ALL_LANGUAGES, unique=True)
+
+    class Meta:
+        ordering = ("language_code",)
+
+    @property
+    def endonym(self):
+        return dict(settings.ALL_LANGUAGES).get(self.language_code, self.language_code)
+
+    def __str__(self):
+        return f'{self.endonym} ({self.language_code})'
+
+
 class RegistryFormManager(models.Manager):
 
     def get_by_natural_key(self, registry_code, name):
@@ -862,6 +876,10 @@ class RegistryForm(models.Model):
 
         return is_applicable
 
+    def has_translation(self, language_code):
+        return language_code == settings.LANGUAGE_CODE or self.registryformtranslation_set.filter(
+            language__language_code=language_code).exists()
+
 
 @receiver([post_save, post_delete], sender=RegistryForm)
 @receiver([post_save, post_delete], sender=Section)
@@ -873,6 +891,14 @@ def registry_form_definition_changed(sender, instance, **kwargs):
         all_forms.append(instance)
 
     clear_prefetched_form_data_cache(all_forms)
+
+
+class RegistryFormTranslation(models.Model):
+    language = models.OneToOneField(Language, on_delete=models.CASCADE)
+    translated_forms = models.ManyToManyField(RegistryForm, blank=True, help_text="Select which forms have been completely translated for the selected language.")
+
+    def __str__(self):
+        return f'{self.language}: {self.translated_forms.count()} translated forms'
 
 
 class Wizard(models.Model):

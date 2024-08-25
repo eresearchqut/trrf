@@ -1,0 +1,13 @@
+{% extends "rdrf_cdes/base.html" %}
+{% load i18n %}
+{% load get_language %}
+
+{% block content %}
+    <div class="alert alert-danger">
+      {% with language=LANGUAGE_CODE|get_language %}
+        {% blocktrans trimmed with endonym=language.endonym language_code=language.language_code  %}
+          This form is not available in {{ endonym }} ({{ language_code }}).
+        {% endblocktrans %}
+      {% endwith %}
+    </div>
+{% endblock %}

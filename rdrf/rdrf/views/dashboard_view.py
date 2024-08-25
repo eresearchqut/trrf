@@ -164,7 +164,7 @@ class ParentDashboard(object):
                 'free_text': _(widget.free_text),
                 'form_links': [{'label': _(link.label),
                                 'url': self._get_form_link(link.context_form_group, link.registry_form)}
-                               for link in widget.links.all()],
+                               for link in widget.links.all() if self._request.user.can_view(link.registry_form)],
                 'clinical_data': [{'label': _(cde.label),
                                    'data': self._get_cde_data(cde.context_form_group,
                                                               cde.registry_form,

@@ -8,12 +8,13 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
+from django.template import loader, Context
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from reversion.admin import VersionAdmin
 
-from rdrf.admin_forms import CommonDataElementAdminForm
+from rdrf.admin_forms import CommonDataElementAdminForm, RegistryFormTranslationAdminForm
 from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
 from rdrf.admin_forms import ContextFormGroupItemAdminForm
 from rdrf.admin_forms import DemographicFieldsAdminForm
@@ -22,7 +23,7 @@ from rdrf.admin_forms import FormTitleAdminForm
 from rdrf.admin_forms import RegistryFormAdminForm
 from rdrf.events.events import EventType
 from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
-from rdrf.models.definition.models import WhitelistedFileExtension
+from rdrf.models.definition.models import WhitelistedFileExtension, RegistryFormTranslation, Language
 from rdrf.models.definition.models import CDEFile
 from rdrf.models.definition.models import CDEPermittedValue
 from rdrf.models.definition.models import CDEPermittedValueGroup
@@ -502,6 +503,32 @@ class LongitudinalFollowupAdmin(admin.ModelAdmin):
         }
 
 
+class LanguageAdmin(admin.ModelAdmin):
+    model = Language
+
+
+class RegistryFormTranslationAdmin(admin.ModelAdmin):
+    model = RegistryFormTranslation
+    form = RegistryFormTranslationAdminForm
+    list_display = ('language', 'form_translation_progress')
+    list_filter = ('language',)
+    ordering = ('language',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def form_translation_progress(self, obj):
+        cfgs = ContextFormGroup.objects.all().order_by('sort_order')
+        template = loader.get_template("admin/form_translation_progress.html")
+        data = {'context_form_groups': ContextFormGroup.objects.all().order_by('sort_order'),
+                'cfgs': [{'name': cfg.name,
+                          'translated_forms_cnt': obj.translated_forms.filter(id__in=[form.id for form in cfg.forms]).count(),
+                          'total_forms_cnt': len(cfg.forms)}
+                         for cfg in cfgs]}
+        context = Context(data)
+        return template.render(context.flatten())
+
+
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
     ordering=['code'],
@@ -545,6 +572,8 @@ DESIGN_MODE_ADMIN_COMPONENTS = [
     (RegistryDashboard, RegistryDashboardAdmin),
     (RegistryDashboardWidget, DashboardWidgetAdmin),
     (LongitudinalFollowup, LongitudinalFollowupAdmin),
+    (Language, LanguageAdmin),
+    (RegistryFormTranslation, RegistryFormTranslationAdmin),
 ]
 
 NORMAL_MODE_ADMIN_COMPONENTS = [

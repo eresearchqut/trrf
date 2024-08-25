@@ -349,7 +349,8 @@ class RDRFContextLauncherComponent(RDRFComponent):
                         fixed_context_group, rdrf_context):
                     form = _Form(form_link.url, form_link.text, current=form_link.selected)
                     fg.forms.append(form)
-                fixed_contexts[fixed_context_group.sort_order].append(fg)
+                if len(fg.forms) > 0:
+                    fixed_contexts[fixed_context_group.sort_order].append(fg)
             return fixed_contexts
 
     def _get_normal_form_links(self):

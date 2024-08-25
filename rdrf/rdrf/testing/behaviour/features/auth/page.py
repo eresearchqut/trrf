@@ -26,10 +26,6 @@ class BasePage:
 
         element.send_keys(value)
 
-        # Hoping this will stop errors where the next instruction happens before the keys are finished sending
-        WebDriverWait(self.browser, TEST_WAIT).until(
-            text_to_be_present_in_element_value(locator, value)
-        )
         return self
 
     def open_menu(self, menu_key):
@@ -90,10 +86,14 @@ class TwoFactorLoginTokenPage(BasePage):
 
     def set_token(self, token):
         self._set_element(self.TOKEN_ELEMENT, token)
+        # Hoping this will stop errors where the next instruction happens before the keys are finished sending
+        WebDriverWait(self.browser, TEST_WAIT).until(
+            text_to_be_present_in_element_value(self.TOKEN_ELEMENT, token)
+        )
         return self
 
     def submit(self):
-        self._get_element(self.SUBMIT_BUTTON).click()
+        self._get_element(self.SUBMIT_BUTTON).submit()
 
 
 class TwoFactorTokenGeneratorPage(TwoFactorLoginTokenPage):

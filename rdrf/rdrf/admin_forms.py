@@ -8,7 +8,7 @@ from django.forms import ModelForm, SelectMultiple, ChoiceField, ValidationError
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import RegistryForm, CommonDataElement, ContextFormGroupItem, Section, \
-    DemographicFields, RegistryDashboard, RegistryDashboardWidget
+    DemographicFields, RegistryDashboard, RegistryDashboardWidget, RegistryFormTranslation, ContextFormGroup
 from rdrf.models.definition.models import EmailTemplate, ConsentConfiguration, FormTitle
 from rdrf.forms.widgets import widgets as rdrf_widgets
 from rdrf.forms.widgets import settings_widgets
@@ -236,3 +236,23 @@ class DashboardWidgetAdminForm(ModelForm):
     class Meta:
         fields = '__all__'
         model = RegistryDashboardWidget
+
+
+def get_registry_form_optgroups():
+    return [(cfg.name, [(form.id, form.nice_name)
+                        for form in cfg.forms])
+            for cfg in ContextFormGroup.objects.all()]
+
+
+class RegistryFormTranslationAdminForm(ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['translated_forms'].choices = get_registry_form_optgroups()
+
+    class Meta:
+        fields = '__all__'
+        model = RegistryFormTranslation
+        widgets = {
+            'translated_forms': SelectMultiple(attrs={'size': 30})
+        }
