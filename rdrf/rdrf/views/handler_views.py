@@ -18,11 +18,15 @@ def handler404(request, exception):
 
 
 def handler500(request, exception=None):
-    logger.exception('Unhandled Exception!')
+    logger.exception("Unhandled Exception!")
     return render(request, "500.html", status=500)
 
 
 def handler_application_error(request):
-    return render(request, "rdrf_cdes/application_error.html", {
-        "application_error": "Example config Error",
-    })
+    return render(
+        request,
+        "rdrf_cdes/application_error.html",
+        {
+            "application_error": "Example config Error",
+        },
+    )

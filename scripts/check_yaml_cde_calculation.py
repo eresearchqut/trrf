@@ -4,13 +4,18 @@ Validates CDE calculation javascript in registry YAML files.
 """
 
 from __future__ import print_function
+
 import io
 import sys
+
 import yaml
+
 from rdrf.helpers.utils import check_calculation
 
-yaml.add_constructor(u'tag:yaml.org,2002:str',
-                     yaml.constructor.Constructor.construct_python_unicode)
+yaml.add_constructor(
+    "tag:yaml.org,2002:str",
+    yaml.constructor.Constructor.construct_python_unicode,
+)
 
 
 def main():
@@ -22,7 +27,9 @@ def main():
 
 def check_file(filename):
     num_errors = 0
-    data = yaml.load(io.open(filename, errors="replace"), Loader=yaml.FullLoader)
+    data = yaml.load(
+        io.open(filename, errors="replace"), Loader=yaml.FullLoader
+    )
     for cde in data.get("cdes") or []:
         calc = cde.get("calculation")
         if calc:
@@ -33,5 +40,5 @@ def check_file(filename):
     return num_errors == 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

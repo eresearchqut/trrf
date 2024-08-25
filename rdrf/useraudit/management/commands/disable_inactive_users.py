@@ -1,7 +1,8 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from django.core import mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.core import mail
+from django.core.management.base import BaseCommand
+
 from ...password_expiry import ExpirySettings
 
 
@@ -12,8 +13,14 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("--no-email", "-e", help="Don't notify users by e-mail",
-                            dest="email", action="store_false", default=True)
+        parser.add_argument(
+            "--no-email",
+            "-e",
+            help="Don't notify users by e-mail",
+            dest="email",
+            action="store_false",
+            default=True,
+        )
 
     def handle(self, email=True, verbosity=1, **kwargs):
         self.verbosity = verbosity
@@ -33,7 +40,9 @@ class Command(BaseCommand):
         for username in gone.values_list(UserModel.USERNAME_FIELD, flat=True):
             self._info("Deactiviting user: %s" % username)
 
-        messages = list(filter(None, (self._make_email(exp, user) for user in gone)))
+        messages = list(
+            filter(None, (self._make_email(exp, user) for user in gone))
+        )
 
         count = gone.update(is_active=False)
         if count:
@@ -68,10 +77,12 @@ Otherwise, please get in contact with the site administrators to have
 your account reset.
 
 {site_name} System
-        """.format(site_name=site.name,
-                   expiry_days=exp.account_expiry,
-                   last_login=user.last_login.strftime("%x"),
-                   full_name=user.get_full_name())
+        """.format(
+            site_name=site.name,
+            expiry_days=exp.account_expiry,
+            last_login=user.last_login.strftime("%x"),
+            full_name=user.get_full_name(),
+        )
 
         if to_email:
             return mail.EmailMessage(subject, msg, None, [to_email])

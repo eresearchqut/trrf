@@ -1,19 +1,17 @@
-from collections import OrderedDict
 import logging
 import math
-
-from django.urls import reverse
-from django.templatetags.static import static
-
-from rdrf.forms.dsl.code_evaluator import CodeEvaluator
-from rdrf.helpers.utils import de_camelcase, parse_iso_datetime
-from rdrf.models.definition.models import ClinicalData
-from rdrf.helpers.registry_features import RegistryFeatures
-
-from ..dynamic.value_fetcher import DynamicValueFetcher
+from collections import OrderedDict
 
 from aws_xray_sdk.core import xray_recorder
+from django.templatetags.static import static
+from django.urls import reverse
 
+from rdrf.forms.dsl.code_evaluator import CodeEvaluator
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import de_camelcase, parse_iso_datetime
+from rdrf.models.definition.models import ClinicalData
+
+from ..dynamic.value_fetcher import DynamicValueFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +32,8 @@ class ProgressMetric:
     @classmethod
     def valid_metric(cls, metric_name):
         return any(
-            metric_name.endswith(metric) for metric in
-            [cls.PROGRESS, cls.CURRENT, cls.HAS_DATA]
+            metric_name.endswith(metric)
+            for metric in [cls.PROGRESS, cls.CURRENT, cls.HAS_DATA]
         )
 
     def __init__(self, metric):
@@ -50,8 +48,11 @@ class ProgressMetric:
 
 
 class ModelTaggedMetric:
-
-    ALLOWED_METRICS = [ProgressMetric.PROGRESS, ProgressMetric.CURRENT, ProgressMetric.CDES_STATUS]
+    ALLOWED_METRICS = [
+        ProgressMetric.PROGRESS,
+        ProgressMetric.CURRENT,
+        ProgressMetric.CDES_STATUS,
+    ]
 
     def __init__(self, form_model, metric_name):
         self.form_model = form_model
@@ -69,7 +70,8 @@ class ModelTaggedMetric:
             return False
         elif self.metric_name == ProgressMetric.CDES_STATUS:
             return {
-                cde_model.name: False for cde_model in self.form_model.complete_form_cdes.all()
+                cde_model.name: False
+                for cde_model in self.form_model.complete_form_cdes.all()
             }
 
 
@@ -96,8 +98,9 @@ class FormProgressError(Exception):
 
 
 class FormProgressCalculator:
-
-    def __init__(self, registry_model, form_model, dynamic_data, progress_cdes_map):
+    def __init__(
+        self, registry_model, form_model, dynamic_data, progress_cdes_map
+    ):
         self.registry_model = registry_model
         self.form_model = form_model
         self.dynamic_data = dynamic_data
@@ -110,7 +113,8 @@ class FormProgressCalculator:
     def _get_form_by_name(self):
         model_name = self.form_model.name
         forms_by_name = [
-            form_model for form_model in self.registry_model.forms
+            form_model
+            for form_model in self.registry_model.forms
             if form_model.name == model_name
         ]
         return forms_by_name[0] if forms_by_name else None
@@ -129,7 +133,11 @@ class FormProgressCalculator:
             cdes_required = set(cdes_required) - hidden_cdes
 
             for section_model in form_model.section_models:
-                for cde in [e for e in section_model.get_elements() if e in cdes_required]:
+                for cde in [
+                    e
+                    for e in section_model.get_elements()
+                    if e in cdes_required
+                ]:
                     yield section_model, cde
 
     def _get_num_items(self, section_model):
@@ -145,7 +153,8 @@ class FormProgressCalculator:
                 # of items, each of which is a list of cde dicts
                 # containing the values for each item
                 cdes = [
-                    section_dict["cdes"] for section_dict in form_dict["sections"]
+                    section_dict["cdes"]
+                    for section_dict in form_dict["sections"]
                     if section_dict["code"] == section_model.code
                 ]
                 return len(cdes[0]) if cdes else 0
@@ -155,32 +164,45 @@ class FormProgressCalculator:
         result = {
             ProgressMetric.REQUIRED: 0,
             ProgressMetric.FILLED: 0,
-            ProgressMetric.PERCENTAGE: 0
+            ProgressMetric.PERCENTAGE: 0,
         }
 
         value_fetcher = DynamicValueFetcher(self.dynamic_data)
 
         for section_model, cde_code in self._get_progress_cdes():
-            result[ProgressMetric.REQUIRED] += self._get_num_items(section_model)
+            result[ProgressMetric.REQUIRED] += self._get_num_items(
+                section_model
+            )
 
             try:
-                values = value_fetcher.find_cde_values(self.form_model.name, section_model.code, cde_code)
-                result[ProgressMetric.FILLED] += len([value for value in values if value])
+                values = value_fetcher.find_cde_values(
+                    self.form_model.name, section_model.code, cde_code
+                )
+                result[ProgressMetric.FILLED] += len(
+                    [value for value in values if value]
+                )
             except Exception as ex:
                 logger.error(
-                    "Error getting value for %s %s: %s" %
-                    (section_model.code, cde_code, ex))
+                    "Error getting value for %s %s: %s"
+                    % (section_model.code, cde_code, ex)
+                )
 
         if result[ProgressMetric.REQUIRED] > 0:
             result[ProgressMetric.PERCENTAGE] = int(
-                100.00 * (float(result[ProgressMetric.FILLED]) / float(result[ProgressMetric.REQUIRED])))
+                100.00
+                * (
+                    float(result[ProgressMetric.FILLED])
+                    / float(result[ProgressMetric.REQUIRED])
+                )
+            )
         else:
             result[ProgressMetric.PERCENTAGE] = 0
 
         return result
 
     def _calculate_form_currency(self):
-        from datetime import timedelta, datetime
+        from datetime import datetime, timedelta
+
         form_timestamp_key = "%s_timestamp" % self.form_model.name
         one_year_ago = datetime.now() - timedelta(weeks=52)
 
@@ -188,7 +210,9 @@ class FormProgressCalculator:
             return False
 
         if form_timestamp_key in self.dynamic_data:
-            timestamp = parse_iso_datetime(self.dynamic_data[form_timestamp_key])
+            timestamp = parse_iso_datetime(
+                self.dynamic_data[form_timestamp_key]
+            )
             if timestamp >= one_year_ago:
                 return True
 
@@ -198,7 +222,7 @@ class FormProgressCalculator:
         if self.dynamic_data is None:
             yield {}
         else:
-            for form_dict in self.dynamic_data['forms']:
+            for form_dict in self.dynamic_data["forms"]:
                 if form_dict["name"] == self.form_model.name:
                     for section_dict in form_dict["sections"]:
                         if not section_dict["allow_multiple"]:
@@ -226,13 +250,17 @@ class FormProgressCalculator:
             hidden_cdes = self._get_hidden_cdes(form_model)
             required_cdes = set(required_cdes) - hidden_cdes
 
-        cdes_status = OrderedDict((cde, False) for _, cde in self._get_progress_cdes())
+        cdes_status = OrderedDict(
+            (cde, False) for _, cde in self._get_progress_cdes()
+        )
 
         code_values_dict = {}
         for cde_dict in self._form_section_traversal():
-            if cde_dict and "code" in cde_dict and cde_dict.get('value'):
+            if cde_dict and "code" in cde_dict and cde_dict.get("value"):
                 code_values_dict[cde_dict["code"]] = True
-        cdes_status.update({k: v for k, v in code_values_dict.items() if k in required_cdes})
+        cdes_status.update(
+            {k: v for k, v in code_values_dict.items() if k in required_cdes}
+        )
         return cdes_status
 
     def calculate_progress(self):
@@ -246,12 +274,11 @@ class FormProgressCalculator:
             ProgressMetric.PROGRESS: self.form_progress_dict,
             ProgressMetric.CURRENT: self.form_currency,
             ProgressMetric.HAS_DATA: self.form_has_data,
-            ProgressMetric.CDES_STATUS: self.form_cdes_status
+            ProgressMetric.CDES_STATUS: self.form_cdes_status,
         }
 
 
 class FormProgress:
-
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.progress_data = {}
@@ -262,9 +289,13 @@ class FormProgress:
         self.context_model = None
         # if the following is true, the "type" of patient affects what forms
         # are applicable/presented/counted:
-        self.uses_patient_types = self.registry_model.has_feature(RegistryFeatures.PATIENT_TYPES)
+        self.uses_patient_types = self.registry_model.has_feature(
+            RegistryFeatures.PATIENT_TYPES
+        )
         if self.uses_patient_types:
-            self.patient_type_form_map = self.registry_model.metadata["patient_types"]
+            self.patient_type_form_map = self.registry_model.metadata[
+                "patient_types"
+            ]
         else:
             self.patient_type_form_map = None
 
@@ -283,7 +314,9 @@ class FormProgress:
             self.reset()
 
     def _get_progress_collection(self):
-        return ClinicalData.objects.collection(self.registry_model.code, ProgressMetric.PROGRESS)
+        return ClinicalData.objects.collection(
+            self.registry_model.code, ProgressMetric.PROGRESS
+        )
 
     def _get_progress_metadata(self):
         try:
@@ -305,14 +338,20 @@ class FormProgress:
 
         except Exception as ex:
             logger.error(
-                "Error getting progress metadata for registry %s: %s" %
-                (self.registry_model.code, ex))
+                "Error getting progress metadata for registry %s: %s"
+                % (self.registry_model.code, ex)
+            )
             return {}
 
     def _build_progress_map(self):
         # maps form names to sets of required cde codes
-        forms = self.registry_model.registryform_set.all().prefetch_related('complete_form_cdes')
-        return {form.name: set(cde.code for cde in form.complete_form_cdes.all()) for form in forms}
+        forms = self.registry_model.registryform_set.all().prefetch_related(
+            "complete_form_cdes"
+        )
+        return {
+            form.name: set(cde.code for cde in form.complete_form_cdes.all())
+            for form in forms
+        }
 
     def _get_applicable_form_progress_dict(self, unfiltered_dict):
         filtered_dict = {}
@@ -323,28 +362,40 @@ class FormProgress:
             if not patient_type:
                 patient_type = "default"
 
-            applicable_forms = self.registry_model.metadata["patient_types"][patient_type]["forms"]
+            applicable_forms = self.registry_model.metadata["patient_types"][
+                patient_type
+            ]["forms"]
             for group_name in unfiltered_dict:
-                filtered_dict[group_name] = [form_name for form_name in unfiltered_dict[group_name]
-                                             if form_name in applicable_forms]
+                filtered_dict[group_name] = [
+                    form_name
+                    for form_name in unfiltered_dict[group_name]
+                    if form_name in applicable_forms
+                ]
             return filtered_dict
 
     def _applicable(self, form_model):
         if self.patient_type_form_map:
             if self.current_patient:
                 if not self.current_patient.patient_type:
-                    applicable_forms = self.patient_type_form_map["default"]["forms"]
+                    applicable_forms = self.patient_type_form_map["default"][
+                        "forms"
+                    ]
                 else:
-                    applicable_forms = self.patient_type_form_map[self.current_patient.patient_type]["forms"]
-                applicable_to_form = form_model.applicable_to(self.current_patient)
-                return form_model.name in applicable_forms and applicable_to_form
+                    applicable_forms = self.patient_type_form_map[
+                        self.current_patient.patient_type
+                    ]["forms"]
+                applicable_to_form = form_model.applicable_to(
+                    self.current_patient
+                )
+                return (
+                    form_model.name in applicable_forms and applicable_to_form
+                )
         else:
             if self.current_patient:
                 return form_model.applicable_to(self.current_patient)
         return True
 
     def _calculate(self, dynamic_data, patient_model=None, context_model=None):
-
         logger.info("calculating progress")
         if patient_model is not None:
             self.current_patient = patient_model
@@ -359,10 +410,19 @@ class FormProgress:
         forms_progress = {}
 
         xray_recorder.begin_subsegment("get_dynamic_data")
-        existing_patient_data = patient_model.get_dynamic_data(self.registry_model) if patient_model else {}
-        existing_form_dyn_data = {
-            el['name']: {"forms": [el]} for el in existing_patient_data['forms']
-        } if existing_patient_data else {}
+        existing_patient_data = (
+            patient_model.get_dynamic_data(self.registry_model)
+            if patient_model
+            else {}
+        )
+        existing_form_dyn_data = (
+            {
+                el["name"]: {"forms": [el]}
+                for el in existing_patient_data["forms"]
+            }
+            if existing_patient_data
+            else {}
+        )
         xray_recorder.end_subsegment()
 
         forms = dynamic_data.get("forms", [])
@@ -370,12 +430,19 @@ class FormProgress:
 
         xray_recorder.begin_subsegment("form_progress_calculator")
         has_cfg_forms = context_model and context_model.context_form_group
-        form_models = context_model.context_form_group.forms if has_cfg_forms else self.registry_model.forms
+        form_models = (
+            context_model.context_form_group.forms
+            if has_cfg_forms
+            else self.registry_model.forms
+        )
         for form_model in form_models:
             if not self._applicable(form_model):
                 continue
             form_name = form_model.name
-            if form_name != current_form_name and form_name in existing_form_dyn_data:
+            if (
+                form_name != current_form_name
+                and form_name in existing_form_dyn_data
+            ):
                 # Load existing data from previously saved forms because dynamic_data
                 # contains data only for the currently submitted form. As progress is cummulative
                 # we need existing data to properly compute it
@@ -383,62 +450,88 @@ class FormProgress:
             else:
                 form_dynamic_data = dynamic_data
 
-            fpc = FormProgressCalculator(self.registry_model, form_model, form_dynamic_data, self.progress_cdes_map)
+            fpc = FormProgressCalculator(
+                self.registry_model,
+                form_model,
+                form_dynamic_data,
+                self.progress_cdes_map,
+            )
             fpc.calculate_progress()
             forms_progress[form_model.name] = fpc.progress_as_dict()
 
             for progress_group in progress_metadata:
                 if form_model.name in progress_metadata[progress_group]:
-
                     if progress_group not in groups_progress:
                         groups_progress[progress_group] = {
                             ProgressMetric.REQUIRED: 0,
                             ProgressMetric.FILLED: 0,
                             ProgressMetric.PERCENTAGE: 0,
                             ProgressMetric.CURRENT: True,
-                            ProgressMetric.HAS_DATA: False
+                            ProgressMetric.HAS_DATA: False,
                         }
 
-                    groups_progress[progress_group][ProgressMetric.REQUIRED] += (
-                        fpc.form_progress_dict[ProgressMetric.REQUIRED]
-                    )
+                    groups_progress[progress_group][
+                        ProgressMetric.REQUIRED
+                    ] += fpc.form_progress_dict[ProgressMetric.REQUIRED]
                     groups_progress[progress_group][ProgressMetric.FILLED] += (
                         fpc.form_progress_dict[ProgressMetric.FILLED]
                     )
-                    groups_progress[progress_group][ProgressMetric.CURRENT] = groups_progress[
-                        progress_group][ProgressMetric.CURRENT] or fpc.form_currency
-                    groups_progress[progress_group][ProgressMetric.HAS_DATA] = groups_progress[
-                        progress_group][ProgressMetric.HAS_DATA] or fpc.form_has_data
+                    groups_progress[progress_group][ProgressMetric.CURRENT] = (
+                        groups_progress[progress_group][ProgressMetric.CURRENT]
+                        or fpc.form_currency
+                    )
+                    groups_progress[progress_group][ProgressMetric.HAS_DATA] = (
+                        groups_progress[progress_group][ProgressMetric.HAS_DATA]
+                        or fpc.form_has_data
+                    )
         xray_recorder.end_subsegment()
 
         for group_name in groups_progress:
             groups_progress[group_name][ProgressMetric.PERCENTAGE] = percentage(
                 groups_progress[group_name][ProgressMetric.FILLED],
-                groups_progress[group_name][ProgressMetric.REQUIRED]
+                groups_progress[group_name][ProgressMetric.REQUIRED],
             )
 
         # now save the metric in form expected by _get_metric
         result = {}
         for form_name in forms_progress:
-            result[form_name + "_form_progress"] = forms_progress[form_name][ProgressMetric.PROGRESS]
-            result[form_name + "_form_current"] = forms_progress[form_name][ProgressMetric.CURRENT]
-            result[form_name + "_form_has_data"] = forms_progress[form_name][ProgressMetric.HAS_DATA]
-            result[form_name + "_form_cdes_status"] = forms_progress[form_name][ProgressMetric.CDES_STATUS]
+            result[form_name + "_form_progress"] = forms_progress[form_name][
+                ProgressMetric.PROGRESS
+            ]
+            result[form_name + "_form_current"] = forms_progress[form_name][
+                ProgressMetric.CURRENT
+            ]
+            result[form_name + "_form_has_data"] = forms_progress[form_name][
+                ProgressMetric.HAS_DATA
+            ]
+            result[form_name + "_form_cdes_status"] = forms_progress[form_name][
+                ProgressMetric.CDES_STATUS
+            ]
 
         for groups_name in groups_progress:
-            result[groups_name + "_group_progress"] = groups_progress[groups_name][ProgressMetric.PERCENTAGE]
+            result[groups_name + "_group_progress"] = groups_progress[
+                groups_name
+            ][ProgressMetric.PERCENTAGE]
 
-            result[groups_name + "_group_current"] = groups_progress[groups_name][ProgressMetric.CURRENT]
-            result[groups_name + "_group_has_data"] = groups_progress[groups_name][ProgressMetric.HAS_DATA]
+            result[groups_name + "_group_current"] = groups_progress[
+                groups_name
+            ][ProgressMetric.CURRENT]
+            result[groups_name + "_group_has_data"] = groups_progress[
+                groups_name
+            ][ProgressMetric.HAS_DATA]
 
         self.progress_data = result
 
     def _get_query(self, patient_model, context_model):
         return self.progress_collection.find(
-            patient_model, context_id=context_model.id if context_model else None)
+            patient_model,
+            context_id=context_model.id if context_model else None,
+        )
 
     def _load(self, patient_model, context_model=None):
-        self.loaded_data = self._get_query(patient_model, context_model).data().first() or {}
+        self.loaded_data = (
+            self._get_query(patient_model, context_model).data().first() or {}
+        )
         return self.loaded_data
 
     def _get_metric_helper(self, patient_model, context_model=None):
@@ -473,24 +566,36 @@ class FormProgress:
     def reset(self):
         self.loaded_data = None
 
-    def get_form_progress_dict(self, form_model, patient_model, context_model=None):
+    def get_form_progress_dict(
+        self, form_model, patient_model, context_model=None
+    ):
         # returns a dict of required filled percentage numbers
         return self._get_model_tagged_metric(
-            ModelTaggedMetric(form_model, ProgressMetric.PROGRESS), patient_model, context_model
+            ModelTaggedMetric(form_model, ProgressMetric.PROGRESS),
+            patient_model,
+            context_model,
         )
 
     def get_form_progress(self, form_model, patient_model, context_model=None):
-        d = self.get_form_progress_dict(form_model, patient_model, context_model)
+        d = self.get_form_progress_dict(
+            form_model, patient_model, context_model
+        )
         return d.get(ProgressMetric.PERCENTAGE, 0)
 
     def get_form_currency(self, form_model, patient_model, context_model=None):
         return self._get_model_tagged_metric(
-            ModelTaggedMetric(form_model, ProgressMetric.CURRENT), patient_model, context_model
+            ModelTaggedMetric(form_model, ProgressMetric.CURRENT),
+            patient_model,
+            context_model,
         )
 
-    def get_form_cdes_status(self, form_model, patient_model, context_model=None):
+    def get_form_cdes_status(
+        self, form_model, patient_model, context_model=None
+    ):
         return self._get_model_tagged_metric(
-            ModelTaggedMetric(form_model, ProgressMetric.CDES_STATUS), patient_model, context_model
+            ModelTaggedMetric(form_model, ProgressMetric.CDES_STATUS),
+            patient_model,
+            context_model,
         )
 
     def get_group_progress(self, group_name, patient_model, context_model=None):
@@ -513,11 +618,19 @@ class FormProgress:
             content = "No modules available"
         else:
             for form in viewable_forms:
-                is_current = self.get_form_currency(form, patient_model, context_model)
+                is_current = self.get_form_currency(
+                    form, patient_model, context_model
+                )
                 flag = "images/%s.png" % ("tick" if is_current else "cross")
-                url = reverse('registry_form', args=(self.registry_model.code,
-                                                     form.id, patient_model.pk,
-                                                     context_model.pk))
+                url = reverse(
+                    "registry_form",
+                    args=(
+                        self.registry_model.code,
+                        form.id,
+                        patient_model.pk,
+                        context_model.pk,
+                    ),
+                )
                 link = "<a href=%s>%s</a>" % (url, form.nice_name)
                 label = form.nice_name
                 to_form = link
@@ -526,14 +639,22 @@ class FormProgress:
 
                 if form.has_progress_indicator:
                     src = static(flag)
-                    percentage = self.get_form_progress(form, patient_model, context_model)
+                    percentage = self.get_form_progress(
+                        form, patient_model, context_model
+                    )
                     content += "<img src=%s> <strong>%d%%</strong> %s</br>" % (
-                        src, percentage, to_form)
+                        src,
+                        percentage,
+                        to_form,
+                    )
                 else:
                     content += "<img src=%s> %s</br>" % (static(flag), to_form)
 
-        html = "<button type='button' class='btn btn-primary btn-xs' " + \
-               "data-bs-toggle='popover' data-bs-content='%s' id='data-modules-btn'>Show</button>" % content
+        html = (
+            "<button type='button' class='btn btn-primary btn-xs' "
+            + "data-bs-toggle='popover' data-bs-content='%s' id='data-modules-btn'>Show</button>"
+            % content
+        )
         return html
 
     #########################################################################################
@@ -550,10 +671,13 @@ class FormProgress:
         if not record:
             ctx = dict(context_id=context_model.id if context_model else None)
             context_id = context_model.id if context_model else None
-            record = ClinicalData.create(patient_model, collection="progress",
-                                         registry_code=self.registry_model.code,
-                                         context_id=context_id,
-                                         data=ctx)
+            record = ClinicalData.create(
+                patient_model,
+                collection="progress",
+                registry_code=self.registry_model.code,
+                context_id=context_id,
+                data=ctx,
+            )
         record.data.update(self.progress_data)
         record.save()
         xray_recorder.end_subsegment()
@@ -563,10 +687,14 @@ class FormProgress:
     def save_for_patient(self, patient_model, context_model=None):
         self.reset()
         from rdrf.db.dynamic_data import DynamicDataWrapper
+
         if context_model is None:
             wrapper = DynamicDataWrapper(patient_model)
         else:
-            wrapper = DynamicDataWrapper(patient_model, rdrf_context_id=context_model.pk)
+            wrapper = DynamicDataWrapper(
+                patient_model, rdrf_context_id=context_model.pk
+            )
         dynamic_data = wrapper.load_dynamic_data(
-            self.registry_model.code, "cdes", flattened=False)
+            self.registry_model.code, "cdes", flattened=False
+        )
         return self.save_progress(patient_model, dynamic_data, context_model)

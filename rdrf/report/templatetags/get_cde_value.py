@@ -8,4 +8,6 @@ register = template.Library()
 
 @register.simple_tag
 def get_cde_value(cfg, form, section, cde):
-    return get_cde_field_value(cfg, mongo_key(form.name, section.code, cde.code))
+    return get_cde_field_value(
+        cfg, mongo_key(form.name, section.code, cde.code)
+    )

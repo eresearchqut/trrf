@@ -5,9 +5,8 @@ from enum import Enum
 from django.core.exceptions import ValidationError
 
 from .constants import INCLUDE_OPERATORS
+from .parse_operations import BooleanOp, Condition, parse_dsl, transform_tree
 from .parse_utils import CDEHelper, SectionHelper, is_iterable
-from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +27,12 @@ class ConditionChecker:
     Class to check if a condition is valid
     """
 
-    EQUAL = '=='
-    NOT_EQUAL = '!='
-    GT = '>'
-    LT = '<'
-    GTE = '>='
-    LTE = '<='
+    EQUAL = "=="
+    NOT_EQUAL = "!="
+    GT = ">"
+    LT = "<"
+    GTE = ">="
+    LTE = "<="
     IS = "is"
 
     AND = "and"
@@ -45,13 +44,10 @@ class ConditionChecker:
         GTE: (LT,),
         LTE: (GT,),
         LT: (GT, GTE),
-        NOT_EQUAL: (EQUAL, ),
+        NOT_EQUAL: (EQUAL,),
     }
 
-    INVERSE_BOOLEAN_OP_DICT = {
-        AND: OR,
-        OR: AND
-    }
+    INVERSE_BOOLEAN_OP_DICT = {AND: OR, OR: AND}
 
     def __init__(self, section_helper):
         self.condition_dict = {}
@@ -60,15 +56,18 @@ class ConditionChecker:
         self.cde_dict = {}
 
     def inverse_conditions(self, c):
-        """"
+        """ "
         Returns the inverse condition for a given condition
         Ex: Condition("a",">","b") -> [Condition("a",  "<=",  "b"), Condition("a",  "<", "b")]
         """
         inverse_ops = self.INVERSE_CONDITION_DICT.get(c.operator, [])
-        return [Condition.from_values(c.cde.cde, inverse, c.value, c.cde_helper) for inverse in inverse_ops]
+        return [
+            Condition.from_values(c.cde.cde, inverse, c.value, c.cde_helper)
+            for inverse in inverse_ops
+        ]
 
     def inverse_multiple_conditions(self, condition):
-        """"
+        """ "
         Returns a list of inverse conditions for a given multiple condition
         Ex: [Condition("a > b"), BooleanOp("and"), Condition("d > e")] =>
             [[Condition("a > b"), BooleanOp("or"), Condition("d > e")],
@@ -105,7 +104,9 @@ class ConditionChecker:
                     op = next_operator()
                 second_cond, second_inverse = next_condition()
                 prev_conditions.append((second_cond, second_inverse))
-                result.append([first_cond, BooleanOp(op.inverse()), second_cond])
+                result.append(
+                    [first_cond, BooleanOp(op.inverse()), second_cond]
+                )
                 add_result(first_inverse, second_inverse, op)
             else:
                 for cond, inverse in prev_conditions:
@@ -139,11 +140,20 @@ class ConditionChecker:
                     if el.cde.cde in cde_dict:
                         existing_op, existing_value = cde_dict[el.cde.cde]
                         if key.operator == self.AND:
-                            if existing_op == el.operator and existing_value != el.value:
+                            if (
+                                existing_op == el.operator
+                                and existing_value != el.value
+                            ):
                                 return False
-                            if existing_op != el.operator and existing_value == el.value:
+                            if (
+                                existing_op != el.operator
+                                and existing_value == el.value
+                            ):
                                 return False
-                        if key.operator == self.OR and existing_value == el.value:
+                        if (
+                            key.operator == self.OR
+                            and existing_value == el.value
+                        ):
                             return False
                     else:
                         cde_dict[el.cde.cde] = (el.operator, el.value)
@@ -158,7 +168,9 @@ class ConditionChecker:
         expanded_cdes = []
         for cde in filtered_cdes:
             if self.section_helper.is_section(cde.cde):
-                expanded_cdes.extend(self.section_helper.get_section_cdes(cde.cde))
+                expanded_cdes.extend(
+                    self.section_helper.get_section_cdes(cde.cde)
+                )
             else:
                 expanded_cdes.append(cde.get_key())
         return tuple(expanded_cdes)
@@ -167,17 +179,29 @@ class ConditionChecker:
         return condition.cde.get_cde_info().allow_multiple
 
     def check_condition(self, conditions, action, target):
-        expanded_cdes = self.expand_cdes(target.target_cdes) if target.has_qualifier else tuple([cde.get_key() for cde in target.target_cdes])
-        multiple_conditions = any([c for c in conditions if isinstance(c, BooleanOp)])
+        expanded_cdes = (
+            self.expand_cdes(target.target_cdes)
+            if target.has_qualifier
+            else tuple([cde.get_key() for cde in target.target_cdes])
+        )
+        multiple_conditions = any(
+            [c for c in conditions if isinstance(c, BooleanOp)]
+        )
         section_code = None
         if target.has_qualifier:
             section_code = target.get_section_code()
         # if the target is a section make sure we search for CDES in the condition
         # within the same section if it's not specified, to address the situation
         # in which a CDE is in multiple sections
-        condition_cdes = [c.cde.get_key(section_code) for c in conditions if isinstance(c, Condition)]
+        condition_cdes = [
+            c.cde.get_key(section_code)
+            for c in conditions
+            if isinstance(c, Condition)
+        ]
 
-        overlap_condition = any([c for c in condition_cdes if c in expanded_cdes])
+        overlap_condition = any(
+            [c for c in condition_cdes if c in expanded_cdes]
+        )
 
         if overlap_condition:
             return ConditionCheckResult.TARGET_AND_CONDITION_OVERLAP
@@ -189,11 +213,14 @@ class ConditionChecker:
             return ConditionCheckResult.DUPLICATE_CONDITION
 
         inverse_cond_list = (
-            self.inverse_multiple_conditions(conditions) if multiple_conditions
+            self.inverse_multiple_conditions(conditions)
+            if multiple_conditions
             else self.inverse_conditions(conditions[0])
         )
         for cond_key in inverse_cond_list:
-            key = tuple(cond_key) if is_iterable(cond_key) else tuple([cond_key])
+            key = (
+                tuple(cond_key) if is_iterable(cond_key) else tuple([cond_key])
+            )
             if self.condition_dict.get(key) == condition_target:
                 return ConditionCheckResult.OPPOSITE_CONDITION_SAME_ACTION
 
@@ -204,23 +231,42 @@ class ConditionChecker:
             return ConditionCheckResult.INVALID_CONDITION
 
         cde_section_dict = self.section_helper.get_cde_to_section_dict()
-        condition_entries = {cde: cde_section_dict.get(cde) for cde in condition_cdes}
-        target_entries = {cde.get_key(): cde_section_dict.get(cde.get_key()) for cde in target.target_cdes}
+        condition_entries = {
+            cde: cde_section_dict.get(cde) for cde in condition_cdes
+        }
+        target_entries = {
+            cde.get_key(): cde_section_dict.get(cde.get_key())
+            for cde in target.target_cdes
+        }
         for _, cond_value in condition_entries.items():
             for target_key, target_value in target_entries.items():
                 if cond_value and target_value:
-                    both_cdes_in_allow_multiple_section = cond_value[1] and cond_value[1] == target_value[1]
+                    both_cdes_in_allow_multiple_section = (
+                        cond_value[1] and cond_value[1] == target_value[1]
+                    )
                     in_different_sections = cond_value[0] != target_value[0]
-                    if both_cdes_in_allow_multiple_section and in_different_sections:
+                    if (
+                        both_cdes_in_allow_multiple_section
+                        and in_different_sections
+                    ):
                         return ConditionCheckResult.MULTI_SECTION_CDE_FAILURE
 
         conditions_with_inclusion_operators = [
-            c for c in conditions if isinstance(c, Condition) and c.operator in INCLUDE_OPERATORS
+            c
+            for c in conditions
+            if isinstance(c, Condition) and c.operator in INCLUDE_OPERATORS
         ]
         if conditions_with_inclusion_operators:
-            valid_inclusion_conditions = all([self.check_includes_cde(c) for c in conditions_with_inclusion_operators])
+            valid_inclusion_conditions = all(
+                [
+                    self.check_includes_cde(c)
+                    for c in conditions_with_inclusion_operators
+                ]
+            )
             if not valid_inclusion_conditions:
-                return ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES
+                return (
+                    ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES
+                )
 
         self.condition_dict[condition_key] = condition_target
         self.reverse_condition_dict[condition_target] = condition_key
@@ -241,24 +287,33 @@ class DSLValidator:
 
     @staticmethod
     def invalid_cdes_to_str_set(invalid_cdes):
-        return set([
-            el.cde if el.has_valid_section()
-            else f"Invalid section \"{el.section}\" in {el.get_key()}"
-            for el in invalid_cdes
-        ])
+        return set(
+            [
+                el.cde
+                if el.has_valid_section()
+                else f'Invalid section "{el.section}" in {el.get_key()}'
+                for el in invalid_cdes
+            ]
+        )
 
     @staticmethod
     def validate_condition_cdes(cond, idx):
         cond_validation = cond.invalid_cdes()
         if cond_validation:
-            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cond_validation))
-            return [f'Invalid condition cdes specified on line {idx} : {errors_str}']
+            errors_str = " ".join(
+                DSLValidator.invalid_cdes_to_str_set(cond_validation)
+            )
+            return [
+                f"Invalid condition cdes specified on line {idx} : {errors_str}"
+            ]
         return []
 
     @staticmethod
     def validate_condition_values(cond, idx):
         if not cond.is_valid_value():
-            return [f'Invalid value:{cond.value} for CDE: {cond.cde.cde} on line {idx}']
+            return [
+                f"Invalid value:{cond.value} for CDE: {cond.cde.cde} on line {idx}"
+            ]
         return []
 
     @staticmethod
@@ -267,20 +322,13 @@ class DSLValidator:
         errors = []
 
         result_handlers = {
-            ConditionCheckResult.DUPLICATE_CONDITION:
-                lambda: f"Duplicate condition on line {idx}: {condition_str}",
-            ConditionCheckResult.DIFFERENT_CONDITION_SAME_TARGET:
-                lambda: f"Different condition with same target on line {idx}: {condition_str}",
-            ConditionCheckResult.OPPOSITE_CONDITION_SAME_ACTION:
-                lambda: f"Opposite condition with same target on line {idx}: {condition_str}",
-            ConditionCheckResult.TARGET_AND_CONDITION_OVERLAP:
-                lambda: f"The target CDEs and conditions CDEs overlap on line {idx}",
-            ConditionCheckResult.INVALID_CONDITION:
-                lambda: f"The conditions repeat or contradict on line {idx}",
-            ConditionCheckResult.MULTI_SECTION_CDE_FAILURE:
-                lambda: f"The condition and target CDEs must be within the same section on line {idx}",
-            ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES:
-                lambda: f"The inclusion/exclusion operators require a CDE with multiple values on line {idx}"
+            ConditionCheckResult.DUPLICATE_CONDITION: lambda: f"Duplicate condition on line {idx}: {condition_str}",
+            ConditionCheckResult.DIFFERENT_CONDITION_SAME_TARGET: lambda: f"Different condition with same target on line {idx}: {condition_str}",
+            ConditionCheckResult.OPPOSITE_CONDITION_SAME_ACTION: lambda: f"Opposite condition with same target on line {idx}: {condition_str}",
+            ConditionCheckResult.TARGET_AND_CONDITION_OVERLAP: lambda: f"The target CDEs and conditions CDEs overlap on line {idx}",
+            ConditionCheckResult.INVALID_CONDITION: lambda: f"The conditions repeat or contradict on line {idx}",
+            ConditionCheckResult.MULTI_SECTION_CDE_FAILURE: lambda: f"The condition and target CDEs must be within the same section on line {idx}",
+            ConditionCheckResult.MULTI_VALUE_REQUIRED_INCLUDES_EXCLUDES: lambda: f"The inclusion/exclusion operators require a CDE with multiple values on line {idx}",
         }
 
         check_result = checker.check_condition(condition_list, action, target)
@@ -296,8 +344,12 @@ class DSLValidator:
         multiple_conditions = len(conditions) > 1
         cde_validation = target.invalid_cdes()
         if cde_validation:
-            errors_str = " ".join(DSLValidator.invalid_cdes_to_str_set(cde_validation))
-            errors.append(f'Invalid CDEs specified on line {idx} : {errors_str}')
+            errors_str = " ".join(
+                DSLValidator.invalid_cdes_to_str_set(cde_validation)
+            )
+            errors.append(
+                f"Invalid CDEs specified on line {idx} : {errors_str}"
+            )
             return errors
 
         if not multiple_conditions:
@@ -307,36 +359,43 @@ class DSLValidator:
             errors.extend(self.validate_condition_values(conditions[0], idx))
             if errors:
                 return errors
-            errors.extend(self.check_condition(checker, conditions, action, target, idx))
+            errors.extend(
+                self.check_condition(checker, conditions, action, target, idx)
+            )
         else:
-            only_conditions = [c for c in conditions if isinstance(c, Condition)]
+            only_conditions = [
+                c for c in conditions if isinstance(c, Condition)
+            ]
             for c in only_conditions:
                 errors.extend(self.validate_condition_cdes(c, idx))
                 errors.extend(self.validate_condition_values(c, idx))
 
-            errors.extend(self.check_condition(checker, conditions, action, target, idx))
+            errors.extend(
+                self.check_condition(checker, conditions, action, target, idx)
+            )
 
         return errors
 
     def check_rules(self):
-
         errors = []
         checker = ConditionChecker(SectionHelper(self.form))
 
         try:
             parse_tree = parse_dsl(self.dsl)
-            transformed_tree = transform_tree(parse_tree, self.cde_helper, self.section_helper)
+            transformed_tree = transform_tree(
+                parse_tree, self.cde_helper, self.section_helper
+            )
         except Exception as e:
             logger.exception("Exception while parsing dsl")
-            raise ValidationError({
-                "conditional_rendering_rules": f"DSL parsing error: {e}"
-            })
+            raise ValidationError(
+                {"conditional_rendering_rules": f"DSL parsing error: {e}"}
+            )
 
         for idx, inst in enumerate(transformed_tree.children):
             errors.extend(self.handle_instruction(inst, idx + 1, checker))
 
         if errors:
             logger.info(f'DSL validation errors: {", ".join(errors)}')
-            raise ValidationError({
-                "conditional_rendering_rules": "\n".join(errors)
-            })
+            raise ValidationError(
+                {"conditional_rendering_rules": "\n".join(errors)}
+            )

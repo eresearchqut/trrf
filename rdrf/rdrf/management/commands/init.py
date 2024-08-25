@@ -11,8 +11,8 @@ class Command(BaseCommand):
         parser.add_argument("--list", action="store_true")
 
     def print_out_dataset(self, module):
-        self.stdout.write("  - %s" % module.__name__.split('.')[-1])
-        doc = (module.__doc__ or '').strip()
+        self.stdout.write("  - %s" % module.__name__.split(".")[-1])
+        doc = (module.__doc__ or "").strip()
         if doc:
             first_line = doc.split("\n")[0]
             self.stdout.write("      %s" % first_line)

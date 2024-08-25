@@ -1,4 +1,5 @@
 import types
+
 from django.urls import re_path
 from rest_framework import routers, viewsets
 
@@ -31,26 +32,28 @@ class DefaultRouterWithSimpleViews(routers.DefaultRouter):
 
         # URLs for simple views
         for prefix, viewset, basename in self.registry:
-
             # Skip viewsets
             if is_viewset(viewset):
                 continue
 
             # URL regex
-            regex = '{prefix}{trailing_slash}$'.format(
-                prefix=prefix,
-                trailing_slash=self.trailing_slash
+            regex = "{prefix}{trailing_slash}$".format(
+                prefix=prefix, trailing_slash=self.trailing_slash
             )
 
             # The view name has to have suffix "-list" due to specifics
             # of the DefaultRouter implementation.
-            view = viewset if isinstance(viewset, types.FunctionType) else viewset.as_view()
-            ret.append(re_path(regex, view, name='{0}-list'.format(basename)))
+            view = (
+                viewset
+                if isinstance(viewset, types.FunctionType)
+                else viewset.as_view()
+            )
+            ret.append(re_path(regex, view, name="{0}-list".format(basename)))
 
         return ret
 
 
 def is_viewset(thingy):
-    return not isinstance(
-        thingy, types.FunctionType) and issubclass(
-        thingy, viewsets.ViewSetMixin)
+    return not isinstance(thingy, types.FunctionType) and issubclass(
+        thingy, viewsets.ViewSetMixin
+    )

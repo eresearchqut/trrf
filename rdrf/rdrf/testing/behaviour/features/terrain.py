@@ -1,25 +1,32 @@
-import os
 import logging
+import os
 from contextlib import contextmanager
-from aloe import before, after, around, world
-from selenium import webdriver
-from . import utils
+
+from aloe import after, around, before, world
 from django.conf import settings
+from selenium import webdriver
+
+from . import utils
 
 logger = logging.getLogger(__name__)
 
-TEST_BROWSER = os.environ.get('TEST_BROWSER')
-TEST_SELENIUM_HUB = os.environ.get('TEST_SELENIUM_HUB') or 'http://localhost:4444/wd/hub'
+TEST_BROWSER = os.environ.get("TEST_BROWSER")
+TEST_SELENIUM_HUB = (
+    os.environ.get("TEST_SELENIUM_HUB") or "http://localhost:4444/wd/hub"
+)
 TEST_WAIT = utils.TEST_WAIT
-TEST_APP_URL = os.environ.get('TEST_APP_URL')
-TEST_DISABLE_TEARDOWN = bool(os.environ.get('TEST_DISABLE_TEARDOWN')
-                             ) if 'TEST_DISABLE_TEARDOWN' in os.environ else False
+TEST_APP_URL = os.environ.get("TEST_APP_URL")
+TEST_DISABLE_TEARDOWN = (
+    bool(os.environ.get("TEST_DISABLE_TEARDOWN"))
+    if "TEST_DISABLE_TEARDOWN" in os.environ
+    else False
+)
 
 
 def get_desired_capabilities(browser):
     return {
-        'firefox': webdriver.DesiredCapabilities.FIREFOX,
-        'chrome': webdriver.DesiredCapabilities.CHROME,
+        "firefox": webdriver.DesiredCapabilities.FIREFOX,
+        "chrome": webdriver.DesiredCapabilities.CHROME,
     }.get(browser, webdriver.DesiredCapabilities.FIREFOX)
 
 
@@ -30,7 +37,7 @@ def with_browser():
 
     world.browser = webdriver.Remote(
         desired_capabilities=desired_capabilities,
-        command_executor=TEST_SELENIUM_HUB
+        command_executor=TEST_SELENIUM_HUB,
     )
     world.browser.implicitly_wait(TEST_WAIT)
 
@@ -53,7 +60,7 @@ def do_teardown():
 
 @before.all
 def before_all():
-    logger.info('*** before all')
+    logger.info("*** before all")
     if not os.path.exists(settings.WRITABLE_DIRECTORY):
         os.makedirs(settings.WRITABLE_DIRECTORY)
     set_site_url()
@@ -67,17 +74,25 @@ def delete_cookies():
 
 @before.each_example
 def before_scenario(scenario, outline, steps):
-    logger.info('Scenario: ' + scenario.name)
+    logger.info("Scenario: " + scenario.name)
     delete_cookies()
     world.browser.maximize_window()
 
 
 @after.each_example
 def after_scenario(scenario, outline, test_steps):
-    logger.info('')
-    passfail = "PASS" if test_steps and all(step.passed for step in test_steps) else "FAIL"
-    world.browser.get_screenshot_as_file(os.path.join(
-        settings.WRITABLE_DIRECTORY, "{0}-scenario-{1}.png".format(passfail, scenario.name)))
+    logger.info("")
+    passfail = (
+        "PASS"
+        if test_steps and all(step.passed for step in test_steps)
+        else "FAIL"
+    )
+    world.browser.get_screenshot_as_file(
+        os.path.join(
+            settings.WRITABLE_DIRECTORY,
+            "{0}-scenario-{1}.png".format(passfail, scenario.name),
+        )
+    )
     if do_teardown():
         utils.restore_minimal_snapshot()
 
@@ -88,6 +103,6 @@ def screenshot_step(step):
         step_name = "%s_%s" % (step.scenario.name, step.sentence)
         step_name = step_name.replace(" ", "")
         file_name = os.path.join(
-            settings.WRITABLE_DIRECTORY,
-            "FAIL-step-{0}.png".format(step_name))
+            settings.WRITABLE_DIRECTORY, "FAIL-step-{0}.png".format(step_name)
+        )
         world.browser.get_screenshot_as_file(file_name)

@@ -1,18 +1,18 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-INTEGER_TYPE = 'integer'
-DATE_TYPE = 'date'
+INTEGER_TYPE = "integer"
+DATE_TYPE = "date"
 
 
 def parse_date(value):
     try:
-        return datetime.strptime(value, '%d-%m-%Y')
+        return datetime.strptime(value, "%d-%m-%Y")
     except ValueError:
         try:
-            return datetime.strptime(value, '%Y-%m-%d')
+            return datetime.strptime(value, "%Y-%m-%d")
         except ValueError:
             logger.error(f"Cannot parse date: {value}")
             return None

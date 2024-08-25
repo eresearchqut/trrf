@@ -1,21 +1,33 @@
-from decimal import Decimal
+import datetime
 import json
 import logging
+from decimal import Decimal
 from operator import attrgetter
+
 import yaml
 from django.contrib.auth.models import Group
-
 from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
+from registry.patients.models import (
+    NextOfKinRelationship,
+    PatientStage,
+    PatientStageRule,
+)
+from report.models import ReportDesign
 
 from rdrf import VERSION
-import datetime
-from rdrf.models.definition.models import DemographicFields, RegistryForm, RegistryDashboard, LongitudinalFollowup, \
-    WhitelistedFileExtension, RegistryFormTranslation
-from rdrf.models.definition.models import Section, CommonDataElement, CDEPermittedValueGroup, CDEPermittedValue
-from registry.patients.models import PatientStage, PatientStageRule, NextOfKinRelationship
-
-from report.models import ReportDesign
+from rdrf.models.definition.models import (
+    CDEPermittedValue,
+    CDEPermittedValueGroup,
+    CommonDataElement,
+    DemographicFields,
+    LongitudinalFollowup,
+    RegistryDashboard,
+    RegistryForm,
+    RegistryFormTranslation,
+    Section,
+    WhitelistedFileExtension,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +58,16 @@ class ExportType:
     REGISTRY_ONLY = "REGISTRY_ONLY"
     # As above with cdes used by the registry
     REGISTRY_PLUS_CDES = "REGISTRY_PLUS_CDES"
-    REGISTRY_PLUS_ALL_CDES = "REGISTRY_PLUS_ALL_CDES"   # registry + all cdes in the site
+    REGISTRY_PLUS_ALL_CDES = (
+        "REGISTRY_PLUS_ALL_CDES"  # registry + all cdes in the site
+    )
     # only the cdes in the supplied registry ( no forms)
     REGISTRY_CDES = "REGISTRY_CDES"
-    ALL_CDES = "ALL_CDES"                               # All CDEs in the site
-    PARTIAL = 'PARTIAL'
+    ALL_CDES = "ALL_CDES"  # All CDEs in the site
+    PARTIAL = "PARTIAL"
 
 
 class Exporter:
-
     """
     Export a registry definition to yaml or json
     """
@@ -66,7 +79,9 @@ class Exporter:
         try:
             model.clean()
         except ValidationError as verr:
-            raise ExportException("Model validity exception for model {} !".format(model), verr)
+            raise ExportException(
+                "Model validity exception for model {} !".format(model), verr
+            )
 
     def _validate_section(self, section_code):
         try:
@@ -76,7 +91,7 @@ class Exporter:
         self._check_model_validity(section_model)
 
     def validate(self, export_type):
-        """"
+        """ "
         Validates the CDES, sections and registry forms
         Raises an ExporterException in case of error
         """
@@ -86,12 +101,16 @@ class Exporter:
         if self.registry.patient_data_section:
             self._validate_section(self.registry.patient_data_section.code)
 
-        for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
+        for frm in RegistryForm.objects.filter(registry=self.registry).order_by(
+            "name"
+        ):
             self._check_model_validity(frm)
             for section_code in frm.get_sections():
                 self._validate_section(section_code)
 
-    def export_yaml(self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True):
+    def export_yaml(
+        self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True
+    ):
         """
         Example output:
         ----------------------------------------------------------------------
@@ -134,7 +153,9 @@ class Exporter:
             logger.exception(ex)
             return None, [ex]
 
-    def export_json(self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True):
+    def export_json(
+        self, export_type=ExportType.REGISTRY_PLUS_CDES, validate=True
+    ):
         if validate:
             self.validate(export_type)
         return self._export(ExportFormat.JSON, export_type)
@@ -145,37 +166,55 @@ class Exporter:
 
         data = self._skeleton_export(ExportType.PARTIAL)
 
-        if should_export('context_form_groups'):
-            context_form_groups = export_definition.get('context_form_groups')
-            data["context_form_groups"] = self._get_context_form_groups(context_form_groups)
+        if should_export("context_form_groups"):
+            context_form_groups = export_definition.get("context_form_groups")
+            data["context_form_groups"] = self._get_context_form_groups(
+                context_form_groups
+            )
 
-        if should_export('forms'):
-            forms = export_definition.get('forms')
+        if should_export("forms"):
+            forms = export_definition.get("forms")
             data["forms"] = [self._create_form_map(form) for form in forms]
             data["complete_fields"] = self._get_complete_fields(forms)
             data["forms_allowed_groups"] = self._get_forms_allowed_groups(forms)
-            data["forms_readonly_groups"] = self._get_forms_readonly_groups(forms)
-            data["forms_translated"] = self._get_registry_forms_translated(forms)
+            data["forms_readonly_groups"] = self._get_forms_readonly_groups(
+                forms
+            )
+            data["forms_translated"] = self._get_registry_forms_translated(
+                forms
+            )
 
-        if should_export('cdes'):
-            cdes = export_definition.get('cdes')
+        if should_export("cdes"):
+            cdes = export_definition.get("cdes")
             data["cdes"] = [cde_to_dict(cde) for cde in cdes]
-            data["pvgs"] = [pvg.as_dict for pvg in set(cde.pv_group
-                                                       for cde in cdes if cde.pv_group)]
+            data["pvgs"] = [
+                pvg.as_dict
+                for pvg in set(cde.pv_group for cde in cdes if cde.pv_group)
+            ]
 
-        if should_export('registry_dashboards'):
-            dashboards = export_definition.get('registry_dashboards')
-            data["registry_dashboards"] = self._get_registry_dashboards(dashboards)
+        if should_export("registry_dashboards"):
+            dashboards = export_definition.get("registry_dashboards")
+            data["registry_dashboards"] = self._get_registry_dashboards(
+                dashboards
+            )
 
         return dump_yaml(data)
 
     def _get_cdes(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             cdes = set()
-        elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+        elif export_type in [
+            ExportType.REGISTRY_PLUS_CDES,
+            ExportType.REGISTRY_CDES,
+        ]:
             cdes = set(cde for cde in self._get_cdes_in_registry(self.registry))
-        elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            cdes = set(cde for cde in CommonDataElement.objects.order_by("code"))
+        elif export_type in [
+            ExportType.ALL_CDES,
+            ExportType.REGISTRY_PLUS_ALL_CDES,
+        ]:
+            cdes = set(
+                cde for cde in CommonDataElement.objects.order_by("code")
+            )
         else:
             raise ExportException("Unknown export type")
 
@@ -197,10 +236,18 @@ class Exporter:
     def _get_pvgs(self, export_type):
         if export_type == ExportType.REGISTRY_ONLY:
             pvgs = set()
-        elif export_type in [ExportType.REGISTRY_PLUS_CDES, ExportType.REGISTRY_CDES]:
+        elif export_type in [
+            ExportType.REGISTRY_PLUS_CDES,
+            ExportType.REGISTRY_CDES,
+        ]:
             pvgs = set(pvg for pvg in self._get_pvgs_in_registry(self.registry))
-        elif export_type in [ExportType.ALL_CDES, ExportType.REGISTRY_PLUS_ALL_CDES]:
-            pvgs = set(pvg for pvg in CDEPermittedValueGroup.objects.order_by("code"))
+        elif export_type in [
+            ExportType.ALL_CDES,
+            ExportType.REGISTRY_PLUS_ALL_CDES,
+        ]:
+            pvgs = set(
+                pvg for pvg in CDEPermittedValueGroup.objects.order_by("code")
+            )
         else:
             raise ExportException("Unknown export type")
         return self._sort_codes(pvgs)
@@ -234,7 +281,9 @@ class Exporter:
         frm_map["position"] = form_model.position
         frm_map["sections"] = []
         frm_map["applicability_condition"] = form_model.applicability_condition
-        frm_map["conditional_rendering_rules"] = form_model.conditional_rendering_rules or ''
+        frm_map["conditional_rendering_rules"] = (
+            form_model.conditional_rendering_rules or ""
+        )
         frm_map["tags"] = form_model.tags
 
         for section_code in form_model.get_sections():
@@ -248,21 +297,35 @@ class Exporter:
         forms = forms or self.registry.forms
 
         for form in forms:
-            d[form.name] = [g.name for g in form.groups_allowed.order_by("name")]
+            d[form.name] = [
+                g.name for g in form.groups_allowed.order_by("name")
+            ]
         return d
 
     def _get_forms_readonly_groups(self, forms=None):
-
         forms = forms or self.registry.forms
 
-        return {form.name: [group.name for group in form.groups_readonly.order_by("name")] for form in forms}
+        return {
+            form.name: [
+                group.name for group in form.groups_readonly.order_by("name")
+            ]
+            for form in forms
+        }
 
     def _get_registry_forms_translated(self, forms=None):
         forms_ids = [form.id for form in forms or self.registry.forms]
-        form_translations = RegistryFormTranslation.objects.filter(translated_forms__in=forms_ids)
-        return {translation.language.language_code: [form.name
-                                                     for form in translation.translated_forms.filter(id__in=forms_ids)]
-                for translation in form_translations}
+        form_translations = RegistryFormTranslation.objects.filter(
+            translated_forms__in=forms_ids
+        )
+        return {
+            translation.language.language_code: [
+                form.name
+                for form in translation.translated_forms.filter(
+                    id__in=forms_ids
+                )
+            ]
+            for translation in form_translations
+        }
 
     def _skeleton_export(self, export_type):
         data = {}
@@ -299,7 +362,8 @@ class Exporter:
 
         if self.registry.patient_data_section:
             data["patient_data_section"] = self._create_section_map(
-                self.registry.patient_data_section.code)
+                self.registry.patient_data_section.code
+            )
         else:
             data["patient_data_section"] = {}
 
@@ -307,15 +371,20 @@ class Exporter:
         data["working_groups"] = self._get_working_groups()
         data["patient_stages"] = self._get_patient_stages()
         data["patient_stage_rules"] = self._get_patient_stage_rules()
-        data["next_of_kin_relationships"] = self._get_next_of_kin_relationships()
+        data["next_of_kin_relationships"] = (
+            self._get_next_of_kin_relationships()
+        )
         data["group_permissions"] = self._get_group_permissions()
         data["registry_dashboards"] = self._get_registry_dashboards()
-        data["whitelisted_file_extensions"] = self._get_whitelisted_file_extensions()
+        data["whitelisted_file_extensions"] = (
+            self._get_whitelisted_file_extensions()
+        )
 
         if export_type in [
-                ExportType.REGISTRY_ONLY,
-                ExportType.REGISTRY_PLUS_ALL_CDES,
-                ExportType.REGISTRY_PLUS_CDES]:
+            ExportType.REGISTRY_ONLY,
+            ExportType.REGISTRY_PLUS_ALL_CDES,
+            ExportType.REGISTRY_PLUS_CDES,
+        ]:
             data["name"] = self.registry.name
             data["desc"] = self.registry.desc
             data["splash_screen"] = self.registry.splash_screen
@@ -323,11 +392,13 @@ class Exporter:
             data["forms"] = []
             generic_sections = [
                 self._create_section_map(section_code, optional=True)
-                for section_code in
-                self.registry.generic_sections]
+                for section_code in self.registry.generic_sections
+            ]
             data["generic_sections"] = [gs for gs in generic_sections if gs]
 
-            for frm in RegistryForm.objects.filter(registry=self.registry).order_by("name"):
+            for frm in RegistryForm.objects.filter(
+                registry=self.registry
+            ).order_by("name"):
                 data["forms"].append(self._create_form_map(frm))
 
         if format == ExportFormat.YAML:
@@ -407,7 +478,8 @@ class Exporter:
             group_map["code"] = pvg.code
             group_map["values"] = []
             for value in CDEPermittedValue.objects.filter(
-                    pv_group=pvg).order_by("position", "code"):
+                pv_group=pvg
+            ).order_by("position", "code"):
                 value_map = {}
                 value_map["code"] = value.code
                 value_map["value"] = value.value
@@ -429,12 +501,16 @@ class Exporter:
 
     def _get_cdes_in_registry(self, registry_model):
         cdes = set()
-        for registry_form in RegistryForm.objects.filter(registry=registry_model):
+        for registry_form in RegistryForm.objects.filter(
+            registry=registry_model
+        ):
             section_codes = registry_form.get_sections()
             cdes = cdes.union(self._get_cdes_for_sections(section_codes))
 
         if registry_model.patient_data_section:
-            patient_data_section_cdes = set(registry_model.patient_data_section.cde_models)
+            patient_data_section_cdes = set(
+                registry_model.patient_data_section.cde_models
+            )
         else:
             patient_data_section_cdes = set()
 
@@ -456,19 +532,25 @@ class Exporter:
     def _get_consent_sections(self):
         section_dicts = []
         for consent_section in self.registry.consent_sections.order_by("code"):
-            section_dict = {"code": consent_section.code,
-                            "section_label": consent_section.section_label,
-                            "information_link": consent_section.information_link,
-                            "information_text": consent_section.information_text,
-                            "information_media": consent_section.information_media,
-                            "applicability_condition": consent_section.applicability_condition,
-                            "validation_rule": consent_section.validation_rule,
-                            "questions": []}
-            for consent_model in consent_section.questions.order_by("position", "code"):
-                cm = {"code": consent_model.code,
-                      "position": consent_model.position,
-                      "question_label": consent_model.question_label,
-                      "instructions": consent_model.instructions}
+            section_dict = {
+                "code": consent_section.code,
+                "section_label": consent_section.section_label,
+                "information_link": consent_section.information_link,
+                "information_text": consent_section.information_text,
+                "information_media": consent_section.information_media,
+                "applicability_condition": consent_section.applicability_condition,
+                "validation_rule": consent_section.validation_rule,
+                "questions": [],
+            }
+            for consent_model in consent_section.questions.order_by(
+                "position", "code"
+            ):
+                cm = {
+                    "code": consent_model.code,
+                    "position": consent_model.position,
+                    "question_label": consent_model.question_label,
+                    "instructions": consent_model.instructions,
+                }
                 section_dict["questions"].append(cm)
             section_dicts.append(section_dict)
 
@@ -486,41 +568,61 @@ class Exporter:
                         cdes.add(cde)
                     except CommonDataElement.DoesNotExist as dne:
                         logger.error("No CDE with code: %s" % cde_code)
-                        raise ExportException(f"Section {section_code} referes to CDE {cde_code} that does not exist", dne)
+                        raise ExportException(
+                            f"Section {section_code} referes to CDE {cde_code} that does not exist",
+                            dne,
+                        )
 
             except Section.DoesNotExist as sne:
                 if not sections_optional:
                     logger.error("No Section with code: %s" % section_code)
-                    raise ExportException(f"Section does not exist: {section_code}", sne)
+                    raise ExportException(
+                        f"Section does not exist: {section_code}", sne
+                    )
         return cdes
 
     def _get_generic_cdes(self):
-        return self._get_cdes_for_sections(self.registry.generic_sections, sections_optional=True)
+        return self._get_cdes_for_sections(
+            self.registry.generic_sections, sections_optional=True
+        )
 
     def _get_working_group_types(self):
         from registry.groups.models import WorkingGroupType
-        return [{'name': wg_type.name,
-                 'rules': [{'user_group': rule.user_group.name,
-                            'has_default_access': rule.has_default_access}
-                           for rule in wg_type.rules.all()]}
-                for wg_type in WorkingGroupType.objects.all()]
+
+        return [
+            {
+                "name": wg_type.name,
+                "rules": [
+                    {
+                        "user_group": rule.user_group.name,
+                        "has_default_access": rule.has_default_access,
+                    }
+                    for rule in wg_type.rules.all()
+                ],
+            }
+            for wg_type in WorkingGroupType.objects.all()
+        ]
 
     def _get_working_groups(self):
         from registry.groups.models import WorkingGroup
-        return [{'name': wg.name,
-                 'type': wg.type.name if wg.type else None}
-                for wg in WorkingGroup.objects.filter(registry=self.registry)]
+
+        return [
+            {"name": wg.name, "type": wg.type.name if wg.type else None}
+            for wg in WorkingGroup.objects.filter(registry=self.registry)
+        ]
 
     def _get_demographic_fields(self):
         demographic_fields = []
 
-        for demographic_field in DemographicFields.objects.filter(registry=self.registry):
+        for demographic_field in DemographicFields.objects.filter(
+            registry=self.registry
+        ):
             fields = {}
-            fields['registry'] = demographic_field.registry.code
-            fields['groups'] = [g.name for g in demographic_field.groups.all()]
-            fields['field'] = demographic_field.field
-            fields['status'] = demographic_field.status
-            fields['is_section'] = demographic_field.is_section
+            fields["registry"] = demographic_field.registry.code
+            fields["groups"] = [g.name for g in demographic_field.groups.all()]
+            fields["field"] = demographic_field.field
+            fields["status"] = demographic_field.status
+            fields["is_section"] = demographic_field.is_section
             demographic_fields.append(fields)
 
         return demographic_fields
@@ -534,40 +636,70 @@ class Exporter:
                 form_cdes = {}
                 form_cdes["form_name"] = form.name
                 form_cdes["cdes"] = [
-                    cde.code for cde in form.complete_form_cdes.order_by("code")]
+                    cde.code for cde in form.complete_form_cdes.order_by("code")
+                ]
                 complete_fields.append(form_cdes)
 
         return complete_fields
 
     def _get_reports(self):
-        return [{'title': r.title,
-                 'description': r.description,
-                 'registry': r.registry.code,
-                 'access_groups': [ag.name for ag in r.access_groups.all()],
-                 'filter_working_groups': [wg.name for wg in r.filter_working_groups.all()],
-                 'filter_consents': [{'section': c.section.code, 'code': c.code} for c in r.filter_consents.all()],
-                 'cde_heading_format': r.cde_heading_format,
-                 'cde_include_form_timestamp': r.cde_include_form_timestamp,
-                 'clinical_data_fields': [{'cde_key': f.cde_key, 'context_form_group': f.context_form_group.code} for f in r.reportclinicaldatafield_set.all()],
-                 'demographic_fields': [{'model': f.model, 'field': f.field, 'sort_order': f.sort_order} for f in r.reportdemographicfield_set.all()]
-                 }
-                for r in (ReportDesign.objects.filter(registry=self.registry)
-                                              .select_related('registry')
-                                              .prefetch_related('access_groups',
-                                                                'filter_working_groups',
-                                                                'filter_consents',
-                                                                'reportclinicaldatafield_set',
-                                                                'reportdemographicfield_set'))]
+        return [
+            {
+                "title": r.title,
+                "description": r.description,
+                "registry": r.registry.code,
+                "access_groups": [ag.name for ag in r.access_groups.all()],
+                "filter_working_groups": [
+                    wg.name for wg in r.filter_working_groups.all()
+                ],
+                "filter_consents": [
+                    {"section": c.section.code, "code": c.code}
+                    for c in r.filter_consents.all()
+                ],
+                "cde_heading_format": r.cde_heading_format,
+                "cde_include_form_timestamp": r.cde_include_form_timestamp,
+                "clinical_data_fields": [
+                    {
+                        "cde_key": f.cde_key,
+                        "context_form_group": f.context_form_group.code,
+                    }
+                    for f in r.reportclinicaldatafield_set.all()
+                ],
+                "demographic_fields": [
+                    {
+                        "model": f.model,
+                        "field": f.field,
+                        "sort_order": f.sort_order,
+                    }
+                    for f in r.reportdemographicfield_set.all()
+                ],
+            }
+            for r in (
+                ReportDesign.objects.filter(registry=self.registry)
+                .select_related("registry")
+                .prefetch_related(
+                    "access_groups",
+                    "filter_working_groups",
+                    "filter_consents",
+                    "reportclinicaldatafield_set",
+                    "reportdemographicfield_set",
+                )
+            )
+        ]
 
     def _get_cde_policies(self):
         from rdrf.models.definition.models import CdePolicy
+
         cde_policies = []
         for cde_policy in CdePolicy.objects.filter(
-                registry=self.registry).order_by("cde__code"):
+            registry=self.registry
+        ).order_by("cde__code"):
             cde_pol_dict = {}
             cde_pol_dict["cde_code"] = cde_policy.cde.code
             cde_pol_dict["groups_allowed"] = [
-                group.name for group in cde_policy.groups_allowed.order_by("name")]
+                group.name
+                for group in cde_policy.groups_allowed.order_by("name")
+            ]
             cde_pol_dict["condition"] = cde_policy.condition
             cde_policies.append(cde_pol_dict)
         return cde_policies
@@ -575,7 +707,12 @@ class Exporter:
     def _get_context_form_groups(self, context_form_groups=None):
         from rdrf.models.definition.models import ContextFormGroup
 
-        context_form_groups = context_form_groups or ContextFormGroup.objects.filter(registry=self.registry).order_by("name")
+        context_form_groups = (
+            context_form_groups
+            or ContextFormGroup.objects.filter(registry=self.registry).order_by(
+                "name"
+            )
+        )
 
         data = []
         for cfg in context_form_groups:
@@ -596,37 +733,50 @@ class Exporter:
         return data
 
     def _get_longitudinal_followups(self):
-        return [{
-            "name": lf.name,
-            "description": lf.description,
-            "context_form_group": lf.context_form_group.code,
-            "frequency": lf.frequency.total_seconds(),
-            "debounce": lf.debounce.total_seconds(),
-            "condition": lf.condition,
-        } for lf in LongitudinalFollowup.objects.filter(context_form_group__registry=self.registry)]
+        return [
+            {
+                "name": lf.name,
+                "description": lf.description,
+                "context_form_group": lf.context_form_group.code,
+                "frequency": lf.frequency.total_seconds(),
+                "debounce": lf.debounce.total_seconds(),
+                "condition": lf.condition,
+            }
+            for lf in LongitudinalFollowup.objects.filter(
+                context_form_group__registry=self.registry
+            )
+        ]
 
     def _get_email_notifications(self):
         from rdrf.models.definition.models import EmailNotification
+
         data = []
 
         def get_template_dict(t):
-            return {"language": t.language,
-                    "description": t.description,
-                    "subject": t.subject,
-                    "body": t.body}
+            return {
+                "language": t.language,
+                "description": t.description,
+                "subject": t.subject,
+                "body": t.body,
+            }
 
         for email_notification in EmailNotification.objects.filter(
-                registry=self.registry).order_by("description"):
+            registry=self.registry
+        ).order_by("description"):
             en_dict = {}
             en_dict["description"] = email_notification.description
             en_dict["email_from"] = email_notification.email_from
             en_dict["recipient"] = email_notification.recipient
             if email_notification.group_recipient:
-                en_dict["group_recipient"] = email_notification.group_recipient.name
+                en_dict["group_recipient"] = (
+                    email_notification.group_recipient.name
+                )
             else:
                 en_dict["group_recipient"] = None
-            en_dict["email_templates"] = [get_template_dict(t) for t in
-                                          email_notification.email_templates.all()]
+            en_dict["email_templates"] = [
+                get_template_dict(t)
+                for t in email_notification.email_templates.all()
+            ]
 
             en_dict["disabled"] = email_notification.disabled
             data.append(en_dict)
@@ -634,28 +784,32 @@ class Exporter:
 
     def _get_consent_rules(self):
         from rdrf.models.definition.models import ConsentRule
+
         data = []
         for consent_rule in ConsentRule.objects.filter(registry=self.registry):
             consent_rule_dict = {}
             consent_rule_dict["user_group"] = consent_rule.user_group.name
             consent_rule_dict["capability"] = consent_rule.capability
-            consent_rule_dict["consent_section_code"] = consent_rule.consent_question.section.code
-            consent_rule_dict["consent_question_code"] = consent_rule.consent_question.code
+            consent_rule_dict["consent_section_code"] = (
+                consent_rule.consent_question.section.code
+            )
+            consent_rule_dict["consent_question_code"] = (
+                consent_rule.consent_question.code
+            )
             consent_rule_dict["enabled"] = consent_rule.enabled
             data.append(consent_rule_dict)
         return data
 
     def _get_form_titles(self):
         from rdrf.models.definition.models import FormTitle
+
         data = []
         for form_title in FormTitle.objects.filter(registry=self.registry):
             title_dict = {}
             title_dict["default_title"] = form_title.default_title
             title_dict["custom_title"] = form_title.custom_title
             title_dict["order"] = form_title.order
-            title_dict["groups"] = [
-                g.name for g in form_title.groups.all()
-            ]
+            title_dict["groups"] = [g.name for g in form_title.groups.all()]
             data.append(title_dict)
 
     def _get_patient_stages(self):
@@ -664,8 +818,14 @@ class Exporter:
             stage_dict = {
                 "id": stage.id,
                 "name": stage.name,
-                "next_stages": [next_stage.id for next_stage in stage.allowed_next_stages.all()],
-                "prev_stages": [prev_stage.id for prev_stage in stage.allowed_prev_stages.all()],
+                "next_stages": [
+                    next_stage.id
+                    for next_stage in stage.allowed_next_stages.all()
+                ],
+                "prev_stages": [
+                    prev_stage.id
+                    for prev_stage in stage.allowed_prev_stages.all()
+                ],
             }
             data.append(stage_dict)
         return data
@@ -686,7 +846,11 @@ class Exporter:
         return data
 
     def _get_next_of_kin_relationships(self):
-        return list(NextOfKinRelationship.objects.all().values_list("relationship", flat=True))
+        return list(
+            NextOfKinRelationship.objects.all().values_list(
+                "relationship", flat=True
+            )
+        )
 
     def _get_group_permissions(self):
         data = []
@@ -696,44 +860,67 @@ class Exporter:
                 permission_dict = {
                     "name": permission.name,
                     "codename": permission.codename,
-                    "content_type": permission.content_type.natural_key()
+                    "content_type": permission.content_type.natural_key(),
                 }
                 permissions.append(permission_dict)
-            group_dict = {
-                "name": group.name,
-                "permissions": permissions
-            }
+            group_dict = {"name": group.name, "permissions": permissions}
             data.append(group_dict)
         return data
 
     def _get_registry_dashboards(self, registry_dashboards=None):
-        registry_dashboards = registry_dashboards or RegistryDashboard.objects.filter(registry=self.registry)
-        return [{
-                'registry': dashboard.registry.code,
-                'widgets': [{'widget_type': widget.widget_type,
-                             'title': widget.title,
-                             'free_text': widget.free_text,
-                             'demographics': [{'sort_order': demographic.sort_order,
-                                               'label': demographic.label,
-                                               'model': demographic.model,
-                                               'field': demographic.field}
-                                              for demographic in widget.demographics.all()],
-                             'cdes': [{'sort_order': cde.sort_order,
-                                       'label': cde.label,
-                                       'context_form_group': cde.context_form_group.code,
-                                       'registry_form': cde.registry_form.name,
-                                       'section': cde.section.code,
-                                       'cde': cde.cde.code}
-                                      for cde in widget.cdes.all()],
-                            'links': [{'sort_order': link.sort_order,
-                                       'label': link.label,
-                                       'context_form_group': link.context_form_group.code,
-                                       'registry_form': link.registry_form.name} for link in widget.links.all()]}
-                            for widget in dashboard.widgets.all()]
-                } for dashboard in registry_dashboards]
+        registry_dashboards = (
+            registry_dashboards
+            or RegistryDashboard.objects.filter(registry=self.registry)
+        )
+        return [
+            {
+                "registry": dashboard.registry.code,
+                "widgets": [
+                    {
+                        "widget_type": widget.widget_type,
+                        "title": widget.title,
+                        "free_text": widget.free_text,
+                        "demographics": [
+                            {
+                                "sort_order": demographic.sort_order,
+                                "label": demographic.label,
+                                "model": demographic.model,
+                                "field": demographic.field,
+                            }
+                            for demographic in widget.demographics.all()
+                        ],
+                        "cdes": [
+                            {
+                                "sort_order": cde.sort_order,
+                                "label": cde.label,
+                                "context_form_group": cde.context_form_group.code,
+                                "registry_form": cde.registry_form.name,
+                                "section": cde.section.code,
+                                "cde": cde.cde.code,
+                            }
+                            for cde in widget.cdes.all()
+                        ],
+                        "links": [
+                            {
+                                "sort_order": link.sort_order,
+                                "label": link.label,
+                                "context_form_group": link.context_form_group.code,
+                                "registry_form": link.registry_form.name,
+                            }
+                            for link in widget.links.all()
+                        ],
+                    }
+                    for widget in dashboard.widgets.all()
+                ],
+            }
+            for dashboard in registry_dashboards
+        ]
 
     def _get_whitelisted_file_extensions(self):
-        return [item.file_extension for item in WhitelistedFileExtension.objects.all()]
+        return [
+            item.file_extension
+            for item in WhitelistedFileExtension.objects.all()
+        ]
 
 
 def str_presenter(dumper, data):
@@ -743,9 +930,9 @@ def str_presenter(dumper, data):
         # and otherwise the dumper will use the quoted and escaped
         # string style.
         data = "\n".join(map(str.rstrip, lines))
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style="|")
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
     else:
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data)
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data)
 
 
 class ExportDumper(yaml.SafeDumper):
@@ -756,5 +943,6 @@ ExportDumper.add_representer(str, str_presenter)
 
 
 def dump_yaml(data):
-    return yaml.dump(data, Dumper=ExportDumper, allow_unicode=True,
-                     default_flow_style=False)
+    return yaml.dump(
+        data, Dumper=ExportDumper, allow_unicode=True, default_flow_style=False
+    )

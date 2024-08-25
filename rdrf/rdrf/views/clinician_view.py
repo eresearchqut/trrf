@@ -1,30 +1,30 @@
-from django.views.generic.base import View
-from django.shortcuts import get_object_or_404
-from django.http import Http404
-from django.template.context_processors import csrf
-from django.shortcuts import render
+import logging
+
 from django import forms
-from django.utils.translation import gettext_lazy as _
-from django.forms import ChoiceField
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import Group
 from django.contrib import messages
+from django.contrib.auth.models import Group
+from django.core.exceptions import ValidationError
 from django.db import transaction
-
-from registry.patients.models import Patient
-from registry.patients.models import ParentGuardian
-from registry.patients.models import ClinicianOther
+from django.forms import ChoiceField
+from django.http import Http404
+from django.shortcuts import get_object_or_404, render
+from django.template.context_processors import csrf
+from django.utils.translation import gettext_lazy as _
+from django.views.generic.base import View
 from registry.groups.models import CustomUser
+from registry.patients.models import ClinicianOther, ParentGuardian, Patient
 
+from rdrf.forms.components import (
+    RDRFContextLauncherComponent,
+    RDRFPatientInfoComponent,
+)
+from rdrf.forms.navigation.locators import PatientLocator
+from rdrf.forms.navigation.wizard import NavigationFormType, NavigationWizard
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.models.definition.models import Registry
 from rdrf.models.workflow_models import ClinicianSignupRequest
 from rdrf.security.security_checks import security_check_user_patient
-from rdrf.forms.components import RDRFContextLauncherComponent, RDRFPatientInfoComponent
-from rdrf.forms.navigation.locators import PatientLocator
-from rdrf.forms.navigation.wizard import NavigationWizard, NavigationFormType
-from rdrf.helpers.registry_features import RegistryFeatures
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -32,32 +32,31 @@ class ClinicianForm(forms.ModelForm):
     EMPTY_CHOICE = -1
     OTHER_CHOICE = -2
 
-    user = ChoiceField(label=_("Preferred Clinician"),
-                       choices=[])
+    user = ChoiceField(label=_("Preferred Clinician"), choices=[])
 
     class Meta:
         model = ClinicianOther
-        fields = ['user',
-                  'clinician_first_name',
-                  'clinician_last_name',
-                  'clinician_hospital',
-                  'clinician_address',
-                  'clinician_email',
-                  'clinician_phone_number',
-                  'patient',
-                  'speciality',
-                  'use_other',
-                  ]
+        fields = [
+            "user",
+            "clinician_first_name",
+            "clinician_last_name",
+            "clinician_hospital",
+            "clinician_address",
+            "clinician_email",
+            "clinician_phone_number",
+            "patient",
+            "speciality",
+            "use_other",
+        ]
 
-        widgets = {'patient': forms.HiddenInput(),
-                   'use_other': forms.HiddenInput()}
+        widgets = {
+            "patient": forms.HiddenInput(),
+            "use_other": forms.HiddenInput(),
+        }
 
     def __init__(
-            self,
-            registry_model,
-            initial={},
-            post_data=None,
-            instance=None):
+        self, registry_model, initial={}, post_data=None, instance=None
+    ):
         self.registry_model = registry_model
 
         if post_data:
@@ -77,8 +76,10 @@ class ClinicianForm(forms.ModelForm):
 
     def _get_clinician_choices(self):
         empty_choice = [self.EMPTY_CHOICE, "---"]
-        clinicians = [self._option_from_instance(clinician_user) for clinician_user in
-                      self._get_users_queryset(self.registry_model)]
+        clinicians = [
+            self._option_from_instance(clinician_user)
+            for clinician_user in self._get_users_queryset(self.registry_model)
+        ]
 
         clinicians.append([self.OTHER_CHOICE, _("Other - Not Listed")])
         clinicians.insert(0, empty_choice)
@@ -101,7 +102,10 @@ class ClinicianForm(forms.ModelForm):
 
         elif clinician_choice == self.EMPTY_CHOICE:
             raise ValidationError(
-                _("Please select existing clinician user or choose Other and enter details"))
+                _(
+                    "Please select existing clinician user or choose Other and enter details"
+                )
+            )
 
         else:
             try:
@@ -117,9 +121,9 @@ class ClinicianForm(forms.ModelForm):
         try:
             clinicians_group = Group.objects.get(name="Clinical Staff")
             return CustomUser.objects.filter(
-                registry__in=[
-                    self.registry_model],
-                groups__in=[clinicians_group])
+                registry__in=[self.registry_model],
+                groups__in=[clinicians_group],
+            )
         except Group.DoesNotExist:
             return CustomUser.objects.none()
 
@@ -128,21 +132,23 @@ class ClinicianForm(forms.ModelForm):
             working_group_names = clinician_user.working_groups.first().name
         else:
             working_group_names = ",".join(
-                [wg.name for wg in clinician_user.working_groups.all()])
+                [wg.name for wg in clinician_user.working_groups.all()]
+            )
 
-        option_string = "%s %s (%s)" % (clinician_user.first_name,
-                                        clinician_user.last_name,
-                                        working_group_names)
+        option_string = "%s %s (%s)" % (
+            clinician_user.first_name,
+            clinician_user.last_name,
+            working_group_names,
+        )
 
         return [clinician_user.pk, option_string]
 
 
 class ClinicianFormView(View):
     def _get_template(self):
-        return 'rdrf_cdes/clinician.html'
+        return "rdrf_cdes/clinician.html"
 
     def get(self, request, registry_code, patient_id):
-
         self._get_objects(request, registry_code, patient_id)
 
         context = self._build_context()
@@ -152,9 +158,9 @@ class ClinicianFormView(View):
     def _build_context(self):
         context = {
             "location": "Clinician",
-            'patient_link': PatientLocator(
-                self.registry_model,
-                self.patient_model).link,
+            "patient_link": PatientLocator(
+                self.registry_model, self.patient_model
+            ).link,
             "previous_form_link": self.wizard.previous_link,
             "next_form_link": self.wizard.next_link,
             "form_name": _("Supervising Clinician"),
@@ -163,18 +169,22 @@ class ClinicianFormView(View):
             "parent": self.parent,
             "form": self.clinician_form,
             "context_launcher": self.context_launcher.html,
-            "patient_info": RDRFPatientInfoComponent(self.registry_model, self.patient_model, self.request.user).html
+            "patient_info": RDRFPatientInfoComponent(
+                self.registry_model, self.patient_model, self.request.user
+            ).html,
         }
 
         return context
 
     def _get_navigation_wizard(self):
-        return NavigationWizard(self.request.user,
-                                self.registry_model,
-                                self.patient_model,
-                                NavigationFormType.CLINICIAN,
-                                None,
-                                None)
+        return NavigationWizard(
+            self.request.user,
+            self.registry_model,
+            self.patient_model,
+            NavigationFormType.CLINICIAN,
+            None,
+            None,
+        )
 
     def _render_context(self, request, context):
         context.update(csrf(request))
@@ -195,37 +205,44 @@ class ClinicianFormView(View):
         if not self.registry_model.has_feature(RegistryFeatures.CLINICIAN_FORM):
             raise Http404
 
-        self.patient_name = '%s %s' % (
-            self.patient_model.given_names, self.patient_model.family_name)
+        self.patient_name = "%s %s" % (
+            self.patient_model.given_names,
+            self.patient_model.family_name,
+        )
 
         try:
             logger.debug(request.POST)
             self.clinician_other_model = ClinicianOther.objects.get(
-                patient=self.patient_model)
+                patient=self.patient_model
+            )
         except ClinicianOther.DoesNotExist:
             self.clinician_other_model = None
 
         if request.method == "POST":
             if self.clinician_other_model is None:
-                self.clinician_form = ClinicianForm(self.registry_model,
-                                                    post_data=request.POST)
+                self.clinician_form = ClinicianForm(
+                    self.registry_model, post_data=request.POST
+                )
 
             else:
                 self.clinician_form = ClinicianForm(
                     self.registry_model,
                     post_data=request.POST,
-                    instance=self.clinician_other_model)
+                    instance=self.clinician_other_model,
+                )
         else:
             if self.clinician_other_model:
                 self.clinician_form = ClinicianForm(
-                    self.registry_model, instance=self.clinician_other_model)
+                    self.registry_model, instance=self.clinician_other_model
+                )
             else:
                 self.clinician_form = ClinicianForm(
-                    self.registry_model, initial={
-                        "patient": patient_id})
+                    self.registry_model, initial={"patient": patient_id}
+                )
 
         self.context_launcher = RDRFContextLauncherComponent(
-            self.user, self.registry_model, self.patient_model, "Clinician")
+            self.user, self.registry_model, self.patient_model, "Clinician"
+        )
 
         self.wizard = self._get_navigation_wizard()
 
@@ -236,27 +253,31 @@ class ClinicianFormView(View):
         if self.clinician_form.is_valid():
             other_clinician_model = self.clinician_form.save()
             if other_clinician_model.user:
-                other_clinician_model.patient.registered_clinicians.set([other_clinician_model.user])
+                other_clinician_model.patient.registered_clinicians.set(
+                    [other_clinician_model.user]
+                )
                 # hack to get allow the notification
                 other_clinician_model.patient.clinician_flag = True
                 other_clinician_model.patient.save()
 
             other_clinician_model.synchronise_working_group()
             self.clinician_form = ClinicianForm(
-                self.registry_model, instance=other_clinician_model)
-            success_message = _("Patient %(patient_name)s saved successfully") % {
-                "patient_name": self.patient_name}
-            messages.add_message(self.request,
-                                 messages.SUCCESS,
-                                 success_message)
+                self.registry_model, instance=other_clinician_model
+            )
+            success_message = _(
+                "Patient %(patient_name)s saved successfully"
+            ) % {"patient_name": self.patient_name}
+            messages.add_message(
+                self.request, messages.SUCCESS, success_message
+            )
         else:
             self.clinician_form = ClinicianForm(
-                self.registry_model, post_data=request.POST)
-            failure_message = _("Patient %(patient_name)s not saved due to validation errors") % {
-                "patient_name": self.patient_name}
-            messages.add_message(self.request,
-                                 messages.ERROR,
-                                 failure_message)
+                self.registry_model, post_data=request.POST
+            )
+            failure_message = _(
+                "Patient %(patient_name)s not saved due to validation errors"
+            ) % {"patient_name": self.patient_name}
+            messages.add_message(self.request, messages.ERROR, failure_message)
 
         context = self._build_context()
         return self._render_context(request, context)
@@ -277,7 +298,7 @@ class ClinicianActivationView(View):
 
         # populate the view data from the ClinicianOther model which stores
         # what the parent thinks is the correct data ...
-        if csr.state != 'requested':
+        if csr.state != "requested":
             raise Http404()
 
         template_data = self._build_context(csr)

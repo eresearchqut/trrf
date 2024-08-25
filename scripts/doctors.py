@@ -1,7 +1,8 @@
-from registry.patients.models import Doctor, State
-import sys
 import json
+import sys
+
 import django
+from registry.patients.models import Doctor, State
 
 django.setup()
 
@@ -24,7 +25,8 @@ class DoctorExporter(object):
                 d["state"] = {
                     "short_name": doctor.state.short_name,
                     "name": doctor.state.name,
-                    "country_code": doctor.state.country_code}
+                    "country_code": doctor.state.country_code,
+                }
             else:
                 d["state"] = None
 
@@ -51,7 +53,9 @@ class DoctorExporter(object):
             if d["state"]:
                 try:
                     s = d["state"]
-                    state, created = State.objects.get_or_create(short_name=s["short_name"])
+                    state, created = State.objects.get_or_create(
+                        short_name=s["short_name"]
+                    )
                     if created:
                         state.name = s["name"]
                         if s["name"] == "New Zealand":
@@ -63,7 +67,10 @@ class DoctorExporter(object):
 
                     doctor.state = state
                 except State.DoesNotExist:
-                    print("no state for doctor %s %s: state = %s" % (d["given_names"], d["family_name"], d["state"]))
+                    print(
+                        "no state for doctor %s %s: state = %s"
+                        % (d["given_names"], d["family_name"], d["state"])
+                    )
             doctor.save()
 
 

@@ -1,5 +1,6 @@
 import logging
 import re
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -11,15 +12,15 @@ class CalculatedFieldParseError(Exception):
 
 
 class CalculatedFieldParser(object):
-
     def __init__(
-            self,
-            registry,
-            registry_form,
-            section,
-            cde,
-            injected_model=None,
-            injected_model_id=None):
+        self,
+        registry,
+        registry_form,
+        section,
+        cde,
+        injected_model=None,
+        injected_model_id=None,
+    ):
         """
         A calculation is valid javascript like:
 
@@ -61,11 +62,15 @@ class CalculatedFieldParser(object):
         calculation_result = self.context_indicator + "." + self.result_name
         if calculation_result not in self.calculation:
             raise CalculatedFieldParseError(
-                "Calculation does not contain %s" % calculation_result)
+                "Calculation does not contain %s" % calculation_result
+            )
 
     def _parse_subjects(self, calculation):
-        return [code for code in re.findall(self.pattern, calculation)
-                if code != self.result_name]
+        return [
+            code
+            for code in re.findall(self.pattern, calculation)
+            if code != self.result_name
+        ]
 
     def _get_id_in_section(self, cde_code):
         """
@@ -73,8 +78,13 @@ class CalculatedFieldParser(object):
         :param cde_code:
         :return: in the section of the form this cde is in
         """
-        return self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
-            self.section.code + settings.FORM_SECTION_DELIMITER + cde_code
+        return (
+            self.registry_form.name
+            + settings.FORM_SECTION_DELIMITER
+            + self.section.code
+            + settings.FORM_SECTION_DELIMITER
+            + cde_code
+        )
 
     def _replace_cde_calc(self, old_code, calc):
         s = "context.%s" % old_code
@@ -89,16 +99,24 @@ class CalculatedFieldParser(object):
         return c
 
     def get_script(self):
-        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
-            self.section.code + settings.FORM_SECTION_DELIMITER
+        prefix = (
+            self.registry_form.name
+            + settings.FORM_SECTION_DELIMITER
+            + self.section.code
+            + settings.FORM_SECTION_DELIMITER
+        )
         observer_code = self.cde.code
         subject_codes_string = ",".join(self.subjects)  # e.g. CDE02,CDE05
         calculation_body = self.calculation
 
         # ergh - used to map context cde codes to
         # actual dom ids
-        prefix = self.registry_form.name + settings.FORM_SECTION_DELIMITER + \
-            self.section.code + settings.FORM_SECTION_DELIMITER
+        prefix = (
+            self.registry_form.name
+            + settings.FORM_SECTION_DELIMITER
+            + self.section.code
+            + settings.FORM_SECTION_DELIMITER
+        )
 
         function_parameter_list = "context"
 
@@ -107,14 +125,18 @@ class CalculatedFieldParser(object):
             # injected_model = self.injected_model
             injected_model = "patient"
             injected_model_id = self.injected_model_id
-            api_url = reverse(
-                'cde_query',
-                kwargs={
-                    "registry_code": self.registry.code,
-                    "patient_id": self.injected_model_id,
-                    "cde_code": self.cde.code
-                }
-            ) if self.injected_model_id else ""
+            api_url = (
+                reverse(
+                    "cde_query",
+                    kwargs={
+                        "registry_code": self.registry.code,
+                        "patient_id": self.injected_model_id,
+                        "cde_code": self.cde.code,
+                    },
+                )
+                if self.injected_model_id
+                else ""
+            )
         else:
             function_parameter_list = "context"
             injected_model = ""
@@ -139,6 +161,17 @@ class CalculatedFieldParser(object):
                     });
                 });
 
-            </script>""" % (prefix, observer_code, subject_codes_string, prefix, api_url, function_parameter_list, calculation_body, observer_code, injected_model, injected_model_id)
+            </script>""" % (
+            prefix,
+            observer_code,
+            subject_codes_string,
+            prefix,
+            api_url,
+            function_parameter_list,
+            calculation_body,
+            observer_code,
+            injected_model,
+            injected_model_id,
+        )
 
         return javascript

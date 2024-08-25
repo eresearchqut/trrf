@@ -5,14 +5,20 @@ from enum import Enum
 from functools import reduce
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser, UserManager, PermissionsMixin, Group
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    Group,
+    PermissionsMixin,
+    UserManager,
+)
 from django.core import validators
 from django.db import models
 from django.db.models import Q
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_string
-from django.utils.translation import gettext_lazy as _, get_language
+from django.utils.translation import get_language
+from django.utils.translation import gettext_lazy as _
 from registration.signals import user_activated
 from simple_history.models import HistoricalRecords
 
@@ -32,25 +38,35 @@ class WorkingGroupType(models.Model):
 
 
 class WorkingGroupTypeRule(models.Model):
-    type = models.ForeignKey(WorkingGroupType, on_delete=models.CASCADE, related_name='rules')
+    type = models.ForeignKey(
+        WorkingGroupType, on_delete=models.CASCADE, related_name="rules"
+    )
     user_group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    has_default_access = models.BooleanField(default=False,
-                                             help_text=_('Indicates whether the user group automatically has access to '
-                                                         'the working groups in this working group type'))
+    has_default_access = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Indicates whether the user group automatically has access to "
+            "the working groups in this working group type"
+        ),
+    )
 
 
 class WorkingGroupManager(models.Manager):
-    UNALLOCATED_GROUP_NAME = 'Unallocated'
+    UNALLOCATED_GROUP_NAME = "Unallocated"
 
     def get_unallocated(self, registry):
-        wg, _ = WorkingGroup.objects.get_or_create(name=self.UNALLOCATED_GROUP_NAME, registry=registry)
+        wg, _ = WorkingGroup.objects.get_or_create(
+            name=self.UNALLOCATED_GROUP_NAME, registry=registry
+        )
         return wg
 
     def get_by_user(self, user):
         if not user.is_superuser:
             filters = [Q(id__in=user.working_groups.all())]
 
-            wg_rules = WorkingGroupTypeRule.objects.filter(user_group__in=user.groups.all(), has_default_access=True)
+            wg_rules = WorkingGroupTypeRule.objects.filter(
+                user_group__in=user.groups.all(), has_default_access=True
+            )
             for rule in wg_rules:
                 filters.append(Q(id__in=rule.type.working_groups.all()))
 
@@ -67,12 +83,18 @@ class WorkingGroup(models.Model):
     objects = WorkingGroupManager()
 
     name = models.CharField(max_length=100)
-    type = models.ForeignKey(WorkingGroupType, null=True, blank=True, on_delete=models.SET_NULL, related_name='working_groups')
+    type = models.ForeignKey(
+        WorkingGroupType,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="working_groups",
+    )
     registry = models.ForeignKey(Registry, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ["registry__code", "type__name", "name"]
-        unique_together = ['registry', 'name']
+        unique_together = ["registry", "name"]
 
     def __str__(self):
         if self.registry:
@@ -90,32 +112,43 @@ class WorkingGroup(models.Model):
 
 class CustomUserManager(UserManager):
     def get_by_natural_key(self, username):
-        return self.get(**{f'{self.model.USERNAME_FIELD}__iexact': username})
+        return self.get(**{f"{self.model.USERNAME_FIELD}__iexact": username})
 
     def get_by_user(self, staff_user):
         if staff_user.is_superuser:
             return self.all()
 
         if staff_user.is_staff:
-
-            or_filters = [Q(working_groups__in=staff_user.working_groups.all()),
-                          Q(working_groups__isnull=True)]
+            or_filters = [
+                Q(working_groups__in=staff_user.working_groups.all()),
+                Q(working_groups__isnull=True),
+            ]
 
             if staff_user.is_clinician:
                 # Clinicians have special logic that potentially grants them access to users
                 # outside their working groups
                 from registry.patients.models import Patient
-                patients_per_registry = [Patient.objects.get_by_clinician(staff_user, registry)
-                                         for registry in staff_user.registry.all()]
 
-                or_filters.extend([Q(user_object__in=patients) for patients in patients_per_registry])
+                patients_per_registry = [
+                    Patient.objects.get_by_clinician(staff_user, registry)
+                    for registry in staff_user.registry.all()
+                ]
+
+                or_filters.extend(
+                    [
+                        Q(user_object__in=patients)
+                        for patients in patients_per_registry
+                    ]
+                )
 
             # Get users within the same working groups and registries, as long as they aren't superusers
             query = reduce(lambda a, b: a | b, or_filters)
-            return self.filter(query) \
-                       .filter(registry__in=staff_user.registry.all()) \
-                       .filter(is_superuser=False) \
-                       .distinct()
+            return (
+                self.filter(query)
+                .filter(registry__in=staff_user.registry.all())
+                .filter(is_superuser=False)
+                .distinct()
+            )
 
         else:
             return None
@@ -133,46 +166,80 @@ class UserFormPermission(Enum):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
-        _('username'),
+        _("username"),
         max_length=254,
         unique=True,
-        help_text=_('Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters'),
+        help_text=_(
+            "Required. 254 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+        ),
         validators=[
             validators.RegexValidator(
-                re.compile(r'^[\w.@+-]+$'),
-                _('Enter a valid username.'),
-                _('invalid'))])
-    first_name = models.CharField(_('first name'), max_length=30)
-    last_name = models.CharField(_('last name'), max_length=30)
-    email = models.EmailField(_('email address'), max_length=254)
-    is_staff = models.BooleanField(_('staff status'), default=False, help_text=_(
-        'Designates that this user has elevated patient management permissions.'))
-    is_active = models.BooleanField(_('active'), default=False, help_text=_(
-        'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+                re.compile(r"^[\w.@+-]+$"),
+                _("Enter a valid username."),
+                _("invalid"),
+            )
+        ],
+    )
+    first_name = models.CharField(_("first name"), max_length=30)
+    last_name = models.CharField(_("last name"), max_length=30)
+    email = models.EmailField(_("email address"), max_length=254)
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates that this user has elevated patient management permissions."
+        ),
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=False,
+        help_text=_(
+            "Designates whether this user should be treated as active. Unselect this instead of deleting accounts."
+        ),
+    )
     require_2_fact_auth = models.BooleanField(
-        _('require two-factor authentication'),
+        _("require two-factor authentication"),
         default=False,
-        help_text=_('Requires this user to use two factor authentication to access the system.'))
+        help_text=_(
+            "Requires this user to use two factor authentication to access the system."
+        ),
+    )
     force_password_change = models.BooleanField(
-        _('force password change'),
+        _("force password change"),
         default=False,
-        help_text=_('Force this user to change their password to access the system.'))
-    prevent_self_unlock = models.BooleanField(_('prevent self unlock'), default=False, help_text=_(
-        'Explicitly prevent this user to unlock their account using the Unlock Account functionality.'))
+        help_text=_(
+            "Force this user to change their password to access the system."
+        ),
+    )
+    prevent_self_unlock = models.BooleanField(
+        _("prevent self unlock"),
+        default=False,
+        help_text=_(
+            "Explicitly prevent this user to unlock their account using the Unlock Account functionality."
+        ),
+    )
 
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     working_groups = models.ManyToManyField(
-        WorkingGroup, blank=True, related_name='working_groups')
-    title = models.CharField(max_length=50, null=True, blank=True, verbose_name="position")
-    registry = models.ManyToManyField(Registry, blank=True, related_name='registry')
+        WorkingGroup, blank=True, related_name="working_groups"
+    )
+    title = models.CharField(
+        max_length=50, null=True, blank=True, verbose_name="position"
+    )
+    registry = models.ManyToManyField(
+        Registry, blank=True, related_name="registry"
+    )
     password_change_date = models.DateTimeField(auto_now_add=True, null=True)
     preferred_language = models.CharField(
         _("preferred language"),
         max_length=20,
         default="en",
-        help_text=_("Preferred language (code) for communications"))
-    ethically_cleared = models.BooleanField(null=False, blank=False, default=False)
+        help_text=_("Preferred language (code) for communications"),
+    )
+    ethically_cleared = models.BooleanField(
+        null=False, blank=False, default=False
+    )
 
     USERNAME_FIELD = "username"
 
@@ -188,13 +255,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return self.registry.first()
 
     def get_full_name(self):
-        full_name = f'{self.first_name} {self.last_name}'
+        full_name = f"{self.first_name} {self.last_name}"
 
         if self.is_parent:
             from registry.patients.models import ParentGuardian
+
             parent = ParentGuardian.objects.filter(user=self).first()
             if parent:
-                full_name = f'{parent.first_name} {parent.last_name}'
+                full_name = f"{parent.first_name} {parent.last_name}"
 
         return full_name.strip()
 
@@ -226,15 +294,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     @property
     def notices(self):
         from rdrf.models.definition.models import Notification
+
         return Notification.objects.filter(
-            to_username=self.username,
-            seen=False).order_by("-created")
+            to_username=self.username, seen=False
+        ).order_by("-created")
 
     def in_registry(self, registry_model):
         return self.registry.filter(pk=registry_model.pk).exists()
 
     def in_group(self, *names):
-        return self.groups.filter(reduce(operator.or_, ((Q(name__iexact=name) for name in names)))).exists()
+        return self.groups.filter(
+            reduce(operator.or_, ((Q(name__iexact=name) for name in names)))
+        ).exists()
 
     @property
     def is_patient(self):
@@ -254,7 +325,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_patient_or_delegate(self):
-        return self.in_group(RDRF_GROUPS.PATIENT, RDRF_GROUPS.PARENT, RDRF_GROUPS.CARRIER, RDRF_GROUPS.CARER)
+        return self.in_group(
+            RDRF_GROUPS.PATIENT,
+            RDRF_GROUPS.PARENT,
+            RDRF_GROUPS.CARRIER,
+            RDRF_GROUPS.CARER,
+        )
 
     @property
     def is_clinician(self):
@@ -278,9 +354,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
         if self.is_parent:
             if self.dashboards:
-                return reverse('parent_dashboard_list')
+                return reverse("parent_dashboard_list")
             elif self.registry_code:
-                return reverse("registry:parent_page", args=[self.registry_code])
+                return reverse(
+                    "registry:parent_page", args=[self.registry_code]
+                )
             else:
                 return reverse("landing")
 
@@ -289,13 +367,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             registry = self.registry.first()
             if patient and registry:
                 if consent_check(registry, self, patient, "see_patient"):
-                    return reverse("registry:patient_page", args=[registry.code])
+                    return reverse(
+                        "registry:patient_page", args=[registry.code]
+                    )
                 else:
-                    return reverse("consent_form_view", args=[registry.code, patient.id])
+                    return reverse(
+                        "consent_form_view", args=[registry.code, patient.id]
+                    )
             else:
                 return reverse("landing")
 
-        return reverse('patientslisting')
+        return reverse("patientslisting")
 
     @property
     def patient(self):
@@ -333,6 +415,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def add_group(self, group_name):
         from django.contrib.auth.models import Group
+
         existing_groups = [g.name for g in self.groups.all()]
         if group_name not in existing_groups:
             group, __ = Group.objects.get_or_create(name=group_name)
@@ -348,10 +431,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return UserFormPermission.NOT_IN_REGISTRY
 
         if not registry_form_model.open:
-            if not registry_form_model.groups_allowed.filter(id__in=self.groups.all().values_list('id')).exists():
+            if not registry_form_model.groups_allowed.filter(
+                id__in=self.groups.all().values_list("id")
+            ).exists():
                 return UserFormPermission.GROUP_NOT_ALLOWED
 
-        if self.is_patient_or_delegate and form_registry.has_feature(RegistryFeatures.HIDE_UNTRANSLATED_FORMS):
+        if self.is_patient_or_delegate and form_registry.has_feature(
+            RegistryFeatures.HIDE_UNTRANSLATED_FORMS
+        ):
             user_language = get_language()
             if not registry_form_model.has_translation(user_language):
                 return UserFormPermission.FORM_NOT_TRANSLATED
@@ -362,14 +449,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.get_form_permission(registry_form_model).can_view()
 
     def is_readonly(self, registry_form_model):
-        return any(group in registry_form_model.groups_readonly.all() for group in self.groups.all())
+        return any(
+            group in registry_form_model.groups_readonly.all()
+            for group in self.groups.all()
+        )
 
     def set_password(self, raw_password):
         super().set_password(raw_password)
         self.force_password_change = False
 
     def _load_quick_links(self):
-        valid_setting = hasattr(settings, 'QUICKLINKS_CLASS')
+        valid_setting = hasattr(settings, "QUICKLINKS_CLASS")
         if not valid_setting:
             logger.error("QUICKLINKS_CLASS setting is not configured !")
             return None
@@ -388,7 +478,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         if self.is_superuser:
             links = qlinks.menu_links([RDRF_GROUPS.SUPER_USER])
         else:
-            links = qlinks.menu_links([group.name for group in self.groups.all()])
+            links = qlinks.menu_links(
+                [group.name for group in self.groups.all()]
+            )
 
         return links
 
@@ -418,10 +510,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 @receiver(user_activated)
 def user_activated_callback(sender, user, request, **kwargs):
-    from rdrf.services.io.notifications.email_notification import process_notification
     from rdrf.events.events import EventType
-    from registry.patients.models import Patient
-    from registry.patients.models import ParentGuardian
+    from rdrf.services.io.notifications.email_notification import (
+        process_notification,
+    )
+    from registry.patients.models import ParentGuardian, Patient
 
     parent = patient = None
     email_notification_description = EventType.ACCOUNT_VERIFIED
@@ -447,14 +540,14 @@ def user_activated_callback(sender, user, request, **kwargs):
 
     for registry_model in user.registry.all():
         registry_code = registry_model.code
-        process_notification(registry_code,
-                             email_notification_description,
-                             template_data)
+        process_notification(
+            registry_code, email_notification_description, template_data
+        )
 
 
 class EmailChangeRequestStatus:
-    PENDING = 'Pending'
-    COMPLETED = 'Completed'
+    PENDING = "Pending"
+    COMPLETED = "Completed"
 
     CHOICES = (
         (PENDING, _(PENDING)),
@@ -465,13 +558,18 @@ class EmailChangeRequestStatus:
 class EmailChangeRequest(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     current_username = models.CharField(max_length=254)
-    current_user_email = models.EmailField(_('current email address'), max_length=254)
-    current_patient_email = models.EmailField(_('current email address'), max_length=254, null=True)
-    new_email = models.EmailField(_('new email address'), max_length=254)
+    current_user_email = models.EmailField(
+        _("current email address"), max_length=254
+    )
+    current_patient_email = models.EmailField(
+        _("current email address"), max_length=254, null=True
+    )
+    new_email = models.EmailField(_("new email address"), max_length=254)
     request_date = models.DateTimeField(auto_now_add=True, null=True)
     status = models.CharField(
         choices=EmailChangeRequestStatus.CHOICES,
         max_length=80,
-        default=EmailChangeRequestStatus.PENDING)
+        default=EmailChangeRequestStatus.PENDING,
+    )
 
     history = HistoricalRecords()

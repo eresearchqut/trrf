@@ -1,12 +1,11 @@
 import logging
 
-from django.template import loader, Context
+from django.template import Context, loader
 from django.urls import reverse
 from django.utils.formats import date_format
 
 from rdrf.forms.components import FormGroupButton
 from rdrf.helpers.registry_features import RegistryFeatures
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +25,24 @@ class Column(object):
         self.order = order
         self.user_can_see = user.has_perm(self.perm)
 
-    def cell(self, patient, supports_contexts=False,
-             form_progress=None, context_manager=None):
+    def cell(
+        self,
+        patient,
+        supports_contexts=False,
+        form_progress=None,
+        context_manager=None,
+    ):
         if "__" in self.field:
             patient_field, related_object_field = self.field.split("__")
             related_object = getattr(patient, patient_field)
-            if related_object.__class__.__name__ == 'ManyRelatedManager':
-                return ', '.join(list(related_object.values_list(related_object_field, flat=True)))
+            if related_object.__class__.__name__ == "ManyRelatedManager":
+                return ", ".join(
+                    list(
+                        related_object.values_list(
+                            related_object_field, flat=True
+                        )
+                    )
+                )
 
             if related_object is not None:
                 related_value = getattr(related_object, related_object_field)
@@ -65,11 +75,21 @@ class ColumnFullName(Column):
             return "<span>%d %s</span>"
 
         # cache reversed url because urlroute searches are slow
-        base_url = reverse("patient_edit", kwargs={"registry_code": registry.code,
-                                                   "patient_id": 0})
-        self.link_template = '<a href="%s">%%s</a>' % (base_url.replace("/0", "/%d"))
+        base_url = reverse(
+            "patient_edit",
+            kwargs={"registry_code": registry.code, "patient_id": 0},
+        )
+        self.link_template = '<a href="%s">%%s</a>' % (
+            base_url.replace("/0", "/%d")
+        )
 
-    def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
+    def cell(
+        self,
+        patient,
+        supports_contexts=False,
+        form_progress=None,
+        context_manager=None,
+    ):
         return self.link_template % (patient.id, patient.display_name)
 
 
@@ -82,20 +102,32 @@ class ColumnDateOfBirth(Column):
 
 
 class ColumnCodeField(Column):
-    field = 'code_field'
-    sort_fields = ['sex', 'patient_type']
+    field = "code_field"
+    sort_fields = ["sex", "patient_type"]
 
 
 class ColumnOptionalContext(Column):
     sort_fields = []
 
-    def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
-        return self.cell_optional_contexts(patient, form_progress, context_manager)
+    def cell(
+        self,
+        patient,
+        supports_contexts=False,
+        form_progress=None,
+        context_manager=None,
+    ):
+        return self.cell_optional_contexts(
+            patient, form_progress, context_manager
+        )
 
     def fmt(self, val):
-        return self.icon(None) if val is None else self.fmt_optional_contexts(val)
+        return (
+            self.icon(None) if val is None else self.fmt_optional_contexts(val)
+        )
 
-    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
+    def cell_optional_contexts(
+        self, patient, form_progress=None, context_manager=None
+    ):
         pass
 
     def fmt_optional_contexts(self, val):
@@ -116,14 +148,24 @@ class ColumnWorkingGroups(Column):
 class ColumnDiagnosisProgress(ColumnOptionalContext):
     field = "diagnosis_progress"
 
-    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
-        default_ctx = context_manager.get_or_create_default_context(patient) if context_manager else None
-        return form_progress.get_group_progress("diagnosis", patient, default_ctx)
+    def cell_optional_contexts(
+        self, patient, form_progress=None, context_manager=None
+    ):
+        default_ctx = (
+            context_manager.get_or_create_default_context(patient)
+            if context_manager
+            else None
+        )
+        return form_progress.get_group_progress(
+            "diagnosis", patient, default_ctx
+        )
 
     def fmt_optional_contexts(self, progress_number):
-        template = "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'" \
-                   " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>" \
-                   "<span class='progress-label'>%s%%</span></div></div>"
+        template = (
+            "<div class='progress'><div class='progress-bar progress-bar-custom' role='progressbar'"
+            " aria-valuenow='%s' aria-valuemin='0' aria-valuemax='100' style='width: %s%%'>"
+            "<span class='progress-label'>%s%%</span></div></div>"
+        )
         return template % (progress_number, progress_number, progress_number)
 
 
@@ -131,9 +173,17 @@ class ColumnDiagnosisCurrency(ColumnOptionalContext):
     field = "diagnosis_currency"
     sort_fields = ["last_updated_overall_at"]
 
-    def cell_optional_contexts(self, patient, form_progress=None, context_manager=None):
-        default_ctx = context_manager.get_or_create_default_context(patient) if context_manager else None
-        return form_progress.get_group_currency("diagnosis", patient, default_ctx)
+    def cell_optional_contexts(
+        self, patient, form_progress=None, context_manager=None
+    ):
+        default_ctx = (
+            context_manager.get_or_create_default_context(patient)
+            if context_manager
+            else None
+        )
+        return form_progress.get_group_currency(
+            "diagnosis", patient, default_ctx
+        )
 
     def fmt_optional_contexts(self, diagnosis_currency):
         return self.icon(diagnosis_currency)
@@ -162,43 +212,67 @@ class ColumnContextMenu(Column):
 
     def configure(self, registry, user, order):
         super(ColumnContextMenu, self).configure(registry, user, order)
-        self.registry_has_context_form_groups = registry.has_groups if registry else False
+        self.registry_has_context_form_groups = (
+            registry.has_groups if registry else False
+        )
 
         if registry:
             # fixme: slow, do intersection instead
             self.free_forms = list(filter(user.can_view, registry.free_forms))
-            self.fixed_form_groups = [group for group in registry.fixed_form_groups
-                                      if self._has_visible_forms(user, group)]
-            self.multiple_form_groups = [group for group in registry.multiple_form_groups
-                                         if self._has_visible_forms(user, group)]
+            self.fixed_form_groups = [
+                group
+                for group in registry.fixed_form_groups
+                if self._has_visible_forms(user, group)
+            ]
+            self.multiple_form_groups = [
+                group
+                for group in registry.multiple_form_groups
+                if self._has_visible_forms(user, group)
+            ]
 
-    def cell(self, patient, supports_contexts=False, form_progress=None, context_manager=None):
+    def cell(
+        self,
+        patient,
+        supports_contexts=False,
+        form_progress=None,
+        context_manager=None,
+    ):
         return " ".join(self._get_forms_buttons(patient))
 
-    def _get_forms_buttons(self, patient, form_progress=None, context_manager=None):
+    def _get_forms_buttons(
+        self, patient, form_progress=None, context_manager=None
+    ):
         if not self.registry_has_context_form_groups:
             # if there are no context groups -normal registry
             return [self._get_forms_button(patient, None, self.free_forms)]
         else:
-
-            if len(self.fixed_form_groups) == 0 and len(self.multiple_form_groups) == 0:
+            if (
+                len(self.fixed_form_groups) == 0
+                and len(self.multiple_form_groups) == 0
+            ):
                 return ["None"]
 
             # display one button per form group
             buttons = []
             for fixed_form_group in self.fixed_form_groups:
-                buttons.append(self._get_forms_button(patient,
-                                                      fixed_form_group,
-                                                      fixed_form_group.forms))
+                buttons.append(
+                    self._get_forms_button(
+                        patient, fixed_form_group, fixed_form_group.forms
+                    )
+                )
 
             for multiple_form_group in self.multiple_form_groups:
-                buttons.append(self._get_forms_button(patient,
-                                                      multiple_form_group,
-                                                      multiple_form_group.forms))
+                buttons.append(
+                    self._get_forms_button(
+                        patient, multiple_form_group, multiple_form_group.forms
+                    )
+                )
             return buttons
 
     def _get_forms_button(self, patient_model, context_form_group, forms):
-        button = FormGroupButton(self.registry, self.user, patient_model, context_form_group)
+        button = FormGroupButton(
+            self.registry, self.user, patient_model, context_form_group
+        )
         return button.html
 
 
@@ -211,12 +285,16 @@ class ColumnDateLastUpdated(Column):
 
 
 class ColumnActionsMenu(Column):
-    TEMPLATE = 'rdrf_cdes/patient_listing_actions.html'
+    TEMPLATE = "rdrf_cdes/patient_listing_actions.html"
 
     def _template_data(self, patient):
-        return {'patient': patient,
-                'archive_patient_url': patient.get_archive_url(self.registry) if self.user.can_archive else '',
-                'not_linked': not patient.is_linked}
+        return {
+            "patient": patient,
+            "archive_patient_url": patient.get_archive_url(self.registry)
+            if self.user.can_archive
+            else "",
+            "not_linked": not patient.is_linked,
+        }
 
     def fmt(self, val):
         template = loader.get_template(self.TEMPLATE)
@@ -224,6 +302,11 @@ class ColumnActionsMenu(Column):
         context = Context(data)
         return template.render(context.flatten())
 
-    def cell(self, patient, supports_contexts=False,
-             form_progress=None, context_manager=None):
+    def cell(
+        self,
+        patient,
+        supports_contexts=False,
+        form_progress=None,
+        context_manager=None,
+    ):
         return patient

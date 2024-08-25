@@ -1,11 +1,15 @@
 from functools import wraps
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.decorators import user_passes_test as django_user_passes_test
+from django.contrib.auth.decorators import (
+    user_passes_test as django_user_passes_test,
+)
 from django.core.exceptions import PermissionDenied
 
 
-def user_passes_test(test_func, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME):
+def user_passes_test(
+    test_func, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME
+):
     """
     Decorator for views that ensures a view can be view only if the user passes the given test.
     Works slightly different than the Django one in raising PermissionDenied if the user is
@@ -26,11 +30,17 @@ def user_passes_test(test_func, login_url=None, redirect_field_name=REDIRECT_FIE
 
         return _wrapped_view
 
-    return lambda view: decorator(django_user_passes_test(test_func, login_url, redirect_field_name)(view))
+    return lambda view: decorator(
+        django_user_passes_test(test_func, login_url, redirect_field_name)(view)
+    )
 
 
 def _make_decorator(test_func):
-    def decorator(view_function=None, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME):
+    def decorator(
+        view_function=None,
+        login_url=None,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+    ):
         actual_decorator = user_passes_test(
             test_func,
             login_url=login_url,

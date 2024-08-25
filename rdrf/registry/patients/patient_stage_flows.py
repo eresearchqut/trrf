@@ -1,13 +1,11 @@
 import logging
 
 from rdrf.helpers.registry_features import RegistryFeatures
-
 from rdrf.models.definition.models import ConsentSection
 from registry.patients.models import ConsentValue
 
 from .constants import PatientState
 from .models import PatientStageRule
-
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +22,18 @@ def is_patient_registered(registry, patient):
 
 
 def did_patient_provided_all_consent(registry, patient):
-    consent_questions = [q for sec in ConsentSection.objects.filter(registry=registry) if sec.applicable_to(patient) for q in sec.questions.all()]
+    consent_questions = [
+        q
+        for sec in ConsentSection.objects.filter(registry=registry)
+        if sec.applicable_to(patient)
+        for q in sec.questions.all()
+    ]
 
     def consent_answer(question):
         try:
-            return ConsentValue.objects.get(patient=patient, consent_question=question).answer
+            return ConsentValue.objects.get(
+                patient=patient, consent_question=question
+            ).answer
         except ConsentValue.DoesNotExist:
             return False
 
@@ -53,11 +58,19 @@ class PatientStageFlow:
         return self.CONDITION_HANDLERS[condition](self.registry, patient)
 
     def handle(self, patient):
-        for rule in PatientStageRule.objects.filter(from_stage=patient.stage, registry=self.registry).order_by('order').all():
+        for rule in (
+            PatientStageRule.objects.filter(
+                from_stage=patient.stage, registry=self.registry
+            )
+            .order_by("order")
+            .all()
+        ):
             if self.evaluate_condition(patient, rule.condition):
-                logger.info(f"Moving patient {patient.pk} in registry {self.registry} "
-                            f"from stage {rule.from_stage} to {rule.to_stage} "
-                            f"based on rule {rule.condition}")
+                logger.info(
+                    f"Moving patient {patient.pk} in registry {self.registry} "
+                    f"from stage {rule.from_stage} to {rule.to_stage} "
+                    f"based on rule {rule.condition}"
+                )
                 patient.stage = rule.to_stage
                 patient.save()
                 return True

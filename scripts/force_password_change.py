@@ -4,10 +4,10 @@ import argparse
 import sys
 
 import django
+
 django.setup()
 
 from registry.groups.models import CustomUser  # noqa: E402
-
 
 DESCRIPTION = """
 Force users to change their password on next login.
@@ -36,16 +36,26 @@ $ force_password_change.py --except admin bobby@example.com
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=DESCRIPTION,
-    epilog=USAGE)
+    epilog=USAGE,
+)
 parser.add_argument(
-    '--users', type=str, nargs='*', metavar='username',
-    help='Usernames of users who will be forced to change their password')
+    "--users",
+    type=str,
+    nargs="*",
+    metavar="username",
+    help="Usernames of users who will be forced to change their password",
+)
 parser.add_argument(
-    '--except', type=str, nargs='*', dest='except_users', metavar='username',
-    help='Usernames to exclude - ALL users BUT these will be forced to change their password')
+    "--except",
+    type=str,
+    nargs="*",
+    dest="except_users",
+    metavar="username",
+    help="Usernames to exclude - ALL users BUT these will be forced to change their password",
+)
 parser.add_argument(
-    '--verbosity', '-v', action='count', default=0,
-    help='Verbosity level')
+    "--verbosity", "-v", action="count", default=0, help="Verbosity level"
+)
 
 
 def force_password_change(args):
@@ -62,11 +72,17 @@ def force_password_change(args):
         users = CustomUser.objects.all()
 
     user_count = users.count()
-    print_message(f"Forcing password change for {user_count} users", verbosity=1)
+    print_message(
+        f"Forcing password change for {user_count} users", verbosity=1
+    )
     not_forced = [u for u in users.filter(force_password_change=False)]
-    updated_count = CustomUser.objects.filter(pk__in=(u.pk for u in not_forced)).update(force_password_change=True)
+    updated_count = CustomUser.objects.filter(
+        pk__in=(u.pk for u in not_forced)
+    ).update(force_password_change=True)
     if updated_count < user_count:
-        print_message(f"Updated {updated_count} of {user_count} users ({user_count - updated_count} were already set up correctly).")
+        print_message(
+            f"Updated {updated_count} of {user_count} users ({user_count - updated_count} were already set up correctly)."
+        )
     else:
         print_message(f"Updated {updated_count} users.")
     if not_forced:
@@ -78,8 +94,9 @@ def message_printer(requested_verbosity):
     def print_message(msg, verbosity=1):
         if verbosity <= requested_verbosity:
             print(msg)
+
     return print_message
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     force_password_change(parser.parse_args())

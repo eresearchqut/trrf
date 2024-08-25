@@ -1,8 +1,9 @@
+import logging
+
 from django import template
 from django.utils.translation import gettext as _
 
 from rdrf.models.definition.models import ConsentSection
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ def get_info_text_expression(fields):
 
         consent_section_model_pk = consent_field.split("_")[2]
         try:
-            consent_section_model = ConsentSection.objects.get(pk=consent_section_model_pk)
+            consent_section_model = ConsentSection.objects.get(
+                pk=consent_section_model_pk
+            )
             if consent_section_model.information_text:
                 return _(consent_section_model.information_text)
 

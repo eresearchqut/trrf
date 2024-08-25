@@ -1,27 +1,27 @@
 import logging
 
+from .parse_operations import BooleanOp, Condition, parse_dsl, transform_tree
 from .parse_utils import CDEHelper, SectionHelper
-from .parse_operations import parse_dsl, transform_tree, Condition, BooleanOp
-
 
 logger = logging.getLogger(__name__)
 
 
 class CDE:
-
     def __init__(self, enriched_cde):
         self.cde = enriched_cde
 
     @staticmethod
     def multi_section_handler(cde_info):
-        return f'''
+        return f"""
             for (idx = 0; idx < total_forms_count("{cde_info.formset_prefix}"); idx ++) {{
                 add_change_handler(get_cde_name("{cde_info.name}", idx));
             }}
-        '''
+        """
 
     def simple_change_handler(self):
-        return f'add_change_handler(get_cde_name("{self.cde.element_name()}", 0));'
+        return (
+            f'add_change_handler(get_cde_name("{self.cde.element_name()}", 0));'
+        )
 
     def change_handler(self):
         """
@@ -29,25 +29,30 @@ class CDE:
         """
         cde_info = self.cde.get_cde_info()
         return (
-            self.multi_section_handler(cde_info) if cde_info.is_multi_section else self.simple_change_handler()
+            self.multi_section_handler(cde_info)
+            if cde_info.is_multi_section
+            else self.simple_change_handler()
         )
 
 
 class ConditionGenerator:
-
     @staticmethod
-    def generate_simple_condition(condition, action_assignments, inverse_action_assignments):
-        return f'''
+    def generate_simple_condition(
+        condition, action_assignments, inverse_action_assignments
+    ):
+        return f"""
             if ({condition}) {{
                 {action_assignments}
             }} else {{
                 {inverse_action_assignments}
-            }}'''
+            }}"""
 
     @staticmethod
-    def generate_multi_section_condition(condition, action_assignments, inverse_action_assignments):
+    def generate_multi_section_condition(
+        condition, action_assignments, inverse_action_assignments
+    ):
         cde_info = condition.cde.get_cde_info()
-        return f'''
+        return f"""
             for (var idx = 0; idx < total_forms_count("{cde_info.formset_prefix}"); idx ++) {{
                 var name = get_cde_name("{cde_info.name}", idx);
                 if (test_cde_value(name, '{cde_info.name}', '{condition.operator}', '{condition.actual_value}')) {{
@@ -55,11 +60,10 @@ class ConditionGenerator:
                 }} else {{
                     {inverse_action_assignments}
                 }}
-            }}'''
+            }}"""
 
 
 class Instruction:
-
     def __init__(self, inst_list, cde_helper):
         self.target, self.action, *self.conditions = inst_list
         self.multiple_conditions = len(self.conditions) > 1
@@ -71,8 +75,12 @@ class Instruction:
         the visibility rules
         """
 
-        def visibility_map_entry(cde_info, action, is_inverse=False, condition_is_multiple=False):
-            final_action = action.action if not is_inverse else action.inverse_action
+        def visibility_map_entry(
+            cde_info, action, is_inverse=False, condition_is_multiple=False
+        ):
+            final_action = (
+                action.action if not is_inverse else action.inverse_action
+            )
             if cde_info.is_multi_section and condition_is_multiple:
                 return f'visibility_map_update(visibility_map, get_cde_name("{cde_info.name}", idx), "{final_action}");'
 
@@ -82,19 +90,23 @@ class Instruction:
         is_section = self.target.has_qualifier
         actions = [
             visibility_map_entry(
-                target.get_section_info() if is_section else target.get_cde_info(),
+                target.get_section_info()
+                if is_section
+                else target.get_cde_info(),
                 self.action,
                 False,
-                is_multi_section
+                is_multi_section,
             )
             for target in self.target.target_cdes
         ]
         inverse_actions = [
             visibility_map_entry(
-                target.get_section_info() if is_section else target.get_cde_info(),
+                target.get_section_info()
+                if is_section
+                else target.get_cde_info(),
                 self.action,
                 True,
-                is_multi_section
+                is_multi_section,
             )
             for target in self.target.target_cdes
         ]
@@ -104,7 +116,9 @@ class Instruction:
         condition = self.conditions[0]
         cde_info = condition.cde.get_cde_info()
 
-        action_assignments, inverse_action_assignments = self.generate_visibility_assignments(cde_info.is_multi_section)
+        action_assignments, inverse_action_assignments = (
+            self.generate_visibility_assignments(cde_info.is_multi_section)
+        )
 
         if cde_info.is_multi_section:
             return ConditionGenerator.generate_multi_section_condition(
@@ -112,14 +126,21 @@ class Instruction:
             )
         else:
             return ConditionGenerator.generate_simple_condition(
-                condition.simple_condition_text(), action_assignments, inverse_action_assignments
+                condition.simple_condition_text(),
+                action_assignments,
+                inverse_action_assignments,
             )
 
     def multiple_condition_assignments(self):
-
-        def multi_section_handler(cond, action_assignments, inverse_action_assignments):
+        def multi_section_handler(
+            cond, action_assignments, inverse_action_assignments
+        ):
             conditions = [c for c in cond if isinstance(c, Condition)]
-            boolean_ops = ['"' + op.to_js() + '"' for op in cond if isinstance(op, BooleanOp)]
+            boolean_ops = [
+                '"' + op.to_js() + '"'
+                for op in cond
+                if isinstance(op, BooleanOp)
+            ]
             computation = []
             for c in conditions:
                 cde = c.cde
@@ -128,7 +149,7 @@ class Instruction:
                 )
 
             computations = "\n".join(computation)
-            return f'''
+            return f"""
                 var results = [];
                 var boolean_ops =[{",".join(boolean_ops)}];
                 {computations}
@@ -137,37 +158,55 @@ class Instruction:
                 }} else {{
                     {inverse_action_assignments}
                 }}
-            '''
+            """
 
         has_multi_section = any(
-            [c for c in self.conditions if isinstance(c, Condition) and c.cde.is_multi_section()]
+            [
+                c
+                for c in self.conditions
+                if isinstance(c, Condition) and c.cde.is_multi_section()
+            ]
         )
 
-        action_assignments, inverse_action_assignments = self.generate_visibility_assignments(has_multi_section)
+        action_assignments, inverse_action_assignments = (
+            self.generate_visibility_assignments(has_multi_section)
+        )
 
         if has_multi_section:
-            cde_infos = [c.cde.get_cde_info() for c in self.conditions if isinstance(c, Condition)]
+            cde_infos = [
+                c.cde.get_cde_info()
+                for c in self.conditions
+                if isinstance(c, Condition)
+            ]
             multi_cde_info = [c for c in cde_infos if c.is_multi_section][0]
-            return f'''
+            return f"""
                 var result = true;
                 for (var idx = 0; idx < total_forms_count("{multi_cde_info.formset_prefix}"); idx ++) {{
                     {multi_section_handler(self.conditions, action_assignments, inverse_action_assignments)}
-                }}'''
+                }}"""
         else:
             cond_str_list = [
-                c.simple_condition_text() if isinstance(c, Condition) else c.to_js() for c in self.conditions
+                c.simple_condition_text()
+                if isinstance(c, Condition)
+                else c.to_js()
+                for c in self.conditions
             ]
             condition = " ".join(cond_str_list)
-            return ConditionGenerator.generate_simple_condition(condition, action_assignments, inverse_action_assignments)
+            return ConditionGenerator.generate_simple_condition(
+                condition, action_assignments, inverse_action_assignments
+            )
 
     def conditional_visibility_assignments(self):
         return (
-            self.multiple_condition_assignments() if self.multiple_conditions
+            self.multiple_condition_assignments()
+            if self.multiple_conditions
             else self.single_condition_assignments()
         )
 
     def generate_change_handler(self, existing_change_handler_names):
-        condition_cdes = [c for c in self.conditions if isinstance(c, Condition)]
+        condition_cdes = [
+            c for c in self.conditions if isinstance(c, Condition)
+        ]
         cdes = []
         for c in condition_cdes:
             cde_name = c.cde.element_name()
@@ -179,7 +218,7 @@ class Instruction:
 
     @staticmethod
     def change_handler_element(cde_info):
-        return f'''
+        return f"""
             if (change_handler.hasOwnProperty("{cde_info.formset_prefix}")) {{
                 if (!change_handler["{cde_info.formset_prefix}"].includes("{cde_info.name}")) {{
                     change_handler["{cde_info.formset_prefix}"].push("{cde_info.name}");
@@ -187,7 +226,7 @@ class Instruction:
             }} else {{
                 change_handler["{cde_info.formset_prefix}"] = ["{cde_info.name}"];
             }}
-        '''
+        """
 
     def get_multi_section_targets(self):
         if not self.multiple_conditions:
@@ -196,11 +235,22 @@ class Instruction:
             if cde_info.is_multi_section:
                 return self.change_handler_element(cde_info)
             else:
-                return ''
+                return ""
         else:
-            event_handler_cdes = [c.cde for c in self.conditions if isinstance(c, Condition)]
-            filtered_cde_infos = [cde.get_cde_info() for cde in event_handler_cdes if cde.get_cde_info().is_multi_section]
-            return "\n".join([self.change_handler_element(cde_info) for cde_info in filtered_cde_infos])
+            event_handler_cdes = [
+                c.cde for c in self.conditions if isinstance(c, Condition)
+            ]
+            filtered_cde_infos = [
+                cde.get_cde_info()
+                for cde in event_handler_cdes
+                if cde.get_cde_info().is_multi_section
+            ]
+            return "\n".join(
+                [
+                    self.change_handler_element(cde_info)
+                    for cde_info in filtered_cde_infos
+                ]
+            )
 
 
 class CodeGenerator:
@@ -224,12 +274,12 @@ class CodeGenerator:
         for each CDE/section which are defined in the form DSL
         """
         visibility_assignments = "\n".join(self.condition_handlers)
-        return f'''
+        return f"""
         function visibility_handler() {{
             var visibility_map = {{}};
             {visibility_assignments}
             return visibility_map;
-        }}'''
+        }}"""
 
     @staticmethod
     def get_initializer():
@@ -245,20 +295,30 @@ class CodeGenerator:
 
         try:
             parse_tree = parse_dsl(self.dsl)
-            transformed_tree = transform_tree(parse_tree, self.cde_helper, self.section_helper)
+            transformed_tree = transform_tree(
+                parse_tree, self.cde_helper, self.section_helper
+            )
 
             change_handlers = []
             existing_change_handler_names = set()
             for idx, inst in enumerate(transformed_tree.children):
                 instruction_obj = Instruction(inst.children, self.cde_helper)
-                self.condition_handlers.append(instruction_obj.conditional_visibility_assignments())
-                change_handlers.append(instruction_obj.generate_change_handler(existing_change_handler_names))
-                self.multi_section_targets.append(instruction_obj.get_multi_section_targets())
+                self.condition_handlers.append(
+                    instruction_obj.conditional_visibility_assignments()
+                )
+                change_handlers.append(
+                    instruction_obj.generate_change_handler(
+                        existing_change_handler_names
+                    )
+                )
+                self.multi_section_targets.append(
+                    instruction_obj.get_multi_section_targets()
+                )
 
             event_handlers = "\n".join(change_handlers)
-            ret_val = f'''
+            ret_val = f"""
                 \t{event_handlers}
-                \t{self.get_initializer()}'''
+                \t{self.get_initializer()}"""
 
             logger.debug(f"Generated code:\n{ret_val}")
             return ret_val
@@ -272,13 +332,13 @@ class CodeGenerator:
         that need to have change handlers added/attached
         """
         elements = "\n".join(self.multi_section_targets)
-        return f'''
+        return f"""
             function change_handler_targets() {{
                 var change_handler = {{}};
                 {elements}
                 return change_handler;
             }}
-        '''
+        """
 
     def generate_declarations(self):
         """
@@ -288,17 +348,22 @@ class CodeGenerator:
         """
 
         def cde_mapping(cde_info):
-            multiple = 'true' if cde_info.allow_multiple else 'false'
-            return f'''
+            multiple = "true" if cde_info.allow_multiple else "false"
+            return f"""
                 "{cde_info.name}":{{ type: "{cde_info.type}", allow_multiple: {multiple}, formset: "{cde_info.formset_prefix}"}}
-            '''
+            """
 
-        entries = ",".join([
-            cde_mapping(cde_info) for cde_info in self.cde_helper.get_cde_names_dict(self.form).values()
-        ])
-        return f'''
+        entries = ",".join(
+            [
+                cde_mapping(cde_info)
+                for cde_info in self.cde_helper.get_cde_names_dict(
+                    self.form
+                ).values()
+            ]
+        )
+        return f"""
             var cdeNamePrefix = "{self.form.name}____";
             var cdeNameMapping = {{
                 {entries}
             }}
-        '''
+        """

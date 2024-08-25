@@ -6,7 +6,9 @@ EMAIL_SELECTOR = "#id_messages > tbody > tr"
 
 
 def get_email(n):
-    return world.browser.find_elements_by_css_selector(f"{EMAIL_SELECTOR}:nth-child({n}) > td a")
+    return world.browser.find_elements_by_css_selector(
+        f"{EMAIL_SELECTOR}:nth-child({n}) > td a"
+    )
 
 
 def go_to_url(path):

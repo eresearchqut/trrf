@@ -1,21 +1,24 @@
 from django.utils.translation import gettext as _
 
 from .constants import (
-    PATIENT_ADDRESS_SECTION_NAME, PATIENT_DOCTOR_SECTION_NAME,
-    PATIENT_NEXT_OF_KIN_SECTION_NAME, PATIENT_STAGE_SECTION_NAME,
-    PATIENT_PERSONAL_DETAILS_SECTION_NAME, PATIENT_RELATIVE_SECTION_NAME
+    PATIENT_ADDRESS_SECTION_NAME,
+    PATIENT_DOCTOR_SECTION_NAME,
+    PATIENT_NEXT_OF_KIN_SECTION_NAME,
+    PATIENT_PERSONAL_DETAILS_SECTION_NAME,
+    PATIENT_RELATIVE_SECTION_NAME,
+    PATIENT_STAGE_SECTION_NAME,
 )
 
 
 class DemographicsSectionFieldBuilder(object):
-
     def get_personal_detail_fields(self, registry_code):
         personal_header = PATIENT_PERSONAL_DETAILS_SECTION_NAME
         # shouldn't be hardcoding behaviour here plus the html formatting
         # originally here was not being passed as text
         if registry_code == "fkrp":
-            personal_header += " " + \
-                _("Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below.")
+            personal_header += " " + _(
+                "Here you can find an overview of all your personal and contact details you have given us. You can update your contact details by changing the information below."
+            )
 
         personal_fields = [
             "family_name",
@@ -51,7 +54,7 @@ class DemographicsSectionFieldBuilder(object):
             "next_of_kin_mobile_phone",
             "next_of_kin_work_phone",
             "next_of_kin_email",
-            "next_of_kin_parent_place_of_birth"
+            "next_of_kin_parent_place_of_birth",
         ]
         return (PATIENT_NEXT_OF_KIN_SECTION_NAME, next_of_kin_fields)
 

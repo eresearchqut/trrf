@@ -1,7 +1,7 @@
 import logging
 
-from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 
 from .models import LoginAttemptLogger
@@ -16,7 +16,9 @@ def reactivate_user(request, user_id):
     user.is_active = True
     user.save()
     login_attempt_logger.reset(user.username)
-    return HttpResponseRedirect(reverse("admin:useraudit_loginattempt_changelist"))
+    return HttpResponseRedirect(
+        reverse("admin:useraudit_loginattempt_changelist")
+    )
 
 
 def _get_user(user_id):

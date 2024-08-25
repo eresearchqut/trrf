@@ -20,7 +20,8 @@ class Locator(object):
         link = self.get_link()
         location_link = "<a href='%s'>%s</a>" % (link, descriptor)
         return """<span class="fa {0}" aria-hidden="true"></span> {1}""".format(
-            self.ICON, location_link)
+            self.ICON, location_link
+        )
 
     def get_description(self):
         raise NotImplementedError("subclass responsiblity")
@@ -33,14 +34,11 @@ class Locator(object):
 
 
 class PatientLocator(Locator):
-
     def get_description(self):
         return self.instance.display_name
 
     def get_link(self):
         patient_edit_url = reverse(
-            'patient_edit',
-            args=[
-                self.registry_model.code,
-                self.instance.id])
+            "patient_edit", args=[self.registry_model.code, self.instance.id]
+        )
         return patient_edit_url

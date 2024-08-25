@@ -14,24 +14,34 @@ from django.utils.translation import gettext as _
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.forms.dynamic.fields import FileTypeRestrictedFileField
-from rdrf.forms.widgets.widgets import CountryWidget, StateWidget, ConsentFileInput, SignatureWidget
+from rdrf.forms.widgets.widgets import (
+    ConsentFileInput,
+    CountryWidget,
+    SignatureWidget,
+    StateWidget,
+)
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import ConsentQuestion, ConsentSection, DemographicFields
+from rdrf.models.definition.models import (
+    ConsentQuestion,
+    ConsentSection,
+    DemographicFields,
+)
 from registry.groups import GROUPS
 from registry.groups.forms import working_group_optgroup_choices
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
+
 from .models import (
+    ParentGuardian,
     Patient,
     PatientAddress,
     PatientConsent,
-    Registry,
-    PatientRelative,
-    ParentGuardian,
     PatientDoctor,
-    PatientStage,
+    PatientRelative,
     PatientSignature,
-    PatientStageRule
+    PatientStage,
+    PatientStageRule,
+    Registry,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,7 +65,9 @@ class PatientDoctorForm(forms.ModelForm):
     # Sorting of options
     OPTIONS = tuple(sorted(OPTIONS, key=lambda item: item[1]))
 
-    relationship = forms.ChoiceField(label=_("Type of Medical Professional"), choices=OPTIONS)
+    relationship = forms.ChoiceField(
+        label=_("Type of Medical Professional"), choices=OPTIONS
+    )
 
     class Meta:
         fields = "__all__"
@@ -68,15 +80,18 @@ class PatientRelativeForm(forms.ModelForm):
         fields = "__all__"  # Added after upgrading to Django 1.8
         # Added after upgrading to Django 1.8  - uniqueness check was failing
         # otherwise (RDR-1039)
-        exclude = ['id']
+        exclude = ["id"]
         widgets = {
-            'relative_patient': PatientRelativeLinkWidget,
+            "relative_patient": PatientRelativeLinkWidget,
         }
 
     date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
+        widget=forms.DateInput(
+            attrs={"class": "datepicker"}, format="%d-%m-%Y"
+        ),
         help_text=_("DD-MM-YYYY"),
-        input_formats=['%d-%m-%Y'])
+        input_formats=["%d-%m-%Y"],
+    )
 
     def __init__(self, *args, **kwargs):
         self.create_patient_data = None
@@ -94,7 +109,9 @@ class PatientRelativeForm(forms.ModelForm):
         # this 'on' value from widget is replaced by the pk of the created patient
         for name, field in list(self.fields.items()):
             try:
-                value = field.widget.value_from_datadict(self.data, self.files, self.add_prefix(name))
+                value = field.widget.value_from_datadict(
+                    self.data, self.files, self.add_prefix(name)
+                )
                 if name == "relative_patient":
                     if value == "on":
                         self.cleaned_data[name] = None
@@ -102,13 +119,15 @@ class PatientRelativeForm(forms.ModelForm):
                     else:
                         self.cleaned_data[name] = value
 
-                elif name == 'date_of_birth':
+                elif name == "date_of_birth":
                     try:
                         self.cleaned_data[name] = self._set_date_of_birth(value)
                     except Exception:
-                        raise ValidationError("Date of Birth must be dd-mm-yyyy")
+                        raise ValidationError(
+                            "Date of Birth must be dd-mm-yyyy"
+                        )
 
-                elif name == 'patient':
+                elif name == "patient":
                     continue  # this was causing error in post clean - we set this ourselves
                 else:
                     self.cleaned_data[name] = value
@@ -119,7 +138,9 @@ class PatientRelativeForm(forms.ModelForm):
                 if name in self.cleaned_data:
                     del self.cleaned_data[name]
 
-        self.tag = self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
+        self.tag = (
+            self.cleaned_data["given_names"] + self.cleaned_data["family_name"]
+        )
 
     def _set_date_of_birth(self, dob):
         # todo figure  out why the correct input format is not being respected -
@@ -138,13 +159,21 @@ class PatientRelativeForm(forms.ModelForm):
 class PatientAddressForm(forms.ModelForm):
     class Meta:
         model = PatientAddress
-        fields = ('address_type', 'address', 'country', 'state', 'suburb', 'postcode')
+        fields = (
+            "address_type",
+            "address",
+            "country",
+            "state",
+            "suburb",
+            "postcode",
+        )
 
-    country = forms.ChoiceField(required=True,
-                                widget=CountryWidget(attrs={'onChange': 'select_country(this);'}))
-    state = forms.ChoiceField(required=True,
-                              widget=StateWidget())
-    address = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}))
+    country = forms.ChoiceField(
+        required=True,
+        widget=CountryWidget(attrs={"onChange": "select_country(this);"}),
+    )
+    state = forms.ChoiceField(required=True, widget=StateWidget())
+    address = forms.CharField(widget=forms.Textarea(attrs={"rows": 5}))
 
 
 class PatientConsentFileForm(forms.ModelForm):
@@ -157,7 +186,7 @@ class PatientConsentFileForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        uploaded_file = cleaned_data['form']
+        uploaded_file = cleaned_data["form"]
         if not uploaded_file and self.instance.form:
             self.instance.form.delete(False)
 
@@ -178,34 +207,42 @@ class PatientSignatureForm(forms.ModelForm):
     signature = forms.CharField(widget=SignatureWidget, required=False)
 
     SIGNATURE_REQUIRED = _("Signature is required")
-    SIGNATURE_CHANGE_FORBIDDEN = _("Only patient or parent/guardian can change signature !")
+    SIGNATURE_CHANGE_FORBIDDEN = _(
+        "Only patient or parent/guardian can change signature !"
+    )
     SIGNATURE_INVALID = _("Invalid signature data !")
 
     def __init__(self, *args, **kwargs):
-        if 'registry_model' in kwargs:
-            consent_config = getattr(kwargs['registry_model'], 'consent_configuration', None)
-            del kwargs['registry_model']
+        if "registry_model" in kwargs:
+            consent_config = getattr(
+                kwargs["registry_model"], "consent_configuration", None
+            )
+            del kwargs["registry_model"]
         else:
             consent_config = None
 
         self.can_sign_consent = False
-        if 'can_sign_consent' in kwargs:
-            self.can_sign_consent = kwargs['can_sign_consent']
-            del kwargs['can_sign_consent']
+        if "can_sign_consent" in kwargs:
+            self.can_sign_consent = kwargs["can_sign_consent"]
+            del kwargs["can_sign_consent"]
 
         super().__init__(*args, **kwargs)
 
-        self.signature_required = consent_config and consent_config.signature_required and self.can_sign_consent
-        self.fields['signature'].required = self.signature_required
+        self.signature_required = (
+            consent_config
+            and consent_config.signature_required
+            and self.can_sign_consent
+        )
+        self.fields["signature"].required = self.signature_required
 
     def clean_signature(self):
-        signature = self.cleaned_data['signature']
+        signature = self.cleaned_data["signature"]
         if not signature:
             if self.signature_required:
                 raise ValidationError(self.SIGNATURE_REQUIRED, code="required")
             return signature
         try:
-            data = json.loads(base64.b64decode(signature))['data']
+            data = json.loads(base64.b64decode(signature))["data"]
         except UnicodeDecodeError:
             raise ValidationError(self.SIGNATURE_INVALID)
         except binascii.Error:
@@ -216,7 +253,9 @@ class PatientSignatureForm(forms.ModelForm):
         elif not self.can_sign_consent:
             existing_data = []
             if self.instance and self.instance.signature:
-                existing_data = json.loads(base64.b64decode(self.instance.signature))['data']
+                existing_data = json.loads(
+                    base64.b64decode(self.instance.signature)
+                )["data"]
             if data != existing_data:
                 raise ValidationError(self.SIGNATURE_CHANGE_FORBIDDEN)
 
@@ -224,31 +263,48 @@ class PatientSignatureForm(forms.ModelForm):
 
 
 class PatientStageForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'instance' in kwargs and kwargs['instance'] is not None:
-            self.instance = kwargs['instance']
-            stages_qs = PatientStage.objects.filter(registry=self.instance.registry)
+        if "instance" in kwargs and kwargs["instance"] is not None:
+            self.instance = kwargs["instance"]
+            stages_qs = PatientStage.objects.filter(
+                registry=self.instance.registry
+            )
             self.fields["allowed_prev_stages"].queryset = stages_qs
             self.fields["allowed_next_stages"].queryset = stages_qs
             self.fields["registry"].disabled = True
 
     def clean(self):
         cleaneddata = super().clean()
-        if self.instance and hasattr(self.instance, 'registry'):
+        if self.instance and hasattr(self.instance, "registry"):
             cleaneddata["registry"] = self.instance.registry
         prev_stages = cleaneddata["allowed_prev_stages"]
         next_stages = cleaneddata["allowed_next_stages"]
         selected_registry = cleaneddata["registry"]
-        if not all([stage.registry == selected_registry for stage in prev_stages]):
-            raise ValidationError({
-                "allowed_prev_stages": [_("All stages in prev stages must belong to the selected registry !")]
-            })
-        if not all([stage.registry == selected_registry for stage in next_stages]):
-            raise ValidationError({
-                "allowed_next_stages": [_("All stages in next stages must belong to the selected registry !")]
-            })
+        if not all(
+            [stage.registry == selected_registry for stage in prev_stages]
+        ):
+            raise ValidationError(
+                {
+                    "allowed_prev_stages": [
+                        _(
+                            "All stages in prev stages must belong to the selected registry !"
+                        )
+                    ]
+                }
+            )
+        if not all(
+            [stage.registry == selected_registry for stage in next_stages]
+        ):
+            raise ValidationError(
+                {
+                    "allowed_next_stages": [
+                        _(
+                            "All stages in next stages must belong to the selected registry !"
+                        )
+                    ]
+                }
+            )
         return cleaneddata
 
     class Meta:
@@ -256,15 +312,17 @@ class PatientStageForm(forms.ModelForm):
         fields = "__all__"
 
     class Media:
-        js = ("js/admin/registry_change_handler.js", "js/admin/patient_stage_admin.js",)
+        js = (
+            "js/admin/registry_change_handler.js",
+            "js/admin/patient_stage_admin.js",
+        )
 
 
 class PatientStageRuleForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'instance' in kwargs and kwargs['instance'] is not None:
-            instance = kwargs['instance']
+        if "instance" in kwargs and kwargs["instance"] is not None:
+            instance = kwargs["instance"]
             stages_qs = PatientStage.objects.filter(registry=instance.registry)
             self.fields["from_stage"].queryset = stages_qs
             self.fields["to_stage"].queryset = stages_qs
@@ -278,17 +336,39 @@ class PatientStageRuleForm(forms.ModelForm):
                 _("Both to_stage and from_stage cannot be None !")
             )
         if from_stage and from_stage.registry != cleaneddata["registry"]:
-            raise ValidationError({
-                "from_stage": [_("The initial stage must belong to the selected registry !")]
-            })
+            raise ValidationError(
+                {
+                    "from_stage": [
+                        _(
+                            "The initial stage must belong to the selected registry !"
+                        )
+                    ]
+                }
+            )
         if to_stage and to_stage.registry != cleaneddata["registry"]:
-            raise ValidationError({
-                "to_stage": [_("The final stage must belong to the selected registry !")]
-            })
-        if to_stage and from_stage and to_stage not in from_stage.allowed_next_stages.all():
-            raise ValidationError({
-                "to_stage": [_("The final stage must be in the next stages list of the initial stage!")]
-            })
+            raise ValidationError(
+                {
+                    "to_stage": [
+                        _(
+                            "The final stage must belong to the selected registry !"
+                        )
+                    ]
+                }
+            )
+        if (
+            to_stage
+            and from_stage
+            and to_stage not in from_stage.allowed_next_stages.all()
+        ):
+            raise ValidationError(
+                {
+                    "to_stage": [
+                        _(
+                            "The final stage must be in the next stages list of the initial stage!"
+                        )
+                    ]
+                }
+            )
 
         return super().clean()
 
@@ -297,11 +377,13 @@ class PatientStageRuleForm(forms.ModelForm):
         fields = "__all__"
 
     class Media:
-        js = ("js/admin/registry_change_handler.js", "js/admin/patient_stage_rule_admin.js", )
+        js = (
+            "js/admin/registry_change_handler.js",
+            "js/admin/patient_stage_rule_admin.js",
+        )
 
 
 class PatientForm(forms.ModelForm):
-
     ADDRESS_ATTRS = {
         "rows": 3,
         "cols": 30,
@@ -309,47 +391,42 @@ class PatientForm(forms.ModelForm):
 
     next_of_kin_country = forms.ChoiceField(
         required=False,
-        widget=CountryWidget(attrs={'onChange': 'select_country(this);'}),
-        label=_("Next of kin country")
+        widget=CountryWidget(attrs={"onChange": "select_country(this);"}),
+        label=_("Next of kin country"),
     )
     next_of_kin_state = forms.ChoiceField(
-        required=False,
-        widget=StateWidget(),
-        label=_("Next of kin state")
+        required=False, widget=StateWidget(), label=_("Next of kin state")
     )
     country_of_birth = forms.ChoiceField(
-        required=False,
-        widget=CountryWidget(),
-        label=_("Country of birth")
+        required=False, widget=CountryWidget(), label=_("Country of birth")
     )
 
     def __init__(self, *args, **kwargs):
-
         def clinician_display_str(obj):
-            title = obj.title or ''
+            title = obj.title or ""
             full_name = f"{obj.first_name} {obj.last_name}"
-            wgs = ', '.join([wg.name for wg in obj.working_groups.all()])
+            wgs = ", ".join([wg.name for wg in obj.working_groups.all()])
             return f"{title} {full_name} ({wgs})"
 
         instance = None
 
-        if 'registry_model' in kwargs:
-            self.registry_model = kwargs['registry_model']
-            del kwargs['registry_model']
+        if "registry_model" in kwargs:
+            self.registry_model = kwargs["registry_model"]
+            del kwargs["registry_model"]
         else:
             self.registry_model = None
 
-        if 'instance' in kwargs and kwargs['instance'] is not None:
-            instance = kwargs['instance']
+        if "instance" in kwargs and kwargs["instance"] is not None:
+            instance = kwargs["instance"]
             registry_specific_data = self._get_registry_specific_data(instance)
             wrapped_data = self._wrap_file_cdes(registry_specific_data)
-            initial_data = kwargs.get('initial', {})
+            initial_data = kwargs.get("initial", {})
             for reg_code in wrapped_data:
                 initial_data.update(wrapped_data[reg_code])
 
             self._update_initial_consent_data(instance, initial_data)
 
-            kwargs['initial'] = initial_data
+            kwargs["initial"] = initial_data
 
         if "user" in kwargs:
             self.user = kwargs.pop("user")
@@ -360,29 +437,52 @@ class PatientForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.registry_model:
-            if self.registry_model.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS):
-                self.fields["registered_clinicians"].queryset = CustomUser.objects.filter(groups__name__iexact=GROUPS.CLINICAL)
-                self.fields["registered_clinicians"].label_from_instance = clinician_display_str
+            if self.registry_model.has_feature(
+                RegistryFeatures.CLINICIANS_HAVE_PATIENTS
+            ):
+                self.fields[
+                    "registered_clinicians"
+                ].queryset = CustomUser.objects.filter(
+                    groups__name__iexact=GROUPS.CLINICAL
+                )
+                self.fields[
+                    "registered_clinicians"
+                ].label_from_instance = clinician_display_str
 
                 if instance and instance.registered_clinicians.exists():
-                    clinician_wgs = set([wg for c in instance.registered_clinicians.all() for wg in c.working_groups.all()])
+                    clinician_wgs = set(
+                        [
+                            wg
+                            for c in instance.registered_clinicians.all()
+                            for wg in c.working_groups.all()
+                        ]
+                    )
                     instance.working_groups.add(*clinician_wgs)
                     instance.wgs_set_by_clinicians = True
             else:
-                self.fields["registered_clinicians"].widget = forms.HiddenInput()
+                self.fields[
+                    "registered_clinicians"
+                ].widget = forms.HiddenInput()
 
-            if self.registry_model.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
+            if self.registry_model.has_feature(
+                RegistryFeatures.PATIENTS_CREATE_USERS
+            ):
                 if instance and instance.user:
                     self.fields["email"].disabled = True
 
                     change_email_url = None
                     if instance.user == self.user:
-                        change_email_url = reverse('email_address_change')
-                    elif self.user.has_perm('patients.change_patientuser'):
-                        change_email_url = reverse("patient_email_change", kwargs={"patient_id": instance.id})
+                        change_email_url = reverse("email_address_change")
+                    elif self.user.has_perm("patients.change_patientuser"):
+                        change_email_url = reverse(
+                            "patient_email_change",
+                            kwargs={"patient_id": instance.id},
+                        )
 
                     if change_email_url:
-                        self.fields["email"].help_text = mark_safe(f'<a href="{change_email_url}">{_("Change email address")}</a>')
+                        self.fields["email"].help_text = mark_safe(
+                            f'<a href="{change_email_url}">{_("Change email address")}</a>'
+                        )
                 else:
                     self.fields["email"].required = True
 
@@ -392,16 +492,24 @@ class PatientForm(forms.ModelForm):
         self.fields["rdrf_registry"].queryset = registries
         self.fields["rdrf_registry"].initial = [registries.first()]
 
-        if hasattr(self, 'user'):
+        if hasattr(self, "user"):
             user = self.user
             # working groups shown should be only related to the groups avail to the
             # user in the registry being edited
             if self._is_parent_editing_child(instance):
                 # see FKRP #472
-                self.fields["working_groups"].widget = forms.SelectMultiple(attrs={'readonly': 'readonly'})
-                self.fields["working_groups"].queryset = instance.working_groups.all()
+                self.fields["working_groups"].widget = forms.SelectMultiple(
+                    attrs={"readonly": "readonly"}
+                )
+                self.fields[
+                    "working_groups"
+                ].queryset = instance.working_groups.all()
             else:
-                self.fields["working_groups"].choices = working_group_optgroup_choices(WorkingGroup.objects.filter(registry=self.registry_model))
+                self.fields[
+                    "working_groups"
+                ].choices = working_group_optgroup_choices(
+                    WorkingGroup.objects.filter(registry=self.registry_model)
+                )
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -409,39 +517,65 @@ class PatientForm(forms.ModelForm):
                 user_groups = user.groups.all()
 
                 def get_field_config(field):
-                    qs = DemographicFields.objects.filter(registry=registry, groups__in=user_groups, field=field)
+                    qs = DemographicFields.objects.filter(
+                        registry=registry, groups__in=user_groups, field=field
+                    )
                     return qs.distinct().first()
 
-                field_configs = [fc for fc in [get_field_config(field) for field in self.fields] if fc is not None]
+                field_configs = [
+                    fc
+                    for fc in [get_field_config(field) for field in self.fields]
+                    if fc is not None
+                ]
 
                 for field_config in field_configs:
                     field = field_config.field
-                    if getattr(self.fields[field].widget, 'allow_multiple_selected', False):
+                    if getattr(
+                        self.fields[field].widget,
+                        "allow_multiple_selected",
+                        False,
+                    ):
                         if field_config.status == DemographicFields.HIDDEN:
-                            self.fields[field].widget = forms.MultipleHiddenInput()
+                            self.fields[
+                                field
+                            ].widget = forms.MultipleHiddenInput()
                         elif field_config.status == DemographicFields.READONLY:
                             self.fields[field].required = False
-                            self.fields[field].widget.attrs.update({'disabled': 'disabled'})
+                            self.fields[field].widget.attrs.update(
+                                {"disabled": "disabled"}
+                            )
                     else:
                         if field_config.status == DemographicFields.HIDDEN:
                             self.fields[field].widget = forms.HiddenInput()
                             self.fields[field].label = ""
                         elif field_config.status == DemographicFields.READONLY:
-                            self.fields[field].widget = forms.TextInput(attrs={'readonly': 'readonly'})
+                            self.fields[field].widget = forms.TextInput(
+                                attrs={"readonly": "readonly"}
+                            )
 
-            if not user.is_patient and self.registry_model and self.registry_model.has_feature(RegistryFeatures.STAGES):
-                if 'stage' in self.initial and self.initial['stage']:
-                    current_stage = PatientStage.objects.get(pk=self.initial['stage'])
+            if (
+                not user.is_patient
+                and self.registry_model
+                and self.registry_model.has_feature(RegistryFeatures.STAGES)
+            ):
+                if "stage" in self.initial and self.initial["stage"]:
+                    current_stage = PatientStage.objects.get(
+                        pk=self.initial["stage"]
+                    )
 
                     allowed_stages = chain(
                         current_stage.allowed_prev_stages.all(),
-                        (current_stage, ),
-                        current_stage.allowed_next_stages.all())
+                        (current_stage,),
+                        current_stage.allowed_next_stages.all(),
+                    )
 
-                    self.fields['stage'].queryset = PatientStage.objects.filter(pk__in=(s.pk for s in allowed_stages))
+                    self.fields["stage"].queryset = PatientStage.objects.filter(
+                        pk__in=(s.pk for s in allowed_stages)
+                    )
                 else:
-                    self.fields['stage'].queryset = PatientStage.objects.filter(
-                        allowed_prev_stages__isnull=True, registry=self.registry_model
+                    self.fields["stage"].queryset = PatientStage.objects.filter(
+                        allowed_prev_stages__isnull=True,
+                        registry=self.registry_model,
                     )
 
         if self._is_adding_patient(kwargs):
@@ -463,8 +597,7 @@ class PatientForm(forms.ModelForm):
         return mongo_wrapper.load_registry_specific_data(self.registry_model)
 
     def _wrap_file_cdes(self, registry_specific_data):
-        from rdrf.forms.file_upload import FileUpload
-        from rdrf.forms.file_upload import is_filestorage_dict
+        from rdrf.forms.file_upload import FileUpload, is_filestorage_dict
         from rdrf.helpers.utils import is_file_cde
 
         def wrap_file_cde_dict(registry_code, cde_code, filestorage_dict):
@@ -480,7 +613,10 @@ class PatientForm(forms.ModelForm):
 
         for reg_code in registry_specific_data:
             reg_data = registry_specific_data[reg_code]
-            wrapped_data = {key: wrap(reg_code, key, value) for key, value in reg_data.items()}
+            wrapped_data = {
+                key: wrap(reg_code, key, value)
+                for key, value in reg_data.items()
+            }
             wrapped_dict[reg_code] = wrapped_data
 
         return wrapped_dict
@@ -493,7 +629,7 @@ class PatientForm(forms.ModelForm):
             initial_data[consent_field_key] = data[consent_field_key]
 
     def _is_adding_patient(self, kwargs):
-        return 'instance' in kwargs and kwargs['instance'] is None
+        return "instance" in kwargs and kwargs["instance"] is None
 
     def _setup_add_form(self):
         if hasattr(self, "user"):
@@ -502,43 +638,56 @@ class PatientForm(forms.ModelForm):
             user = None
 
         if not user.is_superuser:
-            working_groups_query = WorkingGroup.objects.get_by_user_and_registry(user, self.registry_model)
+            working_groups_query = (
+                WorkingGroup.objects.get_by_user_and_registry(
+                    user, self.registry_model
+                )
+            )
         else:
-            working_groups_query = WorkingGroup.objects.filter(registry=self.registry_model)
+            working_groups_query = WorkingGroup.objects.filter(
+                registry=self.registry_model
+            )
 
-        self.fields['working_groups'].choices = working_group_optgroup_choices(working_groups_query)
+        self.fields["working_groups"].choices = working_group_optgroup_choices(
+            working_groups_query
+        )
 
     date_of_birth = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
+        widget=forms.DateInput(
+            attrs={"class": "datepicker"}, format="%d-%m-%Y"
+        ),
         help_text=_("DD-MM-YYYY"),
-        input_formats=['%d-%m-%Y'])
+        input_formats=["%d-%m-%Y"],
+    )
 
     date_of_death = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
+        widget=forms.DateInput(
+            attrs={"class": "datepicker"}, format="%d-%m-%Y"
+        ),
         help_text=_("DD-MM-YYYY"),
-        input_formats=['%d-%m-%Y'],
-        required=False)
+        input_formats=["%d-%m-%Y"],
+        required=False,
+    )
 
     date_of_migration = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'datepicker'}, format='%d-%m-%Y'),
+        widget=forms.DateInput(
+            attrs={"class": "datepicker"}, format="%d-%m-%Y"
+        ),
         help_text=_("DD-MM-YYYY"),
         required=False,
-        input_formats=['%d-%m-%Y'])
+        input_formats=["%d-%m-%Y"],
+    )
 
     class Meta:
         model = Patient
         widgets = {
-            'next_of_kin_address': forms.Textarea(attrs={
-                "rows": 3,
-                "cols": 30
-            }),
-            'inactive_reason': forms.Textarea(attrs={
-                "rows": 3,
-                "cols": 30
-            }),
-            'user': forms.HiddenInput()
+            "next_of_kin_address": forms.Textarea(
+                attrs={"rows": 3, "cols": 30}
+            ),
+            "inactive_reason": forms.Textarea(attrs={"rows": 3, "cols": 30}),
+            "user": forms.HiddenInput(),
         }
-        exclude = ['doctors', 'user', 'created_by', 'carer']
+        exclude = ["doctors", "user", "created_by", "carer"]
 
     # Added to ensure unique (familyname, givennames, workinggroup)
     # Does not need a unique constraint on the DB
@@ -550,14 +699,16 @@ class PatientForm(forms.ModelForm):
         return registries
 
     def clean_working_groups(self):
-        is_disabled = 'disabled' in self.fields['working_groups'].widget.attrs
+        is_disabled = "disabled" in self.fields["working_groups"].widget.attrs
 
         if is_disabled:
             return self.instance.working_groups.all()
         else:
             ret_val = self.cleaned_data["working_groups"]
             if not ret_val:
-                raise forms.ValidationError("Patient must be assigned to a working group")
+                raise forms.ValidationError(
+                    "Patient must be assigned to a working group"
+                )
             return ret_val
 
     def clean_registered_clinicians(self):
@@ -565,21 +716,26 @@ class PatientForm(forms.ModelForm):
         reg_clinicians = self.cleaned_data["registered_clinicians"]
         if reg and reg.exists():
             current_registry = reg.first()
-            if current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM) and reg_clinicians.count() > 1:
-                raise ValidationError(
-                    _("You may only select one clinician")
-                )
+            if (
+                current_registry.has_feature(RegistryFeatures.CLINICIAN_FORM)
+                and reg_clinicians.count() > 1
+            ):
+                raise ValidationError(_("You may only select one clinician"))
         return reg_clinicians
 
     def clean_email(self):
-        registries = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
+        registries = self.cleaned_data.get(
+            "rdrf_registry", Registry.objects.none()
+        )
         email = self.cleaned_data.get("email")
 
         if "email" in self.changed_data:
             for registry in registries:
                 if registry.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS):
                     if CustomUser.objects.filter(email__iexact=email).exists():
-                        raise ValidationError(_("User with this email already exists"))
+                        raise ValidationError(
+                            _("User with this email already exists")
+                        )
                     break
 
         if self.fields["email"].disabled:
@@ -611,45 +767,64 @@ class PatientForm(forms.ModelForm):
                 data[registry_model] = {}
 
             consent_section_pk = int(parts[2])
-            consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
+            consent_section_model = ConsentSection.objects.get(
+                id=int(consent_section_pk)
+            )
 
             if consent_section_model not in data[registry_model]:
                 data[registry_model][consent_section_model] = {}
 
             consent_question_pk = int(parts[3])
-            consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
+            consent_question_model = ConsentQuestion.objects.get(
+                id=consent_question_pk
+            )
             answer = self.custom_consents[field_key]
-            data[registry_model][consent_section_model][consent_question_model.code] = answer
+            data[registry_model][consent_section_model][
+                consent_question_model.code
+            ] = answer
 
         validation_errors = []
 
         for registry_model in data:
             for consent_section_model in data[registry_model]:
-
                 answer_dict = data[registry_model][consent_section_model]
                 if not consent_section_model.is_valid(answer_dict):
-                    error_message = "Consent Section '%s %s' is not valid" % (registry_model.code.upper(),
-                                                                              consent_section_model.section_label)
+                    error_message = "Consent Section '%s %s' is not valid" % (
+                        registry_model.code.upper(),
+                        consent_section_model.section_label,
+                    )
                     validation_errors.append(error_message)
 
         if len(validation_errors) > 0:
-            raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
+            raise forms.ValidationError(
+                "Consent Error(s): %s" % ",".join(validation_errors)
+            )
 
-    def notify_clinicians(self, patient_model, existing_clinicians, current_clinicians):
-        from rdrf.services.io.notifications.email_notification import process_notification
+    def notify_clinicians(
+        self, patient_model, existing_clinicians, current_clinicians
+    ):
         from rdrf.events.events import EventType
+        from rdrf.services.io.notifications.email_notification import (
+            process_notification,
+        )
 
-        instance = getattr(self, 'instance', None)
+        instance = getattr(self, "instance", None)
         registry_model = instance.rdrf_registry.first()
 
         new_clinicians = current_clinicians - existing_clinicians
         for c in new_clinicians:
             template_data = {"patient": patient_model, "clinician": c}
-            process_notification(registry_model.code, EventType.CLINICIAN_ASSIGNED, template_data)
+            process_notification(
+                registry_model.code, EventType.CLINICIAN_ASSIGNED, template_data
+            )
         removed_clinicians = existing_clinicians - current_clinicians
         for c in removed_clinicians:
             template_data = {"patient": patient_model, "clinician": c}
-            process_notification(registry_model.code, EventType.CLINICIAN_UNASSIGNED, template_data)
+            process_notification(
+                registry_model.code,
+                EventType.CLINICIAN_UNASSIGNED,
+                template_data,
+            )
 
     def save(self, commit=True):
         patient_model = super(PatientForm, self).save(commit=False)
@@ -661,53 +836,87 @@ class PatientForm(forms.ModelForm):
             patient_registries = []
 
         if commit:
-            instance = getattr(self, 'instance', None)
+            instance = getattr(self, "instance", None)
             patient_model.save()
             existing_clinicians = set()
             if instance:
                 existing_clinicians = set(instance.registered_clinicians.all())
 
-            patient_model.working_groups.set(self.cleaned_data["working_groups"])
+            patient_model.working_groups.set(
+                self.cleaned_data["working_groups"]
+            )
 
             registries = self.cleaned_data["rdrf_registry"]
             for reg in registries:
                 patient_model.rdrf_registry.add(reg)
 
-            if any([r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS) for r in registries]):
-                current_clinicians = set(self.cleaned_data["registered_clinicians"])
+            if any(
+                [
+                    r.has_feature(RegistryFeatures.CLINICIANS_HAVE_PATIENTS)
+                    for r in registries
+                ]
+            ):
+                current_clinicians = set(
+                    self.cleaned_data["registered_clinicians"]
+                )
                 patient_model.registered_clinicians.set(current_clinicians)
                 if patient_model.registered_clinicians.exists():
                     clinician_wgs = set(
-                        [wg for c in patient_model.registered_clinicians.all() for wg in c.working_groups.all()])
+                        [
+                            wg
+                            for c in patient_model.registered_clinicians.all()
+                            for wg in c.working_groups.all()
+                        ]
+                    )
                     patient_model.working_groups.add(*clinician_wgs)
-                self.notify_clinicians(patient_model, existing_clinicians, current_clinicians)
+                self.notify_clinicians(
+                    patient_model, existing_clinicians, current_clinicians
+                )
 
             patient_model.save()
 
         for consent_field in self.custom_consents:
-            registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
-                consent_field)
+            registry_model, consent_section_model, consent_question_model = (
+                self._get_consent_field_models(consent_field)
+            )
 
             if registry_model in patient_registries:
                 # are we still applicable?! - maybe some field on patient changed which
                 # means not so any longer?
                 if consent_section_model.applicable_to(patient_model):
-                    patient_model.set_consent(consent_question_model, self.custom_consents[consent_field], commit)
+                    patient_model.set_consent(
+                        consent_question_model,
+                        self.custom_consents[consent_field],
+                        commit,
+                    )
             if not patient_registries:
-                closure = self._make_consent_closure(registry_model, consent_section_model, consent_question_model,
-                                                     consent_field)
-                if hasattr(patient_model, 'add_registry_closures'):
+                closure = self._make_consent_closure(
+                    registry_model,
+                    consent_section_model,
+                    consent_question_model,
+                    consent_field,
+                )
+                if hasattr(patient_model, "add_registry_closures"):
                     patient_model.add_registry_closures.append(closure)
                 else:
-                    setattr(patient_model, 'add_registry_closures', [closure])
+                    setattr(patient_model, "add_registry_closures", [closure])
 
         return patient_model
 
-    def _make_consent_closure(self, registry_model, consent_section_model, consent_question_model, consent_field):
+    def _make_consent_closure(
+        self,
+        registry_model,
+        consent_section_model,
+        consent_question_model,
+        consent_field,
+    ):
         def closure(patient_model, registry_ids):
             if registry_model.id in registry_ids:
                 if consent_section_model.applicable_to(patient_model):
-                    patient_model.set_consent(consent_question_model, self.custom_consents[consent_field])
+                    patient_model.set_consent(
+                        consent_question_model,
+                        self.custom_consents[consent_field],
+                    )
             else:
                 pass
 
@@ -718,17 +927,30 @@ class ParentAddPatientForm(forms.Form):
     first_name = forms.CharField(required=True, max_length=30)
     surname = forms.CharField(required=True, max_length=30)
     date_of_birth = forms.DateField(required=True)
-    gender = forms.ChoiceField(choices=Patient.SEX_CHOICES, widget=forms.RadioSelect, required=True)
+    gender = forms.ChoiceField(
+        choices=Patient.SEX_CHOICES, widget=forms.RadioSelect, required=True
+    )
     use_parent_address = forms.BooleanField(required=False)
     address = forms.CharField(required=True, max_length=100)
     suburb = forms.CharField(required=True, max_length=30)
-    country = forms.ChoiceField(required=True, widget=CountryWidget, choices=CountryWidget.choices(), initial="")
+    country = forms.ChoiceField(
+        required=True,
+        widget=CountryWidget,
+        choices=CountryWidget.choices(),
+        initial="",
+    )
     state = forms.CharField(required=True, widget=StateWidget)
     postcode = forms.CharField(required=True, max_length=30)
 
     def _clean_fields(self):
-        base_required_fields = ['address', 'suburb', 'country', 'state', 'postcode']
-        if self.data.get('use_parent_address', False):
+        base_required_fields = [
+            "address",
+            "suburb",
+            "country",
+            "state",
+            "postcode",
+        ]
+        if self.data.get("use_parent_address", False):
             for f in base_required_fields:
                 self.fields[f].required = False
         super()._clean_fields()
@@ -738,28 +960,42 @@ class ParentGuardianForm(forms.ModelForm):
     class Meta:
         model = ParentGuardian
         fields = [
-            'first_name', 'last_name', 'date_of_birth', 'gender', 'address', 'country', 'state', 'suburb', 'postcode',
-            'phone'
+            "first_name",
+            "last_name",
+            "date_of_birth",
+            "gender",
+            "address",
+            "country",
+            "state",
+            "suburb",
+            "postcode",
+            "phone",
         ]
-        exclude = ['user', 'patient', 'place_of_birth', 'date_of_migration']
+        exclude = ["user", "patient", "place_of_birth", "date_of_migration"]
 
-        widgets = {'state': StateWidget(), 'country': CountryWidget()}
+        widgets = {"state": StateWidget(), "country": CountryWidget()}
 
 
 class PatientUserForm(forms.ModelForm):
-
     def clean_user(self):
-        user = self.cleaned_data.get('user')
+        user = self.cleaned_data.get("user")
 
         if user:
             # Check if any other patient is linked to this user
-            user_patients = Patient.objects.filter(user=user).exclude(id=self.instance.id)
+            user_patients = Patient.objects.filter(user=user).exclude(
+                id=self.instance.id
+            )
             if user_patients:
-                raise ValidationError(_('User is already linked to another patient') + f' ({user_patients.first().display_name})')
+                raise ValidationError(
+                    _("User is already linked to another patient")
+                    + f" ({user_patients.first().display_name})"
+                )
 
             # Check the user is a patient
             if not user.in_group(GROUPS.PATIENT):
-                raise ValidationError(_('User must be a member of the Patient group'))
+                raise ValidationError(
+                    _("User must be a member of the Patient group")
+                )
 
             # Check the user is a member of all the registries the patient is
             user_registries = set(user.registry.all())
@@ -769,13 +1005,25 @@ class PatientUserForm(forms.ModelForm):
             extra_registries = user_registries.difference(patient_registries)
 
             if missing_registries or extra_registries:
-                registry_diff_error = _('User must belong to the same registries as the patient.')
+                registry_diff_error = _(
+                    "User must belong to the same registries as the patient."
+                )
 
                 if missing_registries:
-                    registry_diff_error += ' ' + _("User's missing registries") + ': ' + f'{", ".join(r.name for r in missing_registries)}.'
+                    registry_diff_error += (
+                        " "
+                        + _("User's missing registries")
+                        + ": "
+                        + f'{", ".join(r.name for r in missing_registries)}.'
+                    )
 
                 if extra_registries:
-                    registry_diff_error += ' ' + _("User's extra registries") + ': ' + f'{", ".join(r.name for r in extra_registries)}.'
+                    registry_diff_error += (
+                        " "
+                        + _("User's extra registries")
+                        + ": "
+                        + f'{", ".join(r.name for r in extra_registries)}.'
+                    )
 
                 raise ValidationError(registry_diff_error)
 

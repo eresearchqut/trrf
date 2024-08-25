@@ -8,34 +8,34 @@ class ChainMapsTest(TestCase):
         self.assertEqual(chain_maps(), {})
 
     def test_same_dict_returned_for_single_arg(self):
-        d = {'a': 1}
+        d = {"a": 1}
         d2 = chain_maps(d)
         self.assertEqual(d2, d)
 
     def test_copy_of_dict_returned_for_single_arg(self):
-        d = {'a': 1}
+        d = {"a": 1}
         d2 = chain_maps(d)
-        d2['a'] = 2
-        self.assertEqual(d['a'], 1)
-        self.assertEqual(d2['a'], 2)
+        d2["a"] = 2
+        self.assertEqual(d["a"], 1)
+        self.assertEqual(d2["a"], 2)
 
     def test_first_dict_value_overwrites_second_dict_value(self):
-        d = {'a': 1}
-        d2 = {'a': 2}
-        self.assertEqual(chain_maps(d2, d)['a'], 2)
-        self.assertEqual(chain_maps(d, d2)['a'], 1)
+        d = {"a": 1}
+        d2 = {"a": 2}
+        self.assertEqual(chain_maps(d2, d)["a"], 2)
+        self.assertEqual(chain_maps(d, d2)["a"], 1)
 
     def test_parent_dict_is_used_when_key_not_in_first_dict(self):
-        d = {'a': 1}
-        d2 = {'b': 2}
-        self.assertEqual(chain_maps(d2, d)['a'], 1)
-        self.assertEqual(chain_maps(d2, d)['b'], 2)
+        d = {"a": 1}
+        d2 = {"b": 2}
+        self.assertEqual(chain_maps(d2, d)["a"], 1)
+        self.assertEqual(chain_maps(d2, d)["b"], 2)
 
     def test_multiple_parents(self):
-        d = {'a': 1}
-        d2 = {'b': 2}
-        d3 = {'c': 3}
+        d = {"a": 1}
+        d2 = {"b": 2}
+        d3 = {"c": 3}
         chain = chain_maps(d3, d2, d)
-        self.assertEqual(chain['a'], 1)
-        self.assertEqual(chain['b'], 2)
-        self.assertEqual(chain['c'], 3)
+        self.assertEqual(chain["a"], 1)
+        self.assertEqual(chain["b"], 2)
+        self.assertEqual(chain["c"], 3)

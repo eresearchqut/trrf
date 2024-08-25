@@ -1,4 +1,5 @@
 import json
+
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -6,7 +7,6 @@ register = template.Library()
 
 
 class ChartNode(template.Node):
-
     def __init__(self, chart_type, chart_id_variable, data_variable):
         self.chart_type = chart_type
         self.chart_id = template.Variable(chart_id_variable)
@@ -43,7 +43,8 @@ class ChartNode(template.Node):
         return html.format(
             canvas_id=canvas_id,
             chart_method=chart_method,
-            chart_data_json=chart_data_json)
+            chart_data_json=chart_data_json,
+        )
 
 
 def create_chart_node(parser, token):
@@ -51,12 +52,12 @@ def create_chart_node(parser, token):
     return ChartNode(chart_type_name, chart_id_variable, data_variable)
 
 
-register.tag('bar_chart', create_chart_node)
-register.tag('pie_chart', create_chart_node)
+register.tag("bar_chart", create_chart_node)
+register.tag("pie_chart", create_chart_node)
 
 
 def json_filter(value):
     return json.dumps(value, indent=2, cls=DjangoJSONEncoder)
 
 
-register.filter('json', json_filter)
+register.filter("json", json_filter)

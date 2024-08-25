@@ -1,6 +1,13 @@
 from functools import lru_cache
+
 from lark import Lark, Transformer
-from .constants import QUALIFIERS, INVERSE_ACTION_MAP, DSL_DEFINITION, PREDEFINED_VALUES
+
+from .constants import (
+    DSL_DEFINITION,
+    INVERSE_ACTION_MAP,
+    PREDEFINED_VALUES,
+    QUALIFIERS,
+)
 from .parse_utils import EnrichedCDE
 
 """
@@ -10,22 +17,30 @@ DSL parser. A simple abstraction used by the code generator
 
 
 class Target:
-
     def __init__(self, values, cde_helper, section_helper):
         self.cde_helper = cde_helper
         self.section_helper = section_helper
         self.has_qualifier = values[0].strip() in QUALIFIERS
         input_cdes = values[1:] if self.has_qualifier else values
-        self.target_cdes = [EnrichedCDE(cde, self.cde_helper, self.has_qualifier) for cde in input_cdes]
+        self.target_cdes = [
+            EnrichedCDE(cde, self.cde_helper, self.has_qualifier)
+            for cde in input_cdes
+        ]
 
     def invalid_cdes(self):
         if self.has_qualifier:
             sections = set(s for s in self.target_cdes)
-            valid_sections = set(s for s in self.target_cdes if s.cde in self.section_helper.get_section_codes())
+            valid_sections = set(
+                s
+                for s in self.target_cdes
+                if s.cde in self.section_helper.get_section_codes()
+            )
             return sections - valid_sections
 
         cdes = set(target for target in self.target_cdes)
-        valid_cdes = set(target for target in self.target_cdes if target.is_valid_cde())
+        valid_cdes = set(
+            target for target in self.target_cdes if target.is_valid_cde()
+        )
         return set(cdes) - valid_cdes
 
     def get_section_code(self):
@@ -47,7 +62,6 @@ class Target:
 
 
 class Action:
-
     def __init__(self, value):
         self.action = value
         self.inverse_action = INVERSE_ACTION_MAP[value]
@@ -65,7 +79,6 @@ class Action:
 
 
 class Condition:
-
     def __init__(self, value, cde_helper):
         self.cde_helper = cde_helper
         cde, self.operator, self.value = value
@@ -77,7 +90,7 @@ class Condition:
         return cls((cde, operator, value), cde_helper)
 
     def simple_condition_text(self):
-        return f'''test_cde_value_simple("{self.cde.element_name()}", "{self.operator}", "{self.actual_value}")'''
+        return f"""test_cde_value_simple("{self.cde.element_name()}", "{self.operator}", "{self.actual_value}")"""
 
     def invalid_cdes(self):
         cdes = {self.cde}
@@ -85,14 +98,21 @@ class Condition:
         return cdes - valid_cdes
 
     def is_valid_value(self):
-        return self.value in PREDEFINED_VALUES or self.cde_helper.is_valid_value(self.cde.cde, self.value)
+        return (
+            self.value in PREDEFINED_VALUES
+            or self.cde_helper.is_valid_value(self.cde.cde, self.value)
+        )
 
     def as_string(self):
         return f"{self.cde.cde} {self.operator} {self.value}"
 
     def __eq__(self, other):
         if isinstance(other, Condition):
-            return self.cde.get_key() == other.cde.get_key() and self.operator == other.operator and self.value == other.value
+            return (
+                self.cde.get_key() == other.cde.get_key()
+                and self.operator == other.operator
+                and self.value == other.value
+            )
         return False
 
     def __hash__(self):
@@ -103,7 +123,6 @@ class Condition:
 
 
 class BooleanOp:
-
     def __init__(self, value):
         self.operator = value
 
@@ -126,13 +145,14 @@ class BooleanOp:
 
 
 class TreeTransformer(Transformer):
-
     def __init__(self, cde_helper, section_helper):
         self.cde_helper = cde_helper
         self.section_helper = section_helper
 
     def target(self, input):
-        return Target([x.value for x in input], self.cde_helper, self.section_helper)
+        return Target(
+            [x.value for x in input], self.cde_helper, self.section_helper
+        )
 
     def action(self, input):
         return Action(input[0].value)
@@ -146,7 +166,7 @@ class TreeTransformer(Transformer):
 
 @lru_cache
 def parse_dsl(dsl):
-    p = Lark(DSL_DEFINITION, parser='lalr', start='start', debug=False)
+    p = Lark(DSL_DEFINITION, parser="lalr", start="start", debug=False)
     return p.parse(dsl)
 
 

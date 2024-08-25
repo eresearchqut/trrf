@@ -6,7 +6,7 @@ import yaml
 from django.core.management import BaseCommand
 from django.core.management.base import CommandError
 
-sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
+sys.stdout = open(1, "w", encoding="utf-8", closefd=False)
 explanation = """
 Usage:
 
@@ -23,20 +23,24 @@ in the script avoids creating duplicate message ids  which prevent compilation.
 
 
 class Command(BaseCommand):
-    help = 'Creates a translation po file for a given registry'
+    help = "Creates a translation po file for a given registry"
 
     def add_arguments(self, parser):
-        parser.add_argument('--yaml_file',
-                            action='store',
-                            dest='yaml_file',
-                            default=None,
-                            help='Registry Yaml file name')
+        parser.add_argument(
+            "--yaml_file",
+            action="store",
+            dest="yaml_file",
+            default=None,
+            help="Registry Yaml file name",
+        )
 
-        parser.add_argument('--system_po_file',
-                            action='store',
-                            dest='system_po_file',
-                            default=None,
-                            help='System po file')
+        parser.add_argument(
+            "--system_po_file",
+            action="store",
+            dest="system_po_file",
+            default=None,
+            help="System po file",
+        )
 
     def _usage(self):
         print(explanation)
@@ -60,7 +64,7 @@ class Command(BaseCommand):
 
     def _load_system_messages(self, system_po_file):
         message_pattern = re.compile('^msgid "(.*)"$')
-        with open(system_po_file, encoding='utf-8') as spo:
+        with open(system_po_file, encoding="utf-8") as spo:
             for line in spo.readlines():
                 line = line.strip()
                 m = message_pattern.match(line)
@@ -69,19 +73,18 @@ class Command(BaseCommand):
                     self.msgids.add(msgid)
 
     def _load_yaml_file(self, file_name):
-        with open(file_name, encoding='utf-8') as f:
+        with open(file_name, encoding="utf-8") as f:
             try:
                 self.data = yaml.load(f, Loader=yaml.FullLoader)
             except Exception as ex:
-                print("could not load yaml file %s: %s" % (file_name,
-                                                           ex))
+                print("could not load yaml file %s: %s" % (file_name, ex))
 
                 sys.exit(1)
 
     def _emit_strings_from_yaml(self, file_name):
         self._load_yaml_file(file_name)
 
-        for (comment, msgid) in self._get_strings_for_translation():
+        for comment, msgid in self._get_strings_for_translation():
             self._print(comment, msgid)
 
     def _emit_strings_from_registry(self, registry_model):
@@ -110,7 +113,9 @@ class Command(BaseCommand):
             # probably wrong but compiler fails
             # if there are multilined messages
             # message_string = message_string.replace('\n',' ')
-            lines = [line.replace('"', '\\"') for line in message_string.split("\n")]
+            lines = [
+                line.replace('"', '\\"') for line in message_string.split("\n")
+            ]
             first_line = lines[0]
             lines = lines[1:]
 
@@ -150,7 +155,7 @@ class Command(BaseCommand):
         for form_dict in self.data["forms"]:
             yield None, form_dict["display_name"]
 
-            yield None, form_dict['header']
+            yield None, form_dict["header"]
             yield from self._yield_section_strings(form_dict)
 
     def _yield_context_form_group_strings(self):
@@ -161,7 +166,6 @@ class Command(BaseCommand):
             yield None, cfg["name"]
 
     def _yield_section_strings(self, form_dict):
-
         for section_dict in form_dict["sections"]:
             comment = None
             display_name = section_dict["display_name"]
@@ -196,11 +200,11 @@ class Command(BaseCommand):
     @staticmethod
     def _yield_cde_settings_strings(cde_dict):
         widget_name = cde_dict["widget_name"]
-        widget_settings = json.loads(cde_dict["widget_settings"] or 'null')
+        widget_settings = json.loads(cde_dict["widget_settings"] or "null")
 
         if widget_name == "SliderWidget":
-            yield "Slider left", widget_settings['left_label']
-            yield "Slider right", widget_settings['right_label']
+            yield "Slider left", widget_settings["left_label"]
+            yield "Slider right", widget_settings["right_label"]
 
     def _yield_consent_strings(self):
         for consent_section_dict in self.data["consent_sections"]:
@@ -265,7 +269,8 @@ class Command(BaseCommand):
             "Clinical Staff",
             "Parents",
             "Patients",
-                "Working Group Curators"]:
+            "Working Group Curators",
+        ]:
             yield None, column_heading
 
         for permission_object in Permission.objects.all():

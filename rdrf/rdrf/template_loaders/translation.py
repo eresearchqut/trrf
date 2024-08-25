@@ -1,7 +1,8 @@
 import logging
-from django.template import Origin
-from django.template import TemplateDoesNotExist
+
+from django.template import Origin, TemplateDoesNotExist
 from django.template.loaders.base import Loader as BaseLoader
+
 from rdrf.helpers.utils import get_registry_definition_value
 
 logger = logging.getLogger(__name__)
@@ -12,6 +13,7 @@ class Loader(BaseLoader):
     A custom template loader which retrieves embedded html templates from the registry definition
     models.
     """
+
     PREFIX = "rdrf://"
     PRELUDE = "{% load i18n %}\n{% load static %}"
 
@@ -35,5 +37,6 @@ class Loader(BaseLoader):
             html = get_registry_definition_value(field_path)
             return self.PRELUDE + "\n" + html
         except ValueError as verr:
-            raise TemplateDoesNotExist("Bad template name %s: %s" % (template_name,
-                                                                     verr.message))
+            raise TemplateDoesNotExist(
+                "Bad template name %s: %s" % (template_name, verr.message)
+            )

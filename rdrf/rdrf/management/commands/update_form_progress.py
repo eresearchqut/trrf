@@ -1,10 +1,11 @@
+import sys
+
 from django.core.management.base import BaseCommand
-from rdrf.models.definition.models import Registry
 from registry.patients.models import Patient
+
 from rdrf.forms.progress.form_progress import FormProgress
 from rdrf.helpers.registry_features import RegistryFeatures
-
-import sys
+from rdrf.models.definition.models import Registry
 
 
 class Command(BaseCommand):
@@ -18,8 +19,9 @@ class Command(BaseCommand):
         try:
             self.registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            self.stderr.write("Error: Unknown registry code: %s" %
-                              registry_code)
+            self.stderr.write(
+                "Error: Unknown registry code: %s" % registry_code
+            )
             sys.exit(1)
             return
 
@@ -30,14 +32,20 @@ class Command(BaseCommand):
     def _update_progress(self):
         form_progress = FormProgress(self.registry_model)
 
-        for patient_model in Patient.objects.filter(rdrf_registry__in=[self.registry_model]):
+        for patient_model in Patient.objects.filter(
+            rdrf_registry__in=[self.registry_model]
+        ):
             if not self.registry_model.has_feature(RegistryFeatures.CONTEXTS):
                 default_context = patient_model.default_context(
-                    self.registry_model)
+                    self.registry_model
+                )
                 form_progress.save_for_patient(patient_model, default_context)
-                self.stdout.write("Recalculated progress for Patient %s" % patient_model.pk)
+                self.stdout.write(
+                    "Recalculated progress for Patient %s" % patient_model.pk
+                )
 
             else:
                 self.stderr.write(
-                    "Script does not support registries with multiple contexts allowed, yet")
+                    "Script does not support registries with multiple contexts allowed, yet"
+                )
                 sys.exit(1)

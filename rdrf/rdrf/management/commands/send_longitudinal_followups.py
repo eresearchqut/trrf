@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 
 from django.core.management import BaseCommand
 
-from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups
+from rdrf.services.io.notifications.longitudinal_followups import (
+    send_longitudinal_followups,
+)
 
 
 class Command(BaseCommand):

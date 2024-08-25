@@ -3,7 +3,7 @@ from django import template
 register = template.Library()
 
 
-@register.filter(name='is_checkbox')
+@register.filter(name="is_checkbox")
 def is_checkbox(element):
     """
     Depending on the template the input can be an element wrapper with a field attribute
@@ -11,6 +11,6 @@ def is_checkbox(element):
     """
     if hasattr(element, "field"):
         field = element.field
-        return field.widget.input_type == 'checkbox'
+        return field.widget.input_type == "checkbox"
 
     return False

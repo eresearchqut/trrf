@@ -1,11 +1,14 @@
 import sys
 from datetime import datetime, timedelta
-from django.core.management import BaseCommand
-from rdrf.models.definition.models import Registry
-from rdrf.services.io.notifications.reminders import ReminderProcessor
-from rdrf.services.io.notifications.email_notification import process_notification
 
+from django.core.management import BaseCommand
 from registry.groups.models import CustomUser
+
+from rdrf.models.definition.models import Registry
+from rdrf.services.io.notifications.email_notification import (
+    process_notification,
+)
+from rdrf.services.io.notifications.reminders import ReminderProcessor
 
 
 def send_reminder(user, registry_model, process_func=None):
@@ -21,29 +24,41 @@ class Command(BaseCommand):
     help = "Lists users who haven't logged in for a given number of days"
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', "--registry_code",
-                            action='store',
-                            dest='registry_code',
-                            help='Code of registry to check')
+        parser.add_argument(
+            "-r",
+            "--registry_code",
+            action="store",
+            dest="registry_code",
+            help="Code of registry to check",
+        )
 
-        parser.add_argument("-d", "--days",
-                            action="store",
-                            dest="days",
-                            type=int,
-                            help="Number of days since last login.")
+        parser.add_argument(
+            "-d",
+            "--days",
+            action="store",
+            dest="days",
+            type=int,
+            help="Number of days since last login.",
+        )
 
-        parser.add_argument("-a", "--action",
-                            action="store",
-                            dest="action",
-                            choices=['print', 'send-reminders'],
-                            default='print',
-                            help="Action to perform")
+        parser.add_argument(
+            "-a",
+            "--action",
+            action="store",
+            dest="action",
+            choices=["print", "send-reminders"],
+            default="print",
+            help="Action to perform",
+        )
 
-        parser.add_argument("-t", "--test-mode",
-                            action="store_true",
-                            dest="test_mode",
-                            default=False,
-                            help="Action to perform")
+        parser.add_argument(
+            "-t",
+            "--test-mode",
+            action="store_true",
+            dest="test_mode",
+            default=False,
+            help="Action to perform",
+        )
 
     def _print(self, msg):
         self.stdout.write(msg + "\n")
@@ -52,9 +67,11 @@ class Command(BaseCommand):
         self.stderr.write(msg + "\n")
 
     def _dummy_send(self, reg_code, description=None, template_data={}):
-        msg = "dummy send reg_code=%s description=%s template_data=%s" % (reg_code,
-                                                                          description,
-                                                                          template_data)
+        msg = "dummy send reg_code=%s description=%s template_data=%s" % (
+            reg_code,
+            description,
+            template_data,
+        )
         self._print(msg)
 
     def _get_numdays(self, registry_model):
@@ -92,21 +109,20 @@ class Command(BaseCommand):
         test_mode = options.get("test_mode", False)
 
         if action == "print":
+
             def action_func(user):
                 return self._print(user.username)
         elif action == "send-reminders":
             if test_mode:
+
                 def action_func(user):
-                    return send_reminder(
-                        user,
-                        registry_model,
-                        self._dummy_send)
+                    return send_reminder(user, registry_model, self._dummy_send)
             else:
+
                 def action_func(user):
                     return send_reminder(
-                        user,
-                        registry_model,
-                        process_notification)
+                        user, registry_model, process_notification
+                    )
         else:
             self._error("Unknown action: %s" % action)
             sys.exit(1)
@@ -119,12 +135,14 @@ class Command(BaseCommand):
                         if not reminders_sent:
                             self._print("not sent")
                 except Exception as ex:
-                    self._error("Error performing %s on user %s: %s" % (action,
-                                                                        user,
-                                                                        ex))
+                    self._error(
+                        "Error performing %s on user %s: %s"
+                        % (action, user, ex)
+                    )
 
     def _get_users(self, registry_model):
-        for user in CustomUser.objects.filter(registry__in=[registry_model],
-                                              is_active=True):
+        for user in CustomUser.objects.filter(
+            registry__in=[registry_model], is_active=True
+        ):
             if user.is_patient or user.is_parent:
                 yield user

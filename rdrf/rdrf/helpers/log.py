@@ -1,5 +1,6 @@
-from django.utils.log import AdminEmailHandler
 from logging import StreamHandler
+
+from django.utils.log import AdminEmailHandler
 
 
 # An AdminEmainHandler that removes potentially sensitive information from the Error emails
@@ -7,7 +8,7 @@ from logging import StreamHandler
 class AdminShortEmailHandler(AdminEmailHandler):
     def send_mail(self, subject, message, *args, **kwargs):
         try:
-            message = message[:message.index('\nRequest information:')]
+            message = message[: message.index("\nRequest information:")]
         except ValueError:
             pass
         super().send_mail(subject, message, fail_silently=True)
@@ -19,7 +20,7 @@ class StreamDetailedErrorHandler(StreamHandler):
     def emit(self, record):
         email_handler = _NoMailErrorHandler(include_html=False)
         email_handler.emit(record)
-        msg = '\n'.join((email_handler.subject, email_handler.message))
+        msg = "\n".join((email_handler.subject, email_handler.message))
 
         record.args = None
         record.msg = msg
@@ -27,7 +28,6 @@ class StreamDetailedErrorHandler(StreamHandler):
 
 
 class _NoMailErrorHandler(AdminEmailHandler):
-
     def send_mail(self, subject, message, *args, **kwargs):
         self.subject = subject
         self.message = message

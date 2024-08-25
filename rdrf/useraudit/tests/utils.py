@@ -25,6 +25,7 @@ def simulate_login(username, password, headers=None):
 def chain_maps(*args):
     """Similar to collections.ChainMap but returned map is a separate copy (ie. changes
     to original dicts don't change the dict returned from this function)."""
+
     def merge(d1, d2):
         d1.update(d2)
         return d1

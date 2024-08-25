@@ -1,22 +1,21 @@
+from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from django.contrib.auth.models import Group
 from rdrf.models.definition.models import FormTitle
 
 from .registration_tests import RegistrationTest
 
 
 class FormTitleTest(RegistrationTest):
-
     def setUp(self):
         super().setUp()
         ft = FormTitle.objects.create(
             registry=self.registry,
             default_title=FormTitle.FORM_TITLE_CHOICES[0][0],
             custom_title="Demographics-updated",
-            order=1
+            order=1,
         )
-        g = Group.objects.get(name='Patients')
+        g = Group.objects.get(name="Patients")
         ft.groups.add(g)
         ft.save()
 
@@ -29,31 +28,43 @@ class FormTitleTest(RegistrationTest):
         self.assertIsNotNone(patient, "Patient not created !")
         patient.user.is_active = True
         patient.user.save()
-        logged_in = self.client.login(username=self.PATIENT_EMAIL, password=self.PATIENT_PWD)
+        logged_in = self.client.login(
+            username=self.PATIENT_EMAIL, password=self.PATIENT_PWD
+        )
         self.assertTrue(logged_in)
         response = self.client.post(
             reverse(
-                'consent_form_view',
-                kwargs={'registry_code': self.registry.code, "patient_id": patient.id}
-            ), data=self.consent_post_data(patient)
+                "consent_form_view",
+                kwargs={
+                    "registry_code": self.registry.code,
+                    "patient_id": patient.id,
+                },
+            ),
+            data=self.consent_post_data(patient),
         )
         self.assertEqual(response.status_code, 302)
         patient.refresh_from_db()
         response = self.client.get(
             reverse(
-                'patient_edit',
-                kwargs={'registry_code': self.registry.code, "patient_id": patient.id}
+                "patient_edit",
+                kwargs={
+                    "registry_code": self.registry.code,
+                    "patient_id": patient.id,
+                },
             )
         )
-        self.assertEqual(response.context['form_title'], "Demographics-updated")
+        self.assertEqual(response.context["form_title"], "Demographics-updated")
         self.client.logout()
 
-        logged_in = self.client.login(username='admin', password='admin')
+        logged_in = self.client.login(username="admin", password="admin")
         self.assertTrue(logged_in)
         response = self.client.get(
             reverse(
-                'patient_edit',
-                kwargs={'registry_code': self.registry.code, "patient_id": patient.id}
+                "patient_edit",
+                kwargs={
+                    "registry_code": self.registry.code,
+                    "patient_id": patient.id,
+                },
             )
         )
-        self.assertEqual(response.context['form_title'], "Demographics")
+        self.assertEqual(response.context["form_title"], "Demographics")

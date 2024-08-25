@@ -1,18 +1,25 @@
 import logging
 
-from django.core.exceptions import PermissionDenied
-from django.views.generic.base import View
-from django.shortcuts import get_object_or_404, render, redirect
-from django.urls import reverse
 from django.contrib import messages
-
-from registry.patients.admin_forms import ParentGuardianForm, ParentAddPatientForm
-from registry.patients.models import AddressType, ParentGuardian, Patient, PatientAddress
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.generic.base import View
 
 from rdrf.db.contexts_api import RDRFContextManager
 from rdrf.forms.form_title_helper import FormTitleHelper
 from rdrf.helpers.utils import consent_status_for_patient
 from rdrf.models.definition.models import Registry
+from registry.patients.admin_forms import (
+    ParentAddPatientForm,
+    ParentGuardianForm,
+)
+from registry.patients.models import (
+    AddressType,
+    ParentGuardian,
+    Patient,
+    PatientAddress,
+)
 
 logger = logging.getLogger("registry_log")
 
@@ -22,7 +29,6 @@ class RDRFContextSwitchError(Exception):
 
 
 class BaseParentView(View):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.registry = None
@@ -33,16 +39,20 @@ class BaseParentView(View):
 
     def dispatch(self, request, *args, **kwargs):
         user = request.user
-        self.registry = get_object_or_404(Registry, code=kwargs['registry_code'])
+        self.registry = get_object_or_404(
+            Registry, code=kwargs["registry_code"]
+        )
         if not request.user.in_registry(self.registry):
             raise PermissionDenied
         user_allowed = user.is_superuser or user.is_staff or user.is_parent
         if not user_allowed:
             raise PermissionDenied
-        if 'parent_id' not in kwargs:
+        if "parent_id" not in kwargs:
             self.parent = get_object_or_404(ParentGuardian, user=user)
         else:
-            passed_in_parent = get_object_or_404(ParentGuardian, pk=kwargs['parent_id'])
+            passed_in_parent = get_object_or_404(
+                ParentGuardian, pk=kwargs["parent_id"]
+            )
             self.parent = ParentGuardian.objects.filter(user=user).first()
             if not self.parent and user.is_parent:
                 raise PermissionDenied
@@ -54,9 +64,10 @@ class BaseParentView(View):
 
 
 class ParentView(BaseParentView):
-
     def get(self, request, registry_code):
-        return self._render_parent(request, registry_code, ParentAddPatientForm())
+        return self._render_parent(
+            request, registry_code, ParentAddPatientForm()
+        )
 
     def _get_parent_patients(self, parent):
         for patient in parent.patient.all():
@@ -69,16 +80,21 @@ class ParentView(BaseParentView):
 
         context = {
             "parent": self.parent,
-            "patients": [{
-                "patient": patient,
-                "consent": consent_status_for_patient(registry_code, patient)
-            } for patient in self._get_parent_patients(self.parent)],
+            "patients": [
+                {
+                    "patient": patient,
+                    "consent": consent_status_for_patient(
+                        registry_code, patient
+                    ),
+                }
+                for patient in self._get_parent_patients(self.parent)
+            ],
             "registry_code": registry_code,
             "form": form,
-            "form_titles": fth.all_titles_for_user(request.user)
+            "form_titles": fth.all_titles_for_user(request.user),
         }
 
-        return render(request, 'rdrf_cdes/parent.html', context)
+        return render(request, "rdrf_cdes/parent.html", context)
 
     def post(self, request, registry_code):
         form = ParentAddPatientForm(request.POST)
@@ -93,35 +109,38 @@ class ParentView(BaseParentView):
             given_names=form_clean["first_name"],
             date_of_birth=form_clean["date_of_birth"],
             sex=form_clean["gender"],
-            created_by=request.user
+            created_by=request.user,
         )
         patient.rdrf_registry.add(self.registry)
 
         patient.save()
 
-        address_type, created = AddressType.objects.get_or_create(type=self._ADDRESS_TYPE)
+        address_type, created = AddressType.objects.get_or_create(
+            type=self._ADDRESS_TYPE
+        )
 
-        address_fields = {
-            "patient": patient,
-            "address_type": address_type
-        }
+        address_fields = {"patient": patient, "address_type": address_type}
 
-        if form_clean['use_parent_address']:
-            address_fields.update({
-                "address": self.parent.address,
-                "suburb": self.parent.suburb,
-                "state": self.parent.state,
-                "postcode": self.parent.postcode,
-                "country": self.parent.country
-            })
+        if form_clean["use_parent_address"]:
+            address_fields.update(
+                {
+                    "address": self.parent.address,
+                    "suburb": self.parent.suburb,
+                    "state": self.parent.state,
+                    "postcode": self.parent.postcode,
+                    "country": self.parent.country,
+                }
+            )
         else:
-            address_fields.update({
-                "address": form_clean["address"],
-                "suburb": form_clean["suburb"],
-                "state": form_clean["state"],
-                "postcode": form_clean["postcode"],
-                "country": form_clean["country"]
-            })
+            address_fields.update(
+                {
+                    "address": form_clean["address"],
+                    "suburb": form_clean["suburb"],
+                    "state": form_clean["state"],
+                    "postcode": form_clean["postcode"],
+                    "country": form_clean["country"],
+                }
+            )
 
         PatientAddress.objects.create(**address_fields)
 
@@ -142,15 +161,18 @@ class ParentView(BaseParentView):
             patient.working_groups.add(registered_patient_working_group)
             patient.save()
 
-        messages.add_message(request, messages.SUCCESS, 'Patient added successfully')
-        return redirect(reverse("registry:parent_page", args={registry_code: registry_code}))
+        messages.add_message(
+            request, messages.SUCCESS, "Patient added successfully"
+        )
+        return redirect(
+            reverse("registry:parent_page", args={registry_code: registry_code})
+        )
 
 
 class ParentEditView(BaseParentView):
-
     def update_name(self, user, form):
-        first_name = form['first_name']
-        last_name = form['last_name']
+        first_name = form["first_name"]
+        last_name = form["last_name"]
         if user.first_name != first_name or user.last_name != last_name:
             user.first_name = first_name
             user.last_name = last_name
@@ -158,9 +180,9 @@ class ParentEditView(BaseParentView):
 
     def get(self, request, registry_code, parent_id):
         context = {}
-        context['parent'] = self.parent
-        context['registry_code'] = registry_code
-        context['parent_form'] = ParentGuardianForm(instance=self.parent)
+        context["parent"] = self.parent
+        context["registry_code"] = registry_code
+        context["parent_form"] = ParentGuardianForm(instance=self.parent)
 
         return render(request, "rdrf_cdes/parent_edit.html", context)
 
@@ -172,14 +194,16 @@ class ParentEditView(BaseParentView):
             self.update_name(request.user, parent_form.cleaned_data)
             messages.add_message(request, messages.SUCCESS, "Details saved")
         else:
-            messages.add_message(request, messages.ERROR, "Please correct the errors bellow")
+            messages.add_message(
+                request, messages.ERROR, "Please correct the errors bellow"
+            )
 
         registry = Registry.objects.get(code=registry_code)
 
-        context['parent'] = self.parent
-        context['registry_code'] = registry_code
-        context['parent_form'] = parent_form
+        context["parent"] = self.parent
+        context["registry_code"] = registry_code
+        context["parent_form"] = parent_form
         fth = FormTitleHelper(registry, "")
-        context['form_titles'] = fth.all_titles_for_user(request.user)
+        context["form_titles"] = fth.all_titles_for_user(request.user)
 
         return render(request, "rdrf_cdes/parent_edit.html", context)

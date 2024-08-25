@@ -1,4 +1,4 @@
-from django.db.models import F, Count
+from django.db.models import Count, F
 
 
 def working_group_optgroup_choices(wg_queryset, make_option_fn=None):
@@ -7,7 +7,18 @@ def working_group_optgroup_choices(wg_queryset, make_option_fn=None):
         return working_group.id, working_group.display_name
 
     make_option_fn = make_option_fn or default_make_option_fn
-    wg_types = wg_queryset.values('type').annotate(name=F('type__name'), type_cnt=Count('type')).order_by('type__name')
-    return [(wg_type.get('name'), [make_option_fn(wg)
-                                   for wg in wg_queryset.filter(type=wg_type.get('type'))])
-            for wg_type in wg_types]
+    wg_types = (
+        wg_queryset.values("type")
+        .annotate(name=F("type__name"), type_cnt=Count("type"))
+        .order_by("type__name")
+    )
+    return [
+        (
+            wg_type.get("name"),
+            [
+                make_option_fn(wg)
+                for wg in wg_queryset.filter(type=wg_type.get("type"))
+            ],
+        )
+        for wg_type in wg_types
+    ]

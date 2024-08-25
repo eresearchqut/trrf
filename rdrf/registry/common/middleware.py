@@ -1,11 +1,11 @@
 import logging
-from django.http import HttpResponseRedirect
-from django.urls import reverse, resolve
-from django.utils.cache import add_never_cache_headers
-from django.utils.deprecation import MiddlewareMixin
 
 from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core import xray_recorder
+from django.http import HttpResponseRedirect
+from django.urls import resolve, reverse
+from django.utils.cache import add_never_cache_headers
+from django.utils.deprecation import MiddlewareMixin
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class XrayMetadataMiddleware(MiddlewareMixin):
 
         if global_sdk_config.sdk_enabled():
             document = xray_recorder.current_segment()
-            if user := getattr(request, 'user', None):
+            if user := getattr(request, "user", None):
                 document.set_user(user)
 
         return response
@@ -46,15 +46,13 @@ class UserSentryMiddleware(MiddlewareMixin):
     """
 
     whitelisted_views = [
-        'login',
-        'setup',
-        'qr',
-
-        'password_change',
-        'password_change_done',
-
-        'logout',
-        'javascript-catalog',
+        "login",
+        "setup",
+        "qr",
+        "password_change",
+        "password_change_done",
+        "logout",
+        "javascript-catalog",
     ]
 
     def process_request(self, request):
@@ -62,7 +60,7 @@ class UserSentryMiddleware(MiddlewareMixin):
         if match.url_name in self.whitelisted_views:
             return None
 
-        user = getattr(request, 'user', None)
+        user = getattr(request, "user", None)
         if user is None or user.is_anonymous:
             return None
 
@@ -75,12 +73,12 @@ class UserSentryMiddleware(MiddlewareMixin):
     @staticmethod
     def verify_tfa(user):
         if not user.is_verified() and user.require_2_fact_auth:
-            return HttpResponseRedirect(reverse('two_factor:setup'))
+            return HttpResponseRedirect(reverse("two_factor:setup"))
 
     @staticmethod
     def verify_password_change(user):
         if user.force_password_change:
-            return HttpResponseRedirect(reverse('password_change'))
+            return HttpResponseRedirect(reverse("password_change"))
 
 
 class LaxSameSiteCookieMiddleware(MiddlewareMixin):
@@ -92,17 +90,18 @@ class LaxSameSiteCookieMiddleware(MiddlewareMixin):
     This mitigates a bug where redirect-urls from email clients cause cookies
     to not be set when part of a redirect chain.
     """
+
     applied_views = [
-        'password_reset_confirm',
-        'registration_activate',
-        'registration_activation_complete',
+        "password_reset_confirm",
+        "registration_activate",
+        "registration_activation_complete",
     ]
 
     def process_response(self, request, response):
         match = resolve(request.path)
         if match.url_name in self.applied_views:
             for cookie in response.cookies:
-                response.cookies[cookie]['samesite'] = 'Lax'
+                response.cookies[cookie]["samesite"] = "Lax"
         return response
 
 
@@ -110,17 +109,18 @@ class NoneSameSiteCookieMiddleware(MiddlewareMixin):
     """
     Sets 'SameSite: None' on cookies for embeddable views to allow cross-site usage
     """
+
     applied_views = [
-        'embedded_registration_register',
-        'embedded_registration_complete',
+        "embedded_registration_register",
+        "embedded_registration_complete",
     ]
 
     def process_response(self, request, response):
         match = resolve(request.path)
         if match.url_name in self.applied_views:
             for cookie in response.cookies:
-                response.cookies[cookie]['samesite'] = 'None'
-                response.cookies[cookie]['secure'] = True
+                response.cookies[cookie]["samesite"] = "None"
+                response.cookies[cookie]["secure"] = True
         return response
 
 
@@ -135,7 +135,7 @@ class NoCacheMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if not response.has_header('Cache-Control'):
+        if not response.has_header("Cache-Control"):
             add_never_cache_headers(response)
         return response
 

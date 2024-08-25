@@ -21,13 +21,19 @@ def open_registration(registry_name):
         registry.add_feature(RegistryFeatures.REGISTRATION)
         registry.save()
 
-    if not registry.emailnotification_set.filter(description__in=EventType.REGISTRATION_TYPES):
-        email_template = EmailTemplate.objects.create(language='en',
-                                                      subject='Welcome to the registry',
-                                                      body="Activation link: {{ activation_url }}")
-        email_notification = registry.emailnotification_set.create(description=EventType.NEW_PATIENT_USER_REGISTERED,
-                                                                   recipient='{{patient.user.email}}',
-                                                                   email_from='no-reply@registryframework.net')
+    if not registry.emailnotification_set.filter(
+        description__in=EventType.REGISTRATION_TYPES
+    ):
+        email_template = EmailTemplate.objects.create(
+            language="en",
+            subject="Welcome to the registry",
+            body="Activation link: {{ activation_url }}",
+        )
+        email_notification = registry.emailnotification_set.create(
+            description=EventType.NEW_PATIENT_USER_REGISTERED,
+            recipient="{{patient.user.email}}",
+            email_from="no-reply@registryframework.net",
+        )
         email_notification.email_templates.add(email_template)
         email_notification.save()
 
