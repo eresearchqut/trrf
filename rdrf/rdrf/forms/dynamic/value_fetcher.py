@@ -1,5 +1,4 @@
 class DynamicValueFetcher:
-
     def __init__(self, dynamic_data):
         self.dynamic_data = dynamic_data
 
@@ -12,12 +11,14 @@ class DynamicValueFetcher:
                     if section_dict["code"] == section_code:
                         if not section_dict["allow_multiple"]:
                             return [
-                                cde_dict["value"] for cde_dict in section_dict["cdes"]
+                                cde_dict["value"]
+                                for cde_dict in section_dict["cdes"]
                                 if cde_dict["code"] == cde_code
                             ]
                         else:
                             return [
-                                cde_dict["value"] for section_item in section_dict["cdes"]
+                                cde_dict["value"]
+                                for section_item in section_dict["cdes"]
                                 for cde_dict in section_item
                                 if cde_dict["code"] == cde_code
                             ]

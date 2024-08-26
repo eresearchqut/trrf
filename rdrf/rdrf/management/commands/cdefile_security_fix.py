@@ -1,8 +1,9 @@
+import sys
+
 from django.core.management.base import BaseCommand
-from rdrf.models.definition.models import Registry, CDEFile, ClinicalData
 from registry.patients.models import Patient
 
-import sys
+from rdrf.models.definition.models import CDEFile, ClinicalData, Registry
 
 
 class Command(BaseCommand):
@@ -16,8 +17,9 @@ class Command(BaseCommand):
         try:
             self.registry_model = Registry.objects.get(code=registry_code)
         except Registry.DoesNotExist:
-            self.stderr.write("Error: Unknown registry code: %s" %
-                              registry_code)
+            self.stderr.write(
+                "Error: Unknown registry code: %s" % registry_code
+            )
             sys.exit(1)
             return
 
@@ -27,33 +29,44 @@ class Command(BaseCommand):
 
     def _entry_exists(self, cd_models, form, section, cde):
         for cd in cd_models:
-            d = cd['data']
-            for f in d['forms']:
-                if f['name'] == form:
-                    for s in f['sections']:
-                        if s['code'] == section:
-                            for c in s['cdes']:
+            d = cd["data"]
+            for f in d["forms"]:
+                if f["name"] == form:
+                    for s in f["sections"]:
+                        if s["code"] == section:
+                            for c in s["cdes"]:
                                 if isinstance(c, list):
                                     for idx in range(len(c)):
-                                        if c[idx]['code'] == cde:
-                                            return cd['django_id']
+                                        if c[idx]["code"] == cde:
+                                            return cd["django_id"]
                                 else:
-                                    if c['code'] == cde:
-                                        return cd['django_id']
+                                    if c["code"] == cde:
+                                        return cd["django_id"]
         return None
 
     def _fix_entries(self):
         reg_code = self.registry_model.code
         cd_models = list(
             ClinicalData.objects.filter(
-                registry_code=reg_code, django_model='Patient', collection='cdes'
-            ).order_by('-id').values('django_id', 'data')
+                registry_code=reg_code,
+                django_model="Patient",
+                collection="cdes",
+            )
+            .order_by("-id")
+            .values("django_id", "data")
         )
-        to_fix_qs = CDEFile.objects.filter(registry_code=reg_code, patient__isnull=True)
+        to_fix_qs = CDEFile.objects.filter(
+            registry_code=reg_code, patient__isnull=True
+        )
         self.stdout.write(f"Found {to_fix_qs.count()} entries to fix")
         updated = 0
         for cdefile in to_fix_qs:
-            patient_id = self._entry_exists(cd_models, cdefile.form_name, cdefile.section_code, cdefile.cde_code)
+            patient_id = self._entry_exists(
+                cd_models,
+                cdefile.form_name,
+                cdefile.section_code,
+                cdefile.cde_code,
+            )
             patient = Patient.objects.filter(pk=patient_id).first()
             if patient:
                 cdefile.patient = patient

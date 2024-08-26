@@ -1,15 +1,34 @@
 import json
 import logging
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from django.core import mail
 from django.test import TestCase
+from registry.patients.models import (
+    ConsentValue,
+    LongitudinalFollowupEntry,
+    LongitudinalFollowupQueueState,
+    Patient,
+)
 
 from rdrf.events.events import EventType
-from rdrf.models.definition.models import Registry, ContextFormGroup, LongitudinalFollowup, EmailNotification, \
-    EmailTemplate, RegistryForm, ContextFormGroupItem, Section, CommonDataElement, ConsentSection, ConsentQuestion
-from rdrf.services.io.notifications.longitudinal_followups import send_longitudinal_followups, ConditionException
-from registry.patients.models import LongitudinalFollowupEntry, Patient, LongitudinalFollowupQueueState, ConsentValue
+from rdrf.models.definition.models import (
+    CommonDataElement,
+    ConsentQuestion,
+    ConsentSection,
+    ContextFormGroup,
+    ContextFormGroupItem,
+    EmailNotification,
+    EmailTemplate,
+    LongitudinalFollowup,
+    Registry,
+    RegistryForm,
+    Section,
+)
+from rdrf.services.io.notifications.longitudinal_followups import (
+    ConditionException,
+    send_longitudinal_followups,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +37,14 @@ class LongitudinalFollowupSetupMixin:
     def create_models(self):
         self.now = datetime.now()
         self.registry = Registry.objects.create(
-            code='reg',
-            metadata_json=json.dumps({'features': ['longitudinal_followups']})
+            code="reg",
+            metadata_json=json.dumps({"features": ["longitudinal_followups"]}),
         )
 
         template = EmailTemplate.objects.create(
-            language='en',
-            description='Longitudinal Followup',
-            subject='Longitudinal Followup',
+            language="en",
+            description="Longitudinal Followup",
+            subject="Longitudinal Followup",
             body="{{ longitudinal_followups | json_script:'' | striptags }}",
         )
         email_notification = EmailNotification.objects.create(
@@ -38,25 +57,27 @@ class LongitudinalFollowupSetupMixin:
         email_notification.save()
 
         CommonDataElement.objects.create(
-            code="test",
-            abbreviated_name="test",
-            name="test"
+            code="test", abbreviated_name="test", name="test"
         )
         Section.objects.create(
             code="test",
             elements="test",
             abbreviated_name="test",
-            display_name="test"
+            display_name="test",
         )
         form = RegistryForm.objects.create(
             registry=self.registry,
             name="test",
             abbreviated_name="test",
-            sections="test"
+            sections="test",
         )
 
-        self.cfg = ContextFormGroup.objects.create(registry=self.registry, code='cfg')
-        cfg_item = ContextFormGroupItem.objects.create(context_form_group=self.cfg, registry_form=form)
+        self.cfg = ContextFormGroup.objects.create(
+            registry=self.registry, code="cfg"
+        )
+        cfg_item = ContextFormGroupItem.objects.create(
+            context_form_group=self.cfg, registry_form=form
+        )
         self.cfg.items.add(cfg_item)
 
     def get_emails(self, num_emails):
@@ -75,43 +96,47 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             name="Test followup",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=26),
-            debounce=timedelta(weeks=26)
+            debounce=timedelta(weeks=26),
         )
-        patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient.rdrf_registry.add(self.registry)
 
-        LongitudinalFollowupEntry.objects.bulk_create([
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-        ])
+        LongitudinalFollowupEntry.objects.bulk_create(
+            [
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+            ]
+        )
 
         email = self.get_emails(1)[0]
         self.assertEqual(email.subject, "Longitudinal Followup")
@@ -127,79 +152,83 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             name="Test followup 1",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=26),
-            debounce=timedelta(weeks=26)
+            debounce=timedelta(weeks=26),
         )
         longitudinal_followup2 = LongitudinalFollowup.objects.create(
             name="Test followup 2",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=52),
-            debounce=timedelta(weeks=52)
+            debounce=timedelta(weeks=52),
         )
-        patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient.rdrf_registry.add(self.registry)
 
-        LongitudinalFollowupEntry.objects.bulk_create([
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=52, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-        ])
+        LongitudinalFollowupEntry.objects.bulk_create(
+            [
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=52, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+            ]
+        )
 
         email = self.get_emails(1)[0]
 
@@ -217,76 +246,82 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             name="Test followup",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=26),
-            debounce=timedelta(weeks=26)
+            debounce=timedelta(weeks=26),
         )
-        patient1 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient1 = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient1.rdrf_registry.add(self.registry)
 
-        patient2 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient2 = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient2.rdrf_registry.add(self.registry)
 
-        LongitudinalFollowupEntry.objects.bulk_create([
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-        ])
+        LongitudinalFollowupEntry.objects.bulk_create(
+            [
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+            ]
+        )
 
         [email1, email2] = self.get_emails(2)
 
@@ -307,143 +342,149 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             name="Test followup 1",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=26),
-            debounce=timedelta(weeks=26)
+            debounce=timedelta(weeks=26),
         )
         longitudinal_followup2 = LongitudinalFollowup.objects.create(
             name="Test followup 2",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=26),
-            debounce=timedelta(weeks=26)
+            debounce=timedelta(weeks=26),
         )
 
-        patient1 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient1 = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient1.rdrf_registry.add(self.registry)
 
-        patient2 = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient2 = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient2.rdrf_registry.add(self.registry)
 
-        LongitudinalFollowupEntry.objects.bulk_create([
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient1,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup1,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=26, days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now - timedelta(days=1)
-            ),
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup2,
-                patient=patient2,
-                state=LongitudinalFollowupQueueState.SENT,
-                send_at=self.now + timedelta(days=1)
-            )
-        ])
+        LongitudinalFollowupEntry.objects.bulk_create(
+            [
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient1,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup1,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=26, days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now - timedelta(days=1),
+                ),
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup2,
+                    patient=patient2,
+                    state=LongitudinalFollowupQueueState.SENT,
+                    send_at=self.now + timedelta(days=1),
+                ),
+            ]
+        )
 
         emails = self.get_emails(2)
 
@@ -456,7 +497,9 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
                 self.assertEqual(len(entries), 2)
 
 
-class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin):
+class LongitudinalFollowupConditionTest(
+    TestCase, LongitudinalFollowupSetupMixin
+):
     def setUp(self):
         self.create_models()
 
@@ -466,7 +509,7 @@ class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin
             context_form_group=self.cfg,
             frequency=timedelta(weeks=1),
             debounce=timedelta(weeks=1),
-            condition=condition
+            condition=condition,
         )
 
         consent_section = ConsentSection.objects.create(
@@ -483,26 +526,24 @@ class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin
             section=consent_section,
         )
 
-        patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient.rdrf_registry.add(self.registry)
         patient.save()
 
         ConsentValue.objects.create(
-            patient=patient,
-            consent_question=question1,
-            answer=True
+            patient=patient, consent_question=question1, answer=True
         )
         ConsentValue.objects.create(
-            patient=patient,
-            consent_question=question2,
-            answer=False
+            patient=patient, consent_question=question2, answer=False
         )
 
         LongitudinalFollowupEntry.objects.create(
             longitudinal_followup=longitudinal_followup,
             patient=patient,
             state=LongitudinalFollowupQueueState.PENDING,
-            send_at=self.now - timedelta(days=1)
+            send_at=self.now - timedelta(days=1),
         )
 
     def test_true(self):
@@ -531,7 +572,9 @@ class LongitudinalFollowupConditionTest(TestCase, LongitudinalFollowupSetupMixin
         self.get_emails(0)
 
 
-class LongitudinalFollowupDebounceTest(TestCase, LongitudinalFollowupSetupMixin):
+class LongitudinalFollowupDebounceTest(
+    TestCase, LongitudinalFollowupSetupMixin
+):
     def setUp(self):
         self.create_models()
 
@@ -540,22 +583,27 @@ class LongitudinalFollowupDebounceTest(TestCase, LongitudinalFollowupSetupMixin)
             name="Test followup",
             context_form_group=self.cfg,
             frequency=timedelta(weeks=frequency_weeks),
-            debounce=timedelta(weeks=debounce_weeks)
+            debounce=timedelta(weeks=debounce_weeks),
         )
-        patient = Patient.objects.create(consent=True, date_of_birth=datetime(1970, 1, 1), sex="3")
+        patient = Patient.objects.create(
+            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+        )
         patient.rdrf_registry.add(self.registry)
         patient.save()
         return patient, longitudinal_followup
 
     def create_entries(self, patient, longitudinal_followup, send_at_deltas):
-        LongitudinalFollowupEntry.objects.bulk_create([
-            LongitudinalFollowupEntry(
-                longitudinal_followup=longitudinal_followup,
-                patient=patient,
-                state=LongitudinalFollowupQueueState.PENDING,
-                send_at=self.now + timedelta(weeks=delta)
-            ) for delta in send_at_deltas
-        ])
+        LongitudinalFollowupEntry.objects.bulk_create(
+            [
+                LongitudinalFollowupEntry(
+                    longitudinal_followup=longitudinal_followup,
+                    patient=patient,
+                    state=LongitudinalFollowupQueueState.PENDING,
+                    send_at=self.now + timedelta(weeks=delta),
+                )
+                for delta in send_at_deltas
+            ]
+        )
 
     def test_none(self):
         self.create_patient_and_followup(26, 0)

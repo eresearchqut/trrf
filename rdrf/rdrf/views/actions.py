@@ -1,14 +1,14 @@
+import logging
+from enum import Enum
+
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.views.generic.base import View
-from django.http import Http404
+from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
-from django.core.exceptions import PermissionDenied
-from rdrf.helpers.utils import is_authorised, consent_check
+from django.views.generic.base import View
 
-from enum import Enum
-import logging
+from rdrf.helpers.utils import consent_check, is_authorised
 
 logger = logging.getLogger(__name__)
 
@@ -39,14 +39,16 @@ class Action:
         return value
 
     def _get_patient(self):
-        from registry.patients.models import Patient
-        from registry.patients.models import ParentGuardian
+        from registry.patients.models import ParentGuardian, Patient
+
         if "id" in self.request.GET:
             patient_id = self.request.GET.get("id")
             try:
                 patient_model = Patient.objects.get(id=patient_id)
                 if not is_authorised(self.user, patient_model):
-                    logger.warning(f"action not authorised for user:{self.user.id} on patient:{patient_model}")
+                    logger.warning(
+                        f"action not authorised for user:{self.user.id} on patient:{patient_model}"
+                    )
                     raise PermissionError
                 else:
                     return patient_model
@@ -55,7 +57,9 @@ class Action:
                 raise Http404(_("Patient not found"))
 
         try:
-            patient_model = Patient.objects.filter(user=self.user).order_by("id").first()
+            patient_model = (
+                Patient.objects.filter(user=self.user).order_by("id").first()
+            )
             if patient_model is not None:
                 return patient_model
         except Patient.DoesNotExist:
@@ -77,8 +81,7 @@ class Action:
         from rdrf.models.definition.models import Registry
 
         registry_code = self._get_field("registry")
-        registry_model = get_object_or_404(Registry,
-                                           code=registry_code)
+        registry_model = get_object_or_404(Registry, code=registry_code)
 
         if not self.user.in_registry(registry_model):
             raise PermissionDenied
@@ -93,12 +96,18 @@ class Action:
         if form_type == FormTypes.CONSENTS.value:
             return self._redirect_consents_form(registry_model, patient_model)
 
-        if not consent_check(registry_model, self.user, patient_model, "see_patient"):
-            messages.error(self.request, "Patient consent required before continuing")
+        if not consent_check(
+            registry_model, self.user, patient_model, "see_patient"
+        ):
+            messages.error(
+                self.request, "Patient consent required before continuing"
+            )
             return self._redirect_consents_form(registry_model, patient_model)
 
         if form_type == FormTypes.DEMOGRAPHICS.value:
-            return self._redirect_demographics_form(registry_model, patient_model)
+            return self._redirect_demographics_form(
+                registry_model, patient_model
+            )
         elif form_type == FormTypes.REGISTRY.value:
             return self._redirect_registry_form(registry_model, patient_model)
         else:
@@ -108,57 +117,85 @@ class Action:
     def _redirect_demographics_form(registry_model, patient_model):
         from django.urls import reverse
 
-        return HttpResponseRedirect(reverse("patient_edit", kwargs={
-            "registry_code": registry_model.code,
-            "patient_id": patient_model.id,
-        }))
+        return HttpResponseRedirect(
+            reverse(
+                "patient_edit",
+                kwargs={
+                    "registry_code": registry_model.code,
+                    "patient_id": patient_model.id,
+                },
+            )
+        )
 
     @staticmethod
     def _redirect_consents_form(registry_model, patient_model):
         from django.urls import reverse
 
-        return HttpResponseRedirect(reverse("consent_form_view", kwargs={
-            "registry_code": registry_model.code,
-            "patient_id": patient_model.id
-        }))
+        return HttpResponseRedirect(
+            reverse(
+                "consent_form_view",
+                kwargs={
+                    "registry_code": registry_model.code,
+                    "patient_id": patient_model.id,
+                },
+            )
+        )
 
     def _redirect_registry_form(self, registry_model, patient_model):
-        from rdrf.models.definition.models import ContextFormGroup, RegistryForm, RDRFContext
         from django.urls import reverse
 
+        from rdrf.models.definition.models import (
+            ContextFormGroup,
+            RDRFContext,
+            RegistryForm,
+        )
+
         form_name = self._get_field("form")
-        form_model = get_object_or_404(RegistryForm,
-                                       name=form_name,
-                                       registry=registry_model)
+        form_model = get_object_or_404(
+            RegistryForm, name=form_name, registry=registry_model
+        )
 
         cfg_name = self._get_field("cfg")
-        cfg_model = get_object_or_404(ContextFormGroup,
-                                      name=cfg_name,
-                                      registry=registry_model)
+        cfg_model = get_object_or_404(
+            ContextFormGroup, name=cfg_name, registry=registry_model
+        )
 
         if cfg_model.is_fixed:
-            context_model = get_object_or_404(RDRFContext.objects.get_for_patient(patient_model, registry_model),
-                                              context_form_group=cfg_model)
+            context_model = get_object_or_404(
+                RDRFContext.objects.get_for_patient(
+                    patient_model, registry_model
+                ),
+                context_form_group=cfg_model,
+            )
 
-            return HttpResponseRedirect(reverse('registry_form', kwargs={
-                "registry_code": registry_model.code,
-                "form_id": form_model.pk,
-                "patient_id": patient_model.pk,
-                "context_id": context_model.pk
-            }))
+            return HttpResponseRedirect(
+                reverse(
+                    "registry_form",
+                    kwargs={
+                        "registry_code": registry_model.code,
+                        "form_id": form_model.pk,
+                        "patient_id": patient_model.pk,
+                        "context_id": context_model.pk,
+                    },
+                )
+            )
         elif cfg_model.is_multiple:
-            return HttpResponseRedirect(reverse('form_add', kwargs={
-                "registry_code": registry_model.code,
-                "form_id": form_model.pk,
-                "patient_id": patient_model.pk,
-                "context_id": "add"
-            }))
+            return HttpResponseRedirect(
+                reverse(
+                    "form_add",
+                    kwargs={
+                        "registry_code": registry_model.code,
+                        "form_id": form_model.pk,
+                        "patient_id": patient_model.pk,
+                        "context_id": "add",
+                    },
+                )
+            )
         else:
             raise Http404
 
 
 class ActionExecutorView(View):
-
     def get(self, request):
         action = Action(request)
         return action.run()

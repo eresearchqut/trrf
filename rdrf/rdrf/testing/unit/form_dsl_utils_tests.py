@@ -20,6 +20,6 @@ def test_parse_int():
 
 
 def test_as_type():
-    assert as_type('integer', '123') == 123
-    assert isinstance(as_type('date', '2020-05-12'), datetime)
+    assert as_type("integer", "123") == 123
+    assert isinstance(as_type("date", "2020-05-12"), datetime)
     assert as_type(None, "abc") == "abc"

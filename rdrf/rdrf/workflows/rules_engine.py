@@ -1,6 +1,7 @@
-from rdrf.models.definition.models import Section
-from rdrf.helpers.utils import get_full_path
 import logging
+
+from rdrf.helpers.utils import get_full_path
+from rdrf.models.definition.models import Section
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class Tokens:
 class Actions:
     GOTO = "goto"
     WORKFLOW = "workflow"
+
 
 # should be enough for condition action pairs like:
 # [ ["=", ["get", "stoma"], "yes"] , ["goto", "form23"] ] etc
@@ -106,17 +108,21 @@ class RulesEvaluator:
         if "/" in field_spec:
             form_name, section_code, cde_code = field_spec.split("/")
         else:
-            form_name, section_code, cde_code = self._get_unique_field(field_spec)
+            form_name, section_code, cde_code = self._get_unique_field(
+                field_spec
+            )
 
         section_model = Section.objects.get(code=section_code)
 
-        return patient_model.get_form_value(registry_model.code,
-                                            form_name,
-                                            section_code,
-                                            cde_code,
-                                            multisection=section_model.allow_multiple,
-                                            context_id=context_id,
-                                            clinical_data=clinical_data)
+        return patient_model.get_form_value(
+            registry_model.code,
+            form_name,
+            section_code,
+            cde_code,
+            multisection=section_model.allow_multiple,
+            context_id=context_id,
+            clinical_data=clinical_data,
+        )
 
     def _get_unique_field(self, cde_code):
         registry_model = self.evaluation_context["registry_model"]
@@ -126,12 +132,15 @@ class RulesEvaluator:
         if not isinstance(action, type([])):
             raise RulesEvaluationError("Action should be a list: %s" % action)
         if len(action) == 0:
-            raise RulesEvaluationError("Action should be a non-empty list: %s" % action)
+            raise RulesEvaluationError(
+                "Action should be a non-empty list: %s" % action
+            )
 
         head = action[0]
         if head == Actions.GOTO:
-            from django.urls import reverse
             from django.http import HttpResponseRedirect
+            from django.urls import reverse
+
             url_name = action[1]
             logger.debug("redirecting to %s" % url_name)
             return HttpResponseRedirect(reverse(url_name))

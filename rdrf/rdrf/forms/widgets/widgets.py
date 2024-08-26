@@ -18,63 +18,75 @@ from django.forms.utils import flatatt
 from django.template import Context
 from django.template.loader import get_template
 from django.utils.formats import date_format
-from django.utils.html import format_html, conditional_escape
+from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
+from registry.patients.models import PatientConsent
 
 from rdrf.db.filestorage import virus_checker_result
 from rdrf.forms.dynamic.validation import iso_8601_validator
 from rdrf.helpers.cde_data_types import CDEDataTypes
 from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import consent_status_for_patient_consent
-from rdrf.models.definition.models import CommonDataElement, CDEFile, file_upload_to
-from registry.patients.models import PatientConsent
+from rdrf.models.definition.models import (
+    CDEFile,
+    CommonDataElement,
+    file_upload_to,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class BadCustomFieldWidget(Textarea):
-
     """
     Widget to use instead if a custom widget is defined and fails on creation
     """
 
 
 class TextAreaWidget(Textarea):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
 
 class OtherPleaseSpecifyWidget(MultiWidget):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
-    def __init__(self, main_choices, other_please_specify_value, unset_value, attrs=None, widget_name=None):
+    def __init__(
+        self,
+        main_choices,
+        other_please_specify_value,
+        unset_value,
+        attrs=None,
+        widget_name=None,
+    ):
         self.main_choices = main_choices
         self.other_please_specify_value = other_please_specify_value
         self.unset_value = unset_value
-        self.use_radio = widget_name == 'RadioSelect'
+        self.use_radio = widget_name == "RadioSelect"
 
         def default_main_widget():
             return widgets.Select(attrs=attrs, choices=self.main_choices)
 
         _main_widget_mapping = {
-            'RadioSelect': lambda: RadioSelect(attrs=attrs, choices=self.main_choices),
-            'ReadOnlySelect': lambda: ReadOnlySelect(attrs=attrs, choices=self.main_choices)
+            "RadioSelect": lambda: RadioSelect(
+                attrs=attrs, choices=self.main_choices
+            ),
+            "ReadOnlySelect": lambda: ReadOnlySelect(
+                attrs=attrs, choices=self.main_choices
+            ),
         }
         _widgets = (
             _main_widget_mapping.get(widget_name, default_main_widget)(),
-            widgets.TextInput(attrs=attrs)
+            widgets.TextInput(attrs=attrs),
         )
 
         super(OtherPleaseSpecifyWidget, self).__init__(_widgets, attrs)
 
     def format_output(self, rendered_widgets):
-        output = '<BR>'.join(rendered_widgets)
+        output = "<BR>".join(rendered_widgets)
         return output
 
     def decompress(self, value):
@@ -128,30 +140,40 @@ class OtherPleaseSpecifyWidget(MultiWidget):
             (function(){ $("#%s").change();})();
 
         </script>
-        """ % (select_id, value_check, specified_value_textbox_id, specified_value_textbox_id, select_id)
+        """ % (
+            select_id,
+            value_check,
+            specified_value_textbox_id,
+            specified_value_textbox_id,
+            select_id,
+        )
 
-        return f'''
+        return f"""
             <div id="id_{name}" name="{name}">
                 {super().render(name, value, attrs)}
             </div>
             {script}
-        '''
+        """
 
 
 class CalculatedFieldWidget(widgets.TextInput):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.CALCULATED}
 
-    def __init__(self, script, attrs={}):
-        attrs['readonly'] = 'readonly'
+    def __init__(self, script, attrs=None):
+        if attrs is None:
+            attrs = {}
+        attrs["readonly"] = "readonly"
         self.script = script
         super(CalculatedFieldWidget, self).__init__(attrs=attrs)
 
     def render(self, name, value, attrs, renderer=None):
         # attrs['readonly'] = 'readonly'
-        return super(CalculatedFieldWidget, self).render(name, value, attrs) + self.script
+        return (
+            super(CalculatedFieldWidget, self).render(name, value, attrs)
+            + self.script
+        )
 
 
 class LookupWidget(widgets.TextInput):
@@ -173,11 +195,10 @@ class LookupWidget(widgets.TextInput):
                     lookup($(this), '%s');
                 });
             </script>
-        """ % (name, name, value or '', name, self.SOURCE_URL)
+        """ % (name, name, value or "", name, self.SOURCE_URL)
 
 
 class DateWidget(widgets.TextInput):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.DATE}
@@ -185,50 +206,59 @@ class DateWidget(widgets.TextInput):
     def render(self, name, value, attrs, renderer=None):
         def just_date(value):
             if value:
-                if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
+                if isinstance(value, datetime.datetime) or isinstance(
+                    value, datetime.date
+                ):
                     return date_format(value, "d-m-Y")
                 else:
                     return value
             else:
                 return value
 
-        output_val = conditional_escape(just_date(value) or '')
+        output_val = conditional_escape(just_date(value) or "")
         return f'<input type="text" name="{name}" id="id_{name}" value="{output_val}" class="datepicker">'
 
 
 class CountryWidget(widgets.Select):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
     @staticmethod
     def choices():
-        return [(c.alpha_2, c.name)
-                for c in sorted(pycountry.countries, key=attrgetter("name"))]
+        return [
+            (c.alpha_2, c.name)
+            for c in sorted(pycountry.countries, key=attrgetter("name"))
+        ]
 
     def render(self, name, value, attrs, renderer=None):
-        final_attrs = self.build_attrs(attrs, {
-            "name": name,
-            "class": "form-select",
-            "onchange": "select_country(this)",
-        })
+        final_attrs = self.build_attrs(
+            attrs,
+            {
+                "name": name,
+                "class": "form-select",
+                "onchange": "select_country(this)",
+            },
+        )
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
-        for country in sorted(pycountry.countries, key=attrgetter('name')):
-
+        for country in sorted(pycountry.countries, key=attrgetter("name")):
             if value == country.alpha_2:
-                output.append("<option value='%s' selected>%s</option>" %
-                              (country.alpha_2, _(country.name)))
+                output.append(
+                    "<option value='%s' selected>%s</option>"
+                    % (country.alpha_2, _(country.name))
+                )
             else:
-                output.append("<option value='%s'>%s</option>" % (country.alpha_2, _(country.name)))
+                output.append(
+                    "<option value='%s'>%s</option>"
+                    % (country.alpha_2, _(country.name))
+                )
         output.append("</select>")
-        return mark_safe('\n'.join(output))
+        return mark_safe("\n".join(output))
 
 
 class StateWidget(widgets.Select):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.STRING}
@@ -240,26 +270,35 @@ class StateWidget(widgets.Select):
             state = None
 
         if state is not None:
-            country_states = pycountry.subdivisions.get(country_code=state.country.alpha_2)
+            country_states = pycountry.subdivisions.get(
+                country_code=state.country.alpha_2
+            )
         else:
             country_states = []
 
-        final_attrs = self.build_attrs(attrs, {
-            "name": name,
-            "class": "form-select",
-            "onclick": "if (this.value === '') $('#' + this.id.replace('state', 'country')).trigger('change')"
-        })
+        final_attrs = self.build_attrs(
+            attrs,
+            {
+                "name": name,
+                "class": "form-select",
+                "onclick": "if (this.value === '') $('#' + this.id.replace('state', 'country')).trigger('change')",
+            },
+        )
         output = [format_html("<select{}>", flatatt(final_attrs))]
         empty_option = "<option value=''>---------</option>"
         output.append(empty_option)
         for state in country_states:
             if value == state.code:
-                output.append("<option value='%s' selected>%s</option>" %
-                              (state.code, state.name))
+                output.append(
+                    "<option value='%s' selected>%s</option>"
+                    % (state.code, state.name)
+                )
             else:
-                output.append("<option value='%s'>%s</option>" % (state.code, state.name))
+                output.append(
+                    "<option value='%s'>%s</option>" % (state.code, state.name)
+                )
         output.append("</select>")
-        return mark_safe('\n'.join(output))
+        return mark_safe("\n".join(output))
 
 
 class ParameterisedSelectWidget(widgets.Select):
@@ -271,35 +310,43 @@ class ParameterisedSelectWidget(widgets.Select):
     """
 
     def __init__(self, *args, **kwargs):
-        self._widget_parameter = kwargs['widget_parameter']
-        del kwargs['widget_parameter']
-        self._widget_context = kwargs['widget_context']
-        del kwargs['widget_context']
+        self._widget_parameter = kwargs["widget_parameter"]
+        del kwargs["widget_parameter"]
+        self._widget_context = kwargs["widget_context"]
+        del kwargs["widget_context"]
         super().__init__(*args, **kwargs)
 
     def render(self, name, value, attrs, renderer=None):
         if not value:
-            value = self.attrs.get('default', '')
+            value = self.attrs.get("default", "")
 
         # final_attrs = dict(self.attrs, name=name)
 
-        final_attrs = self.build_attrs(attrs, {
-            "name": name,
-            "class": "form-select",
-        })
+        final_attrs = self.build_attrs(
+            attrs,
+            {
+                "name": name,
+                "class": "form-select",
+            },
+        )
         output = [format_html("<select{}>", flatatt(final_attrs))]
         output.append("<option value='---'>---------</option>")
         for code, display in self._get_items():
             if value == code:
-                output.append("<option value='%s' selected>%s</option>" % (code, display))
+                output.append(
+                    "<option value='%s' selected>%s</option>" % (code, display)
+                )
             else:
-                output.append("<option value='%s'>%s</option>" % (code, display))
+                output.append(
+                    "<option value='%s'>%s</option>" % (code, display)
+                )
         output.append("</select>")
-        return mark_safe('\n'.join(output))
+        return mark_safe("\n".join(output))
 
     def _get_items(self):
         raise NotImplementedError(
-            "subclass responsibility - it should return a list of pairs: [(code, display), ...]")
+            "subclass responsibility - it should return a list of pairs: [(code, display), ...]"
+        )
 
 
 class DataSourceSelect(ParameterisedSelectWidget):
@@ -312,6 +359,7 @@ class DataSourceSelect(ParameterisedSelectWidget):
         :return: [(code, value), ... ] pairs from the metadata json from the registry context
         """
         from rdrf.forms.widgets import datasources
+
         if hasattr(datasources, self._widget_parameter):
             datasource_class = getattr(datasources, self._widget_parameter)
             datasource = datasource_class(self._widget_context)
@@ -319,7 +367,6 @@ class DataSourceSelect(ParameterisedSelectWidget):
 
 
 class PositiveIntegerInput(widgets.TextInput):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.INTEGER}
@@ -362,33 +409,47 @@ class RadioSelect(widgets.RadioSelect):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        force_vertical = self.attrs.pop("force_vertical") if "force_vertical" in self.attrs else False
-        context["column_width"] = "col-12" if force_vertical else self._get_column_width()
+        force_vertical = (
+            self.attrs.pop("force_vertical")
+            if "force_vertical" in self.attrs
+            else False
+        )
+        context["column_width"] = (
+            "col-12" if force_vertical else self._get_column_width()
+        )
         return context
 
 
 class ReadOnlySelect(widgets.Select):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.RANGE}
 
     def render(self, name, value, attrs=None, renderer=None):
         html = super(ReadOnlySelect, self).render(name, value, attrs)
-        return self._make_label(html) + self._make_hidden_field(name, value, attrs)
+        return self._make_label(html) + self._make_hidden_field(
+            name, value, attrs
+        )
 
     def _make_hidden_field(self, name, value, attrs):
         return """<input type="hidden" id="%s" name="%s" value="%s"/>""" % (
-            attrs['id'], name, value)
+            attrs["id"],
+            name,
+            value,
+        )
 
     def _make_label(self, html):
         import re
+
         html = html.replace("\n", "")
-        pattern = re.compile(r'.*selected=\"selected\">(.*?)</option>.*')
+        pattern = re.compile(r".*selected=\"selected\">(.*?)</option>.*")
         m = pattern.match(html)
         if m:
             option_display_text = m.groups(1)[0]
-            return """<span class="label label-default">%s</span>""" % option_display_text
+            return (
+                """<span class="label label-default">%s</span>"""
+                % option_display_text
+            )
         else:
             return html
 
@@ -412,7 +473,10 @@ class MultipleFileInput(Widget):
 
     @staticmethod
     def denormalized_value(raw_files):
-        return [FileInputWrapper.denormalized_value(raw_file) for raw_file in raw_files]
+        return [
+            FileInputWrapper.denormalized_value(raw_file)
+            for raw_file in raw_files
+        ]
 
     number_pat = re.compile(r"_(\d+)$")
 
@@ -421,7 +485,7 @@ class MultipleFileInput(Widget):
         "Cuts the index part out of an form input name"
         if field_name.startswith(name) and field_name.endswith(suffix):
             chop = -len(suffix) if suffix else None
-            m = cls.number_pat.match(field_name[len(name):chop])
+            m = cls.number_pat.match(field_name[len(name) : chop])
             if m:
                 return int(m.group(1))
         return None
@@ -430,7 +494,10 @@ class MultipleFileInput(Widget):
         attrs = attrs or {}
         items = self._render_each(name, value, attrs)
 
-        elements = (f'<div class="row multi-file"><div>{item}</div></div>' for item in items)
+        elements = (
+            f'<div class="row multi-file"><div>{item}</div></div>'
+            for item in items
+        )
         template = next(elements)
         divider = '\n<div class="row justify-content-center"><hr class="w-75"></div>\n'
         return """
@@ -470,17 +537,22 @@ class MultipleFileInput(Widget):
 
         nums = sorted(set(indices).union(clears).union(uploads) - set([None]))
 
-        return [base_widget.value_from_datadict(data, files, self.input_name(name, i))
-                for i in nums]
+        return [
+            base_widget.value_from_datadict(
+                data, files, self.input_name(name, i)
+            )
+            for i in nums
+        ]
 
 
 class FileInputWrapper(widgets.ClearableFileInput):
-
-    template_name = 'widgets/custom_file_input.html'
+    template_name = "widgets/custom_file_input.html"
 
     @staticmethod
     def denormalized_value(raw_value):
-        return raw_value.get('file_name') if isinstance(raw_value, dict) else None
+        return (
+            raw_value.get("file_name") if isinstance(raw_value, dict) else None
+        )
 
     def get_value(self, value):
         return value
@@ -502,28 +574,31 @@ class FileInputWrapper(widgets.ClearableFileInput):
         is_initial = self.is_initial(value)
         filename = self.get_filename(value) if is_initial else None
 
-        context['widget'].update({
-            'checkbox_name': checkbox_name,
-            'checkbox_id': checkbox_id,
-            'is_initial': is_initial,
-            'input_text': self.input_text,
-            'value': self.get_value(value) if is_initial else _('Not set'),
-            'initial_text': self.initial_text,
-            'clear_checkbox_label': self.clear_checkbox_label,
-            'virus_check_result': self.do_virus_check(filename) if filename else '',
-            'virus_check_id': checkbox_name.replace("-", "_")
-        })
+        context["widget"].update(
+            {
+                "checkbox_name": checkbox_name,
+                "checkbox_id": checkbox_id,
+                "is_initial": is_initial,
+                "input_text": self.input_text,
+                "value": self.get_value(value) if is_initial else _("Not set"),
+                "initial_text": self.initial_text,
+                "clear_checkbox_label": self.clear_checkbox_label,
+                "virus_check_result": self.do_virus_check(filename)
+                if filename
+                else "",
+                "virus_check_id": checkbox_name.replace("-", "_"),
+            }
+        )
         return context
 
 
 # Used to present a FieldFile-like object to the widget template that we can modify
 # Should return the name on str(value) and should have a value.url property
-FieldFileDummy = namedtuple('FieldFileDummy', ['name', 'url'])
+FieldFileDummy = namedtuple("FieldFileDummy", ["name", "url"])
 FieldFileDummy.__str__ = lambda ff: ff.name
 
 
 class ConsentFileInput(FileInputWrapper):
-
     def get_value(self, value):
         filename = PatientConsent.objects.get(form=value).original_filename
         return FieldFileDummy(name=filename, url=value.url)
@@ -534,9 +609,8 @@ class ConsentFileInput(FileInputWrapper):
 
 
 class CustomFileInput(FileInputWrapper):
-
     def get_filename(self, value):
-        django_file_id = getattr(value, 'fs_dict', {}).get('django_file_id')
+        django_file_id = getattr(value, "fs_dict", {}).get("django_file_id")
         if django_file_id is None:
             return None
 
@@ -545,7 +619,6 @@ class CustomFileInput(FileInputWrapper):
 
 
 class SliderWidget(widgets.TextInput):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.INTEGER, CDEDataTypes.FLOAT}
@@ -554,13 +627,22 @@ class SliderWidget(widgets.TextInput):
         if not (value and isinstance(value, float) or isinstance(value, int)):
             value = ""
 
-        left_label = self.attrs.pop("left_label") if "left_label" in self.attrs else ''
-        right_label = self.attrs.pop("right_label") if "right_label" in self.attrs else ''
+        left_label = (
+            self.attrs.pop("left_label") if "left_label" in self.attrs else ""
+        )
+        right_label = (
+            self.attrs.pop("right_label") if "right_label" in self.attrs else ""
+        )
 
         if self.attrs:
-            widget_attrs = ",\n".join("\"{}\":{}".format(k, v) for k, v in self.attrs.items()) + ","
+            widget_attrs = (
+                ",\n".join(
+                    '"{}":{}'.format(k, v) for k, v in self.attrs.items()
+                )
+                + ","
+            )
         else:
-            widget_attrs = ''
+            widget_attrs = ""
 
         context = f"""
             <div class="rdrf-cde-slider">
@@ -601,17 +683,26 @@ class SliderWidget(widgets.TextInput):
 
 
 class SignatureWidget(widgets.TextInput):
-
     @staticmethod
     def usable_for_types():
         return {CDEDataTypes.STRING}
 
     def render(self, name, value, attrs=None, renderer=None):
-        has_value = value and value != 'None'
-        encoded_default_value = base64.b64encode('{"width":1, "data":[]}'.encode('utf-8')).decode('utf-8')
-        set_value = f'set_value("{conditional_escape(value)}");' if has_value else f'set_value("{encoded_default_value}");'
+        has_value = value and value != "None"
+        encoded_default_value = base64.b64encode(
+            '{"width":1, "data":[]}'.encode("utf-8")
+        ).decode("utf-8")
+        set_value = (
+            f'set_value("{conditional_escape(value)}");'
+            if has_value
+            else f'set_value("{encoded_default_value}");'
+        )
         # We're hiding the "Undo last stroke" button, because it looks strange when showing an already signed form
-        hide_undo_btn = "$sigdiv.find('input[type=\"button\"][value=\"Undo last stroke\"]').hide()" if has_value else ""
+        hide_undo_btn = (
+            '$sigdiv.find(\'input[type="button"][value="Undo last stroke"]\').hide()'
+            if has_value
+            else ""
+        )
         html_value = value if has_value else encoded_default_value
 
         context = {
@@ -619,15 +710,17 @@ class SignatureWidget(widgets.TextInput):
             "html_value": mark_safe(html_value),
             "set_value": mark_safe(set_value),
             "hide_undo_btn": mark_safe(hide_undo_btn),
-            "encoded_default_value": mark_safe(encoded_default_value)
+            "encoded_default_value": mark_safe(encoded_default_value),
         }
         if not renderer:
             renderer = get_default_renderer()
-        return mark_safe(renderer.render("widgets/signature_widget.html", context))
+        return mark_safe(
+            renderer.render("widgets/signature_widget.html", context)
+        )
 
 
 def _is_not_multisection_clone_base_widget(attrs):
-    return 'id' in attrs and '__prefix__' not in attrs['id']
+    return "id" in attrs and "__prefix__" not in attrs["id"]
 
 
 class TimeWidget(widgets.TextInput):
@@ -639,10 +732,10 @@ class TimeWidget(widgets.TextInput):
         return {CDEDataTypes.TIME}
 
     def _parse_value(self, value, fmt):
-        '''
+        """
         Parse the input time and transform it to the format
         the timepicki widget expects
-        '''
+        """
 
         def validate(hr, min, fmt):
             try:
@@ -651,7 +744,7 @@ class TimeWidget(widgets.TextInput):
             except ValueError:
                 return False
 
-        NO_VALUE = ('', [])
+        NO_VALUE = ("", [])
         if not value:
             return NO_VALUE
         m = re.match("(\\d{2}):(\\d{2})\\s*(AM|PM)?", value)
@@ -664,20 +757,20 @@ class TimeWidget(widgets.TextInput):
         hour, minute = int(hour), int(minute)
 
         if fmt == self.FULL:
-            if meridian == 'PM':
+            if meridian == "PM":
                 hour = 12 if hour == 12 else hour + 12
         else:
             if hour == 0:
                 hour = 12
             elif hour > 12:
                 hour = hour - 12
-                meridian = 'PM'
-            meridian = meridian or 'AM'
+                meridian = "PM"
+            meridian = meridian or "AM"
 
-        formatted_time = f'{hour:02d}:{minute:02d}'
+        formatted_time = f"{hour:02d}:{minute:02d}"
         start_time = [hour, minute]
         if fmt == self.AMPM:
-            formatted_time += f' {meridian}'
+            formatted_time += f" {meridian}"
             start_time.append(meridian)
 
         return formatted_time, start_time
@@ -687,27 +780,26 @@ class TimeWidget(widgets.TextInput):
         value, start_time = self._parse_value(value, fmt)
         has_am_pm = "true" if fmt == self.AMPM else "false"
         start_time_str = ",".join([str(t) for t in start_time])
-        html = f'''
+        html = f"""
             <input id="id_{name}" type="text" name="{name}" class="timepicker" has_am_pm="{has_am_pm}", start_time="{start_time_str}" value="{value}"/>
-        '''
-        script = ''
+        """
+        script = ""
         if _is_not_multisection_clone_base_widget(attrs):
             # Only attach the script if this is not the default
             # widget used for cloning in multisections
-            script = f'''
+            script = f"""
                 <script type="text/javascript" class="timepicker-script">
                     setupTimepicker($("#id_{name}"), {has_am_pm}, "{start_time_str}");
                 </script>
-            '''
+            """
 
-        return f'''
+        return f"""
             {html}
             {script}
-        '''
+        """
 
 
 class DurationWidgetHelper:
-
     def __init__(self, attrs):
         self.attrs = attrs
 
@@ -719,10 +811,10 @@ class DurationWidgetHelper:
         return "true" if self._get_attribute(name) else "false"
 
     def current_format_default(self):
-        '''
+        """
         Returns the current format default value
         Ex: If years months and hours are selected the default value is P0Y0MT0H
-        '''
+        """
         if self._get_attribute("weeks_only"):
             return "P0W"
 
@@ -732,54 +824,58 @@ class DurationWidgetHelper:
             "days": "0D",
             "hours": "0H",
             "minutes": "0M",
-            "seconds": "0S"
+            "seconds": "0S",
         }
 
         def reduce_fn(acc, curr):
-            if curr in ["hours", "minutes", "seconds"] and 'T' not in acc:
+            if curr in ["hours", "minutes", "seconds"] and "T" not in acc:
                 acc.append("T")
             acc.append(default_values[curr])
             return acc
 
-        existing = [attr for attr in default_values.keys() if self._get_attribute(attr)]
-        return "".join(reduce(reduce_fn, existing, ['P']))
+        existing = [
+            attr for attr in default_values.keys() if self._get_attribute(attr)
+        ]
+        return "".join(reduce(reduce_fn, existing, ["P"]))
 
     def value_default_format(self, value):
-        '''
+        """
         Returns the default format for the current value
         Ex: P3Y2M30D => P0Y0M0D
-        '''
+        """
         if not value:
             return self.current_format_default()
         return re.sub(r"\d+", "0", value)
 
     @staticmethod
     def extract_fields(format):
-        '''
+        """
         Extract the field names from a duration format
         Ex: P0Y0M => {'years', 'months'}
-        '''
+        """
         no_zeroes = re.sub(r"\d+", "", format)
         date_mappings = {"Y": "years", "M": "months", "D": "days", "W": "weeks"}
         time_mappings = {"H": "hours", "M": "minutes", "S": "seconds"}
 
         def reduce_fn(acc, curr):
-            if curr == 'T':
+            if curr == "T":
                 acc.add(curr)
             else:
-                mapping = time_mappings[curr] if 'T' in acc else date_mappings[curr]
+                mapping = (
+                    time_mappings[curr] if "T" in acc else date_mappings[curr]
+                )
                 acc.add(mapping)
             return acc
 
         result = reduce(reduce_fn, no_zeroes[1:], set())
-        return result - set(['T'])
+        return result - set(["T"])
 
     @staticmethod
     def compatible_formats(src, dst):
-        '''
+        """
         Checks if two default formats are compatible
         Ex: src: P0Y0M0D  dest:P0Y => these are compatible
-        '''
+        """
         valid_src = iso_8601_validator(src)
         valid_dest = iso_8601_validator(dst)
         if not (valid_src and valid_dest):
@@ -806,43 +902,52 @@ class DurationWidget(widgets.TextInput):
         return {CDEDataTypes.DURATION}
 
     def render(self, name, value, attrs=None, renderer=None):
-
         widget_helper = DurationWidgetHelper(self.attrs)
 
         current_default_fmt = widget_helper.current_format_default()
         value_default_fmt = widget_helper.value_default_format(value)
-        compatible = widget_helper.compatible_formats(current_default_fmt, value_default_fmt)
+        compatible = widget_helper.compatible_formats(
+            current_default_fmt, value_default_fmt
+        )
 
         if not value or not iso_8601_validator(value) or not compatible:
             value = widget_helper.current_format_default()
 
-        fields = ('years', 'months', 'days', 'hours', 'minutes', 'seconds', 'weeks_only')
+        fields = (
+            "years",
+            "months",
+            "days",
+            "hours",
+            "minutes",
+            "seconds",
+            "weeks_only",
+        )
         init_attrs = [widget_helper.get_attribute_js(name) for name in fields]
         init_attrs_str = ",".join(init_attrs)
-        script = ''
+        script = ""
         if _is_not_multisection_clone_base_widget(attrs):
             # Only attach the script if this is not the default
             # widget used for cloning in multisections
-            script = f'''
+            script = f"""
                 <script type="text/javascript" class="duration-widget-script">
                     setupDurationWidget("{name}", "{init_attrs_str}");
                 </script>
-            '''
-        return f'''
+            """
+        return f"""
             <input id="id_{name}_text" type="text" class="duration-widget" value="{value}" input-name="{name}" init_attrs="{init_attrs_str}" readonly/>
             <input id="id_{name}_duration" type="hidden" name="{name}" value="{value}"/>
             {script}
-        '''
+        """
 
 
 class XnatWidget(LookupWidget):
-    SEPARATOR = ';'
+    SEPARATOR = ";"
 
     def __init__(self, *args, **kwargs):
-        _widget_context = kwargs.pop('widget_context')
+        _widget_context = kwargs.pop("widget_context")
 
-        self.registry = _widget_context.get('registry_model')
-        self.patient_id = _widget_context.get('primary_id')
+        self.registry = _widget_context.get("registry_model")
+        self.patient_id = _widget_context.get("primary_id")
 
         super().__init__(*args, **kwargs)
 
@@ -850,7 +955,9 @@ class XnatWidget(LookupWidget):
     def extract_lookup_values(raw_value):
         if raw_value:
             values = raw_value.split(XnatWidget.SEPARATOR)
-            assert len(values) == 2, f"Invalid split result. Expected 2, got {len(values)}"
+            assert (
+                len(values) == 2
+            ), f"Invalid split result. Expected 2, got {len(values)}"
             return values
 
         return None, None
@@ -866,33 +973,41 @@ class XnatWidget(LookupWidget):
     @staticmethod
     def denormalized_value(raw_value):
         lookup_values = XnatWidget.extract_lookup_values(raw_value)
-        return f'project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}'
+        return f"project_id: {lookup_values[0]}, subject_id: {lookup_values[1]}"
 
     def _consent_check(self):
-        xnat_consent_code = self.registry.metadata.get('xnat_consent_code')
+        xnat_consent_code = self.registry.metadata.get("xnat_consent_code")
 
         if xnat_consent_code:
-            return consent_status_for_patient_consent(self.registry, self.patient_id, xnat_consent_code)
+            return consent_status_for_patient_consent(
+                self.registry, self.patient_id, xnat_consent_code
+            )
         else:
             return True
 
     def render(self, name, value, attrs, renderer=None):
         project_id, subject_id = self.extract_lookup_values(value)
-        context = Context({
-            'id': name,
-            'value': value,
-            'base_xnat_url': settings.XNAT_API_ENDPOINT,
-            'registry': self.registry,
-            'project_id': project_id,
-            'subject_id': subject_id,
-            'consent_check': self._consent_check(),
-            'xnat_enabled': self.registry.has_feature(RegistryFeatures.XNAT_INTEGRATION)
-        })
-        return get_template('widgets/xnat_widget.html').render(context.flatten())
+        context = Context(
+            {
+                "id": name,
+                "value": value,
+                "base_xnat_url": settings.XNAT_API_ENDPOINT,
+                "registry": self.registry,
+                "project_id": project_id,
+                "subject_id": subject_id,
+                "consent_check": self._consent_check(),
+                "xnat_enabled": self.registry.has_feature(
+                    RegistryFeatures.XNAT_INTEGRATION
+                ),
+            }
+        )
+        return get_template("widgets/xnat_widget.html").render(
+            context.flatten()
+        )
 
 
 def _all_widgets():
-    EXCLUDED_WIDGET_NAMES = ['Widget', 'HiddenInput', 'LookupWidget']
+    EXCLUDED_WIDGET_NAMES = ["Widget", "HiddenInput", "LookupWidget"]
 
     def is_widget(cls):
         return issubclass(cls, Widget)
@@ -902,12 +1017,15 @@ def _all_widgets():
 
     def get_widgets(name):
         return [
-            (name, cls) for name, cls in inspect.getmembers(sys.modules[name], inspect.isclass)
+            (name, cls)
+            for name, cls in inspect.getmembers(
+                sys.modules[name], inspect.isclass
+            )
             if is_widget(cls) and is_name_ok(name)
         ]
 
     own_widgets = get_widgets(__name__)
-    if hasattr(settings, 'EXTRA_WIDGETS'):
+    if hasattr(settings, "EXTRA_WIDGETS"):
         module = import_module(settings.EXTRA_WIDGETS)
         extra_widgets = get_widgets(module.__name__)
         return own_widgets + extra_widgets
@@ -920,13 +1038,17 @@ def get_all_widgets():
 
 
 def get_widget_class(widget_name):
-    result = [widget_class for name, widget_class in _all_widgets() if name == widget_name]
+    result = [
+        widget_class
+        for name, widget_class in _all_widgets()
+        if name == widget_name
+    ]
     return result[0] if result else None
 
 
 def get_widgets_for_data_type(data_type):
     def has_valid_type(cls):
-        if not hasattr(cls, 'usable_for_types'):
+        if not hasattr(cls, "usable_for_types"):
             return False
         return data_type in cls.usable_for_types()
 

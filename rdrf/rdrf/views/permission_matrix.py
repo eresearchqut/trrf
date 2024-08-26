@@ -1,24 +1,21 @@
 import logging
 
-from django.views.generic import TemplateView
+from django.contrib.auth.models import Group, Permission
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import Group
-from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
+from registry.groups.models import CustomUser
 
 from rdrf.models.definition.models import Registry
 from rdrf.security.mixins import SuperuserRequiredMixin
-from registry.groups.models import CustomUser
-
 
 logger = logging.getLogger(__name__)
 
 
 class MatrixRow(object):
-
     def __init__(self, permission, groups):
         self.permission = permission
-        self.groups = groups   # auth groups
+        self.groups = groups  # auth groups
 
     @property
     def name(self):
@@ -41,7 +38,6 @@ class MatrixRow(object):
 
 
 class PermissionMatrix(object):
-
     def __init__(self, registry_model):
         self.registry_model = registry_model
         self.groups = self._get_groups()
@@ -69,10 +65,11 @@ class PermissionMatrix(object):
 
 
 class MatrixWrapper(object):
-
     def __init__(self, registry_model):
         self.matrix = PermissionMatrix(registry_model)
-        self.name = _("Permission Matrix for %(registry)s") % {"registry": registry_model.name}
+        self.name = _("Permission Matrix for %(registry)s") % {
+            "registry": registry_model.name
+        }
 
 
 class PermissionMatrixView(SuperuserRequiredMixin, TemplateView):
@@ -81,9 +78,13 @@ class PermissionMatrixView(SuperuserRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        registry_model = get_object_or_404(Registry, code=kwargs.get('registry_code'))
-        context.update({
-            "location": "Permissions",
-            "matrix_wrapper": MatrixWrapper(registry_model),
-        })
+        registry_model = get_object_or_404(
+            Registry, code=kwargs.get("registry_code")
+        )
+        context.update(
+            {
+                "location": "Permissions",
+                "matrix_wrapper": MatrixWrapper(registry_model),
+            }
+        )
         return context

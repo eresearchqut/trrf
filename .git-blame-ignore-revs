@@ -1,0 +1,5 @@
+# To use this file, run the following to ignore .git-blame-ignore-revs:
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Apply ruff formatter
+5a4c1f7cdae7cf5190d612420b2d08017079b6ef

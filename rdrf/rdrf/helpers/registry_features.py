@@ -19,7 +19,9 @@ class RegistryFeatures:
     CONDITIONAL_RENDERING_DISABLED = "conditional_rendering_disabled"
     XNAT_INTEGRATION = "xnat_integration"
     LONGITUDINAL_FOLLOWUPS = "longitudinal_followups"
-    USER_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN = "user_email_activation_optional_for_admin"
+    USER_EMAIL_ACTIVATION_OPTIONAL_FOR_ADMIN = (
+        "user_email_activation_optional_for_admin"
+    )
     NO_TRANSLATION = "no_translation"
     FORMS_REQUIRE_TRANSLATION = "forms_require_translation"
     HIDE_UNTRANSLATED_FORMS = "hide_untranslated_forms"

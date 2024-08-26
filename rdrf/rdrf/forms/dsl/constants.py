@@ -1,4 +1,4 @@
-DSL_DEFINITION = '''
+DSL_DEFINITION = """
 start: instruction+
 instruction: (target~1 action~1 "if" condition (boolean_operator~1 condition)*)
 condition.3: (VARIABLE OPERATOR ID_OR_CONSTANT)
@@ -15,7 +15,7 @@ action.1: ACTION~1
 ACTION.2: "visible" | "hidden" | "enabled" | "disabled"
 %import common.WS
 %ignore WS
-'''
+"""
 
 # Examples
 # '''
@@ -25,16 +25,16 @@ ACTION.2: "visible" | "hidden" | "enabled" | "disabled"
 # form Form1 enabled if ANGTest == PV23
 # '''
 
-ENABLED = 'enabled'
-DISABLED = 'disabled'
-VISIBLE = 'visible'
-HIDDEN = 'hidden'
+ENABLED = "enabled"
+DISABLED = "disabled"
+VISIBLE = "visible"
+HIDDEN = "hidden"
 
 INVERSE_ACTION_MAP = {
     DISABLED: ENABLED,
     VISIBLE: HIDDEN,
     ENABLED: DISABLED,
-    HIDDEN: VISIBLE
+    HIDDEN: VISIBLE,
 }
 
 QUALIFIERS = ["section", "form"]

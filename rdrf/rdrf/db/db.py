@@ -1,12 +1,11 @@
-from io import StringIO
 import os
+from io import StringIO
 
 from django.core.management import call_command
 from django.db import connections
 
 
 class RegistryRouter:
-
     clinical_models = (
         ("rdrf", "clinical"),
         # fixme: move CDEFile to clinical database. This is just
@@ -36,7 +35,7 @@ class RegistryRouter:
         return self.choose_db_model(model)
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        return (db == self.choose_db(app_label, model_name))
+        return db == self.choose_db(app_label, model_name)
 
 
 def reset_sql_sequences(apps):
@@ -44,11 +43,11 @@ def reset_sql_sequences(apps):
     Executes the necessary SQL to reset the primary key counters for
     all tables in `apps`.
     """
-    os.environ['DJANGO_COLORS'] = 'nocolor'
+    os.environ["DJANGO_COLORS"] = "nocolor"
     commands = StringIO()
 
     for app in apps:
-        call_command('sqlsequencereset', app, stdout=commands)
+        call_command("sqlsequencereset", app, stdout=commands)
 
     _execute_reset_sql_sequences(commands.getvalue().splitlines())
 
@@ -61,9 +60,12 @@ def _execute_reset_sql_sequences(commands):
     def for_db(database):
         def _for_db(command):
             is_clinical = any(t in command for t in clinical_tables)
-            return not command.startswith("SELECT") or \
-                (database == "default" and not is_clinical) or \
-                (database == "clinical" and is_clinical)
+            return (
+                not command.startswith("SELECT")
+                or (database == "default" and not is_clinical)
+                or (database == "clinical" and is_clinical)
+            )
+
         return _for_db
 
     for database in ["default", "clinical"]:

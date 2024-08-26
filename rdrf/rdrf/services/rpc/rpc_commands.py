@@ -4,16 +4,22 @@ logger = logging.getLogger(__name__)
 
 
 def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
-    from rdrf.models.definition.models import ContextFormGroup
-    from rdrf.models.definition.models import Registry
-    from registry.patients.models import Patient
-    from rdrf.security.security_checks import security_check_user_patient, get_object_or_permission_denied
     from django.core.exceptions import PermissionDenied
-    from rdrf.forms.components import FormsButton
     from django.utils.translation import gettext as _
+    from registry.patients.models import Patient
+
+    from rdrf.forms.components import FormsButton
+    from rdrf.models.definition.models import ContextFormGroup, Registry
+    from rdrf.security.security_checks import (
+        get_object_or_permission_denied,
+        security_check_user_patient,
+    )
 
     user = request.user
-    fail_response = {"status": "fail", "message": _("Data could not be retrieved")}
+    fail_response = {
+        "status": "fail",
+        "message": _("Data could not be retrieved"),
+    }
 
     try:
         registry_model = Registry.objects.get(code=registry_code)
@@ -45,16 +51,16 @@ def rpc_get_forms_list(request, registry_code, patient_id, form_group_id):
     else:
         context_form_group = None
 
-    forms = context_form_group.forms if context_form_group else registry_model.forms
+    forms = (
+        context_form_group.forms if context_form_group else registry_model.forms
+    )
 
-    form_models = [f for f in forms
-                   if f.applicable_to(patient_model) and user.can_view(f)]
+    form_models = [
+        f for f in forms if f.applicable_to(patient_model) and user.can_view(f)
+    ]
 
-    html = FormsButton(registry_model,
-                       user,
-                       patient_model,
-                       context_form_group,
-                       form_models).html
+    html = FormsButton(
+        registry_model, user, patient_model, context_form_group, form_models
+    ).html
 
-    return {"status": "success",
-            "html": html}
+    return {"status": "success", "html": html}

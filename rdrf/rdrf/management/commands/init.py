@@ -11,13 +11,15 @@ class Command(BaseCommand):
         parser.add_argument("--list", action="store_true")
 
     def print_out_dataset(self, module):
-        self.stdout.write("  - %s" % module.__name__.split('.')[-1])
-        doc = (module.__doc__ or '').strip()
+        self.stdout.write("  - %s" % module.__name__.split(".")[-1])
+        doc = (module.__doc__ or "").strip()
         if doc:
             first_line = doc.split("\n")[0]
             self.stdout.write("      %s" % first_line)
 
-    def handle(self, dataset=[], **options):
+    def handle(self, dataset=None, **options):
+        if dataset is None:
+            dataset = []
         if options.get("list"):
             self.stdout.write("Possible datasets are:")
             for m in initial_data.datasets:

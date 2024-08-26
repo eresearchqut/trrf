@@ -3,25 +3,39 @@ import uuid
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
-
-from rdrf.models.definition.models import RegistryDashboard, Registry, ContextFormGroup, RDRFContext, RegistryForm, \
-    Section, CommonDataElement, ConsentQuestion, ConsentSection, ClinicalData
-from rdrf.testing.unit.tests import RDRFTestCase
-from rdrf.views.dashboard_view import ParentDashboard, ParentDashboardView
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser
-from registry.patients.models import Patient, ParentGuardian, ConsentValue
+from registry.patients.models import ConsentValue, ParentGuardian, Patient
+
+from rdrf.models.definition.models import (
+    ClinicalData,
+    CommonDataElement,
+    ConsentQuestion,
+    ConsentSection,
+    ContextFormGroup,
+    RDRFContext,
+    Registry,
+    RegistryDashboard,
+    RegistryForm,
+    Section,
+)
+from rdrf.testing.unit.tests import RDRFTestCase
+from rdrf.views.dashboard_view import ParentDashboard, ParentDashboardView
 
 
 def create_valid_patient(id=None, registry=None):
-    patient = Patient.objects.create(id=id, consent=True, date_of_birth='1999-12-12')
+    patient = Patient.objects.create(
+        id=id, consent=True, date_of_birth="1999-12-12"
+    )
     if registry:
         patient.rdrf_registry.set([registry])
     return patient
 
 
 def list_dashboards(user):
-    return list(RegistryDashboard.objects.filter_user_parent_dashboards(user).all())
+    return list(
+        RegistryDashboard.objects.filter_user_parent_dashboards(user).all()
+    )
 
 
 def create_user_with_group(group):
@@ -35,13 +49,17 @@ def create_user_with_group(group):
 class RegistryDashboardManagerTest(TestCase):
     def setUp(self):
         # Registries
-        self.registry_A = Registry.objects.create(code='A')
-        self.registry_B = Registry.objects.create(code='B')
-        self.registry_C = Registry.objects.create(code='C')
+        self.registry_A = Registry.objects.create(code="A")
+        self.registry_B = Registry.objects.create(code="B")
+        self.registry_C = Registry.objects.create(code="C")
 
         # Dashboards
-        self.dashboard_registry_A = RegistryDashboard.objects.create(registry=self.registry_A)
-        self.dashboard_registry_B = RegistryDashboard.objects.create(registry=self.registry_B)
+        self.dashboard_registry_A = RegistryDashboard.objects.create(
+            registry=self.registry_A
+        )
+        self.dashboard_registry_B = RegistryDashboard.objects.create(
+            registry=self.registry_B
+        )
 
         # Patients
         self.patient1 = create_valid_patient()
@@ -67,10 +85,14 @@ class RegistryDashboardManagerTest(TestCase):
 
         # Parent has one child, in a registry, with a dashboard.
         parent.patient.set([self.patient1])
-        self.assertEqual(list_dashboards(parent.user), [self.dashboard_registry_A])
+        self.assertEqual(
+            list_dashboards(parent.user), [self.dashboard_registry_A]
+        )
 
         parent.patient.set([self.patient3])
-        self.assertEqual(list_dashboards(parent.user), [self.dashboard_registry_B])
+        self.assertEqual(
+            list_dashboards(parent.user), [self.dashboard_registry_B]
+        )
 
         # Parent has one child, in a registry, with no dashboard
         parent.patient.set([self.patient4])
@@ -78,15 +100,22 @@ class RegistryDashboardManagerTest(TestCase):
 
         # Parent has multiple children, all in one registry, with a dashboard
         parent.patient.set([self.patient1, self.patient2])
-        self.assertEqual(list_dashboards(parent.user), [self.dashboard_registry_A])
+        self.assertEqual(
+            list_dashboards(parent.user), [self.dashboard_registry_A]
+        )
 
         # Parent has multiple children, in different registries, all with a dashboard
         parent.patient.set([self.patient1, self.patient3])
-        self.assertEqual(list_dashboards(parent.user), [self.dashboard_registry_A, self.dashboard_registry_B])
+        self.assertEqual(
+            list_dashboards(parent.user),
+            [self.dashboard_registry_A, self.dashboard_registry_B],
+        )
 
         # Parent has multiple children, in different registries, only one with a dashboard
         parent.patient.set([self.patient3, self.patient4])
-        self.assertEqual(list_dashboards(parent.user), [self.dashboard_registry_B])
+        self.assertEqual(
+            list_dashboards(parent.user), [self.dashboard_registry_B]
+        )
 
     def test_dashboards_for_other_users(self):
         self.patient1.carer = self.carer_user
@@ -97,53 +126,78 @@ class RegistryDashboardManagerTest(TestCase):
 
 
 class ParentDashboardTest(RDRFTestCase):
-    databases = ['default', 'clinical']
+    databases = ["default", "clinical"]
     maxDiff = None
 
     def setUp(self):
-        self.registry = Registry.objects.create(code='TEST')
-        self.dashboard = RegistryDashboard.objects.create(registry=self.registry)
+        self.registry = Registry.objects.create(code="TEST")
+        self.dashboard = RegistryDashboard.objects.create(
+            registry=self.registry
+        )
 
     def _request(self):
         class TestContext:
-            user = CustomUser.objects.get(username='admin')
+            user = CustomUser.objects.get(username="admin")
+
         return TestContext()
 
     def _create_patient_context(self, patient, context_form_group, id=None):
-        return RDRFContext.objects.create(id=id,
-                                          registry=self.registry,
-                                          context_form_group=context_form_group,
-                                          object_id=patient.id,
-                                          content_type=ContentType.objects.get_for_model(patient))
+        return RDRFContext.objects.create(
+            id=id,
+            registry=self.registry,
+            context_form_group=context_form_group,
+            object_id=patient.id,
+            content_type=ContentType.objects.get_for_model(patient),
+        )
 
     def test_patient_contexts(self):
         patient = create_valid_patient()
-        parent_dashboard = ParentDashboard(self._request(), self.dashboard, patient)
+        parent_dashboard = ParentDashboard(
+            self._request(), self.dashboard, patient
+        )
 
         self.assertEqual(parent_dashboard._load_contexts(), {})
 
-        cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1')
-        cfg2 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_2')
+        cfg1 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_1"
+        )
+        cfg2 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_2"
+        )
 
-        self.assertEqual(parent_dashboard._load_contexts(), {cfg1: None, cfg2: None})
+        self.assertEqual(
+            parent_dashboard._load_contexts(), {cfg1: None, cfg2: None}
+        )
 
         ctx1 = self._create_patient_context(patient, cfg1)
 
-        self.assertEqual(parent_dashboard._load_contexts(), {cfg1: ctx1, cfg2: None})
+        self.assertEqual(
+            parent_dashboard._load_contexts(), {cfg1: ctx1, cfg2: None}
+        )
 
         # Ensure only the latest Context for the CFG is retrieved
         ctx2 = self._create_patient_context(patient, cfg1)
 
-        self.assertEqual(parent_dashboard._load_contexts(), {cfg1: ctx2, cfg2: None})
+        self.assertEqual(
+            parent_dashboard._load_contexts(), {cfg1: ctx2, cfg2: None}
+        )
 
     def test_get_patient_context(self):
         p1 = create_valid_patient(registry=self.registry)
         p2 = create_valid_patient(registry=self.registry)
 
-        cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F')
-        cfg2 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_2', context_type='M')
-        cfg3 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_3', context_type='F')
-        cfg4 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_4', context_type='M')
+        cfg1 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_1", context_type="F"
+        )
+        cfg2 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_2", context_type="M"
+        )
+        cfg3 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_3", context_type="F"
+        )
+        cfg4 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_4", context_type="M"
+        )
 
         ctx1 = self._create_patient_context(p1, cfg1)
         ctx2 = self._create_patient_context(p1, cfg2)
@@ -155,15 +209,34 @@ class ParentDashboardTest(RDRFTestCase):
         self.assertEqual(parent_dashboard._get_patient_context(cfg4), None)
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p2)
-        self.assertEqual(parent_dashboard._get_patient_context(cfg3), p2.default_context(self.registry))
+        self.assertEqual(
+            parent_dashboard._get_patient_context(cfg3),
+            p2.default_context(self.registry),
+        )
 
     def test_get_form_link(self):
-        cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F')
-        cfg2 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_2', context_type='M')
-        CommonDataElement.objects.create(code='C1', abbreviated_name='C1')
-        Section.objects.create(code='S1', abbreviated_name='S1', elements='C1')
-        form1 = RegistryForm.objects.create(id=31, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1')
-        form2 = RegistryForm.objects.create(id=32, name='form2', registry=self.registry, abbreviated_name='form2', sections='S1')
+        cfg1 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_1", context_type="F"
+        )
+        cfg2 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_2", context_type="M"
+        )
+        CommonDataElement.objects.create(code="C1", abbreviated_name="C1")
+        Section.objects.create(code="S1", abbreviated_name="S1", elements="C1")
+        form1 = RegistryForm.objects.create(
+            id=31,
+            name="form1",
+            registry=self.registry,
+            abbreviated_name="form1",
+            sections="S1",
+        )
+        form2 = RegistryForm.objects.create(
+            id=32,
+            name="form2",
+            registry=self.registry,
+            abbreviated_name="form2",
+            sections="S1",
+        )
         cfg1.items.create(registry_form=form1)
         cfg2.items.create(registry_form=form2)
 
@@ -174,53 +247,129 @@ class ParentDashboardTest(RDRFTestCase):
         p2 = create_valid_patient(id=12, registry=self.registry)
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
-        self.assertEqual(parent_dashboard._get_form_link(cfg1, form1), '/TEST/forms/31/11/1')
-        self.assertEqual(parent_dashboard._get_form_link(cfg1, form1, ctx1), '/TEST/forms/31/11/1')
-        self.assertEqual(parent_dashboard._get_form_link(cfg2, form2), '/TEST/forms/32/11/2')
+        self.assertEqual(
+            parent_dashboard._get_form_link(cfg1, form1), "/TEST/forms/31/11/1"
+        )
+        self.assertEqual(
+            parent_dashboard._get_form_link(cfg1, form1, ctx1),
+            "/TEST/forms/31/11/1",
+        )
+        self.assertEqual(
+            parent_dashboard._get_form_link(cfg2, form2), "/TEST/forms/32/11/2"
+        )
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p2)
         context = p2.default_context(self.registry)
-        self.assertEqual(parent_dashboard._get_form_link(cfg1, form1), f'/TEST/forms/31/12/{context.id}')
-        self.assertEqual(parent_dashboard._get_form_link(cfg2, form2), '/TEST/forms/32/12/add')
+        self.assertEqual(
+            parent_dashboard._get_form_link(cfg1, form1),
+            f"/TEST/forms/31/12/{context.id}",
+        )
+        self.assertEqual(
+            parent_dashboard._get_form_link(cfg2, form2),
+            "/TEST/forms/32/12/add",
+        )
 
     def test_patient_consent_summary(self):
-        sec1 = ConsentSection.objects.create(registry=self.registry,
-                                             section_label='Section 1',
-                                             code='S1',
-                                             validation_rule='cq1 and cq3')
-        cq1 = ConsentQuestion.objects.create(section=sec1, code='cq1')
-        cq2 = ConsentQuestion.objects.create(section=sec1, code='cq2')
-        cq3 = ConsentQuestion.objects.create(section=sec1, code='cq3')
-        cq4 = ConsentQuestion.objects.create(section=sec1, code='cq4')
+        sec1 = ConsentSection.objects.create(
+            registry=self.registry,
+            section_label="Section 1",
+            code="S1",
+            validation_rule="cq1 and cq3",
+        )
+        cq1 = ConsentQuestion.objects.create(section=sec1, code="cq1")
+        cq2 = ConsentQuestion.objects.create(section=sec1, code="cq2")
+        cq3 = ConsentQuestion.objects.create(section=sec1, code="cq3")
+        cq4 = ConsentQuestion.objects.create(section=sec1, code="cq4")
 
         p1 = create_valid_patient()
         p2 = create_valid_patient()
 
-        ConsentValue.objects.create(patient=p1, consent_question=cq1, answer=True)
-        ConsentValue.objects.create(patient=p1, consent_question=cq2, answer=True)
-        ConsentValue.objects.create(patient=p1, consent_question=cq3, answer=True)
+        ConsentValue.objects.create(
+            patient=p1, consent_question=cq1, answer=True
+        )
+        ConsentValue.objects.create(
+            patient=p1, consent_question=cq2, answer=True
+        )
+        ConsentValue.objects.create(
+            patient=p1, consent_question=cq3, answer=True
+        )
 
-        ConsentValue.objects.create(patient=p2, consent_question=cq1, answer=True)
-        ConsentValue.objects.create(patient=p2, consent_question=cq3, answer=False)
-        ConsentValue.objects.create(patient=p2, consent_question=cq4, answer=False)
+        ConsentValue.objects.create(
+            patient=p2, consent_question=cq1, answer=True
+        )
+        ConsentValue.objects.create(
+            patient=p2, consent_question=cq3, answer=False
+        )
+        ConsentValue.objects.create(
+            patient=p2, consent_question=cq4, answer=False
+        )
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
-        self.assertEqual(parent_dashboard._patient_consent_summary(), {'valid': True, 'completed': 3, 'total': 4})
+        self.assertEqual(
+            parent_dashboard._patient_consent_summary(),
+            {"valid": True, "completed": 3, "total": 4},
+        )
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p2)
-        self.assertEqual(parent_dashboard._patient_consent_summary(), {'valid': False, 'completed': 1, 'total': 4})
+        self.assertEqual(
+            parent_dashboard._patient_consent_summary(),
+            {"valid": False, "completed": 1, "total": 4},
+        )
 
     def test_get_module_progress(self):
-        cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F', sort_order=1)
-        cfg2 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_2', context_type='M', sort_order=2)
-        cfg3 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_3', context_type='M', sort_order=3)
-        cde1 = CommonDataElement.objects.create(code='C1', abbreviated_name='C1')
-        Section.objects.create(code='S1', abbreviated_name='S1', elements='C1')
-        form1 = RegistryForm.objects.create(id=61, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1', position=1)
-        form2 = RegistryForm.objects.create(id=62, name='form2', registry=self.registry, abbreviated_name='form2', sections='S1', position=2)
-        form3 = RegistryForm.objects.create(id=63, name='form3', registry=self.registry, abbreviated_name='form3', sections='S1', position=3)
-        form4 = RegistryForm.objects.create(id=64, name='form4', registry=self.registry, abbreviated_name='form4', sections='S1', position=1)
-        form5 = RegistryForm.objects.create(id=65, name='form5', registry=self.registry, abbreviated_name='form5', sections='S1', position=1)
+        cfg1 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_1", context_type="F", sort_order=1
+        )
+        cfg2 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_2", context_type="M", sort_order=2
+        )
+        cfg3 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_3", context_type="M", sort_order=3
+        )
+        cde1 = CommonDataElement.objects.create(
+            code="C1", abbreviated_name="C1"
+        )
+        Section.objects.create(code="S1", abbreviated_name="S1", elements="C1")
+        form1 = RegistryForm.objects.create(
+            id=61,
+            name="form1",
+            registry=self.registry,
+            abbreviated_name="form1",
+            sections="S1",
+            position=1,
+        )
+        form2 = RegistryForm.objects.create(
+            id=62,
+            name="form2",
+            registry=self.registry,
+            abbreviated_name="form2",
+            sections="S1",
+            position=2,
+        )
+        form3 = RegistryForm.objects.create(
+            id=63,
+            name="form3",
+            registry=self.registry,
+            abbreviated_name="form3",
+            sections="S1",
+            position=3,
+        )
+        form4 = RegistryForm.objects.create(
+            id=64,
+            name="form4",
+            registry=self.registry,
+            abbreviated_name="form4",
+            sections="S1",
+            position=1,
+        )
+        form5 = RegistryForm.objects.create(
+            id=65,
+            name="form5",
+            registry=self.registry,
+            abbreviated_name="form5",
+            sections="S1",
+            position=1,
+        )
 
         cfg1.items.create(registry_form=form1)
         cfg1.items.create(registry_form=form2)
@@ -233,122 +382,229 @@ class ParentDashboardTest(RDRFTestCase):
 
         p1 = create_valid_patient(id=9, registry=self.registry)
         ctx1 = self._create_patient_context(p1, cfg1, id=7)
-        ClinicalData.objects.create(registry_code='TEST', django_id=p1.id, django_model='Patient',
-                                    collection="progress", context_id=ctx1.id,
-                                    data={"form1_form_progress": {'percentage': 20}})
+        ClinicalData.objects.create(
+            registry_code="TEST",
+            django_id=p1.id,
+            django_model="Patient",
+            collection="progress",
+            context_id=ctx1.id,
+            data={"form1_form_progress": {"percentage": 20}},
+        )
 
         ctx2 = self._create_patient_context(p1, cfg3, id=8)
         data = {"form5_timestamp": "2022-08-26 07:49:53.841787"}
-        ClinicalData.objects.create(registry_code='TEST', django_id=p1.id, django_model='Patient',
-                                    collection="cdes", context_id=ctx2.id, data=data)
+        ClinicalData.objects.create(
+            registry_code="TEST",
+            django_id=p1.id,
+            django_model="Patient",
+            collection="cdes",
+            context_id=ctx2.id,
+            data=data,
+        )
 
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
         expected_module_progress = {
-            'fixed': {
+            "fixed": {
                 cfg1: {
-                    form1: {
-                        'link': '/TEST/forms/61/9/7',
-                        'progress': 20
-                    },
-                    form3: {
-                        'link': '/TEST/forms/63/9/7',
-                        'progress': 0
-                    }
+                    form1: {"link": "/TEST/forms/61/9/7", "progress": 20},
+                    form3: {"link": "/TEST/forms/63/9/7", "progress": 0},
                 },
             },
-            'multi': {
+            "multi": {
                 cfg3: {
                     form5: {
-                        'link': '/TEST/forms/65/9/add',
-                        'last_completed': '26-08-2022'
+                        "link": "/TEST/forms/65/9/add",
+                        "last_completed": "26-08-2022",
                     }
                 },
                 cfg2: {
                     form4: {
-                        'link': '/TEST/forms/64/9/add',
-                        'last_completed': None
+                        "link": "/TEST/forms/64/9/add",
+                        "last_completed": None,
                     }
-                }
-            }
+                },
+            },
         }
-        self.assertDictEqual(parent_dashboard._get_module_progress(), expected_module_progress)
+        self.assertDictEqual(
+            parent_dashboard._get_module_progress(), expected_module_progress
+        )
 
     def test_get_cde_data(self):
-        cfg1 = ContextFormGroup.objects.create(registry=self.registry, code='CFG_1', context_type='F')
-        cde1 = CommonDataElement.objects.create(code='C1', abbreviated_name='C1', allow_multiple=False)
-        cde2 = CommonDataElement.objects.create(code='C2', abbreviated_name='C2', allow_multiple=True)
-        cde3 = CommonDataElement.objects.create(code='C3', abbreviated_name='C3', allow_multiple=False)
-        cde4 = CommonDataElement.objects.create(code='C4', abbreviated_name='C4', allow_multiple=True)
-        sec1 = Section.objects.create(code='S1', abbreviated_name='S1', allow_multiple=False, elements='C1,C2,C3')
-        sec2 = Section.objects.create(code='S2', abbreviated_name='S2', allow_multiple=True, elements='C1,C2')
-        sec3 = Section.objects.create(code='S3', abbreviated_name='S3', allow_multiple=True, elements='C4')
-        form1 = RegistryForm.objects.create(id=61, name='form1', registry=self.registry, abbreviated_name='form1', sections='S1,S2')
+        cfg1 = ContextFormGroup.objects.create(
+            registry=self.registry, code="CFG_1", context_type="F"
+        )
+        cde1 = CommonDataElement.objects.create(
+            code="C1", abbreviated_name="C1", allow_multiple=False
+        )
+        cde2 = CommonDataElement.objects.create(
+            code="C2", abbreviated_name="C2", allow_multiple=True
+        )
+        cde3 = CommonDataElement.objects.create(
+            code="C3", abbreviated_name="C3", allow_multiple=False
+        )
+        cde4 = CommonDataElement.objects.create(
+            code="C4", abbreviated_name="C4", allow_multiple=True
+        )
+        sec1 = Section.objects.create(
+            code="S1",
+            abbreviated_name="S1",
+            allow_multiple=False,
+            elements="C1,C2,C3",
+        )
+        sec2 = Section.objects.create(
+            code="S2",
+            abbreviated_name="S2",
+            allow_multiple=True,
+            elements="C1,C2",
+        )
+        sec3 = Section.objects.create(
+            code="S3", abbreviated_name="S3", allow_multiple=True, elements="C4"
+        )
+        form1 = RegistryForm.objects.create(
+            id=61,
+            name="form1",
+            registry=self.registry,
+            abbreviated_name="form1",
+            sections="S1,S2",
+        )
 
         p1 = create_valid_patient(id=9, registry=self.registry)
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
 
         # Returns None if patient has no context
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), None)
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), None
+        )
 
         ctx1 = self._create_patient_context(p1, cfg1, id=8)
 
         # Returns None if patient has no matching data
         parent_dashboard._contexts = parent_dashboard._load_contexts()
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), None)
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), None
+        )
 
-        data = {"forms": [{"name": "form1",
-                           "sections": [{"code": "S1", "allow_multiple": False, "cdes": [{"code": "C1", "value": "Patient Response ABC"},
-                                                                                         {"code": "C2", "value": ["A", "B"]}]},
-                                        {"code": "S2",
-                                         "allow_multiple": True,
-                                         "cdes": [
-                                             [{"code": "C1", "value": "First answer"}, {"code": "C2", "value": ["C", "D"]}],
-                                             [{"code": "C1", "value": "Second answer"}, {"code": "C2", "value": ["D", "E", "F"]}],
-                                         ]}]
-                           }]
+        data = {
+            "forms": [
+                {
+                    "name": "form1",
+                    "sections": [
+                        {
+                            "code": "S1",
+                            "allow_multiple": False,
+                            "cdes": [
+                                {"code": "C1", "value": "Patient Response ABC"},
+                                {"code": "C2", "value": ["A", "B"]},
+                            ],
+                        },
+                        {
+                            "code": "S2",
+                            "allow_multiple": True,
+                            "cdes": [
+                                [
+                                    {"code": "C1", "value": "First answer"},
+                                    {"code": "C2", "value": ["C", "D"]},
+                                ],
+                                [
+                                    {"code": "C1", "value": "Second answer"},
+                                    {"code": "C2", "value": ["D", "E", "F"]},
+                                ],
+                            ],
+                        },
+                    ],
                 }
-        ClinicalData.objects.create(registry_code='TEST', django_id=p1.id, django_model='Patient',
-                                    collection="cdes", context_id=ctx1.id, data=data)
+            ]
+        }
+        ClinicalData.objects.create(
+            registry_code="TEST",
+            django_id=p1.id,
+            django_model="Patient",
+            collection="cdes",
+            context_id=ctx1.id,
+            data=data,
+        )
 
         # Patient has no known data for the CDE
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde3), None)
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec1, cde3), None
+        )
 
         # Patient does not have data for a multi section with multi cde
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec3, cde4), None)
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec3, cde4), None
+        )
 
         # Section does not allow multiples
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1), "Patient Response ABC")
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec1, cde2), ["A", "B"])
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec1, cde1),
+            "Patient Response ABC",
+        )
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec1, cde2), ["A", "B"]
+        )
 
         # Section allows multiples
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec2, cde1), ["First answer", "Second answer"])
-        self.assertEqual(parent_dashboard._get_cde_data(cfg1, form1, sec2, cde2), ["C", "D", "E", "F"])
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec2, cde1),
+            ["First answer", "Second answer"],
+        )
+        self.assertEqual(
+            parent_dashboard._get_cde_data(cfg1, form1, sec2, cde2),
+            ["C", "D", "E", "F"],
+        )
 
     def test_get_demographic_data(self):
-        demographics_widget = self.dashboard.widgets.create(widget_type='Demographics')
-        demographics_widget.demographics.create(label='Given Name', model='patient', field='givenNames', sort_order=1)
-        demographics_widget.demographics.create(label='Birth Country', model='patient', field='countryOfBirth', sort_order=2)
-        demographics_widget.demographics.create(label='Mobile Phone No', model='patient', field='mobilePhone', sort_order=4)
-        demographics_widget.demographics.create(label='Home Phone No', model='patient', field='homePhone', sort_order=3)
+        demographics_widget = self.dashboard.widgets.create(
+            widget_type="Demographics"
+        )
+        demographics_widget.demographics.create(
+            label="Given Name",
+            model="patient",
+            field="givenNames",
+            sort_order=1,
+        )
+        demographics_widget.demographics.create(
+            label="Birth Country",
+            model="patient",
+            field="countryOfBirth",
+            sort_order=2,
+        )
+        demographics_widget.demographics.create(
+            label="Mobile Phone No",
+            model="patient",
+            field="mobilePhone",
+            sort_order=4,
+        )
+        demographics_widget.demographics.create(
+            label="Home Phone No",
+            model="patient",
+            field="homePhone",
+            sort_order=3,
+        )
 
         p1 = create_valid_patient(registry=self.registry)
-        p1.country_of_birth = 'AU'
-        p1.given_names = 'Kylie-Anne'
-        p1.mobile_phone = '+61412123456'
+        p1.country_of_birth = "AU"
+        p1.given_names = "Kylie-Anne"
+        p1.mobile_phone = "+61412123456"
         p1.save()
         parent_dashboard = ParentDashboard(self._request(), self.dashboard, p1)
 
-        self.assertDictEqual(parent_dashboard._get_demographic_data(demographics_widget),
-                             {'givenNames': {'label': 'Given Name', 'value': 'Kylie-Anne'},
-                              'countryOfBirth': {'label': 'Birth Country', 'value': 'AU'},
-                              'homePhone': {'label': 'Home Phone No', 'value': None},
-                              'mobilePhone': {'label': 'Mobile Phone No', 'value': '+61412123456'},
-                              })
+        self.assertDictEqual(
+            parent_dashboard._get_demographic_data(demographics_widget),
+            {
+                "givenNames": {"label": "Given Name", "value": "Kylie-Anne"},
+                "countryOfBirth": {"label": "Birth Country", "value": "AU"},
+                "homePhone": {"label": "Home Phone No", "value": None},
+                "mobilePhone": {
+                    "label": "Mobile Phone No",
+                    "value": "+61412123456",
+                },
+            },
+        )
 
 
 class ParentDashboardViewTest(RDRFTestCase):
     def test_get_patient(self):
-
         parent_user = create_user_with_group(RDRF_GROUPS.PARENT)
         superuser = create_user_with_group(RDRF_GROUPS.SUPER_USER)
 
@@ -362,7 +618,9 @@ class ParentDashboardViewTest(RDRFTestCase):
 
         # Parent has multiple children
         child2 = create_valid_patient()
-        self.assertEqual(view._get_patient(parent_user, [child1, child2], None), child1)
+        self.assertEqual(
+            view._get_patient(parent_user, [child1, child2], None), child1
+        )
 
         # Parent requests access to unrelated child
         child3 = create_valid_patient()

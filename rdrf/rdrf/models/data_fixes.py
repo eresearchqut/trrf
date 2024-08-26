@@ -2,7 +2,6 @@ from rdrf.helpers.cde_data_types import CDEDataTypes
 
 
 class CdeMappings:
-
     DATA_TYPE_MAPPING = {
         "Boolean": CDEDataTypes.BOOL,
         "Calculated": CDEDataTypes.CALCULATED,
@@ -36,4 +35,6 @@ class CdeMappings:
 
     @classmethod
     def fix_widget_name(cls, widget_name):
-        return cls._case_insensitive_search(widget_name, cls.WIDGET_NAME_MAPPING)
+        return cls._case_insensitive_search(
+            widget_name, cls.WIDGET_NAME_MAPPING
+        )

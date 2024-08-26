@@ -1,29 +1,36 @@
-import sys
-from django.core.management import BaseCommand
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import ClinicalData
-import yaml
-import jsonschema
 import errno
 import os
+import sys
+
+import jsonschema
+import yaml
+from django.core.management import BaseCommand
+
+from rdrf.models.definition.models import ClinicalData, Registry
 
 SCHEMA_FILE = "modjgo.yaml"
 
 
 class Command(BaseCommand):
-    help = 'Validate clinical db according to json schema(s)'
+    help = "Validate clinical db according to json schema(s)"
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', "--registry_code",
-                            action='store',
-                            dest='registry_code',
-                            help='Code of registry to check')
-        parser.add_argument('-c', '--collection',
-                            action='store',
-                            dest='collection',
-                            default="cdes",
-                            choices=['cdes', 'history', 'progress', 'registry_specific'],
-                            help='Collection name')
+        parser.add_argument(
+            "-r",
+            "--registry_code",
+            action="store",
+            dest="registry_code",
+            help="Code of registry to check",
+        )
+        parser.add_argument(
+            "-c",
+            "--collection",
+            action="store",
+            dest="collection",
+            default="cdes",
+            choices=["cdes", "history", "progress", "registry_specific"],
+            help="Collection name",
+        )
 
     def _print(self, msg):
         self.stdout.write(msg + "\n")
@@ -45,37 +52,35 @@ class Command(BaseCommand):
         if collection == "registry_specific":
             collection = "registry_specific_patient_data"
 
-        for modjgo_model in ClinicalData.objects.filter(registry_code=registry_code,
-                                                        collection=collection):
+        for modjgo_model in ClinicalData.objects.filter(
+            registry_code=registry_code, collection=collection
+        ):
             data = modjgo_model.data
             problem = self._check_for_problem(collection, data)
             if problem is not None:
                 problem_count += 1
                 django_model, django_id, message = problem
-                self._print("%s;%s;%s;%s" % (modjgo_model.pk,
-                                             django_model,
-                                             django_id,
-                                             message))
+                self._print(
+                    "%s;%s;%s;%s"
+                    % (modjgo_model.pk, django_model, django_id, message)
+                )
 
         if problem_count > 0:
             sys.exit(1)
 
     def _load_schema(self):
         cmd_dir = os.path.dirname(__file__)
-        schema_path = os.path.abspath(os.path.join(cmd_dir,
-                                                   "..",
-                                                   "..",
-                                                   "db",
-                                                   "schemas",
-                                                   SCHEMA_FILE))
+        schema_path = os.path.abspath(
+            os.path.join(cmd_dir, "..", "..", "db", "schemas", SCHEMA_FILE)
+        )
 
         if os.path.exists(schema_path):
             with open(schema_path) as sf:
                 return yaml.load(sf, Loader=yaml.FullLoader)
 
-        raise FileNotFoundError(errno.ENOENT,
-                                os.strerror(errno.ENOENT),
-                                SCHEMA_FILE)
+        raise FileNotFoundError(
+            errno.ENOENT, os.strerror(errno.ENOENT), SCHEMA_FILE
+        )
 
     def _get_key(self, data, key):
         if data is None:

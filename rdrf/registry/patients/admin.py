@@ -7,40 +7,39 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import HttpResponse
-from django.urls import re_path
-from django.urls import reverse
+from django.urls import re_path, reverse
 from django.utils.translation import gettext as _
 
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import ClinicalData
-from rdrf.models.definition.models import Registry
+from rdrf.models.definition.models import ClinicalData, Registry
 from registry.patients.models import ConsentValue
-from registry.utils import get_static_url
-from registry.utils import get_working_groups
+from registry.utils import get_static_url, get_working_groups
+
 from .admin_forms import (
-    PatientForm,
-    PatientStageForm,
-    PatientStageRuleForm,
     PatientAddressForm,
     PatientDoctorForm,
+    PatientForm,
     PatientRelativeForm,
-    PatientUserForm)
+    PatientStageForm,
+    PatientStageRuleForm,
+    PatientUserForm,
+)
 from .models import (
     AddressType,
     ClinicianOther,
-    ParentGuardian,
     Doctor,
-    State,
+    LongitudinalFollowupEntry,
+    NextOfKinRelationship,
+    ParentGuardian,
     Patient,
-    PatientStage,
-    PatientStageRule,
     PatientAddress,
+    PatientConsent,
     PatientDoctor,
     PatientRelative,
-    PatientConsent,
-    NextOfKinRelationship,
-    LongitudinalFollowupEntry
+    PatientStage,
+    PatientStageRule,
+    State,
 )
 
 logger = logging.getLogger(__name__)
@@ -60,7 +59,7 @@ class PatientDoctorAdmin(admin.TabularInline):
 class PatientRelativeAdmin(admin.TabularInline):
     model = PatientRelative
     form = PatientRelativeForm
-    fk_name = 'patient'
+    fk_name = "patient"
     extra = 1
 
 
@@ -79,27 +78,30 @@ class PatientStageAdmin(admin.ModelAdmin):
     model = PatientStage
     form = PatientStageForm
     extra = 0
-    list_display = ('name', 'registry')
-    ordering = ('registry', 'pk')
+    list_display = ("name", "registry")
+    ordering = ("registry", "pk")
 
 
 class PatientStageRuleAdmin(admin.ModelAdmin):
     model = PatientStageRule
     form = PatientStageRuleForm
     extra = 0
-    list_display = ('registry', 'condition')
+    list_display = ("registry", "condition")
 
 
 class RegistryFilter(admin.SimpleListFilter):
     title = "Registry"
-    parameter_name = 'registry'
+    parameter_name = "registry"
 
     def lookups(self, request, model_admin):
-
         if request.user.is_superuser:
             reg_list = Registry.objects.all()
         else:
-            reg_list = get_user_model().objects.get(username=request.user).registry.all()
+            reg_list = (
+                get_user_model()
+                .objects.get(username=request.user)
+                .registry.all()
+            )
 
         regs = []
         for reg in reg_list:
@@ -108,15 +110,14 @@ class RegistryFilter(admin.SimpleListFilter):
         return regs
 
     def queryset(self, request, queryset):
-        if request.GET.__contains__('registry'):
-            reg = request.GET.__getitem__('registry')
+        if request.GET.__contains__("registry"):
+            reg = request.GET.__getitem__("registry")
             return queryset.filter(rdrf_registry__id__exact=reg)
 
         return queryset
 
 
 class PatientAdmin(admin.ModelAdmin):
-
     def __init__(self, *args, **kwargs):
         super(PatientAdmin, self).__init__(*args, **kwargs)
         self.list_display_links = None
@@ -125,28 +126,36 @@ class PatientAdmin(admin.ModelAdmin):
     form = PatientForm
     request = None
 
-    inlines = [PatientAddressAdmin, PatientConsentAdmin,
-               PatientDoctorAdmin, PatientRelativeAdmin]
+    inlines = [
+        PatientAddressAdmin,
+        PatientConsentAdmin,
+        PatientDoctorAdmin,
+        PatientRelativeAdmin,
+    ]
     search_fields = ["family_name", "given_names"]
-    list_display = ['full_name', 'working_groups_display', 'get_reg_list',
-                    'date_of_birth', 'demographic_btn']
+    list_display = [
+        "full_name",
+        "working_groups_display",
+        "get_reg_list",
+        "date_of_birth",
+        "demographic_btn",
+    ]
 
     list_filter = [RegistryFilter]
 
     def full_name(self, obj):
         return str(obj)
 
-    full_name.short_description = 'Name'
+    full_name.short_description = "Name"
 
     def demographic_btn(self, obj):
-        return "<a href='%s' class='btn btn-info btn-small'>Details</a>" % reverse(
-            'admin:patients_patient_change',
-            args=(
-                obj.id,
-            ))
+        return (
+            "<a href='%s' class='btn btn-info btn-small'>Details</a>"
+            % reverse("admin:patients_patient_change", args=(obj.id,))
+        )
 
     demographic_btn.allow_tags = True
-    demographic_btn.short_description = 'Demographics'
+    demographic_btn.short_description = "Demographics"
 
     def get_form(self, request, obj=None, **kwargs):
         """
@@ -171,13 +180,14 @@ class PatientAdmin(admin.ModelAdmin):
         request = args[0]
         user = request.user
         context = args[1]
-        if 'original' in context:
-            patient = context['original']
-            context['form_links'] = self._get_formlinks(patient, user)
+        if "original" in context:
+            patient = context["original"]
+            context["form_links"] = self._get_formlinks(patient, user)
         return super(PatientAdmin, self).render_change_form(*args, **kwargs)
 
     def _get_formlinks(self, patient, user):
         from rdrf.helpers.utils import FormLink
+
         links = []
         for registry_model in patient.rdrf_registry.all():
             for form_model in registry_model.forms:
@@ -187,14 +197,18 @@ class PatientAdmin(admin.ModelAdmin):
                 links.append(form_link)
         return links
 
-    def _add_registry_specific_fields(self, form_class, registry_specific_fields_dict):
+    def _add_registry_specific_fields(
+        self, form_class, registry_specific_fields_dict
+    ):
         additional_fields = {}
         for reg_code in registry_specific_fields_dict:
             field_pairs = registry_specific_fields_dict[reg_code]
             for cde, field_object in field_pairs:
                 additional_fields[cde.code] = field_object
 
-        new_form_class = type(form_class.__name__, (form_class,), additional_fields)
+        new_form_class = type(
+            form_class.__name__, (form_class,), additional_fields
+        )
         return new_form_class
 
     def _get_registry_specific_patient_fields(self, user):
@@ -222,23 +236,19 @@ class PatientAdmin(admin.ModelAdmin):
         return fieldsets
 
     def create_fieldset(self, user):
+        consent = (
+            "Consent",
+            {
+                "fields": (
+                    "consent",
+                    "consent_provided_by_parent_guardian",
+                    "consent_clinical_trials",
+                    "consent_sent_information",
+                )
+            },
+        )
 
-        consent = ("Consent", {
-            "fields": (
-                "consent",
-                "consent_provided_by_parent_guardian",
-                "consent_clinical_trials",
-                "consent_sent_information",
-
-            )
-        })
-
-        rdrf_registry = ("Registry", {
-            "fields": (
-                "rdrf_registry",
-                "clinician"
-            )
-        })
+        rdrf_registry = ("Registry", {"fields": ("rdrf_registry", "clinician")})
 
         personal_details = ("Personal Details", {})
 
@@ -256,7 +266,7 @@ class PatientAdmin(admin.ModelAdmin):
             "home_phone",
             "mobile_phone",
             "work_phone",
-            "email"
+            "email",
         ]
 
         # fix for Trac #3, the field is now always displayed, but readonly for not
@@ -266,22 +276,26 @@ class PatientAdmin(admin.ModelAdmin):
 
         personal_details[1]["fields"] = tuple(personal_details_fields)
 
-        next_of_kin = ("Next of Kin", {
-            "fields":
-            ("next_of_kin_family_name",
-             "next_of_kin_given_names",
-             "next_of_kin_relationship",
-             "next_of_kin_address",
-             "next_of_kin_country",
-             "next_of_kin_suburb",
-             "next_of_kin_state",
-             "next_of_kin_postcode",
-             "next_of_kin_home_phone",
-             "next_of_kin_mobile_phone",
-             "next_of_kin_work_phone",
-             "next_of_kin_email",
-             "next_of_kin_parent_place_of_birth"
-             )})
+        next_of_kin = (
+            "Next of Kin",
+            {
+                "fields": (
+                    "next_of_kin_family_name",
+                    "next_of_kin_given_names",
+                    "next_of_kin_relationship",
+                    "next_of_kin_address",
+                    "next_of_kin_country",
+                    "next_of_kin_suburb",
+                    "next_of_kin_state",
+                    "next_of_kin_postcode",
+                    "next_of_kin_home_phone",
+                    "next_of_kin_mobile_phone",
+                    "next_of_kin_work_phone",
+                    "next_of_kin_email",
+                    "next_of_kin_parent_place_of_birth",
+                )
+            },
+        )
 
         fieldset = [consent, rdrf_registry, personal_details, next_of_kin]
         # fieldset.extend(self._get_registry_specific_section_fields(user))
@@ -307,14 +321,14 @@ class PatientAdmin(admin.ModelAdmin):
         """
         obj.save()
 
-        if hasattr(obj, 'mongo_patient_data'):
+        if hasattr(obj, "mongo_patient_data"):
             self._save_registry_specific_data_in_mongo(obj)
 
     def save_formset(self, request, form, formset, change):
         """
         Given an inline formset save it to the database.
         """
-        if formset.__class__.__name__ == 'PatientRelativeFormFormSet':
+        if formset.__class__.__name__ == "PatientRelativeFormFormSet":
             # check to see if we're creating a patient from this relative
             formset.save()
         else:
@@ -339,27 +353,32 @@ class PatientAdmin(admin.ModelAdmin):
     def formfield_for_dbfield(self, dbfield, *args, **kwargs):
         from registry.groups.models import WorkingGroup
 
-        request = kwargs.get('request')
+        request = kwargs.get("request")
         user = request.user
         # Restrict normal users to their own working group.
         if dbfield.name == "working_groups" and not user.is_superuser:
             # get the user's associated objects
             user = get_user_model().objects.get(username=user)
-            kwargs["queryset"] = WorkingGroup.objects.filter(id__in=get_working_groups(user))
+            kwargs["queryset"] = WorkingGroup.objects.filter(
+                id__in=get_working_groups(user)
+            )
 
         if dbfield.name == "rdrf_registry" and not user.is_superuser:
             user = get_user_model().objects.get(username=user)
             kwargs["queryset"] = Registry.objects.filter(
-                id__in=[reg.id for reg in user.registry.all()])
+                id__in=[reg.id for reg in user.registry.all()]
+            )
 
-        return super(PatientAdmin, self).formfield_for_dbfield(dbfield, *args, **kwargs)
+        return super(PatientAdmin, self).formfield_for_dbfield(
+            dbfield, *args, **kwargs
+        )
 
     def get_urls(self):
         search_url = re_path(
             r"search/(.*)$",
-            self.admin_site.admin_view(
-                self.search),
-            name="patient_search")
+            self.admin_site.admin_view(self.search),
+            name="patient_search",
+        )
         return [search_url] + super(PatientAdmin, self).get_urls()
 
     def get_queryset(self, request):
@@ -381,11 +400,13 @@ class PatientAdmin(admin.ModelAdmin):
             response = [[patient.id, str(patient), str(patient.date_of_birth)]]
         except ValueError:
             # Guess not.
-            patients = queryset.filter(Q(family_name__icontains=term) | Q(
-                given_names__icontains=term)).order_by("family_name", "given_names")
-            response = [[patient.id,
-                         str(patient),
-                         str(patient.date_of_birth)] for patient in patients]
+            patients = queryset.filter(
+                Q(family_name__icontains=term) | Q(given_names__icontains=term)
+            ).order_by("family_name", "given_names")
+            response = [
+                [patient.id, str(patient), str(patient.date_of_birth)]
+                for patient in patients
+            ]
         except Patient.DoesNotExist:
             response = []
 
@@ -398,16 +419,16 @@ class PatientAdmin(admin.ModelAdmin):
     diagnosis_last_update.short_description = "Last Updated"
 
     def progress_graph(self, obj):
-        if not hasattr(obj, 'patient_diagnosis'):
-            return ''
+        if not hasattr(obj, "patient_diagnosis"):
+            return ""
         graph_html = '<a href="%s">' % reverse(
-            'admin:{0}_diagnosis_change'.format(
-                obj.patient_diagnosis._meta.app_label),
-            args=(
-                obj.id,
-            ))
+            "admin:{0}_diagnosis_change".format(
+                obj.patient_diagnosis._meta.app_label
+            ),
+            args=(obj.id,),
+        )
         graph_html += obj.patient_diagnosis.progress_graph()
-        graph_html += '</a>'
+        graph_html += "</a>"
         return graph_html
 
     progress_graph.allow_tags = True
@@ -415,16 +436,16 @@ class PatientAdmin(admin.ModelAdmin):
 
     def freshness(self, obj):
         """Used to show how recently the diagnosis was updated"""
-        if not hasattr(obj, 'patient_diagnosis'):
-            return ''
+        if not hasattr(obj, "patient_diagnosis"):
+            return ""
 
         delta = datetime.datetime.now() - obj.patient_diagnosis.updated
         age = delta.days
 
         if age > 365:
-            imagefile = 'cross.png'
+            imagefile = "cross.png"
         else:
-            imagefile = 'tick.png'
+            imagefile = "tick.png"
 
         return '<img src="%s"/>' % get_static_url("images/" + imagefile)
 
@@ -432,17 +453,17 @@ class PatientAdmin(admin.ModelAdmin):
     freshness.short_description = "Currency (updated in the last 365 days)"
 
     def last_updated(self, obj):
-        if not hasattr(obj, 'diagnosis'):
-            return ''
+        if not hasattr(obj, "diagnosis"):
+            return ""
         delta = datetime.datetime.now() - obj.diagnosis.updated
         age = delta.days
 
         if age == 0:
-            return 'today'
+            return "today"
         if age == 1:
-            return 'yesterday'
+            return "yesterday"
         else:
-            return '%s days ago' % age
+            return "%s days ago" % age
 
     last_updated.allow_tags = True
     last_updated.short_description = "Last updated"
@@ -459,13 +480,19 @@ class NextOfKinRelationshipAdmin(admin.ModelAdmin):
 
 class AddressTypeAdmin(admin.ModelAdmin):
     model = AddressType
-    list_display = ('type', 'description')
+    list_display = ("type", "description")
 
 
 class ConsentValueAdmin(admin.ModelAdmin):
     model = ConsentValue
     list_display = (
-        "patient", "registry", "consent_question", "answer", "first_save", "last_update")
+        "patient",
+        "registry",
+        "consent_question",
+        "answer",
+        "first_save",
+        "last_update",
+    )
 
     def registry(self, obj):
         return obj.consent_question.section.registry
@@ -475,18 +502,23 @@ class ConsentValueAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         else:
-            return qs.filter(patient__rdrf_registry__in=request.user.registry.all())
+            return qs.filter(
+                patient__rdrf_registry__in=request.user.registry.all()
+            )
 
 
 class ParentGuardianAdmin(admin.ModelAdmin):
     model = ParentGuardian
-    list_display = ('first_name', 'last_name', 'patients')
+    list_display = ("first_name", "last_name", "patients")
 
     def patients(self, obj):
         patients_string = ""
         patients = [p for p in obj.patient.all()]
         for patient in patients:
-            patients_string += "%s %s<br>" % (patient.given_names, patient.family_name)
+            patients_string += "%s %s<br>" % (
+                patient.given_names,
+                patient.family_name,
+            )
         return patients_string
 
     patients.allow_tags = True
@@ -494,7 +526,12 @@ class ParentGuardianAdmin(admin.ModelAdmin):
 
 class ClinicianOtherAdmin(admin.ModelAdmin):
     model = ClinicianOther
-    list_display = ('clinician_last_name', 'clinician_first_name', 'clinician_hospital', 'clinician_address')
+    list_display = (
+        "clinician_last_name",
+        "clinician_first_name",
+        "clinician_hospital",
+        "clinician_address",
+    )
 
 
 def unarchive_patient_action(modeladmin, request, archive_patients_selected):
@@ -520,14 +557,15 @@ hard_delete_patient_action.short_description = "Hard delete archived patient"
 
 def unarchive_clinicaldata_model(patient_id):
     clinicaldata_models = ClinicalData.objects.filter(
-        django_id=patient_id, django_model='Patient', collection='cdes')
+        django_id=patient_id, django_model="Patient", collection="cdes"
+    )
     for cd in clinicaldata_models:
         cd.active = True
         cd.save()
 
 
 class ArchivedPatientAdmin(admin.ModelAdmin):
-    list_display = ('id', 'display_name', 'date_of_birth', 'membership')
+    list_display = ("id", "display_name", "date_of_birth", "membership")
     actions = [unarchive_patient_action, hard_delete_patient_action]
     list_display_links = None
 
@@ -545,9 +583,11 @@ class ArchivedPatientAdmin(admin.ModelAdmin):
 
     def membership(self, patient_model):
         s = ""
-        for r in patient_model.rdrf_registry.all().order_by('name'):
+        for r in patient_model.rdrf_registry.all().order_by("name"):
             s = s + r.name + "("
-            for wg in patient_model.working_groups.filter(registry=r).order_by('name'):
+            for wg in patient_model.working_groups.filter(registry=r).order_by(
+                "name"
+            ):
                 s = s + wg.name + " "
             s = s + ") "
         return s
@@ -566,7 +606,7 @@ class LongitudinalFollowupEntryAdmin(admin.ModelAdmin):
     )
     list_filter = ("state", "longitudinal_followup")
     readonly_fields = ("created_at", "created_by", "sent_at")
-    actions = ("delete_selected", )
+    actions = ("delete_selected",)
 
 
 class UnlinkedPatientFilter(admin.SimpleListFilter):
@@ -574,13 +614,12 @@ class UnlinkedPatientFilter(admin.SimpleListFilter):
     parameter_name = "linked"
 
     def lookups(self, request, model_admin):
-        return [('Y', _('Linked')),
-                ('N', _('Not linked'))]
+        return [("Y", _("Linked")), ("N", _("Not linked"))]
 
     def queryset(self, request, queryset):
-        if self.value() == 'Y':
+        if self.value() == "Y":
             return queryset.filter(user__isnull=False)
-        elif self.value() == 'N':
+        elif self.value() == "N":
             return queryset.filter(user__isnull=True)
         else:
             return queryset
@@ -588,45 +627,58 @@ class UnlinkedPatientFilter(admin.SimpleListFilter):
 
 class PatientUserAdmin(admin.ModelAdmin):
     # List page
-    list_display_links = ('patient_user',)
+    list_display_links = ("patient_user",)
     list_filter = [UnlinkedPatientFilter]
-    search_fields = ['family_name', 'given_names', 'email']
+    search_fields = ["family_name", "given_names", "email"]
 
     # Change page
     form = PatientUserForm
-    fields = ['patient', 'user']
-    readonly_fields = ['patient']
-    autocomplete_fields = ['user']
+    fields = ["patient", "user"]
+    readonly_fields = ["patient"]
+    autocomplete_fields = ["user"]
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        enabled_registries = [r for r in request.user.get_registries_or_all() if r.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS)]
+        enabled_registries = [
+            r
+            for r in request.user.get_registries_or_all()
+            if r.has_feature(RegistryFeatures.PATIENTS_CREATE_USERS)
+        ]
         return queryset.filter(rdrf_registry__in=enabled_registries)
 
     def patient(self, patient_model):
-        patient_attrs = [f'ID: {patient_model.id}']
+        patient_attrs = [f"ID: {patient_model.id}"]
 
         if patient_model.guid:
-            patient_attrs.append(f'GUID: {patient_model.guid}')
+            patient_attrs.append(f"GUID: {patient_model.guid}")
 
         return f'{patient_model.display_name} ({", ".join(patient_attrs)})'
 
     def get_list_display(self, request):
-        supports_guid = any(r.has_feature(RegistryFeatures.PATIENT_GUID) for r in request.user.get_registries_or_all())
+        supports_guid = any(
+            r.has_feature(RegistryFeatures.PATIENT_GUID)
+            for r in request.user.get_registries_or_all()
+        )
 
-        return [prop for prop in ['id',
-                                  'display_name',
-                                  'guid' if supports_guid else None,
-                                  'date_of_birth',
-                                  'sex',
-                                  'patient_user'] if prop]
+        return [
+            prop
+            for prop in [
+                "id",
+                "display_name",
+                "guid" if supports_guid else None,
+                "date_of_birth",
+                "sex",
+                "patient_user",
+            ]
+            if prop
+        ]
 
     def patient_user(self, patient_model):
         user = patient_model.user
         if user:
             return user.email
         else:
-            return _('Not linked')
+            return _("Not linked")
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -643,7 +695,8 @@ def create_proxy_class(base_model, new_name):
     class Meta:
         proxy = True
         app_label = base_model._meta.app_label
-    attrs = {'__module__': '', 'Meta': Meta}
+
+    attrs = {"__module__": "", "Meta": Meta}
     proxy_class = type(new_name, (base_model,), attrs)
     return proxy_class
 
@@ -658,8 +711,12 @@ admin.site.register(PatientStage, PatientStageAdmin)
 admin.site.register(PatientStageRule, PatientStageRuleAdmin)
 admin.site.register(ConsentValue, ConsentValueAdmin)
 admin.site.register(ClinicianOther, ClinicianOtherAdmin)
-admin.site.register(create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin)
+admin.site.register(
+    create_proxy_class(Patient, "ArchivedPatient"), ArchivedPatientAdmin
+)
 admin.site.register(LongitudinalFollowupEntry, LongitudinalFollowupEntryAdmin)
-admin.site.register(create_proxy_class(Patient, "PatientUser"), PatientUserAdmin)
+admin.site.register(
+    create_proxy_class(Patient, "PatientUser"), PatientUserAdmin
+)
 
-admin.site.disable_action('delete_selected')
+admin.site.disable_action("delete_selected")

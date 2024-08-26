@@ -4,12 +4,16 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
+from registry.groups.models import WorkingGroup
+from registry.patients.models import AddressType, Patient, PatientAddress
 
 from rdrf.events.events import EventType
 from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.models.definition.models import EmailTemplate, Registry, EmailNotification
-from registry.groups.models import WorkingGroup
-from registry.patients.models import AddressType, Patient, PatientAddress
+from rdrf.models.definition.models import (
+    EmailNotification,
+    EmailTemplate,
+    Registry,
+)
 
 
 class PatientViewBase(TestCase):
@@ -30,17 +34,29 @@ class PatientViewBase(TestCase):
         # the loop in TestCase.setUpClass
         super().setUpClass()
 
-        call_command('loaddata', 'testing_auth', **{'verbosity': 0, 'database': 'default'})
-        call_command('loaddata', 'users', **{'verbosity': 0, 'database': 'default'})
-        call_command('loaddata', 'testing_rdrf', **{'verbosity': 0, 'database': 'default'})
+        call_command(
+            "loaddata",
+            "testing_auth",
+            **{"verbosity": 0, "database": "default"},
+        )
+        call_command(
+            "loaddata", "users", **{"verbosity": 0, "database": "default"}
+        )
+        call_command(
+            "loaddata",
+            "testing_rdrf",
+            **{"verbosity": 0, "database": "default"},
+        )
 
     def setUp(self):
         super().setUp()
-        self.registry = Registry.objects.get(code='reg4')
+        self.registry = Registry.objects.get(code="reg4")
         self.registry.add_feature(RegistryFeatures.PATIENTS_CREATE_USERS)
         self.registry.add_feature(RegistryFeatures.CONTEXTS)
         self.registry.save()
-        self.working_group = WorkingGroup.objects.create(name='Test Working Group', registry=self.registry)
+        self.working_group = WorkingGroup.objects.create(
+            name="Test Working Group", registry=self.registry
+        )
 
     def patient_post_data(self):
         post_data = {
@@ -56,7 +72,6 @@ class PatientViewBase(TestCase):
             "preferred_contact-contact_method": "email",
             "primary_carer-preferred_language": "en",
             "primary_carer-same_address": "on",
-
             "patient_address-TOTAL_FORMS": 0,
             "patient_address-INITIAL_FORMS": 0,
             "patient_address-MIN_NUM_FORMS": 0,
@@ -70,7 +85,6 @@ class PatientViewBase(TestCase):
             "patient_address-INITIAL_FORMS": 1 if pk else 0,
             "patient_address-MIN_NUM_FORMS": 0,
             "patient_address-MAX_NUM_FORMS": 1000,
-
             "patient_address-0-id": pk or "",
             "patient_address-0-address_type": 1,
             "patient_address-0-address": "123 Leafy St",
@@ -84,18 +98,30 @@ class PatientViewBase(TestCase):
         post_data = self.patient_post_data()
         if address:
             post_data.update(address)
-        self.client.login(username='admin', password='admin')
+        self.client.login(username="admin", password="admin")
         response = self.client.post(
-            reverse("patient_add", kwargs={"registry_code": self.registry.code}), post_data)
+            reverse(
+                "patient_add", kwargs={"registry_code": self.registry.code}
+            ),
+            post_data,
+        )
         return response
 
     def edit_patient(self, patient_pk, address=None):
         post_data = self.patient_post_data()
         if address:
             post_data.update(address)
-        self.client.login(username='admin', password='admin')
+        self.client.login(username="admin", password="admin")
         response = self.client.post(
-            reverse("patient_edit", kwargs={"registry_code": self.registry.code, "patient_id": patient_pk}), post_data)
+            reverse(
+                "patient_edit",
+                kwargs={
+                    "registry_code": self.registry.code,
+                    "patient_id": patient_pk,
+                },
+            ),
+            post_data,
+        )
         return response
 
     def get_patient(self):
@@ -113,16 +139,16 @@ class PatientNotificationTest(PatientViewBase):
     def setUp(self):
         super().setUp()
         template = EmailTemplate.objects.create(
-            language='en',
-            description='New Patient Registered',
-            subject='Welcome',
-            body='Thanks for your registration!',
+            language="en",
+            description="New Patient Registered",
+            subject="Welcome",
+            body="Thanks for your registration!",
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
             description=EventType.NEW_PATIENT_USER_REGISTERED,
-            recipient='{{patient.user.email}}',
-            email_from='no-reply@reg4.net',
+            recipient="{{patient.user.email}}",
+            email_from="no-reply@reg4.net",
         )
         notification.email_templates.add(template)
 
@@ -135,16 +161,16 @@ class PatientNotificationTest(PatientViewBase):
         When a patient is added to the registry only the NEW PATIENT ADDED notification is sent.
         """
         template = EmailTemplate.objects.create(
-            language='en',
-            description='New Patient Added',
-            subject='Welcome',
-            body='Thanks for your participation!',
+            language="en",
+            description="New Patient Added",
+            subject="Welcome",
+            body="Thanks for your participation!",
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
             description=EventType.NEW_PATIENT_USER_ADDED,
-            recipient='{{patient.user.email}}',
-            email_from='no-reply@reg4.net',
+            recipient="{{patient.user.email}}",
+            email_from="no-reply@reg4.net",
         )
         notification.email_templates.add(template)
 
@@ -178,11 +204,15 @@ class EditPatientViewTest(PatientViewBase):
 
     def test_patient_edit_success(self):
         address_pk = self.existing_patient.patientaddress_set.first().pk
-        self.edit_patient(self.existing_patient.pk, address=self.address(pk=address_pk))
+        self.edit_patient(
+            self.existing_patient.pk, address=self.address(pk=address_pk)
+        )
         patient = Patient.objects.get(pk=self.existing_patient.pk)
         self.assertEqual(patient.family_name, "DOE")
         self.assertEqual(patient.given_names, "John")
-        self.assertEqual(patient.date_of_birth, date.fromisoformat("2000-01-01"))
+        self.assertEqual(
+            patient.date_of_birth, date.fromisoformat("2000-01-01")
+        )
 
         self.assertEqual(patient.patientaddress_set.count(), 1)
         address = patient.patientaddress_set.first()
@@ -200,21 +230,27 @@ class PatientAddressMandatoryFeatureTest(EditPatientViewTest):
 
     def test_validation_error_on_add_with_no_patient_address(self):
         response = self.add_patient()
-        self.assertContains(response, 'Patient Address: Please submit at least 1 form.')
-        self.assertIsNone(self.get_patient(), 'Patient was added without address!')
+        self.assertContains(
+            response, "Patient Address: Please submit at least 1 form."
+        )
+        self.assertIsNone(
+            self.get_patient(), "Patient was added without address!"
+        )
 
     def test_success_on_add_with_patient_address(self):
         self.add_patient(address=self.address())
         patient = self.get_patient()
-        self.assertIsNotNone(patient, 'Patient not created!')
+        self.assertIsNotNone(patient, "Patient not created!")
         self.assertEqual(patient.patientaddress_set.count(), 1)
         address = patient.patientaddress_set.first()
-        self.assertEqual(address.address, '123 Leafy St')
-        self.assertEqual(address.postcode, '6000')
+        self.assertEqual(address.address, "123 Leafy St")
+        self.assertEqual(address.postcode, "6000")
 
     def test_validation_error_on_delete_of_single_patient_address(self):
         address_pk = self.existing_patient.patientaddress_set.first().pk
         address = self.address(pk=address_pk)
-        address['patient_address-0-DELETE'] = 'on'
+        address["patient_address-0-DELETE"] = "on"
         response = self.edit_patient(self.existing_patient.pk, address=address)
-        self.assertContains(response, 'Patient Address: Please submit at least 1 form.')
+        self.assertContains(
+            response, "Patient Address: Please submit at least 1 form."
+        )

@@ -2,7 +2,6 @@ from django import template
 
 from rdrf.helpers.utils import make_full_url
 
-
 register = template.Library()
 
 

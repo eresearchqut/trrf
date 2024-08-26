@@ -1,55 +1,72 @@
+import datetime
 import logging
 from functools import partial
-import datetime
 
 from django.conf import settings
-from django.contrib import admin
-from django.contrib import messages
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
 from django.forms import ChoiceField, ModelForm
 from django.http import HttpResponse
-from django.template import loader, Context
+from django.template import Context, loader
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
-from reversion.admin import VersionAdmin
-
-from rdrf.admin_forms import CommonDataElementAdminForm, RegistryFormTranslationAdminForm
-from rdrf.admin_forms import ConsentConfigurationAdminForm, RegistryDashboardAdminForm, DashboardWidgetAdminForm
-from rdrf.admin_forms import ContextFormGroupItemAdminForm
-from rdrf.admin_forms import DemographicFieldsAdminForm
-from rdrf.admin_forms import EmailTemplateAdminForm
-from rdrf.admin_forms import FormTitleAdminForm
-from rdrf.admin_forms import RegistryFormAdminForm
-from rdrf.events.events import EventType
-from rdrf.exporter_utils import export_forms, export_context_form_groups, export_registries, export_registry_dashboards
-from rdrf.models.definition.models import WhitelistedFileExtension, RegistryFormTranslation, Language
-from rdrf.models.definition.models import CDEFile
-from rdrf.models.definition.models import CDEPermittedValue
-from rdrf.models.definition.models import CDEPermittedValueGroup
-from rdrf.models.definition.models import CdePolicy
-from rdrf.models.definition.models import ClinicalData
-from rdrf.models.definition.models import CommonDataElement
-from rdrf.models.definition.models import ConsentConfiguration
-from rdrf.models.definition.models import ConsentQuestion
-from rdrf.models.definition.models import ConsentRule
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ContextFormGroup
-from rdrf.models.definition.models import ContextFormGroupItem
-from rdrf.models.definition.models import DemographicFields
-from rdrf.models.definition.models import EmailNotification
-from rdrf.models.definition.models import EmailNotificationHistory
-from rdrf.models.definition.models import EmailTemplate
-from rdrf.models.definition.models import FormTitle
-from rdrf.models.definition.models import Notification
-from rdrf.models.definition.models import Registry, RegistryDashboard, RegistryDashboardWidget, \
-    RegistryDashboardFormLink, \
-    RegistryDashboardCDEData, RegistryDashboardDemographicData, LongitudinalFollowup
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Section
-from report.utils import load_report_configuration
 from registration.admin import RegistrationAdmin
 from registration.models import RegistrationProfile
+from report.utils import load_report_configuration
+from reversion.admin import VersionAdmin
+
+from rdrf.admin_forms import (
+    CommonDataElementAdminForm,
+    ConsentConfigurationAdminForm,
+    ContextFormGroupItemAdminForm,
+    DashboardWidgetAdminForm,
+    DemographicFieldsAdminForm,
+    EmailTemplateAdminForm,
+    FormTitleAdminForm,
+    RegistryDashboardAdminForm,
+    RegistryFormAdminForm,
+    RegistryFormTranslationAdminForm,
+)
+from rdrf.events.events import EventType
+from rdrf.exporter_utils import (
+    export_context_form_groups,
+    export_forms,
+    export_registries,
+    export_registry_dashboards,
+)
+from rdrf.models.definition.models import (
+    CDEFile,
+    CDEPermittedValue,
+    CDEPermittedValueGroup,
+    CdePolicy,
+    ClinicalData,
+    CommonDataElement,
+    ConsentConfiguration,
+    ConsentQuestion,
+    ConsentRule,
+    ConsentSection,
+    ContextFormGroup,
+    ContextFormGroupItem,
+    DemographicFields,
+    EmailNotification,
+    EmailNotificationHistory,
+    EmailTemplate,
+    FormTitle,
+    Language,
+    LongitudinalFollowup,
+    Notification,
+    Registry,
+    RegistryDashboard,
+    RegistryDashboardCDEData,
+    RegistryDashboardDemographicData,
+    RegistryDashboardFormLink,
+    RegistryDashboardWidget,
+    RegistryForm,
+    RegistryFormTranslation,
+    Section,
+    WhitelistedFileExtension,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +80,12 @@ def export_wrapper(request, export_func):
         else:
             # There were errors
             errors, item_str = export_response
-            logger.error(f'Error(s) exporting {item_str}:')
+            logger.error(f"Error(s) exporting {item_str}:")
             for error in errors:
-                logger.error(f'Export Error: {error}')
-                messages.error(request, f'Error in export of {item_str}: {error}')
+                logger.error(f"Export Error: {error}")
+                messages.error(
+                    request, f"Error in export of {item_str}: {error}"
+                )
                 return None
     except Exception as ex:
         logger.exception(ex, exc_info=True)
@@ -74,24 +93,28 @@ def export_wrapper(request, export_func):
         return None
 
 
-@admin.action(description='Export')
+@admin.action(description="Export")
 def export_registry_action(modeladmin, request, registries):
     return export_wrapper(request, partial(export_registries, registries))
 
 
-@admin.action(description='Export')
+@admin.action(description="Export")
 def export_context_form_group_action(modeladmin, request, context_form_groups):
-    return export_wrapper(request, partial(export_context_form_groups, context_form_groups))
+    return export_wrapper(
+        request, partial(export_context_form_groups, context_form_groups)
+    )
 
 
-@admin.action(description='Export')
+@admin.action(description="Export")
 def export_registry_form_action(modeladmin, request, forms):
     return export_wrapper(request, partial(export_forms, forms))
 
 
-@admin.action(description='Export')
+@admin.action(description="Export")
 def export_registry_dashboard_action(modeladmin, request, dashboards):
-    return export_wrapper(request, partial(export_registry_dashboards, dashboards))
+    return export_wrapper(
+        request, partial(export_registry_dashboards, dashboards)
+    )
 
 
 @admin.register(ClinicalData)
@@ -100,9 +123,9 @@ class BaseReversionAdmin(VersionAdmin):
 
 
 class SectionAdmin(admin.ModelAdmin):
-    list_display = ('code', 'display_name')
-    ordering = ['code']
-    search_fields = ['code', 'display_name']
+    list_display = ("code", "display_name")
+    ordering = ["code"]
+    search_fields = ["code", "display_name"]
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
@@ -121,14 +144,14 @@ class SectionAdmin(admin.ModelAdmin):
 
 
 class RegistryFormAdmin(admin.ModelAdmin):
-    list_display = ('registry', 'name', 'position')
-    list_display_links = ('name',)
-    ordering = ['registry', 'name']
+    list_display = ("registry", "name", "position")
+    list_display_links = ("name",)
+    ordering = ["registry", "name"]
     form = RegistryFormAdminForm
-    search_fields = ['name']
+    search_fields = ["name"]
     actions = [export_registry_form_action]
 
-    list_filter = ['registry']
+    list_filter = ["registry"]
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_superuser:
@@ -152,7 +175,9 @@ class RegistryAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         if not request.user.is_superuser:
             user = get_user_model().objects.get(username=request.user)
-            return Registry.objects.filter(registry__in=[reg.id for reg in user.registry.all()])
+            return Registry.objects.filter(
+                registry__in=[reg.id for reg in user.registry.all()]
+            )
 
         return Registry.objects.all()
 
@@ -182,30 +207,34 @@ class RegistryAdmin(admin.ModelAdmin):
 
 
 class ActivationKeyExpirationListFilter(admin.SimpleListFilter):
-    title = _('activation key expired')
-    parameter_name = 'activation_key_expired'
+    title = _("activation key expired")
+    parameter_name = "activation_key_expired"
 
     def lookups(self, request, model_admin):
         return [
-            ('True', _('Yes')),
-            ('False', _('No')),
+            ("True", _("Yes")),
+            ("False", _("No")),
         ]
 
     def queryset(self, request, queryset):
-        expired_profiles = [profile.id for profile in queryset if profile.activation_key_expired()]
+        expired_profiles = [
+            profile.id
+            for profile in queryset
+            if profile.activation_key_expired()
+        ]
 
-        if self.value() == 'True':
+        if self.value() == "True":
             return queryset.filter(id__in=expired_profiles)
-        elif self.value() == 'False':
+        elif self.value() == "False":
             return queryset.exclude(id__in=expired_profiles)
         else:
             return queryset
 
 
 class CustomRegistrationProfileAdmin(RegistrationAdmin):
-    actions = ['activate_users']
-    list_display = ('user', 'activation_key_expired', 'is_activated')
-    list_filter = [ActivationKeyExpirationListFilter, 'activated']
+    actions = ["activate_users"]
+    list_display = ("user", "activation_key_expired", "is_activated")
+    list_filter = [ActivationKeyExpirationListFilter, "activated"]
 
     @admin.display(description="Activated")
     def is_activated(self, obj):
@@ -213,12 +242,8 @@ class CustomRegistrationProfileAdmin(RegistrationAdmin):
 
 
 def create_restricted_model_admin_class(
-        model_class,
-        search_fields=None,
-        ordering=None,
-        list_display=None,
-        form=None):
-
+    model_class, search_fields=None, ordering=None, list_display=None, form=None
+):
     def query_set_func(model_class):
         def queryset(myself, request):
             if not request.user.is_superuser:
@@ -231,6 +256,7 @@ def create_restricted_model_admin_class(
     def make_perm_func():
         def perm(self, request, *args, **kwargs):
             return request.user.is_superuser
+
         return perm
 
     overrides = {
@@ -257,9 +283,7 @@ class CDEPermittedValueAdmin(admin.StackedInline):
     model = CDEPermittedValue
     extra = 0
 
-    fieldsets = (
-        (None, {'fields': ('code', 'value', 'desc', 'position')}),
-    )
+    fieldsets = ((None, {"fields": ("code", "value", "desc", "position")}),)
 
 
 class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
@@ -267,28 +291,40 @@ class CDEPermittedValueGroupAdmin(admin.ModelAdmin):
 
 
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('created', 'from_username', 'to_username', 'message')
+    list_display = ("created", "from_username", "to_username", "message")
 
 
 class ConsentQuestionAdmin(admin.StackedInline):
     model = ConsentQuestion
     extra = 0
-    readonly_fields = ['created_at', 'last_updated_at']
+    readonly_fields = ["created_at", "last_updated_at"]
     fieldsets = (
-        (None, {
-            'fields': (
-                'position', 'code', 'question_label', 'instructions', 'created_at', 'last_updated_at')}), )
+        (
+            None,
+            {
+                "fields": (
+                    "position",
+                    "code",
+                    "question_label",
+                    "instructions",
+                    "created_at",
+                    "last_updated_at",
+                )
+            },
+        ),
+    )
 
 
 class ConsentSectionAdmin(admin.ModelAdmin):
-    readonly_fields = ['created_at', 'last_updated_at', 'latest_change']
-    list_display = ('registry', 'section_label')
-    list_display_links = ('section_label',)
+    readonly_fields = ["created_at", "last_updated_at", "latest_change"]
+    list_display = ("registry", "section_label")
+    list_display_links = ("section_label",)
     inlines = [ConsentQuestionAdmin]
 
     def latest_change(self, obj):
         return obj.latest_update
-    latest_change.short_description = 'Latest change (including questions)'
+
+    latest_change.short_description = "Latest change (including questions)"
 
 
 class ConsentConfigurationAdmin(admin.ModelAdmin):
@@ -307,7 +343,7 @@ class DemographicFieldsAdmin(admin.ModelAdmin):
 class CdePolicyAdmin(admin.ModelAdmin):
     model = CdePolicy
     list_display = ("registry", "cde", "groups", "condition")
-    list_display_links = ("cde", )
+    list_display_links = ("cde",)
 
     def groups(self, obj):
         return ", ".join([gr.name for gr in obj.groups_allowed.all()])
@@ -317,31 +353,42 @@ class CdePolicyAdmin(admin.ModelAdmin):
 
 class EmailNotificationAdmin(admin.ModelAdmin):
     model = EmailNotification
-    list_display = ("description", "registry", "email_from", "recipient", "group_recipient")
-    readonly_fields = ("warnings", )
+    list_display = (
+        "description",
+        "registry",
+        "email_from",
+        "recipient",
+        "group_recipient",
+    )
+    readonly_fields = ("warnings",)
     UPDATE_ONLY_FIELDS = ("file_uploaded_cdes", "warnings")
 
     def no_warnings(self, obj):
         return obj is None or obj.warnings is None
+
     no_warnings.boolean = True
     # Changing the display name to the opposite, as users would expect "red-cross" if there are warnings
     # and green check if there are none
     no_warnings.short_description = "Warnings"
 
-    def any_warnings(self,):
+    def any_warnings(
+        self,
+    ):
         for obj in EmailNotification.objects.all():
             if not self.no_warnings(obj):
                 return True
         return False
 
     def get_changeform_initial_data(self, request):
-        return {'email_from': settings.DEFAULT_FROM_EMAIL}
+        return {"email_from": settings.DEFAULT_FROM_EMAIL}
 
     def get_list_display(self, request):
         list_display = super().get_list_display(request)
 
         if self.any_warnings():
-            with_warnings_col = (list_display[0], "no_warnings") + list_display[1:]
+            with_warnings_col = (list_display[0], "no_warnings") + list_display[
+                1:
+            ]
             return with_warnings_col
         return list_display
 
@@ -357,7 +404,7 @@ class EmailNotificationAdmin(admin.ModelAdmin):
                 to_remove.add("file_uploaded_cdes")
         fields = [f for f in all_fields if f not in to_remove]
         if not self.no_warnings(obj):
-            fields.insert(2, 'warnings')
+            fields.insert(2, "warnings")
         return fields
 
 
@@ -370,11 +417,19 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 
 class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     model = EmailNotificationHistory
-    list_display = ("date_stamp", "email_notification", "registry", "full_language", "resend")
+    list_display = (
+        "date_stamp",
+        "email_notification",
+        "registry",
+        "full_language",
+        "resend",
+    )
 
     def registry(self, obj):
-        return "%s (%s)" % (obj.email_notification.registry.name,
-                            obj.email_notification.registry.code.upper())
+        return "%s (%s)" % (
+            obj.email_notification.registry.name,
+            obj.email_notification.registry.code.upper(),
+        )
 
     def full_language(self, obj):
         return dict(settings.LANGUAGES).get(obj.language, obj.language)
@@ -382,14 +437,23 @@ class EmailNotificationHistoryAdmin(admin.ModelAdmin):
     full_language.short_description = "Language"
 
     def resend(self, obj):
-        email_url = reverse('resend_email', args=(obj.id,))
-        return mark_safe(f"<a class='btn btn-info btn-xs' href='{email_url}'>Resend</a>")
+        email_url = reverse("resend_email", args=(obj.id,))
+        return mark_safe(
+            f"<a class='btn btn-info btn-xs' href='{email_url}'>Resend</a>"
+        )
+
     resend.allow_tags = True
 
 
 class ConsentRuleAdmin(admin.ModelAdmin):
     model = ConsentRule
-    list_display = ("registry", "user_group", "capability", "consent_question", "enabled")
+    list_display = (
+        "registry",
+        "user_group",
+        "capability",
+        "consent_question",
+        "enabled",
+    )
     list_display_links = ("user_group",)
 
 
@@ -400,7 +464,7 @@ class ContextFormGroupItemAdmin(admin.StackedInline):
 
 class ContextFormGroupAdmin(admin.ModelAdmin):
     model = ContextFormGroup
-    list_display = ('name', 'registry')
+    list_display = ("name", "registry")
     inlines = [ContextFormGroupItemAdmin]
     actions = [export_context_form_group_action]
 
@@ -408,7 +472,10 @@ class ContextFormGroupAdmin(admin.ModelAdmin):
         return obj.registry.name
 
     class Media:
-        js = ("js/admin/context_form_group_on_load.js", "js/admin/context_form_group_admin_change.js")
+        js = (
+            "js/admin/context_form_group_on_load.js",
+            "js/admin/context_form_group_admin_change.js",
+        )
 
 
 class CDEFileAdmin(admin.ModelAdmin):
@@ -419,36 +486,49 @@ class CDEFileAdmin(admin.ModelAdmin):
 class FormTitleAdmin(admin.ModelAdmin):
     model = FormTitle
     form = FormTitleAdminForm
-    list_display = ('registry', 'default_title', 'group_names', 'custom_title', 'order')
-    list_display_links = ('default_title',)
+    list_display = (
+        "registry",
+        "default_title",
+        "group_names",
+        "custom_title",
+        "order",
+    )
+    list_display_links = ("default_title",)
 
 
 class WhitelistedFileExtensionAdmin(admin.ModelAdmin):
     model = WhitelistedFileExtension
-    list_display = ('file_extension',)
-    ordering = ('file_extension',)
+    list_display = ("file_extension",)
+    ordering = ("file_extension",)
 
 
 class DashboardLinksInline(admin.StackedInline):
     model = RegistryDashboardFormLink
-    verbose_name_plural = 'Registry Form Links'
-    autocomplete_fields = ('registry_form',)
+    verbose_name_plural = "Registry Form Links"
+    autocomplete_fields = ("registry_form",)
     extra = 0
 
 
 class DashboardCdeDataInline(admin.StackedInline):
     model = RegistryDashboardCDEData
-    verbose_name_plural = 'Clinical Data'
-    autocomplete_fields = ('registry_form', 'section', 'cde')
+    verbose_name_plural = "Clinical Data"
+    autocomplete_fields = ("registry_form", "section", "cde")
     extra = 0
 
 
 class DashboardDemographicDataAdminForm(ModelForm):
     @staticmethod
     def get_patient_demographic_fields():
-        demographic_model = load_report_configuration()['demographic_model']
-        field_choices = [('', '---------')]
-        field_choices.extend([(field, _(label)) for field, label in demographic_model['patient']['fields'].items()])
+        demographic_model = load_report_configuration()["demographic_model"]
+        field_choices = [("", "---------")]
+        field_choices.extend(
+            [
+                (field, _(label))
+                for field, label in demographic_model["patient"][
+                    "fields"
+                ].items()
+            ]
+        )
         return field_choices
 
     field = ChoiceField()
@@ -459,31 +539,35 @@ class DashboardDemographicDataAdminForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DashboardDemographicDataAdminForm, self).__init__(*args, **kwargs)
-        self.fields['field'].choices = self.get_patient_demographic_fields()
+        self.fields["field"].choices = self.get_patient_demographic_fields()
 
 
 class DashboardDemographicsInline(admin.StackedInline):
     form = DashboardDemographicDataAdminForm
     model = RegistryDashboardDemographicData
-    verbose_name_plural = 'Patient Demographics'
+    verbose_name_plural = "Patient Demographics"
     extra = 0
 
 
 class RegistryDashboardAdmin(admin.ModelAdmin):
     model = RegistryDashboard
     form = RegistryDashboardAdminForm
-    list_display = ('registry',)
+    list_display = ("registry",)
     actions = [export_registry_dashboard_action]
 
 
 class DashboardWidgetAdmin(admin.ModelAdmin):
     model = RegistryDashboardWidget
     form = DashboardWidgetAdminForm
-    list_display = ('registry_dashboard', 'widget_type', 'title')
-    list_display_links = ('widget_type',)
-    list_select_related = ('registry_dashboard',)
-    list_filter = ['registry_dashboard']
-    inlines = [DashboardLinksInline, DashboardDemographicsInline, DashboardCdeDataInline]
+    list_display = ("registry_dashboard", "widget_type", "title")
+    list_display_links = ("widget_type",)
+    list_select_related = ("registry_dashboard",)
+    list_filter = ["registry_dashboard"]
+    inlines = [
+        DashboardLinksInline,
+        DashboardDemographicsInline,
+        DashboardCdeDataInline,
+    ]
 
 
 class LongitudinalFollowupAdmin(admin.ModelAdmin):
@@ -510,51 +594,49 @@ class LanguageAdmin(admin.ModelAdmin):
 class RegistryFormTranslationAdmin(admin.ModelAdmin):
     model = RegistryFormTranslation
     form = RegistryFormTranslationAdminForm
-    list_display = ('language', 'form_translation_progress')
-    list_filter = ('language',)
-    ordering = ('language',)
+    list_display = ("language", "form_translation_progress")
+    list_filter = ("language",)
+    ordering = ("language",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def form_translation_progress(self, obj):
-        cfgs = ContextFormGroup.objects.all().order_by('sort_order')
+        cfgs = ContextFormGroup.objects.all().order_by("sort_order")
         template = loader.get_template("admin/form_translation_progress.html")
-        data = {'context_form_groups': ContextFormGroup.objects.all().order_by('sort_order'),
-                'cfgs': [{'name': cfg.name,
-                          'translated_forms_cnt': obj.translated_forms.filter(id__in=[form.id for form in cfg.forms]).count(),
-                          'total_forms_cnt': len(cfg.forms)}
-                         for cfg in cfgs]}
+        data = {
+            "context_form_groups": ContextFormGroup.objects.all().order_by(
+                "sort_order"
+            ),
+            "cfgs": [
+                {
+                    "name": cfg.name,
+                    "translated_forms_cnt": obj.translated_forms.filter(
+                        id__in=[form.id for form in cfg.forms]
+                    ).count(),
+                    "total_forms_cnt": len(cfg.forms),
+                }
+                for cfg in cfgs
+            ],
+        }
         context = Context(data)
         return template.render(context.flatten())
 
 
 CDEPermittedValueAdmin = create_restricted_model_admin_class(
     CDEPermittedValue,
-    ordering=['code'],
-    search_fields=[
-        'code',
-        'value',
-        'pv_group__code'],
-    list_display=[
-        'code',
-        'value',
-        'pvg_link',
-        'position_formatted'])
+    ordering=["code"],
+    search_fields=["code", "value", "pv_group__code"],
+    list_display=["code", "value", "pvg_link", "position_formatted"],
+)
 
 CommonDataElementAdmin = create_restricted_model_admin_class(
     CommonDataElement,
-    ordering=['code'],
-    search_fields=[
-        'code',
-        'name',
-        'datatype'],
-    list_display=[
-        'code',
-        'name',
-        'datatype',
-        'widget_name'],
-    form=CommonDataElementAdminForm)
+    ordering=["code"],
+    search_fields=["code", "name", "datatype"],
+    list_display=["code", "name", "datatype", "widget_name"],
+    form=CommonDataElementAdminForm,
+)
 
 DESIGN_MODE_ADMIN_COMPONENTS = [
     (Registry, RegistryAdmin),

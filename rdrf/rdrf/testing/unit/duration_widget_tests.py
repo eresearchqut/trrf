@@ -22,19 +22,29 @@ def test_duration_incompatible_formats():
 
 
 def test_current_default_format():
-    helper = DurationWidgetHelper({
-        "years": True, "months": False, "days": True,
-        "hours": False, "minutes": False, "seconds": False
-    })
+    helper = DurationWidgetHelper(
+        {
+            "years": True,
+            "months": False,
+            "days": True,
+            "hours": False,
+            "minutes": False,
+            "seconds": False,
+        }
+    )
     assert helper.current_format_default() == "P0Y0D"
 
-    helper = DurationWidgetHelper({
-        "weeks_only": True
-    })
+    helper = DurationWidgetHelper({"weeks_only": True})
     assert helper.current_format_default() == "P0W"
 
-    helper = DurationWidgetHelper({
-        "years": False, "months": False, "days": True,
-        "hours": True, "minutes": True, "seconds": False
-    })
+    helper = DurationWidgetHelper(
+        {
+            "years": False,
+            "months": False,
+            "days": True,
+            "hours": True,
+            "minutes": True,
+            "seconds": False,
+        }
+    )
     assert helper.current_format_default() == "P0DT0H0M"

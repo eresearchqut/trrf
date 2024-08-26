@@ -4,30 +4,47 @@ Runs test files
 """
 
 from __future__ import print_function
-from collections import namedtuple
+
+import argparse
+import csv
 import io
+import json
 import os.path
 import subprocess
 import sys
-import yaml
-import csv
-import argparse
 import tempfile
-import json
+from collections import namedtuple
+
+import yaml
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Tests CDE calculations in YAML.")
-    parser.add_argument("registry_yaml", metavar="YAML", nargs=1,
-                        type=argparse.FileType("r"),
-                        help="File containing YAML definition of registry")
-    parser.add_argument("test_csvs", metavar="CSV", nargs="+",
-                        type=argparse.FileType("r"),
-                        help="CSV files containing test definitions")
-    parser.add_argument("--outfile", metavar="FILE", type=argparse.FileType("w"),
-                        help="Output file")
-    parser.add_argument("--verbose", "-v", action="count",
-                        help="More info for debugging tests")
+    parser = argparse.ArgumentParser(
+        description="Tests CDE calculations in YAML."
+    )
+    parser.add_argument(
+        "registry_yaml",
+        metavar="YAML",
+        nargs=1,
+        type=argparse.FileType("r"),
+        help="File containing YAML definition of registry",
+    )
+    parser.add_argument(
+        "test_csvs",
+        metavar="CSV",
+        nargs="+",
+        type=argparse.FileType("r"),
+        help="CSV files containing test definitions",
+    )
+    parser.add_argument(
+        "--outfile",
+        metavar="FILE",
+        type=argparse.FileType("w"),
+        help="Output file",
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="count", help="More info for debugging tests"
+    )
 
     args = parser.parse_args()
 
@@ -58,8 +75,12 @@ def load_yaml(file_obj):
     return Registry(names, calculations)
 
 
-CustomTestResult = namedtuple("TestResult", ("test", "expected", "actual", "error", "output"))
-CustomTestCase = namedtuple("TestCase", ("file", "number", "check_code", "params", "desc"))
+CustomTestResult = namedtuple(
+    "TestResult", ("test", "expected", "actual", "error", "output")
+)
+CustomTestCase = namedtuple(
+    "TestCase", ("file", "number", "check_code", "params", "desc")
+)
 
 
 def run_tests(registry, csv_file, opts):
@@ -84,8 +105,11 @@ def run_tests(registry, csv_file, opts):
 
 
 def setup_test(cols, num, filename):
-    params = {code: val for code, val in cols.items()
-              if code not in ("check", "testcase")}
+    params = {
+        code: val
+        for code, val in cols.items()
+        if code not in ("check", "testcase")
+    }
     desc = cols.get("testcase", "")
     return CustomTestCase(filename, num, cols["check"], params, desc)
 
@@ -96,13 +120,17 @@ def load_adsafe_js():
 
 
 def run_test(registry, test):
-    context = {code: val for code, val in test.params.items()
-               if code in registry.names}
-    patient = {code: val for code, val in test.params.items()
-               if code not in registry.names}
+    context = {
+        code: val for code, val in test.params.items() if code in registry.names
+    }
+    patient = {
+        code: val
+        for code, val in test.params.items()
+        if code not in registry.names
+    }
     script = registry.calculations[test.check_code]
 
-    script = u"""
+    script = """
         "use strict";
         var document = {};
         var window = { console: console };
@@ -122,7 +150,11 @@ def run_test(registry, test):
     if success:
         context_result, output = parse_output(output)
         return CustomTestResult(
-            test, test.params[test.check_code].strip(), context_result, False, output
+            test,
+            test.params[test.check_code].strip(),
+            context_result,
+            False,
+            output,
         )
     else:
         return CustomTestResult(test, None, None, True, output)
@@ -136,15 +168,20 @@ def parse_output(output):
 
 
 def exec_script(script):
-    with tempfile.NamedTemporaryFile(mode="w+", suffix=".js", prefix="registry_test_") as js:
+    with tempfile.NamedTemporaryFile(
+        mode="w+", suffix=".js", prefix="registry_test_"
+    ) as js:
         js.write(script)
         js.flush()
 
         try:
-            p = subprocess.Popen(["node", js.name],
-                                 stdin=None, close_fds=True,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT)
+            p = subprocess.Popen(
+                ["node", js.name],
+                stdin=None,
+                close_fds=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
             output, _ = p.communicate()
             output = output.decode("utf-8", errors="replace")
             if p.returncode != 0:
@@ -157,28 +194,40 @@ def exec_script(script):
 
 def print_success(registry, result, params, opts):
     if opts.verbose > 1:
-        log(opts, u"PASS: %s:%s %s\n" % (result.test.file, result.test.number, result.test.desc))
+        log(
+            opts,
+            "PASS: %s:%s %s\n"
+            % (result.test.file, result.test.number, result.test.desc),
+        )
 
 
 def print_error(registry, result, params, opts):
-    log(opts, u"ERROR: %s\n" % str(result.output))
+    log(opts, "ERROR: %s\n" % str(result.output))
 
 
 def print_failure(registry, result, params, opts):
-    log(opts,
-        u"FAIL %s:%s: %s (%s) was \"%s\", expected \"%s\".\n" % (result.test.file,
-                                                                 result.test.number,
-                                                                 result.test.check_code,
-                                                                 registry.names[result.test.check_code],
-                                                                 result.actual,
-                                                                 result.expected))
+    log(
+        opts,
+        'FAIL %s:%s: %s (%s) was "%s", expected "%s".\n'
+        % (
+            result.test.file,
+            result.test.number,
+            result.test.check_code,
+            registry.names[result.test.check_code],
+            result.actual,
+            result.expected,
+        ),
+    )
     if opts.verbose:
         for param in sorted(params):
             if param in registry.names:
-                log(opts, u"    %s (%s) = \"%s\"\n" %
-                    (param, registry.names[param], params[param]))
+                log(
+                    opts,
+                    '    %s (%s) = "%s"\n'
+                    % (param, registry.names[param], params[param]),
+                )
             else:
-                log(opts, u"    Patient %s = \"%s\"\n" % (param, params[param]))
+                log(opts, '    Patient %s = "%s"\n' % (param, params[param]))
         if result.output:
             log(opts, result.output)
 
@@ -187,5 +236,5 @@ def log(opts, text):
     opts.outfile.write(text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

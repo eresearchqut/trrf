@@ -1,25 +1,28 @@
 from collections import namedtuple
+
 import django.apps as apps
 
-from . import model_exporters, datagroup_exporters
+from . import datagroup_exporters, model_exporters
 
 
 class GroupDefinition(
-    namedtuple(
-        'GroupDefinition', [
-            'name', 'dirname', 'datagroups', 'models'])):
-
+    namedtuple("GroupDefinition", ["name", "dirname", "datagroups", "models"])
+):
     def __new__(cls, name, dirname, datagroups=(), models=()):
-        return super(GroupDefinition, cls).__new__(cls, name, dirname, datagroups, models)
+        return super(GroupDefinition, cls).__new__(
+            cls, name, dirname, datagroups, models
+        )
 
     @property
     def model_classes(self):
         return [apps.get_model(n) for n in self.models]
 
 
-Catalogue = namedtuple('Catalogue', ['datagroups', 'models'])
-ExportDefinition = namedtuple('ExportDefinition', ['type', 'exporters_catalogue', 'datagroups'])
-ExportType = namedtuple('ExportType', ['code', 'name', 'includes'])
+Catalogue = namedtuple("Catalogue", ["datagroups", "models"])
+ExportDefinition = namedtuple(
+    "ExportDefinition", ["type", "exporters_catalogue", "datagroups"]
+)
+ExportType = namedtuple("ExportType", ["code", "name", "includes"])
 
 
 _MAIN_CATALOGUE = Catalogue(
@@ -28,58 +31,63 @@ _MAIN_CATALOGUE = Catalogue(
 )
 
 _CDE_GROUP = GroupDefinition(
-    name='CDEs',
-    dirname='CDE',
+    name="CDEs",
+    dirname="CDE",
     models=(
-        'rdrf.CDEPermittedValueGroup',
-        'rdrf.CDEPermittedValue',
-        'rdrf.CommonDataElement',
-    ))
+        "rdrf.CDEPermittedValueGroup",
+        "rdrf.CDEPermittedValue",
+        "rdrf.CommonDataElement",
+    ),
+)
 
 _REFDATA_GROUP = GroupDefinition(
-    name='Reference Data',
-    dirname='reference_data',
+    name="Reference Data",
+    dirname="reference_data",
     models=(
-        'patients.State',
-        'patients.NextOfKinRelationship',
-        'patients.AddressType',
-        'rdrf.WhitelistedFileExtension',
-    ))
+        "patients.State",
+        "patients.NextOfKinRelationship",
+        "patients.AddressType",
+        "rdrf.WhitelistedFileExtension",
+    ),
+)
 
 _USERS_GROUP = GroupDefinition(
-    name='Users',
-    dirname='users',
-    models=(
-        'groups.CustomUser',
-    ))
+    name="Users", dirname="users", models=("groups.CustomUser",)
+)
 
 _REGISTRY_DEF_GROUP = GroupDefinition(
-    name='Registry Definition',
-    dirname='registry_definition',
+    name="Registry Definition",
+    dirname="registry_definition",
     models=(
-        'rdrf.Section',  # because registry has a potentially non-null "PatientDataSection" ..
-        'rdrf.Registry',
-        'groups.WorkingGroup',
-        'auth.Group',
-        'rdrf.RegistryForm',
-        'rdrf.CdePolicy',
-        'rdrf.ConsentSection',
-        'rdrf.ConsentQuestion',
-        'rdrf.DemographicFields',
-        'rdrf.EmailTemplate',
-        'rdrf.Wizard',
-        'rdrf.ContextFormGroup',
-        'rdrf.ContextFormGroupItem',
-        'rdrf.LongitudinalFollowup',
-    ))
+        "rdrf.Section",  # because registry has a potentially non-null "PatientDataSection" ..
+        "rdrf.Registry",
+        "groups.WorkingGroup",
+        "auth.Group",
+        "rdrf.RegistryForm",
+        "rdrf.CdePolicy",
+        "rdrf.ConsentSection",
+        "rdrf.ConsentQuestion",
+        "rdrf.DemographicFields",
+        "rdrf.EmailTemplate",
+        "rdrf.Wizard",
+        "rdrf.ContextFormGroup",
+        "rdrf.ContextFormGroupItem",
+        "rdrf.LongitudinalFollowup",
+    ),
+)
 
 
 class ExportTypes(object):
-    CDES = ExportType('cdes', 'Common Data Elements', ())
-    REFDATA = ExportType('refdata', 'Reference Data', ())
-    REGISTRY_DEF = ExportType('registry_def', 'Registry Definition', (CDES, REFDATA))
+    CDES = ExportType("cdes", "Common Data Elements", ())
+    REFDATA = ExportType("refdata", "Reference Data", ())
+    REGISTRY_DEF = ExportType(
+        "registry_def", "Registry Definition", (CDES, REFDATA)
+    )
     REGISTRY_WITH_DATA = ExportType(
-        'registry', 'Registry Definition and Data', (CDES, REFDATA, REGISTRY_DEF))
+        "registry",
+        "Registry Definition and Data",
+        (CDES, REFDATA, REGISTRY_DEF),
+    )
 
     all_types = (CDES, REFDATA, REGISTRY_DEF, REGISTRY_WITH_DATA)
 
@@ -109,9 +117,9 @@ class ExportTypes(object):
 # These dependencies between data groups should be declared in this file and
 # the importer should deduce them from the definitions.
 META_FILTERS = {
-    ExportTypes.CDES: lambda m: m['name'] == 'CDEs',
-    ExportTypes.REFDATA: lambda m: m['name'] == 'Reference Data',
-    ExportTypes.REGISTRY_DEF: lambda m: m['name'] != 'Registry Data',
+    ExportTypes.CDES: lambda m: m["name"] == "CDEs",
+    ExportTypes.REFDATA: lambda m: m["name"] == "Reference Data",
+    ExportTypes.REGISTRY_DEF: lambda m: m["name"] != "Registry Data",
 }
 
 
@@ -121,13 +129,13 @@ META_FILTERS = {
 CDE_EXPORT_DEFINITION = ExportDefinition(
     type=ExportTypes.CDES,
     exporters_catalogue=_MAIN_CATALOGUE,
-    datagroups=(_CDE_GROUP,)
+    datagroups=(_CDE_GROUP,),
 )
 
 REFDATA_EXPORT_DEFINITION = ExportDefinition(
     type=ExportTypes.REFDATA,
     exporters_catalogue=_MAIN_CATALOGUE,
-    datagroups=(_REFDATA_GROUP,)
+    datagroups=(_REFDATA_GROUP,),
 )
 
 REGISTRY_DEF_EXPORT_DEFINITION = ExportDefinition(
@@ -154,46 +162,48 @@ REGISTRY_WITH_DATA_EXPORT_DEFINITION = ExportDefinition(
         _CDE_GROUP,
         _REGISTRY_DEF_GROUP,
         GroupDefinition(
-            name='Registry Data',
-            dirname='registry_data',
+            name="Registry Data",
+            dirname="registry_data",
             datagroups=(
                 _USERS_GROUP,
                 GroupDefinition(
-                    name='Demographic Data',
-                    dirname='demographic_data',
+                    name="Demographic Data",
+                    dirname="demographic_data",
                     models=(
                         # Leave RDRFContexts before Patients, so that no
                         # default contexts are created on import. This works
                         # because there is no FK from RDRFContext to Patient
-                        'rdrf.RDRFContext',
-                        'patients.Patient',
+                        "rdrf.RDRFContext",
+                        "patients.Patient",
                         # TODO is it ok to include all Doctors or should we include only
                         # referred Doctors?
-                        'patients.Doctor',
-                        'patients.PatientDoctor',
-                        'patients.ClinicianOther',
-                        'rdrf.ClinicianSignupRequest',
-                        'patients.ParentGuardian',
-                        'patients.PatientAddress',
-                        'patients.PatientConsent',
-                        'patients.PatientRelative',
-                        'patients.ConsentValue',
-                        'rdrf.ConsentConfiguration',
-                        'rdrf.ConsentRule',
+                        "patients.Doctor",
+                        "patients.PatientDoctor",
+                        "patients.ClinicianOther",
+                        "rdrf.ClinicianSignupRequest",
+                        "patients.ParentGuardian",
+                        "patients.PatientAddress",
+                        "patients.PatientConsent",
+                        "patients.PatientRelative",
+                        "patients.ConsentValue",
+                        "rdrf.ConsentConfiguration",
+                        "rdrf.ConsentRule",
                         # TODO is it ok to include all Notifications?
                         # They aren't linked to registry, and from and to are not FKs
-                        'rdrf.Notification',
-                        'rdrf.EmailNotification',
-                        'rdrf.EmailNotificationHistory',
-                    )),
+                        "rdrf.Notification",
+                        "rdrf.EmailNotification",
+                        "rdrf.EmailNotificationHistory",
+                    ),
+                ),
                 GroupDefinition(
-                    name='Clinical Data',
-                    dirname='clinical_data',
+                    name="Clinical Data",
+                    dirname="clinical_data",
                     models=(
-                        'rdrf.CDEFile',
-                        'rdrf.ClinicalData',
-                    )),
-            )
+                        "rdrf.CDEFile",
+                        "rdrf.ClinicalData",
+                    ),
+                ),
+            ),
         ),
-    )
+    ),
 )

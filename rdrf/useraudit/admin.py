@@ -1,5 +1,5 @@
-from django.contrib.auth import get_user_model
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -9,16 +9,22 @@ from useraudit import models as m
 class LogAdmin(admin.ModelAdmin):
     model = m.Log
 
-    search_fields = ['username']
-    list_filter = ['timestamp']
-    list_display = ('username', 'ip_address', 'forwarded_by', 'user_agent', 'timestamp')
+    search_fields = ["username"]
+    list_filter = ["timestamp"]
+    list_display = (
+        "username",
+        "ip_address",
+        "forwarded_by",
+        "user_agent",
+        "timestamp",
+    )
     list_display_links = None
 
 
 class LoginAttemptAdmin(admin.ModelAdmin):
     model = m.LoginAttempt
 
-    list_display = ('username', 'count', 'timestamp', 'activate')
+    list_display = ("username", "count", "timestamp", "activate")
     list_display_links = None
 
     def activate(self, obj):
@@ -27,8 +33,10 @@ class LoginAttemptAdmin(admin.ModelAdmin):
             user = UserModel._default_manager.get_by_natural_key(obj.username)
             if user.is_active:
                 return "Active"
-            activation_url = reverse("useraudit:reactivate_user", args=[user.id])
-            return format_html(u"<a href='%s'>Activate</a>" % activation_url)
+            activation_url = reverse(
+                "useraudit:reactivate_user", args=[user.id]
+            )
+            return format_html("<a href='%s'>Activate</a>" % activation_url)
         except UserModel.DoesNotExist:
             return "N/A"
 

@@ -4,15 +4,21 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
-
-from rdrf.events.events import EventType
-from rdrf.models.definition.models import EmailTemplate, Registry, EmailNotification, ConsentSection, ConsentQuestion
 from registry.patients.constants import PatientState
 from registry.patients.models import Patient, PatientStage, PatientStageRule
 
+from rdrf.events.events import EventType
+from rdrf.models.definition.models import (
+    ConsentQuestion,
+    ConsentSection,
+    EmailNotification,
+    EmailTemplate,
+    Registry,
+)
+
 
 class RegistrationTest(TestCase):
-    databases = ['default', 'clinical']
+    databases = ["default", "clinical"]
     # fixtures = ['testing_auth', 'users', 'testing_rdrf']
 
     PATIENT_EMAIL = "john_doe@me.com"
@@ -31,29 +37,43 @@ class RegistrationTest(TestCase):
         # the loop in TestCase.setUpClass
         super().setUpClass()
 
-        call_command('loaddata', 'testing_auth', **{'verbosity': 0, 'database': 'default'})
-        call_command('loaddata', 'users', **{'verbosity': 0, 'database': 'default'})
-        call_command('loaddata', 'testing_rdrf', **{'verbosity': 0, 'database': 'default'})
+        call_command(
+            "loaddata",
+            "testing_auth",
+            **{"verbosity": 0, "database": "default"},
+        )
+        call_command(
+            "loaddata", "users", **{"verbosity": 0, "database": "default"}
+        )
+        call_command(
+            "loaddata",
+            "testing_rdrf",
+            **{"verbosity": 0, "database": "default"},
+        )
 
     def setUp(self):
         super().setUp()
-        self.registry = Registry.objects.get(code='reg4')
+        self.registry = Registry.objects.get(code="reg4")
         template = EmailTemplate.objects.create(
-            language='en',
-            description='New Patient Registered',
-            subject='Welcome',
-            body='Thanks for your registration!',
+            language="en",
+            description="New Patient Registered",
+            subject="Welcome",
+            body="Thanks for your registration!",
         )
         notification = EmailNotification.objects.create(
             registry=self.registry,
             description=EventType.NEW_PATIENT_USER_REGISTERED,
-            recipient='{{patient.user.email}}',
-            email_from='no-reply@reg4.net',
+            recipient="{{patient.user.email}}",
+            email_from="no-reply@reg4.net",
         )
         notification.email_templates.add(template)
 
-        self.informed_consent, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Informed Consent")
-        self.eligibility, _ = PatientStage.objects.get_or_create(registry=self.registry, name="Eligibility")
+        self.informed_consent, _ = PatientStage.objects.get_or_create(
+            registry=self.registry, name="Informed Consent"
+        )
+        self.eligibility, _ = PatientStage.objects.get_or_create(
+            registry=self.registry, name="Eligibility"
+        )
         self.informed_consent.allowed_next_stages.add(self.eligibility)
         self.eligibility.allowed_prev_stages.add(self.informed_consent)
         PatientStageRule.objects.get_or_create(
@@ -61,26 +81,24 @@ class RegistrationTest(TestCase):
             from_stage=None,
             condition=PatientState.REGISTERED,
             to_stage=self.informed_consent,
-            order=1
+            order=1,
         )
         PatientStageRule.objects.get_or_create(
             registry=self.registry,
             from_stage=self.informed_consent,
             condition=PatientState.CONSENTED,
             to_stage=self.eligibility,
-            order=1
+            order=1,
         )
 
         self.consent_section = ConsentSection.objects.create(
-            code='r4_cs',
+            code="r4_cs",
             registry=self.registry,
-            section_label='Consent Section',
-            validation_rule='r4_cq'
+            section_label="Consent Section",
+            validation_rule="r4_cq",
         )
         self.consent_question = ConsentQuestion.objects.create(
-            code='r4_cq',
-            position=1,
-            section=self.consent_section
+            code="r4_cq", position=1, section=self.consent_section
         )
 
     def register_patient(self):
@@ -103,7 +121,13 @@ class RegistrationTest(TestCase):
         }
         patch_method = "rdrf.views.registration_rdrf.RdrfRegistrationView.is_recaptcha_valid"
         with patch(patch_method, side_effect=lambda: True):
-            response = self.client.post(reverse("registration_register", kwargs={"registry_code": self.registry.code}), post_data)
+            response = self.client.post(
+                reverse(
+                    "registration_register",
+                    kwargs={"registry_code": self.registry.code},
+                ),
+                post_data,
+            )
             self.assertEqual(response.status_code, 302)
             return Patient.objects.filter(email=self.PATIENT_EMAIL).first()
 
@@ -114,12 +138,11 @@ class RegistrationTest(TestCase):
             "patient_consent_file-TOTAL_FORMS": 0,
             "patient_consent_file-MIN_NUM_FORMS": 0,
             "patient_consent_file-MAX_NUM_FORMS": 0,
-            "patient_consent_file-__prefix__-patient": patient.id
+            "patient_consent_file-__prefix__-patient": patient.id,
         }
 
 
 class PatientNotificationTest(RegistrationTest):
-
     def test_new_patient_registered_notification_sent_on_registration(self):
         """
         When a patient is registered a NEW PATIENT USER REGISTERED notification should be sent if set up properly.
@@ -144,7 +167,6 @@ class PatientNotificationTest(RegistrationTest):
 
 
 class PatientStageFlowTest(RegistrationTest):
-
     def test_patient_registration_stage(self):
         """
         When a patient is registered and stages are enabled the stage should be set
@@ -164,13 +186,19 @@ class PatientStageFlowTest(RegistrationTest):
         self.assertEqual(patient.stage, self.informed_consent)
         patient.user.is_active = True
         patient.user.save()
-        logged_in = self.client.login(username=self.PATIENT_EMAIL, password=self.PATIENT_PWD)
+        logged_in = self.client.login(
+            username=self.PATIENT_EMAIL, password=self.PATIENT_PWD
+        )
         self.assertTrue(logged_in)
         response = self.client.post(
             reverse(
-                'consent_form_view',
-                kwargs={'registry_code': self.registry.code, "patient_id": patient.id}
-            ), data=self.consent_post_data(patient)
+                "consent_form_view",
+                kwargs={
+                    "registry_code": self.registry.code,
+                    "patient_id": patient.id,
+                },
+            ),
+            data=self.consent_post_data(patient),
         )
         self.assertEqual(response.status_code, 302)
         patient.refresh_from_db()

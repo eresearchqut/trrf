@@ -1,4 +1,5 @@
 import datetime
+
 from django.db.models import JSONField
 
 __all__ = ["DataField"]

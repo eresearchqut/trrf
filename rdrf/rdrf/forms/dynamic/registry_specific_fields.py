@@ -1,15 +1,18 @@
+import logging
 from collections import OrderedDict
-from rdrf.db.dynamic_data import DynamicDataWrapper
-from django.utils.datastructures import MultiValueDictKeyError
+
 from django.forms.fields import MultipleChoiceField
+from django.utils.datastructures import MultiValueDictKeyError
+
+from rdrf.db.dynamic_data import DynamicDataWrapper
+from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.utils import is_uploaded_file
 from rdrf.models.definition.models import CDEFile
-from rdrf.services.io.notifications.file_notifications import handle_file_notifications
+from rdrf.services.io.notifications.file_notifications import (
+    handle_file_notifications,
+)
 
-from rdrf.helpers.registry_features import RegistryFeatures
-from rdrf.helpers.cde_data_types import CDEDataTypes
-
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +23,6 @@ class FileCommand:
 
 
 class RegistrySpecificFieldsHandler:
-
     def __init__(self, registry_model, patient_model):
         self.registry_model = registry_model
         self.patient_model = patient_model
@@ -36,7 +38,9 @@ class RegistrySpecificFieldsHandler:
                             field_value = request.POST.getlist(cde_model.code)
                         else:
                             field_value = request.POST[cde_model.code]
-                        mongo_patient_data[self.registry_model.code][cde_model.code] = field_value
+                        mongo_patient_data[self.registry_model.code][
+                            cde_model.code
+                        ] = field_value
                     except MultiValueDictKeyError:
                         continue
                 else:
@@ -44,8 +48,13 @@ class RegistrySpecificFieldsHandler:
                     if form_value == FileCommand.PRESERVE:
                         # preserve existing value
                         existing_data = self.get_registry_specific_data()
-                        if existing_data and self.registry_model.code in existing_data:
-                            data = existing_data[self.registry_model.code][cde_model.code]
+                        if (
+                            existing_data
+                            and self.registry_model.code in existing_data
+                        ):
+                            data = existing_data[self.registry_model.code][
+                                cde_model.code
+                            ]
                             if data:
                                 form_value = data
                             else:
@@ -56,12 +65,20 @@ class RegistrySpecificFieldsHandler:
                     elif form_value == FileCommand.DELETE:
                         form_value = {}
 
-                    processed_value = self._process_file_cde_value(cde_model, form_value)
-                    mongo_patient_data[self.registry_model.code][cde_model.code] = processed_value
+                    processed_value = self._process_file_cde_value(
+                        cde_model, form_value
+                    )
+                    mongo_patient_data[self.registry_model.code][
+                        cde_model.code
+                    ] = processed_value
 
             self.mongo_wrapper.save_registry_specific_data(mongo_patient_data)
 
-            handle_file_notifications(self.registry_model, self.patient_model, self.mongo_wrapper.filestorage)
+            handle_file_notifications(
+                self.registry_model,
+                self.patient_model,
+                self.mongo_wrapper.filestorage,
+            )
 
     def allowed_to_write_data(self):
         if self.registry_model.has_feature(RegistryFeatures.FAMILY_LINKAGE):
@@ -71,7 +88,9 @@ class RegistrySpecificFieldsHandler:
 
     def _delete_existing_file_in_fs(self, file_cde_model):
         existing_data = self.get_registry_specific_data()
-        file_upload_wrapper = existing_data[self.registry_model.code][file_cde_model.code]
+        file_upload_wrapper = existing_data[self.registry_model.code][
+            file_cde_model.code
+        ]
         self.mongo_wrapper.delete_file(file_upload_wrapper)
 
     def _process_file_cde_value(self, file_cde_model, form_value):
@@ -83,7 +102,8 @@ class RegistrySpecificFieldsHandler:
                 file_cde_model.code,
                 form_value,
                 form_name=CDEFile.REGISTRY_SPECIFIC_KEY,
-                section_code=CDEFile.REGISTRY_SPECIFIC_KEY)
+                section_code=CDEFile.REGISTRY_SPECIFIC_KEY,
+            )
         else:
             return form_value
 
@@ -126,7 +146,9 @@ class RegistrySpecificFieldsHandler:
         for cde, field_object in field_pairs:
             additional_fields[cde.code] = field_object
 
-        new_form_class = type(form_class.__name__, (form_class,), additional_fields)
+        new_form_class = type(
+            form_class.__name__, (form_class,), additional_fields
+        )
         return new_form_class
 
     def get_registry_specific_section_fields(self, user):
@@ -139,5 +161,7 @@ class RegistrySpecificFieldsHandler:
     def get_registry_specific_data(self):
         if self.patient_model is None:
             return {}
-        data = self.mongo_wrapper.load_registry_specific_data(self.registry_model)
+        data = self.mongo_wrapper.load_registry_specific_data(
+            self.registry_model
+        )
         return data

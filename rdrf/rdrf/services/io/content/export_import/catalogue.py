@@ -1,10 +1,10 @@
 from collections import defaultdict
+
 from .exporters import DataGroupExporter, ModelExporter
 from .importers import DataGroupImporter, ModelImporter
 
 
 class Catalogue(object):
-
     def __init__(self):
         self._catalogue = defaultdict(lambda: self.factory)
 

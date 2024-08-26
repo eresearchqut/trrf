@@ -1,8 +1,11 @@
-from rdrf.services.io.notifications.email_notification import process_notification
-from rdrf.services.io.notifications.email_notification import EmailNotificationHistory
 import json
-from datetime import datetime
 import logging
+from datetime import datetime
+
+from rdrf.services.io.notifications.email_notification import (
+    EmailNotificationHistory,
+    process_notification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +36,9 @@ class ReminderProcessor:
     def _get_reminders(self):
         # own reminders since last login date
         history = EmailNotificationHistory.objects.filter(
-            email_notification__description='reminder',
-            date_stamp__gte=self.user.last_login)
+            email_notification__description="reminder",
+            date_stamp__gte=self.user.last_login,
+        )
         history = history.order_by("-date_stamp")
         return [enh for enh in history if self._is_own(enh)]
 
@@ -51,10 +55,9 @@ class ReminderProcessor:
 
     def process(self):
         if self._can_send():
-            template_data = {"user": self.user,
-                             "registry": self.registry_model}
+            template_data = {"user": self.user, "registry": self.registry_model}
 
-            self.process_func(self.registry_model.code,
-                              "reminder",
-                              template_data)
+            self.process_func(
+                self.registry_model.code, "reminder", template_data
+            )
             return True

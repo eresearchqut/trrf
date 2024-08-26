@@ -1,4 +1,6 @@
-from django.contrib.auth.forms import PasswordChangeForm as BasePasswordChangeForm
+from django.contrib.auth.forms import (
+    PasswordChangeForm as BasePasswordChangeForm,
+)
 from django.forms import HiddenInput
 
 
@@ -11,4 +13,8 @@ class PasswordChangeForm(BasePasswordChangeForm):
             self.fields["old_password"].required = False
 
     def clean_old_password(self):
-        return "" if not self.user.has_usable_password() else super().clean_old_password()
+        return (
+            ""
+            if not self.user.has_usable_password()
+            else super().clean_old_password()
+        )

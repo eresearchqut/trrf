@@ -91,18 +91,24 @@ How to use:
    to be enabled, and for the user model to have an "email" attribute.
 """
 
+import logging
 from collections import namedtuple
-from functools import reduce
 from datetime import timedelta
+from functools import reduce
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-import logging
+
 from .backend import AuthFailedLoggerBackend
-from .signals import password_has_expired, password_will_expire_warning, account_has_expired
+from .signals import (
+    account_has_expired,
+    password_has_expired,
+    password_will_expire_warning,
+)
 
 logger = logging.getLogger("django.security")
 
@@ -137,7 +143,7 @@ def update_date_changed(user, date_changed_attr):
         return current_user.password != user.password
 
     def save_profile_password_change_date(user, date):
-        parts = date_changed_attr.split('.')
+        parts = date_changed_attr.split(".")
         attr_name = parts[-1]
         profile = reduce(lambda obj, attr: getattr(obj, attr), parts[:-1], user)
         setattr(profile, attr_name, date)
@@ -148,7 +154,7 @@ def update_date_changed(user, date_changed_attr):
 
     if did_password_change(user):
         now = timezone.now()
-        if '.' in date_changed_attr:
+        if "." in date_changed_attr:
             save_profile_password_change_date(user, now)
         else:
             set_password_change_date(user, now)
@@ -182,7 +188,9 @@ def get_password_change_date(user):
                 if hasattr(val, part):
                     val = getattr(val, part)
                 else:
-                    logger.warning("User model does not have a %s attribute" % attr)
+                    logger.warning(
+                        "User model does not have a %s attribute" % attr
+                    )
                     return None
             return val
         else:
@@ -193,7 +201,9 @@ def get_user_last_login(user):
     if hasattr(user, "last_login"):
         return user.last_login
     else:
-        logger.warning("User model doesn't have last_login field. ACCOUNT_EXPIRY_DAYS setting will have no effect.")
+        logger.warning(
+            "User model doesn't have last_login field. ACCOUNT_EXPIRY_DAYS setting will have no effect."
+        )
         return None
 
 
@@ -205,14 +215,30 @@ def is_account_expired(user):
     return False
 
 
-class ExpirySettings(namedtuple("ExpirySettings",
-                                ["num_days", "num_warning_days", "date_changed", "password", "account_expiry"])):
+class ExpirySettings(
+    namedtuple(
+        "ExpirySettings",
+        [
+            "num_days",
+            "num_warning_days",
+            "date_changed",
+            "password",
+            "account_expiry",
+        ],
+    )
+):
     @classmethod
     def get(cls):
         expiry = getattr(settings, "PASSWORD_EXPIRY_DAYS", None) or 0
         warning = getattr(settings, "PASSWORD_EXPIRY_WARNING_DAYS", None) or 0
-        date_changed = getattr(settings, "AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR", None) or None
-        password = getattr(settings, "AUTH_USER_MODEL_PASSWORD_ATTR", None) or "password"
+        date_changed = (
+            getattr(settings, "AUTH_USER_MODEL_PASSWORD_CHANGE_DATE_ATTR", None)
+            or None
+        )
+        password = (
+            getattr(settings, "AUTH_USER_MODEL_PASSWORD_ATTR", None)
+            or "password"
+        )
         account_expiry = getattr(settings, "ACCOUNT_EXPIRY_DAYS", None) or 0
         return cls(expiry, warning, date_changed, password, account_expiry)
 
@@ -234,7 +260,10 @@ class AccountExpiryBackend(object):
     This backend doesn't authenticate, it just prevents authentication
     of a user whose account password has expired.
     """
-    def authenticate(self, request=None, username=None, password=None, **kwargs):
+
+    def authenticate(
+        self, request=None, username=None, password=None, **kwargs
+    ):
         user = self._lookup_user(username, password, **kwargs)
 
         if user:
@@ -245,7 +274,9 @@ class AccountExpiryBackend(object):
                 self._prevent_login(username, "Account is not active")
 
             if is_password_expired(user):
-                logger.info("Password expired! Disabling user account: %s" % user)
+                logger.info(
+                    "Password expired! Disabling user account: %s" % user
+                )
                 user.is_active = False
                 user.save()
                 password_has_expired.send(sender=user.__class__, user=user)
@@ -260,20 +291,26 @@ class AccountExpiryBackend(object):
 
             if should_warn_about_password_expiry(user):
                 days_left = days_to_password_expiry(user)
-                logger.info("User's '%s' access will expire in %d days", user, days_left)
-                password_will_expire_warning.send(sender=user.__class__, user=user, days_left=days_left)
+                logger.info(
+                    "User's '%s' access will expire in %d days", user, days_left
+                )
+                password_will_expire_warning.send(
+                    sender=user.__class__, user=user, days_left=days_left
+                )
 
         # pass on to next handler
         return None
 
     def _prevent_login(self, username, msg="User login prevented"):
         def is_failed_login_logger_configured():
-            auth_backends = getattr(settings, 'AUTHENTICATION_BACKENDS', [])
-            return 'useraudit.backend.AuthFailedLoggerBackend' in auth_backends
+            auth_backends = getattr(settings, "AUTHENTICATION_BACKENDS", [])
+            return "useraudit.backend.AuthFailedLoggerBackend" in auth_backends
 
         logger.info("Login Prevented for user '%s'! %s", username, msg)
         if is_failed_login_logger_configured():
-            AuthFailedLoggerBackend().authenticate(request=None, username=username)
+            AuthFailedLoggerBackend().authenticate(
+                request=None, username=username
+            )
         raise PermissionDenied(msg)
 
     def _lookup_user(self, username=None, password=None, **kwargs):

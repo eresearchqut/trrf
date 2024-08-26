@@ -41,7 +41,7 @@ jobs:
         with:
           name: build_images
           path: /tmp/build_images
-      - name: Flake8 linting
+      - name: Ruff linting
         run: ./scripts/lint.sh
 
   migration_check:

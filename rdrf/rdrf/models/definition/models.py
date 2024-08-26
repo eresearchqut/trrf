@@ -1,47 +1,51 @@
-from functools import reduce
-from collections import defaultdict
 import datetime
 import json
-import jsonschema
 import logging
 import operator
 import os.path
-import yaml
+from collections import defaultdict
+from functools import reduce
 
+import jsonschema
+import yaml
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
-from django.db.models import Q
-from django.urls import reverse
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models.signals import pre_delete, post_save, post_delete
+from django.db.models import Q
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
 from django.template.defaultfilters import date as _date
+from django.urls import reverse
 from django.utils.formats import date_format, time_format
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from django.utils.translation import gettext as _
 
-
-from rdrf.helpers.utils import check_calculation, get_display_value, validate_abbreviated_name, validate_file_extension_format
-from rdrf.helpers.utils import format_date, is_alphanumeric, parse_iso_datetime
 from rdrf.events.events import EventType
-
 from rdrf.forms.dsl.validator import DSLValidator
 from rdrf.forms.fields.jsonb import DataField
-from rdrf.helpers.registry_features import RegistryFeatures
 from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.helpers.registry_features import RegistryFeatures
+from rdrf.helpers.utils import (
+    check_calculation,
+    format_date,
+    get_display_value,
+    is_alphanumeric,
+    parse_iso_datetime,
+    validate_abbreviated_name,
+    validate_file_extension_format,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class SectionManager(models.Manager):
-
     def get_by_natural_key(self, code):
         return self.get(code=code)
 
@@ -59,18 +63,24 @@ class Section(models.Model):
     """
     code = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=200)
-    abbreviated_name = models.CharField(max_length=100,
-                                        help_text='Abbreviated name for identification of this Section in other contexts (e.g. reports)',
-                                        validators=[validate_abbreviated_name])
+    abbreviated_name = models.CharField(
+        max_length=100,
+        help_text="Abbreviated name for identification of this Section in other contexts (e.g. reports)",
+        validators=[validate_abbreviated_name],
+    )
     header = models.TextField(blank=True)
     elements = models.TextField()
     allow_multiple = models.BooleanField(
-        default=False, help_text="Allow extra items to be added")
+        default=False, help_text="Allow extra items to be added"
+    )
     extra = models.IntegerField(
-        blank=True, null=True, help_text="Extra rows to show if allow_multiple checked")
+        blank=True,
+        null=True,
+        help_text="Extra rows to show if allow_multiple checked",
+    )
 
     def natural_key(self):
-        return (self.code, )
+        return (self.code,)
 
     def __str__(self):
         return self.code
@@ -91,7 +101,10 @@ class Section(models.Model):
         codes = set(elements)
 
         if elements and len(elements) != len(codes):
-            raise ValidationError("Section [%s] code - section contains duplicate CDEs" % self.code)
+            raise ValidationError(
+                "Section [%s] code - section contains duplicate CDEs"
+                % self.code
+            )
 
         qs = CommonDataElement.objects.filter(code__in=codes)
         missing = sorted(codes - set(qs.values_list("code", flat=True)))
@@ -99,35 +112,46 @@ class Section(models.Model):
         if missing:
             errors["elements"] = [
                 ValidationError(
-                    "section %s refers to CDE with code %s which doesn't exist" %
-                    (self.display_name, code)) for code in missing]
+                    "section %s refers to CDE with code %s which doesn't exist"
+                    % (self.display_name, code)
+                )
+                for code in missing
+            ]
 
         if not is_alphanumeric(self.code):
             raise ValidationError(
-                "Section [%s] code - only letters and numbers are allowed !" %
-                self.code)
+                "Section [%s] code - only letters and numbers are allowed !"
+                % self.code
+            )
 
         # Validate for reserved keywords
         # - meta: Used in graphql schema
-        if self.code.casefold() in [keyword.casefold() for keyword in ['meta']]:
-            raise ValidationError(f"Section {self.code} code - refers to a reserved keyword and is not allowed.")
+        if self.code.casefold() in [keyword.casefold() for keyword in ["meta"]]:
+            raise ValidationError(
+                f"Section {self.code} code - refers to a reserved keyword and is not allowed."
+            )
 
         if errors:
             raise ValidationError(errors)
 
 
 class RegistryManager(models.Manager):
-
     def get_by_natural_key(self, code):
         return self.get(code=code)
 
     def filter_by_user(self, user):
-        return self.model.objects.all() if user.is_superuser else user.registry.all().order_by('name')
+        return (
+            self.model.objects.all()
+            if user.is_superuser
+            else user.registry.all().order_by("name")
+        )
 
 
 class RegistryType:
-    NORMAL = 1                 # no exposed contexts - all forms stored in a default context
-    HAS_CONTEXTS = 2               # supports additional contexts but has no context form groups defined
+    NORMAL = 1  # no exposed contexts - all forms stored in a default context
+    HAS_CONTEXTS = (
+        2  # supports additional contexts but has no context form groups defined
+    )
     HAS_CONTEXT_GROUPS = 3  # registry has context form groups defined
 
 
@@ -143,7 +167,9 @@ class Registry(models.Model):
     splash_screen = models.TextField(blank=True)
     version = models.CharField(max_length=20, blank=True)
     # a section which holds registry specific patient information
-    patient_data_section = models.ForeignKey(Section, on_delete=models.CASCADE, null=True, blank=True)
+    patient_data_section = models.ForeignKey(
+        Section, on_delete=models.CASCADE, null=True, blank=True
+    )
     # metadata is a dictionary
     # keys ( so far):
     # "visibility" : [ element, element , *] allows GUI elements to be shown in demographics form for a given registry but not others
@@ -151,7 +177,7 @@ class Registry(models.Model):
     metadata_json = models.TextField(blank=True)
 
     def natural_key(self):
-        return (self.code, )
+        return (self.code,)
 
     def add_feature(self, feature):
         metadata = self.metadata
@@ -206,8 +232,10 @@ class Registry(models.Model):
             try:
                 return json.loads(self.metadata_json)
             except ValueError:
-                logger.error("Registry %s has invalid json metadata: data = '%s" %
-                             (self, self.metadata_json))
+                logger.error(
+                    "Registry %s has invalid json metadata: data = '%s"
+                    % (self, self.metadata_json)
+                )
                 return {}
         else:
             return {}
@@ -221,11 +249,14 @@ class Registry(models.Model):
         Registry specific fields for the demographic form
         """
         from rdrf.forms.dynamic.field_lookup import FieldFactory
+
         field_pairs = []  # list of pairs of cde and field object
         if self.patient_data_section:
             patient_cde_models = self.patient_data_section.cde_models
             for cde_model in patient_cde_models:
-                field_factory = FieldFactory(self, None, None, self.patient_data_section, cde_model)
+                field_factory = FieldFactory(
+                    self, None, None, self.patient_data_section, cde_model
+                )
                 field = field_factory.create_field()
                 field_pairs.append((cde_model, field))
         # The fields were appearing in the "reverse" order, hence this
@@ -241,7 +272,9 @@ class Registry(models.Model):
         # returns list of triples (form_model, section_model, cde_model)
         results = []
         for form_model in self.forms:
-            completion_cde_codes = [cde.code for cde in form_model.complete_form_cdes.all()]
+            completion_cde_codes = [
+                cde.code for cde in form_model.complete_form_cdes.all()
+            ]
             for section_model in form_model.section_models:
                 for cde_model in section_model.cde_models:
                     if cde_model.code in completion_cde_codes:
@@ -264,13 +297,18 @@ class Registry(models.Model):
 
     @property
     def generic_sections(self):
-        return [self._get_patient_info_section(), self._get_patient_address_section()]
+        return [
+            self._get_patient_info_section(),
+            self._get_patient_address_section(),
+        ]
 
     @property
     def generic_cdes(self):
         codes = []
         for generic_section_code in self.generic_sections:
-            generic_section_model = Section.objects.get(code=generic_section_code)
+            generic_section_model = Section.objects.get(
+                code=generic_section_code
+            )
             codes.extend(generic_section_model.get_elements())
         return codes
 
@@ -278,15 +316,13 @@ class Registry(models.Model):
         return "%s (%s)" % (self.name, self.code)
 
     def as_json(self):
-        return dict(
-            obj_id=self.id,
-            name=self.name,
-            code=self.code
-        )
+        return dict(obj_id=self.id, name=self.name, code=self.code)
 
     @cached_property
     def forms(self):
-        return [f for f in self.registryform_set.select_related('registry').all()]
+        return [
+            f for f in self.registryform_set.select_related("registry").all()
+        ]
 
     def has_feature(self, feature):
         if "features" in self.metadata:
@@ -300,24 +336,29 @@ class Registry(models.Model):
         self._check_dupes()
 
     def _check_dupes(self):
-        dupes = [r for r in Registry.objects.all() if r.code.lower() == self.code.lower() and r.pk != self.pk]
+        dupes = [
+            r
+            for r in Registry.objects.all()
+            if r.code.lower() == self.code.lower() and r.pk != self.pk
+        ]
         names = " ".join(["%s %s" % (r.code, r.name) for r in dupes])
         if len(dupes) > 0:
             raise ValidationError(
-                "Code %s already exists ( ignore case) in: %s" %
-                (self.code, names))
+                "Code %s already exists ( ignore case) in: %s"
+                % (self.code, names)
+            )
 
     def _check_registry_code(self):
         if not is_alphanumeric(self.code):
             raise ValidationError(
-                "Registry [%s] code - only letters and numbers are allowed !" %
-                self.code
+                "Registry [%s] code - only letters and numbers are allowed !"
+                % self.code
             )
 
     @property
     def context_name(self):
         try:
-            return self.metadata['context_name']
+            return self.metadata["context_name"]
         except KeyError:
             return "Context"
 
@@ -331,23 +372,38 @@ class Registry(models.Model):
     def free_forms(self):
         # return form models which do not below to any form group
         cfgs = ContextFormGroup.objects.filter(registry=self)
-        owned_form_ids = [form_model.pk for cfg in cfgs.all() for form_model in cfg.forms]
+        owned_form_ids = [
+            form_model.pk for cfg in cfgs.all() for form_model in cfg.forms
+        ]
 
-        forms = sorted([form_model for form_model in RegistryForm.objects.filter(registry=self) if
-                        form_model.pk not in owned_form_ids],
-                       key=lambda form: form.position)
+        forms = sorted(
+            [
+                form_model
+                for form_model in RegistryForm.objects.filter(registry=self)
+                if form_model.pk not in owned_form_ids
+            ],
+            key=lambda form: form.position,
+        )
 
         return forms
 
     @property
     def fixed_form_groups(self):
-        return [cfg for cfg in ContextFormGroup.objects.filter(
-            registry=self, context_type="F").order_by("sort_order", "is_default", "name")]
+        return [
+            cfg
+            for cfg in ContextFormGroup.objects.filter(
+                registry=self, context_type="F"
+            ).order_by("sort_order", "is_default", "name")
+        ]
 
     @property
     def multiple_form_groups(self):
-        return [cfg for cfg in ContextFormGroup.objects.filter(
-            registry=self, context_type="M").order_by("sort_order", "name")]
+        return [
+            cfg
+            for cfg in ContextFormGroup.objects.filter(
+                registry=self, context_type="M"
+            ).order_by("sort_order", "name")
+        ]
 
     def _check_metadata(self):
         if self.metadata_json == "":
@@ -355,29 +411,36 @@ class Registry(models.Model):
         try:
             value = json.loads(self.metadata_json)
             if not isinstance(value, dict):
-                raise ValidationError("metadata json field should be a valid json dictionary")
+                raise ValidationError(
+                    "metadata json field should be a valid json dictionary"
+                )
         except ValueError:
-            raise ValidationError("metadata json field should be a valid json dictionary")
+            raise ValidationError(
+                "metadata json field should be a valid json dictionary"
+            )
 
     def _registration_check(self, event_types, check_all=False):
         registration_enabled = self.has_feature(RegistryFeatures.REGISTRATION)
-        registration_notifications_qs = (
-            EmailNotification.objects.filter(
-                registry=self,
-                disabled=False,
-                description__in=event_types
-            )
+        registration_notifications_qs = EmailNotification.objects.filter(
+            registry=self, disabled=False, description__in=event_types
         )
         if check_all:
-            return registration_enabled and registration_notifications_qs.count() == len(event_types)
+            return (
+                registration_enabled
+                and registration_notifications_qs.count() == len(event_types)
+            )
         else:
-            return registration_enabled and registration_notifications_qs.exists()
+            return (
+                registration_enabled and registration_notifications_qs.exists()
+            )
 
     def registration_allowed(self):
         return self._registration_check(EventType.REGISTRATION_TYPES)
 
     def carer_registration_allowed(self):
-        return self._registration_check(EventType.CARER_REGISTRATION_TYPES, check_all=True)
+        return self._registration_check(
+            EventType.CARER_REGISTRATION_TYPES, check_all=True
+        )
 
     def has_email_notification(self, event_type):
         return self._registration_check([event_type])
@@ -417,7 +480,10 @@ class CDEPermittedValueGroup(models.Model):
     @cached_property
     def cde_values_dict(self):
         return {
-            r['code']: r['value'] for r in CDEPermittedValue.objects.filter(pv_group=self).values('code', 'value')
+            r["code"]: r["value"]
+            for r in CDEPermittedValue.objects.filter(pv_group=self).values(
+                "code", "value"
+            )
         }
 
     def members(self, get_code=True):
@@ -427,14 +493,20 @@ class CDEPermittedValueGroup(models.Model):
             att = "value"
 
         return [
-            getattr(
-                v,
-                att) for v in CDEPermittedValue.objects.filter(
-                pv_group=self).order_by('position')]
+            getattr(v, att)
+            for v in CDEPermittedValue.objects.filter(pv_group=self).order_by(
+                "position"
+            )
+        ]
 
     @property
     def options(self):
-        return [{"code": pv.code, "text": pv.value} for pv in CDEPermittedValue.objects.filter(pv_group=self).order_by('position')]
+        return [
+            {"code": pv.code, "text": pv.value}
+            for pv in CDEPermittedValue.objects.filter(pv_group=self).order_by(
+                "position"
+            )
+        ]
 
     def __str__(self):
         return "PVG %s containing %d items" % (self.code, len(self.members()))
@@ -445,83 +517,109 @@ class CDEPermittedValue(models.Model):
     code = models.CharField(max_length=30)
     value = models.CharField(max_length=256)
     desc = models.TextField(null=True)
-    pv_group = models.ForeignKey(CDEPermittedValueGroup, related_name='permitted_value_set', on_delete=models.CASCADE)
+    pv_group = models.ForeignKey(
+        CDEPermittedValueGroup,
+        related_name="permitted_value_set",
+        on_delete=models.CASCADE,
+    )
     position = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        unique_together = (('pv_group', 'code'),)
+        unique_together = (("pv_group", "code"),)
 
     def pvg_link(self):
-        url = reverse('admin:rdrf_cdepermittedvaluegroup_change', args=(self.pv_group.code,))
+        url = reverse(
+            "admin:rdrf_cdepermittedvaluegroup_change",
+            args=(self.pv_group.code,),
+        )
         return mark_safe("<a href='%s'>%s</a>" % (url, self.pv_group.code))
 
-    pvg_link.short_description = 'Permitted Value Group'
+    pvg_link.short_description = "Permitted Value Group"
 
     def position_formatted(self):
         if not self.position:
             return mark_safe("<i><font color='red'>Not set</font></i>")
         return mark_safe("<font color='green'>%s</font>" % self.position)
 
-    position_formatted.short_description = 'Order position'
+    position_formatted.short_description = "Order position"
 
     def __str__(self):
         return "Member of %s" % self.pv_group.code
 
 
 class CommonDataElement(models.Model):
-
     DATA_TYPE_CHOICES = [
-        (CDEDataTypes.BOOL, 'Boolean'),
-        (CDEDataTypes.CALCULATED, 'Calculated'),
-        (CDEDataTypes.DATE, 'Date'),
-        (CDEDataTypes.DURATION, 'Duration'),
-        (CDEDataTypes.EMAIL, 'Email'),
-        (CDEDataTypes.FILE, 'File'),
-        (CDEDataTypes.FLOAT, 'Float'),
-        (CDEDataTypes.INTEGER, 'Integer'),
-        (CDEDataTypes.RANGE, 'Range'),
-        (CDEDataTypes.STRING, 'String'),
-        (CDEDataTypes.LOOKUP, 'Lookup'),
-        (CDEDataTypes.TIME, 'Time'),
+        (CDEDataTypes.BOOL, "Boolean"),
+        (CDEDataTypes.CALCULATED, "Calculated"),
+        (CDEDataTypes.DATE, "Date"),
+        (CDEDataTypes.DURATION, "Duration"),
+        (CDEDataTypes.EMAIL, "Email"),
+        (CDEDataTypes.FILE, "File"),
+        (CDEDataTypes.FLOAT, "Float"),
+        (CDEDataTypes.INTEGER, "Integer"),
+        (CDEDataTypes.RANGE, "Range"),
+        (CDEDataTypes.STRING, "String"),
+        (CDEDataTypes.LOOKUP, "Lookup"),
+        (CDEDataTypes.TIME, "Time"),
     ]
 
     code = models.CharField(max_length=30, primary_key=True)
-    name = models.CharField(max_length=250, blank=False, help_text="Label for field in form")
-    abbreviated_name = models.CharField(max_length=100,
-                                        help_text='Abbreviated name for identification of this CDE in other contexts (e.g. reports)',
-                                        validators=[validate_abbreviated_name])
+    name = models.CharField(
+        max_length=250, blank=False, help_text="Label for field in form"
+    )
+    abbreviated_name = models.CharField(
+        max_length=100,
+        help_text="Abbreviated name for identification of this CDE in other contexts (e.g. reports)",
+        validators=[validate_abbreviated_name],
+    )
     desc = models.TextField(blank=True, help_text="origin of field")
-    datatype = models.CharField(choices=DATA_TYPE_CHOICES, max_length=50, help_text="type of field", default=CDEDataTypes.STRING)
+    datatype = models.CharField(
+        choices=DATA_TYPE_CHOICES,
+        max_length=50,
+        help_text="type of field",
+        default=CDEDataTypes.STRING,
+    )
     instructions = models.TextField(
-        blank=True, help_text="Used to indicate help text for field")
+        blank=True, help_text="Used to indicate help text for field"
+    )
     pv_group = models.ForeignKey(
         CDEPermittedValueGroup,
         null=True,
         blank=True,
         help_text="If a range, indicate the Permissible Value Group",
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+    )
     allow_multiple = models.BooleanField(
-        default=False, help_text="If a range, indicate whether multiple selections allowed")
+        default=False,
+        help_text="If a range, indicate whether multiple selections allowed",
+    )
     max_length = models.IntegerField(
-        blank=True, null=True, help_text="Length of field - only used for character fields")
+        blank=True,
+        null=True,
+        help_text="Length of field - only used for character fields",
+    )
     max_value = models.DecimalField(
         blank=True,
         null=True,
         max_digits=10,
         decimal_places=2,
-        help_text="Only used for numeric fields")
+        help_text="Only used for numeric fields",
+    )
     min_value = models.DecimalField(
         blank=True,
         null=True,
         max_digits=10,
         decimal_places=2,
-        help_text="Only used for numeric fields")
+        help_text="Only used for numeric fields",
+    )
     is_required = models.BooleanField(
-        default=False, help_text="Indicate whether field is non-optional")
+        default=False, help_text="Indicate whether field is non-optional"
+    )
     pattern = models.CharField(
         max_length=50,
         blank=True,
-        help_text="Regular expression to validate string fields (optional)")
+        help_text="Regular expression to validate string fields (optional)",
+    )
     widget_name = models.CharField(
         max_length=80,
         blank=True,
@@ -529,23 +627,28 @@ class CommonDataElement(models.Model):
     )
     widget_settings = models.TextField(
         blank=True,
-        help_text="If the widget needs additional settings add them here")
+        help_text="If the widget needs additional settings add them here",
+    )
     calculation_query = models.TextField(
         blank=True,
-        help_text="GraphQL Query to obtain patient information for use in CDE calculation"
+        help_text="GraphQL Query to obtain patient information for use in CDE calculation",
     )
     calculation = models.TextField(
         blank=True,
-        help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output")
+        help_text="Calculation in javascript. Use context.CDECODE to refer to other CDEs. Must use context.result to set output",
+    )
 
-    important = models.BooleanField(default=False, help_text="Indicate whether the field should be emphasised with a green asterisk")
+    important = models.BooleanField(
+        default=False,
+        help_text="Indicate whether the field should be emphasised with a green asterisk",
+    )
 
     def __str__(self):
         return "CDE %s:%s" % (self.code, self.name)
 
     class Meta:
-        verbose_name = 'Data Element'
-        verbose_name_plural = 'Data Elements'
+        verbose_name = "Data Element"
+        verbose_name_plural = "Data Elements"
 
     def get_range_members(self, get_code=True):
         """
@@ -575,39 +678,61 @@ class CommonDataElement(models.Model):
 
         if "." in self.name:
             raise ValidationError(
-                "CDE %s  name error '%s' has dots - this causes problems please remove" %
-                (self.code, self.name))
+                "CDE %s  name error '%s' has dots - this causes problems please remove"
+                % (self.code, self.name)
+            )
 
         if not is_alphanumeric(self.code):
             raise ValidationError(
-                "CDE [%s] code - only letters and numbers are allowed !" %
-                self.code)
+                "CDE [%s] code - only letters and numbers are allowed !"
+                % self.code
+            )
 
         # check javascript calculation for naughty code
         if self.calculation.strip():
             err = check_calculation(self.calculation).strip()
             if err:
-                raise ValidationError({
-                    "calculation": [ValidationError(e) for e in err.split("\n")]
-                })
+                raise ValidationError(
+                    {
+                        "calculation": [
+                            ValidationError(e) for e in err.split("\n")
+                        ]
+                    }
+                )
 
-        if self.allow_multiple and self.widget_name == 'RadioSelect':
-            raise ValidationError({
-                'widget_name': [_("RadioSelect is not a valid choice if multiple values are allowed !")]
-            })
+        if self.allow_multiple and self.widget_name == "RadioSelect":
+            raise ValidationError(
+                {
+                    "widget_name": [
+                        _(
+                            "RadioSelect is not a valid choice if multiple values are allowed !"
+                        )
+                    ]
+                }
+            )
 
         if self.datatype == CDEDataTypes.RANGE and not self.pv_group:
-            raise ValidationError({
-                'pv_group': [_("You need to have a Permissible Value Group set when using the range datatype !")]
-            })
+            raise ValidationError(
+                {
+                    "pv_group": [
+                        _(
+                            "You need to have a Permissible Value Group set when using the range datatype !"
+                        )
+                    ]
+                }
+            )
 
     def save(self, *args, **kwargs):
         if self.widget_name is not None:
             self.widget_name = self.widget_name.strip()
-        if self.widget_name == 'SliderWidget' and self.min_value and self.max_value:
+        if (
+            self.widget_name == "SliderWidget"
+            and self.min_value
+            and self.max_value
+        ):
             settings = {
                 "min": float(self.min_value),
-                "max": float(self.max_value)
+                "max": float(self.max_value),
             }
             if not self.widget_settings:
                 self.widget_settings = json.dumps(settings)
@@ -620,16 +745,24 @@ class CommonDataElement(models.Model):
 
     def display_value(self, value):
         datatype = self.datatype.strip().lower()
-        if datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP] and self.widget_name:
+        if (
+            datatype in [CDEDataTypes.FILE, CDEDataTypes.LOOKUP]
+            and self.widget_name
+        ):
             from rdrf.forms.widgets.widgets import get_widget_class
+
             value = get_widget_class(self.widget_name).denormalized_value(value)
         elif datatype == CDEDataTypes.FILE:
             from rdrf.forms.widgets.widgets import CustomFileInput
+
             value = CustomFileInput.denormalized_value(value)
         elif self.pv_group:
             cde_values_dict = self.pv_group.cde_values_dict
             if isinstance(value, list):
-                value = [_(cde_values_dict.get(value_item, value_item)) for value_item in value]
+                value = [
+                    _(cde_values_dict.get(value_item, value_item))
+                    for value_item in value
+                ]
             else:
                 value = _(cde_values_dict.get(value, value))
 
@@ -671,21 +804,24 @@ class CdePolicy(models.Model):
 
 
 class Language(models.Model):
-    language_code = models.CharField(max_length=6, choices=settings.ALL_LANGUAGES, unique=True)
+    language_code = models.CharField(
+        max_length=6, choices=settings.ALL_LANGUAGES, unique=True
+    )
 
     class Meta:
         ordering = ("language_code",)
 
     @property
     def endonym(self):
-        return dict(settings.ALL_LANGUAGES).get(self.language_code, self.language_code)
+        return dict(settings.ALL_LANGUAGES).get(
+            self.language_code, self.language_code
+        )
 
     def __str__(self):
-        return f'{self.endonym} ({self.language_code})'
+        return f"{self.endonym} ({self.language_code})"
 
 
 class RegistryFormManager(models.Manager):
-
     def get_by_natural_key(self, registry_code, name):
         return self.get(registry__code=registry_code, name=name)
 
@@ -697,53 +833,71 @@ class RegistryForm(models.Model):
     """
     A representation of a form ( a bunch of sections)
     """
+
     objects = RegistryFormManager()
 
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    name = models.CharField(max_length=80,
-                            help_text="Internal name used by system: Alphanumeric, no spaces")
-    abbreviated_name = models.CharField(max_length=100,
-                                        help_text='Abbreviated name for identification of this RegistryForm in other contexts (e.g. reports)',
-                                        validators=[validate_abbreviated_name])
-    display_name = models.CharField(max_length=200,
-                                    blank=True,
-                                    null=True,
-                                    help_text="Form Name displayed to users")
+    name = models.CharField(
+        max_length=80,
+        help_text="Internal name used by system: Alphanumeric, no spaces",
+    )
+    abbreviated_name = models.CharField(
+        max_length=100,
+        help_text="Abbreviated name for identification of this RegistryForm in other contexts (e.g. reports)",
+        validators=[validate_abbreviated_name],
+    )
+    display_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Form Name displayed to users",
+    )
     header = models.TextField(blank=True)
     sections = models.TextField(help_text="Comma-separated list of sections")
     position = models.PositiveIntegerField(default=0)
     complete_form_cdes = models.ManyToManyField(CommonDataElement, blank=True)
     groups_allowed = models.ManyToManyField(Group, blank=True)
-    groups_readonly = models.ManyToManyField(Group, blank=True, related_name='groups_readonly')
-    applicability_condition = models.TextField(blank=True,
-                                               null=True,
-                                               help_text='e.g. patient.country_of_birth == \'AU\'<br />'
-                                                         '<em>Note, this only applies to forms within Fixed Context Form Groups</em>')
+    groups_readonly = models.ManyToManyField(
+        Group, blank=True, related_name="groups_readonly"
+    )
+    applicability_condition = models.TextField(
+        blank=True,
+        null=True,
+        help_text="e.g. patient.country_of_birth == 'AU'<br />"
+        "<em>Note, this only applies to forms within Fixed Context Form Groups</em>",
+    )
     conditional_rendering_rules = models.TextField(
         blank=True,
         null=True,
-        help_text='''Use the conditional rendering DSL to add rules.
-                     Click <a href="/forms/dsl-help" target="_blank">here</a> for more info'''
+        help_text="""Use the conditional rendering DSL to add rules.
+                     Click <a href="/forms/dsl-help" target="_blank">here</a> for more info""",
     )
     tags = ArrayField(models.CharField(max_length=20), default=list, blank=True)
-    save_position = models.BooleanField(default=False,
-                                        help_text="Return the user to their current position on form save")
+    save_position = models.BooleanField(
+        default=False,
+        help_text="Return the user to their current position on form save",
+    )
 
     class Meta:
-        ordering = ('registry', 'position')
+        ordering = ("registry", "position")
 
     def natural_key(self):
         return (self.registry.code, self.name)
 
     def validate_unique(self, exclude=None):
         models.Model.validate_unique(self, exclude)
-        if not ('registry__code' in exclude or 'name' in exclude):
-            if (RegistryForm.objects.filter(registry__code=self.registry.code, name=self.name)
-                                    .exclude(pk=self.pk)
-                                    .exists()):
+        if not ("registry__code" in exclude or "name" in exclude):
+            if (
+                RegistryForm.objects.filter(
+                    registry__code=self.registry.code, name=self.name
+                )
+                .exclude(pk=self.pk)
+                .exists()
+            ):
                 raise ValidationError(
-                    "RegistryForm with registry.code '%s' and name '%s' already exists" %
-                    (self.registry.code, self.name))
+                    "RegistryForm with registry.code '%s' and name '%s' already exists"
+                    % (self.registry.code, self.name)
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -758,7 +912,11 @@ class RegistryForm(models.Model):
         return not self.open
 
     def __str__(self):
-        return "%s %s Form comprising %s" % (self.registry, self.name, self.sections)
+        return "%s %s Form comprising %s" % (
+            self.registry,
+            self.name,
+            self.sections,
+        )
 
     def get_sections(self):
         return [s.strip() for s in self.sections.split(",")]
@@ -773,13 +931,19 @@ class RegistryForm(models.Model):
 
     def link(self, patient_model):
         from rdrf.helpers.utils import FormLink
+
         return FormLink(patient_model.pk, self.registry, self).url
 
     @property
     def nice_name(self):
         from rdrf.helpers.utils import de_camelcase
+
         try:
-            return self.display_name if self.display_name else de_camelcase(self.name)
+            return (
+                self.display_name
+                if self.display_name
+                else de_camelcase(self.name)
+            )
         except BaseException:
             return self.name
 
@@ -791,39 +955,46 @@ class RegistryForm(models.Model):
     def get_link(self, patient_model, context_model=None):
         if context_model is None:
             return reverse(
-                'registry_form',
-                args=(
-                    self.registry.code,
-                    self.id,
-                    patient_model.id))
+                "registry_form",
+                args=(self.registry.code, self.id, patient_model.id),
+            )
         else:
             return reverse(
-                'registry_form',
+                "registry_form",
                 args=(
                     self.registry.code,
                     self.id,
                     patient_model.id,
-                    context_model.id))
+                    context_model.id,
+                ),
+            )
 
     def _check_completion_cdes(self, complete_form_cdes, section_codes):
         completion_cdes = set(cde.code for cde in complete_form_cdes)
-        section_models = Section.objects.get_by_comma_separated_codes(section_codes)
+        section_models = Section.objects.get_by_comma_separated_codes(
+            section_codes
+        )
         current_cdes = set(
             code
             for section_model in section_models
-            for code in section_model.get_elements())
+            for code in section_model.get_elements()
+        )
 
         extra = completion_cdes - current_cdes
 
         if len(extra) > 0:
             msg = Truncator(", ".join(sorted(extra))).chars(250)
-            raise ValidationError("Some completion cdes don't exist on the form: %s" % msg)
+            raise ValidationError(
+                "Some completion cdes don't exist on the form: %s" % msg
+            )
 
     def clean(self):
         if not is_alphanumeric(self.name):
-            msg = "Only letters and numbers are allowed for form name: Use CamelCase to make GUI display the name as" + \
-                "Camel Case, instead."
-            raise ValidationError({'name': msg})
+            msg = (
+                "Only letters and numbers are allowed for form name: Use CamelCase to make GUI display the name as"
+                + "Camel Case, instead."
+            )
+            raise ValidationError({"name": msg})
 
         if self.conditional_rendering_rules:
             DSLValidator(self.conditional_rendering_rules, self).check_rules()
@@ -835,7 +1006,9 @@ class RegistryForm(models.Model):
             try:
                 Section.objects.get(code=section_code)
             except Section.DoesNotExist:
-                raise ValidationError("Section %s does not exist!" % section_code)
+                raise ValidationError(
+                    "Section %s does not exist!" % section_code
+                )
 
     def applicable_to(self, patient, patient_in_registry_checked=False):
         # 2 levels of restriction:
@@ -850,10 +1023,14 @@ class RegistryForm(models.Model):
         if patient is None:
             return False
 
-        if not patient_in_registry_checked and not patient.in_registry(self.registry.code):
+        if not patient_in_registry_checked and not patient.in_registry(
+            self.registry.code
+        ):
             return False
 
-        allowed_forms = [f.name for f in applicable_forms(self.registry, patient)]
+        allowed_forms = [
+            f.name for f in applicable_forms(self.registry, patient)
+        ]
         if self.name not in allowed_forms:
             return False
 
@@ -865,9 +1042,11 @@ class RegistryForm(models.Model):
         evaluation_context = {"patient": patient.as_dto()}
 
         try:
-            is_applicable = eval(self.applicability_condition,
-                                 {"__builtins__": None},
-                                 evaluation_context)
+            is_applicable = eval(
+                self.applicability_condition,
+                {"__builtins__": None},
+                evaluation_context,
+            )
         except BaseException:
             # allows us to filter out forms for patients
             # which are not related with the assumed structure
@@ -877,8 +1056,12 @@ class RegistryForm(models.Model):
         return is_applicable
 
     def has_translation(self, language_code):
-        return language_code == settings.LANGUAGE_CODE or self.registryformtranslation_set.filter(
-            language__language_code=language_code).exists()
+        return (
+            language_code == settings.LANGUAGE_CODE
+            or self.registryformtranslation_set.filter(
+                language__language_code=language_code
+            ).exists()
+        )
 
 
 @receiver([post_save, post_delete], sender=RegistryForm)
@@ -886,6 +1069,7 @@ class RegistryForm(models.Model):
 @receiver([post_save, post_delete], sender=CommonDataElement)
 def registry_form_definition_changed(sender, instance, **kwargs):
     from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
+
     all_forms = list(RegistryForm.objects.all())
     if isinstance(instance, RegistryForm) and instance not in all_forms:
         all_forms.append(instance)
@@ -895,10 +1079,16 @@ def registry_form_definition_changed(sender, instance, **kwargs):
 
 class RegistryFormTranslation(models.Model):
     language = models.OneToOneField(Language, on_delete=models.CASCADE)
-    translated_forms = models.ManyToManyField(RegistryForm, blank=True, help_text="Select which forms have been completely translated for the selected language.")
+    translated_forms = models.ManyToManyField(
+        RegistryForm,
+        blank=True,
+        help_text="Select which forms have been completely translated for the selected language.",
+    )
 
     def __str__(self):
-        return f'{self.language}: {self.translated_forms.count()} translated forms'
+        return (
+            f"{self.language}: {self.translated_forms.count()} translated forms"
+        )
 
 
 class Wizard(models.Model):
@@ -934,15 +1124,22 @@ class Notification(models.Model):
 
 
 class ConsentConfiguration(models.Model):
+    ENABLED = "enabled"
+    DISABLED = "disabled"
+    REQUIRED = "required"
 
-    ENABLED = 'enabled'
-    DISABLED = 'disabled'
-    REQUIRED = 'required'
+    SIGNATURE_CHOICES = (
+        (ENABLED, ENABLED),
+        (DISABLED, DISABLED),
+        (REQUIRED, REQUIRED),
+    )
 
-    SIGNATURE_CHOICES = ((ENABLED, ENABLED), (DISABLED, DISABLED), (REQUIRED, REQUIRED))
-
-    registry = models.OneToOneField(Registry, related_name="consent_configuration", on_delete=models.CASCADE)
-    esignature = models.CharField(choices=SIGNATURE_CHOICES, default=DISABLED, max_length=16)
+    registry = models.OneToOneField(
+        Registry, related_name="consent_configuration", on_delete=models.CASCADE
+    )
+    esignature = models.CharField(
+        choices=SIGNATURE_CHOICES, default=DISABLED, max_length=16
+    )
     consent_locked = models.BooleanField(default=False)
 
     @property
@@ -959,7 +1156,6 @@ class ConsentConfiguration(models.Model):
 
 
 class ConsentSectionManager(models.Manager):
-
     def get_by_natural_key(self, registry_code, code):
         return self.get(registry__code=registry_code, code=code)
 
@@ -969,7 +1165,9 @@ class ConsentSection(models.Model):
 
     code = models.CharField(max_length=20)
     section_label = models.CharField(max_length=100)
-    registry = models.ForeignKey(Registry, related_name="consent_sections", on_delete=models.CASCADE)
+    registry = models.ForeignKey(
+        Registry, related_name="consent_sections", on_delete=models.CASCADE
+    )
     information_link = models.CharField(max_length=100, blank=True, null=True)
     information_text = models.TextField(blank=True, null=True)
     information_media = models.TextField(blank=True, null=True)
@@ -984,17 +1182,24 @@ class ConsentSection(models.Model):
 
     def validate_unique(self, exclude=None):
         models.Model.validate_unique(self, exclude)
-        if not ('registry__code' in exclude or 'code' in exclude):
-            if (ConsentSection.objects.filter(registry__code=self.registry.code, code=self.code)
-                                      .exclude(pk=self.pk)
-                                      .exists()):
+        if not ("registry__code" in exclude or "code" in exclude):
+            if (
+                ConsentSection.objects.filter(
+                    registry__code=self.registry.code, code=self.code
+                )
+                .exclude(pk=self.pk)
+                .exists()
+            ):
                 raise ValidationError(
-                    "ConsentSection with registry.code '%s' and code '%s' already exists" %
-                    (self.registry.code, self.code))
+                    "ConsentSection with registry.code '%s' and code '%s' already exists"
+                    % (self.registry.code, self.code)
+                )
 
     @property
     def latest_update(self):
-        updates = [self.last_updated_at] + [q.last_updated_at for q in self.questions.all()]
+        updates = [self.last_updated_at] + [
+            q.last_updated_at for q in self.questions.all()
+        ]
         valid_updates = [u for u in updates if u is not None]
         if valid_updates:
             latest = max(valid_updates)
@@ -1017,6 +1222,7 @@ class ConsentSection(models.Model):
                 return True
 
             from registry.patients.models import ParentGuardian
+
             self_patient = False
             try:
                 ParentGuardian.objects.get(self_patient=patient)
@@ -1024,10 +1230,16 @@ class ConsentSection(models.Model):
             except ParentGuardian.DoesNotExist:
                 pass
 
-            function_context = {"patient": patient.as_dto(), "self_patient": self_patient.as_dto()}
+            function_context = {
+                "patient": patient.as_dto(),
+                "self_patient": self_patient.as_dto(),
+            }
 
             is_applicable = eval(
-                self.applicability_condition, {"__builtins__": None}, function_context)
+                self.applicability_condition,
+                {"__builtins__": None},
+                function_context,
+            )
 
             return is_applicable
 
@@ -1054,16 +1266,18 @@ class ConsentSection(models.Model):
                 function_context[question_model.code] = False
 
         try:
-
-            result = eval(self.validation_rule, {"__builtins__": None}, function_context)
+            result = eval(
+                self.validation_rule, {"__builtins__": None}, function_context
+            )
             if result not in [True, False, None]:
                 return False
 
             return result
         except Exception as ex:
             logger.error(
-                "Error evaluating consent section %s rule %s context %s error %s" %
-                (self.code, self.validation_rule, function_context, ex))
+                "Error evaluating consent section %s rule %s context %s error %s"
+                % (self.code, self.validation_rule, function_context, ex)
+            )
 
             return False
 
@@ -1073,25 +1287,30 @@ class ConsentSection(models.Model):
     @property
     def link(self):
         if self.information_link:
-            return reverse('documents', args=(self.information_link,))
+            return reverse("documents", args=(self.information_link,))
         else:
             return ""
 
     @property
     def form_info(self):
         from django.forms import BooleanField
+
         info = {}
-        info["section_label"] = "%s %s" % (self.registry.code, self.section_label)
+        info["section_label"] = "%s %s" % (
+            self.registry.code,
+            self.section_label,
+        )
         info["information_link"] = self.information_link
         consent_fields = []
         for consent_question_model in self.questions.all().order_by("position"):
-            consent_fields.append(BooleanField(label=consent_question_model.question_label))
+            consent_fields.append(
+                BooleanField(label=consent_question_model.question_label)
+            )
         info["consent_fields"] = consent_fields
         return info
 
 
 class ConsentQuestionManager(models.Manager):
-
     def get_by_natural_key(self, section_code, code):
         return self.get(section__code=section_code, code=code)
 
@@ -1101,44 +1320,55 @@ class ConsentQuestion(models.Model):
 
     code = models.CharField(max_length=20)
     position = models.IntegerField(blank=True, null=True)
-    section = models.ForeignKey(ConsentSection, related_name="questions", on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        ConsentSection, related_name="questions", on_delete=models.CASCADE
+    )
     question_label = models.TextField()
     instructions = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
-        unique_together = ('section', 'code')
+        unique_together = ("section", "code")
 
     def natural_key(self):
         return (self.section.code, self.code)
 
     def create_field(self, patient, viewing_user):
         from django.forms import BooleanField
+
         field = BooleanField(
             label=self.question_label,
             required=False,
             help_text=self.instructions,
         )
         if viewing_user.is_clinician:
-            consent_value = self.consentvalue_set.filter(patient=patient).first()
+            consent_value = self.consentvalue_set.filter(
+                patient=patient
+            ).first()
             if not consent_value:
-                title = _('Never consented')
+                title = _("Never consented")
             else:
-                action_date = consent_value.first_save or consent_value.last_updated
+                action_date = (
+                    consent_value.first_save or consent_value.last_updated
+                )
                 date = date_format(action_date, "d-m-Y")
                 if consent_value.answer:
-                    title = _('Consented on {date}'.format(date=date))
+                    title = _("Consented on {date}".format(date=date))
                 else:
-                    title = _('Revoked on {date}'.format(date=date))
-            field.widget.attrs['title'] = title
+                    title = _("Revoked on {date}".format(date=date))
+            field.widget.attrs["title"] = title
         return field
 
     @property
     def field_key(self):
         registry_model = self.section.registry
         consent_section_model = self.section
-        return "customconsent_%s_%s_%s" % (registry_model.pk, consent_section_model.pk, self.pk)
+        return "customconsent_%s_%s_%s" % (
+            registry_model.pk,
+            consent_section_model.pk,
+            self.pk,
+        )
 
     def __str__(self):
         return "%s" % self.question_label
@@ -1149,11 +1379,13 @@ class ConsentRule(models.Model):
     # based on patient consent
     # e.g. restrict clinical users from seeing patients' data
     # if the patient has not given explicit consent
-    CAPABILITIES = (('see_patient', 'See Patient'),)
+    CAPABILITIES = (("see_patient", "See Patient"),)
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     user_group = models.ForeignKey(Group, on_delete=models.CASCADE)
     capability = models.CharField(max_length=50, choices=CAPABILITIES)
-    consent_question = models.ForeignKey(ConsentQuestion, on_delete=models.CASCADE)
+    consent_question = models.ForeignKey(
+        ConsentQuestion, on_delete=models.CASCADE
+    )
     enabled = models.BooleanField(default=True)
 
 
@@ -1162,15 +1394,15 @@ class DemographicFields(models.Model):
     HIDDEN = 2
     STATUS_CHOICES = [(READONLY, "Read only"), (HIDDEN, "Hidden")]
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    groups = models.ManyToManyField(Group, related_name='demographic_fields')
+    groups = models.ManyToManyField(Group, related_name="demographic_fields")
     field = models.CharField(max_length=50)
     status = models.IntegerField(choices=STATUS_CHOICES, default=2)
     is_section = models.BooleanField(null=False, default=False)
 
     class Meta:
         verbose_name_plural = "Demographic Fields"
-        unique_together = ('registry', 'field')
-        ordering = ('registry', '-is_section', 'field', 'status')
+        unique_together = ("registry", "field")
+        ordering = ("registry", "-is_section", "field", "status")
 
 
 class EmailTemplate(models.Model):
@@ -1197,16 +1429,25 @@ class EmailNotification(models.Model):
     EMAIL_NOTIFICATIONS = (
         (EventType.ACCOUNT_LOCKED, "Account Locked"),
         (EventType.OTHER_CLINICIAN, "Other Clinician"),
-        (EventType.NEW_PATIENT_USER_REGISTERED, 'User associated with patient was created by registering ["registration" feature required]'),
+        (
+            EventType.NEW_PATIENT_USER_REGISTERED,
+            'User associated with patient was created by registering ["registration" feature required]',
+        ),
         (EventType.NEW_PATIENT_PARENT, "New Patient Registered (Parent)"),
-        (EventType.NEW_PATIENT_USER_ADDED, 'User associated with patient was created on the "Add Patient Page" ["patients_create_users" feature required]'),
+        (
+            EventType.NEW_PATIENT_USER_ADDED,
+            'User associated with patient was created on the "Add Patient Page" ["patients_create_users" feature required]',
+        ),
         (EventType.ACCOUNT_VERIFIED, "Account Verified"),
         (EventType.PASSWORD_EXPIRY_WARNING, "Password Expiry Warning"),
         (EventType.REMINDER, "Reminder"),
         (EventType.CLINICIAN_SIGNUP_REQUEST, "Clinician Signup Request"),
         (EventType.CLINICIAN_ACTIVATION, "Clinician Activation"),
         (EventType.CLINICIAN_SELECTED, "Clinician Selected"),
-        (EventType.PARTICIPANT_CLINICIAN_NOTIFICATION, "Participant Clinician Notification"),
+        (
+            EventType.PARTICIPANT_CLINICIAN_NOTIFICATION,
+            "Participant Clinician Notification",
+        ),
         (EventType.PATIENT_CONSENT_CHANGE, "Patient Consent Change"),
         (EventType.NEW_CARER, "Primary Caregiver Registered"),
         (EventType.CARER_INVITED, "Primary Caregiver Invited"),
@@ -1217,7 +1458,10 @@ class EmailNotification(models.Model):
         (EventType.CLINICIAN_ASSIGNED, "Clinician Assigned"),
         (EventType.CLINICIAN_UNASSIGNED, "Clinician Unassigned"),
         (EventType.FILE_UPLOADED, "File Uploaded"),
-        (EventType.LONGITUDINAL_FOLLOWUP, 'Longitudinal Followup ["longitudinal_followup" feature required]'),
+        (
+            EventType.LONGITUDINAL_FOLLOWUP,
+            'Longitudinal Followup ["longitudinal_followup" feature required]',
+        ),
         (EventType.EMAIL_CHANGE_REQUEST, "Email Change Request Submitted"),
         (EventType.EMAIL_CHANGE_COMPLETE, "Email Change Request Completed"),
     )
@@ -1228,31 +1472,48 @@ class EmailNotification(models.Model):
     }
 
     description = models.CharField(max_length=100, choices=EMAIL_NOTIFICATIONS)
-    public_description = models.CharField(max_length=200, help_text='Displayed to users when managing their email preferences', null=True, blank=True)
+    public_description = models.CharField(
+        max_length=200,
+        help_text="Displayed to users when managing their email preferences",
+        null=True,
+        blank=True,
+    )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
-    email_from = models.EmailField(null=True, blank=True, help_text='Leave empty for default email address')
+    email_from = models.EmailField(
+        null=True, blank=True, help_text="Leave empty for default email address"
+    )
     recipient = models.CharField(max_length=100, null=True, blank=True)
-    group_recipient = models.ForeignKey(Group, null=True, blank=True, on_delete=models.SET_NULL)
+    group_recipient = models.ForeignKey(
+        Group, null=True, blank=True, on_delete=models.SET_NULL
+    )
     email_templates = models.ManyToManyField(EmailTemplate)
     file_uploaded_cdes = models.ManyToManyField(
-        CommonDataElement, blank=True, limit_choices_to={'datatype': CDEDataTypes.FILE},
-        help_text='Select File CDEs to be notified about. Leave empty to be notified on all file uploads<br />',
+        CommonDataElement,
+        blank=True,
+        limit_choices_to={"datatype": CDEDataTypes.FILE},
+        help_text="Select File CDEs to be notified about. Leave empty to be notified on all file uploads<br />",
     )
     disabled = models.BooleanField(null=False, blank=False, default=False)
     subscribable = models.BooleanField(null=False, blank=False, default=False)
 
     @property
     def subscription_label(self):
-        default_label = dict(self.EMAIL_NOTIFICATIONS).get(self.description, self.description)
+        default_label = dict(self.EMAIL_NOTIFICATIONS).get(
+            self.description, self.description
+        )
         return self.public_description or default_label
 
     @property
     def warnings(self):
-        feature = self.NOTIFICATION_REQUIRES_REGISTRY_FEATURE.get(self.description)
+        feature = self.NOTIFICATION_REQUIRES_REGISTRY_FEATURE.get(
+            self.description
+        )
         if feature is None or self.registry.has_feature(feature):
             return None
-        msg = _('Incorrect configuration: The registry "%(registry)s" does NOT have the required "%(registry_feature)s" feature enabled.')
-        return msg % {'registry': self.registry, 'registry_feature': feature}
+        msg = _(
+            'Incorrect configuration: The registry "%(registry)s" does NOT have the required "%(registry_feature)s" feature enabled.'
+        )
+        return msg % {"registry": self.registry, "registry_feature": feature}
 
     def __str__(self):
         return "%s (%s)" % (self.description, self.registry.code.upper())
@@ -1261,44 +1522,66 @@ class EmailNotification(models.Model):
 class EmailNotificationHistory(models.Model):
     date_stamp = models.DateTimeField(auto_now_add=True)
     language = models.CharField(max_length=10)
-    email_notification = models.ForeignKey(EmailNotification, on_delete=models.CASCADE)
+    email_notification = models.ForeignKey(
+        EmailNotification, on_delete=models.CASCADE
+    )
     template_data = models.TextField(null=True, blank=True)
 
     class Meta:
-        verbose_name_plural = 'Email Notification History'
+        verbose_name_plural = "Email Notification History"
 
 
 class EmailPreferenceManager(models.Manager):
-
     def get_by_user(self, user):
         return self.filter(user=user).first()
 
     def filter_by_unsubscribed(self, email_notification):
-        return self.filter(Q(unsubscribe_all=True) | (Q(notification_preferences__email_notification=email_notification,
-                                                        notification_preferences__is_subscribed=False)))
+        return self.filter(
+            Q(unsubscribe_all=True)
+            | (
+                Q(
+                    notification_preferences__email_notification=email_notification,
+                    notification_preferences__is_subscribed=False,
+                )
+            )
+        )
 
 
 class EmailPreference(models.Model):
     objects = EmailPreferenceManager()
 
-    user = models.OneToOneField('groups.CustomUser', on_delete=models.CASCADE)
-    unsubscribe_all = models.BooleanField(help_text=_("Unsubscribed from current and future system generated emails"))
+    user = models.OneToOneField("groups.CustomUser", on_delete=models.CASCADE)
+    unsubscribe_all = models.BooleanField(
+        help_text=_(
+            "Unsubscribed from current and future system generated emails"
+        )
+    )
 
     def is_email_allowed(self, email_notification):
         if self.unsubscribe_all:
             return False
         else:
-            preference = self.notification_preferences.filter(email_notification=email_notification).first()
+            preference = self.notification_preferences.filter(
+                email_notification=email_notification
+            ).first()
             return preference.is_subscribed if preference else True
 
 
 class EmailNotificationPreference(models.Model):
-    user_email_preference = models.ForeignKey(EmailPreference, related_name='notification_preferences', on_delete=models.CASCADE)
-    email_notification = models.ForeignKey(EmailNotification, limit_choices_to={'subscribable': True}, on_delete=models.CASCADE)
+    user_email_preference = models.ForeignKey(
+        EmailPreference,
+        related_name="notification_preferences",
+        on_delete=models.CASCADE,
+    )
+    email_notification = models.ForeignKey(
+        EmailNotification,
+        limit_choices_to={"subscribable": True},
+        on_delete=models.CASCADE,
+    )
     is_subscribed = models.BooleanField()
 
     class Meta:
-        unique_together = (('user_email_preference', 'email_notification'),)
+        unique_together = (("user_email_preference", "email_notification"),)
 
 
 class RDRFContextError(Exception):
@@ -1306,7 +1589,6 @@ class RDRFContextError(Exception):
 
 
 class RDRFCtxManager(models.Manager):
-
     def get_queryset(self):
         # do NOT include inactive (soft-deleted) contexts
         return super().get_queryset().filter(active=True)
@@ -1329,15 +1611,16 @@ class RDRFCtxManager(models.Manager):
 class RDRFContext(models.Model):
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    context_form_group = models.ForeignKey("ContextFormGroup",
-                                           null=True,
-                                           blank=True,
-                                           on_delete=models.SET_NULL)
+    context_form_group = models.ForeignKey(
+        "ContextFormGroup", null=True, blank=True, on_delete=models.SET_NULL
+    )
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey("content_type", "object_id")
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    last_updated_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.SET_NULL)
+    last_updated_by = models.ForeignKey(
+        "groups.CustomUser", blank=True, null=True, on_delete=models.SET_NULL
+    )
     display_name = models.CharField(max_length=80, blank=True, null=True)
     active = models.BooleanField(default=True, blank=False)
     objects = RDRFCtxManager()
@@ -1355,7 +1638,9 @@ class RDRFContext(models.Model):
             if self.context_form_group.naming_scheme == "C":
                 return self._get_name_from_cde()
             else:
-                return self.context_form_group.name  # E.G. Assessment or Visit - used for display
+                return (
+                    self.context_form_group.name
+                )  # E.G. Assessment or Visit - used for display
         else:
             try:
                 return self.registry.metadata["context_name"]
@@ -1367,10 +1652,9 @@ class RDRFContext(models.Model):
             return "Follow Up"
         cde_path = self.context_form_group.naming_cde_to_use
         form_name, section_code, cde_code = cde_path.split("/")
-        cde_value = self.content_object.get_form_value(self.registry.code,
-                                                       form_name,
-                                                       section_code,
-                                                       context_id=self.pk)
+        cde_value = self.content_object.get_form_value(
+            self.registry.code, form_name, section_code, context_id=self.pk
+        )
         return cde_value
 
     @property
@@ -1384,26 +1668,35 @@ class RDRFContext(models.Model):
 
 class ContextFormGroup(models.Model):
     CONTEXT_TYPES = [("F", "Fixed"), ("M", "Multiple")]
-    NAMING_SCHEMES = [("D", "Automatic - Date"),
-                      ("N", "Automatic - Number"),
-                      ("M", "Manual - Free Text"),
-                      ("C", "CDE - Nominate CDE to use")]
-    ORDERING_TYPES = [("C", "Creation Time"),
-                      ("N", "Name")]
+    NAMING_SCHEMES = [
+        ("D", "Automatic - Date"),
+        ("N", "Automatic - Number"),
+        ("M", "Manual - Free Text"),
+        ("C", "CDE - Nominate CDE to use"),
+    ]
+    ORDERING_TYPES = [("C", "Creation Time"), ("N", "Name")]
 
-    registry = models.ForeignKey(Registry,
-                                 related_name="context_form_groups",
-                                 on_delete=models.CASCADE)
-    context_type = models.CharField(max_length=1, default="F", choices=CONTEXT_TYPES)
+    registry = models.ForeignKey(
+        Registry, related_name="context_form_groups", on_delete=models.CASCADE
+    )
+    context_type = models.CharField(
+        max_length=1, default="F", choices=CONTEXT_TYPES
+    )
     code = models.CharField(max_length=30, unique=True)
     name = models.CharField(max_length=80)
-    abbreviated_name = models.CharField(max_length=100,
-                                        help_text='Abbreviated name for identification of CFG in other contexts (e.g. reports)',
-                                        validators=[validate_abbreviated_name])
-    naming_scheme = models.CharField(max_length=1, default="D", choices=NAMING_SCHEMES)
+    abbreviated_name = models.CharField(
+        max_length=100,
+        help_text="Abbreviated name for identification of CFG in other contexts (e.g. reports)",
+        validators=[validate_abbreviated_name],
+    )
+    naming_scheme = models.CharField(
+        max_length=1, default="D", choices=NAMING_SCHEMES
+    )
     is_default = models.BooleanField(default=False)
     naming_cde_to_use = models.CharField(max_length=80, blank=True, null=True)
-    ordering = models.CharField(max_length=1, default="C", choices=ORDERING_TYPES)
+    ordering = models.CharField(
+        max_length=1, default="C", choices=ORDERING_TYPES
+    )
     sort_order = models.PositiveIntegerField(null=False, blank=False, default=1)
 
     @cached_property
@@ -1411,7 +1704,12 @@ class ContextFormGroup(models.Model):
         def sort_func(form):
             return form.position
 
-        items = [item.registry_form for item in self.items.select_related('registry_form', 'registry_form__registry').all()]
+        items = [
+            item.registry_form
+            for item in self.items.select_related(
+                "registry_form", "registry_form__registry"
+            ).all()
+        ]
         return sorted(items, key=sort_func)
 
     def __str__(self):
@@ -1455,23 +1753,29 @@ class ContextFormGroup(models.Model):
             return "%s / %s" % (_(self.name), _date(d, "d-F-Y h:i:s A"))
         elif self.naming_scheme == "N":
             registry_model = self.registry
-            contexts = RDRFContext.objects.get_for_patient(patient_model, registry_model)
+            contexts = RDRFContext.objects.get_for_patient(
+                patient_model, registry_model
+            )
             existing_count = contexts.filter(context_form_group=self).count()
             next_number = existing_count + 1
             return "%s/%s" % (self.name, next_number)
         elif self.naming_scheme == "C":
-            return "Unused"  # user will see value from cde when context is created
+            return (
+                "Unused"  # user will see value from cde when context is created
+            )
         else:
             return "Modules"
 
     def get_value_from_cde(self, patient_model, context_model):
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
-            cde_value = patient_model.get_form_value(self.registry.code,
-                                                     form_name,
-                                                     section_code,
-                                                     cde_code,
-                                                     context_id=context_model.pk)
+            cde_value = patient_model.get_form_value(
+                self.registry.code,
+                form_name,
+                section_code,
+                cde_code,
+                context_id=context_model.pk,
+            )
 
             cde_model = CommonDataElement.objects.get(code=cde_code)
             return cde_model.get_value(cde_value)
@@ -1484,11 +1788,13 @@ class ContextFormGroup(models.Model):
             return self.get_default_name(patient_model, context_model)
         form_name, section_code, cde_code = self.naming_cde_to_use.split("/")
         try:
-            cde_value = patient_model.get_form_value(self.registry.code,
-                                                     form_name,
-                                                     section_code,
-                                                     cde_code,
-                                                     context_id=context_model.pk)
+            cde_value = patient_model.get_form_value(
+                self.registry.code,
+                form_name,
+                section_code,
+                cde_code,
+                context_id=context_model.pk,
+            )
 
             cde_model = CommonDataElement.objects.get(code=cde_code)
             # This does not actually do type conversion for dates -
@@ -1503,6 +1809,7 @@ class ContextFormGroup(models.Model):
 
     def get_ordering_value(self, patient_model, context_model):
         from rdrf.helpers.utils import MinType
+
         bottom = MinType()
         if context_model.display_name:
             display_name = context_model.display_name
@@ -1512,7 +1819,9 @@ class ContextFormGroup(models.Model):
         if self.is_ordered_by_name:
             if self.naming_scheme == "C":
                 try:
-                    value = self.get_value_from_cde(patient_model, context_model)
+                    value = self.get_value_from_cde(
+                        patient_model, context_model
+                    )
 
                     if value is None:
                         return bottom
@@ -1543,21 +1852,31 @@ class ContextFormGroup(models.Model):
     def clean(self):
         if not is_alphanumeric(self.code):
             raise ValidationError(
-                "Context Form Group [%s] code - only letters and numbers are allowed !" %
-                self.code
+                "Context Form Group [%s] code - only letters and numbers are allowed !"
+                % self.code
             )
 
-        defaults = ContextFormGroup.objects.filter(registry=self.registry,
-                                                   is_default=True).exclude(pk=self.pk)
+        defaults = ContextFormGroup.objects.filter(
+            registry=self.registry, is_default=True
+        ).exclude(pk=self.pk)
         num_defaults = defaults.count()
 
         if num_defaults > 0 and self.is_default:
-            raise ValidationError("Only one Context Form Group can be the default")
+            raise ValidationError(
+                "Only one Context Form Group can be the default"
+            )
         if num_defaults == 0 and not self.is_default:
-            raise ValidationError("One Context Form Group must be chosen as the default")
+            raise ValidationError(
+                "One Context Form Group must be chosen as the default"
+            )
 
-        if self.naming_scheme == "C" and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None:
-            raise ValidationError("Invalid naming cde: Should be form name/section code/cde code where all codes must exist")
+        if (
+            self.naming_scheme == "C"
+            and self._valid_naming_cde_to_use(self.naming_cde_to_use) is None
+        ):
+            raise ValidationError(
+                "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
+            )
 
     def _valid_naming_cde_to_use(self, naming_cde_to_use):
         validation_message = "Invalid naming cde: Should be form name/section code/cde code where all codes must exist"
@@ -1569,8 +1888,9 @@ class ContextFormGroup(models.Model):
                 raise ValidationError(validation_message)
 
             try:
-                form_model = RegistryForm.objects.get(registry=self.registry,
-                                                      name=form_name)
+                form_model = RegistryForm.objects.get(
+                    registry=self.registry, name=form_name
+                )
             except RegistryForm.DoesNotExist:
                 raise ValidationError(validation_message)
 
@@ -1604,10 +1924,11 @@ class ContextFormGroup(models.Model):
         else:
             # fixed - is there one already?
             return not (
-                RDRFContext.objects
-                           .get_for_patient(patient_model, self.registry)
-                           .filter(context_form_group=self)
-                           .exists()
+                RDRFContext.objects.get_for_patient(
+                    patient_model, self.registry
+                )
+                .filter(context_form_group=self)
+                .exists()
             )
 
     def get_add_action(self, patient_model):
@@ -1615,27 +1936,40 @@ class ContextFormGroup(models.Model):
             num_forms = len(self.forms)
             # Direct link to form if num forms is 1 ( handler redirects transparently)
             from rdrf.helpers.utils import de_camelcase as dc
-            action_title = "Add %s" % dc(
-                self.forms[0].name) if num_forms == 1 else "Add %s" % dc(
-                self.name)
+
+            action_title = (
+                "Add %s" % dc(self.forms[0].name)
+                if num_forms == 1
+                else "Add %s" % dc(self.name)
+            )
 
             if not self.supports_direct_linking:
                 # We can't go directly to the form - so we first land on the add context view, which on save
                 # creates the context with links to the forms provided in that context
                 # after save
-                action_link = reverse("context_add", args=(self.registry.code,
-                                                           str(patient_model.pk),
-                                                           str(self.pk)))
+                action_link = reverse(
+                    "context_add",
+                    args=(
+                        self.registry.code,
+                        str(patient_model.pk),
+                        str(self.pk),
+                    ),
+                )
 
             else:
                 form_model = self.forms[0]
                 # provide a link to the create view for a clinical form
                 # url(r"^(?P<registry_code>\w+)/forms/(?P<form_id>\w+)/(?P<patient_id>\d+)/add/?$",
 
-                action_link = reverse("form_add", args=(self.registry.code,
-                                                        form_model.pk,
-                                                        patient_model.pk,
-                                                        'add'))
+                action_link = reverse(
+                    "form_add",
+                    args=(
+                        self.registry.code,
+                        form_model.pk,
+                        patient_model.pk,
+                        "add",
+                    ),
+                )
 
             return action_link, action_title
         else:
@@ -1643,15 +1977,17 @@ class ContextFormGroup(models.Model):
 
 
 class ContextFormGroupItem(models.Model):
-    context_form_group = models.ForeignKey(ContextFormGroup,
-                                           related_name="items",
-                                           on_delete=models.CASCADE)
+    context_form_group = models.ForeignKey(
+        ContextFormGroup, related_name="items", on_delete=models.CASCADE
+    )
     registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
 
 
 class ClinicalDataQuerySet(models.QuerySet):
     def collection(self, registry_code, collection):
-        qs = self.filter(registry_code=registry_code, collection=collection, active=True)
+        qs = self.filter(
+            registry_code=registry_code, collection=collection, active=True
+        )
         return qs.order_by("pk")
 
     def active(self):
@@ -1676,6 +2012,7 @@ class ClinicalData(models.Model):
     """
     MongoDB collections in Django.
     """
+
     COLLECTIONS = (
         ("cdes", "cdes"),
         ("history", "history"),
@@ -1684,13 +2021,18 @@ class ClinicalData(models.Model):
     )
 
     registry_code = models.CharField(max_length=10, db_index=True)
-    collection = models.CharField(max_length=50, db_index=True, choices=COLLECTIONS)
+    collection = models.CharField(
+        max_length=50, db_index=True, choices=COLLECTIONS
+    )
     data = DataField()
     django_id = models.IntegerField(db_index=True, default=0)
-    django_model = models.CharField(max_length=80, db_index=True, default="Patient")
+    django_model = models.CharField(
+        max_length=80, db_index=True, default="Patient"
+    )
     context_id = models.IntegerField(db_index=True, blank=True, null=True)
     active = models.BooleanField(
-        default=True, help_text="Indicate whether an entity is active or not")
+        default=True, help_text="Indicate whether an entity is active or not"
+    )
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     last_updated_at = models.DateTimeField(auto_now=True, null=True)
     last_updated_by = models.IntegerField(db_index=True, blank=True, null=True)
@@ -1731,11 +2073,17 @@ class ClinicalData(models.Model):
     def _clean_registry_code(self):
         if not Registry.objects.filter(code=self.registry_code).exists():
             raise ValidationError(
-                {"registry_code": "Registry %s does not exist" % self.registry_code})
+                {
+                    "registry_code": "Registry %s does not exist"
+                    % self.registry_code
+                }
+            )
 
     modjgo_schema = None
     #  need tp fix this path rdrf/db/schemas/modjgo.yaml
-    modjgo_schema_file = os.path.join(os.path.dirname(__file__), "schemas/modjgo.yaml")
+    modjgo_schema_file = os.path.join(
+        os.path.dirname(__file__), "schemas/modjgo.yaml"
+    )
 
     def validate(self, collection, data):
         return
@@ -1744,7 +2092,9 @@ class ClinicalData(models.Model):
         if not self.modjgo_schema:
             try:
                 with open(self.modjgo_schema_file) as f:
-                    self.modjgo_schema = yaml.load(f.read(), Loader=yaml.FullLoader)
+                    self.modjgo_schema = yaml.load(
+                        f.read(), Loader=yaml.FullLoader
+                    )
             except BaseException:
                 logger.exception("Error reading %s" % self.modjgo_schema_file)
 
@@ -1764,12 +2114,20 @@ class ClinicalData(models.Model):
 
 
 def file_upload_to(instance, _filename):
-    return "/".join(filter(bool, ["patient",
-                                  str(instance.patient.id),
-                                  "clinical",
-                                  instance.registry_code,
-                                  instance.section_code or "_", instance.cde_code,
-                                  instance.filename]))
+    return "/".join(
+        filter(
+            bool,
+            [
+                "patient",
+                str(instance.patient.id),
+                "clinical",
+                instance.registry_code,
+                instance.section_code or "_",
+                instance.cde_code,
+                instance.filename,
+            ],
+        )
+    )
 
 
 class CDEFile(models.Model):
@@ -1782,11 +2140,16 @@ class CDEFile(models.Model):
 
     See filestorage.py for usage of this model.
     """
-    REGISTRY_SPECIFIC_KEY = 'reg_spec'
+
+    REGISTRY_SPECIFIC_KEY = "reg_spec"
 
     registry_code = models.CharField(max_length=10)
-    uploaded_by = models.ForeignKey('groups.CustomUser', blank=True, null=True, on_delete=models.PROTECT)
-    patient = models.ForeignKey('patients.Patient', blank=True, null=True, on_delete=models.CASCADE)
+    uploaded_by = models.ForeignKey(
+        "groups.CustomUser", blank=True, null=True, on_delete=models.PROTECT
+    )
+    patient = models.ForeignKey(
+        "patients.Patient", blank=True, null=True, on_delete=models.CASCADE
+    )
     form_name = models.CharField(max_length=80, blank=True)
     section_code = models.CharField(max_length=100, blank=True)
     cde_code = models.CharField(max_length=30, blank=True)
@@ -1807,6 +2170,7 @@ def fileuploaditem_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=Registry)
 def registry_post_save(sender, instance, **kwargs):
     from registry.patients.models import PatientStage
+
     from rdrf.initial_data.patient_stage import init_registry_stages_and_rules
 
     if instance.has_feature(RegistryFeatures.STAGES):
@@ -1819,6 +2183,7 @@ class FileStorage(models.Model):
     This model is used only when the database file storage backend is
     enabled. These exact columns are required by the backend code.
     """
+
     name = models.CharField(primary_key=True, max_length=255)
     data = models.BinaryField()
     size = models.IntegerField(default=0)
@@ -1829,27 +2194,35 @@ class FormTitle(models.Model):
         ("Demographics", _("Demographics")),
         ("Consents", _("Consents")),
         ("Clinician", _("Clinician")),
-        ("Family linkage", _("Family Linkage"))
+        ("Family linkage", _("Family Linkage")),
     )
     registry = models.ForeignKey(Registry, on_delete=models.CASCADE)
     groups = models.ManyToManyField(
         Group,
-        help_text="Users of these groups will see the custom title instead of the default one"
+        help_text="Users of these groups will see the custom title instead of the default one",
     )
-    default_title = models.CharField(choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50)
+    default_title = models.CharField(
+        choices=FORM_TITLE_CHOICES, blank=False, null=False, max_length=50
+    )
     custom_title = models.CharField(max_length=50)
-    order = models.PositiveIntegerField(help_text="When the user with multiple groups matches more than 1 customisation the title with the lower order number will be displayed.")
+    order = models.PositiveIntegerField(
+        help_text="When the user with multiple groups matches more than 1 customisation the title with the lower order number will be displayed."
+    )
 
     class Meta:
-        ordering = ('registry', 'default_title', 'order')
+        ordering = ("registry", "default_title", "order")
 
     @property
     def group_names(self):
-        return ', '.join(group.name for group in self.groups.order_by('name').all())
+        return ", ".join(
+            group.name for group in self.groups.order_by("name").all()
+        )
 
 
 class WhitelistedFileExtension(models.Model):
-    file_extension = models.CharField(max_length=256, unique=True, validators=[validate_file_extension_format])
+    file_extension = models.CharField(
+        max_length=256, unique=True, validators=[validate_file_extension_format]
+    )
 
 
 class DataDefinitions:
@@ -1882,42 +2255,63 @@ class DataDefinitions:
 
     @cached_property
     def form_cde_codes(self):
-        return set(reduce(operator.add, [section.get_elements() for section in self.section_models]))
+        return set(
+            reduce(
+                operator.add,
+                [section.get_elements() for section in self.section_models],
+            )
+        )
 
     @cached_property
     def form_cdes(self):
-        qs = CommonDataElement.objects.filter(code__in=self.form_cde_codes).select_related('pv_group').prefetch_related('pv_group__permitted_value_set')
+        qs = (
+            CommonDataElement.objects.filter(code__in=self.form_cde_codes)
+            .select_related("pv_group")
+            .prefetch_related("pv_group__permitted_value_set")
+        )
         return {cde.code: cde for cde in qs}
 
     @cached_property
     def file_cde_codes(self):
-        return set(cde_code for cde_code, cde in self.form_cdes.items() if cde.datatype == CDEDataTypes.FILE)
+        return set(
+            cde_code
+            for cde_code, cde in self.form_cdes.items()
+            if cde.datatype == CDEDataTypes.FILE
+        )
 
     @cached_property
     def cde_policies(self):
         cde_codes = self.form_cde_codes
-        policies = CdePolicy.objects.filter(registry=self.registry_form.registry, cde__code__in=cde_codes)
+        policies = CdePolicy.objects.filter(
+            registry=self.registry_form.registry, cde__code__in=cde_codes
+        )
         return {policy.cde.code: policy for policy in policies}
 
     @cached_property
     def permitted_values_by_group(self):
-        all_pv_groups = set(cde.pv_group for cde in self.form_cdes.values() if cde.pv_group)
+        all_pv_groups = set(
+            cde.pv_group for cde in self.form_cdes.values() if cde.pv_group
+        )
         values = defaultdict(list)
-        for v in CDEPermittedValue.objects.filter(pv_group__in=all_pv_groups).select_related('pv_group'):
+        for v in CDEPermittedValue.objects.filter(
+            pv_group__in=all_pv_groups
+        ).select_related("pv_group"):
             values[v.pv_group.code].append(v)
         return values
 
 
 class RegistryDashboardManager(models.Manager):
-
     def filter_user_parent_dashboards(self, user):
         if user.is_parent:
             from registry.patients.models import ParentGuardian
+
             parent = ParentGuardian.objects.filter(user=user).first()
             if parent:
-                children_registries = {patient_registry
-                                       for patient in parent.children
-                                       for patient_registry in patient.rdrf_registry.all()}
+                children_registries = {
+                    patient_registry
+                    for patient in parent.children
+                    for patient_registry in patient.rdrf_registry.all()
+                }
                 return self.filter(registry__in=children_registries)
 
         return self.none()
@@ -1926,35 +2320,43 @@ class RegistryDashboardManager(models.Manager):
 class RegistryDashboard(models.Model):
     objects = RegistryDashboardManager()
 
-    registry = models.OneToOneField(Registry, on_delete=models.CASCADE, unique=True)
+    registry = models.OneToOneField(
+        Registry, on_delete=models.CASCADE, unique=True
+    )
 
     def __str__(self):
-        return f'Dashboard ({self.registry.code})'
+        return f"Dashboard ({self.registry.code})"
 
 
 class RegistryDashboardWidget(models.Model):
     WIDGET_CHOICES = (
-        ('demographics', _('Demographics')),
-        ('clinical_data', _('Clinical Data')),
-        ('consents', _('Consent')),
-        ('module_progress', _('Module Progress')),
+        ("demographics", _("Demographics")),
+        ("clinical_data", _("Clinical Data")),
+        ("consents", _("Consent")),
+        ("module_progress", _("Module Progress")),
     )
 
-    registry_dashboard = models.ForeignKey(RegistryDashboard, on_delete=models.CASCADE, related_name='widgets')
-    widget_type = models.CharField(choices=WIDGET_CHOICES, blank=False, null=False, max_length=50)
+    registry_dashboard = models.ForeignKey(
+        RegistryDashboard, on_delete=models.CASCADE, related_name="widgets"
+    )
+    widget_type = models.CharField(
+        choices=WIDGET_CHOICES, blank=False, null=False, max_length=50
+    )
     title = models.CharField(blank=True, max_length=100)
     free_text = models.CharField(blank=True, max_length=255)
 
     class Meta:
-        unique_together = (('registry_dashboard', 'widget_type'),)
+        unique_together = (("registry_dashboard", "widget_type"),)
 
 
 class RegistryDashboardDemographicData(models.Model):
-    MODEL_CHOICES = (
-        ('patient', _('Patient')),
-    )
+    MODEL_CHOICES = (("patient", _("Patient")),)
 
-    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='demographics')
+    widget = models.ForeignKey(
+        RegistryDashboardWidget,
+        on_delete=models.CASCADE,
+        related_name="demographics",
+    )
 
     sort_order = models.PositiveIntegerField(null=False, blank=False)
     label = models.CharField(max_length=255)
@@ -1963,87 +2365,132 @@ class RegistryDashboardDemographicData(models.Model):
     field = models.CharField(max_length=255)
 
     class Meta:
-        ordering = ['sort_order']
-        unique_together = (('widget', 'sort_order'),)
+        ordering = ["sort_order"]
+        unique_together = (("widget", "sort_order"),)
 
 
 class RegistryDashboardFormLink(models.Model):
-    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='links')
+    widget = models.ForeignKey(
+        RegistryDashboardWidget, on_delete=models.CASCADE, related_name="links"
+    )
 
     sort_order = models.PositiveIntegerField(null=False, blank=False)
     label = models.CharField(max_length=255)
 
-    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    context_form_group = models.ForeignKey(
+        ContextFormGroup, on_delete=models.CASCADE
+    )
     registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ['sort_order']
-        unique_together = (('widget', 'sort_order'),)
+        ordering = ["sort_order"]
+        unique_together = (("widget", "sort_order"),)
 
     def clean(self):
         errors = []
 
-        valid_registry_form = any(self.registry_form == item.registry_form
-                                  for item in self.context_form_group.items.all())
+        valid_registry_form = any(
+            self.registry_form == item.registry_form
+            for item in self.context_form_group.items.all()
+        )
 
         if not valid_registry_form:
-            errors = ValidationError(_('Registry Form not a valid choice for Context Form Group.'))
+            errors = ValidationError(
+                _("Registry Form not a valid choice for Context Form Group.")
+            )
 
         if errors:
             raise ValidationError(errors)
 
 
 class RegistryDashboardCDEData(models.Model):
-    widget = models.ForeignKey(RegistryDashboardWidget, on_delete=models.CASCADE, related_name='cdes')
+    widget = models.ForeignKey(
+        RegistryDashboardWidget, on_delete=models.CASCADE, related_name="cdes"
+    )
 
     sort_order = models.PositiveIntegerField(null=False, blank=False)
 
     label = models.CharField(max_length=255)
 
-    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
+    context_form_group = models.ForeignKey(
+        ContextFormGroup, on_delete=models.CASCADE
+    )
     registry_form = models.ForeignKey(RegistryForm, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     cde = models.ForeignKey(CommonDataElement, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ['sort_order']
-        unique_together = (('widget', 'sort_order'),)
+        ordering = ["sort_order"]
+        unique_together = (("widget", "sort_order"),)
 
     def clean(self):
         errors = []
 
-        if all(hasattr(self, attr) for attr in ['context_form_group', 'registry_form', 'section', 'cde']):
-            valid_registry_form = any(self.registry_form == item.registry_form
-                                      for item in self.context_form_group.items.all())
+        if all(
+            hasattr(self, attr)
+            for attr in [
+                "context_form_group",
+                "registry_form",
+                "section",
+                "cde",
+            ]
+        ):
+            valid_registry_form = any(
+                self.registry_form == item.registry_form
+                for item in self.context_form_group.items.all()
+            )
 
-            valid_section = any(self.section == form_section
-                                for form_section in self.registry_form.section_models)
+            valid_section = any(
+                self.section == form_section
+                for form_section in self.registry_form.section_models
+            )
 
-            valid_cde = any(self.cde == section_cde for section_cde in self.section.cde_models)
+            valid_cde = any(
+                self.cde == section_cde
+                for section_cde in self.section.cde_models
+            )
 
             if not valid_registry_form:
                 errors = ValidationError(
-                    _(f'Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}.'))
+                    _(
+                        f"Registry Form {self.registry_form.name} not a valid choice for Context Form Group {self.context_form_group.code}."
+                    )
+                )
 
             if not valid_section:
                 errors = ValidationError(
-                    _(f'Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}.'))
+                    _(
+                        f"Section {self.section.code} not a valid choice for Registry Form {self.registry_form.name}."
+                    )
+                )
 
             if not valid_cde:
-                errors = ValidationError(_(f'CDE {self.cde.code} not a valid choice for Section {self.section.code}.'))
+                errors = ValidationError(
+                    _(
+                        f"CDE {self.cde.code} not a valid choice for Section {self.section.code}."
+                    )
+                )
 
         if errors:
             raise ValidationError(errors)
 
 
 class LongitudinalFollowup(models.Model):
-    name = models.CharField(unique=True, max_length=255, help_text="The name of the followup as displayed to the user")
+    name = models.CharField(
+        unique=True,
+        max_length=255,
+        help_text="The name of the followup as displayed to the user",
+    )
     description = models.TextField(blank=True)
-    context_form_group = models.ForeignKey(ContextFormGroup, on_delete=models.CASCADE)
-    frequency = models.DurationField(help_text="The frequency at which followups are sent (days HH:MM:SS)")
+    context_form_group = models.ForeignKey(
+        ContextFormGroup, on_delete=models.CASCADE
+    )
+    frequency = models.DurationField(
+        help_text="The frequency at which followups are sent (days HH:MM:SS)"
+    )
     debounce = models.DurationField(
         null=True,
-        help_text="The range in which subsequent followups are de-duplicated (days HH:MM:SS)"
+        help_text="The range in which subsequent followups are de-duplicated (days HH:MM:SS)",
     )
     condition = models.TextField(blank=True)
 

@@ -1,9 +1,10 @@
 import hashlib
+
 from django.db import connection
 from django.db.migrations.recorder import MigrationRecorder
 
 
-class DelegateMixin():
+class DelegateMixin:
     """Delegate to another object to get attributes.
 
     Tries to get attributes from object normally, but if attribute doesn't exist
@@ -14,13 +15,16 @@ class DelegateMixin():
         self._delegate_to = delegate_to
 
     def __getattr__(self, attr):
-        if not hasattr(self, '_delegate_to') or self._delegate_to is None:
+        if not hasattr(self, "_delegate_to") or self._delegate_to is None:
             raise ValueError(
-                "DelegateMixin not properly initialised with '_delegate_to' attribute")
+                "DelegateMixin not properly initialised with '_delegate_to' attribute"
+            )
         if hasattr(self._delegate_to, attr):
             return getattr(self._delegate_to, attr)
-        raise AttributeError("'%s' object has no attribute '%s'" %
-                             (self.__class__.__name__, attr))
+        raise AttributeError(
+            "'%s' object has no attribute '%s'"
+            % (self.__class__.__name__, attr)
+        )
 
 
 class IndentedLogger(object):
@@ -28,7 +32,7 @@ class IndentedLogger(object):
 
     def __init__(self, logger, indent_level=4):
         self.logger = logger
-        self.indentation = ' ' * indent_level
+        self.indentation = " " * indent_level
 
     def debug(self, msg, *args, **kwargs):
         self.logger.debug(self.indentation + msg, *args, **kwargs)
@@ -55,7 +59,7 @@ class IndentedLogger(object):
 
 
 def maybe_indent(logger):
-    return IndentedLogger(logger) if hasattr(logger, 'indentation') else logger
+    return IndentedLogger(logger) if hasattr(logger, "indentation") else logger
 
 
 def calculate_checksum_str(iterable):
@@ -77,5 +81,6 @@ def file_checksum(filename):
 def app_schema_version(app_label):
     recorder = MigrationRecorder(connection)
     applied_migrations = sorted(
-        (x[1] for x in recorder.applied_migrations() if x[0] == app_label))
+        (x[1] for x in recorder.applied_migrations() if x[0] == app_label)
+    )
     return calculate_checksum_str(applied_migrations)

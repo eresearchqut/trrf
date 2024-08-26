@@ -8,14 +8,12 @@ from rdrf.helpers.utils import make_full_url
 from rdrf.models.definition.models import Registry
 from registry.groups.models import WorkingGroup
 from registry.patients.models import Patient
-
 from registry.patients.patient_stage_flows import get_registry_stage_flow
 
 logger = logging.getLogger(__name__)
 
 
 class BaseRegistration(abc.ABC):
-
     def __init__(self, request, form=None):
         self.request = request
         self.form = form
@@ -32,13 +30,17 @@ class BaseRegistration(abc.ABC):
         return Registry.objects.filter(code__iexact=registry_name).first()
 
     def _get_group(self, group_name):
-        group, _ = Group.objects.get_or_create(name__iexact=group_name, defaults={'name': group_name})
+        group, _ = Group.objects.get_or_create(
+            name__iexact=group_name, defaults={"name": group_name}
+        )
         return group
 
     def _get_unallocated_working_group(self, registry):
         return WorkingGroup.objects.get_unallocated(registry)
 
-    def _create_patient(self, registry, working_group, user, set_link_to_user=True):
+    def _create_patient(
+        self, registry, working_group, user, set_link_to_user=True
+    ):
         if not self.form:
             raise AttributeError("Cannot create patient without form")
 
@@ -48,7 +50,7 @@ class BaseRegistration(abc.ABC):
             family_name=form_data["surname"],
             given_names=form_data["first_name"],
             date_of_birth=form_data["date_of_birth"],
-            sex=form_data["gender"]
+            sex=form_data["gender"],
         )
 
         patient.rdrf_registry.add(registry)
@@ -59,8 +61,16 @@ class BaseRegistration(abc.ABC):
         patient.save()
         return patient
 
-    def setup_django_user(self, django_user, registry, group, first_name, last_name):
-        django_user.registry.set([registry, ] if registry else [])
+    def setup_django_user(
+        self, django_user, registry, group, first_name, last_name
+    ):
+        django_user.registry.set(
+            [
+                registry,
+            ]
+            if registry
+            else []
+        )
         django_user.groups.add(self._get_group(group))
         django_user.is_staff = False
         django_user.first_name = first_name
@@ -70,7 +80,8 @@ class BaseRegistration(abc.ABC):
     def get_registration_activation_url(self, registration_profile):
         activation_url = reverse(
             "registration_activate_account",
-            kwargs={"activation_key": registration_profile.activation_key})
+            kwargs={"activation_key": registration_profile.activation_key},
+        )
         return make_full_url(activation_url)
 
     def registration_allowed(self):

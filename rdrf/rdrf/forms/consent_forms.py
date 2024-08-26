@@ -1,23 +1,25 @@
+import logging
 from collections import OrderedDict
+
 from django import forms
-from rdrf.models.definition.models import Registry
-from rdrf.models.definition.models import ConsentSection
-from rdrf.models.definition.models import ConsentQuestion
 from django.utils.translation import gettext as _
 
-import logging
+from rdrf.models.definition.models import (
+    ConsentQuestion,
+    ConsentSection,
+    Registry,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class BaseConsentForm(forms.BaseForm):
-
     def __init__(self, *args, **kwargs):
         self.custom_consents = []
         self.patient_model = kwargs["patient_model"]
         del kwargs["patient_model"]
-        self.registry_model = kwargs['registry_model']
-        del kwargs['registry_model']
+        self.registry_model = kwargs["registry_model"]
+        del kwargs["registry_model"]
         super().__init__(*args, **kwargs)
 
     def _get_consent_section(self, consent_section_model):
@@ -38,13 +40,10 @@ class BaseConsentForm(forms.BaseForm):
                     consent_section_pk = int(parts[2])
                     if consent_section_pk == consent_section_model.pk:
                         consent_section_model = ConsentSection.objects.get(
-                            pk=consent_section_pk)
+                            pk=consent_section_pk
+                        )
                         questions.append(field)
-        return (
-            "%s" %
-            (
-                _(consent_section_model.section_label)),
-            questions)
+        return ("%s" % (_(consent_section_model.section_label)), questions)
 
     def _get_consent_field_models(self, consent_field):
         _, reg_pk, sec_pk, q_pk = consent_field.split("_")
@@ -56,23 +55,29 @@ class BaseConsentForm(forms.BaseForm):
 
     def get_consent_sections(self):
         section_tuples = []
-        for consent_section_model in self.registry_model.consent_sections.all().order_by("code"):
+        for (
+            consent_section_model
+        ) in self.registry_model.consent_sections.all().order_by("code"):
             if consent_section_model.applicable_to(self.patient_model):
                 section_tuples.append(
-                    self._get_consent_section(consent_section_model))
+                    self._get_consent_section(consent_section_model)
+                )
         return section_tuples
 
     def save(self, commit=True):
         try:
-            patient_registries = [r for r in self.patient_model.rdrf_registry.all()]
+            patient_registries = [
+                r for r in self.patient_model.rdrf_registry.all()
+            ]
         except ValueError:
             # If patient just created line above was erroring
             patient_registries = []
 
         consent_changes = []
         for consent_field in self.custom_consents:
-            registry_model, consent_section_model, consent_question_model = self._get_consent_field_models(
-                consent_field)
+            registry_model, consent_section_model, consent_question_model = (
+                self._get_consent_field_models(consent_field)
+            )
 
             if registry_model in patient_registries:
                 # are we still applicable?! - maybe some field on patient changed which
@@ -81,11 +86,13 @@ class BaseConsentForm(forms.BaseForm):
                     consent_value, has_changed = self.patient_model.set_consent(
                         consent_question_model,
                         self.custom_consents[consent_field],
-                        commit
+                        commit,
                     )
                     if has_changed:
                         consent_changes.append(consent_value)
-        self.patient_model.notify_consent_changes(self.registry_model, consent_changes)
+        self.patient_model.notify_consent_changes(
+            self.registry_model, consent_changes
+        )
 
     def clean(self):
         self.custom_consents = {}
@@ -112,55 +119,70 @@ class BaseConsentForm(forms.BaseForm):
                 data[registry_model] = {}
 
             consent_section_pk = int(parts[2])
-            consent_section_model = ConsentSection.objects.get(id=int(consent_section_pk))
+            consent_section_model = ConsentSection.objects.get(
+                id=int(consent_section_pk)
+            )
 
             if consent_section_model not in data[registry_model]:
                 data[registry_model][consent_section_model] = {}
 
             consent_question_pk = int(parts[3])
-            consent_question_model = ConsentQuestion.objects.get(id=consent_question_pk)
+            consent_question_model = ConsentQuestion.objects.get(
+                id=consent_question_pk
+            )
             answer = self.custom_consents[field_key]
 
-            data[registry_model][consent_section_model][consent_question_model.code] = answer
+            data[registry_model][consent_section_model][
+                consent_question_model.code
+            ] = answer
 
         validation_errors = []
 
         for registry_model in data:
             for consent_section_model in data[registry_model]:
-
                 answer_dict = data[registry_model][consent_section_model]
                 if not consent_section_model.is_valid(answer_dict):
                     error_message = "Consent Section '%s %s' is not valid" % (
-                        registry_model.code.upper(), consent_section_model.section_label)
+                        registry_model.code.upper(),
+                        consent_section_model.section_label,
+                    )
                     validation_errors.append(error_message)
 
         if len(validation_errors) > 0:
-            raise forms.ValidationError("Consent Error(s): %s" % ",".join(validation_errors))
+            raise forms.ValidationError(
+                "Consent Error(s): %s" % ",".join(validation_errors)
+            )
 
 
 class CustomConsentFormGenerator(object):
-
     def __init__(self, registry_model, patient_model=None, viewing_user=None):
         self.registry_model = registry_model
         self.patient_model = patient_model  # None if add form
         self.viewing_user = viewing_user
         self.fields = {}
 
-    def create_form(self, post_data={}):
+    def create_form(self, post_data=None):
+        if post_data is None:
+            post_data = {}
         form_dict = {"base_fields": self._create_custom_consent_fields()}
         form_class = type("PatientConsentForm", (BaseConsentForm,), form_dict)
         form_instance = form_class(
             post_data,
             patient_model=self.patient_model,
-            registry_model=self.registry_model)
+            registry_model=self.registry_model,
+        )
         return form_instance
 
     def _create_custom_consent_fields(self):
         fields = OrderedDict()
         for consent_section_model in self.registry_model.consent_sections.all():
             if consent_section_model.applicable_to(self.patient_model):
-                for consent_question_model in consent_section_model.questions.all().order_by("position"):
-                    consent_field = consent_question_model.create_field(self.patient_model, self.viewing_user)
+                for (
+                    consent_question_model
+                ) in consent_section_model.questions.all().order_by("position"):
+                    consent_field = consent_question_model.create_field(
+                        self.patient_model, self.viewing_user
+                    )
                     field_key = consent_question_model.field_key
                     fields[field_key] = consent_field
 

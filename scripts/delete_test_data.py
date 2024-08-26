@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-from registry.patients.models import Patient
-from rdrf.models.definition.models import Registry
-import django
 import sys
+
+import django
+from registry.patients.models import Patient
+
+from rdrf.models.definition.models import Registry
+
 django.setup()
 
 # VERY DANGEROUS SCRIPT ALERT!
@@ -90,11 +93,15 @@ def delete_test_data(registry_model):
             patient.delete()
             patient.delete()
             n += 1
-            display("Successfully deleted patient %s in registry %s" %
-                    (name, registry_model))
+            display(
+                "Successfully deleted patient %s in registry %s"
+                % (name, registry_model)
+            )
         except Exception as ex:
-            display("Error deleting patient %s  in registry %s: %s" %
-                    (name, ex, registry_model.code))
+            display(
+                "Error deleting patient %s  in registry %s: %s"
+                % (name, ex, registry_model.code)
+            )
     return n, m
 
 
@@ -109,33 +116,48 @@ def delete_all_patients():
     print(SKULL_ASCII)
     print("**** This utlity is for deleting TEST patient data ONLY! ****")
     print("**** DO NOT USE ON A LIVE (POPULATED) SITE ! ****")
-    print("**** USE _ONLY_ TO CLEAN UP TEST PATIENTS CREATED FOR TESTING PURPOSES PRIOR TO LAUNCH ****")
+    print(
+        "**** USE _ONLY_ TO CLEAN UP TEST PATIENTS CREATED FOR TESTING PURPOSES PRIOR TO LAUNCH ****"
+    )
 
-    if safe("You are about to DELETE (NOT ARCHIVE!) PATIENT data for RDRF! Do you wish to continue?"):
+    if safe(
+        "You are about to DELETE (NOT ARCHIVE!) PATIENT data for RDRF! Do you wish to continue?"
+    ):
         for r in Registry.objects.all():
             size = num_patients(r)
             if safe("Delete all %s patients in registry %s?" % (size, r.code)):
                 try:
                     n, m = delete_test_data(r)
-                    display("Deleted %s out of %s patients successfully" % (n, m))
+                    display(
+                        "Deleted %s out of %s patients successfully" % (n, m)
+                    )
                 except Exception as ex:
-                    display("Error deleting test data for registry %s: %s" %
-                            (r.code, ex))
+                    display(
+                        "Error deleting test data for registry %s: %s"
+                        % (r.code, ex)
+                    )
             else:
-                display("Skipping deletion of test data in registry %s" % r.code)
+                display(
+                    "Skipping deletion of test data in registry %s" % r.code
+                )
     else:
         display("Aborting! Nothing deleted! Bye")
 
 
 def usage():
     print("Usage:")
-    print("delete_test_data.py --all ( to interactively delete all patient data)")
-    print("delete_test_data.py <patient_id> ( to delete one patient non-interactively)")
+    print(
+        "delete_test_data.py --all ( to interactively delete all patient data)"
+    )
+    print(
+        "delete_test_data.py <patient_id> ( to delete one patient non-interactively)"
+    )
     print("delete_test_data.py --usage ( print this usage message)")
 
 
 if __name__ == "__main__":
     import re
+
     number = re.compile(r"^\d+$")
 
     if len(sys.argv) == 2:

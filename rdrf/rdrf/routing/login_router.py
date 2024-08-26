@@ -1,14 +1,19 @@
 from django.contrib import messages
-from django.urls import reverse
 from django.shortcuts import redirect
-from django.views.generic.base import View
+from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
+from django.views.generic.base import View
+from useraudit.password_expiry import (
+    days_to_password_expiry,
+    should_warn_about_password_expiry,
+)
 
-from useraudit.password_expiry import should_warn_about_password_expiry, days_to_password_expiry
-
-from rdrf.services.io.notifications.email_notification import process_notification
 from rdrf.events.events import EventType
+from rdrf.services.io.notifications.email_notification import (
+    process_notification,
+)
 
 
 # todo update ophg registries to use new demographics and patients listing
@@ -22,18 +27,24 @@ _PATIENTS_LISTING = "patientslisting"
 
 
 class RouterView(View):
-
     def get(self, request):
         user = request.user
 
         if user.is_authenticated:
             registry = user.registry.first()
-            if registry and registry.splash_screen and user.is_patient_or_delegate:
+            if (
+                registry
+                and registry.splash_screen
+                and user.is_patient_or_delegate
+            ):
                 redirect_url = reverse("registry", args=(registry.code,))
             else:
                 redirect_url = user.default_page
         else:
-            redirect_url = "%s?next=%s" % (reverse("two_factor:login"), reverse("login_router"))
+            redirect_url = "%s?next=%s" % (
+                reverse("two_factor:login"),
+                reverse("login_router"),
+            )
 
         self._additional_checks(request)
 
@@ -44,7 +55,9 @@ class RouterView(View):
 
     def _maybe_warn_about_password_expiry(self, request):
         user = request.user
-        if not (user.is_authenticated and should_warn_about_password_expiry(user)):
+        if not (
+            user.is_authenticated and should_warn_about_password_expiry(user)
+        ):
             return
 
         days_left = days_to_password_expiry(user) or 0
@@ -54,22 +67,25 @@ class RouterView(View):
 
     def _display_message(self, request, days_left):
         sentence1 = ngettext(
-            'Your password will expire in %(days)d day.',
-            'Your password will expire in %(days)d days.', days_left) % {'days': days_left}
+            "Your password will expire in %(days)d day.",
+            "Your password will expire in %(days)d days.",
+            days_left,
+        ) % {"days": days_left}
         link = f'<a href="{reverse("password_change")}" class="alert-link">{_("Change Password")}</a>'
-        sentence2 = _('Please use %(link)s to change it.') % {'link': link}
-        msg = sentence1 + ' ' + sentence2
+        sentence2 = _("Please use %(link)s to change it.") % {"link": link}
+        msg = sentence1 + " " + sentence2
 
         messages.warning(request, mark_safe(msg))
 
     def _send_email_notification(self, user, days_left):
         template_data = {
-            'user': user,
-            'days_left': days_left,
+            "user": user,
+            "days_left": days_left,
         }
 
         for registry_model in user.registry.all():
             process_notification(
                 registry_model.code,
                 EventType.PASSWORD_EXPIRY_WARNING,
-                template_data)
+                template_data,
+            )

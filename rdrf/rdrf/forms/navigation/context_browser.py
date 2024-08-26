@@ -1,9 +1,10 @@
 from operator import itemgetter
+
 from rdrf.forms.navigation.context_menu import PatientContextMenu
+from rdrf.helpers.registry_features import RegistryFeatures
+
 # todo this must be dead code - remove!
 from rdrf.rdrf import context_defnitions as definitions
-
-from rdrf.helpers.registry_features import RegistryFeatures
 
 
 class ContextBrowserError(Exception):
@@ -11,7 +12,6 @@ class ContextBrowserError(Exception):
 
 
 class ContextBrowser(object):
-
     def __init__(self, user, registry_model):
         self.user = user
         self.registry_model = registry_model
@@ -30,7 +30,9 @@ class ContextBrowser(object):
             "searchPhrase": self.search_phrase,
             "rows": objects,
             "total": total,
-            "show_add_patient": not self.registry_model.has_feature(RegistryFeatures.NO_ADD_PATIENT_BUTTON)
+            "show_add_patient": not self.registry_model.has_feature(
+                RegistryFeatures.NO_ADD_PATIENT_BUTTON
+            ),
         }
         return results
 
@@ -40,18 +42,21 @@ class ContextBrowser(object):
     def _get_columns(self):
         columns = []
 
-        sorted_by_order = sorted(self.grid_config, key=itemgetter('order'), reverse=False)
+        sorted_by_order = sorted(
+            self.grid_config, key=itemgetter("order"), reverse=False
+        )
 
         for definition in sorted_by_order:
-
             # I am now ignoring the default attribute ( was or
             # definition["access"]["default"] or ..)
-            if self.user.is_superuser or self.user.has_perm(definition["access"]["permission"]):
+            if self.user.is_superuser or self.user.has_perm(
+                definition["access"]["permission"]
+            ):
                 columns.append(
                     {
                         "data": definition["data"],
                         "label": definition["label"],
-                        "model": definition["model"]
+                        "model": definition["model"],
                     }
                 )
 
@@ -96,8 +101,6 @@ class ContextBrowser(object):
 
     def get_context_menu(self, patient_model, context_model):
         context_menu = PatientContextMenu(
-            self.user,
-            self.registry_model,
-            patient_model,
-            context_model)
+            self.user, self.registry_model, patient_model, context_model
+        )
         return context_menu.html

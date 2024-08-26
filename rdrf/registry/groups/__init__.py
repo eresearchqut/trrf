@@ -3,29 +3,28 @@
 # GROUPS.SUPER_USER is a sentinel used to trigger membership to all groups for superuser
 from collections import namedtuple
 
-
 GROUP_ATTR_NAMES = (
-    'PATIENT',
-    'PARENT',
-    'CLINICAL',
-    'WORKING_GROUP_STAFF',
-    'WORKING_GROUP_CURATOR',
-    'SUPER_USER',
-    'CARRIER',
-    'CARER',
+    "PATIENT",
+    "PARENT",
+    "CLINICAL",
+    "WORKING_GROUP_STAFF",
+    "WORKING_GROUP_CURATOR",
+    "SUPER_USER",
+    "CARRIER",
+    "CARER",
 )
 
 
-GroupLookup = namedtuple('GroupLookup', GROUP_ATTR_NAMES)
+GroupLookup = namedtuple("GroupLookup", GROUP_ATTR_NAMES)
 GROUPS = GroupLookup(
-    'patients',
-    'parents',
-    'clinical staff',
-    'working group staff',
-    'working group curators',
-    '__super_user__',
-    'carriers',
-    'carer',
+    "patients",
+    "parents",
+    "clinical staff",
+    "working group staff",
+    "working group curators",
+    "__super_user__",
+    "carriers",
+    "carer",
 )
 
 

@@ -1,11 +1,13 @@
-from registry.patients.models import Patient
-from rdrf.models.definition.models import RegistryForm
-from rdrf.models.definition.models import Registry
-from rdrf.helpers.cde_data_types import CDEDataTypes
-from django.db import transaction
 import csv
 import sys
+
 import django
+from django.db import transaction
+from registry.patients.models import Patient
+
+from rdrf.helpers.cde_data_types import CDEDataTypes
+from rdrf.models.definition.models import Registry, RegistryForm
+
 django.setup()
 
 
@@ -44,7 +46,6 @@ converters = {
 
 
 class FieldInfo:
-
     def __init__(self, registry_model, form_model, section_model, cde_model):
         self.registry_model = registry_model
         self.form_model = form_model
@@ -54,18 +55,22 @@ class FieldInfo:
         self.field_num = None
 
     def __str__(self):
-        return "[%s] %s/%s/%s/%s" % (self.field_num,
-                                     self.registry_model.code,
-                                     self.form_model.name,
-                                     self.section_model.code,
-                                     self.cde_model.code)
+        return "[%s] %s/%s/%s/%s" % (
+            self.field_num,
+            self.registry_model.code,
+            self.form_model.name,
+            self.section_model.code,
+            self.cde_model.code,
+        )
 
     @property
     def field_expression(self):
         if not self.is_multi:
-            fe = "%s/%s/%s" % (self.form_model.name,
-                               self.section_model.code,
-                               self.cde_model.code)
+            fe = "%s/%s/%s" % (
+                self.form_model.name,
+                self.section_model.code,
+                self.cde_model.code,
+            )
             return fe
 
     @property
@@ -79,7 +84,9 @@ class FieldInfo:
     def get_range_code(self, display_value):
         if not self.is_range:
             raise ValueError(
-                "Field info is not a range: Can't look up value [%s]" % display_value)
+                "Field info is not a range: Can't look up value [%s]"
+                % display_value
+            )
 
         if self.cde_model.allow_multiple:
             # multiselet checkboxes use this feature
@@ -103,8 +110,10 @@ class FieldInfo:
         try:
             descs = desc_csv.split(",")
         except Exception as ex:
-            error("multiple code list [%s] could not be split: %s" % (desc_csv,
-                                                                      ex))
+            error(
+                "multiple code list [%s] could not be split: %s"
+                % (desc_csv, ex)
+            )
             return []
 
         codes = []
@@ -151,8 +160,9 @@ def build_field_map(registry_model, field_map_file):
             form_name = row["FORM"]
             section_name = row["SECTION"]
             cde_name = row["CDE"]
-            form_model = RegistryForm.objects.get(registry=registry_model,
-                                                  name=form_name)
+            form_model = RegistryForm.objects.get(
+                registry=registry_model, name=form_name
+            )
 
             section_model = None
 
@@ -168,10 +178,9 @@ def build_field_map(registry_model, field_map_file):
                     cde_model = c_model
                     break
 
-            field_info = FieldInfo(registry_model,
-                                   form_model,
-                                   section_model,
-                                   cde_model)
+            field_info = FieldInfo(
+                registry_model, form_model, section_model, cde_model
+            )
 
             field_map[fieldnum] = field_info
             field_info.field_num = fieldnum
@@ -189,7 +198,6 @@ def read_patients(csv_file):
 
 
 class PatientUpdater:
-
     def __init__(self, registry_model, field_map, id_map, rows):
         self.registry_model = registry_model
         self.field_map = field_map
@@ -218,18 +226,19 @@ class PatientUpdater:
             patient_model = Patient.objects.get(id=new_id)
             return patient_model, old_id
         except Patient.DoesNotExist:
-            error("MISSING %s/%s" % (old_id,
-                                     new_id))
+            error("MISSING %s/%s" % (old_id, new_id))
             return None, old_id
 
     def _get_column_info(self, column_index):
         return self.field_map[column_index]
 
-    def _apply_field_expression(self, field_info, field_expression, patient_model, rdrf_value):
+    def _apply_field_expression(
+        self, field_info, field_expression, patient_model, rdrf_value
+    ):
         if field_info.should_apply(rdrf_value):
-            patient_model.evaluate_field_expression(self.registry_model,
-                                                    field_expression,
-                                                    value=rdrf_value)
+            patient_model.evaluate_field_expression(
+                self.registry_model, field_expression, value=rdrf_value
+            )
 
     def _get_rdrf_value(self, value, field_info):
         if field_info.is_range:
@@ -244,8 +253,10 @@ class PatientUpdater:
                     return float(value)
                 except BaseException:
                     if value != "":
-                        info("%s error converting [%s] to float - returning None" % (field_info,
-                                                                                     value))
+                        info(
+                            "%s error converting [%s] to float - returning None"
+                            % (field_info, value)
+                        )
                     return None
             elif field_info.datatype == CDEDataTypes.INTEGER:
                 try:
@@ -253,8 +264,9 @@ class PatientUpdater:
                 except BaseException:
                     if value != "":
                         info(
-                            "%s error converting [%s] to integer - returning None" %
-                            (field_info, value))
+                            "%s error converting [%s] to integer - returning None"
+                            % (field_info, value)
+                        )
                     return None
             elif field_info.datatype == CDEDataTypes.DATE:
                 return value
@@ -274,17 +286,19 @@ class PatientUpdater:
                 with transaction.atomic():
                     try:
                         info("Updating %s/%s ..." % (old_id, patient_model.pk))
-                        self._update_patient(old_id,
-                                             patient_model,
-                                             row)
+                        self._update_patient(old_id, patient_model, row)
 
                         self.num_updated += 1
-                        info("Updated patient %s/%s successfully" % (old_id,
-                                                                     patient_model.pk))
+                        info(
+                            "Updated patient %s/%s successfully"
+                            % (old_id, patient_model.pk)
+                        )
                     except Exception as ex:
                         self.num_rollbacks += 1
-                        error("Rollback on patient %s: %s" % (patient_model.pk,
-                                                              ex))
+                        error(
+                            "Rollback on patient %s: %s"
+                            % (patient_model.pk, ex)
+                        )
             else:
                 self.num_missing += 1
                 error("MISSING %s" % old_id)
@@ -303,41 +317,48 @@ class PatientUpdater:
                     rdrf_value = self._get_rdrf_value(raw_value, field_info)
                     field_expression = field_info.field_expression
                     if not field_info.in_multi:
-                        self._apply_field_expression(field_info,
-                                                     field_expression,
-                                                     patient_model,
-                                                     rdrf_value)
+                        self._apply_field_expression(
+                            field_info,
+                            field_expression,
+                            patient_model,
+                            rdrf_value,
+                        )
                     else:
-                        self._update_multisection(field_info,
-                                                  rdrf_value,
-                                                  patient_model)
+                        self._update_multisection(
+                            field_info, rdrf_value, patient_model
+                        )
 
     def _update_multisection(self, field_info, rdrf_value, patient_model):
         # assumption from sheet is that we are updating the 1st item of the multisection
         # if none exists, we create the multisection item
 
         if field_info.should_apply(rdrf_value):
-
             # update the 1st item
 
-            field_expression = "poke/%s/%s/1/%s" % (field_info.form_model.name,
-                                                    field_info.section_model.code,
-                                                    field_info.cde_model.code)
+            field_expression = "poke/%s/%s/1/%s" % (
+                field_info.form_model.name,
+                field_info.section_model.code,
+                field_info.cde_model.code,
+            )
 
-            patient_model.evaluate_field_expression(self.registry_model,
-                                                    field_expression,
-                                                    value=rdrf_value)
+            patient_model.evaluate_field_expression(
+                self.registry_model, field_expression, value=rdrf_value
+            )
         else:
             if rdrf_value is not None:
-                info("will not update multisection %s with bad value [%s]" % (field_info,
-                                                                              rdrf_value))
+                info(
+                    "will not update multisection %s with bad value [%s]"
+                    % (field_info, rdrf_value)
+                )
 
 
 def usage():
-    print("usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>")
+    print(
+        "usage: python cdeimport.py <registry code> <field map file> <id map file> <data file csv>"
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         registry_code = sys.argv[1]
         field_map_file = sys.argv[2]
@@ -376,7 +397,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        patient_updater = PatientUpdater(registry_model, field_map, id_map, rows)
+        patient_updater = PatientUpdater(
+            registry_model, field_map, id_map, rows
+        )
     except Exception as ex:
         error("Could not create updater: %s" % ex)
         sys.exit(1)

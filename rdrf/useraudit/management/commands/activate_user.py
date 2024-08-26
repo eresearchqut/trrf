@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 
@@ -9,10 +9,12 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument('username', nargs='+', help='The user(s) to activate')
+        parser.add_argument(
+            "username", nargs="+", help="The user(s) to activate"
+        )
 
     def handle(self, **options):
-        users = map(self._load_user, options['username'])
+        users = map(self._load_user, options["username"])
         with transaction.atomic():
             for user in users:
                 self._activate_user(user)
@@ -26,7 +28,9 @@ class Command(BaseCommand):
 
     def _activate_user(self, user):
         if user.is_active:
-            self.stdout.write('Ignoring already active user "%s"\n' % user.username)
+            self.stdout.write(
+                'Ignoring already active user "%s"\n' % user.username
+            )
             return
         user.is_active = True
         user.save()

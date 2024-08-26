@@ -3,27 +3,23 @@ import logging
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.generic import View
-
 from registry.patients.models import Patient
 
 logger = logging.getLogger(__name__)
 
 
 class FamilyLookup(View):
-
     def _patient_info(self, patient, working_group, link, relationship=None):
         ret_val = {
             "pk": patient.pk,
             "given_names": patient.given_names,
             "family_name": patient.family_name,
-            "class": 'Patient' if not relationship else 'PatientRelative',
+            "class": "Patient" if not relationship else "PatientRelative",
             "working_group": working_group,
-            "link": link
+            "link": link,
         }
         if relationship:
-            ret_val.update({
-                'relationship': relationship
-            })
+            ret_val.update({"relationship": relationship})
         return ret_val
 
     def get(self, request, reg_code, index=None):
@@ -55,20 +51,32 @@ class FamilyLookup(View):
             patient_created = relative.relative_patient
             working_group = None
             relative_link = None
-            if patient_created and request.user.can_view_patient_link(patient_created):
-                relative_link = reverse("patient_edit", args=[reg_code, patient_created.pk])
+            if patient_created and request.user.can_view_patient_link(
+                patient_created
+            ):
+                relative_link = reverse(
+                    "patient_edit", args=[reg_code, patient_created.pk]
+                )
 
             if relative_link:
                 working_group = self._get_working_group_name(patient_created)
                 result["relatives"].append(
-                    self._patient_info(relative, working_group, relative_link, relative.relationship)
+                    self._patient_info(
+                        relative,
+                        working_group,
+                        relative_link,
+                        relative.relationship,
+                    )
                 )
 
         return JsonResponse(result)
 
     def _get_relationships(self):
         from registry.patients.models import PatientRelative
+
         return [pair[0] for pair in PatientRelative.RELATIVE_TYPES]
 
     def _get_working_group_name(self, patient_model):
-        return ",".join(sorted([wg.name for wg in patient_model.working_groups.all()]))
+        return ",".join(
+            sorted([wg.name for wg in patient_model.working_groups.all()])
+        )

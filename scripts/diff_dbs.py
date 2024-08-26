@@ -7,29 +7,58 @@ import psycopg2
 from psycopg2.extras import DictCursor
 
 TABLE_QUERY_COLUMNS = [
-    "table_schema", "table_name", "column_name",
-    "ordinal_position", "column_default", "is_nullable",
-    "data_type", "character_maximum_length", "character_octet_length",
-    "numeric_precision", "numeric_precision_radix", "numeric_scale",
-    "datetime_precision", "interval_type", "interval_precision",
-    "domain_catalog", "domain_schema", "domain_name",
-    "udt_schema", "udt_name", "maximum_cardinality",
-    "dtd_identifier", "is_updatable"
+    "table_schema",
+    "table_name",
+    "column_name",
+    "ordinal_position",
+    "column_default",
+    "is_nullable",
+    "data_type",
+    "character_maximum_length",
+    "character_octet_length",
+    "numeric_precision",
+    "numeric_precision_radix",
+    "numeric_scale",
+    "datetime_precision",
+    "interval_type",
+    "interval_precision",
+    "domain_catalog",
+    "domain_schema",
+    "domain_name",
+    "udt_schema",
+    "udt_name",
+    "maximum_cardinality",
+    "dtd_identifier",
+    "is_updatable",
 ]
 
 SEQUENCE_QUERY_COLUMNS = [
-    "sequence_schema", "sequence_name", "numeric_scale",
-    "start_value", "minimum_value", "increment",
-    "cycle_option"
+    "sequence_schema",
+    "sequence_name",
+    "numeric_scale",
+    "start_value",
+    "minimum_value",
+    "increment",
+    "cycle_option",
 ]
 
 parser = ArgumentParser(
     description="Diff the table and sequence schemas of two postgres databases",
-    add_help=True
+    add_help=True,
 )
-parser.add_argument("old_url", type=str, help="postgresql://username:password@host:port/database")
-parser.add_argument("new_url", type=str, help="postgresql://username:password@host:port/database")
-parser.add_argument("--full-schemas", type=str, nargs="+", choices=("tables", "sequences"))
+parser.add_argument(
+    "old_url",
+    type=str,
+    help="postgresql://username:password@host:port/database",
+)
+parser.add_argument(
+    "new_url",
+    type=str,
+    help="postgresql://username:password@host:port/database",
+)
+parser.add_argument(
+    "--full-schemas", type=str, nargs="+", choices=("tables", "sequences")
+)
 
 
 def create_cursor(server):
@@ -44,7 +73,7 @@ def create_cursor(server):
         user=username,
         password=password,
         host=hostname,
-        port=port
+        port=port,
     ).cursor(cursor_factory=DictCursor)
 
 
@@ -105,7 +134,9 @@ def diff_dict_rows(old_rows, new_rows, name):
 
         for column in shared_columns:
             if old_dict[column] != new_dict[column]:
-                print(f"WARNING: Column {column} doesn't match for {name} schema:")
+                print(
+                    f"WARNING: Column {column} doesn't match for {name} schema:"
+                )
                 print(f"old - {old_dict[column]}")
                 print(f"new - {new_dict[column]}")
                 print()
@@ -123,11 +154,11 @@ def diff_names(old_cur, new_cur, schema_name, name_func):
 
 
 def diff_table_names(old_cur, new_cur):
-    return diff_names(old_cur, new_cur, 'table', get_table_names)
+    return diff_names(old_cur, new_cur, "table", get_table_names)
 
 
 def diff_sequence_names(old_cur, new_cur):
-    return diff_names(old_cur, new_cur, 'sequence', get_sequence_names)
+    return diff_names(old_cur, new_cur, "sequence", get_sequence_names)
 
 
 def diff_schemas(old_cur, new_cur, schema_name, name_func, schema_func):
@@ -144,11 +175,15 @@ def diff_schemas(old_cur, new_cur, schema_name, name_func, schema_func):
 
 
 def diff_table_schemas(old_cur, new_cur):
-    return diff_schemas(old_cur, new_cur, 'table', get_table_names, get_table_schema)
+    return diff_schemas(
+        old_cur, new_cur, "table", get_table_names, get_table_schema
+    )
 
 
 def diff_sequence_schemas(old_cur, new_cur):
-    return diff_schemas(old_cur, new_cur, 'sequence', get_sequence_names, get_sequence_schema)
+    return diff_schemas(
+        old_cur, new_cur, "sequence", get_sequence_names, get_sequence_schema
+    )
 
 
 def main():

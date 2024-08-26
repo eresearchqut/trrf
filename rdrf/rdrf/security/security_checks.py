@@ -3,7 +3,6 @@ import logging
 from django.core.exceptions import PermissionDenied
 from registry.patients.models import ParentGuardian, Patient
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +40,11 @@ def security_check_user_patient(user, patient_model):
         _security_violation(user, patient_model)
 
     registry = patient_model.rdrf_registry.first()
-    if Patient.objects.get_by_user_and_registry(user, registry).filter(pk=patient_model.pk).exists():
+    if (
+        Patient.objects.get_by_user_and_registry(user, registry)
+        .filter(pk=patient_model.pk)
+        .exists()
+    ):
         return True
 
     _security_violation(user, patient_model)
@@ -65,10 +68,14 @@ def get_object_or_permission_denied(klass, *args, **kwargs):
     one object is found.
     """
     queryset = klass
-    if hasattr(klass, '_default_manager'):
+    if hasattr(klass, "_default_manager"):
         queryset = klass._default_manager.all()
-    if not hasattr(queryset, 'get'):
-        klass__name = klass.__name__ if isinstance(klass, type) else klass.__class__.__name__
+    if not hasattr(queryset, "get"):
+        klass__name = (
+            klass.__name__
+            if isinstance(klass, type)
+            else klass.__class__.__name__
+        )
         raise ValueError(
             "First argument to get_object_or_404() must be a Model, Manager, "
             "or QuerySet, not '%s'." % klass__name

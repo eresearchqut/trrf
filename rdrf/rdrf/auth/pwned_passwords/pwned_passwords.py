@@ -30,7 +30,7 @@ def _result_to_dict(result):
 
 
 class PwnedPasswordsApi:
-    RANGE_URI = 'range'
+    RANGE_URI = "range"
 
     def __init__(self):
         self.base_url = settings.BREACHED_PASSWORD_ENDPOINT
@@ -46,6 +46,4 @@ class PwnedPasswordsApi:
         return f'{self.base_url}/{endpoint}/{"/".join(components)}'
 
     def _request_headers(self):
-        return {
-            'Add-Padding': f'{str(self.add_padding).lower()}'
-        }
+        return {"Add-Padding": f"{str(self.add_padding).lower()}"}

@@ -1,3 +1,3 @@
 class PatientState:
-    REGISTERED = 'registered'
-    CONSENTED = 'consented'
+    REGISTERED = "registered"
+    CONSENTED = "consented"

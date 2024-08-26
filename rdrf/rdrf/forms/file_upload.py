@@ -1,6 +1,8 @@
 import logging
-from django.urls import reverse, NoReverseMatch
+
 from django.core.files.uploadedfile import UploadedFile
+from django.urls import NoReverseMatch, reverse
+
 from rdrf.db import filestorage
 
 logger = logging.getLogger(__name__)
@@ -15,7 +17,6 @@ def is_filestorage_dict(value):
 
 
 class FileUpload:
-
     """
     A wrapper to send to the django widget which will display the file upload
     :param data:
@@ -25,6 +26,7 @@ class FileUpload:
     def __init__(self, registry, cde_code, fs_dict):
         if isinstance(registry, str):
             from rdrf.models.definition.models import Registry
+
             self.registry = Registry.objects.get(code=registry)
         else:
             self.registry = registry
@@ -42,8 +44,9 @@ class FileUpload:
             try:
                 return reverse("file_upload", kwargs=kwargs)
             except NoReverseMatch:
-                logger.info("Couldn't make URL for file record %s" %
-                            str(self.fs_dict))
+                logger.info(
+                    "Couldn't make URL for file record %s" % str(self.fs_dict)
+                )
 
         return ""
 
@@ -52,7 +55,7 @@ class FileUpload:
         This is to satisfy Django's ClearableFileInputWidget which
         uses django's force_str function
         """
-        return self.fs_dict['file_name']
+        return self.fs_dict["file_name"]
 
     @property
     def mongo_data(self):
@@ -68,14 +71,16 @@ def wrap_fs_data_for_form(registry, data):
     :return: --  Munges the passed in dictionary and wraps any fs references with
     wrappers which display a download link to the file
     """
+
     def wrap(value, key):
         if isinstance(value, list):
             return [wrap(item, key) for item in value]
         elif filestorage.get_id(value):
             return FileUpload(registry, key, value)
         elif isinstance(value, UploadedFile):
-            return FileUpload(registry, key,
-                              {"file_name": value.name, "django_file_id": 0})
+            return FileUpload(
+                registry, key, {"file_name": value.name, "django_file_id": 0}
+            )
         elif isinstance(value, dict):
             return {key: wrap(item, key) for key, item in value.items()}
         return value
@@ -83,7 +88,14 @@ def wrap_fs_data_for_form(registry, data):
     return wrap(data, None)
 
 
-def wrap_file_cdes(registry, file_cdes, section_data, mongo_data, multisection=False, index_map={}):
+def wrap_file_cdes(
+    registry,
+    file_cdes,
+    section_data,
+    mongo_data,
+    multisection=False,
+    index_map=None,
+):
     # Wrap file cde data for display in the form
     # I've refactored the code trying to make it as explicit as possible but it
     # would  still be good to refactor later as it is very painful
@@ -121,6 +133,8 @@ def wrap_file_cdes(registry, file_cdes, section_data, mongo_data, multisection=F
     #               no upload and value False in form to indicate clearing - don't wrap
     #               upload of file : wrap form data
 
+    if index_map is None:
+        index_map = {}
     from rdrf.helpers.utils import get_code, get_form_section_code
 
     def is_existing_in_mongo(section_index, key, value):
@@ -156,7 +170,9 @@ def wrap_file_cdes(registry, file_cdes, section_data, mongo_data, multisection=F
         return False
 
     def wrap_upload(key, value):
-        return FileUpload(registry, key, {"file_name": value.name, "django_file_id": 0})
+        return FileUpload(
+            registry, key, {"file_name": value.name, "django_file_id": 0}
+        )
 
     def wrap_filestorage_dict(key, value):
         return FileUpload(registry, key, value)
@@ -223,8 +239,12 @@ def wrap_file_cdes(registry, file_cdes, section_data, mongo_data, multisection=F
 
                 yield index, item
 
-        return [wrap_section(section_index, section_dict) for section_index,
-                section_dict in iterate_over_non_deleted_items(multisection_list)]
+        return [
+            wrap_section(section_index, section_dict)
+            for section_index, section_dict in iterate_over_non_deleted_items(
+                multisection_list
+            )
+        ]
 
     if multisection:
         return wrap_multisection(section_data)
