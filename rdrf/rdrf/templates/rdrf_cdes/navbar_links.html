@@ -15,7 +15,6 @@
 
 <script type="text/javascript" src="{% static 'js/show_password.js' %}"></script>
 <script type="text/javascript" src="{% static 'vendor/bootstrap-select-1.14.0-beta3/js/bootstrap-select.min.js' %}"></script>
-<script type="text/javascript" src="/static/vendor/bootstrap-select-1.14.0-beta3/js/i18n/defaults-{{ CURRENT_LANGUAGE|get_locale }}.js"></script>
 <script>
 
   $(document).ready(function () {
@@ -26,10 +25,11 @@
         liveSearch: true,
         style: "",
         styleBase: "form-control",
-        liveSearchNormalize: true
+        liveSearchNormalize: true,
+        noneResultsText: gettext("No results matched {0}")
     });
 
-    $language.on("changed.bs.select", (e) => {
+    $language.on("change", (e) => {
         setLanguage(e.target.value);
     });
 
