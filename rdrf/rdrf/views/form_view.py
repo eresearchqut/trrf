@@ -299,7 +299,12 @@ class FormView(View):
         if not patient_model.in_registry(registry_model.code):
             raise Http404
 
-        if not user.can_view(form_model):
+        form_permission = user.get_form_permission(form_model)
+        if not form_permission.can_view():
+            if form_permission == UserFormPermission.FORM_NOT_TRANSLATED:
+                return render(
+                    request, "rdrf_cdes/form_error_not_translated.html"
+                )
             raise PermissionDenied
 
         # is this form the only member of a multiple form group?
