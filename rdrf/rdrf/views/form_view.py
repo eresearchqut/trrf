@@ -37,6 +37,7 @@ from registry.patients.models import (
     PatientSignature,
 )
 from registry.patients.patient_stage_flows import get_registry_stage_flow
+from rest_framework.status import HTTP_406_NOT_ACCEPTABLE
 
 from rdrf.admin_forms import CommonDataElementAdminForm
 from rdrf.db import filestorage
@@ -303,7 +304,9 @@ class FormView(View):
         if not form_permission.can_view():
             if form_permission == UserFormPermission.FORM_NOT_TRANSLATED:
                 return render(
-                    request, "rdrf_cdes/form_error_not_translated.html"
+                    request,
+                    "rdrf_cdes/form_error_not_translated.html",
+                    status=HTTP_406_NOT_ACCEPTABLE,
                 )
             raise PermissionDenied
 
@@ -484,7 +487,9 @@ class FormView(View):
         if not form_permission.can_view():
             if form_permission == UserFormPermission.FORM_NOT_TRANSLATED:
                 return render(
-                    request, "rdrf_cdes/form_error_not_translated.html"
+                    request,
+                    "rdrf_cdes/form_error_not_translated.html",
+                    status=HTTP_406_NOT_ACCEPTABLE,
                 )
             raise PermissionDenied
         xray_recorder.end_subsegment()
