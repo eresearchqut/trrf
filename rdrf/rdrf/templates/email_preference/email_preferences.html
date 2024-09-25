@@ -31,9 +31,9 @@
       {%  include "snippets/_alert_dismiss_button.html" %}
       <p>{% trans "Your preferences have been successfully updated to" %}:
         {% if instance.unsubscribe_all %}
-          <strong>Unsubscribed from all emails</strong>
+          <strong>{% trans "Unsubscribed from all emails" %}</strong>
         {% else %}
-          <strong>Only send selected emails</strong>
+          <strong>{% trans "Only send selected emails" %}</strong>
         {% endif %}
       </p>
       {% include "email_preference/_resubscribe_instructions.html" %}

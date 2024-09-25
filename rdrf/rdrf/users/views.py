@@ -90,7 +90,7 @@ class BaseEmailChangeRequest(View):
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                f'{_("An Email address change request has been created for user")}: {self.user.get_full_name()}',
+                f'{_("An Email address change request has been created for user: %s") % self.user.get_full_name()}',
             )
 
             return self._redirect_response()
