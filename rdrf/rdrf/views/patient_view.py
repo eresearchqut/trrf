@@ -274,7 +274,7 @@ class PatientFormMixin:
                         registry.has_feature(
                             RegistryFeatures.CLINICIANS_HAVE_PATIENTS
                         ),
-                        patient_form.fields
+                        patient_form.fields,
                     ),
                 ),
             ),

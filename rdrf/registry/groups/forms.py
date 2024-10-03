@@ -5,6 +5,7 @@ from django.db.models import Count, F
 
 logger = logging.getLogger(__name__)
 
+
 def _working_group_types(wg_queryset):
     return (
         wg_queryset.values("type")
@@ -20,16 +21,26 @@ def working_group_fields(wg_queryset, initial):
     def working_group_choices(queryset):
         return [(wg.id, wg.display_name) for wg in queryset]
 
-    base_choices = working_group_choices(filter_queryset_by_type(wg_queryset, None))
+    base_choices = working_group_choices(
+        filter_queryset_by_type(wg_queryset, None)
+    )
 
     additional_fields = {
-        f"working_groups_{working_group_type['type']}":
-            forms.MultipleChoiceField(
-                label=working_group_type['name'],
-                choices=working_group_choices(filter_queryset_by_type(wg_queryset, working_group_type["type"])),
-                initial=[wg.id for wg in filter_queryset_by_type(initial, working_group_type["type"])],
-            )
-        for working_group_type in _working_group_types(wg_queryset) if working_group_type['type']}
+        f"working_groups_{working_group_type['type']}": forms.MultipleChoiceField(
+            label=working_group_type["name"],
+            choices=working_group_choices(
+                filter_queryset_by_type(wg_queryset, working_group_type["type"])
+            ),
+            initial=[
+                wg.id
+                for wg in filter_queryset_by_type(
+                    initial, working_group_type["type"]
+                )
+            ],
+        )
+        for working_group_type in _working_group_types(wg_queryset)
+        if working_group_type["type"]
+    }
 
     return base_choices, additional_fields
 

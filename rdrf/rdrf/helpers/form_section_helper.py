@@ -58,13 +58,19 @@ class DemographicsSectionFieldBuilder(object):
         ]
         return (PATIENT_NEXT_OF_KIN_SECTION_NAME, next_of_kin_fields)
 
-    def get_registry_fields(self, clinician_has_patients=False, patient_form_fields=None):
+    def get_registry_fields(
+        self, clinician_has_patients=False, patient_form_fields=None
+    ):
         fields = ["rdrf_registry", "working_groups"]
         if clinician_has_patients:
             fields.append("registered_clinicians")
 
         if patient_form_fields:
-            wg_fields = [field for field, value in patient_form_fields.items() if 'working_groups_' in field]
+            wg_fields = [
+                field
+                for field, value in patient_form_fields.items()
+                if "working_groups_" in field
+            ]
             fields.extend(wg_fields)
 
         return _("Registry"), fields
