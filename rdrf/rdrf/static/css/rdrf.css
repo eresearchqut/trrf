@@ -309,3 +309,9 @@ form .aligned ul.errorlist {
 .dataTables_processing {
   top: 130px !important;
 }
+
+/**************************************************************************
+ * Expandable multi selects                                                */
+select[multiple] {
+  resize: vertical;
+}

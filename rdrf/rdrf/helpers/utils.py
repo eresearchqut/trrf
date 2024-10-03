@@ -400,7 +400,8 @@ def get_error_messages(forms):
             else:
                 for field in form._errors:
                     for error in form._errors[field]:
-                        messages.append(display(form, field, error))
+                        field_label = form.fields[field].label
+                        messages.append(display(form, field_label, error))
     results = list(map(strip_tags, messages))
     return results
 

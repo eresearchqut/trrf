@@ -27,7 +27,7 @@ from rdrf.models.definition.models import (
     DemographicFields,
 )
 from registry.groups import GROUPS
-from registry.groups.forms import working_group_optgroup_choices
+from registry.groups.forms import working_group_fields
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.patient_widgets import PatientRelativeLinkWidget
 
@@ -505,11 +505,16 @@ class PatientForm(forms.ModelForm):
                     "working_groups"
                 ].queryset = instance.working_groups.all()
             else:
-                self.fields[
-                    "working_groups"
-                ].choices = working_group_optgroup_choices(
-                    WorkingGroup.objects.filter(registry=self.registry_model)
+                working_groups_choices, additional_working_group_fields = working_group_fields(
+                    WorkingGroup.objects.filter(registry=self.registry_model),
+                    self.instance.working_groups.all() if self.instance.id else WorkingGroup.objects.none(),
                 )
+                self.fields.update(additional_working_group_fields)
+                self.fields["working_groups"].choices = working_groups_choices
+                if not working_groups_choices:
+                    self.fields["working_groups"].disabled = True
+                    self.fields["working_groups"].required = False
+                    self.fields["working_groups"].widget = forms.MultipleHiddenInput()
 
             # field visibility restricted no non admins
             if not user.is_superuser:
@@ -528,30 +533,37 @@ class PatientForm(forms.ModelForm):
                     if fc is not None
                 ]
 
-                for field_config in field_configs:
-                    field = field_config.field
+                def apply_field_config(target_field, target_field_config):
                     if getattr(
-                        self.fields[field].widget,
+                        self.fields[target_field].widget,
                         "allow_multiple_selected",
                         False,
                     ):
-                        if field_config.status == DemographicFields.HIDDEN:
+                        if target_field_config.status == DemographicFields.HIDDEN:
                             self.fields[
-                                field
+                                target_field
                             ].widget = forms.MultipleHiddenInput()
-                        elif field_config.status == DemographicFields.READONLY:
-                            self.fields[field].required = False
-                            self.fields[field].widget.attrs.update(
+                        elif target_field_config.status == DemographicFields.READONLY:
+                            self.fields[target_field].required = False
+                            self.fields[target_field].widget.attrs.update(
                                 {"disabled": "disabled"}
                             )
                     else:
-                        if field_config.status == DemographicFields.HIDDEN:
-                            self.fields[field].widget = forms.HiddenInput()
-                            self.fields[field].label = ""
-                        elif field_config.status == DemographicFields.READONLY:
-                            self.fields[field].widget = forms.TextInput(
+                        if target_field_config.status == DemographicFields.HIDDEN:
+                            self.fields[target_field].widget = forms.HiddenInput()
+                            self.fields[target_field].label = ""
+                        elif target_field_config.status == DemographicFields.READONLY:
+                            self.fields[target_field].widget = forms.TextInput(
                                 attrs={"readonly": "readonly"}
                             )
+
+                for field_config in field_configs:
+                    field = field_config.field
+                    apply_field_config(field, field_config)
+                    if field == "working_groups":
+                        additional_working_group_fields = [form_fields for form_fields in self.fields if "working_groups_" in form_fields]
+                        for wg_field in additional_working_group_fields:
+                            apply_field_config(wg_field, field_config)
 
             if (
                 not user.is_patient
@@ -638,19 +650,11 @@ class PatientForm(forms.ModelForm):
             user = None
 
         if not user.is_superuser:
-            working_groups_query = (
-                WorkingGroup.objects.get_by_user_and_registry(
-                    user, self.registry_model
-                )
+            self.fields['working_groups'].queryset = WorkingGroup.objects.get_by_user_and_registry(
+                user, self.registry_model
             )
         else:
-            working_groups_query = WorkingGroup.objects.filter(
-                registry=self.registry_model
-            )
-
-        self.fields["working_groups"].choices = working_group_optgroup_choices(
-            working_groups_query
-        )
+            self.fields['working_groups'].queryset = WorkingGroup.objects.filter(registry=self.registry_model)
 
     date_of_birth = forms.DateField(
         widget=forms.DateInput(
@@ -699,17 +703,29 @@ class PatientForm(forms.ModelForm):
         return registries
 
     def clean_working_groups(self):
-        is_disabled = "disabled" in self.fields["working_groups"].widget.attrs
+        is_disabled = ("disabled" in self.fields["working_groups"].widget.attrs or
+                       self.fields["working_groups"].disabled)
+        empty_choices = not self.fields["working_groups"].choices
 
         if is_disabled:
-            return self.instance.working_groups.all()
+            if empty_choices:
+                working_groups = WorkingGroup.objects.none()
+            else:
+                working_groups = self.instance.working_groups.all()
         else:
-            ret_val = self.cleaned_data["working_groups"]
-            if not ret_val:
-                raise forms.ValidationError(
-                    "Patient must be assigned to a working group"
-                )
-            return ret_val
+            working_groups = self.cleaned_data["working_groups"]
+
+        field_names = [key for key in self.data.keys() if 'working_groups_' in key]
+        field_values = [value
+                        for field_name in field_names
+                        for value in self.data.getlist(field_name)]
+
+        all_selected_working_groups = working_groups.union(WorkingGroup.objects.filter(id__in=field_values))
+        if not all_selected_working_groups:
+            raise forms.ValidationError(
+                "Patient must be assigned to a working group"
+            )
+        return all_selected_working_groups
 
     def clean_registered_clinicians(self):
         reg = self.cleaned_data.get("rdrf_registry", Registry.objects.none())
