@@ -73,7 +73,7 @@ class SchemaTest(TestCase):
             test {
                 allPatients {
                     dataSummary {
-                        maxAddressCount
+                        patientaddressSet { maxCount }
                     }
                 }
             }
@@ -86,7 +86,11 @@ class SchemaTest(TestCase):
             {
                 "data": {
                     "test": {
-                        "allPatients": {"dataSummary": {"maxAddressCount": 0}}
+                        "allPatients": {
+                            "dataSummary": {
+                                "patientaddressSet": {"maxCount": 0}
+                            }
+                        }
                     }
                 }
             },
@@ -106,7 +110,11 @@ class SchemaTest(TestCase):
             {
                 "data": {
                     "test": {
-                        "allPatients": {"dataSummary": {"maxAddressCount": 2}}
+                        "allPatients": {
+                            "dataSummary": {
+                                "patientaddressSet": {"maxCount": 2}
+                            }
+                        }
                     }
                 }
             },
@@ -140,7 +148,7 @@ class SchemaTest(TestCase):
             test {
                 allPatients {
                     dataSummary {
-                        maxWorkingGroupCount
+                        workingGroups { maxCount }
                     }
                 }
             }
@@ -154,7 +162,7 @@ class SchemaTest(TestCase):
                 "data": {
                     "test": {
                         "allPatients": {
-                            "dataSummary": {"maxWorkingGroupCount": 0}
+                            "dataSummary": {"workingGroups": {"maxCount": 0}}
                         }
                     }
                 }
@@ -174,7 +182,7 @@ class SchemaTest(TestCase):
                 "data": {
                     "test": {
                         "allPatients": {
-                            "dataSummary": {"maxWorkingGroupCount": 3}
+                            "dataSummary": {"workingGroups": {"maxCount": 3}}
                         }
                     }
                 }
@@ -214,7 +222,7 @@ class SchemaTest(TestCase):
             test {
                 allPatients {
                     dataSummary {
-                        maxClinicianCount
+                        registeredClinicians { maxCount }
                     }
                 }
             }
@@ -227,7 +235,11 @@ class SchemaTest(TestCase):
             {
                 "data": {
                     "test": {
-                        "allPatients": {"dataSummary": {"maxClinicianCount": 0}}
+                        "allPatients": {
+                            "dataSummary": {
+                                "registeredClinicians": {"maxCount": 0}
+                            }
+                        }
                     }
                 }
             },
@@ -244,7 +256,11 @@ class SchemaTest(TestCase):
             {
                 "data": {
                     "test": {
-                        "allPatients": {"dataSummary": {"maxClinicianCount": 4}}
+                        "allPatients": {
+                            "dataSummary": {
+                                "registeredClinicians": {"maxCount": 4}
+                            }
+                        }
                     }
                 }
             },
@@ -270,7 +286,7 @@ class SchemaTest(TestCase):
             test {
                 allPatients {
                     dataSummary {
-                        maxParentGuardianCount
+                        parentguardianSet { maxCount }
                     }
                 }
             }
@@ -284,7 +300,9 @@ class SchemaTest(TestCase):
                 "data": {
                     "test": {
                         "allPatients": {
-                            "dataSummary": {"maxParentGuardianCount": 0}
+                            "dataSummary": {
+                                "parentguardianSet": {"maxCount": 0}
+                            }
                         }
                     }
                 }
@@ -306,7 +324,9 @@ class SchemaTest(TestCase):
                 "data": {
                     "test": {
                         "allPatients": {
-                            "dataSummary": {"maxParentGuardianCount": 2}
+                            "dataSummary": {
+                                "parentguardianSet": {"maxCount": 2}
+                            }
                         }
                     }
                 }
@@ -319,7 +339,7 @@ class SchemaTest(TestCase):
             another {
                 allPatients {
                     dataSummary {
-                        maxParentGuardianCount
+                        parentguardianSet { maxCount }
                     }
                 }
             }
@@ -332,7 +352,9 @@ class SchemaTest(TestCase):
                 "data": {
                     "another": {
                         "allPatients": {
-                            "dataSummary": {"maxParentGuardianCount": 3}
+                            "dataSummary": {
+                                "parentguardianSet": {"maxCount": 3}
+                            }
                         }
                     }
                 }
