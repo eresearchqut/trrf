@@ -8,7 +8,7 @@ import graphene
 from django.conf import settings
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import SearchVector
-from django.db.models import Count, Max, Q, Value
+from django.db.models import Count, Exists, Max, OuterRef, Q, Value
 from django.db.models.functions import Replace
 from django.utils.translation import gettext as _
 from graphene import InputObjectType, ObjectType
@@ -86,6 +86,10 @@ def to_camel_case(name):
     return lower_dot_case_name
 
 
+def codify(str):
+    return re.sub(r"[^a-zA-Z0-9]+", "", str)
+
+
 def validate_fields(fields, valid_fields, label):
     invalid_fields = list(set(fields).difference(valid_fields))
     if len(invalid_fields) > 0:
@@ -109,49 +113,130 @@ class FacetValueType(ObjectType):
     total = graphene.Int()
 
 
-class DataSummaryType(ObjectType):
-    max_address_count = graphene.Int()
-    max_working_group_count = graphene.Int()
-    max_clinician_count = graphene.Int()
-    max_parent_guardian_count = graphene.Int()
-    list_consent_question_codes = graphene.List(graphene.List(graphene.String))
+class WorkingGroupTypeFilterType(InputObjectType):
+    name = graphene.String()
 
-    def resolve_max_address_count(parent: QueryResult, _info):
+
+class DataSummaryItemSummaryType(ObjectType):
+    maxCount = graphene.Int()
+
+
+def create_dynamic_data_summary_type(registry):
+    def resolve_model_max_count(parent, model):
         return (
-            parent.all_patients.annotate(Count("patientaddress"))
-            .aggregate(Max("patientaddress__count"))
-            .get("patientaddress__count__max")
+            parent.all_patients.annotate(Count(model))
+            .aggregate(Max(f"{model}__count"))
+            .get(f"{model}__count__max")
             or 0
         )
 
-    def resolve_max_working_group_count(parent: QueryResult, _info):
-        return (
-            parent.all_patients.annotate(Count("working_groups"))
-            .aggregate(Max("working_groups__count"))
-            .get("working_groups__count__max")
-        )
+    def resolve_address_summary(parent: QueryResult, _info):
+        return {"maxCount": resolve_model_max_count(parent, "patientaddress")}
+
+    def resolve_working_groups(parent: QueryResult, _info):
+        return {
+            "maxCount": WorkingGroup.objects.filter(
+                my_patients__in=parent.all_patients, type__isnull=True
+            )
+            .distinct()
+            .count()
+        }
 
     def resolve_max_clinician_count(parent: QueryResult, _info):
-        return (
-            parent.all_patients.annotate(Count("registered_clinicians"))
-            .aggregate(Max("registered_clinicians__count"))
-            .get("registered_clinicians__count__max")
-        )
+        return {
+            "maxCount": resolve_model_max_count(parent, "registered_clinicians")
+        }
 
     def resolve_max_parent_guardian_count(parent: QueryResult, _info):
-        return (
-            parent.all_patients.annotate(Count("parentguardian"))
-            .aggregate(Max("parentguardian__count"))
-            .get("parentguardian__count__max")
-            or 0
-        )
+        return {"maxCount": resolve_model_max_count(parent, "parentguardian")}
 
-    def resolve_list_consent_question_codes(parent: QueryResult, _info):
+    def resolve_consent_question_code_values(parent: QueryResult, _info):
         return (
             ConsentQuestion.objects.filter(section__registry=parent.registry)
             .order_by("position")
             .values_list("section__code", "code")
         )
+
+    def resolve_working_group_type_summary(
+        parent: QueryResult, _info, working_group_type
+    ):
+        parent, working_group_types = parent
+        return {
+            "maxCount": (
+                WorkingGroup.objects.filter(
+                    my_patients__in=parent.all_patients, type=working_group_type
+                )
+                .distinct()
+                .count()
+            )
+        }
+
+    def create_working_group_types_summary():
+        def resolve_values(parent, _info):
+            _result, all_working_group_types = parent
+            return [all_wg_type.name for all_wg_type in all_working_group_types]
+
+        wg_type_fields = {
+            "values": graphene.List(graphene.String),
+            "resolve_values": resolve_values,
+        }
+        for wg_type in registry_working_group_types(registry):
+            field_name = get_schema_field_name(codify(wg_type.name))
+            wg_type_fields.update(
+                {
+                    field_name: graphene.Field(DataSummaryItemSummaryType),
+                    f"resolve_{field_name}": partial(
+                        resolve_working_group_type_summary,
+                        working_group_type=wg_type,
+                    ),
+                }
+            )
+        return type(
+            f"DynamicDataSummary_{registry.code}_working_group_types",
+            (ObjectType,),
+            wg_type_fields,
+        )
+
+    def resolve_working_group_types(parent: QueryResult, _info):
+        return parent, registry_working_group_types(registry)
+
+    def resolve_consent_question_codes(parent: QueryResult, _info):
+        return parent
+
+    fields = {
+        "patientaddressSet": graphene.Field(DataSummaryItemSummaryType),
+        "resolve_patientaddressSet": resolve_address_summary,
+        "working_groups": graphene.Field(DataSummaryItemSummaryType),
+        "resolve_working_groups": resolve_working_groups,
+        "registered_clinicians": graphene.Field(DataSummaryItemSummaryType),
+        "resolve_registered_clinicians": resolve_max_clinician_count,
+        "parentguardianSet": graphene.Field(DataSummaryItemSummaryType),
+        "resolve_parentguardianSet": resolve_max_parent_guardian_count,
+        "consent_question_codes": graphene.Field(
+            type(
+                "DynamicDataSummary_consentQuestionCodes",
+                (ObjectType,),
+                {
+                    "values": graphene.List(graphene.List(graphene.String)),
+                    "resolve_values": resolve_consent_question_code_values,
+                },
+            )
+        ),
+        "resolve_consent_question_codes": resolve_consent_question_codes,
+    }
+
+    working_group_types = registry_working_group_types(registry)
+    if working_group_types:
+        fields.update(
+            {
+                "working_group_types": graphene.Field(
+                    create_working_group_types_summary()
+                ),
+                "resolve_working_group_types": resolve_working_group_types,
+            }
+        )
+
+    return type(f"DynamicDataSummary_{registry.code}", (ObjectType,), fields)
 
 
 class PatientGUIDType(DjangoObjectType):
@@ -215,7 +300,7 @@ class WorkingGroupSchemaType(DjangoObjectType):
 
     class Meta:
         model = WorkingGroup
-        fields = ("name", "type")
+        fields = ("name",)
 
     def resolve_display_name(self, _info):
         return self.display_name
@@ -611,6 +696,9 @@ def get_patient_fields():
         "resolve_last_login": RegisteredUserType.resolve_last_login,
         "user_status": graphene.String(),
         "resolve_user_status": RegisteredUserType.resolve_user_status,
+        "resolve_working_groups": lambda patient, _info: patient_working_groups(
+            patient
+        ),
     }
 
 
@@ -645,6 +733,33 @@ def get_consent_section_fields(registry):
         )
         consent_fields[f"resolve_{field_name}"] = consent_section_resolver
     return consent_fields
+
+
+def patient_working_groups(patient):
+    return patient.working_groups.filter(type__isnull=True)
+
+
+def registry_working_group_types(registry):
+    return WorkingGroupType.objects.filter(
+        Exists(
+            WorkingGroup.objects.filter(type=OuterRef("pk"), registry=registry)
+        )
+    )
+
+
+def create_working_group_types_fields(registry):
+    def working_groups_resolver(parent, _info, working_group_type):
+        patient, working_groups = parent
+        return working_groups.filter(type=working_group_type)
+
+    fields = {}
+    for working_group_type in registry_working_group_types(registry):
+        field_name = get_schema_field_name(codify(working_group_type.name))
+        fields[field_name] = graphene.List(WorkingGroupSchemaType)
+        fields[f"resolve_{field_name}"] = partial(
+            working_groups_resolver, working_group_type=working_group_type
+        )
+    return fields
 
 
 def create_dynamic_facet_type(registry):
@@ -695,6 +810,9 @@ def create_dynamic_patient_type(registry):
     def consent_values_resolver(patient, _info):
         return patient, ConsentValue.objects.filter(patient=patient)
 
+    def working_group_type_values_resolver(patient, _info):
+        return patient, patient.working_groups.all()
+
     def clinical_data_resolver(patient, _info):
         return patient, ClinicalData.objects.filter(
             django_id=patient.id, django_model="Patient", collection="cdes"
@@ -731,6 +849,21 @@ def create_dynamic_patient_type(registry):
                     ),
                 ),
                 "resolve_consents": consent_values_resolver,
+            }
+        )
+
+    working_group_types = create_working_group_types_fields(registry)
+    if working_group_types:
+        patient_fields.update(
+            {
+                "working_group_types": graphene.Field(
+                    type(
+                        f"DynamicWorkingGroupType_{registry.code}",
+                        (graphene.ObjectType,),
+                        working_group_types,
+                    ),
+                ),
+                "resolve_working_group_types": working_group_type_values_resolver,
             }
         )
 
@@ -873,7 +1006,9 @@ def create_dynamic_all_patients_type(registry):
             "resolve_total": resolve_total,
             "facets": graphene.Field(create_dynamic_facet_type(registry)),
             "resolve_facets": resolve_facets,
-            "data_summary": graphene.Field(DataSummaryType),
+            "data_summary": graphene.Field(
+                create_dynamic_data_summary_type(registry)
+            ),
             "resolve_data_summary": resolve_data_summary,
             "patients": graphene.List(
                 create_dynamic_patient_type(registry),

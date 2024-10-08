@@ -71,7 +71,7 @@ def get_configuration():
             "patientaddressSet": {
                 "label": "Patient Address",
                 "multi_field": True,
-                "variant_lookup": "maxAddressCount",
+                "variant_lookup": "patientaddressSet { maxCount }",
                 "fields": {
                     "addressType { type }": "Address Type",
                     "address": "Street Address",
@@ -84,13 +84,21 @@ def get_configuration():
             "workingGroups": {
                 "label": "Working Groups",
                 "multi_field": True,
-                "variant_lookup": "maxWorkingGroupCount",
-                "fields": {"displayName": "Name", "type { name }": "Type"},
+                "variant_lookup": "workingGroups { maxCount }",
+                "fields": {"displayName": "Name"},
+            },
+            "workingGroupTypes": {
+                "label": "Working Group Types",
+                "multi_field": True,
+                "pivot": True,
+                "variant_lookup": "workingGroupTypes { values }",
+                "subvariant_lookup": "maxCount",
+                "fields": {"name": "Name"},
             },
             "registeredClinicians": {
                 "label": "Registered Clinicians",
                 "multi_field": True,
-                "variant_lookup": "maxClinicianCount",
+                "variant_lookup": "registeredClinicians { maxCount }",
                 "fields": {
                     "firstName": "First Name",
                     "lastName": "Last Name",
@@ -103,7 +111,7 @@ def get_configuration():
                 "label": "Consents",
                 "multi_field": True,
                 "pivot": True,
-                "variant_lookup": "listConsentQuestionCodes",
+                "variant_lookup": "consentQuestionCodes { values }",
                 "fields": {
                     "answer": "Answer",
                     "firstSave": "Date of First Save",
@@ -113,7 +121,7 @@ def get_configuration():
             "parentguardianSet": {
                 "label": "Parent / Guardian",
                 "multi_field": True,
-                "variant_lookup": "maxParentGuardianCount",
+                "variant_lookup": "parentguardianSet { maxCount }",
                 "fields": {
                     "firstName": "First Name",
                     "lastName": "Last Name",
