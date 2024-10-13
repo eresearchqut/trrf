@@ -8,7 +8,7 @@ import graphene
 from django.conf import settings
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import SearchVector
-from django.db.models import Count, Exists, Max, OuterRef, Q, Value
+from django.db.models import Count, Max, Q, Value
 from django.db.models.functions import Replace
 from django.utils.translation import gettext as _
 from graphene import InputObjectType, ObjectType
@@ -180,7 +180,7 @@ def create_dynamic_data_summary_type(registry):
             "values": graphene.List(graphene.String),
             "resolve_values": resolve_values,
         }
-        for wg_type in registry_working_group_types(registry):
+        for wg_type in registry.working_group_types.all():
             field_name = get_schema_field_name(codify(wg_type.name))
             wg_type_fields.update(
                 {
@@ -198,7 +198,7 @@ def create_dynamic_data_summary_type(registry):
         )
 
     def resolve_working_group_types(parent: QueryResult, _info):
-        return parent, registry_working_group_types(registry)
+        return parent, registry.working_group_types.all()
 
     def resolve_consent_question_codes(parent: QueryResult, _info):
         return parent
@@ -223,18 +223,11 @@ def create_dynamic_data_summary_type(registry):
             )
         ),
         "resolve_consent_question_codes": resolve_consent_question_codes,
+        "working_group_types": graphene.Field(
+            create_working_group_types_summary()
+        ),
+        "resolve_working_group_types": resolve_working_group_types,
     }
-
-    working_group_types = registry_working_group_types(registry)
-    if working_group_types:
-        fields.update(
-            {
-                "working_group_types": graphene.Field(
-                    create_working_group_types_summary()
-                ),
-                "resolve_working_group_types": resolve_working_group_types,
-            }
-        )
 
     return type(f"DynamicDataSummary_{registry.code}", (ObjectType,), fields)
 
@@ -739,21 +732,13 @@ def patient_working_groups(patient):
     return patient.working_groups.filter(type__isnull=True)
 
 
-def registry_working_group_types(registry):
-    return WorkingGroupType.objects.filter(
-        Exists(
-            WorkingGroup.objects.filter(type=OuterRef("pk"), registry=registry)
-        )
-    )
-
-
 def create_working_group_types_fields(registry):
     def working_groups_resolver(parent, _info, working_group_type):
         patient, working_groups = parent
         return working_groups.filter(type=working_group_type)
 
     fields = {}
-    for working_group_type in registry_working_group_types(registry):
+    for working_group_type in registry.working_group_types.all():
         field_name = get_schema_field_name(codify(working_group_type.name))
         fields[field_name] = graphene.List(WorkingGroupSchemaType)
         fields[f"resolve_{field_name}"] = partial(

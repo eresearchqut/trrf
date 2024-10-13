@@ -91,6 +91,9 @@ def get_configuration():
                 "label": "Working Group Types",
                 "multi_field": True,
                 "pivot": True,
+                "show_in_designer": any(
+                    r.working_group_types for r in all_registries
+                ),
                 "variant_lookup": "workingGroupTypes { values }",
                 "subvariant_lookup": "maxCount",
                 "fields": {"name": "Name"},

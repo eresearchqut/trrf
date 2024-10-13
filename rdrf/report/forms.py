@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -30,20 +31,25 @@ from report.models import (
 )
 from report.utils import load_report_configuration
 
+logger = logging.getLogger(__name__)
+
 
 def get_demographic_field_value(model_name, field):
     return json.dumps({"model": model_name, "field": field})
 
 
 def get_demographic_field_choices(cfg_demographic_model):
-    demographic_fields = []
-    for model, model_attrs in cfg_demographic_model.items():
-        field_choices = [
-            (get_demographic_field_value(model, key), value)
-            for key, value in model_attrs["fields"].items()
-        ]
-        demographic_fields.append((model_attrs["label"], field_choices))
-    return demographic_fields
+    return [
+        (
+            model_attrs["label"],
+            [
+                (get_demographic_field_value(model, key), value)
+                for key, value in model_attrs["fields"].items()
+            ],
+        )
+        for model, model_attrs in cfg_demographic_model.items()
+        if model_attrs.get("show_in_designer", True)
+    ]
 
 
 def get_cde_field_value(context_form_group, cde_key):

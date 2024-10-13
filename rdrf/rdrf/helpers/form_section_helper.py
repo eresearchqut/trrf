@@ -69,7 +69,7 @@ class DemographicsSectionFieldBuilder(object):
             wg_fields = [
                 field
                 for field, value in patient_form_fields.items()
-                if "working_groups_" in field
+                if field.startswith("working_groups_")
             ]
             fields.extend(wg_fields)
 

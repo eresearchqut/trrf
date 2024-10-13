@@ -586,7 +586,7 @@ class PatientForm(forms.ModelForm):
                         additional_working_group_fields = [
                             form_fields
                             for form_fields in self.fields
-                            if "working_groups_" in form_fields
+                            if form_fields.startswith("working_groups_")
                         ]
                         for wg_field in additional_working_group_fields:
                             apply_field_config(wg_field, field_config)
@@ -750,7 +750,7 @@ class PatientForm(forms.ModelForm):
             working_groups = self.cleaned_data["working_groups"]
 
         field_names = [
-            key for key in self.data.keys() if "working_groups_" in key
+            key for key in self.data.keys() if key.startswith("working_groups_")
         ]
         field_values = [
             value
