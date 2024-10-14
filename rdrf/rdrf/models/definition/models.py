@@ -15,7 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch.dispatcher import receiver
 from django.forms.models import model_to_dict
@@ -444,6 +444,16 @@ class Registry(models.Model):
 
     def has_email_notification(self, event_type):
         return self._registration_check([event_type])
+
+    @property
+    def working_group_types(self):
+        from registry.groups.models import WorkingGroup, WorkingGroupType
+
+        return WorkingGroupType.objects.filter(
+            Exists(
+                WorkingGroup.objects.filter(type=OuterRef("pk"), registry=self)
+            )
+        )
 
 
 def get_owner_choices():

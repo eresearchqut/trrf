@@ -273,7 +273,8 @@ class PatientFormMixin:
                     builder.get_registry_fields(
                         registry.has_feature(
                             RegistryFeatures.CLINICIANS_HAVE_PATIENTS
-                        )
+                        ),
+                        patient_form.fields,
                     ),
                 ),
             ),

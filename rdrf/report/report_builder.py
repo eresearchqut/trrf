@@ -20,8 +20,12 @@ from rdrf.patients.query_data import (
 )
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.models import ReportCdeHeadingFormat
-from report.schema import create_dynamic_schema, get_schema_field_name
-from report.utils import get_flattened_json_path, load_report_configuration
+from report.schema import codify, create_dynamic_schema, get_schema_field_name
+from report.utils import (
+    get_flattened_json_path,
+    get_graphql_result_value,
+    load_report_configuration,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +77,11 @@ class ReportBuilder:
         summary_result = self.schema.execute(
             query, variable_values=variables, context_value=request
         )
-        return (
-            get_all_patients(summary_result, self.report_design.registry)
-            .get("dataSummary", {})
-            .get(lookup_key)
+        return get_graphql_result_value(
+            get_all_patients(summary_result, self.report_design.registry).get(
+                "dataSummary", {}
+            ),
+            lookup_key,
         )
 
     def _build_query_from_variants(self, variants, fields):
@@ -84,7 +89,7 @@ class ReportBuilder:
         # e.g. variants=["itemCode1", "itemCode2"]
         if any(isinstance(item, str) for item in variants):
             return [
-                GqlQuery().fields(fields).query(header).generate()
+                GqlQuery().fields(fields).query(codify(header)).generate()
                 for header in variants
             ]
 
@@ -359,6 +364,26 @@ class ReportBuilder:
                             model=rdf.model
                         ).values_list("field", flat=True)
 
+                        def add_fields(subvariant_index=None):
+                            for model_field in model_fields:
+                                # Determine the field path and name
+                                if subvariant_index is not None:
+                                    json_path = get_flat_json_path(
+                                        f"{rdf.model}_{item_pointer}",
+                                        model_field,
+                                        subvariant_index,
+                                    )
+                                    field_name = f"{model_config['label']}_{item_pointer}_{subvariant_index}_{model_config['fields'][model_field]}"
+                                else:
+                                    json_path = get_flat_json_path(
+                                        rdf.model,
+                                        f"{item_pointer}_{model_field}",
+                                    )
+                                    field_name = f"{model_config['label']}_{item_pointer}_{model_config['fields'][model_field]}"
+
+                                # Add to dict
+                                fieldnames_dict[json_path] = field_name
+
                         if model_config.get("pivot", False):
                             # Lookup the variants of this item, expected to be a list of unique codes/values
                             variants = self.__get_variants(
@@ -375,17 +400,31 @@ class ReportBuilder:
                                     )
                                     item_pointer = "_".join(
                                         [
-                                            get_schema_field_name(field)
+                                            get_schema_field_name(codify(field))
                                             for field in items
                                         ]
                                     )
-                                    for mf in model_fields:
-                                        fieldnames_dict[
-                                            get_flat_json_path(
+
+                                    subvariant_lookup = model_config.get(
+                                        "subvariant_lookup"
+                                    )
+                                    if subvariant_lookup:
+                                        subvariant_lookup_key = (
+                                            "%s { %s { %s } }"
+                                            % (
                                                 rdf.model,
-                                                f"{item_pointer}_{mf}",
+                                                item_pointer,
+                                                subvariant_lookup,
                                             )
-                                        ] = f"{model_config['label']}_{item_pointer}_{model_config['fields'][mf]}"
+                                        )
+                                        subvariants = self.__get_variants(
+                                            subvariant_lookup_key, request
+                                        )
+                                        for i in range(subvariants):
+                                            add_fields(i)
+                                    else:
+                                        add_fields(None)
+
                             else:
                                 # Generate dummy columns so the report isn't completely empty
                                 for mf in model_fields:
