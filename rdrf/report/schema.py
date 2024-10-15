@@ -130,16 +130,25 @@ def create_dynamic_data_summary_type(registry):
             or 0
         )
 
+    def resolve_working_groups_max_count(parent, working_group_type):
+        if working_group_type:
+            by_working_group_type = Q(working_groups__type=working_group_type)
+        else:
+            by_working_group_type = Q(working_groups__type__isnull=True)
+        return (
+            parent.all_patients.filter(by_working_group_type)
+            .values("id", "working_groups__type")
+            .annotate(Count("working_groups"))
+            .aggregate(Max("working_groups__count"))
+            .get("working_groups__count__max")
+        )
+
     def resolve_address_summary(parent: QueryResult, _info):
         return {"maxCount": resolve_model_max_count(parent, "patientaddress")}
 
     def resolve_working_groups(parent: QueryResult, _info):
         return {
-            "maxCount": WorkingGroup.objects.filter(
-                my_patients__in=parent.all_patients, type__isnull=True
-            )
-            .distinct()
-            .count()
+            "maxCount": resolve_working_groups_max_count(parent, None),
         }
 
     def resolve_max_clinician_count(parent: QueryResult, _info):
@@ -162,13 +171,9 @@ def create_dynamic_data_summary_type(registry):
     ):
         parent, working_group_types = parent
         return {
-            "maxCount": (
-                WorkingGroup.objects.filter(
-                    my_patients__in=parent.all_patients, type=working_group_type
-                )
-                .distinct()
-                .count()
-            )
+            "maxCount": resolve_working_groups_max_count(
+                parent, working_group_type
+            ),
         }
 
     def create_working_group_types_summary():
