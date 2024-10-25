@@ -408,6 +408,21 @@ class PatientForm(forms.ModelForm):
             wgs = ", ".join([wg.name for wg in obj.working_groups.all()])
             return f"{title} {full_name} ({wgs})"
 
+        def has_displayable_working_groups(choices):
+            if not choices:
+                return False
+
+            if len(choices) > 1:
+                return True
+
+            working_group_id, *_ = choices[0]
+            return (
+                working_group_id
+                != WorkingGroup.objects.get_unallocated(
+                    registry=self.registry_model
+                ).id
+            )
+
         instance = None
 
         if "registry_model" in kwargs:
@@ -517,7 +532,7 @@ class PatientForm(forms.ModelForm):
                 )
                 self.fields.update(additional_working_group_fields)
                 self.fields["working_groups"].choices = working_groups_choices
-                if not working_groups_choices:
+                if not has_displayable_working_groups(working_groups_choices):
                     self.fields["working_groups"].disabled = True
                     self.fields["working_groups"].required = False
                     self.fields[
@@ -551,6 +566,7 @@ class PatientForm(forms.ModelForm):
                             target_field_config.status
                             == DemographicFields.HIDDEN
                         ):
+                            self.fields[target_field].required = False
                             self.fields[
                                 target_field
                             ].widget = forms.MultipleHiddenInput()
@@ -735,31 +751,56 @@ class PatientForm(forms.ModelForm):
         return registries
 
     def clean_working_groups(self):
-        is_disabled = (
+        is_base_working_groups_disabled = (
             "disabled" in self.fields["working_groups"].widget.attrs
             or self.fields["working_groups"].disabled
         )
-        empty_choices = not self.fields["working_groups"].choices
+        base_working_group_choices = self.fields["working_groups"].choices
+        selected_working_group_ids = self.data.getlist("working_groups")
 
-        if is_disabled:
-            if empty_choices:
-                working_groups = WorkingGroup.objects.none()
-            else:
-                working_groups = self.instance.working_groups.all()
-        else:
-            working_groups = self.cleaned_data["working_groups"]
-
-        field_names = [
-            key for key in self.data.keys() if key.startswith("working_groups_")
+        additional_working_group_fields = [
+            field_name
+            for field_name in self.data.keys()
+            if field_name.startswith("working_groups_")
         ]
-        field_values = [
+        selected_additional_working_group_ids = [
             value
-            for field_name in field_names
+            for field_name in additional_working_group_fields
             for value in self.data.getlist(field_name)
         ]
 
+        # Determine the base working groups the patient should have
+        if is_base_working_groups_disabled:
+            if not base_working_group_choices:
+                working_groups = WorkingGroup.objects.none()
+            else:
+                unallocated_working_group = (
+                    WorkingGroup.objects.get_unallocated(self.registry_model)
+                )
+                if selected_additional_working_group_ids:
+                    # The patient has been assigned to additional working groups,
+                    # and they can't otherwise select from the base working groups, so remove them from "Unallocated"
+                    working_groups = WorkingGroup.objects.filter(
+                        id__in=selected_working_group_ids
+                    ).exclude(id=unallocated_working_group.id)
+                elif self.instance.working_groups.exists():
+                    # No working groups have been selected, (assume all working groups controls are disabled)
+                    # so keep existing working groups
+                    working_groups = self.instance.working_groups.all()
+                else:
+                    # The patient has no allocated working groups, set to "Unallocated"
+                    working_groups = WorkingGroup.objects.filter(
+                        id=unallocated_working_group.id
+                    )
+        else:
+            working_groups = WorkingGroup.objects.filter(
+                id__in=selected_working_group_ids
+            )
+
         all_selected_working_groups = working_groups.union(
-            WorkingGroup.objects.filter(id__in=field_values)
+            WorkingGroup.objects.filter(
+                id__in=selected_additional_working_group_ids
+            )
         )
         if not all_selected_working_groups:
             raise forms.ValidationError(
