@@ -147,7 +147,7 @@
             </div>
             {% endif %}
 
-            <div class="row">
+            <div class="row {% if IS_STAGING_ENV %}mt-5{% endif %}">
                 <div id="sidebar" class="offset-xxl-1 col-xxl-2 col-lg-3 sidebar sidebar-hide">
                     <div class="well p-4" style="background-color: #eeeeee;">
                         {% block sidebar %}
