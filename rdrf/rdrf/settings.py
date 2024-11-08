@@ -24,6 +24,7 @@ WEBAPP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # General site config
 PRODUCTION = env.get("production", False)
+STAGING = env.get("staging", False)
 
 # https://docs.djangoproject.com/en/1.8/ref/middleware/#django.middleware.security.SecurityMiddleware
 SECURE_SSL_REDIRECT = env.get("secure_ssl_redirect", PRODUCTION)

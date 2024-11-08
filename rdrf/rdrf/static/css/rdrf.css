@@ -20,6 +20,7 @@ body {
 
 #wrap > #content {
   width: 100%;
+  padding-top: 180px !important;
 }
 
 .next-form {

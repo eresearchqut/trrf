@@ -12,6 +12,8 @@
 {% load translate %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
+{% load is_staging_env %}
+{% is_staging_env as IS_STAGING_ENV %}
 {% block htmltype %}
 {% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -61,10 +63,6 @@
     <script type="text/javascript">var django = { $: $.noConflict() }; if (!$) $ = django.$; </script>
     {% block extrastyle %}
     <style>
-        body {
-            padding-top: 60px;
-        }
-
         .popover {
             max-width: 40%;
         }
@@ -86,9 +84,12 @@
     </script>
 </head>
 
-<body>
+<body style="padding-top: {% if IS_STAGING_ENV %} 120px {% else %} 60px {% endif %}">
     <div id="wrap">
-        {% include "rdrf_cdes/navbar.html" %}
+        <div class="fixed-top">
+            {% include "rdrf_cdes/banner/_is_staging_env.html" %}
+            {% include "rdrf_cdes/navbar.html" %}
+        </div>
 
         {% block sidebar %}
         {% endblock %}

@@ -13,6 +13,8 @@
 {% load translate %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
+{% load is_staging_env %}
+{% is_staging_env as IS_STAGING_ENV %}
 {% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 {% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
@@ -74,10 +76,13 @@
 
 <body>
     <div id="wrap">
-        {% include "rdrf_cdes/navbar.html" %}
+        <div class="fixed-top">
+            {% include "rdrf_cdes/banner/_is_staging_env.html" %}
+            {% include "rdrf_cdes/navbar.html" %}
+        </div>
 
         {% if location %}
-        <div class="banner">
+        <div class="banner" {% if IS_STAGING_ENV %} style="top:105px" {% endif %}>
             <div class="container-fluid mt-3 mb-2">
               <div class="row">
                 <div class="offset-xxl-1 col-xxl-5 col-md-6">
@@ -92,7 +97,7 @@
         </div>
         {% endif %}
 
-        <div id="content" class="container-fluid" style="padding-top: 150px;">
+        <div id="content" class="container-fluid">
             {% if messages %}
             <div class="header">
                 <div class="row">

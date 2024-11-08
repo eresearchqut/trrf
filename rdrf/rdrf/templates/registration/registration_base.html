@@ -3,6 +3,8 @@
 {% load project_title %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
+{% load is_staging_env %}
+{% is_staging_env as IS_STAGING_ENV %}
 {% get_current_language as LANGUAGE_CODE %}
 
 {% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
@@ -127,15 +129,18 @@
 </head>
 
 <body>
-    {% if not embedded_view %}
-        {% include "rdrf_cdes/navbar.html" %}
-    {% endif %}
+    <div class="fixed-top">
+        {% include "rdrf_cdes/banner/_is_staging_env.html" %}
+        {% if not embedded_view %}
+            {% include "rdrf_cdes/navbar.html" %}
+        {% endif %}
+    </div>
 
     <div
         id="registration_base_container"
         {% if not embedded_view %}
          class="container"
-         style="padding-top: 75px"
+         style="padding-top: {% if IS_STAGING_ENV %} 150px {% else %} 75px {% endif %}"
         {% endif %}
     >
 
@@ -147,7 +152,7 @@
 
         <form id="registration-form" method="POST" autocomplete="off">
             {% block content %}
-                <p><em>{% trans "Required fields are marked with an asterisk (*)." %}</em></p>
+                <p {% if IS_STAGING_ENV %}class="mt-4"{% endif %}><em>{% trans "Required fields are marked with an asterisk (*)." %}</em></p>
             {% endblock %}
         </form>
 
