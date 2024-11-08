@@ -96,7 +96,7 @@
 
         {% block content_wrapper %}
 
-        <div class="container">
+        <div class="container {% if IS_STAGING_ENV %}staging-env-sm-container{% endif %}">
             {% include "rdrf_cdes/alert_language_is_not_supported.html" %}
             {% if messages %}
             {% for message in messages %}

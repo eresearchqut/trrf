@@ -110,6 +110,18 @@ body {
   }
 }
 
+@media (max-width: 767px) {
+  .staging-env-sm-container {
+    padding-top: 30px;
+  }
+  .staging-env-sm-banner {
+    top: 130px !important;
+  }
+  #wrap > #content.staging-env-sm-container-fluid {
+    padding-top: 230px !important;
+  }
+}
+
 #sidebar-button {
   color: #9d9d9d;
 }
