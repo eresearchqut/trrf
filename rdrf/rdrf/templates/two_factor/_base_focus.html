@@ -1,7 +1,7 @@
 {% extends "rdrf_cdes/base.html" %}
 
 {% block content_wrapper %}
-  <div class="container">
+  <div class="container {% if IS_STAGING_ENV %}staging-env-sm-container{% endif %}">
     <div class="row">
       <div class="col-md-6 offset-md-3">
         {% block content %}{% endblock %}
