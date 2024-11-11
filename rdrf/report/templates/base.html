@@ -4,8 +4,6 @@
 {% load i18n %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
-{% load is_staging_env %}
-{% is_staging_env as IS_STAGING_ENV %}
 
 {% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
 <html {% if LANGUAGE_BIDI %}dir="rtl"{% endif %} translate="{{ relevant_registry|get_translate_value }}">
@@ -29,9 +27,12 @@
         <link rel="stylesheet" type="text/css" href="{% static 'css/rdrf.css' %}" media="all">
         <link rel="stylesheet" href="{% static 'css/report.css' %}">
         <script type="text/javascript" src="{% static 'js/rpc_module.js' %}"></script>
-        
+        <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
         <script>
             var rpc = new RPC.RPC("{% url 'rpc' %}", "{{csrf_token}}");
+             $(document).ready(function () {
+                adjustContentTopPadding();
+            });
         </script>
     </head>
     
@@ -42,7 +43,7 @@
                 {% include "rdrf_cdes/banner/_is_staging_env.html" %}
                 {% include "rdrf_cdes/navbar.html" %}
             </div>
-            <div class="container" style="margin-top: {% if IS_STAGING_ENV %} 115px {% else %} 56px {% endif %};">
+            <div id="content" class="container">
                 {% include "rdrf_cdes/alert_language_is_not_supported.html" %}
                 {% if messages %}
                     {% for message in messages %}

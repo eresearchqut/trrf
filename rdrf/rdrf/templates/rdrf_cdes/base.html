@@ -12,8 +12,6 @@
 {% load translate %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
-{% load is_staging_env %}
-{% is_staging_env as IS_STAGING_ENV %}
 {% block htmltype %}
 {% get_current_language_bidi as LANGUAGE_BIDI %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -73,7 +71,7 @@
     <script>
         $(document).ready(function () {
             addExtraValidationMethods();
-
+            adjustContentTopPadding();
             hide_empty_menu(); // Hide the menu dropdown option if there are no elements
 
             $('[data-bs-toggle="popover"]').popover({
@@ -84,7 +82,7 @@
     </script>
 </head>
 
-<body style="padding-top: {% if IS_STAGING_ENV %} 120px {% else %} 60px {% endif %}">
+<body>
     <div id="wrap">
         <div class="fixed-top">
             {% include "rdrf_cdes/banner/_is_staging_env.html" %}
@@ -96,7 +94,7 @@
 
         {% block content_wrapper %}
 
-        <div class="container {% if IS_STAGING_ENV %}staging-env-sm-container{% endif %}">
+        <div id="content" class="container">
             {% include "rdrf_cdes/alert_language_is_not_supported.html" %}
             {% if messages %}
             {% for message in messages %}

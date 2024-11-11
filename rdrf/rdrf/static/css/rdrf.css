@@ -20,7 +20,6 @@ body {
 
 #wrap > #content {
   width: 100%;
-  padding-top: 180px !important;
 }
 
 .next-form {
@@ -93,7 +92,6 @@ body {
     height: 100%;
     width: 300px;
     padding: 0;
-    top: 54px;
     z-index: 100000;
 
     left: 0;
@@ -107,18 +105,6 @@ body {
 
   .sidebar-hide {
     left: -305px;
-  }
-}
-
-@media (max-width: 767px) {
-  .staging-env-sm-container {
-    padding-top: 30px;
-  }
-  .staging-env-sm-banner {
-    top: 130px !important;
-  }
-  #wrap > #content.staging-env-sm-container-fluid {
-    padding-top: 230px !important;
   }
 }
 

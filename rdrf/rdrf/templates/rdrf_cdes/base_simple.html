@@ -3,8 +3,6 @@
 {% load project_title %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
-{% load is_staging_env %}
-{% is_staging_env as IS_STAGING_ENV %}
 {% get_current_language_bidi as LANGUAGE_BIDI %}
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -20,19 +18,25 @@
 
         <script src="{% static 'js/vendor/jquery-3.5.1.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'vendor/bootstrap-5.1.0/js/bootstrap.bundle.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
+        <script>
+            $(document).ready(function () {
+                adjustContentTopPadding();
+            });
+        </script>
 
         {% block extrahead %}
         {% endblock %}
 
     </head>
-    <body style="padding-top: {% if IS_STAGING_ENV %}80px{% endif %}">
+    <body>
 
 
 <div id="wrap">
     <div class="fixed-top">
         {% include "rdrf_cdes/banner/_is_staging_env.html" %}
     </div>
-    <div class="container">
+    <div id="content" class="container">
         {% include "rdrf_cdes/alert_language_is_not_supported.html" %}
         {% block content%}
         {% endblock%}

@@ -3,8 +3,6 @@
 {% load project_title %}
 {% load get_most_relevant_registry %}
 {% load get_translate_value %}
-{% load is_staging_env %}
-{% is_staging_env as IS_STAGING_ENV %}
 {% get_current_language as LANGUAGE_CODE %}
 
 {% with registry_code|get_most_relevant_registry:request.user as relevant_registry %}
@@ -29,6 +27,7 @@
     <script src="{% static 'js/vendor/jquery-validation-1.19.5.min.js' %}"></script>
     <script src="https://www.google.com/recaptcha/api.js?hl={{ LANGUAGE_CODE }}"></script>
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+    <script type="text/javascript" src="{% static 'js/rdrf.js' %}"></script>
 
     <style>
         body {
@@ -52,6 +51,7 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
+            adjustContentTopPadding("registration-form");
             var registry_code = "{{registry_code}}";
 
             var dateOptions = {
@@ -140,7 +140,6 @@
         id="registration_base_container"
         {% if not embedded_view %}
          class="container"
-         style="padding-top: {% if IS_STAGING_ENV %} 150px {% else %} 75px {% endif %}"
         {% endif %}
     >
 
@@ -152,7 +151,7 @@
 
         <form id="registration-form" method="POST" autocomplete="off">
             {% block content %}
-                <p {% if IS_STAGING_ENV %}class="mt-4"{% endif %}><em>{% trans "Required fields are marked with an asterisk (*)." %}</em></p>
+                <p><em>{% trans "Required fields are marked with an asterisk (*)." %}</em></p>
             {% endblock %}
         </form>
 

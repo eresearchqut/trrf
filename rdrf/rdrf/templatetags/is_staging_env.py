@@ -6,4 +6,4 @@ register = template.Library()
 
 @register.simple_tag
 def is_staging_env():
-    return settings.STAGING
+    return settings.SHOW_BANNER

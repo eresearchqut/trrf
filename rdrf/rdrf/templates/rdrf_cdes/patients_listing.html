@@ -17,8 +17,6 @@
     <script>
         var columnDefinitions = JSON.parse(document.getElementById('column-definitions').textContent);
         $(document).ready(function () {
-            adjustContentTopPadding();
-
             $.fn.dataTable.ext.errMode = 'throw';
 
             const registryCode = '{{ registry.code }}';
