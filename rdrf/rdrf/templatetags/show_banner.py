@@ -5,5 +5,5 @@ register = template.Library()
 
 
 @register.simple_tag
-def is_staging_env():
+def show_banner():
     return settings.SHOW_BANNER

@@ -1,7 +1,7 @@
-{% load is_staging_env %}
-{% is_staging_env as IS_STAGING_ENV %}
+{% load show_banner %}
+{% show_banner as SHOW_BANNER %}
 
-{% if IS_STAGING_ENV %}
+{% if SHOW_BANNER %}
     <div class="alert alert-warning mb-0 text-center" role="alert">
       <span class="fa fa-exclamation-circle" aria-hidden="true"></span>
       This registry is for testing purposes only. Do not submit real patient data.
