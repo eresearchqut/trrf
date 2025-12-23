@@ -1,4 +1,6 @@
 .git
+.venv
+__pycache__
 virt_*
 docs
 *.pyc

@@ -1,5 +1,3 @@
-version: "3.7"
-
 volumes:
   dev_db_data:
   dev_clinicaldb_data:

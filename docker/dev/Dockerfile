@@ -1,10 +1,12 @@
-# FROM muccg/rdrf-builder
-FROM python:3.13 as builder
+# Builder stage
+FROM python:3.13 AS builder
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  # TODO check if requirements are needed
   # Base
   gettext \
   libpq5 \
@@ -22,43 +24,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   zlib1g-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN mkdir -p /requirements
-WORKDIR /requirements
+WORKDIR /app
 
-# RUN env | sort
-
-# Add our python deps in multiple docker layers
-# hgvs was failing due to lack of nose, hence the order
-
-COPY requirements/* ./
-
+# Copy dependency files first for layer caching
+COPY pyproject.toml uv.lock ./
 COPY clients ./clients
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip setuptools && \
-    pip install -r requirements.txt && \
-    pip install -r dev-requirements.txt && \
-    pip install -r test-requirements.txt
+# Sync dependencies to /opt/venv (outside /app which gets volume-mounted in dev)
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_LINK_MODE=copy
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --all-extras
 
 VOLUME ["/data"]
 
+# Runtime stage
 FROM python:3.13-slim
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 ENV PYTHONPATH="/app/rdrf/:${PYTHONPATH}"
-ENV DJANGO_SETTINGS_MODULE rdrf.settings
+ENV DJANGO_SETTINGS_MODULE=rdrf.settings
 ENV STATIC_ROOT="/data/static"
 ENV WRITABLE_DIRECTORY="/data/scratch"
 ENV LOCALE_PATHS="/app/translations/locale"
 ENV LOG_DIRECTORY="/data/log"
 ENV MEDIA_ROOT="/data/static/media"
 
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#    libxml2 \
-#   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
   # Base
-  # TODO check if requirements are needed
   gettext \
   libpq5 \
   media-types \
@@ -71,17 +66,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   git \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN mkdir /requirements
-WORKDIR /requirements
+# Copy venv from builder to /opt/venv
+COPY --from=builder /opt/venv /opt/venv
 
-COPY --from=builder /requirements/ .
+WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements.txt && \
-    pip install -r dev-requirements.txt && \
-    pip install -r test-requirements.txt
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+COPY clients ./clients
 
-RUN rm -Rf /root/.cache
+# Finalize dependency install
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_LINK_MODE=copy
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --all-extras
+
+# Add venv to PATH
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY docker/dev/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
@@ -91,7 +92,7 @@ RUN chmod +x /aws-lambda-rie
 
 VOLUME ["/app", "/data"]
 
-ENV HOME /data
+ENV HOME=/data
 WORKDIR /data
 
 EXPOSE 8000

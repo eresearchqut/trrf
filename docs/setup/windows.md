@@ -42,39 +42,27 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
 
 5. Update packages: `sudo apt update -y`
 
-6. Install pyenv
-    * Go to https://github.com/pyenv/pyenv#installation
-    * Under pre-requisites, follow the link to install the Python build dependencies first
-    * Use the `The automatic installer` instructions for installation of pyenv
-    * Confirm it's working by running `pyenv`. If this doesn't work you'll need to add `$HOME/.pyenv/bin` to your PATH in your WSL
-    * Follow the instructions output by `pyenv init`
-
-7. Install python. Check the current python version in the `Dockerfile`.
+6. Install uv (Python package manager)
     ```shell
-    pyenv global 3.9
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
-   Confirm it's working: `python --version`
-8. Configure Git
+    Restart your shell or run `source ~/.local/bin/env` to add uv to your PATH.
+
+7. Configure Git
    * Configure your Git client, as desired, on your WSL distribution
    * Clone the trrf repo into your WSL to an unmounted directory. N.B Cloning to a mounted windows directory will cause significant performance issues!
 
-9. Configure TRRF virtual python environment.
-    ```shell
-    pyenv virtualenv 3.9 trrf 
-    pyenv shell trrf
-    ```
-10. Install pre-requisite packages  
+8. Install pre-requisite packages
      Note: these packages are specific to Ubuntu and may differ if you've installed a different distribution.
      ```shell
     sudo apt install postgresql-client libpq-dev unixodbc-dev
      ```
-11. Install project dependencies
+9. Install project dependencies
     ```shell
     cd /path/to/trrf
-    pip install -r requirements/requirements.txt
-    pip install -r requirements/dev-requirements.txt
-    pip install -r requirements/test-requirements.txt
+    uv sync --all-extras
     ```
+    This will create a virtual environment in `.venv` and install all dependencies.
 
 ### Run TRRF locally
 
@@ -101,7 +89,7 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
 ### General development setup
 1. Open the `trrf` project, selecting the cloned repo within the wsl directory structure
 2. Setup WSL as the Python interpreter: https://www.jetbrains.com/help/pycharm/using-wsl-as-a-remote-interpreter.html#configure-wsl
-   * Python executable path - select the python executable in the virtual environment you created for trrf. e.g. `/home/totagian/.pyenv/versions/trrf/bin/python`.
+   * Python executable path - select the python executable in the `.venv` directory. e.g. `/path/to/trrf/.venv/bin/python`.
 3. Enable Django support:
    1. File > Settings > Languages and Frameworks > Enable Django Support
       * Django project root: `\\wsl$\Ubuntu-20.04\path\to\trrf\rdrf`
@@ -132,25 +120,14 @@ Running Launch from the Microsoft Store once it has downloaded will install it.
    git submodule init
    git submodule update
    ```
-2. Create a virtual environment using WLS and pyenv
+2. Install the python dependencies using uv
    ```
-   pyenv virtualenv mnd
-   pyenv shell mnd
+   cd path/to/mnd/rdrf
+   uv sync --all-extras
+
+   cd path/to/mnd
+   uv sync --all-extras
    ```
-3. Install the python lib dependencies
-   ```
-   cd path/to/mnd/rdrf/requirements
-   
-   pip install -r requirements.txt
-   pip install -r dev-requirements.txt
-   pip install -r test-requirements.txt
-   
-   cd path/to/mnd/requirements
-   
-   pip install -r requirements.txt
-   pip install -r dev-requirements.txt
-   pip install -r test-requirements.txt
-   ```
-4. Configure the python interpreter in IntelliJ using wsl as the interpreter
-   * Python Interpreter path needs to point to the python exe in the virtual environment you created for this site.
-   e.g. `/home/totagian/.pyenv/versions/mnd/bin/python`
+3. Configure the python interpreter in IntelliJ using wsl as the interpreter
+   * Python Interpreter path needs to point to the python exe in the `.venv` directory.
+   e.g. `/path/to/mnd/.venv/bin/python`
