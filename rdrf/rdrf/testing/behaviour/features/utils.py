@@ -344,7 +344,7 @@ def scroll_to_cde(section, cde, item=None):
     if "__prefix__" in input_id:
         # hack to avoid this error
         input_id = input_id.replace("__prefix__", "0")
-        input_element = world.browser.find_element_by_id(input_id)
+        input_element = world.browser.find_element(By.ID, input_id)
         if not input_element:
             raise Exception("could not locate input with id %s" % input_id)
 

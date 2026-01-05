@@ -1,4 +1,5 @@
 from aloe import world
+from selenium.webdriver.common.by import By
 
 from rdrf.testing.behaviour.features.utils import wait_for_first_section
 
@@ -6,8 +7,8 @@ EMAIL_SELECTOR = "#id_messages > tbody > tr"
 
 
 def get_email(n):
-    return world.browser.find_elements_by_css_selector(
-        f"{EMAIL_SELECTOR}:nth-child({n}) > td a"
+    return world.browser.find_elements(
+        By.CSS_SELECTOR, f"{EMAIL_SELECTOR}:nth-child({n}) > td a"
     )
 
 

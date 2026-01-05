@@ -71,7 +71,7 @@ def empty_mail(_step):
 def check_mail(_step, count):
     go_to_url("mail/outbox")
     sent_emails = len(
-        world.browser.find_elements_by_css_selector(EMAIL_SELECTOR)
+        world.browser.find_elements(By.CSS_SELECTOR, EMAIL_SELECTOR)
     )
     assert_equal(sent_emails, int(count))
 

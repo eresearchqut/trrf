@@ -81,12 +81,12 @@ def patient_self_registration(_step, client_name, email_address, password):
 
     # Populate plain text fields
     for key, value in params.items():
-        world.browser.find_element_by_id(key).send_keys(value + Keys.TAB)
+        world.browser.find_element(By.ID, key).send_keys(value + Keys.TAB)
 
     # Select the gender radio button
     # 1 - Male, 2 - Female, 3 - Indeterminate
-    world.browser.find_element_by_css_selector(
-        "input[name='gender'][value='1']"
+    world.browser.find_element(
+        By.CSS_SELECTOR, "input[name='gender'][value='1']"
     ).click()
 
     captcha_iframe_element = world.browser.find_element(
@@ -96,7 +96,7 @@ def patient_self_registration(_step, client_name, email_address, password):
     world.browser.switch_to.frame(captcha_iframe_element)
     scroll_to_y(500)
 
-    world.browser.find_element_by_id("recaptcha-anchor").send_keys(Keys.SPACE)
+    world.browser.find_element(By.ID, "recaptcha-anchor").send_keys(Keys.SPACE)
 
     world.browser.switch_to.default_content()
 
@@ -191,8 +191,8 @@ def open_option_from_menu(_step, option, menu):
 
 @step('"([^"]+)" image is displayed')
 def assert_is_image_displayed(_step, image_alt):
-    image = world.browser.find_element_by_css_selector(
-        f'img[alt="{image_alt}"]'
+    image = world.browser.find_element(
+        By.CSS_SELECTOR, f'img[alt="{image_alt}"]'
     )
     assert_true(image.is_displayed())
 
