@@ -6,6 +6,7 @@ from django.contrib.messages.storage import default_storage
 from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
@@ -25,8 +26,8 @@ from .forms import (
 logger = logging.getLogger(__name__)
 
 
-@tfv.utils.class_view_decorator(sensitive_post_parameters())
-@tfv.utils.class_view_decorator(never_cache)
+@method_decorator(sensitive_post_parameters(), name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class LoginView(tfv.LoginView):
     form_list = (
         ("auth", LoginAuthenticationForm),
@@ -79,17 +80,17 @@ def user_login_callback(sender, request=None, user=None, **kwargs):
 # Customised Two Factor views
 
 
-@tfv.utils.class_view_decorator(never_cache)
+@method_decorator(never_cache, name="dispatch")
 class QRGeneratorView(tfv.core.QRGeneratorView):
     session_key_name = "two_fact_auth_key"
 
 
-@tfv.utils.class_view_decorator(never_cache)
+@method_decorator(never_cache, name="dispatch")
 class SetupView(tfv.core.SetupView):
     session_key_name = "two_fact_auth_key"
 
 
-@tfv.utils.class_view_decorator(never_cache)
+@method_decorator(never_cache, name="dispatch")
 class DisableView(tfv.profile.DisableView):
     def form_valid(self, form):
         user = self.request.user
