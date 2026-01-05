@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 
 import yaml
 from django.conf import settings
@@ -14,6 +14,7 @@ from django.core import management
 from django.core.management import call_command
 from django.forms.models import model_to_dict
 from django.test import RequestFactory, TestCase
+from django.utils import timezone
 from registry.groups import GROUPS as RDRF_GROUPS
 from registry.groups.models import CustomUser, WorkingGroup
 from registry.patients.models import AddressType, Patient, PatientAddress, State
@@ -631,7 +632,7 @@ class FormTestCase(RDRFTestCase):
         p = Patient()
         p.consent = True
         p.name = "Harry"
-        p.date_of_birth = datetime(1978, 6, 15)
+        p.date_of_birth = date(1978, 6, 15)
         p.working_group = self.working_group
         p.save()
         p.rdrf_registry.set([self.registry])
@@ -1660,7 +1661,7 @@ class RemindersTestCase(TestCase):
         EmailTemplate.objects.all().delete()
 
     def test_check_logins_command(self):
-        now = datetime.now()
+        now = timezone.now()
 
         class Time:
             RECENTLY = now - timedelta(days=1)
@@ -1797,7 +1798,7 @@ class ClinicalDataTestCase(RDRFTestCase):
     def create_new_patient(self):
         p = Patient()
         p.name = "Kathy"
-        p.date_of_birth = datetime(1980, 4, 11)
+        p.date_of_birth = date(1980, 4, 11)
         p.consent = True
         p.save()
 

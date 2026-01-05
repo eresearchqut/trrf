@@ -1,7 +1,8 @@
 import sys
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.core.management import BaseCommand
+from django.utils import timezone
 from registry.groups.models import CustomUser
 
 from rdrf.models.definition.models import Registry
@@ -86,7 +87,7 @@ class Command(BaseCommand):
             return 365
 
     def _get_threshold(self, num_days):
-        return datetime.now() - timedelta(days=num_days)
+        return timezone.now() - timedelta(days=num_days)
 
     def handle(self, *args, **options):
         action = options.get("action")

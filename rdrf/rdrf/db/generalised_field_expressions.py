@@ -565,7 +565,7 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
         )
 
     def set_value(self, patient_model, mongo_record, new_value, **kwargs):
-        from datetime import datetime
+        from django.utils import timezone
 
         from rdrf.db.contexts_api import RDRFContextManager
 
@@ -587,7 +587,7 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                 }
 
                 form_timestamp_key = "%s_timestamp" % self.form_model.name
-                form_timestamp_value = datetime.now()
+                form_timestamp_value = timezone.now()
 
                 form_dict = {
                     "name": self.form_model.name,
@@ -638,7 +638,7 @@ class ClinicalFormExpression(GeneralisedFieldExpression):
                             form_dict["sections"].append(section_dict)
                 if not form_exists:
                     form_timestamp_key = "%s_timestamp"
-                    form_timestamp_value = datetime.now()
+                    form_timestamp_value = timezone.now()
                     form_dict = {
                         "name": self.form_model.name,
                         "sections": [

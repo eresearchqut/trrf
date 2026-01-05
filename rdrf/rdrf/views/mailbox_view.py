@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime
+from datetime import timezone as dt_timezone
 
 from django.core import mail
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views import View
 
 from rdrf.services.io.notifications.longitudinal_followups import (
@@ -34,10 +36,12 @@ class MailboxEmptyView(View):
 class MailboxSendLongitudinalFollowups(View):
     def get(self, request):
         if now_param := request.GET.get("now", None):
-            now = datetime.fromtimestamp(int(now_param))
+            # Use Python's datetime.timezone.utc directly for clarity
+            now = datetime.fromtimestamp(int(now_param), tz=dt_timezone.utc)
         else:
-            now = datetime.now()
+            now = timezone.now()
 
+        logger.info(f"Sending longitudinal followups with now={now}")
         send_longitudinal_followups(now)
 
         return redirect(reverse("mailbox"))

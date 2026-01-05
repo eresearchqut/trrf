@@ -1,10 +1,10 @@
 import io
 import logging
 import zipfile
-from datetime import datetime
 from functools import reduce
 
 from django.http import HttpResponse
+from django.utils import timezone
 
 from rdrf.services.io.defs.exporter import Exporter, ExportType
 
@@ -19,7 +19,7 @@ def write_export_single_file(yaml_data, registry, export_type):
     if yaml_data is None:
         return
 
-    export_time = str(datetime.now())
+    export_time = str(timezone.now())
 
     yaml_export_filename = f"export_{export_time}_{registry.name}{partial_descriptor_str(export_type)}.yaml"
 
@@ -49,7 +49,7 @@ def write_export_zip(exports, export_type):
     response = HttpResponse(
         zip_stream.getvalue(), content_type="application/zip"
     )
-    export_time = str(datetime.now())
+    export_time = str(timezone.now())
     name = (
         "export_"
         + export_time

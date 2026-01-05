@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-import datetime
 import logging
 
 from django.contrib.auth.signals import user_logged_in
 from django.db import models
+from django.utils import timezone
 
 from .signals import (
     account_has_expired,
@@ -25,7 +25,7 @@ class LoginAttempt(models.Model):
 
 class LoginAttemptLogger(object):
     def reset(self, username):
-        defaults = {"count": 0, "timestamp": datetime.datetime.now()}
+        defaults = {"count": 0, "timestamp": timezone.now()}
         LoginAttempt.objects.update_or_create(
             username=username, defaults=defaults
         )
@@ -33,7 +33,7 @@ class LoginAttemptLogger(object):
     def increment(self, username):
         obj, created = LoginAttempt.objects.get_or_create(username=username)
         obj.count += 1
-        obj.timestamp = datetime.datetime.now()
+        obj.timestamp = timezone.now()
         obj.save()
 
 

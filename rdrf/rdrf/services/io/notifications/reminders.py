@@ -1,6 +1,7 @@
 import json
 import logging
-from datetime import datetime
+
+from django.utils import timezone
 
 from rdrf.services.io.notifications.email_notification import (
     EmailNotificationHistory,
@@ -21,7 +22,7 @@ class ReminderProcessor:
 
     def _can_send(self):
         # These are the rules for MTM - should we push into config?
-        now = datetime.now()
+        now = timezone.now()
         existing_reminders = self._get_reminders()
         num_sent = len(existing_reminders)
         if num_sent >= 2:

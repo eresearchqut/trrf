@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 from decimal import Decimal
@@ -8,6 +7,7 @@ import yaml
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.forms.models import model_to_dict
+from django.utils import timezone
 from registry.patients.models import (
     NextOfKinRelationship,
     PatientStage,
@@ -332,7 +332,7 @@ class Exporter:
 
         data["RDRF_VERSION"] = VERSION
         data["EXPORT_TYPE"] = export_type
-        data["EXPORT_TIME"] = str(datetime.datetime.now())
+        data["EXPORT_TIME"] = str(timezone.now())
         data["REGISTRY_VERSION"] = self._get_registry_version()
 
         if self.registry:

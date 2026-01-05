@@ -4,7 +4,8 @@ import os
 import shutil
 import tempfile
 from collections import OrderedDict
-from datetime import datetime
+
+from django.utils import timezone
 
 from rdrf.models.definition.models import Registry
 
@@ -63,7 +64,7 @@ class TopLevelExporter(object):
             )
             if exporter.export(**self.export_context):
                 self.meta.append(exporter.get_meta_info(top_level=True))
-        self.exported_at = datetime.now()
+        self.exported_at = timezone.now()
 
         self.write_out_meta_info()
 

@@ -201,10 +201,12 @@ class FormProgressCalculator:
         return result
 
     def _calculate_form_currency(self):
-        from datetime import datetime, timedelta
+        from datetime import timedelta
+
+        from django.utils import timezone
 
         form_timestamp_key = "%s_timestamp" % self.form_model.name
-        one_year_ago = datetime.now() - timedelta(weeks=52)
+        one_year_ago = timezone.now() - timedelta(weeks=52)
 
         if self.dynamic_data is None:
             return False

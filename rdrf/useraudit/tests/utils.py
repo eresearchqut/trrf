@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import reduce
 from importlib import import_module
 
 from django.conf import settings
 from django.contrib.auth import authenticate, login
-
 from django.test.client import RequestFactory
+from django.utils import timezone
 
 
 def is_recent(time):
-    return datetime.now() - timedelta(seconds=3) < time
+    return timezone.now() - timedelta(seconds=3) < time
 
 
 def simulate_login(username, password, headers=None):

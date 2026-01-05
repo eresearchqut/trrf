@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.core.management import BaseCommand
+from django.utils import timezone
 
 from rdrf.services.io.notifications.longitudinal_followups import (
     send_longitudinal_followups,
@@ -16,5 +17,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         delta_seconds = options["delta_seconds"]
 
-        now = datetime.now()
+        now = timezone.now()
         send_longitudinal_followups(now + timedelta(seconds=delta_seconds))

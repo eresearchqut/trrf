@@ -13,6 +13,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 from django.urls import reverse
+from django.utils import timezone
 from registry.patients.models import (
     ConsentValue,
     LongitudinalFollowupEntry,
@@ -40,7 +41,7 @@ def handle_longitudinal_followups(user, patient, registry, context_form_group):
     if context_form_group is None:
         return
 
-    now = datetime.datetime.now()
+    now = timezone.now()
     new_entries = [
         LongitudinalFollowupEntry(
             longitudinal_followup=longitudinal_followup,
@@ -147,7 +148,7 @@ def _serialize_entries(patient_entries):
 
 def with_now(func):
     def wrapper(now=None):
-        return func(now=now or datetime.datetime.now())
+        return func(now=now or timezone.now())
 
     return wrapper
 
@@ -237,7 +238,7 @@ def send_longitudinal_followups(now):
         if not any(entry.send_at <= now for entry in patient_entries):
             continue
 
-        sent_at = datetime.datetime.now()
+        sent_at = timezone.now()
 
         longitudinal_followups = _serialize_entries(patient_entries)
 

@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 from registry.patients.models import (
     LivingStates,
     LongitudinalFollowupEntry,
@@ -71,7 +70,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"Found {len(pending_entries)} pending entries")
         )
 
-        now = datetime.now()
+        now = timezone.now()
         patients = Patient.objects.filter(rdrf_registry=registry)
 
         def can_add(patient):

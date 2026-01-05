@@ -1,8 +1,8 @@
 import logging
-from datetime import datetime
 
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from registry.groups.models import CustomUser
 
 from rdrf.events.events import EventType
@@ -43,7 +43,7 @@ class ClinicianSignupRequest(models.Model):
     def send_request(self):
         self._send_email()
         self.state = "emailed"
-        self.emailed_date = datetime.now()
+        self.emailed_date = timezone.now()
         self.save()
 
     def notify_participant_on_verification(self, diagnosis=""):

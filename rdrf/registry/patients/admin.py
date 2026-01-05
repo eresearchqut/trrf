@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import os
@@ -8,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import re_path, reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rdrf.db.dynamic_data import DynamicDataWrapper
 from rdrf.helpers.registry_features import RegistryFeatures
@@ -439,7 +439,7 @@ class PatientAdmin(admin.ModelAdmin):
         if not hasattr(obj, "patient_diagnosis"):
             return ""
 
-        delta = datetime.datetime.now() - obj.patient_diagnosis.updated
+        delta = timezone.now() - obj.patient_diagnosis.updated
         age = delta.days
 
         if age > 365:
@@ -455,7 +455,7 @@ class PatientAdmin(admin.ModelAdmin):
     def last_updated(self, obj):
         if not hasattr(obj, "diagnosis"):
             return ""
-        delta = datetime.datetime.now() - obj.diagnosis.updated
+        delta = timezone.now() - obj.diagnosis.updated
         age = delta.days
 
         if age == 0:

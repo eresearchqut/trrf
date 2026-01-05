@@ -5,6 +5,7 @@ from operator import itemgetter
 
 from aws_xray_sdk.core import xray_recorder
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils import timezone
 
 from rdrf.db.filestorage import create_filestorage
 from rdrf.forms.file_upload import FileUpload, wrap_fs_data_for_form
@@ -246,7 +247,7 @@ class FormDataParser:
             self.django_model = None
 
     def update_timestamps(self, form_model):
-        t = datetime.datetime.now()
+        t = timezone.now()
         form_timestamp = form_model.name + "_timestamp"
         self.global_timestamp = t
         self.form_timestamps[form_timestamp] = t
@@ -893,7 +894,7 @@ class DynamicDataWrapper(object):
         else:
             record = self._get_record(registry.code, collection_name).first()
 
-        form_data["timestamp"] = datetime.datetime.now()
+        form_data["timestamp"] = timezone.now()
 
         if self.current_form_model:
             form_timestamp_key = "%s_timestamp" % self.current_form_model.name
@@ -940,7 +941,7 @@ class DynamicDataWrapper(object):
         self, registry_code, record, form_name=None, form_user=None
     ):
         try:
-            timestamp = str(datetime.datetime.now())
+            timestamp = str(timezone.now())
             patient_id = record.data["django_id"]
             snapshot = {
                 "django_id": patient_id,

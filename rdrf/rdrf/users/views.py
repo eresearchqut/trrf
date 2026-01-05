@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from django.contrib import auth, messages
@@ -12,6 +11,7 @@ from django.core.exceptions import (
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from registry.groups.models import (
@@ -44,13 +44,15 @@ class BaseEmailChangeRequest(View):
 
     def _render_template(self, request, user, form):
         # An existing email change request is only considered current if it was requested within the last 2 weeks
-        last_2_weeks = datetime.datetime.now() + datetime.timedelta(weeks=-2)
+        from datetime import timedelta
+
+        last_2_weeks = timezone.now() + timedelta(weeks=-2)
         current_request = EmailChangeRequest.objects.filter(
             user=user, request_date__gte=last_2_weeks
         ).first()
 
         # Has the activation link most likely expired?
-        activation_expiry_hours = datetime.datetime.now() + datetime.timedelta(
+        activation_expiry_hours = timezone.now() + timedelta(
             hours=-EMAIL_CHANGE_REQUEST_EXPIRY_HOURS
         )
         is_expired = (

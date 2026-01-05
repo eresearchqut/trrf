@@ -1,9 +1,10 @@
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 
 from django.core import mail
 from django.test import TestCase
+from django.utils import timezone
 from registry.patients.models import (
     ConsentValue,
     LongitudinalFollowupEntry,
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class LongitudinalFollowupSetupMixin:
     def create_models(self):
-        self.now = datetime.now()
+        self.now = timezone.now()
         self.registry = Registry.objects.create(
             code="reg",
             metadata_json=json.dumps({"features": ["longitudinal_followups"]}),
@@ -99,7 +100,7 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             debounce=timedelta(weeks=26),
         )
         patient = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient.rdrf_registry.add(self.registry)
 
@@ -161,7 +162,7 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             debounce=timedelta(weeks=52),
         )
         patient = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient.rdrf_registry.add(self.registry)
 
@@ -249,12 +250,12 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
             debounce=timedelta(weeks=26),
         )
         patient1 = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient1.rdrf_registry.add(self.registry)
 
         patient2 = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient2.rdrf_registry.add(self.registry)
 
@@ -352,12 +353,12 @@ class LongitudinalFollowupSentTest(TestCase, LongitudinalFollowupSetupMixin):
         )
 
         patient1 = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient1.rdrf_registry.add(self.registry)
 
         patient2 = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient2.rdrf_registry.add(self.registry)
 
@@ -527,7 +528,7 @@ class LongitudinalFollowupConditionTest(
         )
 
         patient = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient.rdrf_registry.add(self.registry)
         patient.save()
@@ -586,7 +587,7 @@ class LongitudinalFollowupDebounceTest(
             debounce=timedelta(weeks=debounce_weeks),
         )
         patient = Patient.objects.create(
-            consent=True, date_of_birth=datetime(1970, 1, 1), sex="3"
+            consent=True, date_of_birth=date(1970, 1, 1), sex="3"
         )
         patient.rdrf_registry.add(self.registry)
         patient.save()

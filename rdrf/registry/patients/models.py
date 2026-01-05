@@ -1,8 +1,8 @@
-import datetime
 import json
 import logging
 import random
 from collections import namedtuple
+from datetime import date, timedelta
 from functools import reduce
 from operator import attrgetter
 
@@ -579,7 +579,7 @@ class Patient(models.Model):
             if self.date_of_death:
                 compare_date = self.date_of_death
             else:
-                compare_date = datetime.date.today()
+                compare_date = date.today()
 
             try:
                 birthday = born.replace(year=compare_date.year)
@@ -650,9 +650,7 @@ class Patient(models.Model):
         If some clinical form has been updated  in the window
         then the data for that registry is considered "current" - this mirrors
         """
-        time_window_start = datetime.datetime.now() - datetime.timedelta(
-            days=days
-        )
+        time_window_start = timezone.now() - timedelta(days=days)
         currency_map = {}
         for registry_model in self.rdrf_registry.all():
             last_updated_in_window = False
@@ -817,7 +815,7 @@ class Patient(models.Model):
             mongo_data = {
                 "django_id": self.pk,
                 "django_model": "Patient",
-                "timestamp": datetime.datetime.now(),
+                "timestamp": timezone.now(),
                 "context_id": context_model.pk,
                 "forms": [],
             }
@@ -888,7 +886,7 @@ class Patient(models.Model):
         mongo_data = wrapper.load_dynamic_data(registry_code, "cdes") or {}
         key = mongo_key(form_name, section_code, data_element_code)
         timestamp = "%s_timestamp" % form_name
-        t = datetime.datetime.now()
+        t = timezone.now()
 
         frm = RegistryForm.objects.get(
             registry__code=registry_code, name=form_name
@@ -1032,9 +1030,9 @@ class Patient(models.Model):
         answer_changed = cv.answer != answer or created
         cv.answer = answer
         if cv.first_save:
-            cv.last_update = datetime.datetime.now()
+            cv.last_update = timezone.now()
         else:
-            cv.first_save = datetime.datetime.now()
+            cv.first_save = timezone.now()
         if commit:
             cv.save()
         return cv, answer_changed
@@ -1275,7 +1273,7 @@ class Patient(models.Model):
         if timestamp:
             if "timestamp" in timestamp:
                 ts = timestamp["timestamp"]
-                delta = datetime.datetime.now() - ts
+                delta = timezone.now() - ts
                 return True if delta.days < _6MONTHS_IN_DAYS else False
             else:
                 return True
