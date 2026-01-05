@@ -149,9 +149,12 @@
                     {% endif %}
                     {% block patient_menu %}
                     {% endblock %}
-                    <li><a class="dropdown-item" href="{% url 'logout' %}?next={% url 'login_router' %}"><span
-                            class="fa fa-fw fa-sign-out"></span>
-                        {% trans 'Logout' %}</a></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}?next={% url 'login_router' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button id="logout-button" type="submit" class="dropdown-item"><span class="fa fa-fw fa-sign-out"></span>{% trans 'Logout' %}</button>
+                        </form>
+                    </li>
 
                 </ul>
             </li>

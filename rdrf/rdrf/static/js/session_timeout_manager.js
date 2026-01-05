@@ -169,8 +169,29 @@ function SessionManager(sessionNotifier, options) {
     }
 
     function logout() {
-        window.location.href = settings.urls.logout;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+
+        if (!csrfToken) {
+            console.error("CSRF Token not found");
+            return;
+        }
+
+        fetch(settings.urls.logout, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken.value
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = response.url;
+            } else {
+                console.error('Logout failed');
+            }
+        })
+        .catch(error => console.error('Error:', error));
     }
+
 
     function goToLoginPage() {
         window.location.href = settings.urls.login;

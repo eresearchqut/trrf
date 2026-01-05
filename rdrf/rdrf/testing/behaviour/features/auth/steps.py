@@ -118,7 +118,9 @@ def login(_step, username, password):
 
 @step("logout")
 def logout(_step):
-    open_option_from_menu(_step, "Logout", "user")
+    BasePage(world.browser).open_menu("user")
+    button = world.browser.find_element(by=By.ID, value="logout-button")
+    button.click()
 
 
 @step('reauthenticate with username "([^"]+)" and password "([^"]+)"')

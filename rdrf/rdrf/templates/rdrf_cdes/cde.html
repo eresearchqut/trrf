@@ -28,7 +28,10 @@
 
                 <a href="admin/password_change/">Change password</a> /
 
-                <a href="admin/logout/">Log out</a>
+                <form method="post" action="admin/logout/" style="display:inline;">
+                    {% csrf_token %}
+                    <button id="logout-button" type="submit" style="background:none;border:none;padding:0;color:#ffc;text-decoration:underline;cursor:pointer;">{% trans 'Log out' %}</button>
+                </form>
 
         </div>
 

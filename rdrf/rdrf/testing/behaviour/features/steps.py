@@ -514,7 +514,7 @@ def should_be_logged_in(step):
         by=By.PARTIAL_LINK_TEXT, value=world.user
     )
     utils.click(user_link)
-    world.browser.find_element_by_link_text("Logout")
+    world.browser.find_element(By.ID, "logout-button")
 
 
 @step("should be on the login page")
