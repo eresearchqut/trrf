@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from . import utils
+from .auth.steps import logout
 from .terrain import TEST_WAIT
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def check_user_activated(step):
     )
 
     # Log out as the admin user
-    world.browser.get(world.site_url + "logout?next=/router/")
+    logout(step)
 
 
 @step("I try to surf the site...")
