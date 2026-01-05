@@ -406,21 +406,6 @@ def get_error_messages(forms):
     return results
 
 
-def timed(func):
-    logger = logging.getLogger(__name__)
-
-    def wrapper(*args, **kwargs):
-        a = datetime.datetime.now()
-        result = func(*args, **kwargs)
-        b = datetime.datetime.now()
-        c = b - a
-        func_name = func.__name__
-        logger.debug("%s time = %s secs" % (func_name, c))
-        return result
-
-    return wrapper
-
-
 def get_cde_value(
     form_model, section_model, cde_model, patient_record, form_index=None
 ):
