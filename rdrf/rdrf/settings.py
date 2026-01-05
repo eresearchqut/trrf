@@ -312,9 +312,23 @@ WRITABLE_DIRECTORY = env.get("writable_directory", "/tmp")
 
 # Use S3 by default to avoid writing sensitive data to FS in production
 if env.get("FILE_STORAGE", "S3") == "FS":
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 else:
-    DEFAULT_FILE_STORAGE = "rdrf.db.filestorage.CustomS3Storage"
+    STORAGES = {
+        "default": {
+            "BACKEND": "rdrf.db.filestorage.CustomS3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 # Configure different aspects of file uploads to S3
 
