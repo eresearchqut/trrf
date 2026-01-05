@@ -96,8 +96,7 @@ def should_see(step, text):
 
 @step('click "(.*)"')
 def click_link(step, link_text):
-    link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=link_text)
-    utils.click(link)
+    utils.click_link(link_text)
 
 
 @step('should see a link to "(.*)"')

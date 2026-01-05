@@ -216,6 +216,11 @@ def click(element):
         element.click()
 
 
+def click_link(link_text):
+    link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=link_text)
+    click(link)
+
+
 def scroll_element_into_view(element, execute_pause=False):
     world.browser.execute_script(
         "arguments[0].scrollIntoView({block: 'center'});", element

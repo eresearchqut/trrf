@@ -24,9 +24,8 @@ from rdrf.testing.behaviour.features.auth.page import (
     TwoFactorTokenGeneratorPage,
     get_site_links,
 )
-from rdrf.testing.behaviour.features.steps import click_link
 from rdrf.testing.behaviour.features.terrain import TEST_WAIT
-from rdrf.testing.behaviour.features.utils import scroll_to_y
+from rdrf.testing.behaviour.features.utils import click_link, scroll_to_y
 
 logger = logging.getLogger(__name__)
 
