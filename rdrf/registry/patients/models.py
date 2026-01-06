@@ -2,7 +2,7 @@ import json
 import logging
 import random
 from collections import namedtuple
-from datetime import date, timedelta
+from datetime import timedelta
 from functools import reduce
 from operator import attrgetter
 
