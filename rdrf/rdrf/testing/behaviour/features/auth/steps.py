@@ -121,6 +121,11 @@ def logout(_step):
     BasePage(world.browser).open_menu("user")
     button = world.browser.find_element(by=By.ID, value="logout-button")
     button.click()
+    WebDriverWait(world.browser, TEST_WAIT).until(
+        expected_conditions.presence_of_element_located(
+            LoginPage.USERNAME_ELEMENT
+        )
+    )
 
 
 @step('reauthenticate with username "([^"]+)" and password "([^"]+)"')
@@ -131,6 +136,11 @@ def reauthenticate(_step, username, password):
 
 @step("am logged in successfully")
 def assert_is_logged_in(self):
+    WebDriverWait(world.browser, TEST_WAIT).until(
+        expected_conditions.presence_of_element_located(
+            BasePage.SITE_MENU.get("user")
+        )
+    )
     assert_equal(
         BasePage(world.browser).get_user_menu_text(),
         f"{world.user_first_name} {world.user_last_name}",
