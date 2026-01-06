@@ -1,10 +1,8 @@
 import logging
-from datetime import date, datetime
+from datetime import date
 from unittest import mock
-from unittest.mock import Mock
 
 import pytest
-from registry.patients import models
 from registry.patients.models import Patient
 
 from rdrf.models.definition.models import Registry
@@ -29,9 +27,9 @@ class PatientAgeTest(RDRFTestCase):
         patient.date_of_death = date_of_death
         return patient.age
 
-    @mock.patch(f"{models.__name__}.datetime", wraps=datetime)
-    def test_living_patient_age(self, *args, **kwargs):
-        models.datetime.date.today = Mock(return_value=date(2022, 12, 1))
+    @mock.patch("registry.patients.models.timezone")
+    def test_living_patient_age(self, mock_timezone):
+        mock_timezone.localdate.return_value = date(2022, 12, 1)
 
         self.assertEqual(
             self._get_calculated_age(self.patient, date(2000, 1, 1)), 22
@@ -51,9 +49,9 @@ class PatientAgeTest(RDRFTestCase):
                 self._get_calculated_age(self.patient, date(2017, 2, 29)), 5
             )  # Invalid leap year
 
-    @mock.patch(f"{models.__name__}.datetime", wraps=datetime)
-    def test_deceased_patient_age(self, *args, **kwargs):
-        models.datetime.date.today = Mock(return_value=date(2021, 6, 15))
+    @mock.patch("registry.patients.models.timezone")
+    def test_deceased_patient_age(self, mock_timezone):
+        mock_timezone.localdate.return_value = date(2021, 6, 15)
 
         self.assertEqual(
             self._get_calculated_age(

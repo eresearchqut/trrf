@@ -579,7 +579,7 @@ class Patient(models.Model):
             if self.date_of_death:
                 compare_date = self.date_of_death
             else:
-                compare_date = date.today()
+                compare_date = timezone.localdate()
 
             try:
                 birthday = born.replace(year=compare_date.year)
