@@ -10,7 +10,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from . import utils
-from .auth.steps import logout
 from .terrain import TEST_WAIT
 
 logger = logging.getLogger(__name__)
@@ -66,7 +65,8 @@ def check_user_activated(step):
     )
 
     # Log out as the admin user
-    logout(step)
+    world.browser.find_element(By.ID, "authMenuDropdown").click()
+    world.browser.find_element(By.ID, "logout-button").click()
 
 
 @step("I try to surf the site...")
@@ -96,7 +96,8 @@ def should_see(step, text):
 
 @step('click "(.*)"')
 def click_link(step, link_text):
-    utils.click_link(link_text)
+    link = world.browser.find_element(by=By.PARTIAL_LINK_TEXT, value=link_text)
+    utils.click(link)
 
 
 @step('should see a link to "(.*)"')
