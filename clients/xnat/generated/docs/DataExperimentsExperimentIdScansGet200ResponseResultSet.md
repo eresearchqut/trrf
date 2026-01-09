@@ -23,7 +23,7 @@ print(DataExperimentsExperimentIdScansGet200ResponseResultSet.to_json())
 # convert the object into a dict
 data_experiments_experiment_id_scans_get200_response_result_set_dict = data_experiments_experiment_id_scans_get200_response_result_set_instance.to_dict()
 # create an instance of DataExperimentsExperimentIdScansGet200ResponseResultSet from a dict
-data_experiments_experiment_id_scans_get200_response_result_set_form_dict = data_experiments_experiment_id_scans_get200_response_result_set.from_dict(data_experiments_experiment_id_scans_get200_response_result_set_dict)
+data_experiments_experiment_id_scans_get200_response_result_set_from_dict = DataExperimentsExperimentIdScansGet200ResponseResultSet.from_dict(data_experiments_experiment_id_scans_get200_response_result_set_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -1,7 +1,6 @@
 .github/workflows/python.yml
 .gitignore
 .gitlab-ci.yml
-.openapi-generator-ignore
 .travis.yml
 README.md
 docs/DataExperimentsExperimentIdScansGet200Response.md
@@ -34,11 +33,4 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_data_experiments_experiment_id_scans_get200_response.py
-test/test_data_experiments_experiment_id_scans_get200_response_result_set.py
-test/test_data_experiments_experiment_id_scans_get200_response_result_set_result_inner.py
-test/test_data_projects_project_id_subjects_subject_id_experiments_get200_response.py
-test/test_data_projects_project_id_subjects_subject_id_experiments_get200_response_result_set.py
-test/test_data_projects_project_id_subjects_subject_id_experiments_get200_response_result_set_result_inner.py
-test/test_default_api.py
 tox.ini

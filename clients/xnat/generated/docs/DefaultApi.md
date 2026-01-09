@@ -12,8 +12,6 @@ Method | HTTP request | Description
 # **data_experiments_experiment_id_scans_get**
 > DataExperimentsExperimentIdScansGet200Response data_experiments_experiment_id_scans_get(experiment_id, format=format)
 
-
-
 Get A Listing Of Scans From An Image Session
 
 ### Example
@@ -91,8 +89,6 @@ Name | Type | Description  | Notes
 
 # **data_projects_project_id_subjects_subject_id_experiments_get**
 > DataProjectsProjectIdSubjectsSubjectIdExperimentsGet200Response data_projects_project_id_subjects_subject_id_experiments_get(project_id, subject_id, format=format)
-
-
 
 Get a list of experiments
 
@@ -173,8 +169,6 @@ Name | Type | Description  | Notes
 
 # **data_services_auth_put**
 > data_services_auth_put()
-
-
 
 Logs in and returns the authentication cookie
 
