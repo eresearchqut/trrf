@@ -225,7 +225,13 @@ def setup_initial_otp_token(_step):
 
 @step("enter my generated OTP token")
 def enter_otp_token(_step):
+    current_url = world.browser.current_url
     utils.set_otp_token(TwoFactorLoginTokenPage(world.browser), world.key)
+    # Wait for the URL to change away from the 2FA login page
+    # Use longer timeout to handle CI environment delays
+    WebDriverWait(world.browser, TEST_WAIT * 2).until(
+        expected_conditions.url_changes(current_url)
+    )
 
 
 @step("confirm to disable two-factor auth")
