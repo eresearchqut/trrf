@@ -1,6 +1,7 @@
 import re
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.expected_conditions import (
     text_to_be_present_in_element_value,
 )
@@ -103,7 +104,12 @@ class TwoFactorLoginTokenPage(BasePage):
         return self
 
     def submit(self):
-        self._get_element(self.SUBMIT_BUTTON).submit()
+        submit_button = self._get_element(self.SUBMIT_BUTTON)
+        submit_button.click()
+        # Wait for the page to change after form submission
+        WebDriverWait(self.browser, TEST_WAIT).until(
+            expected_conditions.staleness_of(submit_button)
+        )
 
 
 class TwoFactorTokenGeneratorPage(TwoFactorLoginTokenPage):
