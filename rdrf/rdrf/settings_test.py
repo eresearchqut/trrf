@@ -1,5 +1,5 @@
 from .settings import *  # noqa
-from .settings import INSTALLED_APPS
+from .settings import INSTALLED_APPS, LOGGING
 
 INSTALLED_APPS += [
     "aloe_django",
@@ -16,3 +16,6 @@ GHERKIN_TEST_RUNNER = (
     "rdrf.testing.behaviour.features.runner.GherkinNoDjangoTestDBTestRunner"
 )
 GHERKIN_TEST_CLASS = "aloe.testclass.TestCase"
+
+# Remove verbose error handler from root logger during tests
+LOGGING["loggers"][""]["handlers"] = ["console"]
