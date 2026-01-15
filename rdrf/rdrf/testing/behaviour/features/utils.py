@@ -3,8 +3,8 @@ import os
 import subprocess
 
 from aloe import world
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
 
 TEST_WAIT = int(os.environ.get("TEST_WAIT") or "10")
 
