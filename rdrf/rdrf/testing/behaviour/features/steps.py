@@ -3,7 +3,6 @@ import time
 
 from aloe import step, world
 from aloe.registry import STEP_REGISTRY
-from aloe_webdriver.webdriver import contains_content
 from nose.tools import assert_equal, assert_true
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.common.by import By
@@ -91,7 +90,7 @@ def load_export(step, export_name):
 
 @step('should see "([^"]+)"$')
 def should_see(step, text):
-    assert_true(contains_content(world.browser, text))
+    assert_true(utils.contains_content(text))
 
 
 @step('click "(.*)"')

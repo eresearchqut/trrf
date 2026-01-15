@@ -72,7 +72,6 @@ test = [
     "pynose==1.5.5",
     "nose-timer==0.7.5",
     "aloe==0.2.0",
-    "aloe_webdriver==0.6.0",
     "aloe_django==0.2.0",
     "pyvirtualdisplay==0.2.5",
     "selenium>=4.10.0",

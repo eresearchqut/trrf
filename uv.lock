@@ -37,19 +37,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7f/d5/e28852bfb63e12478a488e165750cc33fb526dea6b14f8cd1a12f1577078/aloe_django-0.2.0.tar.gz", hash = "sha256:004e752cca48155ed249433a8af9cface938c62d903579e5a722f3bce62ba410", size = 44066, upload-time = "2020-01-12T10:56:14.02Z" }
 
 [[package]]
-name = "aloe-webdriver"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aloe" },
-    { name = "selenium" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/05/30/9cfe29e598b95ed3aa892b5dbf191e1b2c4e4ac692169fe29624f5fed448/aloe_webdriver-0.6.0.tar.gz", hash = "sha256:3b4f8ddd73d4c0ebf6afcabcb35283fe676ce9a4c5f4f0c038b0f16855a1a6d3", size = 36551, upload-time = "2020-01-12T22:35:58.849Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/1a/1462553bb538cf01aba6ba8d598638d8c084cfd49ca98a72f6bb51c96168/aloe_webdriver-0.6.0-py3-none-any.whl", hash = "sha256:3875e87223d68a4e06488fe67c2cd81f40d1bbb0faa3417434659916bd570072", size = 32087, upload-time = "2020-01-12T22:35:56.925Z" },
-]
-
-[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2107,7 +2094,6 @@ dev = [
 test = [
     { name = "aloe" },
     { name = "aloe-django" },
-    { name = "aloe-webdriver" },
     { name = "coverage" },
     { name = "django-nose" },
     { name = "nose-timer" },
@@ -2127,7 +2113,6 @@ test = [
 requires-dist = [
     { name = "aloe", marker = "extra == 'test'", specifier = "==0.2.0" },
     { name = "aloe-django", marker = "extra == 'test'", specifier = "==0.2.0" },
-    { name = "aloe-webdriver", marker = "extra == 'test'", specifier = "==0.6.0" },
     { name = "aws-xray-sdk", specifier = "==2.9.0" },
     { name = "awslambdaric", specifier = "==3.1.1" },
     { name = "boto3", specifier = "==1.40.41" },

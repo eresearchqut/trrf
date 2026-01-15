@@ -4,6 +4,7 @@ import subprocess
 
 from aloe import world
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import StaleElementReferenceException
 
 TEST_WAIT = int(os.environ.get("TEST_WAIT") or "10")
 
@@ -374,3 +375,30 @@ def wait_for_first_section():
             (By.CSS_SELECTOR, ".section-available")
         )
     )
+
+# From aloe_webdriver: https://github.com/aloetesting/aloe_webdriver
+
+def string_literal(content):
+    if '"' in content and "'" in content:
+        raise ValueError("Cannot represent this string in XPath")
+
+    if '"' in content:
+        content = "'%s'" % content
+    else:
+        content = '"%s"' % content
+
+    return content
+
+def contains_content(content):
+    for elem in world.browser.find_elements(By.XPATH,
+            '//*[contains(normalize-space(.), {content}) '
+            'and not(./*[contains(normalize-space(.), {content})])]'
+            .format(content=string_literal(content))):
+
+        try:
+            if elem.is_displayed():
+                return True
+        except StaleElementReferenceException:
+            pass
+
+    return False
