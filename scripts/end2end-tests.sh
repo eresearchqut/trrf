@@ -7,10 +7,14 @@ elif [ "${1}" != "dev" ] && [ "${1}" != "prod" ]; then
     echo "You probably want one of these:"
     echo "> $0 dev"
     echo "> $0 prod"
+    echo "> $0 dev features/base_login.feature"
     exit 1
 else
     STACK=${1}
 fi
+
+# optional feature file argument
+FEATURE=${2:-}
 
 alias aloe='docker compose -f docker-compose-aloe.yml'
 alias selenium='docker compose -f docker-compose-selenium.yml'
@@ -40,7 +44,11 @@ aloe stop
 aloe rm --force
 
 set +e
-aloe run --rm aloe_${STACK}
+if [ -n "$FEATURE" ]; then
+    aloe run --rm aloe_${STACK} aloe "$FEATURE"
+else
+    aloe run --rm aloe_${STACK}
+fi
 rval=$?
 set -e
 
