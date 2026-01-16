@@ -2,6 +2,9 @@ version = 1
 revision = 3
 requires-python = ">=3.13"
 
+[manifest]
+excludes = ["nose"]
+
 [[package]]
 name = "alabaster"
 version = "1.0.0"
@@ -19,7 +22,6 @@ dependencies = [
     { name = "ansicolors" },
     { name = "colorama" },
     { name = "gherkin-official" },
-    { name = "nose" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d6/43/f64222832386b8dc31078086aa157ba67581275630974a204f3df52da56e/aloe-0.2.0.tar.gz", hash = "sha256:d73f69d933600f3ba20c6773df485cc42b5b2e8c274fa3f6798750aedbaf5aa2", size = 97193, upload-time = "2020-01-12T04:58:52.558Z" }
 
@@ -101,16 +103,15 @@ wheels = [
 
 [[package]]
 name = "aws-xray-sdk"
-version = "2.9.0"
+version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "botocore" },
-    { name = "future" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/26/927206007f1ac57b0801046dc9baed8df9ccbdc7622b79bdaf0c193e8051/aws-xray-sdk-2.9.0.tar.gz", hash = "sha256:b0cd972db218d4d8f7b53ad806fc6184626b924c4997ae58fc9f2a8cd1281568", size = 71968, upload-time = "2021-12-06T20:55:24.897Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/25/0cbd7a440080def5e6f063720c3b190a25f8aa2938c1e34415dc18241596/aws_xray_sdk-2.15.0.tar.gz", hash = "sha256:794381b96e835314345068ae1dd3b9120bd8b4e21295066c37e8814dbb341365", size = 76315, upload-time = "2025-10-29T20:59:45Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/4b/4e0b47146a3fdca48b00774b7280e35c48c48aa9960010c6fc4a3f7f49ad/aws_xray_sdk-2.9.0-py2.py3-none-any.whl", hash = "sha256:98216b3ac8281b51b59a8703f8ec561c460807d9d0679838f5c0179d381d7e58", size = 98902, upload-time = "2021-12-06T20:56:12.011Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/c3/f30a7a63e664acc7c2545ca0491b6ce8264536e0e5cad3965f1d1b91e960/aws_xray_sdk-2.15.0-py2.py3-none-any.whl", hash = "sha256:422d62ad7d52e373eebb90b642eb1bb24657afe03b22a8df4a8b2e5108e278a3", size = 103228, upload-time = "2025-10-29T21:00:24.12Z" },
 ]
 
 [[package]]
@@ -400,9 +401,6 @@ wheels = [
 name = "django-nose"
 version = "1.4.7"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "nose" },
-]
 sdist = { url = "https://files.pythonhosted.org/packages/4c/d6/a340da9854cf0a2b54e23cf9147911b1e15a831911428983dd0158572ce9/django-nose-1.4.7.tar.gz", hash = "sha256:a4885cd002d65fd2de96e2bb2563ef477c3fbe207009360c015fca5c3b5561b7", size = 45041, upload-time = "2020-08-20T02:49:43.355Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a5/5e/804eda7b128162d215de14c0572717f16508cbdb899d4e839f51cef5481e/django_nose-1.4.7-py2.py3-none-any.whl", hash = "sha256:304adc447ee35b889b733d7106004f98aa401d8387ddcada5d4f2239d86790a9", size = 26470, upload-time = "2020-08-20T02:49:13.44Z" },
@@ -591,15 +589,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cb/be/8f8e563004c7eae0b03be0fc6427a4ce07691c758250fdb31a9e934028d4/flatten_json-0.1.13.tar.gz", hash = "sha256:ee352333e8293e957ccb1b4597a111fc4f6da88ab74b8cb3f8f51eed1e12f500", size = 11676, upload-time = "2021-02-20T09:47:17.543Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/51/dd/174c3a6bbc66913d8d95f259026b93595e4944bde47dc3a60309acd0a36b/flatten_json-0.1.13-py3-none-any.whl", hash = "sha256:2998c8b7d2ba4b4073589ee1c460049bcb45cdf559ba1c738a38cd48a8e48d19", size = 7961, upload-time = "2023-10-27T17:16:41.774Z" },
-]
-
-[[package]]
-name = "future"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a7/b2/4140c69c6a66432916b26158687e821ba631a4c9273c474343badf84d3ba/future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05", size = 1228490, upload-time = "2024-02-21T11:52:38.461Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/71/ae30dadffc90b9006d77af76b393cb9dfbfc9629f339fc1574a1c52e6806/future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216", size = 491326, upload-time = "2024-02-21T11:52:35.956Z" },
 ]
 
 [[package]]
@@ -1060,21 +1049,9 @@ wheels = [
 ]
 
 [[package]]
-name = "nose"
-version = "1.3.7"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/58/a5/0dc93c3ec33f4e281849523a5a913fa1eea9a3068acfa754d44d88107a44/nose-1.3.7.tar.gz", hash = "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98", size = 280488, upload-time = "2015-06-02T09:12:32.961Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/d8/dd071918c040f50fa1cf80da16423af51ff8ce4a0f2399b7bf8de45ac3d9/nose-1.3.7-py3-none-any.whl", hash = "sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac", size = 154731, upload-time = "2015-06-02T09:12:40.57Z" },
-]
-
-[[package]]
 name = "nose-timer"
 version = "0.7.5"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "nose" },
-]
 sdist = { url = "https://files.pythonhosted.org/packages/81/61/6476ed1c7a7bbb114246bb4632ec3a72008bc2d25cfbf3f4b1962143371f/nose-timer-0.7.5.tar.gz", hash = "sha256:647eeac86359188ecf02c75b0ab49d20ad10c41814ee89af30fcaf8d109b9f17", size = 7742, upload-time = "2019-03-14T04:56:36.485Z" }
 
 [[package]]
@@ -1327,12 +1304,12 @@ wheels = [
 
 [[package]]
 name = "pycountry"
-version = "22.1.10"
+version = "24.6.1"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "setuptools" },
+sdist = { url = "https://files.pythonhosted.org/packages/76/57/c389fa68c50590881a75b7883eeb3dc15e9e73a0fdc001cdd45c13290c92/pycountry-24.6.1.tar.gz", hash = "sha256:b61b3faccea67f87d10c1f2b0fc0be714409e8fcdcc1315613174f6466c10221", size = 6043910, upload-time = "2024-06-01T04:12:15.05Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/ec/1fb891d8a2660716aadb2143235481d15ed1cbfe3ad669194690b0604492/pycountry-24.6.1-py3-none-any.whl", hash = "sha256:f1a4fb391cd7214f8eefd39556d740adcc233c778a27f8942c8dca351d6ce06f", size = 6335189, upload-time = "2024-06-01T04:11:49.711Z" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/c4/2db520ae518156a88b419b2865d4fdc85fe78573948358f79dbaf0cf2b30/pycountry-22.1.10.tar.gz", hash = "sha256:b9a6d9cdbf53f81ccdf73f6f5de01b0d8493cab2213a230af3e34458de85ea32", size = 10060795, upload-time = "2022-01-10T07:40:43.133Z" }
 
 [[package]]
 name = "pycparser"
@@ -1722,15 +1699,6 @@ wheels = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "80.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c", size = 1319958, upload-time = "2025-05-27T00:56:51.443Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922", size = 1201486, upload-time = "2025-05-27T00:56:49.664Z" },
-]
-
-[[package]]
 name = "simplejson"
 version = "3.20.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2113,7 +2081,7 @@ test = [
 requires-dist = [
     { name = "aloe", marker = "extra == 'test'", specifier = "==0.2.0" },
     { name = "aloe-django", marker = "extra == 'test'", specifier = "==0.2.0" },
-    { name = "aws-xray-sdk", specifier = "==2.9.0" },
+    { name = "aws-xray-sdk", specifier = "==2.15.0" },
     { name = "awslambdaric", specifier = "==3.1.1" },
     { name = "boto3", specifier = "==1.40.41" },
     { name = "ccg-django-utils", specifier = "==0.4.2" },
@@ -2151,7 +2119,7 @@ requires-dist = [
     { name = "phonenumberslite", specifier = "==8.12.39" },
     { name = "pillow", specifier = "==11.3.0" },
     { name = "psycopg2-binary", specifier = "==2.9.10" },
-    { name = "pycountry", specifier = "==22.1.10" },
+    { name = "pycountry", specifier = "==24.6.1" },
     { name = "pynose", marker = "extra == 'test'", specifier = "==1.5.5" },
     { name = "pytest", marker = "extra == 'test'", specifier = "==7.1.1" },
     { name = "pytest-django", marker = "extra == 'test'", specifier = "==4.5.2" },
