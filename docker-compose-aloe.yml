@@ -1,5 +1,3 @@
-version: '3.7'
-
 x-common-env-variables: &common-env-variables
   DEBUG: 0
   TEST_WAIT: 10
