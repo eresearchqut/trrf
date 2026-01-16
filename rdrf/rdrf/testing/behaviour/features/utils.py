@@ -251,13 +251,7 @@ def scroll_to(element):
 
 
 def scroll_to_multisection_cde(section, cde, item=1):
-    # item 1 means the 1st block of cdes in the multisection
-    print(
-        "Attempting to scroll to section %s cde %s item %s"
-        % (section, cde, item)
-    )
     formset_string = "-%s-" % (int(item) - 1)
-    print("formset_string = %s" % formset_string)
     xpath = "//div[@class='card-header' and contains(., '%s')]" % section
     panel_heading = world.browser.find_element(
         by=By.XPATH, value=xpath
@@ -274,7 +268,6 @@ def scroll_to_multisection_cde(section, cde, item=1):
     for label_element in default_panel.find_elements(
         by=By.XPATH, value=label_expression
     ):
-        print("found a label element for cde %s" % cde)
         input_div = label_element.find_element(
             by=By.XPATH, value=".//following-sibling::div"
         )
@@ -286,10 +279,6 @@ def scroll_to_multisection_cde(section, cde, item=1):
                 % formset_string,
             )
             scroll_to(input_element)
-            print(
-                "found input element: id = %s"
-                % input_element.get_attribute("id")
-            )
             return input_element
         except BaseException:
             continue
@@ -376,7 +365,9 @@ def wait_for_first_section():
         )
     )
 
+
 # From aloe_webdriver: https://github.com/aloetesting/aloe_webdriver
+
 
 def string_literal(content):
     if '"' in content and "'" in content:
@@ -389,12 +380,15 @@ def string_literal(content):
 
     return content
 
-def contains_content(content):
-    for elem in world.browser.find_elements(By.XPATH,
-            '//*[contains(normalize-space(.), {content}) '
-            'and not(./*[contains(normalize-space(.), {content})])]'
-            .format(content=string_literal(content))):
 
+def contains_content(content):
+    for elem in world.browser.find_elements(
+        By.XPATH,
+        "//*[contains(normalize-space(.), {content}) "
+        "and not(./*[contains(normalize-space(.), {content})])]".format(
+            content=string_literal(content)
+        ),
+    ):
         try:
             if elem.is_displayed():
                 return True

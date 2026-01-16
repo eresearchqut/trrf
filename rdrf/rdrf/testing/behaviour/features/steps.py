@@ -232,9 +232,6 @@ def enter_cde_on_form_multisection(step, cde_value, form, section, cde, item):
             if not correct_item(input_element):
                 continue
             input_element.send_keys(cde_value)
-            input_id = input_element.get_attribute("id")
-            print("input id %s sent keys '%s'" % (input_id, cde_value))
-
             return
         except BaseException:
             pass
@@ -765,7 +762,6 @@ def scroll_to_section(step, section):
     from selenium.webdriver.common.action_chains import ActionChains
 
     mover = ActionChains(world.browser)
-    print("scrolling to section %s" % section)
     section_xpath = (
         ".//div[@class='panel panel-default' and contains(.,'%s') and not(contains(., '__prefix__')) and not(contains(.,'View previous values'))]"
         % section
@@ -775,9 +771,7 @@ def scroll_to_section(step, section):
     )
     if not section_element:
         raise Exception("could not find section %s" % section)
-    y = utils.scroll_to(section_element)
     mover.move_to_element(section_element)
-    print("scrolled to section %s y = %s" % (section, y))
 
 
 @step('I click the add button for multisection "(.*)"')
