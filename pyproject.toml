@@ -85,6 +85,9 @@ test = [
 [tool.uv.sources]
 openapi-client = { path = "./clients/xnat/generated" }
 
+[tool.uv]
+exclude-dependencies = ["nose"]
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
