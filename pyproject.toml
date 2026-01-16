@@ -6,7 +6,10 @@ build-backend = "hatchling.build"
 name = "trrf"
 version = "1.0.0"
 description = "Trial Ready Registry Framework"
-authors = [{ name = "Queensland University of Technology - eResearch" }]
+authors = [
+    { name = "Queensland University of Technology - eResearch" },
+    { name = "Murdoch University - Centre for Comparative Genomics" },
+]
 requires-python = ">=3.13"
 dependencies = [
     "ccg-django-utils==0.4.2",
