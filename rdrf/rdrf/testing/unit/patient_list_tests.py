@@ -96,6 +96,33 @@ class PatientListTests(RDRFTestCase):
         registry_config = PatientListConfiguration(self.registry)
         self.assertEqual(registry_config.get_facets(), {})
 
+    def testPatientGuidColumn(self):
+        self.registry.metadata_json = (
+            '{"patient_list": {"columns": ["full_name", "patient_guid"]}}'
+        )
+        self.registry.save()
+        columns = PatientListConfiguration(self.registry).get_columns()
+        self.assertEqual(
+            [
+                (key, c.__class__.__name__, c.label, c.perm)
+                for key, c in columns.items()
+            ],
+            [
+                (
+                    "full_name",
+                    "ColumnFullName",
+                    "Patient",
+                    "patients.can_see_full_name",
+                ),
+                (
+                    "patient_guid",
+                    "ColumnPatientGuid",
+                    "GUID",
+                    "patients.can_see_patient_guid",
+                ),
+            ],
+        )
+
     def testExtensibilityOfPatientListConfiguration(self):
         class ExtendPatientListConfiguration(PatientListConfiguration):
             def __init__(self, registry):

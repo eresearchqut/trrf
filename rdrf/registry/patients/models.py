@@ -519,6 +519,7 @@ class Patient(models.Model):
             ("can_see_data_modules", _("Can see Data Modules column")),
             ("can_see_code_field", _("Can see Code Field column")),
             ("can_see_living_status", _("Can see Living Status column")),
+            ("can_see_patient_guid", _("Can see Patient GUID column")),
         )
 
     def as_dto(self):

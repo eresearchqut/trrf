@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('patients', '0065_update_parentguardian_field_labels'),
+        ('patients', '0066_patient_list_guid'),
     ]
 
     operations = [
