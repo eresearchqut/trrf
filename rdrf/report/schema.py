@@ -5,7 +5,7 @@ from functools import partial
 from importlib import import_module
 
 import graphene
-from cache_memoize import cache_memoize
+from cachetools import TTLCache
 from django.conf import settings
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import SearchVector
@@ -42,6 +42,8 @@ from useraudit.models import LoginLog
 from report.TrrfGraphQLView import PublicGraphQLError
 
 logger = logging.getLogger(__name__)
+
+_dynamic_schema_cache = TTLCache(maxsize=1, ttl=settings.CACHE_DEFAULT_TIMEOUT)
 
 _graphql_field_pattern = re.compile("^[_a-zA-Z][_a-zA-Z0-9]*$")
 
@@ -1095,8 +1097,11 @@ def create_dynamic_registry_type(registry):
 
 # TODO: Replace partial resolvers with single resolve function for each level
 # TODO: Replace Metaprogramming with a low-level library like graphql-core
-@cache_memoize(settings.CACHE_DEFAULT_TIMEOUT)
 def create_dynamic_schema():
+    cached = _dynamic_schema_cache.get("schema")
+    if cached is not None:
+        return cached
+
     if not Registry.objects.all().exists():
         return None
 
@@ -1121,8 +1126,10 @@ def create_dynamic_schema():
         "DynamicQuery", (graphene.ObjectType,), dynamic_query_fields
     )
 
-    return graphene.Schema(query=dynamic_query)
+    schema = graphene.Schema(query=dynamic_query)
+    _dynamic_schema_cache["schema"] = schema
+    return schema
 
 
 def clear_dynamic_schema_cache():
-    create_dynamic_schema.invalidate()
+    _dynamic_schema_cache.clear()
