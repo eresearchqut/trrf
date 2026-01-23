@@ -1090,8 +1090,8 @@ def registry_form_definition_changed(sender, instance, **kwargs):
     clear_dynamic_schema_cache()
 
 
-@receiver([post_save, post_delete], sender="definition.Registry")
-@receiver([post_save, post_delete], sender="definition.ContextFormGroup")
+@receiver([post_save, post_delete], sender="rdrf.Registry")
+@receiver([post_save, post_delete], sender="rdrf.ContextFormGroup")
 def registry_definition_changed(sender, instance, **kwargs):
     from report.schema import clear_dynamic_schema_cache
 
