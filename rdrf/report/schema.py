@@ -5,6 +5,7 @@ from functools import partial
 from importlib import import_module
 
 import graphene
+from cache_memoize import cache_memoize
 from django.conf import settings
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import SearchVector
@@ -1094,6 +1095,7 @@ def create_dynamic_registry_type(registry):
 
 # TODO: Replace partial resolvers with single resolve function for each level
 # TODO: Replace Metaprogramming with a low-level library like graphql-core
+@cache_memoize(settings.CACHE_DEFAULT_TIMEOUT)
 def create_dynamic_schema():
     if not Registry.objects.all().exists():
         return None
@@ -1120,3 +1122,7 @@ def create_dynamic_schema():
     )
 
     return graphene.Schema(query=dynamic_query)
+
+
+def clear_dynamic_schema_cache():
+    create_dynamic_schema.invalidate()

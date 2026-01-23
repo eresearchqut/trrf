@@ -1079,12 +1079,22 @@ class RegistryForm(models.Model):
 @receiver([post_save, post_delete], sender=CommonDataElement)
 def registry_form_definition_changed(sender, instance, **kwargs):
     from rdrf.forms.dsl.parse_utils import clear_prefetched_form_data_cache
+    from report.schema import clear_dynamic_schema_cache
 
     all_forms = list(RegistryForm.objects.all())
     if isinstance(instance, RegistryForm) and instance not in all_forms:
         all_forms.append(instance)
 
     clear_prefetched_form_data_cache(all_forms)
+    clear_dynamic_schema_cache()
+
+
+@receiver([post_save, post_delete], sender="definition.Registry")
+@receiver([post_save, post_delete], sender="definition.ContextFormGroup")
+def registry_definition_changed(sender, instance, **kwargs):
+    from report.schema import clear_dynamic_schema_cache
+
+    clear_dynamic_schema_cache()
 
 
 class RegistryFormTranslation(models.Model):
