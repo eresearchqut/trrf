@@ -102,7 +102,7 @@ def execute_query(request, query, variable_values=None):
     )
 
     if hasattr(result, "errors") and result.errors:
-        raise GraphQLResultError(result.errors)
+        raise GraphQLResultError(str(result.errors))
 
     return result
 
