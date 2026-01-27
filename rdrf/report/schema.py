@@ -763,7 +763,7 @@ def create_dynamic_facet_type(registry):
         return sorted(
             [
                 {
-                    "label": get_label_fn(item[facet_field]),
+                    "label": get_label_fn(item[facet_field]) or "(Unassigned)",
                     "value": item[facet_field],
                     "total": item["total"],
                 }
