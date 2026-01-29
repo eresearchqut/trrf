@@ -590,8 +590,8 @@ class EmailChangeRequest(models.Model):
     history = HistoricalRecords()
 
 
-@receiver([post_save, post_delete], sender=WorkingGroupType)
-@receiver([post_save, post_delete], sender=WorkingGroup)
+@receiver([post_save, post_delete], sender="groups.WorkingGroupType")
+@receiver([post_save, post_delete], sender="groups.WorkingGroup")
 def working_group_changed(sender, instance, **kwargs):
     from report.schema_cache import invalidate_schema_cache
 
