@@ -2,7 +2,7 @@ import logging
 
 from gql_query_builder import GqlQuery
 from graphql import GraphQLError
-from report.schema import create_dynamic_schema
+from report.schema_cache import get_cached_schema
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def build_all_patients_query(
 
 
 def execute_query(request, query, variable_values=None):
-    schema = create_dynamic_schema()
+    schema = get_cached_schema()
     result = schema.execute(
         query, context_value=request, variable_values=variable_values
     )

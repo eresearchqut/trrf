@@ -6,7 +6,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog
-from report.schema import create_dynamic_schema
+from report.schema_cache import get_cached_schema
 from report.TrrfGraphQLView import TrrfGraphQLView
 from two_factor import views as twv
 
@@ -110,7 +110,7 @@ if settings.DEBUG is True:
         path(
             "graphql",
             lambda request: TrrfGraphQLView.as_view(
-                schema=create_dynamic_schema(), graphiql=True
+                schema=get_cached_schema(), graphiql=True
             )(request),
         ),
     ]

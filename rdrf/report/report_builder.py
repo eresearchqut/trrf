@@ -20,10 +20,8 @@ from rdrf.patients.query_data import (
 
 from report.clinical_data_csv_util import ClinicalDataCsvUtil
 from report.models import ReportCdeHeadingFormat
-from report.schema import (
-    create_dynamic_schema,
-    get_schema_field_name,
-)
+from report.schema import get_schema_field_name
+from report.schema_cache import get_cached_schema
 from report.utils import (
     get_flattened_json_path,
     get_graphql_result_value,
@@ -39,7 +37,7 @@ class ReportBuilder:
         self.report_config = load_report_configuration()["demographic_model"]
         self.report_fields_lookup = self.__init_report_fields_lookup()
         self.patient_filters = self.__init_patient_filters()
-        self.schema = create_dynamic_schema()
+        self.schema = get_cached_schema()
 
     def __init_report_fields_lookup(self):
         return {

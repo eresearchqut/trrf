@@ -1087,6 +1087,16 @@ def registry_form_definition_changed(sender, instance, **kwargs):
     clear_prefetched_form_data_cache(all_forms)
 
 
+@receiver([post_save, post_delete], sender=Registry)
+@receiver([post_save, post_delete], sender=RegistryForm)
+@receiver([post_save, post_delete], sender=Section)
+@receiver([post_save, post_delete], sender=CommonDataElement)
+def schema_definition_changed(sender, instance, **kwargs):
+    from report.schema_cache import invalidate_schema_cache
+
+    invalidate_schema_cache()
+
+
 class RegistryFormTranslation(models.Model):
     language = models.OneToOneField(Language, on_delete=models.CASCADE)
     translated_forms = models.ManyToManyField(
@@ -2520,3 +2530,16 @@ class LongitudinalFollowup(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# Additional signal handlers for GraphQL schema cache invalidation.
+# These are defined at the end of the file because they reference models
+# that are defined after the schema_definition_changed handler above.
+@receiver([post_save, post_delete], sender=ContextFormGroup)
+@receiver([post_save, post_delete], sender=ContextFormGroupItem)
+@receiver([post_save, post_delete], sender=ConsentSection)
+@receiver([post_save, post_delete], sender=ConsentQuestion)
+def schema_definition_changed_deferred(sender, instance, **kwargs):
+    from report.schema_cache import invalidate_schema_cache
+
+    invalidate_schema_cache()

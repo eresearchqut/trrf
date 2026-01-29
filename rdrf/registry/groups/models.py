@@ -14,6 +14,7 @@ from django.contrib.auth.models import (
 from django.core import validators
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_string
@@ -587,3 +588,11 @@ class EmailChangeRequest(models.Model):
     )
 
     history = HistoricalRecords()
+
+
+@receiver([post_save, post_delete], sender=WorkingGroupType)
+@receiver([post_save, post_delete], sender=WorkingGroup)
+def working_group_changed(sender, instance, **kwargs):
+    from report.schema_cache import invalidate_schema_cache
+
+    invalidate_schema_cache()
