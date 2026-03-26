@@ -79,7 +79,7 @@ test = [
     "pytest-django==4.5.2",
     "pytest==7.1.1",
     "pyvirtualdisplay==0.2.5",
-    "requests==2.32.4",
+    "requests==2.33.0",
     "selenium>=4.10.0",
     "sqlalchemy-utils==0.36.1",
     "stellar==0.4.5",
